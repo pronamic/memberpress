@@ -194,8 +194,6 @@ class MeprUsersCtrl extends MeprBaseCtrl {
   public static function extra_profile_fields($wpuser) {
     $mepr_options = MeprOptions::fetch();
     $user = new MeprUser($wpuser->ID);
-    $vat_number = get_user_meta($wpuser->ID, 'mepr_vat_number', true);
-    $vat_number = empty($vat_number) ? __('Not set', 'memberpress') : $vat_number;
 
     MeprView::render("/admin/users/extra_profile_fields", get_defined_vars());
   }
@@ -633,7 +631,9 @@ class MeprUsersCtrl extends MeprBaseCtrl {
     }
 
     $user = new MeprUser($userid);
+    $message = (isset($atts['message']) && !empty($atts['message'])) ? wp_kses_post($atts['message']) : '';
+    $titles = esc_attr(trim($user->get_active_subscription_titles()));
 
-    return esc_attr($user->get_active_subscription_titles());
+    return ('' != $titles) ? $titles : $message;
   }
 } //End class

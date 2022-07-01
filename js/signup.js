@@ -261,7 +261,9 @@
           complete: function() {
             // Clear validation errors on fields now hidden
             form.find('.mepr-payment-methods-wrapper .mepr-form-input').each(function () {
-              meprValidateInput(this);
+              $('.mepr-form-input.invalid').removeClass('.invalid');
+              $('.cc-error').hide();
+              $('.mepr-form-has-errors').hide();
             });
 
             if(pmid_exists) {
@@ -272,7 +274,9 @@
       } else {
         // Clear validation errors on fields now hidden
         form.find('.mepr-payment-methods-wrapper .mepr-form-input').each(function () {
-          meprValidateInput(this);
+          $('.mepr-form-input.invalid').removeClass('.invalid');
+          $('.cc-error').hide();
+          $('.mepr-form-has-errors').hide();
         });
 
         if(pmid_exists) {

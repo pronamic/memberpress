@@ -57,7 +57,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         'force_ssl' => false,
         'debug' => false,
         'test_mode' => false,
-        'stripe_wallet_enabled' => true,
+        'stripe_link_enabled' => 'default',
         'stripe_checkout_enabled' => false,
         'churn_buster_enabled' => false,
         'churn_buster_uuid' => '',
@@ -125,7 +125,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   {
     $tax_request = [
       'inclusive' => 'false',
-      'percentage' => MeprUtils::format_float((float) $rate),
+      'percentage' => MeprUtils::format_float((float) $rate, 3),
     ];
 
     if (empty($name)) {
@@ -277,21 +277,28 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         }
       }
 
-      if ($coupon->discount_mode == 'first-payment'
-          && $coupon->get_first_payment_discount_amount($product) > 0) {
-        if ($coupon->first_payment_discount_type != 'percent') {
+      if($product->is_one_time_payment() && $coupon->discount_mode == 'first-payment' && $coupon->get_first_payment_discount_amount($product) > 0) {
+        if ($coupon->first_payment_discount_type  != 'percent') {
           $stripe_coupon_id = $this->get_coupon_id($coupon, $this->to_stripe_decimal_amount($coupon->get_first_payment_discount_amount($product)), true);
         } else {
           $stripe_coupon_id = $this->get_coupon_id($coupon, $coupon->get_first_payment_discount_amount($product), true);
         }
+      }
 
-        if ($product->trial == false && !$product->is_one_time_payment()) {
+      if(
+          !$product->is_one_time_payment() &&
+          (
+            ($coupon->discount_mode == 'first-payment' && $coupon->get_first_payment_discount_amount($product) > 0) ||
+            ($coupon->discount_mode == 'trial-override' && $coupon->get_discount_amount($product) > 0)
+          )
+      ) {
           $tmp_sub = new MeprSubscription();
           $tmp_sub->id = 0;
           $tmp_sub->user_id = (isset($current_user->ID))?$current_user->ID:0;
           $tmp_sub->load_product_vars($product, null,true);
           $tmp_sub->maybe_prorate();
           $sub->trial_amount = $tmp_sub->price;
+
           if ($coupon->get_discount_amount($product) > 0) {
             $tmp_coupon = new MeprCoupon();
             $tmp_coupon->discount_amount = $coupon->get_discount_amount($product);
@@ -299,7 +306,6 @@ class MeprStripeGateway extends MeprBaseRealGateway {
             $price = $tmp_coupon->apply_discount($product->price, false, $product);
             $price_id = $this->get_stripe_price_id($sub, $txn, $product, $usr, $price);
           }
-        }
       }
     }
 
@@ -338,30 +344,27 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       ];
     }
 
-    if ($sub instanceof  MeprSubscription && $sub->trial > 0) {
+    if ($sub instanceof MeprSubscription && $sub->trial > 0) {
       $checkout_session['subscription_data'] = [
         'trial_period_days' => $sub->trial_days,
       ];
 
+      // The section below sets the recurring price amount to the coupon discounted amount.
+      // Since a Stripe coupon will also discount the trial amount, we can't use a Stripe coupon if there is a paid trial.
+      if($coupon instanceof MeprCoupon && $coupon->get_discount_amount($product) > 0 && $sub->trial_total > 0) {
+        $tmp_coupon = new MeprCoupon();
+        $tmp_coupon->discount_amount = $coupon->get_discount_amount($product);
+        $tmp_coupon->discount_type = $coupon->discount_type;
+        $price = $tmp_coupon->apply_discount($product->price, false, $product);
+        $checkout_session['line_items'][0]['price'] = $this->get_stripe_price_id($sub, $txn, $product, $usr, $price);
+      }
+
       if ($tax_inclusive) {
-        $tax_rate_id = $this->get_stripe_tax_rate_id( $txn->tax_desc, $txn->tax_rate, $product, true );
-        $price_include_tax_id = $this->get_stripe_price_id($sub, $txn, $product, $usr, $product->price);
-
-        if ($coupon instanceof MeprCoupon && $coupon->get_discount_amount($product) > 0) {
-          $tmp_coupon = new MeprCoupon();
-          $tmp_coupon->discount_amount = $coupon->get_discount_amount($product);
-          $tmp_coupon->discount_type = $coupon->discount_type;
-          $price = $tmp_coupon->apply_discount($product->price, false, $product);
-          $price_include_tax_id = $this->get_stripe_price_id($sub, $txn, $product, $usr, $price);
-        }
-
-        $checkout_session['line_items'][0]['price'] = $price_include_tax_id;
         $trial_amount = $sub->trial_total;
       } else {
         $trial_amount = $sub->trial_total - $sub->trial_tax_amount;
       }
 
-//      $trial_amount = !empty($product->trial) == false && $sub->trial_amount > 0 ? $sub->trial_amount : $product->price;
       $trial_amount = (self::is_zero_decimal_currency())?MeprUtils::format_float(($trial_amount), 0):MeprUtils::format_float(($trial_amount * 100), 0);
       $trial_plan = [
         'quantity' => 1,
@@ -384,15 +387,18 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
 
     if (isset($stripe_coupon_id)) {
-      if (!isset($trial_amount) || $product->trial_amount == 0) {
+      if (!$sub instanceof MeprSubscription || !$sub->trial || $sub->trial_total == 0) {
         $checkout_session['discounts'] = [
           [ 'coupon' => $stripe_coupon_id ],
         ];
       }
 
-      if ($coupon->discount_mode == 'first-payment'
-          && $coupon->first_payment_discount_amount > 0
-          && !$product->is_one_time_payment()
+      if(
+        !$product->is_one_time_payment() &&
+        (
+          ($coupon->discount_mode == 'first-payment' && $coupon->get_first_payment_discount_amount($product) > 0) ||
+          ($coupon->discount_mode == 'trial-override' && $coupon->get_discount_amount($product) > 0)
+        )
       ) {
         unset($checkout_session['discounts']);
       }
@@ -416,6 +422,19 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   }
 
   /**
+   * @param $payment_intent_id
+   *
+   * @return object
+   * @throws MeprHttpException
+   * @throws MeprRemoteException
+   */
+  public function get_payment_intent( $payment_intent_id ) {
+    $payment_intent = (object) $this->send_stripe_request( 'payment_intents/' . $payment_intent_id, [], 'get' );
+
+    return $payment_intent;
+  }
+
+  /**
    * Create a PaymentIntent via the Stripe API
    *
    * If the user's card requires no additional action, it will be charged and the PaymentIntent status set to
@@ -428,11 +447,12 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    * @param  MeprTransaction     $txn               The MemberPress transaction
    * @param  MeprUser            $usr               The MemberPress user
    * @param  string              $payment_method_id The Stripe PaymentMethod ID
+   * @param  string              $setup_intent_id   The Stripe Setup Intent ID
    * @return stdClass                               The Stripe PaymentIntent data
    * @throws MeprHttpException                      If there was an HTTP error connecting to Stripe
    * @throws MeprRemoteException                    If there was an invalid or error response from Stripe
    */
-  public function create_payment_intent(MeprTransaction $txn, MeprUser $usr, $payment_method_id) {
+  public function create_payment_intent(MeprTransaction $txn, MeprUser $usr, $payment_method_id = null, $setup_intent_id = null) {
     $mepr_options = MeprOptions::fetch();
     $prd = $txn->product();
     $customer_id = $this->get_customer_id($usr, $payment_method_id);
@@ -440,27 +460,43 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     // Handle zero decimal currencies in Stripe
     $amount = (self::is_zero_decimal_currency())?MeprUtils::format_float(($txn->total), 0):MeprUtils::format_float(($txn->total * 100), 0);
 
-    // Create the PaymentIntent on Stripe's servers - if it succeeds the user's card will be charged
-    $args = MeprHooks::apply_filters('mepr_stripe_payment_intent_args', array(
-      'payment_method' => $payment_method_id,
-      'amount' => $amount,
-      'currency' => $mepr_options->currency_code,
-      'customer' => $customer_id,
-      'confirmation_method' => 'manual',
-      'confirm' => 'true',
-      'setup_future_usage' => 'off_session', // Required to allow rebills to use this card
-      'description' => sprintf(__('%s (transaction: %s)', 'memberpress'), $prd->post_title, $txn->id),
-      'metadata' => array(
-        'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
-        'transaction_id' => $txn->id,
-        'site_url' => esc_url( get_site_url() ),
-        'ip_address' => $_SERVER['REMOTE_ADDR']
-      ),
-      'expand' => array(
-        'payment_method'
-      )
-    ), $txn);
-
+    if (!empty($setup_intent_id)) {
+      $args = MeprHooks::apply_filters( 'mepr_stripe_payment_intent_args', array(
+        'amount'              => $amount,
+        'currency'            => $mepr_options->currency_code,
+        'customer'            => $customer_id,
+        'payment_method_types' => $this->is_stripe_link_enabled() ? ['card', 'link'] : ['card'],
+        'setup_future_usage'  => 'off_session', // Required to allow rebills to use this card
+        'description'         => sprintf( __( '%s (transaction: %s)', 'memberpress' ), $prd->post_title, $txn->id ),
+        'metadata'            => array(
+          'platform'       => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
+          'transaction_id' => $txn->id,
+          'site_url'       => esc_url( get_site_url() ),
+          'ip_address'     => $_SERVER['REMOTE_ADDR']
+        ),
+      ), $txn );
+    } else {
+      // Create the PaymentIntent on Stripe's servers - if it succeeds the user's card will be charged
+      $args = MeprHooks::apply_filters( 'mepr_stripe_payment_intent_args', array(
+        'payment_method'      => $payment_method_id,
+        'amount'              => $amount,
+        'currency'            => $mepr_options->currency_code,
+        'customer'            => $customer_id,
+        'confirmation_method' => 'manual',
+        'confirm'             => 'true',
+        'setup_future_usage'  => 'off_session', // Required to allow rebills to use this card
+        'description'         => sprintf( __( '%s (transaction: %s)', 'memberpress' ), $prd->post_title, $txn->id ),
+        'metadata'            => array(
+          'platform'       => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
+          'transaction_id' => $txn->id,
+          'site_url'       => esc_url( get_site_url() ),
+          'ip_address'     => $_SERVER['REMOTE_ADDR']
+        ),
+        'expand'              => array(
+          'payment_method'
+        )
+      ), $txn );
+    }
     $this->email_status('Stripe PaymentIntent Happening Now ... ' . MeprUtils::object_to_string($args), $this->settings->debug);
 
     $payment_intent = (object) $this->send_stripe_request('payment_intents', $args, 'post');
@@ -1309,6 +1345,15 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           $txn = new MeprTransaction();
           $txn->user_id = $sub->user_id;
           $txn->product_id = $sub->product_id;
+        } else {
+          $transactions = $sub->transactions();
+
+          foreach ($transactions as $transaction) {
+            if ($transaction->status == MeprTransaction::$pending_str) {
+              $this->activate_subscription($transaction, $sub);
+              break;
+            }
+          }
         }
 
         if ($upgrade) {
@@ -1910,15 +1955,6 @@ class MeprStripeGateway extends MeprBaseRealGateway {
             MeprView::render("/checkout/MeprStripeGateway/payment_gateway_fields", get_defined_vars());
           }
         ?>
-
-        <?php if($this->settings->stripe_wallet_enabled == 'on' && $this->settings->stripe_checkout_enabled != 'on') { ?>
-          <div class="mepr-stripe-payment-request-wrapper">
-            <div id="mepr-stripe-payment-request-element" style="max-width: 300px" class="mepr-stripe-payment-request-element" data-stripe-public-key="<?php echo esc_attr($this->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($this->settings->id); ?>" data-locale-code="<?php echo $mepr_options->language_code; ?>" data-currency-code="<?php echo $mepr_options->currency_code; ?>" data-total-text="<?php echo esc_attr(__('Total', 'memberpress')); ?>">
-              <!-- a Stripe Payment Request Element will be inserted here. -->
-            </div>
-            <br>
-          </div>
-        <?php } ?>
     <?php if($this->settings->stripe_checkout_enabled == 'on'): ?>
       <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
       <input type="hidden" name="mepr_stripe_is_checkout" value="1"/>
@@ -1933,6 +1969,20 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           </div>
           <input type="text" name="card-name" id="mepr_strip_card_name" class="mepr-form-input stripe-card-name" required value="<?php echo esc_attr($user->get_full_name()); ?>" />
         </div>
+
+        <?php if ($this->is_stripe_link_enabled()) { ?>
+        <div class="mp-form-row">
+          <div class="mp-form-label">
+            <span role="alert" class="mepr-stripe-link-errors"></span>
+            <?php
+            $mepr_current_user = MeprUtils::get_currentuserinfo();
+            ?>
+          </div>
+          <div class="mepr-stripe-link-element" data-stripe-email="<?php esc_attr_e($mepr_current_user->user_email, 'memberpress'); ?>" data-stripe-public-key="<?php echo esc_attr($this->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($this->settings->id); ?>" data-locale-code="<?php echo esc_attr(self::get_locale_code()); ?>">
+            <!-- a Stripe Element will be inserted here. -->
+          </div>
+        </div>
+        <?php } ?>
 
         <div class="mp-form-row">
           <div class="mp-form-label">
@@ -1981,7 +2031,12 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $service_account_name = stripslashes(trim($this->settings->service_account_name));
     $churn_buster_enabled = ($this->settings->churn_buster_enabled == 'on' or $this->settings->churn_buster_enabled == true);
     $stripe_checkout_enabled = $this->settings->stripe_checkout_enabled == 'on';
-    $stripe_wallet_enabled = $this->settings->stripe_wallet_enabled == 'on' or $this->settings->stripe_wallet_enabled == true;
+    $stripe_link_enabled = $this->settings->stripe_link_enabled == 'on' or $this->settings->stripe_link_enabled == true;
+
+    if ($this->settings->stripe_link_enabled === 'default' && $mepr_options->currency_code == 'USD') {
+      $stripe_link_enabled = true;
+    }
+
     $churn_buster_uuid    = trim($this->settings->churn_buster_uuid);
 
     $test_secret_key_str      = "{$mepr_options->integrations_str}[{$this->id}][api_keys][test][secret]";
@@ -1996,7 +2051,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $service_account_name_string= "{$mepr_options->integrations_str}[{$this->id}][service_account_name]";
     $churn_buster_enabled_str = "{$mepr_options->integrations_str}[{$this->id}][churn_buster_enabled]";
     $stripe_checkout_enabled_str = "{$mepr_options->integrations_str}[{$this->id}][stripe_checkout_enabled]";
-    $stripe_wallet_enabled_str = "{$mepr_options->integrations_str}[{$this->id}][stripe_wallet_enabled]";
+    $stripe_link_enabled_str = "{$mepr_options->integrations_str}[{$this->id}][stripe_link_enabled]";
     $churn_buster_uuid_str    = "{$mepr_options->integrations_str}[{$this->id}][churn_buster_uuid]";
 
     $account_email = get_option( 'mepr_authenticator_account_email' );
@@ -2024,8 +2079,8 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   public function validate_options_form($errors) {
     $mepr_options = MeprOptions::fetch();
 
-    if ( ! isset( $_REQUEST[ $mepr_options->integrations_str ][ $this->id ]['stripe_wallet_enabled'] ) ) {
-      $_POST[ $mepr_options->integrations_str ][ $this->id ]['stripe_wallet_enabled'] = false;
+    if ( ! isset( $_REQUEST[ $mepr_options->integrations_str ][ $this->id ]['stripe_link_enabled'] ) ) {
+      $_POST[ $mepr_options->integrations_str ][ $this->id ]['stripe_link_enabled'] = false;
     }
 
     $testmode = isset($_REQUEST[$mepr_options->integrations_str][$this->id]['test_mode']);
@@ -2130,6 +2185,16 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     */
   public function process_update_account_form($sub_id) {
     $this->process_update_subscription($sub_id);
+  }
+
+  public function is_stripe_link_enabled() {
+    $mepr_options = MeprOptions::fetch();
+
+    if ( $mepr_options->currency_code !== 'USD' ) {
+      return false;
+    }
+
+    return (isset($this->settings->stripe_link_enabled) && $this->settings->stripe_link_enabled);
   }
 
   /** Returns boolean ... whether or not we should be sending in test mode or not */
@@ -2297,6 +2362,14 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
     else if($event->type=='product.deleted') {
       MeprProduct::delete_stripe_product_id($this->get_meta_gateway_id(), $obj->id);
+    }
+    else if($event->type=='payment_intent.succeeded') {
+      $txn = MeprTransaction::get_one_by_trans_num($obj->id);
+
+      if(is_object($txn) and isset($txn->id)) {
+        $txn = new MeprTransaction($txn->id);
+        $this->handle_one_time_payment($txn, $obj);
+      }
     }
     else if($event->type=='plan.deleted') {
       MeprProduct::delete_stripe_plan_id($this->get_meta_gateway_id(), $obj->id);
@@ -2698,7 +2771,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       'lang'         => 'php',
       'lang_version' => phpversion(),
       'publisher'    => 'memberpress',
-      'uname'        => php_uname(),
+      'uname'        => (function_exists('php_uname')) ? php_uname() : '',
       'application'  => $app_info,
     ];
   }
@@ -3272,11 +3345,12 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    * @param  MeprProduct         $prd               The MemberPress product
    * @param  MeprUser            $usr               The MemberPress user
    * @param  string              $payment_method_id The Stripe PaymentMethod ID to use for payment or setup
+   * @param  boolean              $save_subscription
    * @return stdClass                               The Stripe Subscription data
    * @throws MeprHttpException                      If there was an HTTP error connecting to Stripe
    * @throws MeprRemoteException                    If there was an invalid or error response from Stripe
    */
-  public function create_subscription(MeprTransaction $txn, MeprSubscription $sub, MeprProduct $prd, MeprUser $usr, $payment_method_id) {
+  public function create_subscription(MeprTransaction $txn, MeprSubscription $sub, MeprProduct $prd, MeprUser $usr, $payment_method_id = null, $save_subscription = true) {
     $mepr_options = MeprOptions::fetch();
     $customer_id = $this->get_customer_id($usr, $payment_method_id);
     $plan_id = $this->get_stripe_plan_id($sub, $prd, $usr);
@@ -3339,8 +3413,11 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     $args = MeprHooks::apply_filters('mepr_stripe_subscription_args', [
       'customer' => $customer_id,
-      'default_payment_method' => $payment_method_id,
       'items' => [$item],
+      'payment_behavior' => 'default_incomplete',
+      'payment_settings' => [
+        'payment_method_types' => $this->is_stripe_link_enabled() ? ['card', 'link'] : ['card'],
+      ],
       'expand' => [
         'latest_invoice.payment_intent',
         'pending_setup_intent'
@@ -3372,7 +3449,10 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $subscription = (object) $this->send_stripe_request('subscriptions', $args, 'post');
 
     $sub->subscr_id = $subscription->id;
-    $sub->store();
+
+    if ($save_subscription) {
+      $sub->store();
+    }
 
     return $subscription;
   }

@@ -55,14 +55,6 @@
         <p class="description"><?php _e('Detected on user\'s initial signup', 'memberpress'); ?></p>
       </td>
     </tr>
-    <tr>
-      <th>
-        <label><?php _e('Vat Number', 'memberpress') ?></label>
-      </th>
-      <td>
-        <?php echo $vat_number; ?>
-      </td>
-    </tr>
   <?php
     MeprUsersHelper::render_editable_custom_fields($user);
 

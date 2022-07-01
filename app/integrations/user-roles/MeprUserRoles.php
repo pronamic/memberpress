@@ -44,13 +44,19 @@ class MeprUserRoles  {
 
   public function process_status_changes($obj, $sub_status = false) {
     if($obj instanceof MeprTransaction && $sub_status !== false && $sub_status == MeprSubscription::$active_str) {
-      return; //This is an expiring transaction which is part of an active subscription, so don't remove the user's roles
+      //This is an expiring transaction which is part of an active subscription, so check if there is a new txn
+      //if there is a new txn then don't remove the user's roles
+      if ($sub = $obj->subscription()) {
+        $latest_txn = $sub->latest_txn();
+        if ($latest_txn->is_active()) {
+          return;
+        }
+      }
     }
 
     $wp_user = get_user_by('id', $obj->user_id);
 
     if(!$wp_user) { return; }
-
     $this->set_users_roles($wp_user);
   }
 

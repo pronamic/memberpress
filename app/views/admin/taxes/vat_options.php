@@ -45,18 +45,29 @@
           </tr>
           <tr valign="top" id="mepr_charge_business_customer_net_price_section">
             <th scope="row">
-              <label for="mepr_charge_business_customer_net_price"><?php _e('Charge Business Customer Net Price without tax', 'memberpress'); ?></label>
+              <label for="mepr_charge_business_customer_net_price"><?php _e('Remove tax from valid Businesses', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip('mepr-charge-business-customer-net-price',
-                      __('Charge Business Customer Net Price without tax', 'memberpress'),
-                      __('When this option is checked all EU Businesses will see the price without tax.', 'memberpress')); ?>
+                      __('Remove tax from valid Businesses', 'memberpress'),
+                      __('When enabled, and prices are "inclusive" of tax, then valid EU Businesses will have their tax removed and pay only the NET price of the membership. Invoice will show 0 tax by default.', 'memberpress')); ?>
             </th>
             <td>
               <input type="checkbox" name="mepr_charge_business_customer_net_price" <?php checked($charge_business_customer_net_price); ?> />
             </td>
           </tr>
+          <tr valign="top" id="mepr_show_negative_tax_on_invoice_section"<?php echo ($charge_business_customer_net_price != 1) ? " style='display:none;'" : ""; ?>>
+            <th scope="row">
+              <label for="mepr_show_negative_tax_on_invoice"><?php _e('Show negative tax on Invoice', 'memberpress'); ?></label>
+              <?php MeprAppHelper::info_tooltip('mepr-show-negative-tax-on-invoice',
+                      __('Show negative tax on Invoice', 'memberpress'),
+                      __('When enabled the tax which is removed for valid EU Businesses will show as a negative amount on the invoice.', 'memberpress')); ?>
+            </th>
+            <td>
+              <input type="checkbox" name="mepr_show_negative_tax_on_invoice" <?php checked($show_negative_tax_on_invoice); ?> />
+            </td>
+          </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="mepr_vat_tax_businesses"><?php _e('Disable VAT VIES database lookup', 'memberpress'); ?></label>
+              <label for="mepr_vat_disable_vies_service"><?php _e('Disable VAT VIES database lookup', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip('mepr-merchant-vat-disable-vie-service',
                       __('Disable VAT VIES database lookup', 'memberpress'),
                       __('When this option is checked, the VAT number will not be validated by VIES online service.', 'memberpress')); ?>

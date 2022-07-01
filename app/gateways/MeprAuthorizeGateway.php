@@ -585,14 +585,22 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
       // If no trial or trial amount is zero then we've got to make
       // sure the confirmation txn lasts through the trial
       if(!$sub->trial || ($sub->trial and $sub->trial_amount <= 0.00)) {
-        $day_count = ($sub->trial)?$sub->trial_days:$mepr_options->grace_init_days;
+        if($sub->trial) {
+          $expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
+        }
+        elseif(!$mepr_options->disable_grace_init_days && $mepr_options->grace_init_days > 0) {
+          $expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($mepr_options->grace_init_days), 'Y-m-d 23:59:59');
+        }
+        else {
+          $expires_at = $txn->created_at; // Expire immediately
+        }
 
-        $txn->expires_at  = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($day_count), 'Y-m-d H:i:s'); // Grace period before txn processes
+        $txn->expires_at  = $expires_at;
         $txn->txn_type    = MeprTransaction::$subscription_confirmation_str;
         $txn->status      = MeprTransaction::$confirmed_str;
         $txn->trans_num   = $sub->subscr_id;
         $txn->set_subtotal(0.00); // This txn is just a confirmation txn ... it shouldn't have a cost
-        $txn->store();
+        $txn->store(true);
       }
 
       if($upgrade) {

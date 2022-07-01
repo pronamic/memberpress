@@ -773,18 +773,32 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         $grp = $this->group();
 
         if(($old_sub = $usr->subscription_in_group($grp->ID))) {
-          $evt_txn = $old_sub->latest_txn();
-          $old_sub->expire_txns(); //Expire associated transactions for the old subscription
-          $_REQUEST['silent'] = true; // Don't want to send cancellation notices
-          // PT #157053195 skip cancelled subs
-          if($old_sub->status !== MeprSubscription::$cancelled_str) {
-            $old_sub->cancel();
+          //NOTE: This was added for one specific customer, it should only be used at customers own risk,
+          //we don not support any custom development or issues that arrise from using this hook
+          //to override the default group behavior.
+          $override_default_behavior = apply_filters('mepr-override-group-default-behavior-sub', false, $old_sub);
+
+          if (!$override_default_behavior) {
+            $evt_txn = $old_sub->latest_txn();
+            $old_sub->expire_txns(); //Expire associated transactions for the old subscription
+            $_REQUEST['silent'] = true; // Don't want to send cancellation notices
+            // PT #157053195 skip cancelled subs
+            if($old_sub->status !== MeprSubscription::$cancelled_str) {
+              $old_sub->cancel();
+            }
           }
         }
         elseif(($old_lifetime_txn = $usr->lifetime_subscription_in_group($grp->ID)) && $old_lifetime_txn->id != $this->id) {
-          $old_lifetime_txn->expires_at = MeprUtils::ts_to_mysql_date(time() - MeprUtils::days(1));
-          $old_lifetime_txn->store();
-          $evt_txn = $old_lifetime_txn;
+          //NOTE: This was added for one specific customer, it should only be used at customers own risk,
+          //we don not support any custom development or issues that arrise from using this hook
+          //to override the default group behavior.
+          $override_default_behavior = apply_filters('mepr-override-group-default-behavior-lt', false, $old_lifetime_txn);
+
+          if (!$override_default_behavior) {
+            $old_lifetime_txn->expires_at = MeprUtils::ts_to_mysql_date(time() - MeprUtils::days(1));
+            $old_lifetime_txn->store();
+            $evt_txn = $old_lifetime_txn;
+          }
         }
       }
     }

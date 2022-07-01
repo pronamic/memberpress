@@ -305,7 +305,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $mepr_options = MeprOptions::fetch();
     $account_url = $_SERVER['REQUEST_URI']; //Use URI for BuddyPress compatibility
     $delim = MeprAppCtrl::get_param_delimiter_char($account_url);
-    $perpage = 10;
+    $perpage = MeprHooks::apply_filters('mepr_subscriptions_per_page', 10);
     $curr_page = (isset($_GET['currpage']) && is_numeric($_GET['currpage']))?$_GET['currpage']:1;
     $start = ($curr_page - 1) * $perpage;
     $end = $start + $perpage;

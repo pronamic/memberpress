@@ -385,6 +385,20 @@
       "css": "right-big",
       "code": 59451,
       "src": "fontawesome"
+    },
+    {
+      "uid": "7d8d97b66042d2e8cda7e79ee0edea98",
+      "css": "drag-target",
+      "code": 59452,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M100 550H900V650H100ZM100 350H900V450H100ZM500 900L650 750H350L500 900ZM500 100L350 250H650L500 100Z",
+        "width": 1000
+      },
+      "search": [
+        "oojs_ui_icon_draggable"
+      ]
     }
   ]
 }

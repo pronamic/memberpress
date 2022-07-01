@@ -130,5 +130,22 @@ return array(
   'sub-account-removed' => (object)array(
     'unique' => false
   ),
+
+  /***** Events for Courses *****/
+  'mpca-course-started' => (object)array(
+    'unique' => false
+  ),
+  'mpca-course-completed' => (object)array(
+     'unique' => false
+  ),
+  'mpca-lesson-started' => (object)array(
+     'unique' => false
+  ),
+  'mpca-lesson-completed' => (object)array(
+    'unique' => false
+  ),
+  'mpca-quiz-attempt-completed' => (object)array(
+     'unique' => false
+  )
 );
 

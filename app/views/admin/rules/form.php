@@ -54,16 +54,23 @@ $products = MeprCptModel::all('MeprProduct');
     <div class="mepr-main-pane">
       <h3 class="mepr-page-title"><a href="" class="mepr-toggle-link" data-box="mepr-partial-codes"><?php _e('Partial Content Codes', 'memberpress'); ?></a></h3>
       <div class="mepr-sub-box mepr-partial-codes mepr-hidden">
+        <strong><?php _e('Examples:', 'memberpress'); ?></strong>
         <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
-        <?php _e('Shortcode:', 'memberpress'); ?> <strong>[mepr-show rules="<?php echo $rule->ID; ?>" unauth="message"] </strong><?php _e('This content is shown only to authorized members. It is hidden from everyone else.', 'memberpress'); ?><strong> [/mepr-show]</strong>
+        <?php _e('Shortcode:', 'memberpress'); ?><br /><strong>[mepr-show rules="<?php echo $rule->ID; ?>" unauth="message"] </strong><?php _e('This content is shown only to authorized members. It is hidden from everyone else.', 'memberpress'); ?><strong> [/mepr-show]</strong>
         <br/><br/>
-        <?php _e('Shortcode:', 'memberpress'); ?> <strong>[mepr-hide rules="<?php echo $rule->ID; ?>" unauth="message"] </strong><?php _e('This content is shown to everyone except authorized members.', 'memberpress'); ?><strong> [/mepr-hide]</strong>
+        <?php _e('Shortcode:', 'memberpress'); ?><br /><strong>[mepr-hide rules="<?php echo $rule->ID; ?>" unauth="message"] </strong><?php _e('This content is shown to everyone except authorized members.', 'memberpress'); ?><strong> [/mepr-hide]</strong>
         <br/><br/>
-        <?php _e('PHP Snippet:', 'memberpress'); ?>
+        <?php _e('PHP Snippet:', 'memberpress'); ?><br />
         <strong><?php echo htmlentities("<?php if(current_user_can('mepr-active','rules:{$rule->ID}')): ?>"); ?></strong>
           <?php _e('Content to protect goes inbetween.', 'memberpress'); ?>
         <strong><?php echo htmlentities("<?php endif; ?>"); ?></strong>
         <?php MeprHooks::do_action('mepr-partial-content-codes', $rule); ?>
+        <br/><br/>
+        <strong><?php _e('Learn More:', 'memberpress'); ?></strong>
+        <ul>
+          <li><a href="https://docs.memberpress.com/article/112-available-shortcodes#mepr-show"><?php _e('[mepr-show]/[mepr-hide] shortcode documentation', 'memberpress'); ?></a></li>
+          <li><a href="https://docs.memberpress.com/article/239-protecting-partial-content"><?php _e('Protecting partial content', 'memberpress'); ?></a></li>
+        </ul>
       </div>
     </div>
 

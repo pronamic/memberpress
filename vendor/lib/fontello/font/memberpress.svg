@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg">
-<metadata>Copyright (C) 2019 by original authors @ fontello.com</metadata>
+<metadata>Copyright (C) 2022 by original authors @ fontello.com</metadata>
 <defs>
 <font id="memberpress" horiz-adv-x="1000" >
 <font-face font-family="memberpress" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
@@ -125,6 +125,8 @@
 <glyph glyph-name="clipboard" unicode="&#xe83a;" d="M678 819q65 0 110-46t46-110l0-625q0-65-46-111t-110-46l-522 0q-65 0-110 46t-46 111l0 625q0 65 46 110t110 46l522 0z m-418-104l0-52q0-21 16-37t37-16l208 0q22 0 37 16t15 37l0 52-313 0z m469-677l0 625q0 21-15 37t-36 15l-53 0 0-52q0-43-30-73t-74-31l-208 0q-43 0-74 31t-30 73l0 52-53 0q-21 0-37-15t-15-37l0-625q0-21 15-37t37-16l522 0q21 0 36 16t15 37z m-104 52l-416 0q-26 0-26 25 0 12 7 19t19 8l416 0q11 0 19-8t7-19q0-25-26-25z m0 157l-416 0q-11 0-19 7t-7 19q0 25 26 25l416 0q26 0 26-25 0-11-7-19t-19-7z m0 156l-416 0q-26 0-26 25 0 11 7 19t19 7l416 0q11 0 19-7t7-19q0-25-26-25z" horiz-adv-x="834" />
 
 <glyph glyph-name="right-big" unicode="&#xe83b;" d="M821 314q0-30-20-50l-363-364q-22-20-51-20-29 0-50 20l-42 42q-22 21-22 51t22 51l163 163h-393q-29 0-47 21t-18 51v71q0 30 18 51t47 20h393l-163 165q-22 20-22 50t22 50l42 42q21 21 50 21 29 0 51-21l363-363q20-20 20-51z" horiz-adv-x="857.1" />
+
+<glyph glyph-name="drag-target" unicode="&#xe83c;" d="M100 300h800v-100h-800z m0 200h800v-100h-800z m400-550l150 150h-300l150-150z m0 800l-150-150h300l-150 150z" horiz-adv-x="1000" />
 
 <glyph glyph-name="spinner" unicode="&#xf110;" d="M294 72q0-29-21-50t-51-21q-29 0-50 21t-21 50q0 30 21 51t50 21 51-21 21-51z m277-115q0-29-20-50t-51-21-50 21-21 50 21 51 50 21 51-21 20-51z m-392 393q0-30-21-50t-51-21-50 21-21 50 21 51 50 20 51-20 21-51z m670-278q0-29-21-50t-50-21q-30 0-51 21t-20 50 20 51 51 21 50-21 21-51z m-538 556q0-37-26-63t-63-26-63 26-26 63 26 63 63 26 63-26 26-63z m653-278q0-30-21-50t-50-21-51 21-21 50 21 51 51 20 50-20 21-51z m-357 393q0-45-31-76t-76-31-76 31-31 76 31 76 76 31 76-31 31-76z m296-115q0-52-37-88t-88-37q-52 0-88 37t-37 88q0 51 37 88t88 37q51 0 88-37t37-88z" horiz-adv-x="1000" />
 

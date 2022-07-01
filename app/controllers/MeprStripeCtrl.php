@@ -4,8 +4,14 @@ if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');
 class MeprStripeCtrl extends MeprBaseCtrl
 {
   public function load_hooks() {
+    add_action('wp_ajax_mepr_confirm_stripe_payment_intent', array($this, 'confirm_payment_intent'));
+    add_action('wp_ajax_nopriv_mepr_confirm_stripe_payment_intent', array($this, 'confirm_payment_intent'));
+    add_action('wp_ajax_mepr_confirm_stripe_setup', array($this, 'confirm_setup_intent'));
+    add_action('wp_ajax_nopriv_mepr_confirm_stripe_setup', array($this, 'confirm_setup_intent'));
     add_action('wp_ajax_mepr_stripe_confirm_payment', array($this, 'confirm_payment'));
     add_action('wp_ajax_nopriv_mepr_stripe_confirm_payment', array($this, 'confirm_payment'));
+    add_action('wp_ajax_mepr_stripe_create_payment_client_secret', array($this, 'create_payment_client_secret'));
+    add_action('wp_ajax_nopriv_mepr_stripe_create_payment_client_secret', array($this, 'create_payment_client_secret'));
     add_action('wp_ajax_mepr_stripe_create_checkout_session', array($this, 'create_checkout_session'));
     add_action('wp_ajax_nopriv_mepr_stripe_create_checkout_session', array($this, 'create_checkout_session'));
     add_action('wp_ajax_mepr_stripe_update_payment_method', array($this, 'update_payment_method'));
@@ -44,8 +50,271 @@ class MeprStripeCtrl extends MeprBaseCtrl
     }
   }
 
+  public function confirm_payment_intent() {
+    $method                   = filter_input( INPUT_GET, 'method' );
+    $stripe_payment_intent_id = filter_input( INPUT_GET, 'payment_intent' );
+    $mepr_options             = MeprOptions::fetch();
+    /** @var MeprStripeGateway $pm */
+    $pm                    = $mepr_options->payment_method( $method );
+    $stripe_payment_intent = (array)$pm->get_payment_intent( $stripe_payment_intent_id );
+    $metadata              = $stripe_payment_intent['metadata'];
+
+    if ( isset( $metadata['memberpress_subscription_id'] ) ) {
+      $sub                   = new MeprSubscription( $metadata['memberpress_subscription_id'] );
+      $customer              = $stripe_payment_intent['customer'];
+      $stripe_payment_method = $stripe_payment_intent['payment_method'];
+      $pm->send_stripe_request( 'customers/' . $customer, array(
+        'invoice_settings' => array(
+          'default_payment_method' => $stripe_payment_method
+        )
+      ) );
+      $pm->send_stripe_request( 'subscriptions/' . $metadata['stripe_subscription_id'], array(
+        'default_payment_method' => $stripe_payment_method
+      ) );
+      $product            = $sub->product();
+      $thankyou_page_args = [
+        'membership'    => sanitize_title( $product->post_title ),
+        'membership_id' => $product->ID,
+      ];
+
+      if ( isset( $metadata['memberpress_transaction_id'] ) ) {
+        $thankyou_page_args['transaction_id'] = $metadata['memberpress_transaction_id'];
+      }
+
+      if ( $sub instanceof MeprSubscription ) {
+        $thankyou_page_args = array_merge( $thankyou_page_args, [ 'subscription_id' => $sub->id ] );
+      }
+
+      $success_url = $mepr_options->thankyou_page_url( $thankyou_page_args );
+      MeprUtils::wp_redirect($success_url);
+    } elseif ( isset( $metadata['transaction_id'] ) ) {
+      $txn            = new MeprTransaction( $metadata['transaction_id'] );
+      $payment_intent = $stripe_payment_intent['id'];
+      $product            = $txn->product();
+      $thankyou_page_args = [
+        'membership'     => sanitize_title( $product->post_title ),
+        'transaction_id' => $txn->id,
+        'membership_id'  => $product->ID,
+      ];
+
+      if ( $stripe_payment_intent['status'] == 'requires_confirmation' ) {
+        $stripe_payment_intent = $pm->send_stripe_request( 'payment_intents/' . $payment_intent . '/confirm', [
+          'setup_future_usage' => 'off_session',
+          'return_url'         => admin_url('admin-ajax.php?action=mepr_confirm_stripe_payment_intent&method=' . $pm->id),
+          'mandate_data' => [
+            'customer_acceptance' => [
+              'type' => 'online',
+              'online' => [
+                'ip_address' => $_SERVER['REMOTE_ADDR'],
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'],
+              ]
+            ],
+          ],
+        ], 'post');
+      }
+
+      $customer              = $stripe_payment_intent['customer'];
+      $stripe_payment_method = $stripe_payment_intent['payment_method'];
+      $pm->send_stripe_request( 'customers/' . $customer, array(
+        'invoice_settings' => array(
+          'default_payment_method' => $stripe_payment_method
+        )
+      ) );
+      $success_url = $mepr_options->thankyou_page_url( $thankyou_page_args );
+      MeprUtils::wp_redirect($success_url);
+    }
+  }
+
+  public function confirm_setup_intent() {
+    $stripe_setup_intent_id = filter_input(INPUT_GET, 'setup_intent');
+    $method = filter_input(INPUT_GET, 'method');
+    $mepr_options = MeprOptions::fetch();
+    /** @var MeprStripeGateway $pm */
+    $pm           = $mepr_options->payment_method( $method );
+    $stripe_setup_intent = $pm->send_stripe_request('setup_intents/' . $stripe_setup_intent_id, [], 'get');
+    $stripe_payment_method = $stripe_setup_intent['payment_method'];
+    $metadata = $stripe_setup_intent['metadata'];
+
+    if (isset($metadata['stripe_subscription_id'])) {
+      try {
+        $stripe_subscription = $pm->send_stripe_request( 'subscriptions/' . $metadata['stripe_subscription_id'], [], 'get' );
+        $customer            = $stripe_subscription['customer'];
+        $invoice             = $stripe_subscription['latest_invoice'];
+        $invoice             = $pm->send_stripe_request( 'invoices/' . $invoice, [], 'get' );
+        $payment_intent      = $invoice['payment_intent'];
+        // Attach method to customer
+        $pm->send_stripe_request( 'payment_methods/' . $stripe_payment_method . '/attach', [
+          'customer' => $customer,
+        ], 'post' );
+
+        if (!empty($payment_intent)) {
+          // Confirm payment
+          $stripe_payment_intent = $pm->send_stripe_request( 'payment_intents/' . $payment_intent . '/confirm', [
+            'payment_method'     => $stripe_payment_method,
+            'setup_future_usage' => 'off_session',
+            'return_url'         => admin_url('admin-ajax.php?action=mepr_confirm_stripe_payment_intent&method=' . $pm->id),
+            'mandate_data'       => [
+              'customer_acceptance' => [
+                'type'   => 'online',
+                'online' => [
+                  'ip_address' => $_SERVER['REMOTE_ADDR'],
+                  'user_agent' => $_SERVER['HTTP_USER_AGENT'],
+                ]
+              ],
+            ],
+          ], 'post' );
+        }
+
+        $mepr_options       = MeprOptions::fetch();
+        $sub                = new MeprSubscription( $metadata['memberpress_subscription_id'] );
+
+        if ( $stripe_payment_intent['status'] == 'requires_action' ) {
+          $pm->send_stripe_request( 'payment_intents/' . $payment_intent, [
+            'metadata' => [
+              'memberpress_subscription_id' => $sub->id,
+              'stripe_subscription_id' => $stripe_subscription['id'],
+            ]
+          ], 'post' );
+          if (isset($stripe_payment_intent['next_action']) && isset($stripe_payment_intent['next_action']['redirect_to_url']['url']) ) {
+            MeprUtils::wp_redirect($stripe_payment_intent['next_action']['redirect_to_url']['url']);
+          }
+
+          return;
+        }
+
+        $pm->send_stripe_request('customers/' . $customer, array(
+          'invoice_settings' => array(
+            'default_payment_method' => $stripe_payment_method
+          )
+        ));
+        $pm->send_stripe_request( 'subscriptions/' . $stripe_subscription['id'], array(
+          'default_payment_method' => $stripe_payment_method
+        ) );
+        $product            = $sub->product();
+        $thankyou_page_args = [
+          'membership'    => sanitize_title( $product->post_title ),
+          'membership_id' => $product->ID,
+        ];
+
+        if ( isset( $metadata['memberpress_transaction_id'] ) ) {
+          $thankyou_page_args['transaction_id'] = $metadata['memberpress_transaction_id'];
+        }
+
+        if ( $sub instanceof MeprSubscription ) {
+          $thankyou_page_args = array_merge( $thankyou_page_args, [ 'subscription_id' => $sub->id ] );
+        }
+
+        $success_url = $mepr_options->thankyou_page_url( $thankyou_page_args );
+      } catch (\Exception $e) {
+        if ( stripos( $e->getMessage(), 'The PaymentMethod provided (link) is not allowed for this PaymentIntent' ) === 0 ) {
+          $mepr_options->integrations[ $method ]['stripe_link_enabled'] = false;
+          $mepr_options->store( false );
+        }
+        $sub                = new MeprSubscription( $metadata['memberpress_subscription_id'] );
+        $product            = $sub->product();
+        \MeprUtils::wp_redirect(add_query_arg('errors', [__('Link is not supported for this purchase. Please enter your Credit Card information instead.', 'memberpress')], get_permalink($product->ID)));
+      }
+    }
+
+    if (isset($metadata['stripe_payment_intent_id'])) {
+      $payment_intent = $metadata['stripe_payment_intent_id'];
+      $stripe_payment_intent = $pm->send_stripe_request( 'payment_intents/' . $metadata['stripe_payment_intent_id'], [], 'get' );
+      $customer = $stripe_payment_intent['customer'];
+      // Attach method to customer
+      $pm->send_stripe_request( 'payment_methods/' . $stripe_payment_method .'/attach', [
+        'customer' => $customer,
+      ], 'post');
+
+      // Confirm payment
+      $stripe_payment_intent = $pm->send_stripe_request( 'payment_intents/' . $payment_intent . '/confirm', [
+        'payment_method' => $stripe_payment_method,
+        'setup_future_usage' => 'off_session',
+        'return_url'         => admin_url('admin-ajax.php?action=mepr_confirm_stripe_payment_intent&method=' . $pm->id),
+        'mandate_data' => [
+          'customer_acceptance' => [
+            'type' => 'online',
+            'online' => [
+              'ip_address' => $_SERVER['REMOTE_ADDR'],
+              'user_agent' => $_SERVER['HTTP_USER_AGENT'],
+            ]
+          ],
+        ],
+      ], 'post');
+
+      $mepr_options = MeprOptions::fetch();
+      $txn = new MeprTransaction($metadata['memberpress_transaction_id']);
+      $txn->trans_num = $stripe_payment_intent['id'];
+      $txn->store();
+
+      if ( $stripe_payment_intent['status'] == 'requires_action' ) {
+        if (isset($stripe_payment_intent['next_action']) && isset($stripe_payment_intent['next_action']['redirect_to_url']['url']) ) {
+          MeprUtils::wp_redirect($stripe_payment_intent['next_action']['redirect_to_url']['url']);
+        }
+        return;
+      }
+
+      $product = $txn->product();
+      $thankyou_page_args = [
+        'membership' => sanitize_title($product->post_title),
+        'transaction_id' => $txn->id,
+        'membership_id' => $product->ID,
+      ];
+
+      $success_url = $mepr_options->thankyou_page_url($thankyou_page_args);
+    }
+
+    if (isset($success_url)) {
+      \MeprUtils::wp_redirect($success_url);
+    }
+  }
+
+  public function create_payment_client_secret() {
+// Figure out the Payment Method
+    if ( isset( $_POST['mepr_payment_method'] ) && ! empty( $_POST['mepr_payment_method'] ) ) {
+      $method = sanitize_text_field( $_POST['mepr_payment_method'] );
+    } else {
+      wp_send_json_error(__('Bad request', 'memberpress'));
+    }
+
+    // Create a new transaction and set our new membership details
+    $mepr_options = MeprOptions::fetch();
+    $pm           = $mepr_options->payment_method( $method );
+
+    if ( ! $pm instanceof MeprStripeGateway ) {
+      wp_send_json_error(__('Bad request', 'memberpress'));
+    }
+
+    try {
+      // setup intent
+      $setup_intent = (object) $pm->send_stripe_request( 'setup_intents', [
+        'payment_method_types' => $pm->is_stripe_link_enabled() ? [ 'card', 'link' ] : [ 'card' ],
+      ], 'post' );
+    } catch (Exception $e) {
+      try {
+        $setup_intent = (object) $pm->send_stripe_request( 'setup_intents', [
+          'payment_method_types' => [ 'card' ],
+        ], 'post' );
+
+        if ( stripos( $e->getMessage(), 'The payment method type "link" is invalid.' ) === 0 ) {
+          $mepr_options->integrations[$method]['stripe_link_enabled'] = false;
+          $mepr_options->store(false);
+        }
+      } catch (Exception $e) {
+        wp_send_json_error(__($e->getMessage(), 'memberpress'));
+      }
+    }
+
+    wp_send_json(array(
+      'success' => true,
+      'subscription_id' => 0,
+      'client_secret' => $setup_intent->client_secret,
+      'setup_intent_id' => $setup_intent->id,
+      'transaction_id' => 0,
+    ));
+  }
+
   public function create_checkout_session() {
-    $this->do_confirm_payment(true);
+    $this->do_confirm_payment('stripe_checkout');
   }
 
   public function confirm_payment() {
@@ -68,13 +337,14 @@ class MeprStripeCtrl extends MeprBaseCtrl
     wp_send_json(array('error' => __('An error occurred, please DO NOT submit the form again as you may be double charged. Please contact us for further assistance instead.', 'memberpress')));
   }
 
-  public function do_confirm_payment($is_stripe_checkout_page = false) {
+  public function do_confirm_payment($mode = '') {
     $stripe_payment_method_id = isset($_POST['payment_method_id']) && is_string($_POST['payment_method_id']) ? sanitize_text_field(wp_unslash($_POST['payment_method_id'])) : '';
+    $stripe_setup_intent_id = isset($_POST['setup_intent_id']) && is_string($_POST['setup_intent_id']) ? sanitize_text_field(wp_unslash($_POST['setup_intent_id'])) : '';
     $stripe_payment_intent_id = isset($_POST['payment_intent_id']) && is_string($_POST['payment_intent_id']) ? sanitize_text_field(wp_unslash($_POST['payment_intent_id'])) : '';
     $subscription_id = isset($_POST['subscription_id']) && is_string($_POST['subscription_id']) ? sanitize_text_field(wp_unslash($_POST['subscription_id'])) : '';
-    $transaction_id = isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id']) ? (int) $_POST['mepr_transaction_id'] : 0;
+    $transaction_id = isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id']) && !empty($_POST['mepr_transaction_id']) ? (int) $_POST['mepr_transaction_id'] : 0;
 
-    if (empty($stripe_payment_method_id) && empty($stripe_payment_intent_id) && empty($subscription_id) && !$is_stripe_checkout_page) {
+    if (empty($stripe_setup_intent_id) && empty($stripe_payment_method_id) && empty($stripe_payment_intent_id) && empty($subscription_id) && empty($mode)) {
       wp_send_json(array('error' => __('Bad request', 'memberpress')));
     }
 
@@ -115,6 +385,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
       // Validate the form post
       $mepr_current_url = isset($_POST['mepr_current_url']) && is_string($_POST['mepr_current_url']) ? sanitize_text_field(wp_unslash($_POST['mepr_current_url'])) : '';
       $errors = MeprHooks::apply_filters('mepr-validate-signup', MeprUser::validate_signup($_POST, array(), $mepr_current_url));
+
       if(!empty($errors)) {
         wp_send_json(array('errors' => $errors));
       }
@@ -135,19 +406,18 @@ class MeprStripeCtrl extends MeprBaseCtrl
         $password = ($disable_checkout_password_fields === true) ? wp_generate_password() : $_POST['mepr_user_password'];
         //Have to use rec here because we unset user_pass on __construct
         $usr->set_password($password);
-
         try {
           $usr->store();
 
           // We need to refresh the user object. In the case where emails are used as
           // usernames, the email & username could differ after the user is saved.
-          $usr = new MeprUser($usr->ID);
+          $usr = new MeprUser( $usr->ID );
 
-          if($disable_checkout_password_fields === true) {
-            $usr->send_password_notification('new');
+          if ( $disable_checkout_password_fields === true ) {
+            $usr->send_password_notification( 'new' );
           }
           // Log the new user in
-          if(MeprHooks::apply_filters('mepr-auto-login', true, $_POST['mepr_product_id'], $usr)) {
+          if ( MeprHooks::apply_filters( 'mepr-auto-login', true, $_POST['mepr_product_id'], $usr ) ) {
             wp_signon(
               array(
                 'user_login'    => $usr->user_login,
@@ -157,10 +427,9 @@ class MeprStripeCtrl extends MeprBaseCtrl
             );
           }
 
-          MeprEvent::record('login', $usr); //Record the first login here
-        }
-        catch(MeprCreateException $e) {
-          wp_send_json(array('error' => __('The user was unable to be saved.', 'memberpress')));
+          MeprEvent::record( 'login', $usr ); //Record the first login here
+        } catch ( MeprCreateException $e ) {
+          wp_send_json( array( 'error' => __( 'The user was unable to be saved.', 'memberpress' ) ) );
         }
       }
 
@@ -250,7 +519,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
     }
 
     try {
-      if ($is_stripe_checkout_page) {
+      if ($mode == 'stripe_checkout') {
         if (!isset($sub)) { $sub = $txn->subscription(); }
 
         MeprHooks::do_action('mepr-process-signup', $txn->amount, $usr, $product->ID, $txn->id);
@@ -267,31 +536,43 @@ class MeprStripeCtrl extends MeprBaseCtrl
       }
       if ($product->is_one_time_payment()) {
         // For one-time payments use a PaymentIntent
-        if (empty($stripe_payment_intent_id)) {
-          $payment_intent = $pm->create_payment_intent($txn, $usr, $stripe_payment_method_id);
+        if ( ! empty( $stripe_setup_intent_id ) ) {
+          $payment_intent = $pm->create_payment_intent( $txn, $usr, null, $stripe_setup_intent_id );
+          $pm->send_stripe_request(
+            'setup_intents/' . $stripe_setup_intent_id,
+            [
+              'metadata' => [
+                'memberpress_payment_method_id' => $pm->id,
+                'stripe_payment_intent_id' => $payment_intent->id,
+                'memberpress_transaction_id' => $txn->id,
+              ],
+            ],
+            'post'
+          );
         } else {
-          $payment_intent = $pm->confirm_payment_intent($stripe_payment_intent_id);
+          if ( empty( $stripe_payment_intent_id ) ) {
+            $payment_intent = $pm->create_payment_intent( $txn, $usr, $stripe_payment_method_id );
+          } else {
+            $payment_intent = $pm->confirm_payment_intent( $stripe_payment_intent_id );
+          }
         }
 
-        if (!empty($payment_intent->status) && $payment_intent->status == 'requires_action') {
-          if (!empty($payment_intent->next_action['type']) && $payment_intent->next_action['type'] == 'use_stripe_sdk') {
-            // Tell the client to handle the action
-            wp_send_json(array(
-              'requires_action' => true,
-              'action' => 'handleCardAction',
-              'client_secret' => $payment_intent->client_secret,
-              'transaction_id' => $txn->id
-            ));
-          } else {
-            // This should never happen, but we can't continue
-            throw new Exception(sprintf(__('Sorry, your payment could not be processed (%s)', 'memberpress'), 'unsupported next_action type'));
-          }
-        } elseif (!empty($payment_intent->status) && $payment_intent->status == 'succeeded') {
+        if (!empty($payment_intent->status) && $payment_intent->status == 'succeeded') {
           $pm->handle_one_time_payment($txn, $payment_intent);
         } else {
-          throw new Exception(sprintf(__('Sorry, there was an error processing your card (%s)', 'memberpress'), 'invalid PaymentIntent status'));
+          wp_send_json(array(
+            'success' => true,
+            'client_secret' => $payment_intent->client_secret,
+            'transaction_id' => $txn->id,
+            'return_url' => admin_url('admin-ajax.php?action=mepr_confirm_stripe_setup&method=' . $pm->id),
+          ));
         }
       } else {
+        if ( ! empty( $stripe_payment_intent_id ) ) {
+          $payment_intent           = $pm->get_payment_intent( $stripe_payment_intent_id );
+          $stripe_payment_method_id = $payment_intent->payment_method;
+        }
+
         $sub = $txn->subscription();
 
         if (!($sub instanceof MeprSubscription)) {
@@ -310,56 +591,28 @@ class MeprStripeCtrl extends MeprBaseCtrl
         }
 
         $invoice = (object) $subscription->latest_invoice;
-        $payment_intent = isset($invoice->payment_intent) ? (object) $invoice->payment_intent : null;
+        $invoice_payment_intent = isset($invoice->payment_intent) ? (object) $invoice->payment_intent : null;
         $setup_intent = isset($subscription->pending_setup_intent) ? (object) $subscription->pending_setup_intent : null;
 
-        if(!empty($payment_intent->status) && $payment_intent->status == 'requires_action') {
-          if(!empty($payment_intent->next_action['type']) && $payment_intent->next_action['type'] == 'use_stripe_sdk') {
-            // Tell the client to handle the action
-            wp_send_json(array(
-              'requires_action' => true,
-              'action' => 'confirmCardPayment',
-              'client_secret' => $payment_intent->client_secret,
-              'subscription_id' => $subscription->id,
-              'transaction_id' => $txn->id
-            ));
-          } else {
-            // This should never happen, but we can't continue
-            throw new Exception(sprintf(__('Sorry, your payment could not be processed (%s)', 'memberpress'), 'unsupported next_action type'));
-          }
-        } elseif(!empty($setup_intent->status) && $setup_intent->status == 'requires_action') {
-          if(!empty($setup_intent->next_action['type']) && $setup_intent->next_action['type'] == 'use_stripe_sdk') {
-            // Tell the client to handle the action
-            wp_send_json(array(
-              'requires_action' => true,
-              'action' => 'confirmCardSetup',
-              'client_secret' => $setup_intent->client_secret,
-              'subscription_id' => $subscription->id,
-              'transaction_id' => $txn->id
-            ));
-          } else {
-            // This should never happen, but we can't continue
-            throw new Exception(sprintf(__('Sorry, your card setup could not be processed (%s)', 'memberpress'), 'unsupported next_action type'));
-          }
-        } elseif(!empty($payment_intent->status) && $payment_intent->status == 'requires_payment_method') {
-          MeprHooks::do_action('mepr_stripe_payment_failed');
+        if ( ! empty( $stripe_setup_intent_id ) ) {
+          $pm->send_stripe_request(
+            'setup_intents/' . $stripe_setup_intent_id,
+            [
+              'metadata' => [
+                'memberpress_payment_method_id' => $pm->id,
+                'stripe_subscription_id' => $subscription->id,
+                'memberpress_transaction_id' => $txn->id,
+                'memberpress_subscription_id' => $sub->id,
+              ],
+            ],
+            'post'
+          );
+        }
 
-          wp_send_json(array(
-            'error' => __('Card payment failed, please try another payment method', 'memberpress'),
-            'subscription_id' => $subscription->id,
-            'transaction_id' => $txn->id
-          ));
-        } elseif(!empty($setup_intent->status) && $setup_intent->status == 'requires_payment_method') {
-          wp_send_json(array(
-            'error' => __('Card setup failed, please try another payment method', 'memberpress'),
-            'subscription_id' => $subscription->id,
-            'transaction_id' => $txn->id
-          ));
-        } elseif($this->can_subscription_be_activated($subscription, $invoice, $payment_intent, $setup_intent)) {
+
+        if ($this->can_subscription_be_activated($subscription, $invoice, $invoice_payment_intent, $setup_intent)) {
           // Activate the subscription
           $pm->activate_subscription($txn, $sub);
-        } else {
-          throw new Exception(sprintf(__('Sorry, there was an error processing your card (%s)', 'memberpress'), 'invalid subscription state'));
         }
       }
 
@@ -367,7 +620,10 @@ class MeprStripeCtrl extends MeprBaseCtrl
 
       wp_send_json(array(
         'success' => true,
-        'transaction_id' => $txn->id
+        'subscription_id' => $subscription->id,
+        'client_secret' => $invoice_payment_intent->client_secret,
+        'transaction_id' => $txn->id,
+        'return_url' => admin_url('admin-ajax.php?action=mepr_confirm_stripe_setup&method=' . $pm->id),
       ));
     } catch (Exception $e) {
       if($e instanceof MeprRemoteException && strpos($e->getMessage(), '(card_error)') !== false) {

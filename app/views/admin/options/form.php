@@ -432,7 +432,7 @@
                                            __('Custom User Information Fields', 'memberpress'),
                                            __('You can specify custom fields to be used with your users\' account. Just click the \'plus\' button below to add your first field.', 'memberpress') ); ?>
       </h3>
-      <ol id="custom_profile_fields" class="mepr-sortable">
+      <ol id="custom_profile_fields">
         <?php MeprOptionsHelper::show_existing_custom_fields(); ?>
         <a href="" id="mepr-add-new-custom-field" title="<?php _e('Add new Custom Field', 'memberpress'); ?>"><i class="mp-icon mp-icon-plus-circled mp-24"></i></a>
       </ol>

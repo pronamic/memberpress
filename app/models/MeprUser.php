@@ -1471,11 +1471,19 @@ class MeprUser extends MeprBaseModel {
 
     if (
       $rate->customer_type === 'business' &&
-      MeprTransactionsHelper::is_charging_business_net_price()
+      MeprTransactionsHelper::is_charging_business_net_price() &&
+      apply_filters( 'mepr_is_valid_vat_number_reversal', false, $this, $rate, $tax_amount )
     ) {
-      $total = $subtotal;
-      $subtotal = $subtotal - $tax_amount;
-      $tax_amount = 0;
+      $show_negative_tax_on_invoice = get_option( 'mepr_show_negative_tax_on_invoice' );
+      if( $show_negative_tax_on_invoice ){
+        $total = $subtotal;
+        $subtotal = $subtotal;
+        $tax_amount = -$tax_amount;
+      }else{
+        $total = $subtotal;
+        $subtotal = $subtotal - $tax_amount;
+        $tax_amount = 0;
+      }
     }
 
     return array(MeprUtils::format_float($total - $tax_amount), $total, $rate->tax_rate, $tax_amount, $rate->tax_desc, $rate->tax_class);

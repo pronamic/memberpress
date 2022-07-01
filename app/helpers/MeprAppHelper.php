@@ -31,12 +31,23 @@ class MeprAppHelper {
       }
 
       if($show_symbol) {
-        if(!$mepr_options->currency_symbol_after) {
-          $rstr = $mepr_options->currency_symbol . $rstr;
+
+        if( $rstr < 0 ){
+          if(!$mepr_options->currency_symbol_after) {
+            $rstr = '(' . $mepr_options->currency_symbol . abs($rstr) . ')';
+          }
+          else {
+            $rstr = '(' . abs($rstr) . $mepr_options->currency_symbol . ')';
+          }
+        }else{
+          if(!$mepr_options->currency_symbol_after) {
+            $rstr = $mepr_options->currency_symbol . $rstr;
+          }
+          else {
+            $rstr = $rstr . $mepr_options->currency_symbol;
+          }
         }
-        else {
-          $rstr = $rstr . $mepr_options->currency_symbol;
-        }
+
       }
     }
     else {
@@ -178,6 +189,9 @@ class MeprAppHelper {
       $tax_desc = $obj->tax_desc;
       // $tax_str = ' +'.MeprUtils::format_float($tax_rate).'% '.$tax_desc;
       $tax_str = _x(' (price includes taxes)', 'ui', 'memberpress');
+      if( $tax_amount <= 0 ){
+        $tax_str = '';
+      }
       $price = $price + $tax_amount;
     }
 

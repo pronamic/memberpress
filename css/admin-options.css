@@ -315,3 +315,19 @@ ul.custom_options_list {
 #mepr-install-license-edition-loading {
   margin-left: 10px;
 }
+
+body li span.mp-icon-drag-target {
+  display:inline-block;
+  vertical-align:middle;
+  font-size:24px;
+  position:relative;
+  left:-6px;
+}
+
+body p.mepr-custom-fields-p {
+  padding:0;
+  margin:0;
+  margin-top:10px;
+  margin-bottom:5px;
+  word-break:break-all;
+}

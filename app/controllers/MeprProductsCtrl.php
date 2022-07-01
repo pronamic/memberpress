@@ -368,6 +368,11 @@ class MeprProductsCtrl extends MeprCptCtrl {
       }
     }
 
+    // Make sure there's at least one payment method selected when customizing payment methods.
+    if($product->customize_payment_methods && count($product->custom_payment_methods) <= 0) {
+      $product->customize_payment_methods = false;
+    }
+
     return $product;
   }
 

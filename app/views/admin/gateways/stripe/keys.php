@@ -8,7 +8,6 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
 } else {
   $show_keys = true;
 }
-
 ?>
 <?php if ( MeprStripeGateway::stripe_connect_status( $id ) == 'connected'  || $show_keys == true) { ?>
 <div class="stripe-checkout-method-select">

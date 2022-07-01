@@ -59,5 +59,6 @@
 .mp-icon-logo:before { content: '\e839'; } /* '' */
 .mp-icon-clipboard:before { content: '\e83a'; } /* '' */
 .mp-icon-right-big:before { content: '\e83b'; } /* '' */
+.mp-icon-drag-target:before { content: '\e83c'; } /* '' */
 .mp-icon-spinner:before { content: '\f110'; } /* '' */
 .mp-icon-toggle-on:before { content: '\f205'; } /* '' */

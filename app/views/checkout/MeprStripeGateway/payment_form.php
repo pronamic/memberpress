@@ -5,15 +5,6 @@
     MeprView::render("/checkout/MeprStripeGateway/payment_gateway_fields", get_defined_vars());
   }
 ?>
-
-<?php if($payment_method->settings->stripe_wallet_enabled == 'on' && $payment_method->settings->stripe_checkout_enabled != 'on') { ?>
-  <div class="mepr-stripe-payment-request-wrapper">
-    <div id="mepr-stripe-payment-request-element" style="  max-width: 300px" class="mepr-stripe-payment-request-element" data-stripe-public-key="<?php echo esc_attr($payment_method->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($payment_method->settings->id); ?>" data-locale-code="<?php echo $mepr_options->language_code; ?>" data-currency-code="<?php echo $mepr_options->currency_code; ?>" data-total-text="<?php echo esc_attr(__('Total', 'memberpress')); ?>">
-      <!-- a Stripe Payment Request Element will be inserted here. -->
-    </div>
-    <br>
-  </div>
-<?php } ?>
 <?php if($payment_method->settings->stripe_checkout_enabled == 'on'): ?>
   <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
   <input type="hidden" name="mepr_stripe_is_checkout" value="1"/>
@@ -29,6 +20,19 @@
     </div>
     <input type="text" name="card-name" class="mepr-form-input stripe-card-name" required />
   </div>
+  <?php if ($payment_method->is_stripe_link_enabled()) { ?>
+  <div class="mp-form-row">
+    <div class="mp-form-label">
+      <span role="alert" class="mepr-stripe-email-errors"></span>
+    </div>
+    <?php
+    $mepr_current_user = MeprUtils::get_currentuserinfo();
+    ?>
+    <div class="mepr-stripe-link-element" data-stripe-email="<?php if (!empty($mepr_current_user)) echo esc_attr($mepr_current_user->user_email); ?>" data-stripe-public-key="<?php echo esc_attr($payment_method->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($payment_method->settings->id); ?>" data-locale-code="<?php echo esc_attr(MeprStripeGateway::get_locale_code()); ?>">
+      <!-- a Stripe Element will be inserted here. -->
+    </div>
+  </div>
+  <?php } ?>
 
   <?php MeprHooks::do_action('mepr-stripe-payment-form-card-field', $txn); ?>
   <div class="mp-form-row">

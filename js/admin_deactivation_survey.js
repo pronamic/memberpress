@@ -9,27 +9,27 @@ jQuery(function ($) {
       $deactivateLink.focus();
     };
 
-  $deactivateLink.click(function (e) {
+  $deactivateLink.on('click', function (e) {
     e.preventDefault();
     $popup.show();
     popupOpen = true;
     $form.find('.mepr-deactivation-survey-option-radio').first().focus();
   });
 
-  $form.find('.mepr-deactivation-survey-button-skip').click(function () {
+  $form.find('.mepr-deactivation-survey-button-skip').on('click', function () {
     window.location.href = $deactivateLink.attr('href');
   });
 
-  $popup.find('.mepr-deactivation-survey-popup-close').click(closePopup);
+  $popup.find('.mepr-deactivation-survey-popup-close').on('click', closePopup);
 
-  $form.find('.mepr-deactivation-survey-option-radio').change(function () {
+  $form.find('.mepr-deactivation-survey-option-radio').on('change', function () {
     $form.find('.mepr-deactivation-survey-error').remove();
     $form.find('.mepr-deactivation-survey-option-details').hide();
 
     $(this).closest('.mepr-deactivation-survey-option').find('.mepr-deactivation-survey-option-details').show();
   });
 
-  $form.submit(function (e) {
+  $form.on('submit', function (e) {
     e.preventDefault();
 
     var $selectedRadio = $form.find('.mepr-deactivation-survey-option-radio:checked'),
@@ -64,7 +64,7 @@ jQuery(function ($) {
     });
   });
 
-  $(document).keyup(function (e) {
+  $(document).on('keyup', function (e) {
     if (popupOpen && e.keyCode === 27) {
       closePopup();
     }

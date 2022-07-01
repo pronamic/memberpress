@@ -566,8 +566,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     if(isset($_REQUEST['payment_method_params'])) {
       extract($_REQUEST['payment_method_params'], EXTR_SKIP);
 
-      if(isset($_POST['errors']) && !empty($_POST['errors'])) {
-        $errors = $_POST['errors'];
+      if(isset($_REQUEST['errors']) && !empty($_REQUEST['errors'])) {
+        $errors = $_REQUEST['errors'];
         MeprView::render('/shared/errors', get_defined_vars());
       }
 

@@ -365,9 +365,9 @@ jQuery(document).ready(function($) {
 
   mepr_setup_clipboard();
 
-  //Make who can purchase list sortable
+  //Make customer field rows sortable
   $(function() {
-    $('ol#custom_profile_fields').sortable();
+    $('ol#custom_profile_fields').sortable({ handle: 'span.mp-icon-drag-target' });
   });
 
   //Hide/Show SEO Unauthorized Noindex stuff
@@ -687,8 +687,12 @@ jQuery(document).ready(function($) {
     var eu_tax = $('input[name=mepr_vat_tax_businesses]').prop('checked');
     if (seleted_tax_type === 'inclusive' && eu_tax === false) {
       $('#mepr_charge_business_customer_net_price_section').show();
+      if( $('input[name=mepr_charge_business_customer_net_price]').prop('checked') ){
+        $('#mepr_show_negative_tax_on_invoice_section').show();
+      }
     } else {
       $('#mepr_charge_business_customer_net_price_section').hide();
+      $('#mepr_show_negative_tax_on_invoice_section').hide();
     }
   };
 
@@ -761,5 +765,14 @@ jQuery(document).ready(function($) {
       $('#mepr-license-key').val(license_key);
       $('#mepr-activate-license-key').trigger('click');
     }, 250);
+  });
+
+  $('input[name=mepr_charge_business_customer_net_price]').change(function(){
+    var oThis = $(this);
+    if( oThis.prop('checked') ){
+      $('#mepr_show_negative_tax_on_invoice_section').show();
+    }else{
+      $('#mepr_show_negative_tax_on_invoice_section').hide();
+    }
   });
 });

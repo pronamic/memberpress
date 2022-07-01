@@ -1608,9 +1608,18 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     if ( isset( $_GET['token'] ) && isset ( $_GET['subscription_id'] ) ) {
       // Return from a subscription payment
       $pp_sub_id = sanitize_text_field( $_GET['subscription_id'] );
-      $this->process_checkout_supscription_approved( $pp_sub_id );
-      $sub     = MeprSubscription::get_one_by_subscr_id( $pp_sub_id );
-      $product = $sub->product();
+
+      try {
+        $this->process_checkout_supscription_approved( $pp_sub_id );
+        $sub     = MeprSubscription::get_one_by_subscr_id( $pp_sub_id );
+        $product = $sub->product();
+      } catch ( \Exception $e ) {
+        $product     = $txn->product();
+        $product_url = MeprUtils::get_permalink( $product->ID );
+        MeprUtils::wp_redirect( add_query_arg( [
+          'errors' => $e->getMessage(),
+        ], $product_url ) );
+      }
     }
 
     $sanitized_title = sanitize_title( $product->post_title );

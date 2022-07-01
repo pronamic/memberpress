@@ -48,7 +48,7 @@ class MeprUsage {
       'mp_version'         => MEPR_VERSION,
       'php_version'        => phpversion(),
       'mysql_version'      => $wpdb->db_version(),
-      'os'                 => php_uname('s'),
+      'os'                 => (function_exists('php_uname')) ? php_uname('s') : '',
       'webserver'          => $_SERVER["SERVER_SOFTWARE"],
       'active_license'     => MeprUpdateCtrl::is_activated(),
       'edition'            => MEPR_EDITION,

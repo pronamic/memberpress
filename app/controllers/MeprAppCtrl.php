@@ -12,9 +12,9 @@ class MeprAppCtrl extends MeprBaseCtrl {
     add_action('init', 'MeprAppCtrl::parse_standalone_request', 10);
     add_action('wp_dashboard_setup', 'MeprAppCtrl::add_dashboard_widgets');
     add_action('widgets_init', 'MeprAppCtrl::add_sidebar_widgets');
-    add_action('custom_menu_order', 'MeprAppCtrl::admin_menu_order');
-    add_action('menu_order', 'MeprAppCtrl::admin_menu_order');
-    add_action('menu_order', 'MeprAppCtrl::admin_submenu_order');
+    add_filter('custom_menu_order', '__return_true');
+    add_filter('menu_order', 'MeprAppCtrl::admin_menu_order');
+    add_filter('menu_order', 'MeprAppCtrl::admin_submenu_order');
     add_action('widgets_init', 'MeprLoginWidget::register_widget');
     add_action('widgets_init', 'MeprSubscriptionsWidget::register_widget');
     add_action('add_meta_boxes', 'MeprAppCtrl::add_meta_boxes', 10, 2);

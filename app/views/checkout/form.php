@@ -78,6 +78,8 @@
         </div>
         <input type="email" name="user_email" id="user_email<?php echo $unique_suffix; ?>" class="mepr-form-input" value="<?php echo (isset($user_email))?esc_attr(stripslashes($user_email)):''; ?>" required />
       </div>
+      <div class="mp-form-row mepr_email_stripe mepr-field-required mepr-hidden">
+      </div>
       <?php MeprHooks::do_action('mepr-after-email-field'); //Deprecated ?>
       <?php MeprHooks::do_action('mepr-checkout-after-email-field', $product->ID); ?>
       <?php if($mepr_options->disable_checkout_password_fields === false): ?>
