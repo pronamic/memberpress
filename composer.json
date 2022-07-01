@@ -1,5 +1,7 @@
 {
     "name": "pronamic/memberpress",
+    "description": "The membership plugin that makes it easy to accept payments for access to your content and digital products.",
+    "license": "GPL-2.0-or-later",
     "type": "wordpress-plugin",
     "autoload": {
         "classmap": [
