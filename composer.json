@@ -1,0 +1,9 @@
+{
+    "name": "pronamic/memberpress",
+    "type": "wordpress-plugin",
+    "autoload": {
+        "classmap": [
+            "app/"
+        ]
+    }
+}
