@@ -174,7 +174,7 @@
    *
    * @param {jQuery.Event} e
    */
-  MeprStripeForm.prototype.handleSubmit = async function (e) {
+  MeprStripeForm.prototype.handleSubmit = function (e) {
     var self = this;
 
     e.preventDefault();

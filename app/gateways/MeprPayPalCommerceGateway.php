@@ -360,7 +360,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
         $first_txn = $sub->first_txn();
         $this->log( $first_txn );
 
-        if ( $first_txn instanceof MeprTransaction ) {
+        if ( $first_txn instanceof MeprTransaction && $sub->status !== MeprSubscription::$active_str ) {
           $this->activate_subscription( $first_txn, $sub );
 
           {

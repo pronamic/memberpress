@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.9.38\n"
+"Project-Id-Version: MemberPress 1.9.39\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2022-06-28T20:26:48+00:00\n"
+"POT-Creation-Date: 2022-07-03T17:11:48+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.6.0\n"
 "X-Domain: memberpress\n"
@@ -3285,7 +3285,7 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1002
 #: app/gateways/MeprPayPalProGateway.php:985
-#: app/views/admin/gateways/stripe/checkboxes.php:28
+#: app/views/admin/gateways/stripe/checkboxes.php:40
 msgid "Force SSL"
 msgstr ""
 
@@ -3702,7 +3702,7 @@ msgid "There was a problem sending your credit card details to the processor. Pl
 msgstr ""
 
 #: app/gateways/MeprStripeGateway.php:1248
-#: app/gateways/MeprStripeGateway.php:3389
+#: app/gateways/MeprStripeGateway.php:3409
 #: app/helpers/MeprTransactionsHelper.php:253
 #: app/helpers/MeprTransactionsHelper.php:269
 msgid "Initial Payment"
@@ -3819,7 +3819,7 @@ msgid "There was an issue with the credit card processor. Try again later."
 msgstr ""
 
 #. translators: %d: the product ID
-#: app/gateways/MeprStripeGateway.php:3093
+#: app/gateways/MeprStripeGateway.php:3113
 msgid "Product %d"
 msgstr ""
 
@@ -6553,15 +6553,23 @@ msgstr ""
 msgid "Test Mode"
 msgstr ""
 
-#: app/views/admin/gateways/stripe/checkboxes.php:20
+#: app/views/admin/gateways/stripe/checkboxes.php:22
 msgid "Enable <a href=\"https://link.co/\" target=\"_blank\">Link</a> (recommended)"
 msgstr ""
 
-#: app/views/admin/gateways/stripe/checkboxes.php:32
+#: app/views/admin/gateways/stripe/checkboxes.php:26
+msgid "Stripe Link Considerations"
+msgstr ""
+
+#: app/views/admin/gateways/stripe/checkboxes.php:27
+msgid "Currently, Stripe Link is only available to US based sellers who sell only in USD.<br /><br/>If the buyer is not already using link they will see a message to save their data for future use. This information is stored by Stripe and not MemberPress.<br /><br/>Buyer's can un-enroll from link at anytime on the Link.co webiste.<br /><br/>For information, see our help documentation or Stripe's Link FAQ."
+msgstr ""
+
+#: app/views/admin/gateways/stripe/checkboxes.php:44
 msgid "Send Debug Emails"
 msgstr ""
 
-#: app/views/admin/gateways/stripe/checkboxes.php:36
+#: app/views/admin/gateways/stripe/checkboxes.php:48
 msgid "Stripe Webhook URL:"
 msgstr ""
 

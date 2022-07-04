@@ -910,6 +910,16 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
   }
 
   /**
+   * Get the Stripe Initial payment product ID
+   *
+   * @param  string       $gateway_id The gateway ID
+   * @return string|false
+   */
+  public function get_stripe_initial_payment_product_id($gateway_id) {
+    return get_post_meta($this->ID, '_mepr_stripe_initial_payment_product_id_' . $gateway_id, true);
+  }
+
+  /**
    * Set the Stripe Product ID
    *
    * @param string $gateway_id The gateway ID
@@ -917,6 +927,16 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
    */
   public function set_stripe_product_id($gateway_id, $product_id) {
     update_post_meta($this->ID, '_mepr_stripe_product_id_' . $gateway_id, $product_id);
+  }
+
+  /**
+   * Set the Stripe Initial Payment Product ID
+   *
+   * @param string $gateway_id The gateway ID
+   * @param string $product_id The Stripe Product ID
+   */
+  public function set_stripe_initial_payment_product_id($gateway_id, $product_id) {
+    update_post_meta($this->ID, '_mepr_stripe_initial_payment_product_id_' . $gateway_id, $product_id);
   }
 
   /**

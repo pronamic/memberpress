@@ -370,7 +370,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         'quantity' => 1,
         'price_data' => [
           'currency' => $mepr_options->currency_code,
-          'product' => $stripe_product_id,
+          'product' => $this->get_product_id($product, true),
           'unit_amount' => $trial_amount,
         ]
       ];
@@ -3010,17 +3010,29 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    *
    * If the Stripe Product does not exist for the given product, one will be created.
    *
-   * @param  MeprProduct         $prd The MemberPress product
+   * @param  MeprProduct  $prd  The MemberPress product
+   * @param  bool  $initial_payment
+   *
    * @return string                   The Stripe Product ID
    * @throws MeprHttpException        If there was an HTTP error connecting to Stripe
    * @throws MeprRemoteException      If there was an invalid or error response from Stripe
    */
-  public function get_product_id(MeprProduct $prd) {
+  public function get_product_id(MeprProduct $prd, $initial_payment = false) {
     $product_id = $prd->get_stripe_product_id($this->get_meta_gateway_id());
 
+    if ( $initial_payment ) {
+      $product_id = $prd->get_stripe_initial_payment_product_id( $this->get_meta_gateway_id() );
+    }
+
     if(!is_string($product_id) || strpos($product_id, 'prod_') !== 0) {
-      $product = $this->create_product($prd);
-      $prd->set_stripe_product_id($this->get_meta_gateway_id(), $product->id);
+      $product = $this->create_product($prd, $initial_payment);
+
+      if ($initial_payment) {
+        $prd->set_stripe_initial_payment_product_id( $this->get_meta_gateway_id(), $product->id );
+      } else {
+        $prd->set_stripe_product_id( $this->get_meta_gateway_id(), $product->id );
+      }
+
       $product_id = $product->id;
     }
 
@@ -3075,14 +3087,22 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   /**
    * Create a Stripe Product
    *
-   * @param  MeprProduct         $prd The MemberPress product
+   * @param  MeprProduct  $prd  The MemberPress product
+   * @param  bool  $initial_payment
+   *
    * @return stdClass                 The Stripe Product data
    * @throws MeprHttpException        If there was an HTTP error connecting to Stripe
    * @throws MeprRemoteException      If there was an invalid or error response from Stripe
    */
-  public function create_product(MeprProduct $prd) {
+  public function create_product(MeprProduct $prd, $initial_payment = false) {
+    if ( $initial_payment ) {
+      $product_name = $prd->post_title . ' - Initial Payment';
+    } else {
+      $product_name = $prd->post_title;
+    }
+
     $args = MeprHooks::apply_filters('mepr_stripe_create_product_args', [
-      'name' => $prd->post_title,
+      'name' => $product_name,
       'type' => 'service'
     ], $prd);
 
