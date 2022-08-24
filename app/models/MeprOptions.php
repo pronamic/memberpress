@@ -790,7 +790,6 @@ class MeprOptions {
 
   public function store($validate = true) {
     $options = (array)$this;
-
     // Don't want to store any dynamic attributes
     unset($options['dynamic_attrs']);
 
@@ -821,8 +820,8 @@ class MeprOptions {
     return (!empty($country) && !empty($postcode) && !empty($state) && !empty($city) && !empty($one));
   }
 
-  public function payment_method($id = 'default') {
-    $pmt_methods = $this->payment_methods();
+  public function payment_method($id = 'default', $include_builtin_gateways = true, $force = false) {
+    $pmt_methods = $this->payment_methods($include_builtin_gateways, $force);
 
     if($id == 'default') {
       $keys = array_keys($pmt_methods);
@@ -836,10 +835,10 @@ class MeprOptions {
     return false;
   }
 
-  public function payment_methods($include_builtin_gateways=true) {
+  public function payment_methods($include_builtin_gateways = true, $force = false) {
     static $pmt_methods;
 
-    if(!isset($pmt_methods)) {
+    if(!isset($pmt_methods) || $force) {
       $pmt_methods = array();
 
       if(isset($this->integrations) and is_array($this->integrations)) {

@@ -23,7 +23,22 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl {
     } );
 
     add_action( 'admin_init', [ $this, 'admin_init' ] );
+    add_action( 'mepr-saved-options', [ $this, 'mepr_saved_options' ] );
     $this->add_ajax_endpoints();
+  }
+
+  public function mepr_saved_options($settings) {
+    $mepr_options = MeprOptions::fetch();
+    foreach ( $settings['mepr-integrations'] as $key => $integration ) {
+      if ( $integration['gateway'] == MeprPayPalCommerceGateway::class ) {
+        if ( isset( $mepr_options->legacy_integrations[ $key ] ) ) {
+          $mepr_options->legacy_integrations[ $key ]['debug'] = isset($integration['enable_paypal_standard_debug_email']);
+          $mepr_options->store( false );
+        }
+      }
+    }
+
+    return $settings;
   }
 
   public function admin_init() {
@@ -287,7 +302,22 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl {
       update_option( 'mepr_buff_integrations', $buffer );
 
       $mepr_options->store( false );
-      MeprUtils::wp_redirect( admin_url( 'admin.php?page=memberpress-options#mepr-integration' ) );
+
+      $onboarding = isset($_GET['onboarding']) ? sanitize_text_field(wp_unslash($_GET['onboarding'])) : '';
+
+      if( $onboarding == 'true' ) {
+        update_option('mepr_onboarding_payment_gateway', $methodId);
+
+        $redirect_url = add_query_arg( [
+          'page' => 'memberpress-onboarding',
+          'step' => '6',
+        ], admin_url('admin.php') );
+      }
+      else {
+        $redirect_url = admin_url('admin.php?page=memberpress-options#mepr-integration');
+      }
+
+      MeprUtils::wp_redirect( $redirect_url );
       exit;
     }
   }
@@ -511,6 +541,11 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl {
     $authCode     = $posted['authCode'];
     $sharedId     = $posted['sharedId'];
     $methodId     = $posted['payment_method_id'];
+
+    $this->handle_update_creds( $sandbox, $authCode, $sharedId, $methodId );
+  }
+
+  public function handle_update_creds( $sandbox, $authCode, $sharedId, $methodId ) {
     $pm           = new MeprPayPalCommerceGateway();
     $mepr_options = MeprOptions::fetch();
     $integrations = $mepr_options->integrations;

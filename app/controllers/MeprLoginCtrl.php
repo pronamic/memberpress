@@ -59,7 +59,7 @@ class MeprLoginCtrl extends MeprBaseCtrl {
         $_REQUEST['action'] != 'bpnoaccess' && //BuddyPress fix
         !defined('DOING_AJAX') ) { //Don't do this if it's an ajax request. Probably loading up the form shortcode via AJAX
       //Need to check for this POST first
-      if($_REQUEST['action'] == 'mepr_process_reset_password_form' && isset($_POST['errors'])) {
+      if($_REQUEST['action'] == 'mepr_process_reset_password_form' && isset($_POST['errors']) && !empty($_POST['errors'])) {
         $this->display_reset_password_form_errors($_POST['errors']);
       }
       elseif($_REQUEST['action'] == 'forgot_password') {

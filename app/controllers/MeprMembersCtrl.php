@@ -22,6 +22,8 @@ class MeprMembersCtrl extends MeprBaseCtrl {
     add_action('mepr_subscription_deleted', array($this, 'update_member_data_from_subscription'));
     add_action('mepr_subscription_status_cancelled', array($this, 'update_member_data_from_subscription'));
     add_action('mepr_subscription_status_suspended', array($this, 'update_member_data_from_subscription'));
+    add_action('mepr_subscription_status_pending', array($this, 'update_member_data_from_subscription'));
+    add_action('mepr_subscription_status_active', array($this, 'update_member_data_from_subscription'));
     add_action('mepr-transaction-expired', array($this, 'update_txn_meta'), 11, 2);
 
     if(is_multisite()) {
@@ -206,7 +208,7 @@ class MeprMembersCtrl extends MeprBaseCtrl {
         MeprHooks::do_action('mepr-signup', $transaction);
 
         if($transaction->send_welcome) {
-          MeprUtils::send_signup_notices($transaction, true);
+          MeprUtils::send_signup_notices($transaction);
         }
         else { //Trigger the event for this yo, as it's normally triggered in send_signup_notices
           MeprEvent::record('member-signup-completed', $member, (object)$transaction->rec); //have to use ->rec here for some reason

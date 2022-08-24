@@ -416,6 +416,7 @@ class MeprUsersHelper {
    * @return bool
    */
   public static function uploaded_file_exists($url){
+    if(empty(trim($url))) { return false; }
     $upload_dir = wp_get_upload_dir();
     $filename = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_FILENAME);
     $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);

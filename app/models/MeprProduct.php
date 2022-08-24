@@ -569,6 +569,14 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
       return true; //No rules exist so everyone can purchase
     }
 
+    // Do not allow upgrades/downgrades during a pro-rated trial period from a previous upgrade/downgrade
+    if(MeprUtils::is_user_logged_in() && $user && ($group = $this->group()) !== false) {
+      $sub_in_group = $user->subscription_in_group($group->ID);
+      if($sub_in_group !== false && $sub_in_group->prorated_trial && $sub_in_group->in_trial()) {
+        return MeprHooks::apply_filters('mepr-allow-multiple-upgrades-downgrades', false, $user, $sub_in_group, $this);
+      }
+    }
+
     foreach($this->who_can_purchase as $who) {
       //Give Developers a chance to hook in here
       //Return true or false if you run your own custom handling here

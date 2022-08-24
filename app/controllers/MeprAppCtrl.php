@@ -23,6 +23,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
     add_action('admin_notices', 'MeprAppCtrl::php_min_version_check');
     add_action('admin_notices', 'MeprAppCtrl::maybe_show_get_started_notice');
     add_action('wp_ajax_mepr_dismiss_notice', 'MeprAppCtrl::dismiss_notice');
+    add_action('wp_ajax_mepr_dismiss_daily_notice', 'MeprAppCtrl::dismiss_daily_notice');
     add_action('wp_ajax_mepr_todays_date', 'MeprAppCtrl::todays_date');
     add_action('wp_ajax_mepr_close_about_notice', 'MeprAppCtrl::close_about_notice');
     add_action('admin_init', 'MeprAppCtrl::append_mp_privacy_policy');
@@ -44,7 +45,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
     //show MemberPress as active menu item when support admin page is selected
     add_filter( 'mp_hidden_submenu', 'MeprAppCtrl::highlight_parent_menu');
 
-    register_deactivation_hook(__FILE__, 'MeprAppCtrl::deactivate');
+    add_action('activated_plugin', 'MeprAppCtrl::activated_plugin');
   }
 
   public static function mp_admin_header() {
@@ -282,6 +283,15 @@ class MeprAppCtrl extends MeprBaseCtrl {
     if(check_ajax_referer('mepr_dismiss_notice', false, false) && isset($_POST['notice']) && is_string($_POST['notice'])) {
       $notice = sanitize_key($_POST['notice']);
       update_user_meta(get_current_user_id(), "mepr_dismiss_notice_{$notice}", true);
+    }
+
+    wp_send_json_success();
+  }
+
+  public static function dismiss_daily_notice() {
+    if(check_ajax_referer('mepr_dismiss_notice', false, false) && isset($_POST['notice']) && is_string($_POST['notice'])) {
+      $notice = sanitize_key($_POST['notice']);
+      set_transient( "mepr_dismiss_notice_{$notice}", true, DAY_IN_SECONDS);
     }
 
     wp_send_json_success();
@@ -561,7 +571,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
           else if($action and $action == 'reset_password') {
             $login_ctrl->display_reset_password_form(self::get_param('mkey',''),self::get_param('u',''));
           }
-          else if($action and $action === 'mepr_process_reset_password_form' && isset($_POST['errors'])) {
+          else if($action and $action === 'mepr_process_reset_password_form' && isset($_POST['errors'])  && !empty($_POST['errors'])) {
             $login_ctrl->display_reset_password_form_errors($_POST['errors']);
           }
           else if(!$manual_login_form || ($manual_login_form && $action == 'mepr_unauthorized')) {
@@ -1117,6 +1127,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
     add_submenu_page('memberpress', __('Reports', 'memberpress'), __('Reports', 'memberpress'), $capability, 'memberpress-reports', 'MeprReportsCtrl::main');
     add_dashboard_page(__('MemberPress', 'memberpress'), __('MemberPress', 'memberpress'), $capability, 'memberpress-reports', 'MeprReportsCtrl::main');
     add_submenu_page('memberpress', __('Settings', 'memberpress'), __('Settings', 'memberpress'), $capability, 'memberpress-options', 'MeprOptionsCtrl::route');
+    add_submenu_page('memberpress', __('Onboarding', 'memberpress'), __('Onboarding', 'memberpress'), $capability, 'memberpress-onboarding', 'MeprOnboardingCtrl::route');
     add_submenu_page('memberpress', __('Account Login', 'memberpress'), __('Account Login', 'memberpress'), $capability, 'memberpress-account-login', 'MeprAccountLoginCtrl::route');
     add_submenu_page('memberpress', __('Add-ons', 'memberpress'), '<span style="color:#8CBD5A;">' . __('Add-ons', 'memberpress') . '</span>', $capability, 'memberpress-addons', 'MeprAddonsCtrl::route');
 
@@ -1161,5 +1172,32 @@ class MeprAppCtrl extends MeprBaseCtrl {
     add_submenu_page('memberpress-drm', __('Members', 'memberpress'), __('Members', 'memberpress'), $capability, 'memberpress-members', array($mbr_ctrl,'listing_drm'));
 
     MeprHooks::do_action('mepr_drm_menu');
+  }
+
+  public static function activated_plugin($plugin) {
+    if($plugin != MEPR_PLUGIN_SLUG) {
+      return;
+    }
+
+    if(!is_user_logged_in() || wp_doing_ajax() || !is_admin() || is_network_admin() || !MeprUtils::is_mepr_admin()) {
+      return;
+    }
+
+    if(MeprUtils::is_post_request() && (isset($_POST['action']) || isset($_POST['action2']))) {
+      return; // don't redirect on bulk activation
+    }
+
+    global $wpdb;
+
+    wp_cache_flush();
+    $wpdb->flush();
+
+    $onboarded = $wpdb->get_var("SELECT option_value FROM {$wpdb->options} WHERE option_name = 'mepr_onboarded'");
+
+    if($onboarded === null) {
+      nocache_headers();
+      wp_redirect(admin_url('admin.php?page=memberpress-onboarding'), 307);
+      exit;
+    }
   }
 } //End class

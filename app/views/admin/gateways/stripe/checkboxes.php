@@ -24,7 +24,7 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
               MeprAppHelper::info_tooltip(
                 'mepr-stripe-link-info',
                 __('Stripe Link Considerations', 'memberpress'),
-                __('Currently, Stripe Link is only available to US based sellers who sell only in USD.<br /><br/>If the buyer is not already using link they will see a message to save their data for future use. This information is stored by Stripe and not MemberPress.<br /><br/>Buyer\'s can un-enroll from link at anytime on the Link.co webiste.<br /><br/>For information, see our help documentation or Stripe\'s Link FAQ.', 'memberpress')
+                __('Currently, Stripe Link is only available to US based sellers who sell only in USD.<br /><br/>If the buyer is not already using link they will see a message to save their data for future use. This information is stored by Stripe and not MemberPress.<br /><br/>Buyer\'s can un-enroll from link at anytime on the Link.co website.<br /><br/>For information, see our help documentation or Stripe\'s Link FAQ.', 'memberpress')
               );
             ?>
            </label>

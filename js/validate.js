@@ -29,6 +29,10 @@ var mpToggleFieldValidation = function(field, valid) {
     field.prev('.mp-form-label').find('.cc-error').toggle(!valid);
   }
 
+  if(field.hasClass('mepr-countries-dropdown')) {
+    field.closest('.mepr-form').find('.mepr_mepr-address-state .cc-error').toggle(!valid);
+  }
+
   field.triggerHandler('mepr-validate-field', valid);
   var form = field.closest('.mepr-form');
 

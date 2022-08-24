@@ -45,7 +45,7 @@ body.site-health-php .mepr-notice-dismiss-24hour{ display:none; }
 .mepr-notice-modal { display: none; position: fixed; top: 50%; left: 160px; width: calc(100% - 160px); z-index: 999; -webkit-transform: translateY(-50%); transform: translateY(-50%); }
 .mepr-notice-modal-active .mepr-notice-modal { display: block; }
 
-.mepr-notice-modal .mepr-notice-modal-wrapper { max-height: 95vh; overflow-y: auto; padding: 36px 72px 0; box-sizing: border-box; width: 73%; max-width: 904px; margin: 0 auto; background-color: #fff;   border-radius: 10px; text-align: center; box-shadow: 0px 10px 20px rgba(9, 29, 46, 0.1); }
+.mepr-notice-modal .mepr-notice-modal-wrapper { position: relative; max-height: 95vh; overflow-y: auto; padding: 36px 72px 0; box-sizing: border-box; width: 73%; max-width: 904px; margin: 0 auto; background-color: #fff;   border-radius: 10px; text-align: center; box-shadow: 0px 10px 20px rgba(9, 29, 46, 0.1); }
 
 .mepr-notice-modal .mepr-notice-modal-banner { display: block; max-width: 100%; height: auto; }
 
@@ -77,6 +77,16 @@ body.site-health-php .mepr-notice-dismiss-24hour{ display:none; }
 .mepr-notice-modal .mepr-notice-desc .mepr-key-success { font-weight: 600; font-size: 15px; }
 .mepr-notice-modal .mepr-notice-desc .mepr-key-success > span { display: inline-block; position: relative; padding: 10px 10px 10px 47px; }
 .mepr-notice-modal .mepr-notice-desc .mepr-key-success > span:before { content: ""; background: url('../images/mepr-notice-icon-success.gif') no-repeat; background-size: 100% auto; display: block; position: absolute; top: 50%; left: 0; -webkit-transform: translateY(-50%); transform: translateY(-50%); width: 24px; height: 24px; }
+
+.mepr-notice-modal-close {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  right: 20px;
+  top: 20px;
+  background: url("../images/icon-close.png") left top no-repeat;
+  background-size: 100%;
+}
 
 @media (max-width: 782px) {
 .mepr-notice-modal { left: 0; width: calc(100%); }

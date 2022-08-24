@@ -355,6 +355,10 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
   public static function install_plugin_silently($url, $args) {
     require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
+    if(!function_exists('request_filesystem_credentials')) {
+      require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
+
     $skin = new Automatic_Upgrader_Skin();
     $upgrader = new Plugin_Upgrader($skin);
 

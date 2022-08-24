@@ -63,6 +63,16 @@ class MeprStripeCtrl extends MeprBaseCtrl
       $sub                   = new MeprSubscription( $metadata['memberpress_subscription_id'] );
       $customer              = $stripe_payment_intent['customer'];
       $stripe_payment_method = $stripe_payment_intent['payment_method'];
+
+      if($sub->id > 0) {
+        $first_txn = $sub->first_txn();
+
+        if($first_txn instanceof MeprTransaction) {
+          $pm->activate_subscription($first_txn, $sub);
+          MeprHooks::do_action('mepr-signup', $first_txn);
+        }
+      }
+
       $pm->send_stripe_request( 'customers/' . $customer, array(
         'invoice_settings' => array(
           'default_payment_method' => $stripe_payment_method
@@ -182,6 +192,15 @@ class MeprStripeCtrl extends MeprBaseCtrl
           return;
         }
 
+        if($sub->id > 0) {
+          $first_txn = $sub->first_txn();
+
+          if($first_txn instanceof MeprTransaction) {
+            $pm->activate_subscription($first_txn, $sub);
+            MeprHooks::do_action('mepr-signup', $first_txn);
+          }
+        }
+
         $pm->send_stripe_request('customers/' . $customer, array(
           'invoice_settings' => array(
             'default_payment_method' => $stripe_payment_method
@@ -217,53 +236,61 @@ class MeprStripeCtrl extends MeprBaseCtrl
     }
 
     if (isset($metadata['stripe_payment_intent_id'])) {
-      $payment_intent = $metadata['stripe_payment_intent_id'];
-      $stripe_payment_intent = $pm->send_stripe_request( 'payment_intents/' . $metadata['stripe_payment_intent_id'], [], 'get' );
-      $customer = $stripe_payment_intent['customer'];
-      // Attach method to customer
-      $pm->send_stripe_request( 'payment_methods/' . $stripe_payment_method .'/attach', [
-        'customer' => $customer,
-      ], 'post');
+      try {
+        $payment_intent = $metadata['stripe_payment_intent_id'];
+        $stripe_payment_intent = $pm->send_stripe_request( 'payment_intents/' . $metadata['stripe_payment_intent_id'], [], 'get' );
+        $customer = $stripe_payment_intent['customer'];
 
-      // Confirm payment
-      $stripe_payment_intent = $pm->send_stripe_request( 'payment_intents/' . $payment_intent . '/confirm', [
-        'payment_method' => $stripe_payment_method,
-        'setup_future_usage' => 'off_session',
-        'return_url'         => admin_url('admin-ajax.php?action=mepr_confirm_stripe_payment_intent&method=' . $pm->id),
-        'mandate_data' => [
-          'customer_acceptance' => [
-            'type' => 'online',
-            'online' => [
-              'ip_address' => $_SERVER['REMOTE_ADDR'],
-              'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-            ]
+        // Attach method to customer
+        $pm->send_stripe_request( 'payment_methods/' . $stripe_payment_method .'/attach', [
+          'customer' => $customer,
+        ], 'post');
+
+        // Confirm payment
+        $stripe_payment_intent = $pm->send_stripe_request( 'payment_intents/' . $payment_intent . '/confirm', [
+          'payment_method' => $stripe_payment_method,
+          'setup_future_usage' => 'off_session',
+          'return_url'         => admin_url('admin-ajax.php?action=mepr_confirm_stripe_payment_intent&method=' . $pm->id),
+          'mandate_data' => [
+            'customer_acceptance' => [
+              'type' => 'online',
+              'online' => [
+                'ip_address' => $_SERVER['REMOTE_ADDR'],
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'],
+              ]
+            ],
           ],
-        ],
-      ], 'post');
+        ], 'post');
 
-      $mepr_options = MeprOptions::fetch();
-      $txn = new MeprTransaction($metadata['memberpress_transaction_id']);
-      $txn->trans_num = $stripe_payment_intent['id'];
-      $txn->store();
+        $mepr_options = MeprOptions::fetch();
+        $txn = new MeprTransaction($metadata['memberpress_transaction_id']);
+        $txn->trans_num = $stripe_payment_intent['id'];
+        $txn->store();
 
-      if ( $stripe_payment_intent['status'] == 'requires_action' ) {
-        if (isset($stripe_payment_intent['next_action']) && isset($stripe_payment_intent['next_action']['redirect_to_url']['url']) ) {
-          MeprUtils::wp_redirect($stripe_payment_intent['next_action']['redirect_to_url']['url']);
+        if ( $stripe_payment_intent['status'] == 'requires_action' ) {
+          if (isset($stripe_payment_intent['next_action']) && isset($stripe_payment_intent['next_action']['redirect_to_url']['url']) ) {
+            MeprUtils::wp_redirect($stripe_payment_intent['next_action']['redirect_to_url']['url']);
+          }
+          return;
         }
-        return;
+
+        $product = $txn->product();
+        $thankyou_page_args = [
+          'membership' => sanitize_title($product->post_title),
+          'transaction_id' => $txn->id,
+          'membership_id' => $product->ID,
+        ];
+
+        $success_url = $mepr_options->thankyou_page_url($thankyou_page_args);
+      } catch (\Exception $e) {
+        $txn = new MeprTransaction($metadata['memberpress_transaction_id']);
+        $product = $txn->product();
+
+        \MeprUtils::wp_redirect(add_query_arg('errors', [sanitize_text_field($e->getMessage())], get_permalink($product->ID)));
       }
-
-      $product = $txn->product();
-      $thankyou_page_args = [
-        'membership' => sanitize_title($product->post_title),
-        'transaction_id' => $txn->id,
-        'membership_id' => $product->ID,
-      ];
-
-      $success_url = $mepr_options->thankyou_page_url($thankyou_page_args);
     }
 
-    if (isset($success_url)) {
+    if(isset($success_url)) {
       \MeprUtils::wp_redirect($success_url);
     }
   }

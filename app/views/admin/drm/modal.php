@@ -3,6 +3,7 @@ $account_link = MeprDrmHelper::get_drm_link( MeprDrmHelper::DRM_LOCKED, 'general
 ?>
 <div class="mepr-notice-modal">
    <div class="mepr-notice-modal-wrapper">
+    <a href='<?php echo admin_url(); ?>' class='mepr-notice-modal-close'></a>
     <div class="mepr-notice-modal-content">
      <h3 class="mepr-notice-title"><?php _e( '<span>ALERT!</span> MemberPress Backend is Deactivated', 'memberpress' ); ?></h3>
      <div class="mepr-notice-desc">
@@ -28,6 +29,13 @@ $account_link = MeprDrmHelper::get_drm_link( MeprDrmHelper::DRM_LOCKED, 'general
 </div>
 <script>
    jQuery(document).ready(function($) {
+     $('body').on('click', '.mepr-notice-modal-close', function (e) {
+        $('body').removeClass('mepr-notice-modal-active');
+        $('body').removeClass('mepr-locked');
+        $('.mepr-notice-modal').remove();
+        $('#wpbody').remove();
+     });
+
    $('body').on('click', '#mepr-drm-activate-license-key', function (e) {
     e.preventDefault();
     var $button = $(this),

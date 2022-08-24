@@ -18,6 +18,8 @@ class MeprGroupsCtrl extends MeprCptCtrl {
     add_filter('the_content', 'MeprGroupsCtrl::render_pricing_boxes', 10);
     add_filter('manage_edit-memberpressgroup_columns', 'MeprGroupsCtrl::columns');
     add_filter('template_include', 'MeprGroupsCtrl::template_include');
+    add_action('mepr-txn-status-failed', array($this, 'create_fallback'));
+
     MeprHooks::add_shortcode('mepr-group-price-boxes', 'MeprGroupsCtrl::shortcode_group_price_boxes');
 
     // Cleanup list view

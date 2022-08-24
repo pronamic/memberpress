@@ -45,6 +45,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway {
         'use_desc' => true,
         'manually_complete' => false,
         'always_send_welcome' => false,
+        'no_cancel_up_down_grade' => false,
         'email' => '',
         'sandbox' => false,
         'debug' => false
@@ -82,6 +83,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway {
       MeprEvent::record('offline-payment-'.$txn->status, $txn);
 
       if($txn->status == MeprTransaction::$complete_str) {
+        self::maybe_cancel_old_sub($txn, $gateway);
         MeprUtils::send_transaction_receipt_notices($txn);
       }
     }
@@ -415,8 +417,9 @@ class MeprArtificialGateway extends MeprBaseRealGateway {
   /** Displays the form for the given payment gateway on the MemberPress Options page */
   public function display_options_form() {
     $mepr_options = MeprOptions::fetch();
-    $manually_complete = ($this->settings->manually_complete == true);
-    $always_send_welcome = ($this->settings->always_send_welcome == true);
+    $manually_complete = ($this->settings->manually_complete == "on" || $this->settings->manually_complete == true);
+    $no_cancel_up_down_grade = ($this->settings->no_cancel_up_down_grade == "on" || $this->settings->no_cancel_up_down_grade == true);
+    $always_send_welcome = ($this->settings->always_send_welcome == "on" || $this->settings->always_send_welcome == true);
     ?>
     <table>
       <tr>
@@ -428,7 +431,13 @@ class MeprArtificialGateway extends MeprBaseRealGateway {
         <td colspan="2">
           <input type="checkbox" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][always_send_welcome]"<?php echo checked($always_send_welcome); ?> />&nbsp;<?php _e('Send Welcome email when "Admin Must Manually Complete Transactions" is enabled', 'memberpress'); ?>
         </td>
-      </tr>      <tr>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <input type="checkbox" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][no_cancel_up_down_grade]"<?php echo checked($no_cancel_up_down_grade); ?> />&nbsp;<?php _e('Do not cancel old plan on upgrades when "Admin Must Manually Complete Transactions" is enabled', 'memberpress'); ?>
+        </td>
+      </tr>
+      <tr>
         <td colspan="2">
           <label><?php _e('Description', 'memberpress'); ?></label><br/>
           <textarea name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][desc]" rows="3" cols="45"><?php echo stripslashes($this->settings->desc); ?></textarea>
@@ -477,5 +486,18 @@ class MeprArtificialGateway extends MeprBaseRealGateway {
 
   public function force_ssl() {
     return false; // Why bother
+  }
+
+  public static function maybe_cancel_old_sub($txn, $gateway) {
+    //If we are marking the transacton as complete, and the admin must manually complete, and old subscriptions
+    //are not canceled when the admin must manually complete, then we need to check to see if the old sub needs to
+    //be cancelled here.
+    if( $txn->status == MeprTransaction::$complete_str && $gateway->settings->manually_complete && $gateway->settings->no_cancel_up_down_grade ) {
+      if ($sub = $txn->subscription()) {
+        $sub->maybe_cancel_old_sub(true); //pass true here to by pass the artificial gateway check
+      } else {
+        $txn->maybe_cancel_old_sub(true); //pass true here to by pass the artificial gateway check
+      }
+    }
   }
 } //End class

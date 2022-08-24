@@ -857,6 +857,15 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     if($invoice->billing_reason == 'subscription_create') {
       $_REQUEST['data'] = (object) $invoice->customer;
 
+      if(isset($invoice->customer['invoice_settings']) && is_array($invoice->customer['invoice_settings'])) {
+        $default_payment_method = isset($invoice->customer['invoice_settings']['default_payment_method']) ? $invoice->customer['invoice_settings']['default_payment_method'] : null;
+        $subscription_payment_method = isset($invoice->subscription['default_payment_method']['id']) ? $invoice->subscription['default_payment_method']['id'] : null;
+
+        if(empty($default_payment_method) && !empty($subscription_payment_method)) {
+          $this->set_customer_default_payment_method($invoice->customer['id'], $subscription_payment_method);
+        }
+      }
+
       $this->record_create_subscription();
     }
 
@@ -1626,6 +1635,12 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $usr->set_stripe_customer_id($this->get_meta_gateway_id(), $customer_id);
     }
 
+    $payment_method_id = !empty($customer->invoice_settings['default_payment_method']['id']) ? $customer->invoice_settings['default_payment_method']['id'] : null;
+
+    if(empty($payment_method_id)) {
+      $payment_method_id = $this->set_customer_default_payment_method($customer->id);
+    }
+
     if($tax_inclusive) {
       $plan_id = $this->get_stripe_plan_id($sub, $prd, $usr, $sub->total);
       $tax_rate_id = $sub->tax_rate > 0 ? $this->get_stripe_tax_rate_id($sub->tax_desc, $sub->tax_rate, $prd, true) : null;
@@ -1657,8 +1672,8 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     ], $sub);
 
     // Specifically set a default_payment_method on the subscription
-    if(!empty($customer->invoice_settings['default_payment_method']['id'])) {
-      $args = array_merge(['default_payment_method' => $customer->invoice_settings['default_payment_method']['id']], $args);
+    if(!empty($payment_method_id)) {
+      $args = array_merge(['default_payment_method' => $payment_method_id], $args);
     }
 
     if($sub->trial) {
@@ -1692,6 +1707,46 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $_REQUEST['sub'] = $sub;
 
     return $this->record_resume_subscription();
+  }
+
+  /**
+   * Set a default payment method on a customer
+   *
+   * If the $payment_method_id param is null, the first card attached to the customer will be set as the default.
+   *
+   * @param  string      $customer_id        The Stripe Customer ID
+   * @param  string|null $payment_method_id  The Stripe PaymentMethod ID to set as the default
+   * @return string|null                     The Stripe PaymentMethod ID that was set as the default
+   */
+  public function set_customer_default_payment_method($customer_id, $payment_method_id = null) {
+    try {
+      if(empty($payment_method_id)) {
+        $payment_methods = (object) $this->send_stripe_request("customers/$customer_id/payment_methods", [
+          'type' => 'card',
+          'limit' => '1',
+        ], 'get');
+
+        if(isset($payment_methods->data[0]['id'])) {
+          $payment_method_id = $payment_methods->data[0]['id'];
+        }
+        else {
+          return null;
+        }
+      }
+
+      $this->send_stripe_request("customers/$customer_id", [
+        'invoice_settings' => [
+          'default_payment_method' => $payment_method_id
+        ]
+      ]);
+
+      return $payment_method_id;
+    }
+    catch(Exception $e) {
+      // Ignore, not critical enough to cause an error
+    }
+
+    return null;
   }
 
   /** This method should be used by the class to record a successful resuming of
@@ -2124,6 +2179,19 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   public function display_update_account_form($sub_id, $errors=array(), $message='') {
     $mepr_options = MeprOptions::fetch();
     $sub = new MeprSubscription($sub_id);
+    $stripe_subscription = (array) $this->retrieve_subscription($sub->subscr_id);
+    $subscribed_with_link = false;
+    if (isset($stripe_subscription['latest_invoice']['payment_intent']['charges']['data'])) {
+        $charges = $stripe_subscription['latest_invoice']['payment_intent']['charges']['data'];
+
+        if (is_array($charges)) {
+            $last_charge = end($charges);
+            if (stripos($last_charge['id'], 'py_') === 0) {
+              $subscribed_with_link = true;
+            }
+        }
+    }
+
     $user = $sub->user();
     if(MeprUtils::is_post_request() && empty($errors) && !empty($_POST['mepr_stripe_update_is_payment'])) {
       $message = __('Update successful, please allow some time for the payment to process. Your account will reflect the updated payment soon.', 'memberpress');
@@ -2139,9 +2207,24 @@ class MeprStripeGateway extends MeprBaseRealGateway {
               MeprView::render("/checkout/MeprStripeGateway/payment_gateway_fields", get_defined_vars());
             }
           ?>
-
+          <?php
+          if ( $subscribed_with_link ) {
+            ?>
+              <div class="mepr_update_account_table">
+                  <div><strong><?php _e( 'Your subscription was setup with Link. Please login to <a href="https://Link.co">Link.co</a> to update your default payment method.', 'memberpress' ); ?></strong></div>
+                  <div><strong><?php _e( 'Or', 'memberpress' ); ?></strong></div>
+              </div>
+            <?php
+          }
+          ?>
           <div class="mepr_update_account_table">
+          <?php
+          if ( $subscribed_with_link ) {
+          ?>
+            <div><strong><?php _e('If you do not wish to use Link for this subscription, you can add your credit card information below:', 'memberpress'); ?></strong></div><br/>
+          <?php } else { ?>
             <div><strong><?php _e('Update your Credit Card information below', 'memberpress'); ?></strong></div><br/>
+          <?php }  ?>
             <div class="mepr-stripe-errors"></div>
             <?php MeprView::render('/shared/errors', get_defined_vars()); ?>
 
@@ -2796,18 +2879,22 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   /**
    * Assembles the URL for redirecting to Stripe Connect
    *
-   * @param  string   $id   Payment ID
-   *
+   * @param  string $id         Payment ID
+   * @param  bool   $onboarding True if we are onboarding
    * @return string
    */
-  public static function get_stripe_connect_url($method_id) {
+  public static function get_stripe_connect_url($method_id, $onboarding = false) {
 
-    $base_return_url = add_query_arg( array(
-        'action' => 'mepr_stripe_connect_update_creds',
-        '_wpnonce' => wp_create_nonce( 'stripe-update-creds' )
-      ),
-      admin_url( 'admin-ajax.php' )
+    $args = array(
+      'action' => 'mepr_stripe_connect_update_creds',
+      '_wpnonce' => wp_create_nonce( 'stripe-update-creds' )
     );
+
+    if($onboarding) {
+      $args['onboarding'] = 'true';
+    }
+
+    $base_return_url = add_query_arg( $args, admin_url( 'admin-ajax.php' ) );
 
     $error_url = add_query_arg( array(
       'mepr-action' => 'error'

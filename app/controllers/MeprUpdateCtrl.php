@@ -46,7 +46,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl {
     }
 
     // Set an identifier for this notice
-    $notice_id = 'mp_ed_22';
+    $notice_id = 'mp_dc_22';
     $dismissed_admin_notices = get_option( 'mp_dismissed_admin_notices', array() );
 
     // This notice has already been dismissed
@@ -66,38 +66,39 @@ class MeprUpdateCtrl extends MeprBaseCtrl {
     }
 
     // Default
-    $link = 'https://memberpress.com/ed2022/ed-alert';
-    $heading = 'WANTED: Eco-Minded Entrepreneurs 🌏 ';
-    $message = "Buy MemberPress NOW & We’ll Plant a Tree 🌳 It’s Our Earth Day Celebration 2022 🌲 Use Code TREES22 Thru 4/26";
-    $button_text = '👉 PLANT MY TREE 👈';
+    $link = 'https://memberpress.com/dc2022/dc-alert';
+    $heading = 'Monetize & Save!';
+    $message = "Ready, Set, CONNECT💥Add a Forum to MemberPress 👉 Monetize Your Discord 👉 GROW Your Business w/ This New FREE Add-On";
+    $button_text = '👉 LEARN MORE 👈';
 
+    /*
     if ( ! empty( $li['license_key']['expires_at'] ) && strtotime( $li['license_key']['expires_at'] ) < time() ) {
       // Expired
-      // $heading = 'It’s Time To Renew!';
-      $message = "Renew MemberPress NOW & We’ll Plant a Tree 🌳 It’s Our Earth Day Celebration 2022 🌲 Use Code TREES22 Thru 4/26";
-      // $button_text = '👉 RENEW NOW 👈';
-      // $link = 'https://memberpress.com/sp2022/sp-alert/lic-exp';
+      $heading = 'It’s Time To Renew!';
+      $message = "Renew Your License NOW & You'll 👉 Save Up To  $250 👈 It’s Summer Savings Time 🌼 Use Code SUMMER22 Thru 7/18";
+      $button_text = '👉 RENEW NOW 👈';
+      $link = 'https://memberpress.com/su2022/su-alert/lic-exp';
     } elseif ( ! empty( $li['product_slug'] ) ) {
       // Active
       switch ( $li['product_slug'] ) {
         case 'memberpress-basic':
-        case 'business':
-          // $heading = 'Upgrade Now & Save!';
-          $message = "Upgrade to Plus or Pro NOW & We’ll Plant a Tree 🌳 It’s Our Earth Day Celebration 2022 🌲 Use Code TREES22 Thru 4/26";
-          // $button_text = '👉 UPGRADE NOW 👈';
-          // $link = 'https://memberpress.com/sp2022/sp-alert/lic-basic';
+          $heading = 'Upgrade Now & Save!';
+          $message = "UPGRADE to Plus or Pro NOW & You'll 👉 Save Up To  $250 👈 It’s Summer Savings Time 🌼 Use Code SUMMER22 Thru 7/18";
+          $button_text = '👉 UPGRADE NOW 👈';
+          $link = 'https://memberpress.com/su2022/su-alert/lic-basic';
           break;
 
-        case 'memberpress-plus':
         case 'memberpress-plus-2':
-          // $heading = 'Upgrade Now & Save!';
-          $message = "Upgrade to Pro NOW & We’ll Plant a Tree 🌳 It’s Our Earth Day Celebration 2022 🌲 Use Code TREES22 Thru 4/26";
-          // $button_text = '👉 UPGRADE NOW 👈';
-          // $link = 'https://memberpress.com/sp2022/sp-alert/lic-plus';
+          $heading = 'Upgrade Now & Save!';
+          $message = "UPGRADE to Pro NOW & You'll 👉 Save Up To  $250 👈 It’s Summer Savings Time 🌼 Use Code SUMMER22 Thru 7/18";
+          $button_text = '👉 UPGRADE NOW 👈';
+          $link = 'https://memberpress.com/su2022/su-alert/lic-plus';
           break;
 
         case 'memberpress-pro':
         case 'memberpress-pro-5':
+        case 'business':
+        case 'memberpress-plus':
         case 'developer':
           $link = '';
           break;
@@ -106,6 +107,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl {
           break;
       }
     }
+    */
 
     if ( empty( $link ) ) {
       return;
@@ -196,6 +198,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl {
       $is_addon = isset( $item['slug'] ) && 0 === strpos( $item['slug'], 'memberpress-' ); // see updater class
       if ( ! $is_memberpress && ! $is_addon ) {
           return $update;
+      }
+
+      // If the plugin folder is a git repo, return early.
+      if(@is_dir(WP_PLUGIN_DIR . '/' . $item['slug'] . '/.git')) {
+        return $update;
       }
 
       $mepr_options = MeprOptions::fetch();
@@ -462,6 +469,10 @@ class MeprUpdateCtrl extends MeprBaseCtrl {
   }
 
   public static function queue_update($transient, $force=false, $rollback=false) {
+    if(empty($transient) || !is_object($transient)) {
+      return $transient;
+    }
+
     $mepr_options = MeprOptions::fetch();
 
     $update_info = get_site_transient('mepr_update_info');
@@ -811,9 +822,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl {
 
           if(defined('MEMBERPRESS_EDGE') && MEMBERPRESS_EDGE) { $args['edge'] = 'true'; }
           $addons = self::send_mothership_request('/versions/addons/'.MEPR_EDITION."/{$license}", $args);
+
         }
         catch(Exception $e) {
           // fail silently
+          MeprUtils::debug_log(MeprUtils::object_to_string($e));
         }
       }
 

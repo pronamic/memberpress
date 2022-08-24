@@ -2736,10 +2736,9 @@ class MeprUser extends MeprBaseModel {
         SELECT sum(t.total)
           FROM {$mepr_db->transactions} AS t
          WHERE t.user_id=u.ID
-           AND t.status IN (%s,%s)
+           AND t.status IN (%s)
       )",
-      MeprTransaction::$complete_str,
-      MeprTransaction::$confirmed_str
+      MeprTransaction::$complete_str
     );
   }
 

@@ -150,6 +150,11 @@ var drawReportingCharts = function () {
       }
     });
 
+  // Pie charts are hidden for per-membership reporting, so bail early.
+  if(product !== 'all') {
+    return;
+  }
+
   //Monthly Pie Chart Totals
   args = {
     action: 'mepr_pie_report',

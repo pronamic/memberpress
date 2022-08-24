@@ -34,6 +34,10 @@ class MeprAccountCtrl extends MeprBaseCtrl {
   //They accidentally go to purchase a new subscription instead? This could lead to a double billing
   //So let's warn them here
   public function maybe_show_broken_sub_message($prd_id) {
+    global $pagenow;
+
+    if($pagenow == 'post.php') { return; }
+
     $mepr_options   = MeprOptions::fetch();
     $user           = MeprUtils::get_currentuserinfo();
     $errors         = array();

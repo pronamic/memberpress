@@ -1094,7 +1094,10 @@ class MeprUtils {
       require( $sfile );
     }
 
-    return $states;
+    return MeprHooks::apply_filters(
+      'mepr_states',
+      $states
+    );
   }
 
   public static function clean($str) {
@@ -2258,13 +2261,13 @@ class MeprUtils {
   }
 
   /**
-   * Determine whether our Green Monday promotion is active.
+   * Determine whether our promotion is active.
    *
    * @return boolean
    */
   public static function is_promo_time() {
     // Start date - end date
-    return time() > strtotime( '2022-04-17 00:00:00 America/Denver' ) && time() < strtotime( '2022-04-26 00:00:00 America/Denver' );
+    return time() < strtotime( '2022-08-30 00:00:00 America/Denver' );
   }
 
   /**
@@ -2323,5 +2326,28 @@ class MeprUtils {
       'installed' => $installed_edition,
       'license' => $license_edition
     );
+  }
+
+  /**
+   * Determines whether or not the provided gateway is connected.
+   *
+   * @param object $gateway
+   * @return boolean
+   */
+  public static function is_gateway_connected($gateway) {
+    if(!is_object($gateway) || !isset($gateway->key)) {
+      return false;
+    }
+
+    // Payment gateways such as Authorize.net and PayPal Standard require fields to be filled out,
+    // so we won't worry about validating them here.
+    switch($gateway->key) {
+      case 'stripe':
+        return (MeprStripeGateway::is_stripe_connect($gateway->id) || MeprStripeGateway::keys_are_set($gateway->id));
+      case 'paypalcommerce':
+        return ($gateway->is_paypal_connected() || $gateway->is_paypal_connected_live());
+      default:
+        return true;
+    }
   }
 } // End class

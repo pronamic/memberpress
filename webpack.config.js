@@ -4,36 +4,10 @@ const defaultConfig = require("./node_modules/@wordpress/scripts/config/webpack.
 
 module.exports = {
   ...defaultConfig,
-  entry: glob.sync("./js/blocks/**/index.js"),
+  entry: glob("./js/blocks/**/index.js", { sync: true }),
   output: {
     filename: "blocks.js",
-    path: path.resolve(__dirname, "js")
-  },
-  module: {
-    ...defaultConfig.module,
-    rules: [
-      ...defaultConfig.module.rules,
-      {
-        test: /\.svg$/,
-        use: ["@svgr/webpack", "url-loader"]
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          {
-            loader: "style-loader"
-          },
-          {
-            loader: "postcss-loader",
-            options: {
-              plugins: [require("autoprefixer")()]
-            }
-          },
-          {
-            loader: "sass-loader"
-          }
-        ]
-      }
-    ]
+    chunkFilename: "blocks.js",
+    path: path.resolve(__dirname, "js/build")
   }
 };

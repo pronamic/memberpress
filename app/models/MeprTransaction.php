@@ -763,12 +763,19 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
   }
 
   /** Used by one-time payments **/
-  public function maybe_cancel_old_sub() {
+  public function maybe_cancel_old_sub($force_cancel_artificial = false) {
     $mepr_options = MeprOptions::fetch();
 
     try {
       $evt_txn = false;
       if($this->is_upgrade_or_downgrade() && $this->is_one_time_payment()) {
+        $pm = $this->payment_method();
+        if(!$force_cancel_artificial && $pm instanceof MeprArtificialGateway && $pm->settings->manually_complete && $pm->settings->no_cancel_up_down_grade) {
+          //If this is an artifical gateway and admin must manually approve and do not cancel when admin must manually approve
+          //then don't cancel
+          return false;
+        }
+
         $usr = $this->user();
         $grp = $this->group();
 
@@ -1089,14 +1096,24 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
       $q = $wpdb->prepare("
           SELECT COUNT(*)
             FROM {$mepr_db->transactions} AS t
-           WHERE t.txn_type=%s
-             AND t.status IN (%s, %s)
+           WHERE
+             (
+               (t.txn_type = %s AND t.status IN (%s, %s))
+               OR
+               (
+                 t.status = %s
+                 AND ( SELECT sub.prorated_trial
+                       FROM {$mepr_db->subscriptions} AS sub
+                       WHERE sub.id = t.subscription_id AND sub.trial_amount = 0.00 AND sub.trial = 1 ) = 1
+               )
+             )
              AND t.subscription_id=%d
              AND t.created_at <= %s
         ",
         self::$payment_str,
         self::$complete_str,
         self::$refunded_str,
+        self::$confirmed_str,
         $this->subscription_id,
         $this->created_at
       );

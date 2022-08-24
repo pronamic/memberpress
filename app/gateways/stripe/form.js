@@ -433,6 +433,9 @@
           elements,
           confirmParams: {
             return_url: returnURL,
+            payment_method_data: {
+              billing_details: self.getBillingDetails(this.selectedPaymentMethod)
+            }
           }
         }).then((e) => {
           if (e.error) {

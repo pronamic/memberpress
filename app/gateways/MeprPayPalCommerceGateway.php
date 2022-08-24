@@ -103,6 +103,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
           'desc'                 => __( 'Pay via your PayPal account', 'memberpress' ),
           'use_desc'             => true,
           'enable_smart_button'  => false,
+          'enable_paypal_standard_debug_email'  => false,
           'test_client_id'       => '',
           'test_client_secret'   => '',
           'live_client_id'       => '',
@@ -789,11 +790,17 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
   /**
    * @param $method_id
    * @param bool $sandbox
-   *
+   * @param bool $onboarding
    * @return bool|string
    */
-  public static function get_paypal_connect_url( $method_id, $sandbox = false ) {
+  public static function get_paypal_connect_url( $method_id, $sandbox = false, $onboarding = false ) {
     $base_return_url = admin_url( 'admin.php?page=memberpress-account-login&paypal-connect=1&method_id=' . $method_id, false );
+
+    if($onboarding) {
+      $base_return_url = add_query_arg([
+        'onboarding' => 'true'
+      ], $base_return_url);
+    }
 
     $error_url = add_query_arg( array(
       'mepr-action' => 'error'
@@ -1309,12 +1316,14 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     $test_email_confirmed_str = "{$mepr_options->integrations_str}[{$this->id}][test_email_confirmed]";
     $live_email_confirmed_str = "{$mepr_options->integrations_str}[{$this->id}][live_email_confirmed]";
     $enable_smart_button_str  = "{$mepr_options->integrations_str}[{$this->id}][enable_smart_button]";
+    $enable_paypal_standard_debug_email_str  = "{$mepr_options->integrations_str}[{$this->id}][enable_paypal_standard_debug_email]";
 
     $account_email       = get_option( 'mepr_authenticator_account_email' );
     $secret              = get_option( 'mepr_authenticator_secret_token' );
     $site_uuid           = get_option( 'mepr_authenticator_site_uuid' );
     $payment_id          = $this->id;
     $enable_smart_button = $settings->enable_smart_button == 'on';
+    $enable_paypal_standard_debug_email = $settings->enable_paypal_standard_debug_email == 'on';
     if ( $account_email && $secret && $site_uuid ) {
       $paypal_connect_url_sandbox = self::get_paypal_connect_url( $this->id, true );
       $paypal_connect_url         = self::get_paypal_connect_url( $this->id );

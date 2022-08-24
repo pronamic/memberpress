@@ -13,6 +13,16 @@
       <?php wp_referer_field(); ?>
     <?php endif; ?>
 
+    <?php MeprHooks::do_action('mepr-checkout-before-price', $product->ID); ?>
+
+    <?php if(sizeof($payment_methods) <= 0 && $payment_required): ?>
+      <div class="mepr_wrapper">
+        <div class="mepr_error">
+          <?php esc_html_e('There are no active payment methods. Please contact the site administrator.', 'memberpress'); ?>
+        </div>
+      </div>
+    <?php endif; ?>
+
     <?php if( ($product->register_price_action != 'hidden') && MeprHooks::apply_filters('mepr_checkout_show_terms', true, $product) ): ?>
       <div class="mp-form-row mepr_bold mepr_price">
         <?php $price_label = ($product->is_one_time_payment() ? _x('Price:', 'ui', 'memberpress') : _x('Terms:', 'ui', 'memberpress')); ?>
@@ -170,7 +180,9 @@
       <label for="mepr_no_val" class="mepr-visuallyhidden"><?php _ex('No val', 'ui', 'memberpress'); ?></label>
       <input type="text" id="mepr_no_val" name="mepr_no_val" class="mepr-form-input mepr-visuallyhidden mepr_no_val mepr-hidden" autocomplete="off" />
 
-      <input type="submit" class="mepr-submit" value="<?php echo stripslashes($product->signup_button_text); ?>" />
+      <?php if(sizeof($payment_methods) > 0 || !$payment_required): ?>
+        <input type="submit" class="mepr-submit" value="<?php echo stripslashes($product->signup_button_text); ?>" />
+      <?php endif; ?>
       <img src="<?php echo admin_url('images/loading.gif'); ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" title="<?php _ex('Loading icon', 'ui', 'memberpress'); ?>" />
       <?php MeprView::render('/shared/has_errors', get_defined_vars()); ?>
     </div>

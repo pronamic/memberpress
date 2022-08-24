@@ -1,5 +1,6 @@
 <?php
 $classes = '';
+$display_keys = isset( $_GET['display-keys'] );
 /** @var MeprPayPalCommerceGateway $pm */
 ?>
 <div id="mepr-paypal-connect-migrate-prompt" class="mepr-payment-option-prompt">
@@ -133,6 +134,16 @@ $classes = '';
     <p><b><?php echo esc_html(__('IPN URL: ', 'memberpress')); ?></b>
       <input type="text" onfocus="this.select();" onclick="this.select();" readonly="true" value="<?php echo esc_html($pm->notify_url('ipn')); ?>">
     </p>
+
+    <?php
+    if ( $display_keys ) {
+      ?>
+        <input type="checkbox"
+               name="<?php echo esc_attr($enable_paypal_standard_debug_email_str); ?>" <?php echo checked( $enable_paypal_standard_debug_email ); ?> />&nbsp;<?php _e( 'Send PayPal Debug Emails',
+        'memberpress' ); ?>
+      <?php
+    }
+    ?>
   <?php } ?>
   <?php if ( empty( $settings->test_auth_code ) && empty( $settings->live_auth_code ) ) { ?>
   <div>

@@ -152,6 +152,18 @@ jQuery(document).ready(function($) {
     })
   });
 
+  $('body').on('click', '.mepr-notice-dismiss-daily button.notice-dismiss', function () {
+    $.ajax({
+      url: MeprAdminShared.ajax_url,
+      method: 'POST',
+      data: {
+        action: 'mepr_dismiss_daily_notice',
+        _ajax_nonce: MeprAdminShared.dismiss_notice_nonce,
+        notice: $(this).closest('.notice').data('notice')
+      }
+    })
+  });
+
   $('#mepAdminHeaderNotifications').on('click', function(e) {
     e.preventDefault();
     $('#mepr-notifications').toggleClass('visible');

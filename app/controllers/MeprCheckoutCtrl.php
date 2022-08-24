@@ -11,6 +11,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     add_action( 'wp_ajax_nopriv_mepr_update_spc_invoice_table', array( $this, 'update_spc_invoice_table' ) );
     add_action( 'wp_ajax_nopriv_mepr_update_price_string', array( $this, 'update_price_string' ) );
     add_action( 'wp_ajax_mepr_update_price_string', array( $this, 'update_price_string' ) );
+    add_filter('mepr_options_helper_payment_methods', array($this, 'exclude_disconnected_gateways'), 10, 2);
   }
 
   public function replace_tracking_codes($atts, $content='') {
@@ -695,6 +696,21 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     }
 
     $_POST['errors'] = array(__('Sorry, an unknown error occurred.', 'memberpress'));
+  }
+
+  public function exclude_disconnected_gateways($pm_ids, $field_name) {
+    $mepr_options = MeprOptions::fetch();
+    $connected_pm_ids = array();
+
+    foreach($pm_ids as $pm_id) {
+      $obj = $mepr_options->payment_method($pm_id);
+
+      if(MeprUtils::is_gateway_connected($obj)) {
+        $connected_pm_ids[] = $pm_id;
+      }
+    }
+
+    return $connected_pm_ids;
   }
 
 

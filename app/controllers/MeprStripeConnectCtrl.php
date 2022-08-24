@@ -358,10 +358,21 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl {
 
     $stripe_action = ( ! empty( $_GET['stripe-action'] ) ? sanitize_text_field( $_GET['stripe-action'] ) : 'updated' );
 
-    $redirect_url = add_query_arg( array(
-      'page' => 'memberpress-options',
-      'stripe-action' => $stripe_action
-    ), admin_url('admin.php') ) . '#mepr-integration';
+    $onboarding = isset($_GET['onboarding']) ? sanitize_text_field(wp_unslash($_GET['onboarding'])) : '';
+
+    if($onboarding == 'true') {
+      $redirect_url = add_query_arg( array(
+        'page' => 'memberpress-onboarding',
+        'step' => '6',
+        'stripe-action' => $stripe_action
+      ), admin_url('admin.php') );
+    }
+    else {
+      $redirect_url = add_query_arg( array(
+        'page' => 'memberpress-options',
+        'stripe-action' => $stripe_action
+      ), admin_url('admin.php') ) . '#mepr-integration';
+    }
 
     wp_redirect($redirect_url);
     exit;

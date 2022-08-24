@@ -1,6 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
-    die( 'You are not allowed to call this page directly.' );
+  die( 'You are not allowed to call this page directly.' );
 }
 
 /**
@@ -30,10 +30,10 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     register_block_type(
       'memberpress/membership-signup',
       array(
-        'attributes' => array(
+        'attributes'      => array(
           'membership' => array(
-            'type' => 'string'
-          )
+            'type' => 'string',
+          ),
         ),
         'render_callback' => array( $this, 'render_membership_signup_block' ),
       )
@@ -43,7 +43,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     register_block_type(
       'memberpress/account-form',
       array(
-        'attributes' => array(),
+        'attributes'      => array(),
         'render_callback' => array( $this, 'render_account_block' ),
       )
     );
@@ -52,10 +52,10 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     register_block_type(
       'memberpress/login-form',
       array(
-        'attributes' => array(
+        'attributes'      => array(
           'use_redirect' => array(
-            'type' => 'boolean'
-          )
+            'type' => 'boolean',
+          ),
         ),
         'render_callback' => array( $this, 'render_login_block' ),
       )
@@ -65,14 +65,14 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     register_block_type(
       'memberpress/protected-content',
       array(
-        'attributes' => array(
-          'rule' => array(
+        'attributes'      => array(
+          'rule'           => array(
             'type' => 'number',
           ),
-          'ifallowed' => array(
+          'ifallowed'      => array(
             'type' => 'string',
           ),
-          'unauth' => array(
+          'unauth'         => array(
             'type' => 'string',
           ),
           'unauth_message' => array(
@@ -87,7 +87,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
   /**
    * Renders a membership's signup form
    *
-   * @param array   $props    Properties/data from the block
+   * @param array $props    Properties/data from the block
    *
    * @return string
    */
@@ -95,13 +95,13 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
 
     $membership_id = isset( $props['membership'] ) ? (int) $props['membership'] : 0;
 
-    if( $membership_id > 0 ) {
+    if ( $membership_id > 0 ) {
       ob_start();
       echo do_shortcode( "[mepr-membership-registration-form id='{$membership_id}']" );
       return ob_get_clean();
     }
 
-    return _x( "Uh oh, something went wrong. Not a valid Membership form.", "ui", "memberpress" );
+    return _x( 'Uh oh, something went wrong. Not a valid Membership form.', 'ui', 'memberpress' );
   }
 
   /**
@@ -111,19 +111,19 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
    */
   public function render_account_block() {
     ob_start();
-    echo do_shortcode( "[mepr-account-form]" );
+    echo do_shortcode( '[mepr-account-form]' );
     return ob_get_clean();
   }
 
   /**
    * Renders the MP login form
    *
-   * @param array   $props    Properties/data from the block
+   * @param array $props    Properties/data from the block
    *
    * @return string
    */
   public function render_login_block( $props ) {
-    $shortcode = isset( $props['use_redirect'] ) && true === $props['use_redirect'] ? "[mepr-login-form show_logged_in='false' use_redirect='true']" : "[mepr-login-form]";
+    $shortcode = isset( $props['use_redirect'] ) && true === $props['use_redirect'] ? "[mepr-login-form show_logged_in='false' use_redirect='true']" : '[mepr-login-form]';
     ob_start();
     echo do_shortcode( $shortcode );
     return ob_get_clean();
@@ -132,8 +132,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
   /**
    * Render the "dynamic" block
    *
-   * @param array   $attributes   Properties/data from the block
-   * @param string  $content      Block content
+   * @param array  $attributes   Properties/data from the block
+   * @param string $content      Block content
    *
    * @return string
    */
@@ -156,28 +156,35 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
    * @return void
    */
   public function enqueue_block_scripts() {
+    $asset_file   = include( MEPR_JS_PATH . '/build/blocks.asset.php' );
+
+    $dependencies = array_unique(
+      array_merge(
+        array(
+          'wp-blocks',
+          'wp-i18n',
+          'wp-editor',
+        ), // legacy dependencies
+        (array) $asset_file['dependencies']
+      )
+    );
 
     wp_enqueue_script(
       'memberpress/blocks',
-      MEPR_JS_URL . '/blocks.js',
-      array(
-        'wp-blocks',
-        'wp-i18n',
-        'wp-editor'
-      ),
-      MEPR_VERSION,
+      MEPR_JS_URL . '/build/blocks.js',
+      $dependencies,
+      $asset_file['version'],
       true
     );
 
     $membership_options = array();
-    $rule_options = array();
-
+    $rule_options       = array();
 
     // Assemble MP Products into an options array
     foreach ( MeprCptModel::all( 'MeprProduct' ) as $membership ) {
       $membership_options[] = array(
         'label' => $membership->post_title,
-        'value' => $membership->ID
+        'value' => $membership->ID,
       );
     }
 
@@ -185,42 +192,46 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     foreach ( MeprCptModel::all( 'MeprRule' ) as $rule ) {
 
       $rule_options[] = array(
-        'label' => $rule->post_title,
-        'value' => $rule->ID,
-        'ruleLink' => get_edit_post_link( $rule->ID, null )
+        'label'    => $rule->post_title,
+        'value'    => $rule->ID,
+        'ruleLink' => get_edit_post_link( $rule->ID, null ),
       );
     }
 
     // Make the data available to the script
-    wp_localize_script( 'memberpress/blocks', 'memberpressBlocks', array(
-      'memberships' => $membership_options,
-      'rules' => $rule_options,
-      'redirect_url_setting_url' => menu_page_url( 'memberpress-options', false ) . '#mepr-accounts'
-    ) );
+    wp_localize_script(
+      'memberpress/blocks',
+      'memberpressBlocks',
+      array(
+        'memberships'              => $membership_options,
+        'rules'                    => $rule_options,
+        'redirect_url_setting_url' => menu_page_url( 'memberpress-options', false ) . '#mepr-accounts',
+      )
+    );
   }
 
   /**
    * Filter to add the necessary frontend enqueues for Membership Signup block
    *
-   * @param mixed     $return   MeprProduct object if scripts will be enqueued, else false
-   * @param object   $post      WP_Post
+   * @param mixed  $return   MeprProduct object if scripts will be enqueued, else false
+   * @param object $post      WP_Post
    *
    * @return boolean
    */
   public function signup_block_enqueues( $return, $post ) {
 
-    if ( ! isset ( $post->post_content ) ) {
+    if ( ! isset( $post->post_content ) ) {
       return $return;
     }
 
     // We don't want to mess with enqueues on MemberPress products since the files are already properly enqueued there
     if ( ! is_object( $return ) || ! is_a( $return, 'MeprProduct' ) ) {
 
-      $load = false;
+      $load       = false;
       $membership = false;
 
       // Check that the signup form block is added
-      $match = preg_match( "/(?:wp:memberpress\/membership-signup\s)(\{(?:[^{}]|(?R))*\})/", $post->post_content, $matches );
+      $match = preg_match( '/(?:wp:memberpress\/membership-signup\s)(\{(?:[^{}]|(?R))*\})/', $post->post_content, $matches );
 
       if ( 1 === $match && isset( $matches[1] ) && isset( json_decode( $matches[1], true )['membership'] ) ) {
 
@@ -243,14 +254,14 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
   /**
    * Filter to add the necessary frontend enqueues for the Account Form block
    *
-   * @param boolean  $return  Whether the page is an "Account" page
-   * @param object   $post    WP_Post
+   * @param boolean $return  Whether the page is an "Account" page
+   * @param object  $post    WP_Post
    *
    * @return boolean
    */
   public function account_block_enqueues( $return, $post ) {
 
-    if ( ! isset ( $post->post_content ) ) {
+    if ( ! isset( $post->post_content ) ) {
       return $return;
     }
 

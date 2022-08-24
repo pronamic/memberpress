@@ -49,7 +49,8 @@ class MeprTaxJarIntegration {
     $response = wp_remote_post( self::$endpoint_base . $endpoint, array(
       'headers' => array(
         'Authorization' => 'Bearer ' . self::$api_key,
-        'Content-Type' => 'application/json'
+        'Content-Type' => 'application/json',
+        'x-api-version' => '2022-01-24'
       ),
       'body' => json_encode( $args )
     ) );

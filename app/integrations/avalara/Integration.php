@@ -25,7 +25,9 @@ class MeprAvalaraTaxRateIntegration {
       $tax_avalara_enabled = get_option('mepr_tax_avalara_enabled');
     }
 
-    MeprView::render('/admin/taxes/avalara_options', get_defined_vars());
+    if($tax_avalara_enabled) {
+      MeprView::render('/admin/taxes/avalara_options', get_defined_vars());
+    }
   }
 
   public function store_options() {
