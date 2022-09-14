@@ -161,10 +161,11 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
 
     if(!empty($usr) && $usr instanceof MeprUser && $usr->address_is_set()) {
       $usr_country = $usr->address('country');
+      $use_address_from_request = $usr->use_address_from_request();
 
       // When updating pricing terms string with AJAX,user country should be the POST country
-      if( isset($_POST['action']) && ($_POST['action'] == "mepr_update_price_string" || $_POST['action'] == "mepr_update_spc_invoice_table") ){
-        $usr_country = sanitize_text_field($_POST['mepr_address_country']);
+      if($use_address_from_request) {
+        $usr_country = isset($_POST['mepr-address-country']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-country'])) : '';
       }
 
       if($customer_type == 'business'){
@@ -180,6 +181,10 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
       if($usr_country == 'ES') {
         $canary_island_zips = array('35','38','51','52');
         $usr_zip = (string)trim($usr->address('zip'));
+
+        if($use_address_from_request) {
+          $usr_zip = isset($_POST['mepr-address-zip']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-zip'])) : '';
+        }
 
         foreach($canary_island_zips as $zip_prefix) {
           if(strpos($usr_zip, $zip_prefix) === 0) {
@@ -514,8 +519,8 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
       return false; // bail.
     }
 
-    if( isset($_POST['action']) && ($_POST['action'] == "mepr_update_price_string" || $_POST['action'] == "mepr_update_spc_invoice_table") ){
-      $country  = sanitize_text_field($_POST['mepr_address_country']);
+    if( isset($_POST['action']) && ($_POST['action'] == "mepr_update_price_string" || $_POST['action'] == "mepr_update_spc_invoice_table" || $_POST['action'] == 'mepr_stripe_create_payment_client_secret') ) {
+      $country = isset($_POST['mepr-address-country']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-country'])) : '';
     }
     else{
       $country  = $mepr_user->address('country');

@@ -17,7 +17,7 @@ class MeprTransactionsHelper {
       if($txn->is_expired())
         $obj->group_id = null;
 
-      $price = $txn->amount;
+      $price = $txn->total;
     }
 
     $tax_info = array(

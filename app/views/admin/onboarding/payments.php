@@ -54,7 +54,7 @@
         <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/authorize.net.svg'); ?>" alt="">
       </div>
       <p><?php esc_html_e('Accept payments anytime, anywhere.', 'memberpress'); ?></p>
-      <?php if(MeprOnboardingHelper::is_pro_license()): ?>
+      <?php if(MeprOnboardingHelper::is_pro_license() || MeprOnboardingHelper::is_developer_license()): ?>
         <button type="button" id="mepr-wizard-add-authorize" class="mepr-wizard-button-blue"><?php esc_html_e('Add Authorize.net', 'memberpress'); ?></button>
       <?php else: ?>
         <button type="button" id="mepr-wizard-add-authorize" class="mepr-wizard-button-orange mepr-optin"><?php esc_html_e('Add Authorize.net', 'memberpress'); ?></button>

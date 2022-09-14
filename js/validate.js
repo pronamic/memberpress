@@ -19,6 +19,31 @@ var mpValidateNotBlank = function(val) {
   return (val && val.length > 0);
 };
 
+var mpValidateFieldNotBlank = function($field) {
+  var notBlank = true;
+
+  if(!$field.is(':visible')) {
+    // Pass validation on fields that are not visible
+  }
+  else if ($field.is('input') || $field.is('select') || $field.is('textarea')) {
+    notBlank = mpValidateNotBlank($field.val());
+  }
+  else if ($field.hasClass('mepr-checkbox-field')) {
+    notBlank = $field.find('input').is(':checked');
+  }
+  else if ($field.hasClass('mepr-radios-field') || $field.hasClass('mepr-checkboxes-field')) {
+    var input_vals = [];
+
+    $field.find('input:checked').each(function (i, obj) {
+      input_vals.push(true);
+    });
+
+    notBlank = mpValidateNotBlank(input_vals);
+  }
+
+  return notBlank;
+};
+
 var mpToggleFieldValidation = function(field, valid) {
   field.toggleClass('invalid', !valid);
   field.toggleClass('valid', valid);

@@ -389,6 +389,18 @@ class MeprUsersCtrl extends MeprBaseCtrl {
           $errs[] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
         }
       }
+
+      if( 'email' == $line->field_type && !empty($_POST[$line->field_key]) ){
+        if( !is_email($line->field_type) ){
+          $errs[] = sprintf(__('%s is not a valid email address.', 'memberpress'), stripslashes($line->field_name));
+        }
+      }
+
+      if( 'url' == $line->field_type && !empty($_POST[$line->field_key]) ){
+        if( false === wp_http_validate_url($line->field_type) ){
+          $errs[] = sprintf(__('%s is not a valid URL.', 'memberpress'), stripslashes($line->field_name));
+        }
+      }
     }
 
     return $errs;

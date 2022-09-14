@@ -322,6 +322,16 @@ class MeprOnboardingHelper {
     );
   }
 
+   public static function is_developer_license(){
+    $li = get_site_transient('mepr_license_info');
+    if($li){
+      if(in_array($li['product_slug'],['developer'],true)){
+        return true;
+      }
+    }
+    return false;
+  }
+
   public static function is_pro_license(){
     $li = get_site_transient('mepr_license_info');
     $is_pro = false;
@@ -436,6 +446,10 @@ class MeprOnboardingHelper {
     // No more addons instalation required? Bailout.
     if( empty($addons_not_installed) ){
       return false;
+    }
+
+    if(  in_array($license_type,['developer','memberpress-plus','memberpress-plus-2'], true) ){
+      return 'memberpress-pro-5'; // upgrade to pro required.
     }
 
     $pro_addons = self::get_mepr_edition_features( 'memberpress-pro-5', 'addons' );

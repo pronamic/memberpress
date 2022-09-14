@@ -24,28 +24,7 @@
       var form = $(obj).closest('.mepr-signup-form');
 
       if ($(obj).attr('required') !== undefined) {
-        var notBlank = true;
-
-        if(!$(obj).is(':visible')) {
-          // Pass validation on fields that are not visible
-        }
-        else if ($(obj).is('input') || $(obj).is('select') || $(obj).is('textarea')) {
-          notBlank = mpValidateNotBlank($(obj).val());
-        }
-        else if ($(obj).hasClass('mepr-checkbox-field')) {
-          notBlank = $(obj).find('input').is(':checked');
-        }
-        else if ($(obj).hasClass('mepr-radios-field') || $(obj).hasClass('mepr-checkboxes-field')) {
-          var input_vals = [];
-          $.each($(obj).find('input'), function (i, obj) {
-            if($(obj).is(':checked')) {
-              input_vals.push(true);
-            }
-          });
-
-          notBlank = mpValidateNotBlank(input_vals);
-        }
-
+        var notBlank = mpValidateFieldNotBlank($(obj));
         mpToggleFieldValidation($(obj), notBlank);
       }
 
@@ -128,12 +107,12 @@
         data: {
           code: form.find('input[name="mepr_coupon_code"]').val(),
           prd_id: form.find('input[name="mepr_product_id"]').val(),
-          mepr_address_one: form.find('input[name="mepr-address-one"]').val(),
-          mepr_address_two: form.find('input[name="mepr-address-two"]').val(),
-          mepr_address_city: form.find('input[name="mepr-address-city"]').val(),
-          mepr_address_state: form.find('select[name="mepr-address-state"]').is(':visible') ? form.find('select[name="mepr-address-state"]').val() : form.find('input[name="mepr-address-state"]').val(),
-          mepr_address_country: form.find('select[name="mepr-address-country"]').val(),
-          mepr_address_zip: form.find('input[name="mepr-address-zip"]').val(),
+          'mepr-address-one': form.find('input[name="mepr-address-one"]').val(),
+          'mepr-address-two': form.find('input[name="mepr-address-two"]').val(),
+          'mepr-address-city': form.find('input[name="mepr-address-city"]').val(),
+          'mepr-address-state': form.find('select[name="mepr-address-state"]').is(':visible') ? form.find('select[name="mepr-address-state"]').val() : form.find('input[name="mepr-address-state"]').val(),
+          'mepr-address-country': form.find('select[name="mepr-address-country"]').val(),
+          'mepr-address-zip': form.find('input[name="mepr-address-zip"]').val(),
           mepr_vat_number: form.find('input[name="mepr_vat_number"]').val(),
           mepr_vat_customer_type: form.find('input[name="mepr_vat_customer_type"]:checked').val(),
           coupon_nonce: MeprSignup.coupon_nonce,

@@ -701,27 +701,6 @@ jQuery(document).ready(function($) {
   $('select[name=mepr_tax_calc_type]').change(show_charge_business_customer_option);
   $('input[name=mepr_vat_tax_businesses]').change(show_charge_business_customer_option);
 
-  var $detected_ip_address = $('#mepr-detected-ip-address');
-
-  $('input[name="mepr-anti-card-testing-ip-method"]').on('change', function () {
-    $detected_ip_address.text('...');
-
-    $.ajax({
-      url: ajaxurl,
-      method: 'GET',
-      dataType: 'json',
-      data: {
-        action: 'mepr_anti_card_testing_get_ip',
-        method: $(this).val()
-      }
-    })
-    .done(function (response) {
-      if(response && typeof response == 'object' && response.success) {
-        $detected_ip_address.text(response.data);
-      }
-    });
-  });
-
   $('body').on('click', '#mepr-install-license-edition', function (e) {
     e.preventDefault();
 

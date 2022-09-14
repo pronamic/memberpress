@@ -10,6 +10,7 @@ $addons_not_installed            = isset( $features_data['addons_not_installed']
 $addons_installed                = isset( $features_data['addons_installed'] ) ? $features_data['addons_installed'] : array();
 $addons_upgrade_failed           = isset( $features_data['addons_upgrade_failed'] ) ? $features_data['addons_upgrade_failed'] : array();
 $mepr_onboarding_payment_gateway = get_option( 'mepr_onboarding_payment_gateway' );
+$upgraded_edition                = isset($data['edition']) ? sanitize_text_field($data['edition']) : '';
 
 $upgrade_type = MeprOnboardingHelper::is_upgrade_required(
   array(
@@ -19,7 +20,17 @@ $upgrade_type = MeprOnboardingHelper::is_upgrade_required(
   )
 );
 
-if ( false !== $upgrade_type || $mepr_onboarding_payment_gateway == 'MeprAuthorizeGateway') {
+if(!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition != $current_license) {
+  // The user upgraded to another edition, but it has not processed yet
+  ?>
+  <h2 class="mepr-wizard-step-title"><?php esc_html_e( 'Processing upgrade', 'memberpress' ); ?></h2>
+  <p class="mepr-wizard-step-description">
+    <?php esc_html_e( 'Please wait while the upgrade is processed, this may take a minute.', 'memberpress' ); ?>
+    <i class="mp-icon mp-icon-spinner animate-spin"></i>
+  </p>
+  <input type="hidden" id="mepr-upgrade-wait-edition" value="1" />
+<?php }
+elseif ( false !== $upgrade_type || $mepr_onboarding_payment_gateway == 'MeprAuthorizeGateway') {
 
   $cta_data    = MeprOnboardingHelper::get_upgrade_cta_data( $upgrade_type );
   $pricing_url = $cta_data['url'];

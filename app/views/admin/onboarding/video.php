@@ -11,7 +11,6 @@ $youtube_video_hash = md5($youtube_video_id);
 
     <div class='mepr-video-holder' id="holder_<?php echo $youtube_video_hash; ?>">
          <a href='#' class='mepr-video-play-button' id="mepr_play_<?php echo $youtube_video_hash; ?>" data-hash="<?php echo $youtube_video_hash; ?>"  data-holder-id="holder_<?php echo $youtube_video_hash; ?>" data-id='<?php echo esc_attr($youtube_video_id); ?>'></a>
-</iframe>
     </div>
   </div>
   <div class="mepr-wizard-onboarding-video-collapse" data-id="<?php echo $youtube_video_hash; ?>" data-id="<?php echo $youtube_video_hash; ?>">

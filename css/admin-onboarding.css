@@ -1357,7 +1357,7 @@ body.folded .mepr-wizard-onboarding-video-wrapper {
 
 .mepr-wizard-onboarding-video-wrapper.active {
   position: absolute;
-  width: 300px;
+  width: 420px;
   background: linear-gradient(90deg, #06429E 0%, #1481B3 100%);
   border-radius: 0px 8px 8px 0px;
 }
@@ -1430,7 +1430,7 @@ body.auto-fold.sticky-menu .mepr-wizard-onboarding-video-wrapper {
 }
 
 .mepr-video-holder{
-  width: 270px;
+  width: 400px;
   height: 240px;
   margin: 20px auto;
   position: relative;

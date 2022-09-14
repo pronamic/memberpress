@@ -51,10 +51,12 @@
   box-sizing: border-box;
 }
 
-.mepr-stripe-card-element {
-  border: 1px solid rgba(0, 0, 0, 0.2) !important;
-  padding: 10px !important;
-  background-color: white;
+.mepr-stripe-link-element {
+  margin-bottom: 8px;
+}
+
+.mepr-stripe-payment-element-loading {
+  text-align: center;
 }
 
 .mepr-stripe-card-errors,

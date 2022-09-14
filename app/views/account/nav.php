@@ -25,6 +25,6 @@ if(isset($expired_subs) and !empty($expired_subs) && (empty($_GET['action']) || 
 }
 
 if ( isset( $_REQUEST['errors'] ) ) {
-  $errors = [ esc_html( $_REQUEST['errors'] ) ];
+  $errors = [ esc_html( sanitize_text_field(wp_unslash($_REQUEST['errors'])) ) ];
   MeprView::render( '/shared/errors', get_defined_vars() );
 }

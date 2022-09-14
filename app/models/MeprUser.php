@@ -1393,15 +1393,35 @@ class MeprUser extends MeprBaseModel {
 
     // To update pricing terms string with AJAX, we need to send the POST address
     // This only runs when running AJAX, that's the only place the two actions are set
-    if( isset($_POST['action']) && ($_POST['action'] == "mepr_update_price_string" || $_POST['action'] == "mepr_update_spc_invoice_table") ){
-      $one      = isset($_POST['mepr_address_one']) ? sanitize_text_field($_POST['mepr_address_one']) : '';
-      $city     = isset($_POST['mepr_address_city']) ? sanitize_text_field($_POST['mepr_address_city']) : '';
-      $state    = isset($_POST['mepr_address_state']) ? sanitize_text_field($_POST['mepr_address_state']) : '';
-      $country  = isset($_POST['mepr_address_country']) ? sanitize_text_field($_POST['mepr_address_country']) : '';
-      $postcode = isset($_POST['mepr_address_zip']) ? sanitize_text_field($_POST['mepr_address_zip']) : '';
+    if($this->use_address_from_request()) {
+      $one      = isset($_POST['mepr-address-one']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-one'])) : '';
+      $city     = isset($_POST['mepr-address-city']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-city'])) : '';
+      $state    = isset($_POST['mepr-address-state']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-state'])) : '';
+      $country  = isset($_POST['mepr-address-country']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-country'])) : '';
+      $postcode = isset($_POST['mepr-address-zip']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-zip'])) : '';
     }
 
     return (!empty($country) && !empty($postcode) && !empty($state) && !empty($city) && !empty($one));
+  }
+
+  /**
+   * Whether the address in the request data should override the saved user address
+   *
+   * @return bool
+   */
+  public function use_address_from_request() {
+    $use_address_from_request = false;
+    $action = isset($_POST['action']) ? sanitize_text_field(wp_unslash($_POST['action'])) : '';
+
+    if(!empty($action) && in_array($action, ['mepr_update_price_string', 'mepr_update_spc_invoice_table', 'mepr_stripe_create_payment_client_secret'], true)) {
+      $mepr_options = MeprOptions::fetch();
+
+      if(!MeprUtils::is_user_logged_in() || ($mepr_options->show_address_fields && $mepr_options->show_fields_logged_in_purchases)) {
+        $use_address_from_request = true;
+      }
+    }
+
+    return $use_address_from_request;
   }
 
   /**
@@ -1436,12 +1456,14 @@ class MeprUser extends MeprBaseModel {
       if($mepr_options->attr('tax_calc_location')=='customer' ||
          MeprHooks::apply_filters('mepr-tax-rate-use-customer-address', false, $this)) {
 
-        if( isset($_POST['action']) && ($_POST['action'] == "mepr_update_price_string" || $_POST['action'] == "mepr_update_spc_invoice_table") ){
-          $country  = sanitize_text_field($_POST['mepr_address_country']);
-          $state    = sanitize_text_field($_POST['mepr_address_state']);
-          $postcode = sanitize_text_field($_POST['mepr_address_zip']);
-          $city     = sanitize_text_field($_POST['mepr_address_city']);
-          $street   = sprintf('%s %s', sanitize_text_field($_POST['mepr_address_one']), sanitize_text_field($_POST['mepr_address_two']));
+        if($this->use_address_from_request()) {
+          $one      = isset($_POST['mepr-address-one']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-one'])) : '';
+          $two      = isset($_POST['mepr-address-two']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-two'])) : '';
+          $city     = isset($_POST['mepr-address-city']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-city'])) : '';
+          $state    = isset($_POST['mepr-address-state']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-state'])) : '';
+          $country  = isset($_POST['mepr-address-country']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-country'])) : '';
+          $postcode = isset($_POST['mepr-address-zip']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-zip'])) : '';
+          $street   = sprintf('%s %s', $one, $two);
         }
         else{
           $country  = $this->address('country');

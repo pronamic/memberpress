@@ -53,7 +53,7 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
     </table>
     <p>
       <a href="<?php echo $stripe_connect_url; ?>">
-        <img src="<?php echo MEPR_IMAGES_URL . '/stripe-connect.png'; ?>" width="200" alt="<?php _e( '"Connect with Stripe" button', 'memberpress' ); ?>">
+        <img src="<?php echo MEPR_IMAGES_URL . '/stripe-connect.png'; ?>" width="200" alt="<?php esc_attr_e( '"Connect with Stripe" button', 'memberpress' ); ?>">
       </a>
     </p>
   </div>
@@ -63,7 +63,7 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
     <p><?php _e( 'This Payment Method has been disconnected so it may stop working for new and recurring payments at any time. To prevent this, re-connect your Stripe account by clicking the "Connect with Stripe" button below.', 'memberpress' ); ?></p>
     <p>
       <a href="<?php echo $stripe_connect_url; ?>">
-        <img src="<?php echo MEPR_IMAGES_URL . '/stripe-connect.png'; ?>" width="200" alt="<?php _e( '"Connect with Stripe" button', 'memberpress' ); ?>">
+        <img src="<?php echo MEPR_IMAGES_URL . '/stripe-connect.png'; ?>" width="200" alt="<?php esc_attr_e( '"Connect with Stripe" button', 'memberpress' ); ?>">
       </a>
     </p>
   </div>
@@ -91,7 +91,7 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
       </tr>
     </table>
     <a href="" data-id="<?php echo $id; ?>" data-href="<?php echo $stripe_connect_url; ?>" data-nonce="<?php echo wp_create_nonce( "new-stripe-connect" ); ?>" class="mepr-stripe-connect-new">
-        <img src="<?php echo MEPR_IMAGES_URL . '/stripe-connect.png'; ?>" width="200" alt="<?php _e( '"Connect with Stripe" button', 'memberpress' ); ?>">
+        <img src="<?php echo MEPR_IMAGES_URL . '/stripe-connect.png'; ?>" width="200" alt="<?php esc_attr_e( '"Connect with Stripe" button', 'memberpress' ); ?>">
       </a>
     </p>
   </div>

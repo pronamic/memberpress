@@ -121,13 +121,13 @@
           </div>
           <div class="mepr-onboarding-price-savings">$200 savings*</div>
           <p class="mepr-onboarding-price-desc">Perfect for Pros and Advanced Membership Sites to drive big results.</p>
-          <a href="https://memberpress.com/register/pro/" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
+          <a href="https://memberpress.com/ipob/pricing-box/pro" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
           <div class="mepr-onboarding-price-features">
             <div class="mepr-onboarding-price-feature">Everything in Plus, and:</div>
             <div class="mepr-onboarding-price-feature">Use on up to 5 Sites</div>
             <div class="mepr-onboarding-price-feature">Sell Corporate Accounts</div>
             <div class="mepr-onboarding-price-feature">Exclusive Pro Add-Ons*</div>
-            <div class="mepr-onboarding-price-feature"><a href="https://memberpress.com/plans/pricing/#featuresTable">See all features...</a></div>
+            <div class="mepr-onboarding-price-feature"><a href="https://memberpress.com/ipob/pricing-box/features">See all features...</a></div>
           </div>
         </div>
       </div>
@@ -144,14 +144,14 @@
             </div>
             <div class="mepr-onboarding-price-savings">$150 savings*</div>
             <p class="mepr-onboarding-price-desc">Great for Entrepreneurs, Freelancers and other small businesses.</p>
-            <a href="https://memberpress.com/register/plus/" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
+            <a href="https://memberpress.com/ipob/pricing-box/plus" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
             <div class="mepr-onboarding-price-features">
               <div class="mepr-onboarding-price-feature">Everything in Basic, and:</div>
               <div class="mepr-onboarding-price-feature">Use on up to 2 Sites</div>
               <div class="mepr-onboarding-price-feature">Advanced Marketing Integrations</div>
               <div class="mepr-onboarding-price-feature">Zapier – 2000+ Custom Integrations</div>
               <div class="mepr-onboarding-price-feature">Developer Tools</div>
-              <div class="mepr-onboarding-price-feature"><a href="https://memberpress.com/plans/pricing/#featuresTable">See all features...</a></div>
+              <div class="mepr-onboarding-price-feature"><a href="https://memberpress.com/ipob/pricing-box/features">See all features...</a></div>
             </div>
           </div>
         </div>

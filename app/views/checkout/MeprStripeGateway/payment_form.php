@@ -9,41 +9,22 @@
   <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
   <input type="hidden" name="mepr_stripe_is_checkout" value="1"/>
   <input type="hidden" name="mepr_stripe_checkout_page_mode" value="1"/>
-  <h4><?php _e('Pay with your Credit Card via Stripe Checkout', 'memberpress'); ?></h4>
+  <div class="mepr-stripe-gateway-description"><?php esc_html_e('Pay with your Credit Card via Stripe Checkout', 'memberpress'); ?></div>
   <span role="alert" class="mepr-stripe-checkout-errors"></span>
 <?php else: ?>
   <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
-  <div class="mp-form-row">
-    <div class="mp-form-label">
-      <label><?php _e('Name on the card:*', 'memberpress'); ?></label>
-      <span class="cc-error"><?php _ex('Name on the card is required.', 'ui', 'memberpress'); ?></span>
+  <div class="mepr-stripe-gateway-description"><?php echo esc_html($payment_method->desc); ?></div>
+  <div class="mepr-stripe-elements">
+    <?php if($payment_method->is_stripe_link_enabled()) : ?>
+      <div class="mepr-stripe-link-element" data-stripe-email="<?php echo isset($user) && $user instanceof MeprUser ? esc_attr($user->user_email) : ''; ?>"></div>
+    <?php endif; ?>
+    <?php MeprHooks::do_action('mepr-stripe-payment-form-card-field', $txn); ?>
+    <div class="mepr-stripe-card-element" data-stripe-public-key="<?php echo esc_attr($payment_method->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($payment_method->settings->id); ?>" data-locale-code="<?php echo esc_attr(MeprStripeGateway::get_locale_code()); ?>"></div>
+    <div class="mepr-stripe-payment-element-loading mepr-hidden">
+      <img src="<?php echo esc_url(admin_url('images/loading.gif')); ?>" alt="<?php esc_attr_e('Loading...', 'memberpress'); ?>" />
     </div>
-    <input type="text" name="card-name" class="mepr-form-input stripe-card-name" required />
-  </div>
-  <?php if ($payment_method->is_stripe_link_enabled()) { ?>
-  <div class="mp-form-row">
-    <div class="mp-form-label">
-      <span role="alert" class="mepr-stripe-email-errors"></span>
-    </div>
-    <?php
-    $mepr_current_user = MeprUtils::get_currentuserinfo();
-    ?>
-    <div class="mepr-stripe-link-element" data-stripe-email="<?php if (!empty($mepr_current_user)) echo esc_attr($mepr_current_user->user_email); ?>" data-stripe-public-key="<?php echo esc_attr($payment_method->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($payment_method->settings->id); ?>" data-locale-code="<?php echo esc_attr(MeprStripeGateway::get_locale_code()); ?>">
-      <!-- a Stripe Element will be inserted here. -->
-    </div>
-  </div>
-  <?php } ?>
-
-  <?php MeprHooks::do_action('mepr-stripe-payment-form-card-field', $txn); ?>
-  <div class="mp-form-row">
-    <div class="mp-form-label">
-      <label><?php _e('Credit Card:*', 'memberpress'); ?></label>
-      <span role="alert" class="mepr-stripe-card-errors"></span>
-    </div>
-    <div class="mepr-stripe-card-element" data-stripe-public-key="<?php echo esc_attr($payment_method->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($payment_method->settings->id); ?>" data-locale-code="<?php echo esc_attr(MeprStripeGateway::get_locale_code()); ?>">
-      <!-- a Stripe Element will be inserted here. -->
-    </div>
+    <div role="alert" class="mepr-stripe-card-errors"></div>
   </div>
 <?php endif; ?>
 <?php MeprHooks::do_action('mepr-stripe-payment-form', $txn); ?>
-<noscript><p class="mepr_nojs"><?php _e('Javascript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>
+<noscript><p class="mepr_nojs"><?php esc_html_e('Javascript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>

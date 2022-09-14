@@ -335,6 +335,7 @@ class MeprUsersHelper {
     if($mepr_options->show_address_fields) {
       $custom_fields = array_merge($custom_fields, $mepr_options->address_fields); //Genius
     }
+    $custom_fields = MeprHooks::apply_filters('mepr_render_editable_custom_fields', $custom_fields);
 
     if(!empty($custom_fields)) {
       foreach($custom_fields as $line) {
