@@ -390,14 +390,14 @@ class MeprUsersCtrl extends MeprBaseCtrl {
         }
       }
 
-      if( 'email' == $line->field_type && !empty($_POST[$line->field_key]) ){
-        if( !is_email($line->field_type) ){
+      if( $line->required && 'email' == $line->field_type && !empty($_POST[$line->field_key]) ){
+        if( !is_email($_POST[$line->field_key]) ){
           $errs[] = sprintf(__('%s is not a valid email address.', 'memberpress'), stripslashes($line->field_name));
         }
       }
 
-      if( 'url' == $line->field_type && !empty($_POST[$line->field_key]) ){
-        if( false === wp_http_validate_url($line->field_type) ){
+      if( $line->required && 'url' == $line->field_type && !empty($_POST[$line->field_key]) ){
+        if( !preg_match('/(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&\/\/=]*)/', $_POST[$line->field_key]) ){
           $errs[] = sprintf(__('%s is not a valid URL.', 'memberpress'), stripslashes($line->field_name));
         }
       }

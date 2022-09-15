@@ -36,7 +36,7 @@
 
       // Validate the URL by using the browser validation functions
       if ($(obj).attr('type')==='url' && $(obj).val().length > 0) {
-        var validURL = $(obj).is(':valid');
+        var validURL = mpValidateUrl($(obj).val());
         mpToggleFieldValidation($(obj), validURL);
       }
 

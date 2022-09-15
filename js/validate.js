@@ -15,6 +15,11 @@ var mpValidateEmail = function (email) {
   // return filter.test(email);
 };
 
+var mpValidateUrl = function(url) {
+  var re = /(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&//=]*)/;
+  return re.test(url);
+};
+
 var mpValidateNotBlank = function(val) {
   return (val && val.length > 0);
 };
