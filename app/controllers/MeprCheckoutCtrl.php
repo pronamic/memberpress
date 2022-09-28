@@ -499,7 +499,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
           'mepr_transaction_id'       => $txn->id,
           'mepr_process_signup_form'  => 0,
           'mepr_process_payment_form' => 1,
-          'mepr_payment_method'       => $_POST['mepr_payment_method'],
+          'mepr_payment_method'       => sanitize_text_field($_POST['mepr_payment_method']),
         );
         if(!empty($_POST['mepr_coupon_code'])) {
           $query_params = array_merge(array('mepr_coupon_code' => htmlentities( sanitize_text_field( $_POST['mepr_coupon_code'] ) )), $query_params);

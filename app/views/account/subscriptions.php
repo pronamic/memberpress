@@ -56,17 +56,17 @@ if(!empty($subscriptions)) {
           $mepr_options = MeprOptions::fetch();
           $alt          = !$alt; // Facilitiates the alternating lines
         ?>
-          <tr id="mepr-subscription-row-<?php echo $s->id; ?>" class="mepr-subscription-row <?php echo (isset($alt) && !$alt)?'mepr-alt-row':''; ?>">
+          <tr id="mepr-subscription-row-<?php echo esc_attr($s->id); ?>" class="mepr-subscription-row <?php echo (isset($alt) && !$alt)?'mepr-alt-row':''; ?>">
             <td data-label="<?php _ex('Membership', 'ui', 'memberpress'); ?>">
               <!-- MEMBERSHIP ACCESS URL -->
               <?php if(isset($prd->access_url) && !empty($prd->access_url)): ?>
-                <div class="mepr-account-product"><a href="<?php echo stripslashes($prd->access_url); ?>"><?php echo MeprHooks::apply_filters('mepr-account-subscr-product-name', $prd->post_title, $txn); ?></a></div>
+                <div class="mepr-account-product"><a href="<?php echo esc_url(stripslashes($prd->access_url)); ?>"><?php echo esc_html(MeprHooks::apply_filters('mepr-account-subscr-product-name', $prd->post_title, $txn)); ?></a></div>
               <?php else: ?>
-                <div class="mepr-account-product"><?php echo MeprHooks::apply_filters('mepr-account-subscr-product-name', $prd->post_title, $txn); ?></div>
+                <div class="mepr-account-product"><?php echo esc_html(MeprHooks::apply_filters('mepr-account-subscr-product-name', $prd->post_title, $txn)); ?></div>
               <?php endif; ?>
 
               <?php if($txn != false && $txn instanceof MeprTransaction && !$txn->is_sub_account()): ?>
-                <div class="mepr-account-subscr-id"><?php echo $s->subscr_id; ?></div>
+                <div class="mepr-account-subscr-id"><?php echo esc_html($s->subscr_id); ?></div>
               <?php endif; ?>
             </td>
             <td data-label="<?php _ex('Terms', 'ui', 'memberpress'); ?>">
@@ -82,7 +82,7 @@ if(!empty($subscriptions)) {
                   }
                   else {
                     if($is_sub):
-                      echo ($s->status == MeprSubscription::$active_str)?_x('Enabled', 'ui', 'memberpress'):MeprAppHelper::human_readable_status($s->status, 'subscription');
+                      echo esc_html(($s->status == MeprSubscription::$active_str)?_x('Enabled', 'ui', 'memberpress'):MeprAppHelper::human_readable_status($s->status, 'subscription'));
                     elseif(is_null($s->expires_at) or $s->expires_at == MeprUtils::db_lifetime()):
                       _ex('Lifetime', 'ui', 'memberpress');
                     else:
@@ -109,20 +109,20 @@ if(!empty($subscriptions)) {
                           }
                         }
 
-                        echo stripslashes($prd->register_price) . $coupon_str;
+                        echo esc_html(stripslashes($prd->register_price) . $coupon_str);
                       }
                       else if($txn != false && $txn instanceof MeprTransaction) {
-                        echo MeprTransactionsHelper::format_currency($txn);
+                        echo esc_html(MeprTransactionsHelper::format_currency($txn));
                       }
                     }
                   ?>
                 </div>
               <?php endif; ?>
               <?php if($txn != false && $txn instanceof MeprTransaction && !$txn->is_sub_account && $is_sub && ($nba = $sub->next_billing_at)): ?>
-                <div class="mepr-account-rebill"><?php printf(_x('Next Billing: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba)); ?></div>
+                <div class="mepr-account-rebill"><?php echo esc_html(sprintf(_x('Next Billing: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba))); ?></div>
               <?php elseif (!$sub->next_billing_at && ($nba = $sub->expires_at) && stripos($sub->expires_at, '0000-00') === false) : ?>
 
-                <div class="mepr-account-rebill"><?php printf(_x('Expires: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba)); ?></div>
+                <div class="mepr-account-rebill"><?php echo esc_html(sprintf(_x('Expires: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba))); ?></div>
               <?php endif; ?>
             </td>
             <td data-label="<?php _ex('Active', 'ui', 'memberpress'); ?>"><div class="mepr-account-active"><?php echo $s->active; ?></div></td>
@@ -130,7 +130,7 @@ if(!empty($subscriptions)) {
               <?php if($txn != false && $txn instanceof MeprTransaction && $txn->is_sub_account()): ?>
                 <div>--</div>
               <?php else: ?>
-                <div class="mepr-account-created-at"><?php echo MeprAppHelper::format_date($s->created_at); ?></div>
+                <div class="mepr-account-created-at"><?php echo esc_html(MeprAppHelper::format_date($s->created_at)); ?></div>
               <?php endif; ?>
             </td>
             <td data-label="<?php _ex('Card Expires', 'ui', 'memberpress'); ?>">
@@ -139,7 +139,7 @@ if(!empty($subscriptions)) {
               <?php else: ?>
                 <?php if( ($exp_mo = $sub->cc_exp_month) && ($exp_yr = $sub->cc_exp_year) ): ?>
                   <?php $cc_class = (($sub->cc_expiring_before_next_payment())?' mepr-inactive':''); ?>
-                  <div class="mepr-account-cc-exp<?php echo $cc_class; ?>"><?php printf(_x('%1$02d-%2$d', 'ui', 'memberpress'), $exp_mo, $exp_yr); ?></div>
+                  <div class="mepr-account-cc-exp<?php echo esc_attr($cc_class); ?>"><?php echo esc_html(sprintf(_x('%1$02d-%2$d', 'ui', 'memberpress'), $exp_mo, $exp_yr)); ?></div>
                 <?php else: //Need a placeholder for responsive ?>
                   <div>&zwnj;</div>
                 <?php endif; ?>
@@ -165,7 +165,7 @@ if(!empty($subscriptions)) {
                     elseif(!$is_sub && !empty($prd->ID)) {
                       if($prd->is_renewable() && $prd->is_renewal()) {
                         ?>
-                          <a href="<?php echo $prd->url(); ?>" class="mepr-account-row-action mepr-account-renew"><?php _ex('Renew', 'ui', 'memberpress'); ?></a>
+                          <a href="<?php echo esc_url($prd->url()); ?>" class="mepr-account-row-action mepr-account-renew"><?php _ex('Renew', 'ui', 'memberpress'); ?></a>
                         <?php
                       }
 

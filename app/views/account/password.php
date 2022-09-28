@@ -32,7 +32,7 @@
 
     <input type="submit" name="new-password-submit" value="<?php _ex('Update Password', 'ui', 'memberpress'); ?>" class="mepr-submit" />
     <?php _ex('or', 'ui', 'memberpress'); ?>
-    <a href="<?php echo $mepr_options->account_page_url(); ?>"><?php _ex('Cancel', 'ui', 'memberpress'); ?></a>
+    <a href="<?php echo esc_url($mepr_options->account_page_url()); ?>"><?php _ex('Cancel', 'ui', 'memberpress'); ?></a>
     <img src="<?php echo admin_url('images/loading.gif'); ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
     <?php MeprView::render('/shared/has_errors', get_defined_vars()); ?>
   </form>

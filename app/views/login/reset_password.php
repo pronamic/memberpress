@@ -32,8 +32,8 @@
     <div class="submit">
       <input type="submit" name="wp-submit" id="wp-submit" class="button-primary mepr-share-button " value="<?php _ex('Update Password', 'ui', 'memberpress'); ?>" tabindex="720" />
       <input type="hidden" name="action" value="mepr_process_reset_password_form" />
-      <input type="hidden" name="mepr_screenname" value="<?php echo $mepr_screenname; ?>" />
-      <input type="hidden" name="mepr_key" value="<?php echo $mepr_key; ?>" />
+      <input type="hidden" name="mepr_screenname" value="<?php echo esc_attr($mepr_screenname); ?>" />
+      <input type="hidden" name="mepr_key" value="<?php echo esc_attr($mepr_key); ?>" />
       <input type="hidden" name="mepr_is_login_page" value="true" />
     </div>
   </form>

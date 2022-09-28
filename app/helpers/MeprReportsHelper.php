@@ -82,7 +82,7 @@ class MeprReportsHelper
     ?>
       <form method="get" action="admin.php">
         <input type="hidden" name="page" value="memberpress-reports" />
-        <input type="hidden" name="month" value="<?php echo $month; ?>" />
+        <input type="hidden" name="month" value="<?php echo esc_attr($month); ?>" />
         <?php wp_nonce_field('mepr_customize_report', 'mepr_reports_nonce'); ?>
         <label><?php _e('Year:', 'memberpress'); ?></label>
         <?php self::display_year_dropdown(); ?>

@@ -1265,7 +1265,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
     else {
       try {
-        $customer = $this->retrieve_customer($sub_id);
+        $customer = $this->retrieve_customer($sub->subscr_id);
       }
       catch(Exception $e) {
         // If there's not already a customer then we're done here
@@ -1551,7 +1551,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
     else {
       try {
-        $customer = $this->retrieve_customer($sub_id);
+        $customer = $this->retrieve_customer($sub->subscr_id);
       }
       catch(Exception $e) {
         // If there's not already a customer then we're done here
@@ -1634,6 +1634,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $l10n = [
       'api_version' => self::STRIPE_API_VERSION,
       'taxes_enabled' => (bool) get_option('mepr_calculate_taxes'),
+      'payment_information_incomplete' => __('Please complete payment information', 'memberpress'),
       'elements_appearance' => $this->get_elements_appearance(),
       'ajax_url' => admin_url('admin-ajax.php'),
       'ajax_error' => __('An error occurred, please DO NOT submit the form again as you may be double charged. Please contact us for further assistance instead.', 'memberpress'),
@@ -1714,7 +1715,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     ?>
       <form action="" method="post" id="mepr-stripe-payment-form">
         <input type="hidden" name="mepr_process_payment_form" value="Y" />
-        <input type="hidden" name="mepr_transaction_id" value="<?php echo $txn->id; ?>" />
+        <input type="hidden" name="mepr_transaction_id" value="<?php echo esc_attr($txn->id); ?>" />
         <input type="hidden" name="address_required" value="<?php echo $mepr_options->show_address_fields && $mepr_options->require_address_fields ? 1 : 0 ?>" />
 
         <?php
@@ -2188,7 +2189,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
     else {
       try {
-        $customer = $this->retrieve_customer($sub->id);
+        $customer = $this->retrieve_customer($sub->subscr_id);
       }
       catch(Exception $e) {
         throw new MeprGatewayException(__('Customer not found', 'memberpress'));

@@ -13,7 +13,7 @@
 <tr valign="top">
   <th scope="row"><label for="user_login"><?php _e('User*:', 'memberpress'); ?></label></th>
   <td>
-    <input type="hidden" name="action" value="<?php echo $_REQUEST['action']; ?>" />
+    <input type="hidden" name="action" value="<?php echo esc_attr($_REQUEST['action']); ?>" />
     <?php wp_nonce_field( 'mepr_create_or_update_transaction', 'mepr_transactions_nonce' ); ?>
     <input type="text" name="user_login" id="user_login" class="mepr_suggest_user" value="<?php echo $user_login; ?>" autocomplete="off" />
     <p class="description"><?php _e('The user who made this transaction.', 'memberpress'); ?></p>

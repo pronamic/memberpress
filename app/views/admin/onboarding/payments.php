@@ -9,63 +9,24 @@
   }
 ?>
 <h2 class="mepr-wizard-step-title"><?php esc_html_e('Get set up to accept payments', 'memberpress'); ?></h2>
-<p class="mepr-wizard-step-description"><?php esc_html_e("You won't believe how easy it is to accept online payments with MemberPress. Just choose your gateway below, and we'll get you going.", 'memberpress'); ?></p>
+<p class="mepr-wizard-step-description"><?php esc_html_e("You won't believe how easy it is to accept online payments with MemberPress.", 'memberpress'); ?></p>
 <div id="mepr-wizard-payments"<?php echo MeprOnboardingHelper::get_payment_gateway_data() ? ' class="mepr-hidden"' : ''; ?>>
   <div class="mepr-wizard-payments">
     <div class="mepr-wizard-payments-stripe">
       <div class="mepr-wizard-payments-image">
         <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/stripe-logo.png'); ?>" alt="">
       </div>
-      <p><?php esc_html_e("The world's most powerful and easy to use payment gateway.", 'memberpress'); ?></p>
+      <p class="mepr-payment-description"><?php esc_html_e("The world's most powerful and easy to use payment gateway.", 'memberpress'); ?></p>
+      <div class="mepr-wizard-hr"></div>
+      <div class="mepr-wizard-feature-highlight"><?php esc_html_e('Stripe Offers', 'memberpress'); ?></div>
+      <ul class="mepr-wizard-payments-features">
+        <li><?php esc_html_e('Accept all Major Credit Cards', 'memberpress'); ?></li>
+        <li><?php esc_html_e('Flexible subscriptions and billing terms', 'memberpress'); ?></li>
+        <li><?php esc_html_e('Accept SEPA, Apple Pay, Google Wallet, iDeal', 'memberpress'); ?></li>
+        <li><?php esc_html_e('Fraud prevention tools', 'memberpress'); ?></li>
+      </ul>
+      <div class="mepr-wizard-feature-plusmore"><?php esc_html_e('Plus more', 'memberpress'); ?></div>
       <button type="button" id="mepr-wizard-add-stripe" class="mepr-wizard-button-blue"><?php esc_html_e('Add Stripe', 'memberpress'); ?></button>
-      <div class="mepr-wizard-hr"></div>
-      <div class="mepr-wizard-payments-features">
-        <div><?php esc_html_e('Stripe Offers', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Accept all Major Credit Cards', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Flexible subscriptions and billing terms', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Accept SEPA, Apple Pay, Google Wallet, iDeal', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Fraud prevention tools', 'memberpress'); ?></div>
-      </div>
-    </div>
-    <div class="mepr-wizard-payments-paypal">
-      <div class="mepr-wizard-payments-image">
-        <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/PayPal_with_Tagline.svg'); ?>" alt="">
-      </div>
-      <p><?php esc_html_e('The faster, safer way to receive money or set up a merchant account.', 'memberpress'); ?></p>
-      <?php
-        $gateway = new MeprPayPalCommerceGateway();
-        $sandbox = apply_filters( 'mepr_onboarding_paypal_sandbox', false );
-      ?>
-      <a href="<?php echo esc_url(MeprPayPalCommerceGateway::get_paypal_connect_url($gateway->id, $sandbox, true)); ?>&displayMode=embedded" data-paypal-button="true" data-paypal-onboard-complete="MeprOnboardingPayPalComplete" data-gateway-id="<?php echo esc_attr($gateway->id); ?>" data-sandbox="<?php echo $sandbox ? 'true' : 'false'; ?>" id="mepr-wizard-add-paypal" class="mepr-wizard-button-blue"><?php esc_html_e('Add PayPal', 'memberpress'); ?></a>
-      <div class="mepr-wizard-hr"></div>
-      <div class="mepr-wizard-payments-features">
-        <div><?php esc_html_e('PayPal Offers', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Secure Payments', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Global Support', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Pay Later Support', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Venmo', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Easy to Setup', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Recurring Subscriptions', 'memberpress'); ?></div>
-      </div>
-    </div>
-    <div class="mepr-wizard-payments-authorize">
-      <span class="mepr-wizard-pro-badge"><?php esc_html_e('Pro', 'memberpress'); ?></span>
-      <div class="mepr-wizard-payments-image">
-        <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/authorize.net.svg'); ?>" alt="">
-      </div>
-      <p><?php esc_html_e('Accept payments anytime, anywhere.', 'memberpress'); ?></p>
-      <?php if(MeprOnboardingHelper::is_pro_license() || MeprOnboardingHelper::is_developer_license()): ?>
-        <button type="button" id="mepr-wizard-add-authorize" class="mepr-wizard-button-blue"><?php esc_html_e('Add Authorize.net', 'memberpress'); ?></button>
-      <?php else: ?>
-        <button type="button" id="mepr-wizard-add-authorize" class="mepr-wizard-button-orange mepr-optin"><?php esc_html_e('Add Authorize.net', 'memberpress'); ?></button>
-      <?php endif; ?>
-      <div class="mepr-wizard-hr"></div>
-      <div class="mepr-wizard-payments-features">
-        <div><?php esc_html_e('Authorize.net Offers', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Accept all Major Credit Cards', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Advanced Fraud Protection', 'memberpress'); ?></div>
-        <div><?php esc_html_e('Recurring Payments', 'memberpress'); ?></div>
-      </div>
     </div>
   </div>
 </div>

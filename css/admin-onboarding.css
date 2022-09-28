@@ -1201,30 +1201,51 @@ h2.mepr-wizard-finished {
 }
 .mepr-wizard-payments p {
   font-size: 13px;
-  line-height: 120%;
+  line-height: 150%;
   color: #5B748A;
-  margin: 10px 0 20px 0;
-  min-height: 50px;
 }
 .mepr-wizard-payments .mepr-wizard-hr {
   border-bottom: 1px solid #CDD9EC;
-  margin: 25px 0 20px 0;
+  margin: 0 auto;
+  width: 90%;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
-.mepr-wizard-payments-features > div {
+.mepr-wizard-payments-features {
+  columns: 2;
+  column-count: 2;
+  -webkit-columns: 2;
+  -moz-columns: 2;
+  width: 57%;
+  margin: 0 auto 10px;
+  column-gap: 20px;
+}
+
+.mepr-wizard-payments-features > li {
   font-size: 13px;
   line-height: 200%;
   color: #3A4A58;
+  text-align: left;
+  margin: 0;
 }
-.mepr-wizard-payments-features > div:first-child {
-  font-weight: 700;
+
+div.mepr-wizard-feature-highlight{
   line-height: 150%;
   color: #091D2E;
   margin-bottom: 6px;
+  font-size: 16px;
+}
+
+div.mepr-wizard-feature-plusmore{
+  line-height: 150%;
+  color: #2271b1;
+  margin-bottom: 6px;
+  font-size: 14px;
 }
 
 .mepr-wizard-payments-stripe img,
 .mepr-wizard-payment-gateway-stripe .mepr-wizard-payment-gateway-logo img {
-  width: 94px;
+  width: 144px;
   height: auto;
 }
 .mepr-wizard-payments-paypal img,
@@ -1242,6 +1263,12 @@ h2.mepr-wizard-finished {
   align-items: center;
   justify-content: center;
   min-height: 50px;
+  margin-top: 20px;
+}
+
+.mepr-payment-description{
+  width: 35%;
+  margin: 0 auto;
 }
 .mepr-wizard-payment-gateway > div:last-child {
   display: flex;
@@ -1284,6 +1311,11 @@ h2.mepr-wizard-finished {
   border: 1px solid #CED2D5;
   border-radius: 4px;
   color: #9DA5AB;
+}
+
+#mepr-wizard-add-stripe {
+  margin-top: 20px;
+  margin-bottom: 40px;
 }
 
 .mepr-wizard-payments-authorize{

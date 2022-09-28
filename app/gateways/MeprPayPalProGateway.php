@@ -289,28 +289,28 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway {
       'INVNUM' => $txn->id,
 
       // Pass Credit Card Info
-      'ACCT' => $_REQUEST['mepr_cc_num'],
-      'EXPDATE' => sprintf('%02d',$_REQUEST['mepr_cc_exp_month']).sprintf('%04d',$_REQUEST['mepr_cc_exp_year']),
+      'ACCT' => sanitize_text_field($_REQUEST['mepr_cc_num']),
+      'EXPDATE' => sprintf('%02d', sanitize_text_field($_REQUEST['mepr_cc_exp_month']) ).sprintf('%04d', sanitize_text_field($_REQUEST['mepr_cc_exp_year']) ),
       'CVV2' => $_REQUEST['mepr_cvv_code'],
 
       // Pass User Info
       'EMAIL' => $usr->user_email,
-      'FIRSTNAME' => $_REQUEST['mepr_first_name'],
-      'LASTNAME' => $_REQUEST['mepr_last_name'],
-      'STREET' => $_REQUEST['mepr-address-one'].' '.$_REQUEST['mepr-address-two'],
-      'CITY' => $_REQUEST['mepr-address-city'],
-      'STATE' => $_REQUEST['mepr-address-state'],
-      'ZIP' => $_REQUEST['mepr-address-zip'],
-      'COUNTRYCODE' => $_REQUEST['mepr-address-country'],
-      'IPADDRESS' => $_SERVER['REMOTE_ADDR'],
+      'FIRSTNAME' => sanitize_text_field(wp_unslash($_REQUEST['mepr_first_name'])),
+      'LASTNAME' => sanitize_text_field(wp_unslash($_REQUEST['mepr_last_name'])),
+      'STREET' => sanitize_text_field(wp_unslash($_REQUEST['mepr-address-one'])).' '.sanitize_text_field(wp_unslash($_REQUEST['mepr-address-two'])),
+      'CITY' => sanitize_text_field(wp_unslash($_REQUEST['mepr-address-city'])),
+      'STATE' => sanitize_text_field(wp_unslash($_REQUEST['mepr-address-state'])),
+      'ZIP' => sanitize_text_field(wp_unslash($_REQUEST['mepr-address-zip'])),
+      'COUNTRYCODE' => sanitize_text_field(wp_unslash($_REQUEST['mepr-address-country'])),
+      'IPADDRESS' => sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])),
       'BUTTONSOURCE' => 'Caseproof_SP'
     ), $txn);
 
     if(empty($usr->first_name) || empty($usr->last_name)) {
       $usr->first_name = sanitize_text_field(wp_unslash($_REQUEST['mepr_first_name']));
       $usr->last_name = sanitize_text_field(wp_unslash($_REQUEST['mepr_last_name']));
-      update_user_meta($usr->ID, 'first_name', $user->first_name);
-      update_user_meta($usr->ID, 'last_name', $user->last_name);
+      update_user_meta($usr->ID, 'first_name', $usr->first_name);
+      update_user_meta($usr->ID, 'last_name', $usr->last_name);
     }
 
     if(!$usr->address_is_set()) { $usr->set_address($_REQUEST); }
@@ -556,8 +556,8 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway {
       $sub->created_at = gmdate('c',$timestamp);
 
       $sub->cc_last4 = substr($_REQUEST['mepr_cc_num'],-4);
-      $sub->cc_exp_month = $_REQUEST['mepr_cc_exp_month'];
-      $sub->cc_exp_year = $_REQUEST['mepr_cc_exp_year'];
+      $sub->cc_exp_month = sanitize_text_field($_REQUEST['mepr_cc_exp_month']);
+      $sub->cc_exp_year = sanitize_text_field($_REQUEST['mepr_cc_exp_year']);
 
       // This will only work before maybe_cancel_old_sub is run
       $upgrade = $sub->is_upgrade();
@@ -821,7 +821,7 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway {
       <?php MeprView::render('/shared/errors', get_defined_vars()); ?>
       <form action="" method="post" id="payment-form" class="mepr-checkout-form mepr-form mepr-card-form" novalidate>
         <input type="hidden" name="mepr_process_payment_form" value="Y" />
-        <input type="hidden" name="mepr_transaction_id" value="<?php echo $txn_id; ?>" />
+        <input type="hidden" name="mepr_transaction_id" value="<?php echo esc_attr($txn_id); ?>" />
         <div class="mp-form-row">
           <div class="mp-form-label">
             <label><?php _e('Credit Card Number', 'memberpress'); ?></label>

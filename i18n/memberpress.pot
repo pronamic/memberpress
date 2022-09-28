@@ -2,20 +2,20 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.9.44\n"
+"Project-Id-Version: MemberPress 1.9.45\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2022-09-15T02:19:00+00:00\n"
+"POT-Creation-Date: 2022-09-27T19:37:15+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.6.0\n"
 "X-Domain: memberpress\n"
 
 #. Plugin Name of the plugin
-#: app/controllers/MeprAppCtrl.php:1128
+#: app/controllers/MeprAppCtrl.php:1130
 msgid "MemberPress"
 msgstr ""
 
@@ -283,7 +283,7 @@ msgid "UNAUTHORIZED: %s"
 msgstr ""
 
 #: app/controllers/MeprAppCtrl.php:61
-#: app/controllers/MeprAppCtrl.php:1158
+#: app/controllers/MeprAppCtrl.php:1160
 #: app/views/admin/support/view.php:6
 msgid "Support"
 msgstr ""
@@ -356,7 +356,7 @@ msgid "Coupons"
 msgstr ""
 
 #: app/controllers/MeprAppCtrl.php:497
-#: app/controllers/MeprAppCtrl.php:1135
+#: app/controllers/MeprAppCtrl.php:1137
 #: app/controllers/MeprCoursesCtrl.php:35
 msgid "Courses"
 msgstr ""
@@ -490,13 +490,13 @@ msgstr ""
 msgid "There was a problem with our system: %s. Please come back soon and try again."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:948
 #: app/controllers/MeprAppCtrl.php:950
+#: app/controllers/MeprAppCtrl.php:952
 msgid "MemberPress Account Links"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1112
-#: app/controllers/MeprAppCtrl.php:1172
+#: app/controllers/MeprAppCtrl.php:1114
+#: app/controllers/MeprAppCtrl.php:1174
 #: app/controllers/MeprDbCtrl.php:226
 #: app/controllers/MeprMembersCtrl.php:235
 #: app/helpers/MeprProductsHelper.php:116
@@ -504,13 +504,13 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1116
-#: app/controllers/MeprAppCtrl.php:1119
+#: app/controllers/MeprAppCtrl.php:1118
+#: app/controllers/MeprAppCtrl.php:1121
 msgid "Affiliates"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1123
 #: app/controllers/MeprAppCtrl.php:1125
+#: app/controllers/MeprAppCtrl.php:1127
 #: app/controllers/MeprDbCtrl.php:227
 #: app/controllers/MeprMembersCtrl.php:115
 #: app/controllers/MeprSubscriptionsCtrl.php:552
@@ -518,7 +518,7 @@ msgstr ""
 msgid "Subscriptions"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1126
+#: app/controllers/MeprAppCtrl.php:1128
 #: app/controllers/MeprMembersCtrl.php:116
 #: app/controllers/MeprReportsCtrl.php:120
 #: app/controllers/MeprTransactionsCtrl.php:619
@@ -528,42 +528,42 @@ msgstr ""
 msgid "Transactions"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1127
+#: app/controllers/MeprAppCtrl.php:1129
 #: app/views/admin/reports/main.php:4
 msgid "Reports"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1129
+#: app/controllers/MeprAppCtrl.php:1131
 #: app/views/admin/options/form.php:4
 #: app/views/admin/options/form.php:511
 msgid "Settings"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1130
+#: app/controllers/MeprAppCtrl.php:1132
 msgid "Onboarding"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1131
+#: app/controllers/MeprAppCtrl.php:1133
 #: app/views/admin/options/account_login.php:6
 msgid "Account Login"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1132
+#: app/controllers/MeprAppCtrl.php:1134
 msgid "Add-ons"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1137
+#: app/controllers/MeprAppCtrl.php:1139
 #: app/views/admin/support/view.php:124
 msgid "MemberPress Courses"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1142
-#: app/controllers/MeprAppCtrl.php:1145
+#: app/controllers/MeprAppCtrl.php:1144
+#: app/controllers/MeprAppCtrl.php:1147
 msgid "SMTP"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1151
-#: app/controllers/MeprAppCtrl.php:1154
+#: app/controllers/MeprAppCtrl.php:1153
+#: app/controllers/MeprAppCtrl.php:1156
 msgid "Analytics"
 msgstr ""
 
@@ -2011,7 +2011,7 @@ msgstr ""
 
 #: app/controllers/MeprStripeCtrl.php:81
 #: app/controllers/MeprStripeCtrl.php:326
-#: app/gateways/MeprStripeGateway.php:2182
+#: app/gateways/MeprStripeGateway.php:2183
 msgid "User not found"
 msgstr ""
 
@@ -2027,7 +2027,7 @@ msgid "PaymentIntent not found"
 msgstr ""
 
 #: app/controllers/MeprStripeCtrl.php:296
-#: app/gateways/MeprStripeGateway.php:1639
+#: app/gateways/MeprStripeGateway.php:1640
 msgid "An error occurred, please DO NOT submit the form again as you may be double charged. Please contact us for further assistance instead."
 msgstr ""
 
@@ -3222,10 +3222,10 @@ msgstr ""
 #: app/gateways/MeprPayPalProGateway.php:899
 #: app/gateways/MeprPayPalProGateway.php:1091
 #: app/gateways/MeprPayPalStandardGateway.php:790
-#: app/gateways/MeprStripeGateway.php:1738
-#: app/gateways/MeprStripeGateway.php:1746
-#: app/gateways/MeprStripeGateway.php:1921
-#: app/gateways/MeprStripeGateway.php:1927
+#: app/gateways/MeprStripeGateway.php:1739
+#: app/gateways/MeprStripeGateway.php:1747
+#: app/gateways/MeprStripeGateway.php:1922
+#: app/gateways/MeprStripeGateway.php:1928
 #: app/views/account/home.php:58
 #: app/views/account/password.php:36
 #: app/views/admin/emails/options.php:32
@@ -3244,8 +3244,8 @@ msgid "Loading..."
 msgstr ""
 
 #: app/gateways/MeprArtificialGateway.php:403
-#: app/gateways/MeprStripeGateway.php:1748
-#: app/gateways/MeprStripeGateway.php:1929
+#: app/gateways/MeprStripeGateway.php:1749
+#: app/gateways/MeprStripeGateway.php:1930
 #: app/views/checkout/MeprPayPalCommerceGateway/payment_form.php:39
 #: app/views/checkout/MeprStripeGateway/payment_form.php:30
 #: app/views/checkout/payment_form.php:30
@@ -3271,7 +3271,7 @@ msgstr ""
 #: app/gateways/MeprAuthorizeGateway.php:9
 #: app/views/admin/onboarding/parts/finish.php:107
 #: app/views/admin/onboarding/parts/finish.php:149
-#: app/views/admin/onboarding/payments.php:76
+#: app/views/admin/onboarding/payments.php:37
 msgid "Authorize.net"
 msgstr ""
 
@@ -3508,61 +3508,61 @@ msgstr ""
 msgid "Sorry, subscriptions cannot be paused during a free trial."
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:944
+#: app/gateways/MeprPayPalCommerceGateway.php:948
 msgid "Could not create PayPal Order"
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1003
-#: app/gateways/MeprStripeGateway.php:1745
-#: app/gateways/MeprStripeGateway.php:1926
+#: app/gateways/MeprPayPalCommerceGateway.php:1007
+#: app/gateways/MeprStripeGateway.php:1746
+#: app/gateways/MeprStripeGateway.php:1927
 msgctxt "ui"
 msgid "Submit"
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1026
+#: app/gateways/MeprPayPalCommerceGateway.php:1030
 msgid "Payment gateway is not fully configured. Please contact support."
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1077
+#: app/gateways/MeprPayPalCommerceGateway.php:1081
 msgid "Could not create PayPal product"
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1144
+#: app/gateways/MeprPayPalCommerceGateway.php:1148
 msgid "Could not create PayPal subscription"
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1278
+#: app/gateways/MeprPayPalCommerceGateway.php:1282
 msgid "Could not create Plan"
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1364
+#: app/gateways/MeprPayPalCommerceGateway.php:1368
 #: app/gateways/MeprPayPalGateway.php:974
 #: app/gateways/MeprPayPalStandardGateway.php:1014
 msgid "Updating your PayPal Account Information"
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1365
+#: app/gateways/MeprPayPalCommerceGateway.php:1369
 #: app/gateways/MeprPayPalGateway.php:975
 #: app/gateways/MeprPayPalStandardGateway.php:1015
 msgid "To update your PayPal Account Information, please go to %sPayPal.com%s, login and edit your account information there."
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1552
+#: app/gateways/MeprPayPalCommerceGateway.php:1556
 msgid "On request"
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1570
+#: app/gateways/MeprPayPalCommerceGateway.php:1574
 msgid "There was a problem, try logging in directly at PayPal to update the status of your recurring profile."
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1673
+#: app/gateways/MeprPayPalCommerceGateway.php:1677
 #: app/gateways/MeprPayPalGateway.php:1105
 #: app/gateways/MeprPayPalProGateway.php:1245
 #: app/gateways/MeprPayPalStandardGateway.php:1249
 msgid "Your payment at PayPal was cancelled."
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1674
+#: app/gateways/MeprPayPalCommerceGateway.php:1678
 #: app/gateways/MeprPayPalGateway.php:1106
 #: app/gateways/MeprPayPalProGateway.php:1246
 #: app/gateways/MeprPayPalStandardGateway.php:1250
@@ -3642,7 +3642,7 @@ msgstr ""
 #: app/gateways/MeprPayPalGateway.php:1032
 #: app/gateways/MeprPayPalProGateway.php:1166
 #: app/gateways/MeprPayPalStandardGateway.php:1071
-#: app/gateways/MeprStripeGateway.php:2285
+#: app/gateways/MeprStripeGateway.php:2286
 msgid "You had an HTTP error connecting to %s"
 msgstr ""
 
@@ -3819,7 +3819,7 @@ msgid "The subscription is locked to a different currency. Please contact us to 
 msgstr ""
 
 #: app/gateways/MeprStripeGateway.php:1383
-#: app/gateways/MeprStripeGateway.php:2194
+#: app/gateways/MeprStripeGateway.php:2195
 msgid "Customer not found"
 msgstr ""
 
@@ -3832,87 +3832,91 @@ msgstr ""
 msgid "This subscription has already been cancelled."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1640
-msgid "The response from the server was invalid"
+#: app/gateways/MeprStripeGateway.php:1637
+msgid "Please complete payment information"
 msgstr ""
 
 #: app/gateways/MeprStripeGateway.php:1641
+msgid "The response from the server was invalid"
+msgstr ""
+
+#: app/gateways/MeprStripeGateway.php:1642
 msgid "An error occurred, please try again"
 msgstr ""
 
 #. translators: %1$s: open strong tag, %2$s: close strong tag, %3$s: error message
-#: app/gateways/MeprStripeGateway.php:1644
+#: app/gateways/MeprStripeGateway.php:1645
 msgid "%1$sERROR%2$s: %3$s"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1729
+#: app/gateways/MeprStripeGateway.php:1730
 #: app/views/checkout/MeprStripeGateway/payment_form.php:12
 msgid "Pay with your Credit Card via Stripe Checkout"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1845
+#: app/gateways/MeprStripeGateway.php:1846
 msgid "All Stripe keys must be filled in."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1909
+#: app/gateways/MeprStripeGateway.php:1910
 msgid "Link is set up as the payment method for this subscription. You can change the default payment method by logging in to <a href=\"https://link.co\">Link.co</a>."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1910
+#: app/gateways/MeprStripeGateway.php:1911
 msgid "Or"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1911
+#: app/gateways/MeprStripeGateway.php:1912
 msgid "If you do not wish to use Link for this subscription, you can enter the details for a different payment method below."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1913
+#: app/gateways/MeprStripeGateway.php:1914
 msgid "Update your payment information below"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2023
+#: app/gateways/MeprStripeGateway.php:2024
 msgid "No Webhook Signature"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2033
+#: app/gateways/MeprStripeGateway.php:2034
 msgid "Incorrect Webhook Signature"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2039
+#: app/gateways/MeprStripeGateway.php:2040
 msgid "No `event` set"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2050
+#: app/gateways/MeprStripeGateway.php:2051
 msgid "Request was sent to the wrong site?"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2056
+#: app/gateways/MeprStripeGateway.php:2057
 msgid "No payment method like that exists on this site"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2067
+#: app/gateways/MeprStripeGateway.php:2068
 msgid "Webhook not supported"
 msgstr ""
 
 #. translators: In this string, %s is the Blog Name/Title
-#: app/gateways/MeprStripeGateway.php:2213
+#: app/gateways/MeprStripeGateway.php:2214
 msgid "[%s] Confirm Subscription Payment"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2225
+#: app/gateways/MeprStripeGateway.php:2226
 msgid "The invoice does not require action from the customer."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2296
+#: app/gateways/MeprStripeGateway.php:2297
 msgid "There was an issue with the credit card processor. Try again later."
 msgstr ""
 
 #. translators: %d: the product ID
-#: app/gateways/MeprStripeGateway.php:2697
+#: app/gateways/MeprStripeGateway.php:2698
 msgid "Product %d"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2955
+#: app/gateways/MeprStripeGateway.php:2956
 #: app/helpers/MeprTransactionsHelper.php:253
 #: app/helpers/MeprTransactionsHelper.php:269
 msgid "Initial Payment"
@@ -4311,7 +4315,6 @@ msgid "Manage account"
 msgstr ""
 
 #: app/helpers/MeprOnboardingHelper.php:481
-#: app/views/admin/onboarding/payments.php:52
 msgid "Pro"
 msgstr ""
 
@@ -6775,15 +6778,14 @@ msgstr ""
 #: app/views/admin/gateways/stripe/connect-migrate-prompt.php:39
 #: app/views/admin/gateways/stripe/connect-migrate-prompt.php:78
 #: app/views/admin/gateways/stripe/connect-migrate-prompt.php:106
-#: app/views/admin/onboarding/payments.php:24
-#: app/views/admin/onboarding/payments.php:65
+#: app/views/admin/onboarding/payments.php:23
 msgid "Accept all Major Credit Cards"
 msgstr ""
 
 #: app/views/admin/gateways/stripe/connect-migrate-prompt.php:40
 #: app/views/admin/gateways/stripe/connect-migrate-prompt.php:79
 #: app/views/admin/gateways/stripe/connect-migrate-prompt.php:107
-#: app/views/admin/onboarding/payments.php:25
+#: app/views/admin/onboarding/payments.php:24
 msgid "Flexible subscriptions and billing terms"
 msgstr ""
 
@@ -6820,7 +6822,7 @@ msgstr ""
 #: app/views/admin/gateways/stripe/connect-migrate-prompt.php:49
 #: app/views/admin/gateways/stripe/connect-migrate-prompt.php:88
 #: app/views/admin/gateways/stripe/connect-migrate-prompt.php:116
-#: app/views/admin/onboarding/payments.php:27
+#: app/views/admin/onboarding/payments.php:26
 msgid "Fraud prevention tools"
 msgstr ""
 
@@ -7451,123 +7453,70 @@ msgid "Get set up to accept payments"
 msgstr ""
 
 #: app/views/admin/onboarding/payments.php:12
-msgid "You won't believe how easy it is to accept online payments with MemberPress. Just choose your gateway below, and we'll get you going."
+msgid "You won't believe how easy it is to accept online payments with MemberPress."
 msgstr ""
 
 #: app/views/admin/onboarding/payments.php:19
 msgid "The world's most powerful and easy to use payment gateway."
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:20
-msgid "Add Stripe"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:23
+#: app/views/admin/onboarding/payments.php:21
 msgid "Stripe Offers"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:26
+#: app/views/admin/onboarding/payments.php:25
 msgid "Accept SEPA, Apple Pay, Google Wallet, iDeal"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:34
-msgid "The faster, safer way to receive money or set up a merchant account."
+#: app/views/admin/onboarding/payments.php:28
+msgid "Plus more"
+msgstr ""
+
+#: app/views/admin/onboarding/payments.php:29
+msgid "Add Stripe"
 msgstr ""
 
 #: app/views/admin/onboarding/payments.php:39
-msgid "Add PayPal"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:42
-msgid "PayPal Offers"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:43
-msgid "Secure Payments"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:44
-msgid "Global Support"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:45
-msgid "Pay Later Support"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:46
-msgid "Venmo"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:47
-msgid "Easy to Setup"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:48
-msgid "Recurring Subscriptions"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:56
-msgid "Accept payments anytime, anywhere."
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:58
-#: app/views/admin/onboarding/payments.php:60
-msgid "Add Authorize.net"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:64
-msgid "Authorize.net Offers"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:66
-msgid "Advanced Fraud Protection"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:67
-msgid "Recurring Payments"
-msgstr ""
-
-#: app/views/admin/onboarding/payments.php:78
 msgid "API Login ID"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:82
+#: app/views/admin/onboarding/payments.php:43
 msgid "Transaction Key"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:86
+#: app/views/admin/onboarding/payments.php:47
 msgid "Signature Key"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:90
+#: app/views/admin/onboarding/payments.php:51
 msgid "Webhook URL"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:94
+#: app/views/admin/onboarding/payments.php:55
 msgid "Done"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:98
+#: app/views/admin/onboarding/payments.php:59
 msgid "Be sure to add your payment option"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:99
+#: app/views/admin/onboarding/payments.php:60
 msgid "If you skip this step, MemberPress will set up the offline payment option automatically. You can later visit MemberPress > Settings > Payments to get your gateway rolling."
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:101
+#: app/views/admin/onboarding/payments.php:62
 msgid "Add Offline Payment"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:106
+#: app/views/admin/onboarding/payments.php:67
 msgid "Trying to connect with Authorize.net?"
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:107
+#: app/views/admin/onboarding/payments.php:68
 msgid "You'll need a Pro license to enable this gateway. But it's easy! Just click the button below and follow the prompts."
 msgstr ""
 
-#: app/views/admin/onboarding/payments.php:110
+#: app/views/admin/onboarding/payments.php:71
 msgid "Continue to Upgrade"
 msgstr ""
 

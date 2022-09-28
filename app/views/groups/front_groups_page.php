@@ -5,7 +5,7 @@
   $group_theme    = preg_replace('~\.css$~', '', (is_null($theme) ? $group->group_theme : $theme));
   $group_template = $group->group_template();
 ?>
-<div class="mepr-price-menu <?php echo $group_theme; ?> <?php echo $group_template; ?>">
+<div class="mepr-price-menu <?php echo esc_attr($group_theme); ?> <?php echo esc_attr($group_template); ?>">
   <div class="mepr-price-boxes mepr-<?php echo count($products); ?>-col">
   <?php
     if(!empty($products)) {

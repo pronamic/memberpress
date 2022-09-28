@@ -61,6 +61,7 @@
         elements: null,
         linkAuthenticationElement: null,
         paymentElement: null,
+        paymentElementComplete: false,
         customerId: null,
         customerIdHash: null,
         paymentFormData: null,
@@ -262,12 +263,20 @@
             }
           });
 
+          paymentMethod.paymentElementComplete = false;
+
           paymentMethod.paymentElement.on('ready', function () {
             paymentMethod.creatingPaymentElement = false;
 
             if (paymentMethod.createPaymentElementOnReady) {
               paymentMethod.createPaymentElementOnReady = false;
               self.createPaymentElement(paymentMethod);
+            }
+          });
+
+          paymentMethod.paymentElement.on('change', function (event) {
+            if (typeof event.complete === 'boolean') {
+              paymentMethod.paymentElementComplete = event.complete;
             }
           });
 
@@ -378,6 +387,7 @@
       return;
     }
 
+    self.$form.find('.mepr-form-has-errors').hide();
     self.$form.find('.mepr-submit').prop('disabled', true);
     self.$form.find('.mepr-loading-gif').show();
 
@@ -389,6 +399,12 @@
       if(self.selectedPaymentMethod.paymentFormData === null) {
         self.allowResubmission();
         self.maybeCreatePaymentElement();
+        return;
+      }
+
+      if (!self.selectedPaymentMethod.paymentElementComplete) {
+        self.selectedPaymentMethod.$cardErrors.text(MeprStripeGateway.payment_information_incomplete);
+        self.allowResubmission();
         return;
       }
 

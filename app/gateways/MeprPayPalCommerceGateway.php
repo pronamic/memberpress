@@ -640,6 +640,10 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
   }
 
   public function process_signup_form( $txn ) {
+    if ($txn->amount == 0) {
+      MeprTransaction::create_free_transaction($txn);
+      return;
+    }
     if ( isset( $_POST['smart-payment-button'] ) && $_POST['smart-payment-button'] == true ) {
       $data = $this->setup_payment_with_paypal_commerce( $txn, true );
       wp_send_json( $data );

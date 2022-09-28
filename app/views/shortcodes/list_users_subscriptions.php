@@ -9,15 +9,15 @@
           <li class="<?php echo $alt_row; ?>">
             <?php
               if(!empty($arow->access_url)) {
-                echo '<a href="' . $arow->access_url .'">' . $arow->membership . '</a>';
+                echo '<a href="' . esc_url($arow->access_url) .'">' . esc_html($arow->membership) . '</a>';
               }
               else {
-                echo $arow->membership;
+                echo esc_html($arow->membership);
               }
             ?><br/>
-            <?php _ex('Expires', 'ui', 'memberpress'); ?>: <?php echo $arow->expires; ?>
+            <?php _ex('Expires', 'ui', 'memberpress'); ?>: <?php echo esc_html($arow->expires); ?>
             <?php if($arow->renewal_link): ?>
-              <br/><a href="<?php echo $arow->renewal_link; ?>"><?php _ex('Renew', 'ui', 'memberpress'); ?></a>
+              <br/><a href="<?php echo esc_url($arow->renewal_link); ?>"><?php _ex('Renew', 'ui', 'memberpress'); ?></a>
             <?php endif; ?>
           </li>
         <?php endforeach; ?>
@@ -27,8 +27,8 @@
         <?php foreach($inactive_rows as $irow): ?>
           <?php $alt_row = ($alt_row)?'':'mp_users_subscriptions_list_alt'; ?>
           <li class="<?php echo $alt_row; ?>">
-            <?php echo $irow->membership; ?><br/>
-            <?php _ex('Expired', 'ui', 'memberpress'); ?> - <a href="<?php echo $irow->purchase_link; ?>"><?php _ex('Subscribe', 'ui', 'memberpress'); ?></a>
+            <?php echo esc_html($irow->membership); ?><br/>
+            <?php _ex('Expired', 'ui', 'memberpress'); ?> - <a href="<?php echo esc_url($irow->purchase_link); ?>"><?php _ex('Subscribe', 'ui', 'memberpress'); ?></a>
           </li>
         <?php endforeach; ?>
       <?php endif; ?>

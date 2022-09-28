@@ -28,7 +28,7 @@ if(!empty($records)) {
       switch($column_name) {
         case 'col_id':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->ID; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->ID); ?></td>
           <?php
           break;
         case 'col_photo':
@@ -38,7 +38,7 @@ if(!empty($records)) {
           break;
         case 'col_name':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->name; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->name); ?></td>
           <?php
           break;
         case 'col_username':
@@ -60,7 +60,7 @@ if(!empty($records)) {
           break;
         case 'col_email':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->email; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->email); ?></td>
           <?php
           break;
         case 'col_status':
@@ -81,22 +81,22 @@ if(!empty($records)) {
           break;
         case 'col_txn_count':
           ?>
-          <td <?php echo $attributes; ?>><a href="<?php echo admin_url('admin.php?page=memberpress-trans&member=' . urlencode($rec->username)); ?>"><?php echo $rec->txn_count; ?></a></td>
+          <td <?php echo $attributes; ?>><a href="<?php echo admin_url('admin.php?page=memberpress-trans&member=' . urlencode($rec->username)); ?>"><?php echo esc_html($rec->txn_count); ?></a></td>
           <?php
           break;
         case 'col_expired_txn_count':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->expired_txn_count; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->expired_txn_count); ?></td>
           <?php
           break;
         case 'col_active_txn_count':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->active_txn_count; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->active_txn_count); ?></td>
           <?php
           break;
         case 'col_sub_count':
           ?>
-          <td <?php echo $attributes; ?>><a href="<?php echo admin_url('admin.php?page=memberpress-subscriptions&member=' . urlencode($rec->username)); ?>"><?php echo $rec->sub_count; ?></a></td>
+          <td <?php echo $attributes; ?>><a href="<?php echo admin_url('admin.php?page=memberpress-subscriptions&member=' . urlencode($rec->username)); ?>"><?php echo esc_html($rec->sub_count); ?></a></td>
           <?php
           break;
         case 'col_sub_info':
@@ -164,22 +164,22 @@ if(!empty($records)) {
           break;
         case 'col_pending_sub_count':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->pending_sub_count; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->pending_sub_count); ?></td>
           <?php
           break;
         case 'col_active_sub_count':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->active_sub_count; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->active_sub_count); ?></td>
           <?php
           break;
         case 'col_suspended_sub_count':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->suspended_sub_count; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->suspended_sub_count); ?></td>
           <?php
           break;
         case 'col_cancelled_sub_count':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->cancelled_sub_count; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->cancelled_sub_count); ?></td>
           <?php
           break;
         case 'col_memberships':
@@ -188,7 +188,7 @@ if(!empty($records)) {
             $ids = explode(',',$rec->memberships);
             foreach($ids as $id) {
               $membership = new MeprProduct($id);
-              $titles[] = $membership->post_title;
+              $titles[] = esc_html($membership->post_title);
             }
           }
           ?>
@@ -202,7 +202,7 @@ if(!empty($records)) {
 
             foreach($ids as $id) {
               $membership = new MeprProduct($id);
-              $inactive_titles[] = $membership->post_title;
+              $inactive_titles[] = esc_html($membership->post_title);
             }
           }
           ?>
@@ -221,7 +221,7 @@ if(!empty($records)) {
           break;
         case 'col_login_count':
           ?>
-          <td <?php echo $attributes; ?>><?php echo $rec->login_count; ?></td>
+          <td <?php echo $attributes; ?>><?php echo esc_html($rec->login_count); ?></td>
           <?php
           break;
         case 'col_registered':

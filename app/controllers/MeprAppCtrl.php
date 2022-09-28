@@ -884,7 +884,6 @@ class MeprAppCtrl extends MeprBaseCtrl {
     * so we should be good to do it this way
     */
     $paths = array();
-    $paths[] = str_replace(WP_PLUGIN_DIR, '', MEPR_I18N_PATH);
 
     //Have to use WP_PLUGIN_DIR because load_plugin_textdomain doesn't accept abs paths
     if(!file_exists(WP_PLUGIN_DIR . '/' . 'mepr-i18n')) {
@@ -896,6 +895,9 @@ class MeprAppCtrl extends MeprBaseCtrl {
     else {
       $paths[] = '/mepr-i18n';
     }
+
+    // /wp-content/mepr-i18n should have priority over wp-content/memberpress/i18n/
+    $paths[] = str_replace(WP_PLUGIN_DIR, '', MEPR_I18N_PATH);
 
     $paths = MeprHooks::apply_filters('mepr-textdomain-paths', $paths);
 

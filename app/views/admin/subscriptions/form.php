@@ -1,6 +1,6 @@
 <?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
 
-<input type="hidden" name="action" value="<?php echo $_REQUEST['action']; ?>" />
+<input type="hidden" name="action" value="<?php echo esc_attr($_REQUEST['action']); ?>" />
 <?php wp_nonce_field( 'mepr_create_or_update_subscription', 'mepr_subscriptions_nonce' ); ?>
 
 <tr valign="top">
