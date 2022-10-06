@@ -54,7 +54,7 @@ class MeprAppHelper {
       $rstr = __('Free','memberpress');
     }
 
-    return $rstr;
+    return MeprHooks::apply_filters('mepr_format_currency', $rstr, $number, $show_symbol);
   }
 
   public static function auto_add_page($page_name, $content = '') {

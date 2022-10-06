@@ -172,7 +172,7 @@
     paymentMethod.creatingPaymentElement = true;
     paymentMethod.$cardElement.closest('.mp-form-row').hide();
     paymentMethod.$cardErrors.html('');
-    paymentMethod.$wrapper.find('.mepr-stripe-gateway-description').remove();
+    paymentMethod.$wrapper.find('.mepr-stripe-gateway-description').hide();
     paymentMethod.$loader.show();
 
     if (!paymentMethod.stripe) {
@@ -231,6 +231,11 @@
           self.$form.find('.mepr-submit').prop('disabled', false);
           paymentMethod.$cardElement.closest('.mp-form-row').show();
           paymentMethod.$loader.hide();
+
+          if (response.data.is_free_purchase) {
+            paymentMethod.$wrapper.find('.mepr-stripe-gateway-description').show();
+            return;
+          }
 
           var options = {
             clientSecret: response.data.client_secret

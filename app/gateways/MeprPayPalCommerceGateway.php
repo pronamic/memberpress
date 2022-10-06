@@ -726,6 +726,10 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     $response = wp_remote_retrieve_body( $response );
     $response = json_decode( $response, true );
 
+    if (!isset($response['purchase_units'])) {
+      $this->log($response);
+    }
+
     return $response;
   }
 
@@ -777,7 +781,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
    * @return array|mixed|string|WP_Error
    */
   protected function get_paypal_sale_payment_object( $pp_payment_id ) {
-    $response = wp_remote_get( $this->settings->rest_api_url . '/v1/payments/sale/' . $pp_payment_id, [
+    $response = wp_remote_get( $this->settings->rest_api_url . '/v2/payments/captures/' . $pp_payment_id, [
       'headers' => [
         'Content-Type'                  => 'application/json',
         'PayPal-Partner-Attribution-Id' => MeprPayPalConnectCtrl::PAYPAL_BN_CODE,
@@ -1194,7 +1198,10 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       'currency'       => $mepr_options->currency_code,
     );
 
-    $plan_meta_key = '_mepr_paypal_plan_' . implode( '_', $args );
+    $plan_args = $args;
+    $plan_args['memberpress_product_id'] = $product->ID;
+
+    $plan_meta_key = '_mepr_paypal_plan_' . implode( '_', $plan_args );
     $plan_id       = get_post_meta( $product->ID, $plan_meta_key, true );
 
     if ( empty( $plan_id ) ) {
@@ -1384,6 +1391,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
 
   public function ipn_listener() {
     $_POST = wp_unslash( $_POST );
+    do_action('mepr_paypal_commerce_ipn_listener_preprocess');
     $this->email_status( "PayPal IPN Recieved\n" . MeprUtils::object_to_string( $_POST, true ) . "\n", $this->debug );
 
     if ( $this->validate_ipn() ) {
@@ -1461,18 +1469,21 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       $this->record_refund();
     } elseif ( $request['event_type'] == 'PAYMENT.SALE.COMPLETED' ) {
       $pp_payment = $this->get_paypal_sale_payment_object( $request['resource']['id'] );
+      $resource = $request['resource'];
       $this->log( 'Processing recurring payment' );
       $this->log( $pp_payment );
+      $this->log( $resource );
 
-      if ( $pp_payment['state'] == 'completed' && isset( $pp_payment['custom'] ) ) {
-        $sub = new MeprSubscription( $pp_payment['custom'] );
+      if ( $pp_payment['status'] == 'COMPLETED' && isset( $pp_payment['custom_id'] ) ) {
+        $this->log( 'Payment confirmed' );
+        $sub = new MeprSubscription( $pp_payment['custom_id'] );
 
-        if ( $sub->subscr_id == $pp_payment['billing_agreement_id'] ) {
+        if ( $sub->subscr_id == $resource['billing_agreement_id'] ) {
           $_POST['recurring_payment_id'] = $pp_payment['id'];
           $_POST['txn_id']               = $pp_payment['id'];
-          $_POST['mc_gross']             = $pp_payment['amount']['total'];
-          $_POST['payment_date']         = $pp_payment['create_time'];
-          $_POST['subscr_id']            = $pp_payment['billing_agreement_id'];
+          $_POST['mc_gross']             = $resource['amount']['total'];
+          $_POST['payment_date']         = $resource['create_time'];
+          $_POST['subscr_id']            = $resource['billing_agreement_id'];
 
           $this->record_subscription_payment();
         }

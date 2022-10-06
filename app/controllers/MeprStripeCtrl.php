@@ -143,6 +143,13 @@ class MeprStripeCtrl extends MeprBaseCtrl
     }
 
     try {
+      if(
+        ($product->is_one_time_payment() && $txn->total <= 0) ||
+        (!$product->is_one_time_payment() && isset($sub) && $sub instanceof MeprSubscription && $sub->total <= 0)
+      ) {
+        wp_send_json_success(['is_free_purchase' => true]);
+      }
+
       $response = [];
 
       if($is_user_logged_in) {
@@ -610,6 +617,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
       }
 
       MeprHooks::do_action('mepr_stripe_payment_pending', $txn, $usr);
+      MeprHooks::do_action('mepr-signup', $txn);
 
       wp_send_json([
         'action' => $action,

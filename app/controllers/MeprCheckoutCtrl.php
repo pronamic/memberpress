@@ -457,14 +457,14 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     }
 
     try {
-      if(('free' !== $signup_type) && isset($pm) && ($pm instanceof MeprBaseRealGateway)) {
-        $pm->process_signup_form($txn);
-      }
-
       if(! $is_existing_user) {
         if($mepr_options->disable_checkout_password_fields === true) {
           $usr->send_password_notification('new');
         }
+      }
+
+      if(('free' !== $signup_type) && isset($pm) && ($pm instanceof MeprBaseRealGateway)) {
+        $pm->process_signup_form($txn);
       }
 
       // DEPRECATED: These 2 actions here for backwards compatibility ... use mepr-signup instead
@@ -516,6 +516,11 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
   * Processes the payment for SPC
   */
   public function process_spc_payment_form($txn) {
+
+    if( did_action( 'mepr_stripe_payment_pending' ) ) {
+      return;
+    }
+
     $mepr_options = MeprOptions::fetch();
     if(isset($_POST['mepr_payment_method'])) {
       $payment_method = $mepr_options->payment_method($_POST['mepr_payment_method']);
