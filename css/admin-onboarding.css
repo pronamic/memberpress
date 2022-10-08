@@ -1207,25 +1207,24 @@ h2.mepr-wizard-finished {
 .mepr-wizard-payments .mepr-wizard-hr {
   border-bottom: 1px solid #CDD9EC;
   margin: 0 auto;
-  width: 90%;
+  width: 70%;
   margin-top: 20px;
   margin-bottom: 20px;
 }
 .mepr-wizard-payments-features {
-  columns: 2;
-  column-count: 2;
-  -webkit-columns: 2;
-  -moz-columns: 2;
-  width: 57%;
+  columns: 1;
+  column-count: 1;
+  -webkit-columns: 1;
+  -moz-columns: 1;
+  width: 100%;
   margin: 0 auto 10px;
-  column-gap: 20px;
 }
 
 .mepr-wizard-payments-features > li {
   font-size: 13px;
   line-height: 200%;
   color: #3A4A58;
-  text-align: left;
+  text-align: center;
   margin: 0;
 }
 

@@ -181,7 +181,7 @@ if(!empty($products)):
                     <input type="text" size="2" maxlength="2" name="<?php echo MeprCoupon::$expires_on_day_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->expires_on, 'j'); ?>" />
                     <span class="description"><small><?php echo MeprUtils::period_type_name('years'); ?></small></span>
                     <input type="text" size="4" maxlength="4" name="<?php echo MeprCoupon::$expires_on_year_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->expires_on, 'Y'); ?>" />
-                    Coupon Expires at <strong>Midnight UTC</strong>.
+                    Coupon Expires at <strong>11:59:59 PM UTC</strong>.
                   </td>
                 </tr>
               </tbody>
