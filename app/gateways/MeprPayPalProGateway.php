@@ -72,11 +72,11 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway {
     $this->use_desc = $this->settings->use_desc;
 
     if($this->is_test_mode()) {
-      $this->settings->url     = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
+      $this->settings->url     = 'https://ipnpb.sandbox.paypal.com/cgi-bin/webscr';
       $this->settings->api_url = 'https://api-3t.sandbox.paypal.com/nvp';
     }
     else {
-      $this->settings->url = 'https://www.paypal.com/cgi-bin/webscr';
+      $this->settings->url = 'https://ipnpb.paypal.com/cgi-bin/webscr';
       $this->settings->api_url = 'https://api-3t.paypal.com/nvp';
     }
 

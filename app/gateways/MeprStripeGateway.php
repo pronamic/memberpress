@@ -1628,6 +1628,8 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       return;
     }
 
+    $mepr_options = MeprOptions::fetch();
+
     wp_enqueue_script('stripe-js', 'https://js.stripe.com/v3/', array(), MEPR_VERSION);
     wp_enqueue_script('mepr-stripe-form', MEPR_GATEWAYS_URL . '/stripe/form.js', array('stripe-js', 'mepr-checkout-js', 'jquery.payment'), MEPR_VERSION);
 
@@ -1635,6 +1637,9 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       'api_version' => self::STRIPE_API_VERSION,
       'taxes_enabled' => (bool) get_option('mepr_calculate_taxes'),
       'payment_information_incomplete' => __('Please complete payment information', 'memberpress'),
+      'placeholder_text_email_address' => __('Please enter your email and address to view the payment form.', 'memberpress'),
+      'placeholder_text_email' => __('Please enter your email to view the payment form.', 'memberpress'),
+      'address_fields_required' => ($mepr_options->show_address_fields && $mepr_options->require_address_fields),
       'elements_appearance' => $this->get_elements_appearance(),
       'ajax_url' => admin_url('admin-ajax.php'),
       'ajax_error' => __('An error occurred, please DO NOT submit the form again as you may be double charged. Please contact us for further assistance instead.', 'memberpress'),

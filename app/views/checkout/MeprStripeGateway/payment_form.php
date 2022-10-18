@@ -13,6 +13,7 @@
   <span role="alert" class="mepr-stripe-checkout-errors"></span>
 <?php else: ?>
   <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
+  <div class="mepr-stripe-form-placeholder"></div>
   <div class="mepr-stripe-gateway-description"><?php echo esc_html($payment_method->desc); ?></div>
   <div class="mepr-stripe-elements">
     <?php if($payment_method->is_stripe_link_enabled()) : ?>

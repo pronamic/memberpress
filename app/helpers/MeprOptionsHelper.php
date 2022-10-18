@@ -296,6 +296,34 @@ class MeprOptionsHelper {
     return MeprHooks::apply_filters('mepr_signup_form_payment_label', $label, $payment_method, $first);
   }
 
+  /**
+  * Payment method description
+  * @param MeprBaseRealGateway $payment_method
+  * @return string Payment method description HTML
+  */
+  public static function payment_method_description($payment_method) {
+    $mepr_options = MeprOptions::fetch();
+    $field_name = 'mepr_payment_method';
+    $desc_html = '';
+
+    $desc = wpautop(esc_html(trim(stripslashes($payment_method->desc))));
+
+    ob_start();
+    ?>
+      <div class="mepr-payment-method <?php echo "{$field_name}-{$payment_method->id}"; ?> mepr-payment-method-<?php echo $payment_method->key; ?>">
+        <div class="mepr-payment-method-desc-text mp-pm-desc-<?php echo $payment_method->id; ?>">
+          <?php echo wp_unslash($desc); ?>
+        </div>
+      </div>
+    <?php
+    $desc = ob_get_clean();
+
+    $desc_html .= $desc;
+
+    return $desc_html;
+  }
+
+
   public static function payment_methods_dropdown($field_name, $pms = false) {
     $mepr_options = MeprOptions::fetch();
     $pms = $pms ? $pms : array_keys($mepr_options->integrations);

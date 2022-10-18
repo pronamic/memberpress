@@ -443,7 +443,7 @@
       <h3><?php _e('Payment Methods', 'memberpress'); ?></h3>
       <div id="integrations-list">
         <?php
-        $objs = $mepr_options->payment_methods();
+        $objs = $mepr_options->payment_methods( true, true );
         $no_method = true;
         foreach( $objs as $pm_id => $obj ) {
           if( $obj instanceof MeprBaseRealGateway ) {

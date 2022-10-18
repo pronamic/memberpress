@@ -130,11 +130,11 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     $this->debug = defined( 'WP_MEPR_DEBUG' ) && WP_MEPR_DEBUG === true;
 
     if ( $this->is_test_mode() ) {
-      $this->settings->url          = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
+      $this->settings->url          = 'https://ipnpb.sandbox.paypal.com/cgi-bin/webscr';
       $this->settings->api_url      = 'https://api-3t.sandbox.paypal.com/nvp';
       $this->settings->rest_api_url = 'https://api-m.sandbox.paypal.com';
     } else {
-      $this->settings->url          = 'https://www.paypal.com/cgi-bin/webscr';
+      $this->settings->url          = 'https://ipnpb.paypal.com/cgi-bin/webscr';
       $this->settings->api_url      = 'https://api-3t.paypal.com/nvp';
       $this->settings->rest_api_url = 'https://api-m.paypal.com';
     }

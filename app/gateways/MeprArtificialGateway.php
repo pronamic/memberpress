@@ -387,6 +387,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway {
 
     $invoice = MeprTransactionsHelper::get_invoice($txn);
     echo $invoice;
+    echo MeprOptionsHelper::payment_method_description( $this );
 
     ?>
       <div class="mp_wrapper mp_payment_form_wrapper">

@@ -664,7 +664,7 @@ class MeprRule extends MeprCptModel {
       if($user->has_access_from_rule($rule->ID)) {
         if($rule->has_dripped($user->ID)) {
           if(!$rule->has_expired($user->ID)) {
-            return false;
+            return MeprHooks::apply_filters('mepr-content-locked-for-user', false, $rule, $context, $rules);
           }
         }
       }

@@ -33,7 +33,10 @@ jQuery(document).ready(function($) {
   options['onSelect'] = function (date, inst) {
       $(this).trigger('mepr-date-picker-selected', [date, inst]);
     };
-  options['onChangeMonthYear'] = function (month, year, inst) {
+  options['onChangeMonthYear'] = function (year, month, inst) {
+      if(year != inst.currentYear) {
+        $(this).datepicker( 'setDate', new Date(year, month-1, inst.selectedDay) );
+      }
       $(this).trigger('mepr-date-picker-changed', [month, year, inst]);
     };
   options['onClose'] = function (date, inst) {

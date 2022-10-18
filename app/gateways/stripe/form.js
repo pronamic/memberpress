@@ -25,6 +25,7 @@
     );
     this.$selectFields = this.$form.find('select[data-fieldname="mepr-address-state"], select[name="mepr-address-country"]');
     this.initPaymentMethods();
+    this.maybeShowPlaceholder();
     this.$form.on('submit', $.proxy(this.handleSubmit, this));
     this.$form.find('input[name="mepr_payment_method"]').on('change', $.proxy(this.maybeCreatePaymentElement, this));
     this.$textFields.add(this.$form.find('input[name="mepr_coupon_code"]')).on('blur', $.proxy(this.maybeCreatePaymentElement, this));
@@ -154,6 +155,7 @@
 
       paymentMethod.createPaymentElementTimeout = setTimeout(function () {
         self.createPaymentElement(paymentMethod);
+        self.maybeShowPlaceholder('hide');
       }, 50);
     }
   };
@@ -833,4 +835,31 @@
       }
     });
   };
+
+  /**
+   * Adds a placeholder for Stripe Elements on SPC forms.
+   *
+   * @param {string} status
+   */
+  MeprStripeForm.prototype.maybeShowPlaceholder = function(status = 'show') {
+    if (!this.isSpc) {
+      return;
+    }
+
+    var $placeholderDiv = $('.mepr-stripe-form-placeholder');
+
+    if(status == 'hide') {
+      $placeholderDiv.hide();
+      $placeholderDiv.html('');
+    } else {
+      if(MeprStripeGateway.address_fields_required) {
+        var $placeholder = $('<p></p>').text(MeprStripeGateway.placeholder_text_email_address);
+      } else {
+        var $placeholder = $('<p></p>').text(MeprStripeGateway.placeholder_text_email);
+      }
+
+      $placeholderDiv.show();
+      $placeholderDiv.html($placeholder);
+    }
+  }
 })(jQuery);

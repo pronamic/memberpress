@@ -359,6 +359,16 @@
       } else {
         $('div.mepr-price-box-price').html('');
       }
+
+      // Check if membership is marked as highlighted.
+      if($('#_mepr_product_is_highlighted').is(':checked')) {
+        $('div.mepr-price-box').addClass('highlighted');
+        $('div.mepr-most-popular').show();
+      } else {
+        $('div.mepr-price-box').removeClass('highlighted');
+        $('div.mepr-most-popular').hide();
+      }
+
       //Load everything else
       $('div.mepr-price-box-heading').html($('#_mepr_product_pricing_heading_text').val());
       $('div.mepr-price-box-benefits-list').html(benefits);

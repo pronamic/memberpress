@@ -65,6 +65,19 @@
   color: #eb1c26;
 }
 
+.mepr-stripe-form-placeholder {
+  display: none;
+  background-color: #f1f1f1;
+  padding: 20px 10px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.mepr-stripe-form-placeholder p {
+  margin: 0;
+  padding: 0;
+}
+
 .mp_wrapper label,
 .mp_wrapper .mp-row {
   font-size: inherit;
