@@ -59,14 +59,14 @@ class MeprSubscriptionsTable extends WP_List_Table
       'subscription' => 'sub.subscr_id',
       'username' => 'u.user_login',
       'email' => 'u.user_email',
-      'id' => 'sub.ID',
+      'id' => 'sub.id',
     );
 
     $this->non_recurring_db_search_cols = array(
       'subscription' => 'txn.trans_num',
       'username' => 'u.user_login',
       'email' => 'u.user_email',
-      'id' => 'sub.ID',
+      'id' => 'txn.id',
     );
 
     parent::__construct(

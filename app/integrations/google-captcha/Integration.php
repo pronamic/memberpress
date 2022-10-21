@@ -49,6 +49,10 @@ class MeprGoogleCaptchaIntegration {
   }
 
   public function verify_recaptcha($errors) {
+    if(wp_doing_ajax() && isset($_GET['action']) && $_GET['action'] == 'mepr_paypal_commerce_create_smart_button') {
+      return $errors;
+    }
+
     $is_valid = apply_filters('gglcptch_verify_recaptcha', true);
 
     if(!$is_valid) {

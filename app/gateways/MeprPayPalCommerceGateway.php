@@ -136,7 +136,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     } else {
       $this->settings->url          = 'https://ipnpb.paypal.com/cgi-bin/webscr';
       $this->settings->api_url      = 'https://api-3t.paypal.com/nvp';
-      $this->settings->rest_api_url = 'https://api-m.paypal.com';
+      $this->settings->rest_api_url = 'https://api.paypal.com';
     }
 
     $this->settings->api_version = 69;
