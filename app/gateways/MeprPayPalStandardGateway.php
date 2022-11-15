@@ -165,8 +165,10 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
           $this->record_create_subscription();
         }
 
-        //Recrod recurring payment
-        $this->record_subscription_payment();
+        if ($this->is_ipn_for_me()) {
+          //Recrod recurring payment
+          $this->record_subscription_payment();
+        }
       }
     }
     elseif(isset($_POST['parent_txn_id']) && !isset($_POST['txn_type'])) {

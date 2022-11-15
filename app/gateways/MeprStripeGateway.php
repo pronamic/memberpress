@@ -790,6 +790,10 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           return;
         }
 
+        if($sub->gateway != $this->id) {
+          return;
+        }
+
         if(!($sub->trial && $sub->trial_days > 0 && (float) $sub->trial_amount <= 0.00)) {
           return; // This only handles free trials
         }
@@ -1090,6 +1094,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           $txn = new MeprTransaction();
           $txn->user_id = $sub->user_id;
           $txn->product_id = $sub->product_id;
+          $txn->subscription_id = $sub->id;
         }
 
         if($payment_method && isset($payment_method->card) && is_array($payment_method->card)) {
@@ -1430,6 +1435,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     if($sub->trial) {
       $args = array_merge(['trial_period_days' => $sub->trial_days], $args);
+      $_REQUEST['trial_days'] = $sub->trial_days;
     }
 
     $subscription = (object) $this->send_stripe_request('subscriptions', $args);
@@ -1526,7 +1532,9 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           $txn->store();
         }
 
-        MeprUtils::send_resumed_sub_notices($sub);
+        $event_args = isset($_REQUEST['trial_days']) ? ['days_until_renewal' => $_REQUEST['trial_days']] : '';
+
+        MeprUtils::send_resumed_sub_notices($sub, $event_args);
 
         return array('subscription' => $sub, 'transaction' => (isset($txn)) ? $txn : $prior_txn);
       }
@@ -1552,6 +1560,9 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     else {
       try {
         $customer = $this->retrieve_customer($sub->subscr_id);
+      }
+      catch(MeprRemoteException $e) {
+        throw new MeprGatewayException(__('The Subscription could not be cancelled here. Please login to your gateway\'s virtual terminal to cancel it.', 'memberpress'));
       }
       catch(Exception $e) {
         // If there's not already a customer then we're done here
@@ -1990,7 +2001,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $mepr_db = MeprDb::fetch();
 
     $q = $wpdb->prepare("
-        SELECT e.created_at
+        SELECT e.created_at, e.args
           FROM {$mepr_db->events} AS e
          WHERE e.event='subscription-resumed'
            AND e.evt_id_type='subscriptions'
@@ -2001,8 +2012,26 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $sub->id
     );
 
-    $renewal_base_date = $wpdb->get_var($q);
-    if(!empty($renewal_base_date)) {
+    $event = $wpdb->get_row($q);
+
+    if(!empty($event)) {
+      $renewal_base_date = $event->created_at;
+
+      // If the subscription was still active when it was resumed, a trial period is added. We need to account
+      // for this trial period to get the correct renewal date.
+      if(!empty($event->args)) {
+        $args = json_decode($event->args, true);
+
+        if(is_array($args) && isset($args['days_until_renewal']) && is_numeric($args['days_until_renewal'])) {
+          $date = date_create($event->created_at, new DateTimeZone('UTC'));
+
+          if($date instanceof DateTime) {
+            $date->modify("+{$args['days_until_renewal']} days");
+            $renewal_base_date = $date->format('Y-m-d H:i:s');
+          }
+        }
+      }
+
       return $renewal_base_date;
     }
 

@@ -922,6 +922,25 @@ class MeprOptions {
     return MeprHooks::apply_filters('mepr-thankyou-page-url', $url, $args_array);
   }
 
+  public function forgot_password_url()
+  {
+    $mepr_options = MeprOptions::fetch();
+
+    $login_page_id = (!empty($mepr_options->login_page_id) && $mepr_options->login_page_id > 0)?$mepr_options->login_page_id:0;
+
+    if($login_page_id) {
+      $login_url = $mepr_options->login_page_url();
+      $login_delim = MeprAppCtrl::get_param_delimiter_char($login_url);
+      $forgot_password_url = "{$login_url}{$login_delim}action=forgot_password";
+    }
+    else {
+      $login_url = home_url('/wp-login.php');
+      $forgot_password_url = home_url('/wp-login.php?action=lostpassword');
+    }
+
+    return $forgot_password_url;
+  }
+
   private function set_address_fields() {
     $country_codes = MeprUtils::countries();
     $state_codes = MeprUtils::states();

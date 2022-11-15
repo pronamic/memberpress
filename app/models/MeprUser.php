@@ -667,6 +667,11 @@ class MeprUser extends MeprBaseModel {
     return !is_wp_error($wp_user);
   }
 
+  public function reset_form_key_has_expired($key) {
+    $wp_user = check_password_reset_key($key, $this->user_login);
+    return is_wp_error($wp_user) && 'expired_key' === $wp_user->get_error_code() ? true : false;
+  }
+
   /**
   * Backwards compatibility
   * @deprecated Use send_password_notification('reset')

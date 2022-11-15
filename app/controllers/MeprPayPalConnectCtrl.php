@@ -633,9 +633,6 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl {
   }
 
   public function generate_smart_button_object() {
-    $rawInput = file_get_contents('php://input');
-    $input = json_decode($rawInput, true);
-    $_POST = $input;
     $_POST['smart-payment-button'] = true;
     $checkout_ctrl = MeprCtrlFactory::fetch( 'checkout' );
     $checkout_ctrl->process_signup_form();

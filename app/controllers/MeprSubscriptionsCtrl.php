@@ -154,7 +154,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
     $sub->limit_cycles_expires_type = isset($limit_cycles_expires_type) ? (string) $limit_cycles_expires_type : (string) $product->limit_cycles_expires_type;
     $sub->tax_amount = MeprUtils::format_currency_us_float( $tax_amount );
     $sub->tax_rate = MeprUtils::format_currency_us_float( $tax_rate );
-    $sub->total = MeprUtils::format_currency_us_float( $sub->price + $sub->tax_amount );
+    $sub->total = $sub->price + $sub->tax_amount;
     $sub->status = $status;
     $sub->gateway = $gateway;
     $sub->trial = isset($trial) ? (boolean) $trial : false;

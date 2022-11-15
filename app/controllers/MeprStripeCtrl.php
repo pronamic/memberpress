@@ -617,6 +617,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
       }
 
       MeprHooks::do_action('mepr_stripe_payment_pending', $txn, $usr);
+      MeprHooks::do_action('mepr-process-signup', $txn->amount, $usr, $product->ID, $txn->id);
       MeprHooks::do_action('mepr-signup', $txn);
 
       wp_send_json([

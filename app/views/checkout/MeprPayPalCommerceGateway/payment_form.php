@@ -28,7 +28,6 @@ $smart_payment_on = $payment_method->settings->enable_smart_button == 'on';
 <?php if ( $smart_payment_on ) { ?>
 <div class="mepr-paypal-button-container"
      style="display: inline-block"
-     data-method-id="<?php esc_attr_e( $payment_method->id, 'memberpress' ); ?>"
      data-ajax-url="<?php esc_attr_e( $ajax_url, 'memberpress' ); ?>"
      data-webhook-url="<?php esc_attr_e( $webhook_url, 'memberpress' ); ?>"
      data-success-url="<?php esc_attr_e( $success_url, 'memberpress' ); ?>"

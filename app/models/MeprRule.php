@@ -530,8 +530,9 @@ class MeprRule extends MeprCptModel {
   }
 
   // We just assume this will only be called on posts that are the correct type
-  public static function is_exception_to_rule( $post, $rule ) {
-    $exceptions = explode( ',', preg_replace( '#\s#', '', $rule->mepr_content ) );
+  public static function is_exception_to_rule( $post, $rule, $exceptions = array() ) {
+    $rule_exceptions = explode( ',', preg_replace( '#\s#', '', $rule->mepr_content ) );
+    $exceptions = array_unique ( array_merge($rule_exceptions, $exceptions) );
     return in_array( $post->ID, $exceptions );
   }
 

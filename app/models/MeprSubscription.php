@@ -123,6 +123,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
     MeprHooks::do_action('mepr_subscription_stored', $this);
     MeprHooks::do_action('mepr_subscription_saved', $this);
     MeprHooks::do_action('mepr_subscription_status_'.$this->status, $this);
+    MeprHooks::do_action('mepr_subscription_compare', $this, $old_sub);
 
     // DEPRECATED ... please use the actions above instead
     MeprHooks::do_action('mepr-subscr-transition-status', $old_sub->status, $this->status, $this);

@@ -1436,13 +1436,13 @@ class MeprUtils {
     MeprEvent::record('subscription-paused', $sub);
   }
 
-  public static function send_resumed_sub_notices($sub) {
+  public static function send_resumed_sub_notices($sub, $event_args = '') {
     self::send_notices(
       $sub,
       'MeprUserResumedSubEmail',
       'MeprAdminResumedSubEmail'
     );
-    MeprEvent::record('subscription-resumed', $sub);
+    MeprEvent::record('subscription-resumed', $sub, $event_args);
   }
 
   public static function send_cancelled_sub_notices($sub) {

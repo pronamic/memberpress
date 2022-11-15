@@ -126,10 +126,13 @@ class MeprCouponsCtrl extends MeprCptCtrl {
             printf(__('Trial: %1$s days for %2$s','memberpress'), $coupon->trial_days, MeprAppHelper::format_currency($coupon->trial_amount));
           }
           else if($coupon->discount_mode=='first-payment') {
-            _e('First Payment','memberpress');
+            echo esc_html_x('First Payment', 'ui', 'memberpress');
+          }
+          else if($coupon->discount_mode=='standard') {
+            echo esc_html_x('Standard', 'ui', 'memberpress');
           }
           else {
-            _e('None','memberpress');
+            echo esc_html_x('None', 'ui', 'memberpress');
           }
           break;
         case 'coupon-products':
@@ -189,6 +192,23 @@ class MeprCouponsCtrl extends MeprCptCtrl {
       else {
         $coupon->should_start = false;
         $coupon->starts_on = 0;
+      }
+
+      if(isset($_POST[MeprCoupon::$should_start_str]) && !empty($coupon->starts_on)) {
+
+        // get current time + 24 hours : DateTime
+        $minimum_start_date = new DateTime();
+        $minimum_start_date->add(new DateInterval('P1D'));
+
+        // get datetime object of coupon starts_on : DateTime
+        $coupon_start_date = new DateTime();
+        $coupon_start_date->setTimestamp($coupon->starts_on);
+
+        // if coupon start date is less than now+24hrs, disable the start date feature
+        if( $minimum_start_date > $coupon_start_date ){
+          $coupon->should_start = false;
+          $coupon->starts_on = 0;
+        }
       }
 
       if(isset($_POST[MeprCoupon::$should_expire_str])) {

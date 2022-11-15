@@ -16,7 +16,7 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
       add_filter('mepr-signup-scripts', array($this,'product_scripts'), 10, 3);
 
       // Filter for signup / payment page
-      add_action('mepr-checkout-before-submit', array($this,'signup'), 9, 1);
+      add_action('mepr-checkout-before-coupon-field', array($this,'signup'));
 
       // Validate the VAT number
       add_filter('mepr-validate-signup', array($this,'validate_signup'));
@@ -132,9 +132,7 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
   }
 
   public function process_signup($amt, $usr, $pid, $tid) {
-    $is_stripe_spc = isset($_POST['mepr_process_signup_form'], $_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id']);
-
-    if($this->vat_calc_possible() || $is_stripe_spc) {
+    if($this->vat_calc_possible()) {
       if(isset($_POST['mepr_vat_customer_type'])) {
         update_user_meta($usr->ID, 'mepr_vat_customer_type', $this->get_customer_type());
       }

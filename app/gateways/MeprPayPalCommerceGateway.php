@@ -914,7 +914,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
         ],
       ];
 
-      $payload = json_encode( $payload, JSON_UNESCAPED_SLASHES );
+      $payload = json_encode( MeprHooks::apply_filters('mepr_paypal_onetime_subscription_args', $payload, $txn), JSON_UNESCAPED_SLASHES );
 
       $response = wp_remote_post( $api_url . '/v2/checkout/orders', [
         'body'      => $payload,

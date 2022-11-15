@@ -21,7 +21,7 @@
     this.isStripeCheckoutPageMode = this.$form.find('input[name=mepr_stripe_checkout_page_mode]').val();
     this.$textFields = this.$form.find(
       'input[name="user_email"], input[name="mepr-address-one"], input[name="mepr-address-city"], ' +
-      'input[name="mepr-address-zip"], input[name="mepr-address-state"]'
+      'input[name="mepr-address-zip"], input[name="mepr-address-state"], input[name="mepr_vat_number"]'
     );
     this.$selectFields = this.$form.find('select[data-fieldname="mepr-address-state"], select[name="mepr-address-country"]');
     this.initPaymentMethods();
@@ -135,6 +135,12 @@
       $.each(billing_details.address, function (key, value) {
         data.push(value);
       });
+
+      var $vatNumber = this.$form.find('input[name="mepr_vat_number"]');
+
+      if ($vatNumber.length && this.$form.find('input[name="mepr_vat_customer_type"]:checked').val() === 'business') {
+        data.push($vatNumber.val());
+      }
     }
 
     return data.join('');

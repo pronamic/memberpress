@@ -493,7 +493,15 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
             }
             //Actually handle renewals
             if($this->is_renewal() && ($last_txn = $this->get_last_active_txn($user->ID))) {
-              $expires_at = strtotime($last_txn->expires_at) + MeprUtils::years(1);
+              $expires_at_date = date_create($last_txn->expires_at, new DateTimeZone('UTC'));
+
+              if($expires_at_date instanceof DateTime) {
+                $expires_at_date->modify('+1 year');
+                $expires_at = $expires_at_date->format('U');
+              }
+              else {
+                $expires_at = strtotime($last_txn->expires_at) + MeprUtils::years(1);
+              }
             }
           }
           else { // lifetime

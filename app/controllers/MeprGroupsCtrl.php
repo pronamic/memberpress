@@ -403,7 +403,7 @@ class MeprGroupsCtrl extends MeprCptCtrl {
 
   /**
   * Used to expire create a fallback transaction
-  * Hooks: mepr-transaction-expired, mepr-txn-status-refunded
+  * Hooks: mepr-transaction-expired, mepr-txn-status-refunded, mepr-txn-status-failed
   */
   public static function create_fallback($txn, $sub_status=false) {
     $user = $txn->user();
@@ -416,7 +416,7 @@ class MeprGroupsCtrl extends MeprCptCtrl {
     $fallback_membership = $group->fallback_membership();
 
     if($fallback_membership !== false && $product->ID != $fallback_membership->ID) {
-      if((!$user->subscription_in_group($group)) && (!$user->lifetime_subscription_in_group($group, array(MeprTransaction::$fallback_str)))) {
+      if((!$user->is_already_subscribed_to($fallback_membership->ID)) && (!$user->subscription_in_group($group)) && (!$user->lifetime_subscription_in_group($group, array(MeprTransaction::$fallback_str)))) {
         $txn->create_fallback_transaction();
       } // User still has an active subscription in the group
     } // No fallback for product or the transaction product is the fallback

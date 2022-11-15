@@ -301,6 +301,9 @@ class MeprLoginCtrl extends MeprBaseCtrl {
     if($user->ID && $user->reset_form_key_is_valid($mepr_key)) {
       MeprView::render('/login/reset_password', get_defined_vars());
     }
+    elseif($user->ID && $user->reset_form_key_has_expired($mepr_key)) {
+      MeprView::render('/shared/expired_password_reset', get_defined_vars());
+    }
     else {
       MeprView::render('/shared/unauthorized', get_defined_vars());
     }

@@ -166,7 +166,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
 
     MeprView::render('/account/nav', get_defined_vars());
 
-    $action = (isset($_REQUEST['action']))?$_REQUEST['action']:false;
+    $action = MeprHooks::apply_filters('mepr-account-action', (isset($_REQUEST['action']))?$_REQUEST['action']:false);
 
     switch($action) {
       case 'payments':
