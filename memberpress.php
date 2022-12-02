@@ -3,7 +3,7 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: http://www.memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.9.50
+Version: 1.9.51
 Author: Caseproof, LLC
 Author URI: http://caseproof.com/
 Text Domain: memberpress
@@ -29,7 +29,7 @@ if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');
 
 define('MEPR_PLUGIN_SLUG','memberpress/memberpress.php');
 define('MEPR_PLUGIN_NAME','memberpress');
-define('MEPR_PATH',WP_PLUGIN_DIR.'/'.MEPR_PLUGIN_NAME);
+define('MEPR_PATH',dirname(dirname(__FILE__)).'/'.MEPR_PLUGIN_NAME);
 define('MEPR_IMAGES_PATH',MEPR_PATH.'/images');
 define('MEPR_CSS_PATH',MEPR_PATH.'/css');
 define('MEPR_JS_PATH',MEPR_PATH.'/js');

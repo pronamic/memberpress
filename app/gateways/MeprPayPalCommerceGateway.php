@@ -1218,7 +1218,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
           'pricing_scheme' => [
             'fixed_price' => [
               'currency_code' => $mepr_options->currency_code,
-              'value'         => $trial_amount,
+              'value'         => (string) $trial_amount,
             ]
           ],
           'tenure_type'    => 'TRIAL',
@@ -1377,18 +1377,6 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     <?php
   }
 
-  public function is_ipn_for_me() {
-    if(isset($_POST['custom']) && !empty($_POST['custom'])) {
-      $custom_vars = (array)json_decode($_POST['custom']);
-
-      if(isset($custom_vars['gateway_id']) && $custom_vars['gateway_id'] == $this->id) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   public function ipn_listener() {
     $_POST = wp_unslash( $_POST );
     do_action('mepr_paypal_commerce_ipn_listener_preprocess');
@@ -1403,10 +1391,45 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
 
       $standard_gateway = new MeprPayPalStandardGateway();
       $standard_gateway->load( $mepr_options->legacy_integrations[ $this->id ] );
+
       return $standard_gateway->process_ipn();
     }
 
     return false;
+  }
+
+  public function validate_ipn() {
+    // If not connected yet, use IPN
+    if ( ! $this->is_paypal_connected() && ! $this->is_paypal_connected_live() ) {
+      return parent::validate_ipn();
+    }
+
+    $recurring_payment_txn_types = array(
+      'recurring_payment',
+      'subscr_payment',
+      'recurring_payment_outstanding_payment'
+    );
+
+    if ( isset( $_POST['txn_type'] ) && $_POST['txn_type'] == 'cart' ) {
+      return false;
+    }
+
+    if ( isset( $_POST['txn_type'] ) && in_array( strtolower( $_POST['txn_type'] ), $recurring_payment_txn_types ) ) {
+      if ( isset( $_POST['subscr_id'] ) && ! empty( $_POST['subscr_id'] ) ) {
+        $sub = MeprSubscription::get_one_by_subscr_id( $_POST['subscr_id'] );
+      } else {
+        $sub = MeprSubscription::get_one_by_subscr_id( $_POST['recurring_payment_id'] );
+      }
+
+      $pp_subscription = $this->get_paypal_subscription_object( $sub->subscr_id );
+
+      // This is a subscription created by Commerce, skip the IPN handler, returning false
+      if ( isset( $pp_subscription['custom_id'] ) && $pp_subscription['custom_id'] == $sub->id ) {
+        return false;
+      }
+    }
+
+    return parent::validate_ipn();
   }
 
   public function webhook_handler() {

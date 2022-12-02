@@ -463,13 +463,13 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
         }
       }
 
-      if(('free' !== $signup_type) && isset($pm) && ($pm instanceof MeprBaseRealGateway)) {
-        $pm->process_signup_form($txn);
-      }
-
       // DEPRECATED: These 2 actions here for backwards compatibility ... use mepr-signup instead
       MeprHooks::do_action('mepr-track-signup',   $txn->amount, $usr, $product->ID, $txn->id);
       MeprHooks::do_action('mepr-process-signup', $txn->amount, $usr, $product->ID, $txn->id);
+
+      if(('free' !== $signup_type) && isset($pm) && ($pm instanceof MeprBaseRealGateway)) {
+        $pm->process_signup_form($txn);
+      }
 
       // Signup type can be 'free', 'non-recurring' or 'recurring'
       MeprHooks::do_action("mepr-{$signup_type}-signup", $txn);

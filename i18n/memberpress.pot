@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.9.50\n"
+"Project-Id-Version: MemberPress 1.9.51\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2022-11-14T14:52:44+00:00\n"
+"POT-Creation-Date: 2022-12-01T21:39:25+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.6.0\n"
 "X-Domain: memberpress\n"
@@ -1559,6 +1559,12 @@ msgstr ""
 msgid "An unknown error occurred."
 msgstr ""
 
+#: app/controllers/MeprPopupCtrl.php:95
+#: app/controllers/MeprReportsCtrl.php:46
+#: app/controllers/MeprUsageCtrl.php:101
+msgid "Forbidden"
+msgstr ""
+
 #: app/controllers/MeprPopupCtrl.php:99
 msgid "Must specify a popup"
 msgstr ""
@@ -1727,11 +1733,6 @@ msgstr ""
 
 #: app/controllers/MeprRemindersCtrl.php:277
 msgid "MemberPress Reminders Worker"
-msgstr ""
-
-#: app/controllers/MeprReportsCtrl.php:46
-#: app/controllers/MeprUsageCtrl.php:101
-msgid "Forbidden"
 msgstr ""
 
 #: app/controllers/MeprReportsCtrl.php:75
@@ -2011,7 +2012,7 @@ msgstr ""
 
 #: app/controllers/MeprStripeCtrl.php:81
 #: app/controllers/MeprStripeCtrl.php:333
-#: app/gateways/MeprStripeGateway.php:2217
+#: app/gateways/MeprStripeGateway.php:2231
 msgid "User not found"
 msgstr ""
 
@@ -2027,7 +2028,7 @@ msgid "PaymentIntent not found"
 msgstr ""
 
 #: app/controllers/MeprStripeCtrl.php:303
-#: app/gateways/MeprStripeGateway.php:1656
+#: app/gateways/MeprStripeGateway.php:1670
 msgid "An error occurred, please DO NOT submit the form again as you may be double charged. Please contact us for further assistance instead."
 msgstr ""
 
@@ -2135,7 +2136,7 @@ msgid "This will cancel all future payments for this subscription. Are you sure 
 msgstr ""
 
 #: app/controllers/MeprSubscriptionsCtrl.php:234
-#: app/gateways/MeprStripeGateway.php:1565
+#: app/gateways/MeprStripeGateway.php:1579
 msgid "The Subscription could not be cancelled here. Please login to your gateway's virtual terminal to cancel it."
 msgstr ""
 
@@ -2518,7 +2519,7 @@ msgstr ""
 #: app/helpers/MeprTransactionsHelper.php:112
 #: app/lib/MeprUtils.php:976
 #: app/models/MeprSubscription.php:421
-#: app/models/MeprSubscription.php:672
+#: app/models/MeprSubscription.php:675
 #: app/models/MeprTransaction.php:428
 #: app/views/admin/onboarding/license.php:37
 #: app/views/admin/subscriptions/row.php:141
@@ -2535,7 +2536,7 @@ msgstr ""
 
 #: app/controllers/MeprUsersCtrl.php:480
 #: app/helpers/MeprOptionsHelper.php:12
-#: app/models/MeprSubscription.php:710
+#: app/models/MeprSubscription.php:713
 #: app/models/MeprTransaction.php:447
 #: app/views/admin/members/row.php:75
 #: app/views/admin/products/price_box.php:37
@@ -3232,11 +3233,11 @@ msgstr ""
 #: app/gateways/MeprAuthorizeGateway.php:1131
 #: app/gateways/MeprPayPalProGateway.php:899
 #: app/gateways/MeprPayPalProGateway.php:1091
-#: app/gateways/MeprPayPalStandardGateway.php:792
-#: app/gateways/MeprStripeGateway.php:1755
-#: app/gateways/MeprStripeGateway.php:1763
-#: app/gateways/MeprStripeGateway.php:1938
-#: app/gateways/MeprStripeGateway.php:1944
+#: app/gateways/MeprPayPalStandardGateway.php:799
+#: app/gateways/MeprStripeGateway.php:1769
+#: app/gateways/MeprStripeGateway.php:1777
+#: app/gateways/MeprStripeGateway.php:1952
+#: app/gateways/MeprStripeGateway.php:1958
 #: app/views/account/home.php:58
 #: app/views/account/password.php:36
 #: app/views/admin/emails/options.php:32
@@ -3255,8 +3256,8 @@ msgid "Loading..."
 msgstr ""
 
 #: app/gateways/MeprArtificialGateway.php:404
-#: app/gateways/MeprStripeGateway.php:1765
-#: app/gateways/MeprStripeGateway.php:1946
+#: app/gateways/MeprStripeGateway.php:1779
+#: app/gateways/MeprStripeGateway.php:1960
 #: app/views/checkout/MeprPayPalCommerceGateway/payment_form.php:38
 #: app/views/checkout/MeprStripeGateway/payment_form.php:31
 #: app/views/checkout/payment_form.php:30
@@ -3506,16 +3507,16 @@ msgstr ""
 #: app/gateways/MeprPayPalCommerceGateway.php:503
 #: app/gateways/MeprPayPalGateway.php:692
 #: app/gateways/MeprPayPalProGateway.php:644
-#: app/gateways/MeprPayPalStandardGateway.php:578
-#: app/gateways/MeprStripeGateway.php:1259
+#: app/gateways/MeprPayPalStandardGateway.php:585
+#: app/gateways/MeprStripeGateway.php:1273
 msgid "This subscription has already been paused."
 msgstr ""
 
 #: app/gateways/MeprPayPalCommerceGateway.php:507
 #: app/gateways/MeprPayPalGateway.php:696
 #: app/gateways/MeprPayPalProGateway.php:648
-#: app/gateways/MeprPayPalStandardGateway.php:582
-#: app/gateways/MeprStripeGateway.php:1263
+#: app/gateways/MeprPayPalStandardGateway.php:589
+#: app/gateways/MeprStripeGateway.php:1277
 msgid "Sorry, subscriptions cannot be paused during a free trial."
 msgstr ""
 
@@ -3524,8 +3525,8 @@ msgid "Could not create PayPal Order"
 msgstr ""
 
 #: app/gateways/MeprPayPalCommerceGateway.php:1011
-#: app/gateways/MeprStripeGateway.php:1762
-#: app/gateways/MeprStripeGateway.php:1943
+#: app/gateways/MeprStripeGateway.php:1776
+#: app/gateways/MeprStripeGateway.php:1957
 msgctxt "ui"
 msgid "Submit"
 msgstr ""
@@ -3548,35 +3549,35 @@ msgstr ""
 
 #: app/gateways/MeprPayPalCommerceGateway.php:1375
 #: app/gateways/MeprPayPalGateway.php:974
-#: app/gateways/MeprPayPalStandardGateway.php:1016
+#: app/gateways/MeprPayPalStandardGateway.php:1023
 msgid "Updating your PayPal Account Information"
 msgstr ""
 
 #: app/gateways/MeprPayPalCommerceGateway.php:1376
 #: app/gateways/MeprPayPalGateway.php:975
-#: app/gateways/MeprPayPalStandardGateway.php:1017
+#: app/gateways/MeprPayPalStandardGateway.php:1024
 msgid "To update your PayPal Account Information, please go to %sPayPal.com%s, login and edit your account information there."
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1567
+#: app/gateways/MeprPayPalCommerceGateway.php:1590
 msgid "On request"
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1585
+#: app/gateways/MeprPayPalCommerceGateway.php:1608
 msgid "There was a problem, try logging in directly at PayPal to update the status of your recurring profile."
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1688
+#: app/gateways/MeprPayPalCommerceGateway.php:1711
 #: app/gateways/MeprPayPalGateway.php:1105
 #: app/gateways/MeprPayPalProGateway.php:1245
-#: app/gateways/MeprPayPalStandardGateway.php:1251
+#: app/gateways/MeprPayPalStandardGateway.php:1258
 msgid "Your payment at PayPal was cancelled."
 msgstr ""
 
-#: app/gateways/MeprPayPalCommerceGateway.php:1689
+#: app/gateways/MeprPayPalCommerceGateway.php:1712
 #: app/gateways/MeprPayPalGateway.php:1106
 #: app/gateways/MeprPayPalProGateway.php:1246
-#: app/gateways/MeprPayPalStandardGateway.php:1252
+#: app/gateways/MeprPayPalStandardGateway.php:1259
 msgid "You can retry your purchase by %1$sclicking here%2$s."
 msgstr ""
 
@@ -3589,7 +3590,7 @@ msgid "paypalexpress"
 msgstr ""
 
 #: app/gateways/MeprPayPalGateway.php:428
-#: app/gateways/MeprPayPalStandardGateway.php:428
+#: app/gateways/MeprPayPalStandardGateway.php:435
 msgid "The refund was unsuccessful. Please login at PayPal and refund the transaction there."
 msgstr ""
 
@@ -3618,20 +3619,20 @@ msgstr ""
 
 #: app/gateways/MeprPayPalGateway.php:940
 #: app/gateways/MeprPayPalProGateway.php:979
-#: app/gateways/MeprPayPalStandardGateway.php:980
+#: app/gateways/MeprPayPalStandardGateway.php:987
 msgid "Use PayPal Sandbox"
 msgstr ""
 
 #: app/gateways/MeprPayPalGateway.php:943
 #: app/gateways/MeprPayPalProGateway.php:982
-#: app/gateways/MeprPayPalStandardGateway.php:983
+#: app/gateways/MeprPayPalStandardGateway.php:990
 #: app/views/admin/gateways/paypal/connect-migrate-prompt.php:142
 msgid "Send PayPal Debug Emails"
 msgstr ""
 
 #: app/gateways/MeprPayPalGateway.php:946
 #: app/gateways/MeprPayPalProGateway.php:988
-#: app/gateways/MeprPayPalStandardGateway.php:986
+#: app/gateways/MeprPayPalStandardGateway.php:993
 msgid "PayPal IPN URL:"
 msgstr ""
 
@@ -3652,8 +3653,8 @@ msgstr ""
 
 #: app/gateways/MeprPayPalGateway.php:1032
 #: app/gateways/MeprPayPalProGateway.php:1166
-#: app/gateways/MeprPayPalStandardGateway.php:1073
-#: app/gateways/MeprStripeGateway.php:2320
+#: app/gateways/MeprPayPalStandardGateway.php:1080
+#: app/gateways/MeprStripeGateway.php:2334
 msgid "You had an HTTP error connecting to %s"
 msgstr ""
 
@@ -3689,7 +3690,7 @@ msgid ""
 msgstr ""
 
 #: app/gateways/MeprPayPalGateway.php:1177
-#: app/gateways/MeprPayPalStandardGateway.php:1095
+#: app/gateways/MeprPayPalStandardGateway.php:1102
 msgid "There was a problem cancelling, try logging in directly at PayPal to update the status of your recurring profile."
 msgstr ""
 
@@ -3748,67 +3749,67 @@ msgstr ""
 msgid "paypal"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:715
-#: app/gateways/MeprPayPalStandardGateway.php:729
+#: app/gateways/MeprPayPalStandardGateway.php:722
+#: app/gateways/MeprPayPalStandardGateway.php:736
 msgid "Sorry, we couldn't complete the transaction. Try back later."
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:786
+#: app/gateways/MeprPayPalStandardGateway.php:793
 msgctxt "ui"
 msgid "Woops, someting went wrong. Please try your purchase again."
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:794
+#: app/gateways/MeprPayPalStandardGateway.php:801
 msgctxt "ui"
 msgid "You are being redirected to PayPal now. Please wait..."
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:941
+#: app/gateways/MeprPayPalStandardGateway.php:948
 msgid "Your PayPal payment connection is out of date, and may become insecure. Use the upgrade button below to fix this."
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:945
+#: app/gateways/MeprPayPalStandardGateway.php:952
 #: app/views/admin/gateways/paypal/connect-migrate-prompt.php:272
 msgid "Are you sure?"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:947
+#: app/gateways/MeprPayPalStandardGateway.php:954
 msgid "Upgrade to new PayPal Commerce Platform"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:950
+#: app/gateways/MeprPayPalStandardGateway.php:957
 msgid "PayPal standard Settings"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:958
+#: app/gateways/MeprPayPalStandardGateway.php:965
 msgid "Primary PayPal Email*:"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:964
+#: app/gateways/MeprPayPalStandardGateway.php:971
 msgid "Advanced Mode"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:968
+#: app/gateways/MeprPayPalStandardGateway.php:975
 msgid "API Username:"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:972
+#: app/gateways/MeprPayPalStandardGateway.php:979
 msgid "API Password:"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:976
+#: app/gateways/MeprPayPalStandardGateway.php:983
 msgid "Signature:"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:991
+#: app/gateways/MeprPayPalStandardGateway.php:998
 msgid "Return URL:"
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:1007
+#: app/gateways/MeprPayPalStandardGateway.php:1014
 msgid "Primary PayPal Email field can't be blank."
 msgstr ""
 
-#: app/gateways/MeprPayPalStandardGateway.php:1155
+#: app/gateways/MeprPayPalStandardGateway.php:1162
 msgctxt "ui"
 msgid "Your payment amount was lower than expected. Please contact us for assistance if necessary."
 msgstr ""
@@ -3821,121 +3822,121 @@ msgstr ""
 msgid "stripe"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1325
+#: app/gateways/MeprStripeGateway.php:1339
 msgid "This subscription has already been resumed."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1384
+#: app/gateways/MeprStripeGateway.php:1398
 msgid "The subscription is locked to a different currency. Please contact us to resume your subscription."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1388
-#: app/gateways/MeprStripeGateway.php:2229
+#: app/gateways/MeprStripeGateway.php:1402
+#: app/gateways/MeprStripeGateway.php:2243
 msgid "Customer not found"
 msgstr ""
 
 #. translators: %1$s: open link tag, %2$s: close link tag
-#: app/gateways/MeprStripeGateway.php:1457
+#: app/gateways/MeprStripeGateway.php:1471
 msgid "The subscription could not be resumed automatically, %1$sclick here%2$s to complete the payment."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1554
+#: app/gateways/MeprStripeGateway.php:1568
 msgid "This subscription has already been cancelled."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1650
+#: app/gateways/MeprStripeGateway.php:1664
 msgid "Please complete payment information"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1651
+#: app/gateways/MeprStripeGateway.php:1665
 msgid "Please enter your email and address to view the payment form."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1652
+#: app/gateways/MeprStripeGateway.php:1666
 msgid "Please enter your email to view the payment form."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1657
+#: app/gateways/MeprStripeGateway.php:1671
 msgid "The response from the server was invalid"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1658
+#: app/gateways/MeprStripeGateway.php:1672
 msgid "An error occurred, please try again"
 msgstr ""
 
 #. translators: %1$s: open strong tag, %2$s: close strong tag, %3$s: error message
-#: app/gateways/MeprStripeGateway.php:1661
+#: app/gateways/MeprStripeGateway.php:1675
 msgid "%1$sERROR%2$s: %3$s"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1746
+#: app/gateways/MeprStripeGateway.php:1760
 #: app/views/checkout/MeprStripeGateway/payment_form.php:12
 msgid "Pay with your Credit Card via Stripe Checkout"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1862
+#: app/gateways/MeprStripeGateway.php:1876
 msgid "All Stripe keys must be filled in."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1926
+#: app/gateways/MeprStripeGateway.php:1940
 msgid "Link is set up as the payment method for this subscription. You can change the default payment method by logging in to <a href=\"https://link.co\">Link.co</a>."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1927
+#: app/gateways/MeprStripeGateway.php:1941
 msgid "Or"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1928
+#: app/gateways/MeprStripeGateway.php:1942
 msgid "If you do not wish to use Link for this subscription, you can enter the details for a different payment method below."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:1930
+#: app/gateways/MeprStripeGateway.php:1944
 msgid "Update your payment information below"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2058
+#: app/gateways/MeprStripeGateway.php:2072
 msgid "No Webhook Signature"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2068
+#: app/gateways/MeprStripeGateway.php:2082
 msgid "Incorrect Webhook Signature"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2074
+#: app/gateways/MeprStripeGateway.php:2088
 msgid "No `event` set"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2085
+#: app/gateways/MeprStripeGateway.php:2099
 msgid "Request was sent to the wrong site?"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2091
+#: app/gateways/MeprStripeGateway.php:2105
 msgid "No payment method like that exists on this site"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2102
+#: app/gateways/MeprStripeGateway.php:2116
 msgid "Webhook not supported"
 msgstr ""
 
 #. translators: In this string, %s is the Blog Name/Title
-#: app/gateways/MeprStripeGateway.php:2248
+#: app/gateways/MeprStripeGateway.php:2262
 msgid "[%s] Confirm Subscription Payment"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2260
+#: app/gateways/MeprStripeGateway.php:2274
 msgid "The invoice does not require action from the customer."
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2331
+#: app/gateways/MeprStripeGateway.php:2345
 msgid "There was an issue with the credit card processor. Try again later."
 msgstr ""
 
 #. translators: %d: the product ID
-#: app/gateways/MeprStripeGateway.php:2732
+#: app/gateways/MeprStripeGateway.php:2746
 msgid "Product %d"
 msgstr ""
 
-#: app/gateways/MeprStripeGateway.php:2990
+#: app/gateways/MeprStripeGateway.php:3004
 #: app/helpers/MeprTransactionsHelper.php:253
 #: app/helpers/MeprTransactionsHelper.php:269
 msgid "Initial Payment"
@@ -3948,18 +3949,18 @@ msgid "Subscribe"
 msgstr ""
 
 #: app/helpers/MeprAccountHelper.php:39
-#: app/lib/MeprBaseGateway.php:367
+#: app/lib/MeprBaseGateway.php:361
 msgid "Please select a new plan"
 msgstr ""
 
 #: app/helpers/MeprAccountHelper.php:53
-#: app/lib/MeprBaseGateway.php:381
+#: app/lib/MeprBaseGateway.php:375
 msgid "Select Plan"
 msgstr ""
 
 #: app/helpers/MeprAccountHelper.php:54
-#: app/lib/MeprBaseGateway.php:382
-#: app/lib/MeprBaseGateway.php:434
+#: app/lib/MeprBaseGateway.php:376
+#: app/lib/MeprBaseGateway.php:428
 #: app/views/admin/db/upgrade_needed.php:188
 #: app/views/admin/db/upgrade_needed.php:207
 #: app/views/admin/members/new_member.php:60
@@ -3971,7 +3972,7 @@ msgstr ""
 
 #: app/helpers/MeprAccountHelper.php:61
 #: app/helpers/MeprAccountHelper.php:63
-#: app/lib/MeprBaseGateway.php:392
+#: app/lib/MeprBaseGateway.php:386
 msgid "Change Plan"
 msgstr ""
 
@@ -4899,71 +4900,71 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:275
+#: app/lib/MeprBaseGateway.php:269
 msgctxt "ui"
 msgid "You already completed your payment to this subscription. %1$sClick here to view your subscriptions%2$s."
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:278
+#: app/lib/MeprBaseGateway.php:272
 msgid "Sorry but we can't process your payment at this time. Try back later."
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:360
+#: app/lib/MeprBaseGateway.php:354
 #: app/views/admin/subscriptions/edit.php:25
 #: app/views/admin/transactions/edit_trans.php:28
 msgid "Update"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:389
+#: app/lib/MeprBaseGateway.php:383
 #: app/views/account/subscriptions.php:188
 msgctxt "ui"
 msgid "Re-Subscribe"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:392
+#: app/lib/MeprBaseGateway.php:386
 msgid "Other Memberships"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:406
+#: app/lib/MeprBaseGateway.php:400
 msgid "Are you sure you want to pause this subscription?"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:406
+#: app/lib/MeprBaseGateway.php:400
 #: app/views/admin/subscriptions/row.php:60
 msgid "Pause"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:413
+#: app/lib/MeprBaseGateway.php:407
 msgid "Are you sure you want to resume this subscription?"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:415
-#: app/lib/MeprBaseGateway.php:429
+#: app/lib/MeprBaseGateway.php:409
+#: app/lib/MeprBaseGateway.php:423
 #: app/models/MeprSubscription.php:452
 #: app/models/MeprSubscription.php:460
 #: app/models/MeprSubscription.php:461
-#: app/models/MeprSubscription.php:726
+#: app/models/MeprSubscription.php:729
 msgid "Yes"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:416
-#: app/lib/MeprBaseGateway.php:430
+#: app/lib/MeprBaseGateway.php:410
+#: app/lib/MeprBaseGateway.php:424
 #: app/models/MeprSubscription.php:454
-#: app/models/MeprSubscription.php:727
+#: app/models/MeprSubscription.php:730
 msgid "No"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:419
+#: app/lib/MeprBaseGateway.php:413
 #: app/views/admin/subscriptions/row.php:63
 msgid "Resume"
 msgstr ""
 
-#: app/lib/MeprBaseGateway.php:426
+#: app/lib/MeprBaseGateway.php:420
 msgid "Are you sure you want to cancel this subscription?"
 msgstr ""
 
 #. translators: In this string, %1$s is the Blog Name/Title and %2$s is the Name of the Payment Method
-#: app/lib/MeprBaseGateway.php:466
+#: app/lib/MeprBaseGateway.php:460
 msgid "[%1$s] %2$s Debug Email"
 msgstr ""
 
@@ -5569,7 +5570,7 @@ msgstr ""
 msgid "member purchases %s"
 msgstr ""
 
-#: app/models/MeprSubscription.php:2090
+#: app/models/MeprSubscription.php:2096
 msgid "MemberPress database migration failed: %1$s %2$s"
 msgstr ""
 

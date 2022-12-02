@@ -533,7 +533,10 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
 
     $args = array();
 
-    if(isset($params['member']) && !empty($params['member'])) {
+    if(array_key_exists('member', $params)) {
+      if( empty($params['member'] ) ){
+        $params['member'] = NULL;
+      }
       $args[] = $wpdb->prepare("u.user_login = %s", $params['member']);
     }
 
@@ -730,7 +733,10 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
 
     $args = array('(txn.subscription_id IS NULL OR txn.subscription_id <= 0)');
 
-    if(isset($params['member']) && !empty($params['member'])) {
+    if(array_key_exists('member', $params)) {
+      if( empty($params['member'] ) ){
+        $params['member'] = NULL;
+      }
       $args[] = $wpdb->prepare("u.user_login = %s", $params['member']);
     }
 

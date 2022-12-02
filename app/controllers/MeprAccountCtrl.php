@@ -615,7 +615,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
 
     if(!isset($txn->gateway) || $txn->gateway != $atts['gateway_id']) { return ''; }
 
-    return $content;
+    return do_shortcode($content);
   }
 
   public function account_page_the_title($title) {

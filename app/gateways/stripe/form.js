@@ -31,6 +31,7 @@
     this.$textFields.add(this.$form.find('input[name="mepr_coupon_code"]')).on('blur', $.proxy(this.maybeCreatePaymentElement, this));
     this.$textFields.on('keyup', $.proxy(this.handleTextFieldKeyUp, this));
     this.$selectFields.on('change', $.proxy(this.maybeCreatePaymentElement, this));
+    this.$form.find('input[name="mpgft-signup-gift-checkbox"]').on('change', $.proxy(this.maybeCreatePaymentElement, this));
     this.textFieldKeyupTimeout = null;
   }
 
@@ -141,6 +142,12 @@
       if ($vatNumber.length && this.$form.find('input[name="mepr_vat_customer_type"]:checked').val() === 'business') {
         data.push($vatNumber.val());
       }
+    }
+
+    var $giftCheckbox = this.$form.find('input[name="mpgft-signup-gift-checkbox"]');
+
+    if($giftCheckbox.length && $giftCheckbox.is(':checked')) {
+      data.push('gift');
     }
 
     return data.join('');

@@ -640,12 +640,12 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $txn = new MeprTransaction();
       $txn->user_id = $sub->user_id;
       $txn->product_id = $sub->product_id;
-      $txn->status = MeprTransaction::$confirmed_str;
-      $txn->txn_type = MeprTransaction::$subscription_confirmation_str;
+      $txn->status = MeprTransaction::$complete_str;
+      $txn->txn_type = MeprTransaction::$payment_str;
       $txn->trans_num = $invoice->id;
       $txn->gateway = $this->id;
       $txn->subscription_id = $sub->id;
-      $txn->set_subtotal(0.00); // Just a confirmation txn
+      $txn->set_gross(self::is_zero_decimal_currency() ? $invoice->total : $invoice->total / 100);
 
       // If this is the first invoice "payment" for a paid trial, expire the transaction after the trial ends.
       // The actual number of trial days can be different from $sub->trial_days, for example when resuming, so we'll
@@ -1182,7 +1182,21 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $subscription = $this->get_customer_subscription($sub->subscr_id);
     }
 
-    $this->send_stripe_request("subscriptions/{$subscription->id}", ['default_payment_method' => $payment_method->id]);
+    $args = ['default_payment_method' => $payment_method->id];
+
+    if($payment_method->type == 'link') {
+      $payment_method_types = $subscription->payment_settings['payment_method_types'];
+
+      if(is_array($payment_method_types) && !in_array('link', $payment_method_types, true)) {
+        $args = array_merge($args, [
+          'payment_settings' => [
+            'payment_method_types' => array_merge($payment_method_types, ['link']),
+          ],
+        ]);
+      }
+    }
+
+    $this->send_stripe_request("subscriptions/{$subscription->id}", $args);
 
     if(MeprHooks::apply_filters('mepr_stripe_update_set_as_default', true)) {
       $this->send_stripe_request("customers/{$subscription->customer}", [

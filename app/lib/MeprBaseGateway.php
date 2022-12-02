@@ -1,12 +1,6 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
-/***** Define Exceptions *****/
-class MeprGatewayException extends Exception { }
-class MeprHttpException extends Exception { }
-class MeprRemoteException extends Exception { }
-class MeprGatewayRequiresActionException extends Exception { }
-
 /** Lays down the interface for Gateways in MemberPress **/
 abstract class MeprBaseGateway {
 

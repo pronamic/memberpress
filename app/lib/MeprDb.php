@@ -36,6 +36,10 @@ class MeprDb {
   }
 
   public function do_upgrade() {
+    if(empty(MEPR_VERSION) && defined('TESTS_RUNNING') && TESTS_RUNNING) {
+      return true;
+    }
+
     $old_db_version = get_option('mepr_db_version', 0);
     return (version_compare(MEPR_VERSION, $old_db_version, '>'));
   }

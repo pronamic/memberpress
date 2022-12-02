@@ -38,3 +38,7 @@ class MeprInvalidJobException extends MeprException { }
 class MeprInvalidMethodException extends MeprException { }
 class MeprInvalidVariableException extends MeprException { }
 
+class MeprGatewayException extends Exception { }
+class MeprHttpException extends Exception { }
+class MeprRemoteException extends Exception { }
+class MeprGatewayRequiresActionException extends Exception { }

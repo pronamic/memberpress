@@ -228,7 +228,7 @@ class MeprCoupon extends MeprCptModel {
       $obj->trial_days = (($obj instanceof MeprProduct) ? $obj->days_in_my_period() : $obj->days_in_this_period());
 
       if ($obj instanceof MeprSubscription) {
-        $obj->trial_amount = $this->apply_discount( $obj->product()->price, true, $obj );
+        $obj->trial_amount = $this->apply_discount( $obj->product()->price, true, $obj->product() );
       } else {
         $obj->trial_amount = $this->apply_discount( $obj->price, true, $obj );
       }

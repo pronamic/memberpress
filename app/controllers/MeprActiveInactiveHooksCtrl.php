@@ -6,7 +6,7 @@ if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');
 */
 class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl {
   public function load_hooks() {
-    add_action('mepr-txn-store', array($this, 'handle_txn_store'), 11, 2);
+    add_action('mepr-txn-store', array($this, 'handle_txn_store'), 99, 2);
     add_action('mepr-txn-expired', array($this, 'handle_txn_expired'), 11, 2);
   }
 
