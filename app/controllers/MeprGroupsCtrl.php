@@ -417,7 +417,8 @@ class MeprGroupsCtrl extends MeprCptCtrl {
 
     if($fallback_membership !== false && $product->ID != $fallback_membership->ID) {
       if((!$user->is_already_subscribed_to($fallback_membership->ID)) && (!$user->subscription_in_group($group)) && (!$user->lifetime_subscription_in_group($group, array(MeprTransaction::$fallback_str)))) {
-        $txn->create_fallback_transaction();
+        $fallback_txn_id = $txn->create_fallback_transaction();
+        MeprEvent::record('subscription-changed', $txn, $fallback_txn_id);
       } // User still has an active subscription in the group
     } // No fallback for product or the transaction product is the fallback
   }

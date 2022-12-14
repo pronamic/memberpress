@@ -49,6 +49,8 @@ class MeprStripeCtrl extends MeprBaseCtrl
   }
 
   public function create_payment_client_secret() {
+    MeprHooks::do_action('mepr_stripe_before_create_payment_client_secret');
+
     $mepr_options = MeprOptions::fetch();
     $transaction_id = isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id']) ? (int) $_POST['mepr_transaction_id'] : 0;
 
@@ -63,6 +65,10 @@ class MeprStripeCtrl extends MeprBaseCtrl
 
       if(!($pm instanceof MeprStripeGateway)) {
         wp_send_json_error(__('Invalid payment gateway', 'memberpress'));
+      }
+
+      if($pm->settings->stripe_checkout_enabled == 'on') {
+        wp_send_json_error(__('Bad request', 'memberpress'));
       }
 
       $product = $txn->product();
@@ -89,6 +95,10 @@ class MeprStripeCtrl extends MeprBaseCtrl
 
       if(!($pm instanceof MeprStripeGateway)) {
         wp_send_json_error(__('Invalid payment gateway', 'memberpress'));
+      }
+
+      if($pm->settings->stripe_checkout_enabled == 'on') {
+        wp_send_json_error(__('Bad request', 'memberpress'));
       }
 
       $usr = MeprUtils::get_currentuserinfo();
@@ -280,6 +290,8 @@ class MeprStripeCtrl extends MeprBaseCtrl
   }
 
   public function create_checkout_session() {
+    MeprHooks::do_action('mepr_stripe_before_create_checkout_session');
+
     $this->do_confirm_payment('stripe_checkout');
   }
 
@@ -510,7 +522,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
               'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
               'transaction_id' => $txn->id,
               'site_url' => get_site_url(),
-              'ip_address' => $_SERVER['REMOTE_ADDR']
+              'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
             ],
           ]);
 
@@ -552,7 +564,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
                 'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
                 'transaction_id' => $txn->id,
                 'site_url' => get_site_url(),
-                'ip_address' => $_SERVER['REMOTE_ADDR']
+                'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
               ],
             ]);
 
@@ -587,7 +599,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
                 'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
                 'transaction_id' => $txn->id,
                 'site_url' => get_site_url(),
-                'ip_address' => $_SERVER['REMOTE_ADDR']
+                'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
               ],
             ], 'post');
 

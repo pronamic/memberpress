@@ -264,6 +264,17 @@ ul.custom_options_list {
     width: 25em !important;
   }
 }
+.mepr-detected-ip-address-p {
+  margin-top: 15px;
+}
+#mepr-detected-ip-address {
+  margin-left: 5px;
+}
+#mepr-anti-card-testing-blocked {
+  width: 300px;
+  max-width: 100%;
+  height: 200px;
+}
 #mepr_options_form #integration {
   color: #626262;
 }

@@ -657,8 +657,9 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
       'expires_at' => MeprUtils::db_lifetime(),
     ));
 
+    $fallback_txn->store();
     MeprEvent::record('transaction-completed', $fallback_txn, array('txn_type' => MeprTransaction::$fallback_str, 'user_id' => $this->user_id, 'product_id' => $fallback_membership->ID));
-    return $fallback_txn->store();
+    return $fallback_txn->id;
   }
 
   // Where the magic happens when creating a free transaction ... this is

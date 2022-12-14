@@ -219,6 +219,10 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
           $sub->status = MeprSubscription::$active_str;
           $sub->store();
         }
+
+        // Not waiting for an IPN here bro ... just making it happen even though
+        // the total occurrences is already capped in record_create_subscription()
+        $sub->limit_payment_cycles();
       }
 
       $this->email_status( "Subscription Transaction\n" . MeprUtils::object_to_string( $txn->rec, true ), $this->debug );

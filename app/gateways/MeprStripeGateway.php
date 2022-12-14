@@ -432,7 +432,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       'metadata' => [
         'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
         'site_url' => get_site_url(),
-        'ip_address' => $_SERVER['REMOTE_ADDR']
+        'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
       ],
     ], $txn);
 
@@ -1149,7 +1149,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       'metadata' => [
         'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
         'site_url' => get_site_url(),
-        'ip_address' => $_SERVER['REMOTE_ADDR'],
+        'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
       ],
     ]);
 
@@ -1437,7 +1437,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       'metadata' => [
         'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
         'site_url' => get_site_url(),
-        'ip_address' => $_SERVER['REMOTE_ADDR']
+        'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
       ],
       'off_session' => 'true'
     ], $sub);
@@ -2193,6 +2193,12 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
     else if($event->type=='coupon.deleted') {
       MeprCoupon::delete_stripe_coupon_id($this->get_meta_gateway_id(), $obj->id);
+    }
+    else if($event->type=='payment_intent.payment_failed') {
+      $this->handle_payment_intent_payment_failed_webhook($obj);
+    }
+    else if($event->type=='setup_intent.setup_failed') {
+      $this->handle_setup_intent_setup_failed_webhook($obj);
     }
   }
 
@@ -3005,7 +3011,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         'metadata' => [
           'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
           'site_url' => get_site_url(),
-          'ip_address' => $_SERVER['REMOTE_ADDR']
+          'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
         ],
         'discountable' => 'false'
       ];
@@ -3034,7 +3040,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       'metadata' => [
         'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
         'site_url' => get_site_url(),
-        'ip_address' => $_SERVER['REMOTE_ADDR']
+        'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
       ],
     ];
 
@@ -3287,5 +3293,58 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
 
     return MeprHooks::apply_filters('mepr_stripe_locale_code', $locale_code);
+  }
+
+  /**
+   * Handle the `payment_intent.payment_failed` webhook event
+   *
+   * For one-time payments, get the IP address from the PaymentIntent metadata, for subscriptions get it from the
+   * Subscription metadata, then fire the hook for the card testing protection.
+   *
+   * @param stdClass $payment_intent
+   */
+  public function handle_payment_intent_payment_failed_webhook($payment_intent) {
+    $ip = isset($payment_intent->metadata['ip_address']) ? $payment_intent->metadata['ip_address'] : '';
+
+    if(!empty($ip)) {
+      MeprHooks::do_action('mepr_stripe_payment_failed', $ip);
+    }
+    else {
+      try {
+        $payment_intent = (object) $this->send_stripe_request("payment_intents/$payment_intent->id", [
+          'expand' => [
+            'invoice.subscription'
+          ]
+        ], 'get');
+
+        $subscription = isset($payment_intent->invoice['subscription']) ? (object) $payment_intent->invoice['subscription'] : null;
+
+        if($subscription) {
+          $ip = isset($subscription->metadata['ip_address']) ? $subscription->metadata['ip_address'] : '';
+
+          if(!empty($ip)) {
+            MeprHooks::do_action('mepr_stripe_payment_failed', $ip);
+          }
+        }
+      }
+      catch(Exception $e) {
+        // ignore
+      }
+    }
+  }
+
+  /**
+   * Handle the `setup_intent.setup_failed` webhook event
+   *
+   * Get the IP address from the SetupIntent metadata, then fire the hook for the card testing protection.
+   *
+   * @param stdClass $setup_intent
+   */
+  public function handle_setup_intent_setup_failed_webhook($setup_intent) {
+    $ip = isset($setup_intent->metadata['ip_address']) ? $setup_intent->metadata['ip_address'] : '';
+
+    if(!empty($ip)) {
+      MeprHooks::do_action('mepr_stripe_payment_failed', $ip);
+    }
   }
 }
