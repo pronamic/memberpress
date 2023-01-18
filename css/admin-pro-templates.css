@@ -1,0 +1,96 @@
+#design table.mepr-options-pane {
+  /* padding-bottom: 10px; */
+  border-collapse: separate;
+  border-spacing: 0 15px;
+}
+
+#design table.mepr-options-pane tr > td {
+  padding-right: 10px;
+}
+
+table.mepr-modal-options-pane {
+  /* table-layout: fixed; */
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 1.8em;
+}
+
+table.mepr-modal-options-pane .wp-editor-tools:after {
+  display: none;
+}
+
+table.mepr-modal-options-pane tr td:first-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.mepr_modal input::-ms-input-placeholder{
+  color: #ccc;
+}
+.mepr_modal input:-ms-input-placeholder{
+  color: #ccc;
+}
+.mepr_modal input::placeholder{
+  color: #ccc;
+}
+
+table.mepr-modal-options-pane label.mepr-modal-options-pane-label {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+table.mepr-modal-options-pane label.mepr-modal-options-pane-label span {
+  color: #828282;
+}
+
+#mepr-pro-templates table.mepr-options-pane tr td {
+  padding-left: 10px;
+}
+
+button.link {
+  display: flex;
+  align-items: centre;
+  background: none;
+  font-family: inherit; /* For all browsers */
+  font-size: 100%; /* For all browsers */
+  line-height: 1.15; /* For all browsers */
+  margin: 0; /* Firefox and Safari have margin */
+  padding: 0; /* Firefox and Safari have margin */
+  border: 0;
+  overflow: visible; /* Edge hides overflow */
+  text-transform: none; /* Firefox inherits text-transform */
+  text-decoration: underline;
+  cursor: pointer;
+  -webkit-appearance: button; /* Safari otherwise prevents some styles */
+
+  color: #2271b1;
+  transition-property: border, background, color;
+  transition-duration: 0.05s;
+  transition-timing-function: ease-in-out;
+}
+/* style="padding-left: 10px;" */
+/* style="padding-left: 10px;" */
+
+.mepr-flex-row {
+  display: flex;
+  align-items: center;
+}
+
+.mepr-flex-row > * + * {
+  margin-left: 10px;
+}
+
+.mepr-flex-row img {
+  object-fit: contain;
+  width: 100px;
+  height: 100px;
+}
+
+#mepr-design-logo-remove-btn {
+  text-decoration: none;
+  margin-top: 5px;
+  width: 100%;
+  display: block;
+}
+[x-cloak]{
+  display: none;
+}

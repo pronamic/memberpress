@@ -807,7 +807,7 @@ class MeprUser extends MeprBaseModel {
   public static function validate_account($params, $errors = array()) {
     $mepr_options = MeprOptions::fetch();
 
-    extract($params);
+    extract($params, EXTR_SKIP);
 
     if($mepr_options->require_fname_lname && (empty($user_first_name) || empty($user_last_name))) {
       $errors[] = __('You must enter both your First and Last name', 'memberpress');
@@ -821,6 +821,29 @@ class MeprUser extends MeprBaseModel {
     $user = MeprUtils::get_currentuserinfo(); //Old user info is here since we haven't stored the new stuff yet
     if($user !== false && $user->user_email != stripslashes($user_email) && email_exists(stripslashes($user_email))) {
       $errors[] = __('This email is already in use by another member', 'memberpress');
+    }
+
+    return $errors;
+  }
+
+  /**
+   * Validate single account field
+   *
+   * @param array $field The field array, showuld have name, value keys
+   * @param array $errors The errors array.
+   * @return array
+   */
+  public static function validate_account_field($params, $errors = array()) {
+    if( array_key_exists('user_email', $params) ){
+      if(empty($params['user_email']) || !is_email(stripslashes($params['user_email']))) {
+        $errors[] = __('You must enter a valid email address', 'memberpress');
+      }
+
+      //Old email is not the same as the new, so let's make sure no else has it
+      $user = MeprUtils::get_currentuserinfo(); //Old user info is here since we haven't stored the new stuff yet
+      if($user !== false && $user->user_email != stripslashes($params['user_email']) && email_exists(stripslashes($params['user_email']))) {
+        $errors[] = __('This email is already in use by another member', 'memberpress');
+      }
     }
 
     return $errors;
@@ -1558,7 +1581,7 @@ class MeprUser extends MeprBaseModel {
   }
 
   public static function manually_place_account_form($post) {
-    return ($post instanceof WP_Post && preg_match('~\[mepr-account-form~', $post->post_content));
+    return ($post instanceof WP_Post && ( preg_match('~\[mepr-account-form~', $post->post_content) || has_block('memberpress/pro-account-tabs') ) );
   }
 
   public static function is_account_page($post) {
@@ -1576,7 +1599,8 @@ class MeprUser extends MeprBaseModel {
     $mepr_options = MeprOptions::fetch();
     return ($post instanceof WP_Post &&
             ($post->ID == $mepr_options->login_page_id ||
-             preg_match('~\[mepr-login-form~', $post->post_content)));
+             preg_match('~\[mepr-login-form~', $post->post_content))
+             || has_block('memberpress/pro-login-form'));
   }
 
   public function custom_profile_values($force_all = false) {

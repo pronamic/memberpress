@@ -343,6 +343,9 @@ abstract class MeprBaseGateway {
     // Assume we're either on the account page or some
     // page that is using the [mepr-account-form] shortcode
     $account_url   = MeprUtils::get_current_url_without_params(); //MeprUtils::get_permalink($post->ID);
+    if(wp_doing_ajax()){
+      $account_url   = isset($_POST['account_url']) ? esc_url($_POST['current_url']) : $account_url;
+    }
     $account_delim = ( preg_match( '~\?~', $account_url ) ? '&' : '?' );
     $user = $subscription->user();
     $hide_update_link = $this->hide_update_link($subscription);

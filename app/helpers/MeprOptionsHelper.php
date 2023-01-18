@@ -176,7 +176,7 @@ class MeprOptionsHelper {
   * @param MeprBaseRealGateway[] $payment_methods
   * @return string Radio HTML
   */
-  public static function payment_methods_radios($payment_methods) {
+  public static function payment_methods_radios($payment_methods, $with_icons = false) {
     $mepr_options = MeprOptions::fetch();
     $field_name = 'mepr_payment_method';
     $radio_html = '';
@@ -204,6 +204,7 @@ class MeprOptionsHelper {
           data-payment-method-type="<?php echo $payment_method->name; ?>"
           <?php if(isset($_POST[$field_name])): checked($_POST[$field_name], $payment_method->id); endif ?> />
         <?php echo $label; ?>
+
       </label>
       <?php
       $radio_html .= ob_get_clean();

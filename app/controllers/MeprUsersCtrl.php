@@ -198,7 +198,7 @@ class MeprUsersCtrl extends MeprBaseCtrl {
     MeprView::render("/admin/users/extra_profile_fields", get_defined_vars());
   }
 
-  public static function save_extra_profile_fields($user_id, $validated=false, $product=false, $is_signup=false) {
+  public static function save_extra_profile_fields($user_id, $validated=false, $product=false, $is_signup=false, $selected=[]) {
     $mepr_options = MeprOptions::fetch();
     $errors = array();
     $user = new MeprUser($user_id);
@@ -262,6 +262,11 @@ class MeprUsersCtrl extends MeprBaseCtrl {
       }
 
       foreach($custom_fields as $line) {
+        // Allows fields to be selectively saved.
+        if( ! empty( $selected ) && ! in_array( $line->field_key, $selected ) ) {
+          continue;
+        }
+
         //Don't do anything if this field isn't shown during signup, and this is a signup
         if($is_signup && isset($line->show_on_signup) && !$line->show_on_signup) { continue; }
         //Only allow admin to update if it is not shown in account
@@ -331,7 +336,8 @@ class MeprUsersCtrl extends MeprBaseCtrl {
                                                         $update = null,
                                                         $user  = null,
                                                         $is_signup = false,
-                                                        $product = false ) {
+                                                        $product = false,
+                                                        $selected = [] ) {
     $mepr_options = MeprOptions::fetch();
     $errs = array();
 
@@ -362,6 +368,11 @@ class MeprUsersCtrl extends MeprBaseCtrl {
     }
 
     foreach($custom_fields as $line) {
+      // Allows fields to be selectively validated.
+      if( ! empty( $selected ) && ! in_array( $line->field_key, $selected ) ) {
+        continue;
+      }
+
       // If we're processing a signup and the custom field is not set
       // to show on signup we need to make sure it isn't required
       if($is_signup && $line->required && !$line->show_on_signup) {

@@ -68,9 +68,9 @@
       </table>
 
       <h3 class="mepr-field-label">
-        <?php _e('Group and Membership Pages Slugs:', 'memberpress'); ?>
+        <?php _e('Pages Slugs:', 'memberpress'); ?>
         <?php MeprAppHelper::info_tooltip( 'mepr-group-and-product-pages-slugs',
-                                           __('Group and Membership Pages Slugs', 'memberpress'),
+                                           __('Pages Slugs', 'memberpress'),
                                            __('Use these fields to customize the base slug of urls for your groups and memberships.', 'memberpress') . "<br/><br/>" .
                                            __('Note: It isn\'t recommended that you change these values if you already have existing groups and membership pages on a production membership site because all your urls for them will change (WordPress will attempt to redirect from old urls to new urls).', 'memberpress') ); ?>
       </h3>
@@ -88,6 +88,18 @@
               <input type="text" id="<?php echo $mepr_options->product_pages_slug_str; ?>" name="<?php echo $mepr_options->product_pages_slug_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->product_pages_slug); ?>" />
             </td>
           </tr>
+
+          <?php
+            if ( class_exists( 'memberpress\courses\helpers\Options' ) ) {
+            $courses_options = get_option( 'mpcs-options' );
+          ?>
+          <tr valign="top">
+            <td><label for="<?php echo $mepr_options->product_pages_slug_str; ?>"><?php _e("Classroom Slug:", 'memberpress'); ?></td>
+            <td>
+              <input type="text" id="mpcs_options_courses_slug" name="mpcs-options[courses-slug]>" placeholder="<?php esc_attr_e('courses', 'memberpress-courses', 'memberpress'); ?>" class="regular-text" value="<?php echo memberpress\courses\helpers\Options::val($courses_options, 'courses-slug'); ?>" />
+            </td>
+          </tr>
+          <?php } ?>
         </tbody>
       </table>
 
@@ -194,7 +206,7 @@
             </label>
             <?php MeprAppHelper::info_tooltip( 'mepr-suspend-resume',
                                                    __('Pausing &amp; Resuming Subscriptions', 'memberpress'),
-                                                   __('This option will only be available if this is enabled and the user purchased their subsciption using PayPal or Stripe.', 'memberpress') ); ?>
+                                                   __('This option will only be available if this is enabled and the user purchased their subscription using PayPal or Stripe.', 'memberpress') ); ?>
           </div>
         </div>
       </div>

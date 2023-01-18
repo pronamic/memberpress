@@ -71,11 +71,19 @@
     <br/>
     <div>
       <label for="mepr-pricing-button-position"><?php _e('Button Position', 'memberpress'); ?></label>
-      <select id="mepr-pricing-button-position" name="<?php echo MeprProduct::$pricing_button_position_str; ?>">
-        <option value="footer" <?php selected($product->pricing_button_position,'footer'); ?>><?php _e('Footer', 'memberpress'); ?></option>
-        <option value="header" <?php selected($product->pricing_button_position,'header'); ?>><?php _e('Header', 'memberpress'); ?></option>
-        <option value="both" <?php selected($product->pricing_button_position,'both'); ?>><?php _e('Both', 'memberpress'); ?></option>
-      </select>
+      <?php if(isset( $mepr_options->design_enable_pricing_template ) && $mepr_options->design_enable_pricing_template ) { ?>
+
+        <select disabled id="mepr-pricing-button-position" name="<?php echo MeprProduct::$pricing_button_position_str; ?>">
+          <option value="header" <?php selected($product->pricing_button_position,'header'); ?>><?php _e('Header', 'memberpress'); ?></option>
+        </select>
+
+      <?php } else { ?>
+        <select id="mepr-pricing-button-position" name="<?php echo MeprProduct::$pricing_button_position_str; ?>">
+          <option value="footer" <?php selected($product->pricing_button_position,'footer'); ?>><?php _e('Footer', 'memberpress'); ?></option>
+          <option value="header" <?php selected($product->pricing_button_position,'header'); ?>><?php _e('Header', 'memberpress'); ?></option>
+          <option value="both" <?php selected($product->pricing_button_position,'both'); ?>><?php _e('Both', 'memberpress'); ?></option>
+        </select>
+      <?php } ?>
     </div>
   </div>
 </div>

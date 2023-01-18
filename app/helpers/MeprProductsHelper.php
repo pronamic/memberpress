@@ -216,10 +216,11 @@ class MeprProductsHelper {
     $tmp_txn->id = 0;
     $tmp_txn->user_id = (isset($current_user->ID))?$current_user->ID:0;
     $tmp_txn->load_product_vars($product, $coupon_code, true);
-    $tmp_sub = new MeprSubscription();
+    $tmp_sub = '';
 
     if(!$product->is_one_time_payment()) {
       // Setup to possibly do a proration without actually creating a subscription record
+      $tmp_sub = new MeprSubscription();
       $tmp_sub->id = 0;
       $tmp_sub->user_id = (isset($current_user->ID))?$current_user->ID:0;
       $tmp_sub->load_product_vars($product, $coupon_code,true);

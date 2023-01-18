@@ -72,20 +72,21 @@
   padding-left: 15px;
 }
 
-.mepr-sub-option-arrow,.mepr-sub-option {
+.mepr-sub-option-arrow,
+.mepr-sub-option {
   padding-top: 5px;
   padding-left: 25px;
 }
 
 .mepr-sub-option-arrow {
-  background-image: url('../images/sub-option-arrow.png');
+  background-image: url("../images/sub-option-arrow.png");
   background-repeat: no-repeat;
   background-position: 3px 10px;
   margin-left: -25px;
 }
 
 .mepr-resend-welcome-email-loader {
-  vertical-align:middle;
+  vertical-align: middle;
   width: 16px !important;
   height: 16px !important;
   margin-right: 5px;
@@ -95,7 +96,7 @@
 /* WP List Table CSS */
 #cspf-table-search,
 #mepr_fake_submit {
-  vertical-align:middle;
+  vertical-align: middle;
 }
 .cspf-tablenav-spacer {
   display: block;
@@ -120,10 +121,10 @@
 }
 
 div#table-actions {
-  display:block;
+  display: block;
   padding-bottom: 5px;
-  width:auto;
-  float:left;
+  width: auto;
+  float: left;
 }
 
 #toplevel_page_memberpress .wp-menu-image img {
@@ -132,15 +133,15 @@ div#table-actions {
 }
 
 div#mepr-shortcode-login-page-area {
-  margin-top:5px;
-  padding:15px;
-  border:1px solid #CCC;
+  margin-top: 5px;
+  padding: 15px;
+  border: 1px solid #ccc;
   border-radius: 3px;
-  font-weight:bold;
+  font-weight: bold;
 }
 
 #meprcustomunauthorizedmessage_tbl {
-  background:white;
+  background: white;
 }
 
 .mepr_hidden {
@@ -149,15 +150,16 @@ div#mepr-shortcode-login-page-area {
 
 /* Make nav tabs look the same */
 h2.nav-tab-wrapper {
-  margin-bottom:0 !important;
-  padding-bottom:0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 table.users .column-role {
-  width:auto !important;
+  width: auto !important;
 }
 
-.mepr-active, .mepr-inactive {
+.mepr-active,
+.mepr-inactive {
   font-weight: bold;
 }
 
@@ -174,8 +176,8 @@ table.users .column-role {
 }
 
 img.mepr_loader {
-  vertical-align:-2px;
-  display:none;
+  vertical-align: -2px;
+  display: none;
 }
 
 .button-primary .mp-icon {
@@ -188,9 +190,9 @@ img.mepr_loader {
 }
 
 .mepr-radius-border {
-  margin-top:5px;
-  padding:15px;
-  border:1px solid #CCC;
+  margin-top: 5px;
+  padding: 15px;
+  border: 1px solid #ccc;
   border-radius: 3px;
 }
 
@@ -204,12 +206,56 @@ img.mepr_loader {
   min-width: 2px;
   height: 100%;
   background: #015289; /* Old browsers */
-  background: -moz-linear-gradient(top, rgba(1,82,137,0) 0%, rgba(1,82,137,1) 15%, rgba(1,82,137,1) 50%, rgba(1,82,137,1) 85%, rgba(1,82,137,0) 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(1,82,137,0)), color-stop(15%,rgba(1,82,137,0)), color-stop(50%,rgba(1,82,137,1)), color-stop(85%,rgba(1,82,137,0)), color-stop(100%,rgba(1,82,137,0))); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top, rgba(1,82,137,0) 0%, rgba(1,82,137,1) 15%,rgba(1,82,137,1) 50%, rgba(1,82,137,1) 85%,rgba(1,82,137,0) 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top, rgba(1,82,137,0) 0%, rgba(1,82,137,1) 15%,rgba(1,82,137,1) 50%, rgba(1,82,137,1) 85%,rgba(1,82,137,0) 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(top, rgba(1,82,137,0) 0%, rgba(1,82,137,1) 15%,rgba(1,82,137,1) 50%, rgba(1,82,137,1) 85%,rgba(1,82,137,0) 100%); /* IE10+ */
-  background: linear-gradient(to bottom, rgba(1,82,137,0) 0%, rgba(1,82,137,1) 15%,rgba(1,82,137,1) 50%, rgba(1,82,137,1) 85%,rgba(1,82,137,0) 100%); /* W3C */
+  background: -moz-linear-gradient(
+    top,
+    rgba(1, 82, 137, 0) 0%,
+    rgba(1, 82, 137, 1) 15%,
+    rgba(1, 82, 137, 1) 50%,
+    rgba(1, 82, 137, 1) 85%,
+    rgba(1, 82, 137, 0) 100%
+  ); /* FF3.6+ */
+  background: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0%, rgba(1, 82, 137, 0)),
+    color-stop(15%, rgba(1, 82, 137, 0)),
+    color-stop(50%, rgba(1, 82, 137, 1)),
+    color-stop(85%, rgba(1, 82, 137, 0)),
+    color-stop(100%, rgba(1, 82, 137, 0))
+  ); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(
+    top,
+    rgba(1, 82, 137, 0) 0%,
+    rgba(1, 82, 137, 1) 15%,
+    rgba(1, 82, 137, 1) 50%,
+    rgba(1, 82, 137, 1) 85%,
+    rgba(1, 82, 137, 0) 100%
+  ); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(
+    top,
+    rgba(1, 82, 137, 0) 0%,
+    rgba(1, 82, 137, 1) 15%,
+    rgba(1, 82, 137, 1) 50%,
+    rgba(1, 82, 137, 1) 85%,
+    rgba(1, 82, 137, 0) 100%
+  ); /* Opera 11.10+ */
+  background: -ms-linear-gradient(
+    top,
+    rgba(1, 82, 137, 0) 0%,
+    rgba(1, 82, 137, 1) 15%,
+    rgba(1, 82, 137, 1) 50%,
+    rgba(1, 82, 137, 1) 85%,
+    rgba(1, 82, 137, 0) 100%
+  ); /* IE10+ */
+  background: linear-gradient(
+    to bottom,
+    rgba(1, 82, 137, 0) 0%,
+    rgba(1, 82, 137, 1) 15%,
+    rgba(1, 82, 137, 1) 50%,
+    rgba(1, 82, 137, 1) 85%,
+    rgba(1, 82, 137, 0) 100%
+  ); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#015289', endColorstr='#015289',GradientType=0 ); /* IE6-9 */
 }
 
@@ -218,7 +264,7 @@ img.mepr_loader {
 }
 
 .mepr-hover {
-  cursor:move;
+  cursor: move;
 }
 
 .mepr-strikethrough {
@@ -303,7 +349,7 @@ a i.mp-icon:hover {
 
 .mepr-tooltip {
   cursor: pointer;
-  vertical-align:middle;
+  vertical-align: middle;
 }
 
 .mepr-tooltip:hover i {
@@ -406,7 +452,8 @@ a i.mp-icon:hover {
   color: darkred;
 }
 
-.mepr_error, .mepr_updated {
+.mepr_error,
+.mepr_updated {
   padding: 5px 5px 5px 15px !important;
   margin-bottom: 25px !important;
   width: 95%;
@@ -452,12 +499,12 @@ table.mepr-addons-table tr th {
 }
 
 .mepr-payment-option-prompt {
-  background: rgba(139,139,150,.1);
+  background: rgba(139, 139, 150, 0.1);
   box-shadow: 0 0 1px #bbb;
   align-items: center;
   justify-content: center;
   padding: 1em;
-  color: #0A2540;
+  color: #0a2540;
   width: 600px;
   text-align: center;
   font-size: 15px;
@@ -504,12 +551,16 @@ table.mepr-addons-table tr th {
   color: #0a2540;
 }
 
-.mepr-integration-gateway-form .stripe-checkout-method-select .mepr-stripe-method {
+.mepr-integration-gateway-form
+  .stripe-checkout-method-select
+  .mepr-stripe-method {
   width: 45%;
   border: 4px solid #bdbdbd;
   border-radius: 5px;
 }
-.mepr-integration-gateway-form .stripe-checkout-method-select .mepr-stripe-method.selected {
+.mepr-integration-gateway-form
+  .stripe-checkout-method-select
+  .mepr-stripe-method.selected {
   border-color: #0a2540;
 }
 .mepr-integration-gateway-form .mepr-stripe-method {
@@ -518,7 +569,7 @@ table.mepr-addons-table tr th {
 .mepr-integration-gateway-form .mepr-paypal-onboarding-button {
   line-height: 3.5em;
 }
-.mepr-integration-gateway-form .mepr-paypal-onboarding-button  {
+.mepr-integration-gateway-form .mepr-paypal-onboarding-button {
   line-height: 3.5em;
 }
 .mepr-integration-gateway-form .mepr-paypal-onboarding-button {
@@ -555,7 +606,9 @@ table.mepr-addons-table tr th {
   }
 }
 @media (max-width: 750px) {
-  .mepr-integration-gateway-form .stripe-checkout-method-select .mepr-stripe-method {
+  .mepr-integration-gateway-form
+    .stripe-checkout-method-select
+    .mepr-stripe-method {
     display: block;
     width: auto;
   }
@@ -610,8 +663,8 @@ table.mepr-addons-table tr th {
 
 .mepr-account-connected {
   padding: 20px;
-  background-color: #CBFECF;
-  border: 1px solid #86C881;
+  background-color: #cbfecf;
+  border: 1px solid #86c881;
 }
 
 .mepr-account-connected table th {
@@ -626,31 +679,53 @@ table.mepr-addons-table tr th {
 }
 
 .mepr-shake-tooltip {
-  font-size:20px;
-  color:#dc3232;
-  position:absolute;
-  right:10px;
-  top:8px;
-  cursor:help;
-  z-index:1000;
+  font-size: 20px;
+  color: #dc3232;
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  cursor: help;
+  z-index: 1000;
 }
 
 .mepr-shake {
-  animation:meprshake 0.5s;
+  animation: meprshake 0.5s;
 }
 
 @keyframes meprshake {
-  0% { transform: translate(1px, 1px) rotate(0deg); }
-  10% { transform: translate(-1px, -2px) rotate(-1deg); }
-  20% { transform: translate(-3px, 0px) rotate(1deg); }
-  30% { transform: translate(3px, 2px) rotate(0deg); }
-  40% { transform: translate(1px, -1px) rotate(1deg); }
-  50% { transform: translate(-1px, 2px) rotate(-1deg); }
-  60% { transform: translate(-3px, 1px) rotate(0deg); }
-  70% { transform: translate(3px, 1px) rotate(-1deg); }
-  80% { transform: translate(-1px, -1px) rotate(1deg); }
-  90% { transform: translate(1px, 2px) rotate(0deg); }
-  100% { transform: translate(1px, -2px) rotate(-1deg); }
+  0% {
+    transform: translate(1px, 1px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg);
+  }
+  20% {
+    transform: translate(-3px, 0px) rotate(1deg);
+  }
+  30% {
+    transform: translate(3px, 2px) rotate(0deg);
+  }
+  40% {
+    transform: translate(1px, -1px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(-3px, 1px) rotate(0deg);
+  }
+  70% {
+    transform: translate(3px, 1px) rotate(-1deg);
+  }
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg);
+  }
+  90% {
+    transform: translate(1px, 2px) rotate(0deg);
+  }
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg);
+  }
 }
 
 /* Fix for CMSMasters Content Composer plugin where widgets are broken on edit post/page on the backend */
@@ -790,11 +865,12 @@ table.mepr-addons-table tr th {
   }
 }
 
-.mepr-replace-file, .mepr-view-file{
+.mepr-replace-file,
+.mepr-view-file {
   text-decoration: none;
 }
 
-.mepr-replace-file{
+.mepr-replace-file {
   margin-right: 5px;
 }
 
@@ -812,7 +888,7 @@ div.mepr-support-help-topic {
   padding: 10px;
   margin: 10px;
   flex-shrink: 0;
-  background-color: #F8F8F8;
+  background-color: #f8f8f8;
 }
 
 .mepr-support-help-topic a {
@@ -829,5 +905,135 @@ div.mepr-support-help-topic {
 }
 
 .mepr-support-help-topic:hover {
-  background-color: #E8E8E8;
+  background-color: #e8e8e8;
+}
+
+.mepr__modal {
+  position: relative;
+  z-index: 10;
+}
+
+.mepr_modal__overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(107, 114, 128, 0.75);
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.mepr_modal__content_wrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  overflow-y: auto;
+}
+.mepr_modal__content {
+  display: flex;
+  align-items: center;
+  min-height: 100%;
+  justify-content: center;
+  text-align: center;
+}
+.mepr_modal__box {
+  position: relative;
+  max-width: 30rem;
+  width: 100%;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  transform: matrix(1, 0, 0, 1, 0, 0);
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #fff;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-top: 29px;
+  padding-bottom: 25px;
+  text-align: left;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+.mepr_modal__box h3 {
+  font-size: 22px;
+  margin-top: 0;
+}
+button.mepr_modal__close {
+  /* float: right; */
+  width: 1.5rem;
+  line-height: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  background: none;
+  border: none;
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  font-size: 1.3rem;
+  color: #ccc;
+}
+
+button.mepr_modal__close:hover {
+  color: #555;
+}
+.mepr_modal__button {
+  display: flex !important;
+  margin-left: auto !important;
+}
+/* Ends Modal */
+
+.mepr-template-welcome-img-preview {
+  display: grid;
+  column-gap: 4rem;
+  grid-template-columns: 1fr 1fr;
+  border: 2px dashed #ccc;
+  padding: 10px;
+}
+.mepr-template-welcome-img-preview img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  object-position: center;
+}
+
+.mepr-template-welcome-img-preview .actions div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.mepr-pluploader-wrapper .drag-drop-area {
+  border: 4px dashed #c3c4c7;
+  height: 200px;
+}
+
+.mepr-pluploader-preview {
+  display: grid;
+  column-gap: 4rem;
+  grid-template-columns: 1fr 1fr;
+  border: 2px dashed #ccc;
+  padding: 10px;
+}
+
+.mepr-pluploader-wrapper .actions div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.mepr-pluploader-wrapper .mepr-pluploader-preview img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  object-position: center;
 }

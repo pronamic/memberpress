@@ -858,4 +858,23 @@ class MeprUpdateCtrl extends MeprBaseCtrl {
     delete_site_transient('mepr_addons');
     delete_site_transient('mepr_all_addons');
   }
+
+  public static function get_license_info() {
+    $mepr_options = MeprOptions::fetch();
+    $license_info = get_site_transient('mepr_license_info');
+
+    if(!$license_info && !empty($mepr_options->mothership_license)) {
+      try {
+        $domain = urlencode(MeprUtils::site_domain());
+        $args = compact('domain');
+        $license_info = self::send_mothership_request("/versions/info/{$mepr_options->mothership_license}", $args, 'post');
+
+        set_site_transient('mepr_license_info', $license_info, MeprUtils::hours(24));
+      } catch (Exception $e) {
+        //Fail silently, license info will return false.
+      }
+    }
+
+    return $license_info;
+  }
 } //End class

@@ -161,7 +161,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
   */
   public function maybe_render_payment_form($description, $payment_method, $first) {
     $mepr_options = MeprOptions::fetch();
-    if($mepr_options->enable_spc && $payment_method->has_spc_form) {
+    if( ($mepr_options->enable_spc || $mepr_options->design_enable_checkout_template) && $payment_method->has_spc_form) {
       // TODO: Maybe we queue these up from wp_enqueue_scripts?
       wp_register_script('mepr-checkout-js', MEPR_JS_URL . '/checkout.js', array('jquery', 'jquery.payment'), MEPR_VERSION);
       wp_enqueue_script('mepr-checkout-js');
@@ -524,7 +524,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     $mepr_options = MeprOptions::fetch();
     if(isset($_POST['mepr_payment_method'])) {
       $payment_method = $mepr_options->payment_method($_POST['mepr_payment_method']);
-      if($mepr_options->enable_spc && $payment_method->has_spc_form) {
+      if($mepr_options->enable_spc && $payment_method->has_spc_form || ($mepr_options->design_enable_checkout_template)) {
         $_POST = array_merge(
           $_POST,
           array(

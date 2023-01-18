@@ -103,7 +103,7 @@ class MeprGroupsCtrl extends MeprCptCtrl {
     return $new_content[$current_post->ID];
   }
 
-  public static function display_pricing_boxes($group, $theme=null) {
+  public static function display_pricing_boxes($group, $theme=null, $args = []) {
     MeprView::render('/groups/front_groups_page', get_defined_vars());
   }
 
@@ -429,7 +429,7 @@ class MeprGroupsCtrl extends MeprCptCtrl {
 
       ob_start();
 
-      self::display_pricing_boxes($group,$theme);
+      self::display_pricing_boxes($group, $theme, $atts);
 
       return ob_get_clean();
     }

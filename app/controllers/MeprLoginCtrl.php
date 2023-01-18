@@ -71,7 +71,9 @@ class MeprLoginCtrl extends MeprBaseCtrl {
       else{
         $this->display_login_form(
           $shortcode,
-          (isset($atts['use_redirect']) && $atts['use_redirect']=='true')
+          (isset($atts['use_redirect']) && $atts['use_redirect']=='true'),
+          '',
+          $atts
         );
       }
     }
@@ -80,7 +82,9 @@ class MeprLoginCtrl extends MeprBaseCtrl {
       if ( ! is_user_logged_in() || ! isset( $atts['show_logged_in'] ) || $atts['show_logged_in'] !== 'false' ) {
         $this->display_login_form(
           $shortcode,
-          (isset($atts['use_redirect']) && $atts['use_redirect']=='true')
+          (isset($atts['use_redirect']) && $atts['use_redirect']=='true'),
+          '',
+          $atts
         );
       }
     }
@@ -89,7 +93,7 @@ class MeprLoginCtrl extends MeprBaseCtrl {
   }
 
   // Outputs the login form
-  public function display_login_form($shortcode=false, $widget_use_redirect_urls = false, $message = '') {
+  public function display_login_form($shortcode=false, $widget_use_redirect_urls = false, $message = '', $atts = []) {
     $current_post = MeprUtils::get_current_post();
     $mepr_options = MeprOptions::fetch();
     $login_page_id = (!empty($mepr_options->login_page_id) && $mepr_options->login_page_id > 0)?$mepr_options->login_page_id:0;

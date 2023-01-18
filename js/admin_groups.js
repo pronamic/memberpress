@@ -26,16 +26,32 @@
 
       return false;
     }
+    function show_readylaunch_limit() {
+      var count = $('ol#sortable-products li').length;
+
+      if(count > 5){
+        $('#readylaunch-group-limit').show()
+        // $("#readylaunch-group-limit").insertAfter("body");
+        // $('#readylaunch-group-limit').show()
+      } else{
+        $('#readylaunch-group-limit').hide()
+      }
+    }
+    show_readylaunch_limit();
+
     //Add new membership li
     $('a#add-new-product').click(function() {
+      if($('ol#sortable-products li').length >= 5){show_readylaunch_limit()}
       $('ol#sortable-products').append($('div#hidden-line-item').html());
       sync_fallback_available_products();
+      show_readylaunch_limit();
       return false;
     });
     //Remove a membership li
     $('body').on('click', 'a.remove-product-item', function() {
       $(this).parent().parent().remove();
       sync_fallback_available_products();
+      show_readylaunch_limit();
       return false;
     });
     //Alert if membership already is assigned to another group

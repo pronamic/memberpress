@@ -36,6 +36,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
 
     //Load language - must be done after plugins are loaded to work with PolyLang/WPML
     add_action('plugins_loaded', 'MeprAppCtrl::load_language');
+    add_action('init', array($this, 'load_translations'));
 
     add_filter('months_dropdown_results', array($this, 'cleanup_list_table_month_dropdown'), 10, 2);
 
@@ -558,7 +559,6 @@ class MeprAppCtrl extends MeprBaseCtrl {
 
         $action = self::get_param('action');
         $manual_login_form = get_post_meta($current_post->ID, '_mepr_manual_login_form', true);
-
         try {
           $login_ctrl = MeprCtrlFactory::fetch('login');
 
@@ -653,7 +653,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
     // Yeah we enqueue this globally all the time so the login form will work on any page
     wp_enqueue_style('mp-theme', MEPR_CSS_URL . '/ui/theme.css', null, MEPR_VERSION);
 
-    if($global_styles || $is_account_page) {
+    if(($global_styles || $is_account_page) && ! has_block('memberpress/pro-account-tabs')) {
       wp_enqueue_style('mp-account-css', MEPR_CSS_URL.'/ui/account.css', null, MEPR_VERSION);
     }
 
@@ -706,8 +706,8 @@ class MeprAppCtrl extends MeprBaseCtrl {
 
       $local_data = array(
         'coupon_nonce' => wp_create_nonce('mepr_coupons'),
-        'spc_enabled'  => $mepr_options->enable_spc,
-        'spc_invoice'  => $mepr_options->enable_spc_invoice
+        'spc_enabled'  => ( $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template ),
+        'spc_invoice'  => ( $mepr_options->enable_spc_invoice || $mepr_options->design_enable_checkout_template )
       );
 
       wp_localize_script('mp-signup', 'MeprSignup', $local_data);
@@ -907,6 +907,18 @@ class MeprAppCtrl extends MeprBaseCtrl {
 
     //Force a refresh of the $mepr_options so those strings can be marked as translatable in WPML/Polylang type plugins
     MeprOptions::fetch(true);
+  }
+
+  public static function load_translations() {
+    if(MeprHooks::apply_filters('mepr-remove-traduttore', false)) { return; }
+    // Load Traduttore
+    require_once(MEPR_I18N_PATH . '/namespace.php');
+
+    \Required\Traduttore_Registry\add_project(
+      'plugin',
+      'memberpress',
+      'https://translate.memberpress.com/api/translations/memberpress'
+    );
   }
 
   // Utility function to grab the parameter whether it's a get or post

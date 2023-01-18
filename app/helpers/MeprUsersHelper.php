@@ -84,6 +84,9 @@ class MeprUsersHelper {
     $array_types = array( 'multiselect', 'checkboxes' ); //If we update this, we need make sure it doesn't break the {$usermeta:slug} stuff in MeprTransactionsHelper
     $bool_types  = array( 'checkbox' );
     $classes = MeprHooks::apply_filters('mepr-custom-field-classes', $classes, $line);
+    $placeholder_attr = isset($line->placeholder) ? 'placeholder="'. $line->placeholder .'"' : '';
+
+    $required_attr = $placeholder_attr .' '. $required_attr;
 
     // Figure out what type we have here
     $is_array  = in_array( $line->field_type, $array_types );
@@ -254,14 +257,133 @@ class MeprUsersHelper {
       $user = MeprUtils::get_currentuserinfo();
     }
 
-    foreach($mepr_options->address_fields as $line) {
+    //Give devs a chance to re-order these if they so wish
+    $address_fields = MeprHooks::apply_filters('mepr_render_address_fields', $mepr_options->address_fields);
+
+    foreach($address_fields as $line) {
       $required = $line->required ? '*' : '';
       $value = $logged_in ? get_user_meta($user->ID, $line->field_key, true) : '';
       MeprView::render('checkout/signup_row', get_defined_vars());
     }
   }
 
-  public static function render_custom_fields( $product=null, $from_page=null, $unique_suffix='' ) {
+  public static function render_custom_fields( $product=null, $from_page=null, $unique_suffix='', $show_address=true ) {
+    $mepr_options = MeprOptions::fetch();
+
+    if($logged_in = MeprUtils::is_user_logged_in()) {
+      $user = MeprUtils::get_currentuserinfo();
+    }
+
+    $custom_fields = self::get_custom_fields($product);
+
+    //Maybe show the address fields too
+    if($mepr_options->show_address_fields && $show_address) {
+      if(is_null($product)) {
+        // Check if any memberships require address fields
+        if($user->show_address_fields()) {
+          $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
+        }
+      }
+      else {
+        if(!$product->disable_address_fields) {
+          $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
+        }
+      }
+    }
+
+    //Give devs a chance to re-order these if they so wish
+    $custom_fields = MeprHooks::apply_filters('mepr_render_custom_fields', $custom_fields);
+
+    foreach($custom_fields as $line) {
+      if('signup' == $from_page && !$line->show_on_signup) { continue; }
+      if('account' == $from_page && isset($line->show_in_account) && !$line->show_in_account) { continue; }
+
+      $required = ($line->required?'*':'');
+      $value    = ($logged_in) ? get_user_meta($user->ID, $line->field_key, true) : '';
+
+      MeprView::render('checkout/signup_row', get_defined_vars());
+    }
+  }
+
+  /**
+   * Render custom field values for the design template
+   *
+   * @param object $field The field object.
+   * @param WP_User $user WordPress User Object.
+   * @return void
+   */
+  public static function render_pro_templates_custom_field_values($field, $user){
+    $value = $user ? get_user_meta($user->ID, $field->field_key, true) : '';
+    switch($field->field_type) {
+      case 'dropdown':
+      case 'radios':
+        $options = $field->options;
+        foreach ($options as $option) {
+          if ($option->option_value == $value) {
+            $value = $option->option_name;
+          }
+        }
+      break;
+      case 'multiselect':
+      case 'checkboxes':
+        $options = $field->options;
+        $values = [];
+        $value = (array) $value;
+        foreach ($options as $option) {
+          if (in_array($option->option_value, $value) || array_key_exists($option->option_value, $value)) {
+            $values[] = $option->option_name;
+          }
+        }
+        $value = join(", ", $values);
+      break;
+      case 'file':
+        $value = !empty($value) ? '<a href="'.esc_url_raw($value).'" target="_blank">View</a>' : '';
+        break;
+      default:
+      $value = $value;
+      break;
+    }
+
+      ?>
+
+      <dt>
+      <?php echo esc_html($field->field_name) ?>
+      <button data-name="<?php echo esc_attr($field->field_key) ?>" class="btn btn-link mepr-profile-details__button">
+        <svg width="15" height="16" viewBox="0 0 15 16" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M14.1578 2.99018L12.6403 1.47272C11.9097 0.74209 10.7013 0.74209 9.97069 1.47272L1.03453 10.3527L0.360107 14.5397C0.275804 14.9894 0.66922 15.3828 1.11884 15.2985L5.30591 14.624L14.1859 5.68789C14.9165 4.95726 14.9165 3.74891 14.1578 2.99018ZM5.98033 9.67825C6.09274 9.79065 6.26134 9.84685 6.42995 9.84685C6.57046 9.84685 6.73906 9.79065 6.85147 9.67825L10.1955 6.33421L11.0104 7.14915L6.26134 11.9263V10.7461H4.91249V9.39724H3.73224L8.50943 4.64815L9.32437 5.46308L5.98033 8.80711C5.72742 9.06002 5.72742 9.42534 5.98033 9.67825ZM2.6644 13.8091L1.84947 12.9942L2.21478 10.9428L2.7206 10.4089H3.90085V11.7577H5.2497V12.938L4.71578 13.4438L2.6644 13.8091ZM13.3147 4.81675L11.9378 6.19371L9.46487 3.72081L10.8418 2.34385C11.0947 2.09094 11.5163 2.09094 11.7692 2.34385L13.2866 3.86131C13.5676 4.14233 13.5676 4.56384 13.3147 4.81675Z"
+            fill="#777777" />
+        </svg>
+      </button>
+      </dt>
+      <dd class="mepr-profile-details__content">
+        <?php echo wp_kses_post($value); ?>
+      </dd>
+    <?php
+  }
+
+  public static function get_address_fields($user){
+    $mepr_options = MeprOptions::fetch();
+
+    //Maybe show the address fields too
+    if ($mepr_options->show_address_fields) {
+      // Check if any memberships require address fields
+      if ($user && $user->show_address_fields()) {
+        return $mepr_options->address_fields;
+      }
+    }
+
+    return array();
+  }
+
+  /**
+   * Gets custom fields
+   *
+   * @param Mepr_Product $product MemberPress Product Object
+   * @return array
+   */
+  public static function get_custom_fields($product = null){
     $mepr_options = MeprOptions::fetch();
 
     if($logged_in = MeprUtils::is_user_logged_in()) {
@@ -288,33 +410,7 @@ class MeprUsersHelper {
       $custom_fields = array();
     }
 
-    //Maybe show the address fields too
-    if($mepr_options->show_address_fields) {
-      if(is_null($product)) {
-        // Check if any memberships require address fields
-        if($user->show_address_fields()) {
-          $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
-        }
-      }
-      else {
-        if(!$product->disable_address_fields) {
-          $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
-        }
-      }
-    }
-
-    //Give devs a chance to re-order these if they so wish
-    $custom_fields = MeprHooks::apply_filters('mepr_render_custom_fields', $custom_fields);
-
-    foreach($custom_fields as $line) {
-      if('signup' == $from_page && !$line->show_on_signup) { continue; }
-      if('account' == $from_page && isset($line->show_in_account) && !$line->show_in_account) { continue; }
-
-      $required = ($line->required?'*':'');
-      $value    = ($logged_in) ? get_user_meta($user->ID, $line->field_key, true) : '';
-
-      MeprView::render('checkout/signup_row', get_defined_vars());
-    }
+    return $custom_fields;
   }
 
   // Renders the actual custom fields setup by the admin user. The fields rendered here are

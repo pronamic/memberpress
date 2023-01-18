@@ -10,6 +10,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     add_action('wp_enqueue_scripts',        array($this,  'enqueue_scripts'));
     add_action('init',                      array($this,  'maybe_update_username')); //Need to use init for cookie stuff and to get old and new emails
     add_action('mepr-above-checkout-form',  array($this,  'maybe_show_broken_sub_message')); //Show message on checkout form with link to update broken sub
+    add_action( 'wp_ajax_save_profile_changes', array( $this, 'save_profile_fields' ) );
 
     //These are dependent on the the theme/template supporting them.
     //To Turn On:
@@ -146,7 +147,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     }
   }
 
-  public function render() {
+  public function render($atts = []) {
     global $post;
 
     $mepr_current_user = MeprUtils::get_currentuserinfo();
@@ -164,9 +165,12 @@ class MeprAccountCtrl extends MeprBaseCtrl {
 
     $delim = MeprAppCtrl::get_param_delimiter_char($account_url);
 
+    MeprHooks::do_action( 'mepr_before_account_render');
+
     MeprView::render('/account/nav', get_defined_vars());
 
     $action = MeprHooks::apply_filters('mepr-account-action', (isset($_REQUEST['action']))?$_REQUEST['action']:false);
+
 
     switch($action) {
       case 'payments':
@@ -196,16 +200,18 @@ class MeprAccountCtrl extends MeprBaseCtrl {
       default:
         // Allows you to override the content for a nav tab
         ob_start();
-        MeprHooks::do_action( 'mepr_account_nav_content', $action );
+        MeprHooks::do_action( 'mepr_account_nav_content', $action, $atts );
         $custom_content = ob_get_clean();
 
         if(empty($custom_content)) {
           $this->home();
         }
         else {
-          echo $custom_content;
+          echo '<div class="mepr-' . $action .'-wrapper">' . $custom_content . '</div>';
         }
     }
+
+    // MeprHooks::do_action( 'mepr_after_account_render', $action, $atts );
   }
 
   public function home() {
@@ -254,6 +260,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     //Load user last in case we saved above, we want the saved info to show up
     $mepr_current_user = new MeprUser($mepr_current_user->ID);
 
+    MeprHooks::do_action('mepr-before-render-account', $mepr_current_user);
     MeprView::render('/account/home', get_defined_vars());
   }
 
@@ -275,7 +282,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     MeprView::render('/account/password', get_defined_vars());
   }
 
-  public function payments() {
+  public function payments($args = array()) {
     global $wpdb;
     $mepr_current_user = MeprUtils::get_currentuserinfo();
     $mepr_options = MeprOptions::fetch();
@@ -285,6 +292,10 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $curr_page = (isset($_GET['currpage']) && is_numeric($_GET['currpage']))?$_GET['currpage']:1;
     $start = ($curr_page - 1) * $perpage;
     $end = $start + $perpage;
+
+    if(isset($args['mode']) && 'pro-templates' == $args['mode']){
+      $perpage = isset($args['count']) ? $args['count'] + $perpage : $perpage;
+    }
 
     $list_table = MeprTransaction::list_table(
       'created_at', 'DESC', $curr_page,
@@ -303,7 +314,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     MeprView::render('/account/payments', get_defined_vars());
   }
 
-  public function subscriptions($message='',$errors=array()) {
+  public function subscriptions($message='',$errors=array(), $args = array()) {
     global $wpdb;
     $mepr_current_user = MeprUtils::get_currentuserinfo();
     $mepr_options = MeprOptions::fetch();
@@ -316,6 +327,10 @@ class MeprAccountCtrl extends MeprBaseCtrl {
 
     // This is necessary to optimize the queries ... only query what we need
     $sub_cols = array('id','user_id','product_id','subscr_id','status','created_at','expires_at','active');
+
+    if(isset($args['mode']) && 'pro-templates' == $args['mode']){
+      $perpage = isset($args['count']) ? $args['count'] + $perpage : $perpage;
+    }
 
     $table = MeprSubscription::account_subscr_table(
       'created_at', 'DESC',
@@ -461,10 +476,10 @@ class MeprAccountCtrl extends MeprBaseCtrl {
   public function account_form_shortcode($atts, $content = '') {
     //No need to validate anything as the below function already
     //does all the validations. This is just a wrapper
-    return $this->display_account_form($content);
+    return $this->display_account_form($content, $atts);
   }
 
-  public function display_account_form($content = '') {
+  public function display_account_form($content = '', $atts= []) {
     global $post;
 
     //Static var to prevent duplicate token issues with Stripe
@@ -485,7 +500,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
 
     if(MeprUtils::is_user_logged_in()) {
       ob_start();
-      MeprAccountCtrl::render();
+      MeprAccountCtrl::render($atts);
       $content .= ob_get_clean();
     }
     else {
@@ -606,6 +621,54 @@ class MeprAccountCtrl extends MeprBaseCtrl {
 
     MeprUtils::wp_redirect($account_url.$delim.'action=newpassword&error=failed');
   }
+
+  /**
+   * Save account profile fields for PRO templates
+   *
+   * @return void
+   */
+  public function save_profile_fields() {
+    // Check for nonce security
+    if ( isset( $_POST['nonce'] ) && ! wp_verify_nonce( $_POST['nonce'], 'mepr_account_update' ) ) {
+      die( 'Busted!' );
+    }
+
+    //Since we use user_* for these, we need to artifically set the $_POST keys correctly for this to work
+    if(isset($_POST['user_first_name']) && ( !isset($_POST['first_name']) || empty($_POST['first_name']))) {
+      $_POST['first_name'] = (!empty($_POST['user_first_name']))?sanitize_text_field(wp_unslash($_POST['user_first_name'])):'';
+      unset($_POST['user_first_name']);
+    }
+
+    if(isset($_POST['user_last_name']) && (!isset($_POST['last_name']) || empty($_POST['last_name']))) {
+      $_POST['last_name'] = (!empty($_POST['user_last_name']))?sanitize_text_field(wp_unslash($_POST['user_last_name'])):'';
+      unset($_POST['user_last_name']);
+    }
+
+    $field_key    = array_map( 'sanitize_key', array_merge( array_keys( $_POST ), array_keys( $_FILES ) ) );
+    $current_user = MeprUtils::get_currentuserinfo();
+
+    $errors = MeprUsersCtrl::validate_extra_profile_fields( null, null, $current_user, false, false, $field_key );
+    $errors = MeprUser::validate_account_field( $_POST, $errors );
+    $errors = MeprHooks::apply_filters( 'mepr-validate-account', $errors, $current_user );
+
+    if ( empty( $errors ) ) {
+      if ( isset( $_POST['user_email'] ) && ! empty( $_POST['user_email'] ) ) {
+        $new_email = sanitize_email( $_POST['user_email'] );
+
+        if ( $current_user->user_email != $new_email ) {
+          $current_user->user_email = $new_email;
+          $current_user->store();
+          MeprHooks::do_action( 'mepr-update-new-user-email', $current_user );
+        }
+      }
+
+      MeprUsersCtrl::save_extra_profile_fields( $current_user->ID, true, false, false, $field_key );
+      wp_send_json_success();
+    } else {
+      wp_send_json( $errors );
+    }
+  }
+
 
   //Shortcode is meant to be placed on the thank you page or per-membership thank you page messages
   public function offline_gateway_instructions($atts = array(), $content = '') {

@@ -4,7 +4,6 @@ if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');
 class MeprView {
   public static function file($slug,$paths=array()) {
     $paths = (empty($paths) ? self::paths() : $paths);
-
     $find = $slug . '.php';
 
     if(!preg_match('#^/#', $find)) { $find = '/' . $find; }

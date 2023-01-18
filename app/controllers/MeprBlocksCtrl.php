@@ -8,12 +8,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class MeprBlocksCtrl extends MeprBaseCtrl {
 
+  /**
+   * Register all class actions and filters.
+   */
   public function load_hooks() {
 
-    // Only load block stuff when Gutenberg is active (e.g. WordPress 5.0+)
+    // Only load block stuff when Gutenberg is active (e.g. WordPress 5.0+).
     if ( function_exists( 'register_block_type' ) ) {
       add_action( 'init', array( $this, 'register_block_types_serverside' ) );
-      add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_block_scripts' ) );
+      add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_block_scripts' ) );
+      add_action( 'enqueue_block_assets', array( $this, 'enqueue_block_scripts' ) );
       add_filter( 'mepr-is-product-page', array( $this, 'signup_block_enqueues' ), 10, 2 );
       add_filter( 'mepr_is_account_page', array( $this, 'account_block_enqueues' ), 10, 2 );
     }
@@ -25,6 +29,10 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
    * @return void
    */
   public function register_block_types_serverside() {
+    $mepr_options    = MeprOptions::fetch();
+
+    // Since WP 5.8, this makes sure assets are not loaded on all pages but for content that has such blocks
+    add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
     // Membership signup form block
     register_block_type(
@@ -80,6 +88,90 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
           ),
         ),
         'render_callback' => array( $this, 'render_protected_content_block' ),
+      )
+    );
+
+    // Pro Login Form
+    register_block_type(
+      'memberpress/pro-login-form',
+      array(
+        'api_version'     => 2,
+        'attributes'      => array(
+          'show_welcome_image' => array(
+            'type' => 'boolean',
+            'default' => $mepr_options->design_show_login_welcome_image
+          ),
+          'welcome_image'      => array(
+            'type' => 'string',
+            'default' => $mepr_options->design_login_welcome_img ? wp_get_attachment_url( $mepr_options->design_login_welcome_img ) : ''
+          ),
+          'admin_view'            => array(
+            'type' => 'boolean',
+          )
+        ),
+        'render_callback' => array( $this, 'render_pro_login_block' ),
+        'style'           => 'mp-pro-login',
+      )
+    );
+
+    // Pricing Columns for Pro Template
+    register_block_type(
+      'memberpress/pro-pricing-table',
+      array(
+        'api_version'     => 2,
+        'attributes'      => array(
+          'show_title'             => array(
+            'type' => 'boolean',
+          ),
+          'button_highlight_color' => array(
+            'type'    => 'string',
+            'default' => '#EF1010',
+          ),
+          'group_id'               => array(
+            'type'    => 'string',
+            'default' => '',
+          ),
+        ),
+        'render_callback' => array( $this, 'render_pro_pricing_block' ),
+        'style'    => 'mp-pro-pricing',
+      )
+    );
+
+    // Accounts Tab
+    register_block_type(
+      'memberpress/pro-account-tabs',
+      array(
+        'api_version'     => 2,
+        'attributes'      => array(
+          'show_welcome_image' => array(
+            'type' => 'boolean',
+            'default' => $mepr_options->design_show_account_welcome_image
+          ),
+          'welcome_image'      => array(
+            'type'    => 'string',
+            'default' => $mepr_options->design_account_welcome_img ? wp_get_attachment_url( $mepr_options->design_account_welcome_img ) : ''
+          ),
+        ),
+        'render_callback' => array( $this, 'render_pro_account_block' ),
+        'style'    => 'mp-pro-account',
+      )
+    );
+
+    register_block_type(
+      'memberpress/checkout',
+      array(
+        'api_version'     => 2,
+        'attributes'      => array(
+          'show_welcome_image' => array(
+            'type' => 'boolean',
+          ),
+          'membership_id'      => array(
+            'type'    => 'string',
+            'default' => '',
+          ),
+        ),
+        'render_callback' => array( $this, 'render_checkout_block' ),
+        'style'           => 'mp-pro-checkout'
       )
     );
   }
@@ -151,12 +243,109 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
   }
 
   /**
+   * Renders the MP login form
+   *
+   * @param array $props    Properties/data from the block
+   *
+   * @return string
+   */
+  public function render_pro_login_block( $atts ) {
+
+    $show_welcome_image = filter_var( $atts['show_welcome_image'], FILTER_VALIDATE_BOOLEAN );
+
+    $admin_view = isset($atts['admin_view']) ? filter_var( $atts['admin_view'], FILTER_VALIDATE_BOOLEAN ) : false;
+
+    $welcome_image = isset( $atts['welcome_image'] ) ?
+    esc_url_raw( $atts['welcome_image'] ) : '';
+
+    $shortcode = "[mepr-pro-login-form
+    show_welcome_image='$show_welcome_image'
+    welcome_image='$welcome_image'
+    admin_view='$admin_view']";
+
+    ob_start();
+    echo do_shortcode( $shortcode );
+    return ob_get_clean();
+  }
+
+  /**
+   * Renders the MP login form
+   *
+   * @param array $props    Properties/data from the block
+   *
+   * @return string
+   */
+  public function render_pro_pricing_block( $atts ) {
+    $show_title = isset( $atts['show_title'] ) &&
+    filter_var( $atts['show_title'], FILTER_VALIDATE_BOOLEAN ) ?
+    true : false;
+
+    $button_highlight_color = isset( $atts['button_highlight_color'] ) ?
+    sanitize_text_field( $atts['button_highlight_color'] ) : '';
+
+    $group_id = isset( $atts['group_id'] ) ?
+    absint( $atts['group_id'] ) : '';
+
+    $shortcode = "[mepr-pro-pricing-table
+    show_title='$show_title'
+    button_highlight_color='$button_highlight_color'
+    group_id='$group_id']";
+
+    ob_start();
+    echo do_shortcode( $shortcode );
+    return ob_get_clean();
+  }
+
+
+  /**
+   * Renders the MP login form
+   *
+   * @param array $props    Properties/data from the block
+   *
+   * @return string
+   */
+  public function render_pro_account_block( $atts ) {
+    $show_welcome_image = isset( $atts['show_welcome_image'] ) &&
+    filter_var( $atts['show_welcome_image'], FILTER_VALIDATE_BOOLEAN ) ?
+    true : false;
+
+    $welcome_image = isset( $atts['welcome_image'] ) ?
+    esc_url_raw( $atts['welcome_image'] ) : '';
+
+    $shortcode = "[mepr-pro-account-tabs
+    show_welcome_image='$show_welcome_image'
+    welcome_image='$welcome_image']";
+
+    ob_start();
+    echo do_shortcode( $shortcode );
+    return ob_get_clean();
+  }
+
+  /**
+   * Renders the MP login form
+   *
+   * @param array $props    Properties/data from the block
+   *
+   * @return string
+   */
+  public function render_checkout_block( $atts ) {
+    $membership_id = isset( $atts['membership_id'] ) ?
+    absint( $atts['membership_id'] ) : '';
+
+    $shortcode = "[mepr-pro-checkout membership_id='$membership_id']";
+    ob_start();
+    echo do_shortcode( $shortcode );
+    return ob_get_clean();
+  }
+
+
+  /**
    * Enqueue the necessary JS in the editor
    *
    * @return void
    */
-  public function enqueue_block_scripts() {
-    $asset_file   = include( MEPR_JS_PATH . '/build/blocks.asset.php' );
+  public function enqueue_editor_block_scripts() {
+    $asset_file = include MEPR_JS_PATH . '/build/blocks.asset.php';
 
     $dependencies = array_unique(
       array_merge(
@@ -198,6 +387,14 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
       );
     }
 
+    // Assemble MP Groups into an options array
+    foreach ( MeprCptModel::all( 'MeprGroup' ) as $group ) {
+      $groups[] = array(
+        'label' => $group->post_title,
+        'value' => $group->ID,
+      );
+    }
+
     // Make the data available to the script
     wp_localize_script(
       'memberpress/blocks',
@@ -205,9 +402,32 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
       array(
         'memberships'              => $membership_options,
         'rules'                    => $rule_options,
+        'groups'                   => $groups,
         'redirect_url_setting_url' => menu_page_url( 'memberpress-options', false ) . '#mepr-accounts',
       )
     );
+
+  }
+
+  /**
+   * Enqueue the necessary scripts / styles for each block
+   *
+   * @return void
+   */
+  public function enqueue_block_scripts() {
+
+    // Register account scripts
+    wp_register_style( 'mp-pro-fonts', MEPR_CSS_URL . '/pro-templates/fonts.css', null, MEPR_VERSION );
+    wp_register_style( 'mp-pro-login', MEPR_CSS_URL . '/pro-templates/login.css', null, MEPR_VERSION );
+    wp_register_style( 'mp-pro-account', MEPR_CSS_URL . '/pro-templates/account.css', array( 'mp-pro-fonts', 'mp-pro-login' ), MEPR_VERSION );
+
+    // Register pricing scripts
+    wp_register_style( 'mp-pro-pricing', MEPR_CSS_URL . '/pro-templates/pricing.css', null, MEPR_VERSION );
+
+    // Register checkout scripts
+    $prereqs = MeprHooks::apply_filters( 'mepr-signup-styles', array() );
+    wp_register_style( 'mp-signup', MEPR_CSS_URL . '/signup.css', $prereqs, MEPR_VERSION );
+    wp_register_style( 'mp-pro-checkout', MEPR_CSS_URL . '/pro-templates/checkout.css', array( 'mp-signup' ), MEPR_VERSION );
   }
 
   /**
@@ -226,24 +446,23 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
 
     // We don't want to mess with enqueues on MemberPress products since the files are already properly enqueued there
     if ( ! is_object( $return ) || ! is_a( $return, 'MeprProduct' ) ) {
-
-      $load       = false;
       $membership = false;
 
       // Check that the signup form block is added
       $match = preg_match( '/(?:wp:memberpress\/membership-signup\s)(\{(?:[^{}]|(?R))*\})/', $post->post_content, $matches );
 
       if ( 1 === $match && isset( $matches[1] ) && isset( json_decode( $matches[1], true )['membership'] ) ) {
-
         $membership = new MeprProduct( json_decode( $matches[1], true )['membership'] );
-
-        // Valid membership
-        if ( isset( $membership->ID ) && $membership->ID > 0 ) {
-          $load = true;
-        }
+      } elseif ( preg_match(
+        '~(?:wp:memberpress\/checkout\s)+{\"membership_id\"\:[\"\\\'](\d+)[\"\\\']~',
+        $post->post_content,
+        $m
+      ) ) {
+        $membership = new MeprProduct( $m[1] );
       }
 
-      if ( true === $load ) {
+      // Valid membership
+      if ( isset( $membership->ID ) && $membership->ID > 0 ) {
         $return = $membership; // Return the MeprProduct instead of just boolean true (backward compatibility)
       }
     }

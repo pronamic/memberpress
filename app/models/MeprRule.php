@@ -569,63 +569,65 @@ class MeprRule extends MeprCptModel {
     }
 
     foreach(self::$all_rules as $curr_rule) {
-      if(is_a($context, 'WP_Post') && $curr_rule->mepr_type != 'custom') {
-        if( $curr_rule->mepr_type == 'all' ) {
-          // We're going to add this rule immediately if it's set to all and it's not an exception
-          if( !self::is_exception_to_rule( $context, $curr_rule ) ) { $post_rules[] = $curr_rule; }
-        }
-        elseif(preg_match('#^all_tax_(.*?)$#', $curr_rule->mepr_type, $matches)) {
-          if( has_term( $curr_rule->mepr_content, $matches[1], $context->ID ) )
-            $post_rules[] = $curr_rule;
-        }
-        elseif(preg_match('#^all_(.*?)$#', $curr_rule->mepr_type, $matches)) {
-          if( preg_match('#^'.preg_quote($context->post_type).'s?$#', $matches[1]) &&
-              !self::is_exception_to_rule( $context, $curr_rule ) ) {
-            $post_rules[] = $curr_rule;
+      if (isset($curr_rule->ID)) { //Occassionally some how this loop ends up with nulled out rules which causes issues. This check will prevent that from happening
+        if(is_a($context, 'WP_Post') && $curr_rule->mepr_type != 'custom') {
+          if( $curr_rule->mepr_type == 'all' ) {
+            // We're going to add this rule immediately if it's set to all and it's not an exception
+            if( !self::is_exception_to_rule( $context, $curr_rule ) ) { $post_rules[] = $curr_rule; }
           }
-        }
-        elseif(preg_match('#^single_(.*?)$#', $curr_rule->mepr_type, $matches)) {
-          if( $context->post_type == $matches[1] &&
-              $context->ID == $curr_rule->mepr_content ) {
-            $post_rules[] = $curr_rule;
+          elseif(preg_match('#^all_tax_(.*?)$#', $curr_rule->mepr_type, $matches)) {
+            if( has_term( $curr_rule->mepr_content, $matches[1], $context->ID ) )
+              $post_rules[] = $curr_rule;
           }
-        }
-        elseif(preg_match('#^parent_(.*?)$#', $curr_rule->mepr_type, $matches)) {
-          if( $context->post_type == $matches[1] /* &&
-              $context->post_parent == $curr_rule->mepr_content */ ) {
-            $ancestors = get_post_ancestors($context->ID);
+          elseif(preg_match('#^all_(.*?)$#', $curr_rule->mepr_type, $matches)) {
+            if( preg_match('#^'.preg_quote($context->post_type).'s?$#', $matches[1]) &&
+                !self::is_exception_to_rule( $context, $curr_rule ) ) {
+              $post_rules[] = $curr_rule;
+            }
+          }
+          elseif(preg_match('#^single_(.*?)$#', $curr_rule->mepr_type, $matches)) {
+            if( $context->post_type == $matches[1] &&
+                $context->ID == $curr_rule->mepr_content ) {
+              $post_rules[] = $curr_rule;
+            }
+          }
+          elseif(preg_match('#^parent_(.*?)$#', $curr_rule->mepr_type, $matches)) {
+            if( $context->post_type == $matches[1] /* &&
+                $context->post_parent == $curr_rule->mepr_content */ ) {
+              $ancestors = get_post_ancestors($context->ID);
 
-            //Let's protect all lineage of the parent page
-            if(in_array($curr_rule->mepr_content, $ancestors, false)) {
+              //Let's protect all lineage of the parent page
+              if(in_array($curr_rule->mepr_content, $ancestors, false)) {
+                $post_rules[] = $curr_rule;
+              }
+            }
+          }
+          elseif($curr_rule->mepr_type == 'category') {
+            if(in_category($curr_rule->mepr_content, $context->ID))
+              $post_rules[] = $curr_rule;
+          }
+          elseif($curr_rule->mepr_type == 'tag') {
+            if(has_tag($curr_rule->mepr_content, $context->ID))
+              $post_rules[] = $curr_rule;
+          }
+          elseif(preg_match('#^tax_(.*?)\|\|cpt_(.*?)$#', $curr_rule->mepr_type, $matches)) {
+            if( $context->post_type == $matches[2] &&
+                has_term( $curr_rule->mepr_content, $matches[1], $context->ID ) ) {
               $post_rules[] = $curr_rule;
             }
           }
         }
-        elseif($curr_rule->mepr_type == 'category') {
-          if(in_category($curr_rule->mepr_content, $context->ID))
-            $post_rules[] = $curr_rule;
-        }
-        elseif($curr_rule->mepr_type == 'tag') {
-          if(has_tag($curr_rule->mepr_content, $context->ID))
-            $post_rules[] = $curr_rule;
-        }
-        elseif(preg_match('#^tax_(.*?)\|\|cpt_(.*?)$#', $curr_rule->mepr_type, $matches)) {
-          if( $context->post_type == $matches[2] &&
-              has_term( $curr_rule->mepr_content, $matches[1], $context->ID ) ) {
+        elseif($curr_rule->mepr_type == 'custom' && is_string($context)) {
+          $uri = empty($context) ? esc_url($_SERVER['REQUEST_URI']) : $context;
+          $uri = html_entity_decode($uri); // Needed to decode &#038; and other html entities
+
+          if( ($curr_rule->is_mepr_content_regexp && preg_match('~'.$curr_rule->mepr_content.'~i', $uri)) ||
+              (!$curr_rule->is_mepr_content_regexp && strpos($uri, $curr_rule->mepr_content) === 0) ) {
             $post_rules[] = $curr_rule;
           }
         }
+        $post_rules = MeprHooks::apply_filters('mepr-extend-rules', $post_rules, $curr_rule, $context);
       }
-      elseif($curr_rule->mepr_type == 'custom' && is_string($context)) {
-        $uri = empty($context) ? esc_url($_SERVER['REQUEST_URI']) : $context;
-        $uri = html_entity_decode($uri); // Needed to decode &#038; and other html entities
-
-        if( ($curr_rule->is_mepr_content_regexp && preg_match('~'.$curr_rule->mepr_content.'~i', $uri)) ||
-            (!$curr_rule->is_mepr_content_regexp && strpos($uri, $curr_rule->mepr_content) === 0) ) {
-          $post_rules[] = $curr_rule;
-        }
-      }
-      $post_rules = MeprHooks::apply_filters('mepr-extend-rules', $post_rules, $curr_rule, $context);
     } //End foreach
 
     return $post_rules;

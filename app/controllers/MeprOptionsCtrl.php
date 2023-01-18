@@ -85,7 +85,6 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
       if(count($errors) <= 0) {
         MeprHooks::do_action('mepr-process-options', $_POST);
         $settings = MeprHooks::apply_filters( 'mepr-saved-options', $_POST );
-
         $mepr_options->update($settings);
         $mepr_options->store();
 
@@ -167,6 +166,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
       );
 
       wp_register_script('memberpress-i18n', MEPR_JS_URL.'/i18n.js', array('jquery'), MEPR_VERSION);
+      wp_register_script('mepr-uploader', MEPR_JS_URL.'/uploader.js', array(), MEPR_VERSION);
       wp_enqueue_script('alpinejs', 'https://unpkg.com/alpinejs@3.9.3/dist/cdn.min.js', array(), MEPR_VERSION, true);
       wp_localize_script('memberpress-i18n', 'MeprI18n', array('states' => MeprUtils::states()));
 

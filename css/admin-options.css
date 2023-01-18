@@ -339,3 +339,66 @@ th.stripe-checkbox-column-left {
 td.stripe-checkbox-column-right {
   max-width: 20%;
 }
+
+/* Form Slider */
+.mepr-form label.switch{
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 21px;
+  margin-right: 1em;
+}
+
+.mepr-form label.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mepr-form label.switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.mepr-form label.switch .slider.round {
+  border-radius: 17px;
+}
+
+.mepr-form label.switch .slider.round:before {
+  border-radius: 50%;
+}
+
+.mepr-form label.switch .slider:before {
+  position: absolute;
+  content: "";
+  height: 15px;
+  width: 15px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.mepr-form label.switch input:checked + .slider {
+  /* background-color: #06429E; */
+  border: 1px solid #06429E;
+}
+
+.mepr-form label.switch input:checked + .slider:before {
+  -webkit-transform: translateX(15px);
+  -ms-transform: translateX(15px);
+  transform: translateX(15px);
+  background-color: #06429E;
+
+}
+/* End Form Slider */

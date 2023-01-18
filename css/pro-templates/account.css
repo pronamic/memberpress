@@ -1,0 +1,920 @@
+.mepr-account-container {
+  display: grid;
+  /* grid-template-columns: 250px auto; */
+  /* gap: 2em; */
+  overflow: hidden;
+  /* Resolves issue with <pre> elements forcing full width. */
+  min-height: 100vh;
+  /* Typography
+  --------------------------------------------- */
+  /* Elements
+  --------------------------------------------- */
+  /* Make sure embeds and iframes fit their containers. */
+  /* Links
+  --------------------------------------------- */
+  /* Forms
+  --------------------------------------------- */
+}
+.mepr-account-container body,
+.mepr-account-container button,
+.mepr-account-container input,
+.mepr-account-container select,
+.mepr-account-container optgroup,
+.mepr-account-container textarea {
+  color: #404040;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.mepr-account-container h1,
+.mepr-account-container h2,
+.mepr-account-container h3,
+.mepr-account-container h4,
+.mepr-account-container h5,
+.mepr-account-container h6 {
+  clear: both;
+}
+.mepr-account-container p {
+  margin-bottom: 1.5em;
+}
+.mepr-account-container dfn,
+.mepr-account-container cite,
+.mepr-account-container em,
+.mepr-account-container i {
+  font-style: italic;
+}
+.mepr-account-container blockquote {
+  margin: 0 1.5em;
+}
+.mepr-account-container address {
+  margin: 0 0 1.5em;
+}
+.mepr-account-container pre {
+  background: #eee;
+  font-family: "Courier 10 Pitch", courier, monospace;
+  line-height: 1.6;
+  margin-bottom: 1.6em;
+  max-width: 100%;
+  overflow: auto;
+  padding: 1.6em;
+}
+.mepr-account-container code,
+.mepr-account-container kbd,
+.mepr-account-container tt,
+.mepr-account-container var {
+  font-family: monaco, consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
+}
+.mepr-account-container abbr,
+.mepr-account-container acronym {
+  border-bottom: 1px dotted #666;
+  cursor: help;
+}
+.mepr-account-container mark,
+.mepr-account-container ins {
+  background: #fff9c0;
+  text-decoration: none;
+}
+.mepr-account-container big {
+  font-size: 125%;
+}
+.mepr-account-container body {
+  background: #fff;
+}
+.mepr-account-container [x-cloak] {
+  display: none !important;
+}
+.mepr-account-container hr {
+  background-color: #ccc;
+  border: 0;
+  height: 1px;
+  margin-bottom: 1.5em;
+}
+.mepr-account-container ul,
+.mepr-account-container ol {
+  margin: 0 0 1.5em 3em;
+}
+.mepr-account-container ul {
+  list-style: disc;
+}
+.mepr-account-container ol {
+  list-style: decimal;
+}
+.mepr-account-container li > ul,
+.mepr-account-container li > ol {
+  margin-bottom: 0;
+  margin-left: 1.5em;
+}
+.mepr-account-container dt {
+  font-weight: 700;
+}
+.mepr-account-container dd {
+  margin: 0 1.5em 1.5em;
+}
+.mepr-account-container embed,
+.mepr-account-container iframe,
+.mepr-account-container object {
+  max-width: 100%;
+}
+.mepr-account-container img {
+  height: auto;
+  max-width: 100%;
+}
+.mepr-account-container svg {
+  width: 1rem;
+  height: 1rem;
+}
+.mepr-account-container figure {
+  margin: 1em 0;
+}
+.mepr-account-container table {
+  width: 100%;
+  margin-bottom: 1rem;
+  color: #212529;
+  caption-side: bottom;
+  border-collapse: collapse;
+}
+.mepr-account-container table th,
+.mepr-account-container table td {
+  padding: 0.75rem;
+  vertical-align: top;
+  text-align: left;
+}
+
+@media screen and (max-width: 600px) {
+  .mepr-account-container table {
+    border: 0;
+  }
+
+  .mepr-account-container table thead {
+    display: none !important;
+  }
+
+  .mepr-account-container table tr {
+    margin-bottom: 25px;
+    display: block;
+    border-bottom: 3px solid #ddd;
+  }
+
+  .mepr-account-container table td {
+    display: block;
+    text-align: right;
+    border-top: none;
+    border-left: none;
+    border-bottom: 1px dotted #ccc;
+  }
+
+  .mepr-account-container table td:last-child {
+    border-bottom: 0;
+  }
+
+  .mepr-account-container table td div {
+    padding: 0;
+    margin: 0;
+    margin-left: 15px;
+  }
+
+  .mepr-account-container table td:before {
+    content: attr(data-label);
+    float: left;
+    /* text-transform:uppercase; */
+    /* font-weight:bold; */
+  }
+
+  .mepr-account-subscr-id,
+  .mepr-account-auto-rebill,
+  .mepr-account-rebill {
+    display: none;
+  }
+
+  .mepr-account-terms,
+  .mepr-account-subscr-id,
+  .mepr-account-rebill {
+    font-size: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    color: inherit;
+  }
+}
+
+.mepr-account-container a {
+  color: #06429e;
+  text-decoration: none;
+}
+.mepr-account-container a:visited {
+  color: #06429e;
+}
+.mepr-account-container a:hover,
+.mepr-account-container a:focus,
+.mepr-account-container a:active {
+  color: #191970;
+}
+.mepr-account-container a:focus {
+  outline: thin dotted;
+}
+.mepr-account-container a:hover,
+.mepr-account-container a:active {
+  outline: 0;
+}
+.mepr-account-container button,
+.mepr-account-container .mepr-button,
+.mepr-account-container input[type="button"],
+.mepr-account-container input[type="reset"],
+.mepr-account-container input[type="submit"] {
+  border: 1px solid;
+  border-color: #fff;
+  background: #06429e;
+  color: #fff;
+  display: inline-block;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.mepr-account-container button:hover,
+.mepr-account-container .mepr-button:hover,
+.mepr-account-container input[type="button"]:hover,
+.mepr-account-container input[type="reset"]:hover,
+.mepr-account-container input[type="submit"]:hover {
+  border-color: #ccc #bbb #aaa;
+}
+.mepr-account-container button:active,
+.mepr-account-container button:focus,
+.mepr-account-container .mepr-button:active,
+.mepr-account-container .mepr-button:focus,
+.mepr-account-container input[type="button"]:active,
+.mepr-account-container input[type="button"]:focus,
+.mepr-account-container input[type="reset"]:active,
+.mepr-account-container input[type="reset"]:focus,
+.mepr-account-container input[type="submit"]:active,
+.mepr-account-container input[type="submit"]:focus {
+  border-color: #aaa #bbb #bbb;
+}
+.mepr-account-container button.btn-link,
+.mepr-account-container .mepr-button.btn-link,
+.mepr-account-container input[type="button"].btn-link,
+.mepr-account-container input[type="reset"].btn-link,
+.mepr-account-container input[type="submit"].btn-link {
+  font-weight: 400;
+  color: #007bff;
+  background-color: transparent;
+  border: 0;
+}
+.mepr-account-container .dropdown {
+  position: absolute;
+  z-index: 1;
+  transform: translate3d(0px, 38px, 0px);
+  top: 0px;
+  left: 0px;
+  will-change: transform;
+  float: left;
+  min-width: 10rem;
+  padding: 0.5rem 0;
+  margin: 0.125rem 0 0;
+  font-size: 1rem;
+  color: #212529;
+  text-align: left;
+  list-style: none;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.25rem;
+}
+.mepr-account-container .dropdown a {
+  display: block;
+  width: 100%;
+  padding: 0.25rem 1.5rem;
+  clear: both;
+  font-weight: 400;
+  color: #212529;
+  text-align: inherit;
+  white-space: nowrap;
+  background-color: transparent;
+  border: 0;
+  text-decoration: none;
+}
+.mepr-account-container .mepr-button.btn-outline {
+  background: transparent;
+  color: #06429e;
+  border-color: #06429e;
+}
+.mepr-account-container .mepr-form .mp-address-group {
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.08), 0px 1px 1px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.mepr-account-container .mepr-form .mp-address-group .mp-form-row {
+  margin: 0;
+}
+.mepr-account-container
+  .mepr-form
+  .mp-address-group
+  .mp-form-row
+  .mp-form-label {
+  display: none;
+}
+
+.mepr-account-container .mp-form-row-group {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.mepr-account-container .mp-form-row-group .mepr-form-input:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.mepr-account-container .mp-form-row-group .mepr-form-input:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.mepr-account-container
+  .mp-form-row-group
+  > .mepr-form-input
+  + .mepr-form-input {
+  margin-left: -1px;
+}
+
+.mepr-account-container .mepr-form .mp-address-group .mepr-form-input,
+.mepr-account-container .mepr-form .mp-address-group input[type="text"] {
+  margin: 0;
+  box-shadow: none;
+  border-radius: 0;
+  height: calc(1.7em + 0.75rem + 2px);
+}
+.mepr-account-container
+  .mepr-form
+  .mp-address-group
+  > .mp-form-row
+  + .mp-form-row
+  .mepr-form-input {
+  margin-top: -1px;
+}
+.mepr-account-container
+  .mepr-form
+  .mp-address-group
+  .mp-form-row:first-child
+  .mepr-form-input {
+  border-top-left-radius: 0.25rem;
+  border-top-right-radius: 0.25rem;
+}
+.mepr-account-container
+  .mepr-form
+  .mp-address-group
+  .mp-form-row:last-child
+  .mepr-form-input {
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+.mepr-account-container .mepr-form #mp-address-group-label {
+  display: none;
+}
+.mepr-account-container .mepr-form input[type="text"],
+.mepr-account-container .mepr-form input[type="email"],
+.mepr-account-container .mepr-form input[type="url"],
+.mepr-account-container .mepr-form input[type="password"],
+.mepr-account-container .mepr-form input[type="search"],
+.mepr-account-container .mepr-form input[type="number"],
+.mepr-account-container .mepr-form input[type="tel"],
+.mepr-account-container .mepr-form input[type="range"],
+.mepr-account-container .mepr-form input[type="date"],
+.mepr-account-container .mepr-form input[type="month"],
+.mepr-account-container .mepr-form input[type="week"],
+.mepr-account-container .mepr-form input[type="time"],
+.mepr-account-container .mepr-form input[type="datetime"],
+.mepr-account-container .mepr-form input[type="datetime-local"],
+.mepr-account-container .mepr-form input[type="color"],
+.mepr-account-container .mepr-form textarea {
+  display: block;
+  width: 100%;
+  height: calc(1.5em + 0.75rem + 2px);
+  /* padding: 0.375rem 0.75rem; */
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.08), 0px 1px 1px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.mepr-account-container .mepr-form input[type="text"]:focus,
+.mepr-account-container .mepr-form input[type="email"]:focus,
+.mepr-account-container .mepr-form input[type="url"]:focus,
+.mepr-account-container .mepr-form input[type="password"]:focus,
+.mepr-account-container .mepr-form input[type="search"]:focus,
+.mepr-account-container .mepr-form input[type="number"]:focus,
+.mepr-account-container .mepr-form input[type="tel"]:focus,
+.mepr-account-container .mepr-form input[type="range"]:focus,
+.mepr-account-container .mepr-form input[type="date"]:focus,
+.mepr-account-container .mepr-form input[type="month"]:focus,
+.mepr-account-container .mepr-form input[type="week"]:focus,
+.mepr-account-container .mepr-form input[type="time"]:focus,
+.mepr-account-container .mepr-form input[type="datetime"]:focus,
+.mepr-account-container .mepr-form input[type="datetime-local"]:focus,
+.mepr-account-container .mepr-form input[type="color"]:focus,
+.mepr-account-container .mepr-form textarea:focus {
+  color: #111;
+}
+.mepr-account-container .mepr-form select {
+  border: 1px solid #ccc;
+  display: block;
+  width: 100%;
+  padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+  -moz-padding-start: calc(0.75rem - 3px);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+.mepr-account-container .mepr-form select[multiple] {
+  padding-right: 0.75rem;
+  background-image: none;
+}
+.mepr-account-container .mepr-form textarea {
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 90px;
+}
+.mepr-account-container .mepr-form .iti {
+  width: 100%;
+}
+.mepr-account-container .mepr-account-meta {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 3em 0;
+}
+.mepr-account-container .mepr-account-meta__spinner {
+  display: none;
+  width: 32px;
+  height: 32px;
+}
+
+#mepr-account-nav {
+  background: #06429e;
+  display: none;
+}
+@media screen and (min-width: 840px) {
+  #mepr-account-nav {
+    display: block;
+  }
+}
+@media screen and (max-width: 767px) {
+  .account-header .profile-menu__dropdown.dropdown {
+    display: none !important;
+  }
+}
+#mepr-account-nav .mepr-nav-item {
+  display: block;
+  padding: 0;
+}
+#mepr-account-nav .mepr-nav-item a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  position: relative;
+  color: #b7bcc0;
+  text-decoration: none;
+}
+#mepr-account-nav .mepr-nav-item a::before {
+  position: relative;
+  font-family: "icomoon" !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  font-size: 1.3rem;
+  margin-right: 10px;
+  /* width: 1.5rem; */
+  vertical-align: middle;
+  text-align: center;
+  width: 1.25em;
+  content: "\e905";
+}
+#mepr-account-nav .mepr-nav-item a:hover {
+  color: #fff;
+}
+@media screen and (min-width: 840px) {
+  #mepr-account-nav .mepr-nav-item a {
+    justify-content: left;
+  }
+}
+#mepr-account-nav .mepr-nav-item.--active a,
+#mepr-account-nav .mepr-nav-item.mepr-active-nav-tab a {
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-weight: normal;
+}
+#mepr-account-nav .mepr-nav-item.mepr-home a:before {
+  content: "\e901";
+}
+#mepr-account-nav .mepr-nav-item.mepr-payments a:before {
+  content: "\e903";
+}
+#mepr-account-nav .mepr-nav-item.mepr-subscriptions a:before {
+  content: "\e904";
+}
+#mepr-account-nav .mepr-nav-item.mepr-courses a:before {
+  content: "\e902";
+}
+#mepr-account-nav .mepr-nav-item.mepr-logout a:before {
+  content: "\e900";
+}
+#mepr-account-nav.open {
+  display: block;
+}
+
+#mepr-account-content {
+  padding: 2em;
+}
+
+.mepr-profile-wrapper {
+  display: flex;
+  grid-gap: 25px;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  width: 100%;
+}
+@media screen and (min-width: 840px) {
+  .mepr-profile-wrapper {
+    flex-direction: row;
+  }
+}
+.mepr-profile-wrapper > div {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.mepr-profile-wrapper__footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 1rem 0 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.mepr-profile-wrapper__footer > * + * {
+  /* margin-top: 10px; */
+}
+
+.mepr-profile-wrapper__footer > * {
+  margin-top: 10px;
+}
+
+@media screen and (max-width: 398px) {
+}
+
+@media screen and (min-width: 409px) and (max-width: 839px) {
+  .mepr-profile-wrapper__footer > * + * {
+    margin-left: 10px;
+  }
+}
+
+@media screen and (min-width: 915px) {
+  .mepr-profile-wrapper__footer > * + * {
+    margin-left: 10px;
+  }
+}
+
+#mepr-profile-details {
+  flex-grow: 1;
+  width: 100%;
+}
+
+@media screen and (min-width: 840px) {
+  #mepr-profile-details {
+    width: 60%;
+    flex-grow: 0;
+  }
+}
+#mepr-profile-details dt {
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: baseline;
+  font-weight: normal;
+}
+#mepr-profile-details dt svg {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+#mepr-profile-details dd {
+  margin: 0 0 1rem;
+}
+
+#mepr-profile-image {
+  width: 100%;
+}
+#mepr-profile-image img {
+  max-width: 453px;
+  width: 100%;
+  border-radius: 13px;
+}
+@media screen and (min-width: 840px) {
+  #mepr-profile-image {
+    width: 40%;
+  }
+}
+
+.mepr-courses-wrapper {
+  max-width: 1000px;
+}
+.mepr-courses-wrapper .grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr;
+  padding: 1.8rem 0;
+  border-bottom: 1px solid rgba(110, 118, 129, 0.25);
+}
+.mepr-courses-wrapper .grid a {
+  font-weight: 500;
+}
+.mepr-courses-wrapper .grid .grid-pad {
+  width: 100%;
+  padding-left: 0;
+  padding-top: 0;
+}
+.mepr-courses-wrapper .course-progress {
+  background: #e0e0e0;
+  box-shadow: 0px 4px 8px rgba(33, 33, 33, 0.11);
+  border-radius: 100px;
+}
+.mepr-courses-wrapper .course-progress .user-progress,
+.mepr-courses-wrapper .btn-green,
+.mepr-courses-wrapper
+  #mpcs-navbar
+  button:not(#mpcs-classroom-previous-lesson-link),
+.mepr-courses-wrapper
+  .mpcs-classroom
+  div#mpcs-lesson-navigation
+  button:not(#previous_lesson_link),
+.mepr-courses-wrapper .mpcs-classroom #mpcs-quiz-navigation button:focus,
+.mepr-courses-wrapper .mpcs-classroom #mpcs-quiz-navigation button:hover {
+  background: #06429e !important;
+  border-radius: 100px;
+  color: #fff;
+}
+
+.mepr-pro-account-table {
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+.mepr-pro-account-table thead th {
+  vertical-align: bottom;
+  border-bottom: 1px solid #dee2e6;
+  color: #6b6f7b;
+  font-weight: normal;
+}
+.mepr-pro-account-table__subscr,
+.mepr-pro-account-table__rebill {
+  color: #6b6f7b;
+  font-size: 14px;
+}
+.mepr-pro-account-table__product,
+.mepr-pro-account-table__created_at {
+  font-weight: bold;
+}
+button.mepr-pro-account-table__badge {
+  border-radius: 999px;
+  background: #fff;
+  border: 0;
+  /* border: 1px solid #fff; */
+  font-size: 12px;
+  font-weight: 600;
+  cursor: auto !important;
+}
+button.mepr-pro-account-table__badge:hover {
+  border: 0;
+}
+.mepr-pro-account-table__badge.--is-active,
+.mepr-pro-account-table__badge.--is-complete {
+  background-color: rgb(220, 252, 231);
+  color: rgb(22, 101, 52);
+  border-radius: 15px;
+}
+.mepr-pro-account-table__badge.--is-canceled,
+.mepr-pro-account-table__badge.--is-refunded {
+  background-color: rgb(254, 226, 226);
+  color: rgb(153, 27, 27);
+  border-radius: 15px;
+}
+.mepr-pro-account-table__badge.--is-paused {
+  color: rgb(124, 45, 18);
+  background-color: rgb(255, 237, 213);
+  border-radius: 15px;
+}
+.mepr-pro-account-table__badge.--is-lapsed {
+  color: rgb(107, 33, 168);
+  background-color: rgb(243, 232, 255);
+  border-radius: 15px;
+}
+.mepr-pro-account-table svg {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+.mepr-pro-account-table__col-actions {
+  position: relative;
+}
+.mepr-pro-account-table .dropdown {
+  transform: translate3d(-126px, 31px, 0px);
+}
+@media screen and (max-width: 840px) {
+  .mepr-pro-account-table .dropdown {
+    right: 0;
+    left: auto;
+  }
+}
+.mepr-pro-account-table p {
+  margin: 0;
+}
+.mepr-pro-account-table .sub {
+  color: #6b6f7b;
+  font-size: 85%;
+}
+
+.text-gray {
+  color: #6b6f7b;
+}
+
+.mepr_modal {
+  position: relative;
+  z-index: 10;
+  display: none;
+}
+.mepr_modal__overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(107, 114, 128, 0.75);
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.mepr_modal__content_wrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  overflow-y: auto;
+}
+.mepr_modal__content {
+  display: flex;
+  align-items: center;
+  min-height: 100%;
+  justify-content: center;
+  text-align: center;
+}
+.mepr_modal__box {
+  position: relative;
+  max-width: 32.2rem;
+  width: 100%;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  transform: matrix(1, 0, 0, 1, 0, 0);
+  overflow: visible;
+  border-radius: 8px;
+  background-color: #fff;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-top: 29px;
+  padding-bottom: 25px;
+  text-align: left;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+.mepr_modal__box .iti__country-list {
+  width: 400px;
+  margin-left: 0;
+  white-space: normal;
+}
+.mepr_modal button.mepr_modal__close {
+  /* float: right; */
+  font-size: 1.2rem;
+  width: 1.5rem;
+  line-height: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  background: none;
+  border: none;
+  position: absolute;
+  right: 15px;
+  top: 5px;
+  color: #bdbdbd;
+}
+.mepr_modal button.mepr_modal__close:hover {
+  background-color: none;
+}
+.mepr_modal .mepr_modal_form {
+  padding: 1rem 2rem;
+}
+.mepr_modal .mepr_modal_form .mp-form-row {
+  display: none;
+}
+.mepr_modal .mepr_modal_form .mp-form-label {
+  margin-bottom: 1rem;
+}
+.mepr_modal .mepr_modal_form .mp-form-label label {
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+.mepr_modal .mepr_modal_form input[type="submit"] {
+  display: flex;
+  width: auto;
+  margin-left: auto;
+  margin-top: 2rem;
+}
+.mepr-account-welcome-message {
+  padding: 0.5em 0 1.1em;
+  display: inline-block;
+}
+@media (min-width: 840px) {
+  .mepr-account-container {
+    /* display: grid; */
+    grid-template-columns: 250px auto;
+    gap: 2em;
+  }
+  #mepr-account-content {
+    padding: 2em 2em 2em 0;
+  }
+}
+
+.mepr-tooltip-content {
+  background: #fff;
+  color: #333;
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  display: none;
+  z-index: 9;
+  padding: 0.5rem 0;
+  margin: 0.125rem 0 0;
+}
+
+.mepr-tooltip-content[data-show] {
+  display: block;
+}
+
+.mepr-tooltip-content > * {
+  display: block;
+  padding: 0.25rem 1.5rem;
+  clear: both;
+  /* font-weight: 400; */
+  color: #212529;
+  text-align: left;
+  white-space: nowrap;
+}
+.flex-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.flex-navigation .page-count {
+  color: #555;
+  font-size: 14px;
+}

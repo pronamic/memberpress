@@ -898,7 +898,8 @@ class MeprRulesCtrl extends MeprCptCtrl {
   }
 
   public static function override_wc_is_purchasable($is, $prd) {
-    if(!$is) { return $is; } //if it's already not purchasable, no need to go further
+    // Bail if already locked, or is admin page, or is REST REQUEST
+    if(!$is || is_admin() || (defined('REST_REQUEST') && REST_REQUEST)) { return $is; }
 
     if(is_object($prd) && $prd->is_type('variation')) {
         $post = get_post($prd->get_parent_id());
@@ -910,14 +911,15 @@ class MeprRulesCtrl extends MeprCptCtrl {
   }
 
   public static function override_wc_is_visible($is, $prd_id, $prd_parent_id = false, $prd = false) {
-    if(!$is) { return $is; } //if it's already not visible, no need to go further
+    // Bail if already locked, or is admin page, or is REST REQUEST
+    if(!$is || is_admin() || (defined('REST_REQUEST') && REST_REQUEST)) { return $is; }
 
     if($prd && $prd->is_type('variation')) {
       $parent_product = wc_get_product($prd->get_parent_id());
 
       // If the parent product (product variable) is not purchasable (i.e. it's hidden), hide the variation's attributes.
       if(!$parent_product->is_purchasable()) {
-        add_filter('woocommerce_get_product_attributes', 'MeprRulesCtrl::hide_product_attributes');
+        add_filter('woocommerce_product_get_attributes', 'MeprRulesCtrl::hide_product_attributes');
       }
 
     }

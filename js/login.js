@@ -27,5 +27,17 @@
         mpResetToggle( $button, true );
       }
     });
+
+    // Pro Template
+    if( $('#mepro-login-hero').length ){
+      if( $('#mepr_loginform').length ){
+        $("#user_login, #user_pass").on("input", function(){
+          if ( $('#user_login').val().length > 0 && $('#user_pass').val().length > 0) {
+            $('#wp-submit').removeClass('disabled');
+          }
+        })
+      }
+    }
+    // End Pro Template
   });
 })(jQuery);

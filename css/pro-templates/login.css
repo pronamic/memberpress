@@ -1,0 +1,338 @@
+/* Text meant only for screen readers. */
+.screen-reader-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+.screen-reader-text:focus {
+  background-color: #f1f1f1;
+  border-radius: 3px;
+  box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
+  clip: auto !important;
+  -webkit-clip-path: none;
+  clip-path: none;
+  color: #21759b;
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  height: auto;
+  left: 5px;
+  line-height: normal;
+  padding: 15px 23px 14px;
+  text-decoration: none;
+  top: 5px;
+  width: auto;
+  z-index: 100000;
+}
+
+/* Do not show the outline on the skip link target. */
+#primary[tabindex="-1"]:focus {
+  outline: 0;
+}
+
+.mepro-boxed {
+  display: flex;
+  box-sizing: border-box;
+  position: relative;
+  padding: 36px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background-color: #fff;
+  color: #2c2d36;
+}
+
+.mepro-boxed > * {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  box-sizing: border-box;
+}
+
+#mepro-login-hero .mepro-login-contents {
+  flex-grow: 1;
+  width: 100%;
+}
+@media screen and (min-width: 840px) {
+  #mepro-login-hero.with-sidebar {
+    max-width: 80rem;
+  }
+
+  #mepro-login-hero {
+    /* padding: 0 4rem 10rem 4rem; */
+    max-width: 40rem;
+    margin: 0 auto;
+  }
+
+  #mepro-login-hero .mepro-login-contents {
+    padding-left: 2rem;
+    padding-right: calc(2rem + 36px);
+    width: 55%;
+  }
+}
+@media screen and (min-width: 1024px) {
+  #mepro-login-hero .mepro-login-contents {
+    /* padding-left: 5rem; */
+    /* padding-right: 5rem; */
+  }
+}
+#mepro-login-hero .mepro-login-contents form p {
+  font-size: 14px;
+}
+@media screen and (min-width: 840px) {
+  #mepro-login-hero .mepro-login-hero-image {
+    width: 45%;
+  }
+
+  #mepro-login-hero .mepro-boxed {
+    flex-direction: row !important;
+  }
+}
+#mepro-login-hero .mepro-boxed {
+  flex-direction: column-reverse;
+  max-width: 90%;
+  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
+}
+
+#mepr-template-login .mepro-form h1,
+#mepr-template-login .mepr-form h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+#mepr-template-login .mepro-form input,
+#mepr-template-login .mepro-form select,
+#mepr-template-login .mepr-form input,
+#mepr-template-login .mepr-form select {
+  display: block;
+  width: 100%;
+  min-height: 47px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  line-height: 1.42857143;
+  border-radius: 4px;
+}
+#mepr-template-login .mepro-form input[type="checkbox"],
+#mepr-template-login .mepr-form input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  min-height: auto;
+  margin: 0;
+}
+#mepr-template-login .mepro-form fieldset,
+#mepr-template-login .mepr-form fieldset {
+  padding: 0;
+  border: 0;
+}
+#mepr-template-login .mepro-form fieldset > * + *,
+#mepr-template-login .mepr-form fieldset > * + * {
+  margin-top: 1rem;
+}
+#mepr-template-login .mepro-form label,
+#mepr-template-login .mepr-form label {
+  font-size: 14px;
+  width: auto !important;
+}
+#mepr-template-login .mepro-form .selectable-field,
+#mepr-template-login .mepr-form .selectable-field {
+  display: flex;
+  align-items: center;
+}
+#mepr-template-login .mepro-form button,
+#mepr-template-login .mepro-form input[type="button"],
+#mepr-template-login .mepro-form input[type="reset"],
+#mepr-template-login .mepro-form input[type="submit"],
+#mepr-template-login .mepr-form button,
+#mepr-template-login .mepr-form input[type="button"],
+#mepr-template-login .mepr-form input[type="reset"],
+#mepr-template-login .mepr-form input[type="submit"] {
+  border: 1px solid;
+  border-color: #06429e;
+  border-radius: 8px;
+  background: #06429e;
+  color: rgb(255, 255, 255);
+  line-height: 1;
+  padding: 0.6em 1em 0.6em;
+  cursor: pointer;
+  font-size: 1rem;
+}
+#mepr-template-login .mepro-form button:hover,
+#mepr-template-login .mepro-form input[type="button"]:hover,
+#mepr-template-login .mepro-form input[type="reset"]:hover,
+#mepr-template-login .mepro-form input[type="submit"]:hover,
+#mepr-template-login .mepr-form button:hover,
+#mepr-template-login .mepr-form input[type="button"]:hover,
+#mepr-template-login .mepr-form input[type="reset"]:hover,
+#mepr-template-login .mepr-form input[type="submit"]:hover {
+  background: #063e94;
+}
+#mepr-template-login .mepro-form button.mp-hide-pw,
+#mepr-template-login .mepro-form input[type="button"].mp-hide-pw,
+#mepr-template-login .mepro-form input[type="reset"].mp-hide-pw,
+#mepr-template-login .mepro-form input[type="submit"].mp-hide-pw,
+#mepr-template-login .mepr-form button.mp-hide-pw,
+#mepr-template-login .mepr-form input[type="button"].mp-hide-pw,
+#mepr-template-login .mepr-form input[type="reset"].mp-hide-pw,
+#mepr-template-login .mepr-form input[type="submit"].mp-hide-pw {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  width: auto;
+  height: 100%;
+  align-items: center;
+  background: 0 0;
+  color: #85929e;
+  text-decoration: none;
+  padding: 1em 1.4em;
+  border: none !important;
+  box-shadow: none;
+}
+#mepr-template-login .mepro-form button.mp-hide-pw:hover,
+#mepr-template-login .mepro-form input[type="button"].mp-hide-pw:hover,
+#mepr-template-login .mepro-form input[type="reset"].mp-hide-pw:hover,
+#mepr-template-login .mepro-form input[type="submit"].mp-hide-pw:hover,
+#mepr-template-login .mepr-form button.mp-hide-pw:hover,
+#mepr-template-login .mepr-form input[type="button"].mp-hide-pw:hover,
+#mepr-template-login .mepr-form input[type="reset"].mp-hide-pw:hover,
+#mepr-template-login .mepr-form input[type="submit"].mp-hide-pw:hover {
+  background: 0 0;
+  color: #5d6d7e;
+  text-decoration: none;
+  padding: 1em 1.4em;
+  border: none;
+  box-shadow: none;
+}
+#mepr-template-login .mepro-form button.mp-hide-pw:active,
+#mepr-template-login .mepro-form input[type="button"].mp-hide-pw:active,
+#mepr-template-login .mepro-form input[type="reset"].mp-hide-pw:active,
+#mepr-template-login .mepro-form input[type="submit"].mp-hide-pw:active,
+#mepr-template-login .mepr-form button.mp-hide-pw:active,
+#mepr-template-login .mepr-form input[type="button"].mp-hide-pw:active,
+#mepr-template-login .mepr-form input[type="reset"].mp-hide-pw:active,
+#mepr-template-login .mepr-form input[type="submit"].mp-hide-pw:active {
+  background: 0 0;
+  color: #5d6d7e;
+  text-decoration: none;
+  padding: 1em 1.4em;
+  border: none;
+  box-shadow: none;
+}
+#mepr-template-login .mepro-form button.mp-hide-pw .dashicons,
+#mepr-template-login .mepro-form input[type="button"].mp-hide-pw .dashicons,
+#mepr-template-login .mepro-form input[type="reset"].mp-hide-pw .dashicons,
+#mepr-template-login .mepro-form input[type="submit"].mp-hide-pw .dashicons,
+#mepr-template-login .mepr-form button.mp-hide-pw .dashicons,
+#mepr-template-login .mepr-form input[type="button"].mp-hide-pw .dashicons,
+#mepr-template-login .mepr-form input[type="reset"].mp-hide-pw .dashicons,
+#mepr-template-login .mepr-form input[type="submit"].mp-hide-pw .dashicons {
+  width: 1.25rem;
+  height: 1.25rem;
+  position: relative;
+}
+#mepr-template-login .mepro-form button.disabled,
+#mepr-template-login .mepro-form input[type="button"].disabled,
+#mepr-template-login .mepro-form input[type="reset"].disabled,
+#mepr-template-login .mepro-form input[type="submit"].disabled,
+#mepr-template-login .mepr-form button.disabled,
+#mepr-template-login .mepr-form input[type="button"].disabled,
+#mepr-template-login .mepr-form input[type="reset"].disabled,
+#mepr-template-login .mepr-form input[type="submit"].disabled {
+  background-color: #d0d0d0;
+  border: 0;
+  pointer-events: none;
+}
+#mepr-template-login .mepro-form .mp-hide-pw,
+#mepr-template-login .mepr-form .mp-hide-pw {
+  position: relative;
+}
+#mepr-template-login .mepro-form .mepr_remember_me,
+#mepr-template-login .mepr-form .mepr_remember_me {
+  display: flex;
+  align-items: center;
+}
+#mepr-template-login .mepro-form .mepr_remember_me > * + *,
+#mepr-template-login .mepr-form .mepr_remember_me > * + * {
+  margin-left: 0.5rem;
+  margin-bottom: 0;
+}
+
+.mepr-login-actions {
+  font-size: 14px;
+}
+
+.mepr_error {
+  padding: 5px 5px 5px 15px !important;
+  margin-bottom: 25px !important;
+  box-sizing: border-box !important;
+  width: 100%;
+  background-color: #feb9bb !important;
+  border: 1px solid #d40022 !important;
+}
+.mepr_error ul {
+  padding: 0 0 5px 0 !important;
+  margin: 0 !important;
+}
+.mepr_error ul li {
+  list-style-type: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.mepr_updated {
+  padding: 5px 5px 5px 15px !important;
+  margin-bottom: 25px !important;
+  box-sizing: border-box !important;
+  width: 100%;
+}
+
+.mepro-login-hero-image img {
+  border-radius: 6px;
+  max-width: 100%;
+}
+
+.mepr_pro_error,
+.mepr-unauthorized-message {
+  display: flex;
+  align-items: center;
+}
+.mepr_pro_error > * + *,
+.mepr-unauthorized-message > * + * {
+  margin-left: 1rem;
+}
+.mepr-account-container .mepr_pro_error ul,
+.mepr_pro_error ul,
+.mepr-unauthorized-message ul {
+  list-style-type: none;
+  padding: 0;
+  margin-bottom: 0;
+  margin-left: 1rem;
+}
+.mepr_pro_error p,
+.mepr-unauthorized-message p {
+  margin: 0;
+}
+.mepr_pro_error svg,
+.mepr-account-container .mepr_pro_error svg,
+.mepr-unauthorized-message svg {
+  color: #eb5757;
+  width: 3rem;
+  height: 3rem;
+}
+.mepr-guest-layout .mepr_pro_error {
+  display: none;
+}
+.mepr-guest-layout .mepro-login-contents .mepr_pro_error {
+  display: flex;
+}
+.mp-form-row.mepr_forgot_password_input label {
+  display: block !important;
+  margin-bottom: 7px;
+}

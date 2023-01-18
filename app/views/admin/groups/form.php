@@ -60,6 +60,10 @@
                               sprintf(__('Here you can add/remove memberships from this group pricing page.%1$s%1$sThe order of the memberships is important here. Order the memberships so that the lowest tier membership is at the top of the list and the highest tier membership is at the bottom, with the other memberships in order in between.', 'memberpress'), '<br />'));
   ?>
   </h4>
+
+  <div class=" notice-warning is-dismissible" id="readylaunch-group-limit" style="padding: 10px;"><?php esc_html_e('ReadyLaunch is enabled for Groups in your MemberPress > Settings > ReadyLaunch tab. ReadyLaunch can currently only show 5 Membership plans per Group.', 'memberpress'); ?></div>
+
+
   <ol id="sortable-products" class="mepr-sortable">
     <?php MeprGroupsHelper::get_existing_products_list($group); ?>
   </ol>

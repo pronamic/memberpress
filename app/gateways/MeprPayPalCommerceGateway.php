@@ -984,11 +984,17 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
    * Returs the payment form and required fields for the gateway
    */
   public function spc_payment_fields() {
+    global $mepr_shortcode_registration_product_id;
     $mepr_options        = MeprOptions::fetch();
     $payment_method      = $this;
     $payment_form_action = 'mepr-paypal-payment-form';
     $user                = MeprUtils::is_user_logged_in() ? MeprUtils::get_currentuserinfo() : null;
     $membership_id       = get_the_ID();
+
+    if ( ! empty( $mepr_shortcode_registration_product_id ) ) {
+      $membership_id = $mepr_shortcode_registration_product_id;
+    }
+
     $product             = new MeprProduct( $membership_id );
 
     return MeprView::get_string( "/checkout/MeprPayPalCommerceGateway/payment_form", get_defined_vars() );
@@ -1686,6 +1692,8 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     $mepr_options = MeprOptions::fetch();
     // Handled with a GET REQUEST by PayPal
     $this->email_status( "Paypal Cancel \$_REQUEST:\n" . MeprUtils::object_to_string( $_REQUEST, true ) . "\n", $this->debug );
+
+    MeprHooks::do_action('mepr_paypal_checkout_cancelled_before', $_REQUEST);
 
     if ( isset( $_REQUEST['txn_id'] ) && is_numeric( $_REQUEST['txn_id'] ) ) {
       $txn = new MeprTransaction( $_REQUEST['txn_id'] );

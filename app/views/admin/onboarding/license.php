@@ -1,6 +1,6 @@
 <?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
 
-<?php $li = get_site_transient('mepr_license_info'); ?>
+<?php $li = MeprUpdateCtrl::get_license_info(); ?>
 <?php if($li): ?>
 <div id="mepr-wizard-license-wrapper" class="mepr-hidden">
   <h2 class="mepr-wizard-step-title"><?php esc_html_e('Your License', 'memberpress'); ?></h2>
