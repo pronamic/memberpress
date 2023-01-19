@@ -147,7 +147,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     }
   }
 
-  public function render($atts = []) {
+  public function render($atts = array()) {
     global $post;
 
     $mepr_current_user = MeprUtils::get_currentuserinfo();
@@ -210,8 +210,6 @@ class MeprAccountCtrl extends MeprBaseCtrl {
           echo '<div class="mepr-' . $action .'-wrapper">' . $custom_content . '</div>';
         }
     }
-
-    // MeprHooks::do_action( 'mepr_after_account_render', $action, $atts );
   }
 
   public function home() {

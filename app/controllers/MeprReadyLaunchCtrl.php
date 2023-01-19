@@ -248,9 +248,11 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    * @param array $atts Optional arguments.
    * @return void
    */
-  public static function account_home_content( $action, $atts ) {
+  public static function account_home_content( $action, $atts = array() ) {
     if ( 'home' == $action || ! $action ) {
-      extract( $atts, EXTR_SKIP );
+      if( is_array($atts) ){
+        extract( $atts, EXTR_SKIP );
+      }
       $mepr_options = MeprOptions::fetch();
       $account_url  = $mepr_options->account_page_url();
       $delim        = MeprAppCtrl::get_param_delimiter_char( $account_url );
@@ -649,7 +651,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    *
    * @return bool
    */
-  public function remove_admin_bar(){
+  public function remove_admin_bar( $show ){
     if (
       self::template_enabled( 'pricing' ) ||
       self::template_enabled( 'login' ) ||
@@ -657,10 +659,10 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
       self::template_enabled( 'checkout' ) ||
       self::template_enabled( 'thankyou' )
     ) { // full page templates
-      return false;
+      $show = false;
     }
 
-    return true;
+    return $show;
   }
 
   /**
@@ -684,6 +686,8 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    */
   public static function template_enabled( $template ) {
     global $post;
+    global $wp_query;
+
     $page_name      = $template . '_page_id';
     $attribute_name = 'design_enable_' . $template . '_template';
     $options        = MeprOptions::fetch();
@@ -703,13 +707,16 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
         ( isset( $post ) && is_a( $post, 'WP_Post' ) && $post->post_type == MeprProduct::$cpt );
     }
 
-    if ( 'courses' === $template ) {
-      return filter_var( $courses_options['classroom-mode'], FILTER_VALIDATE_BOOLEAN ) &&
+    if ( 'courses' === $template && is_array($courses_options) ) {
+      return isset($courses_options['classroom-mode']) &&
+        filter_var( $courses_options['classroom-mode'], FILTER_VALIDATE_BOOLEAN ) &&
         MeprUser::is_account_page($post) &&
         isset($_GET['action']) && $_GET['action'] == 'courses';
     }
 
-    return is_page( $options->$page_name ) &&
+    return isset( $wp_query ) &&
+      isset( $options->$page_name ) &&
+      is_page( $options->$page_name ) &&
       isset( $options->$attribute_name ) &&
       filter_var( $options->$attribute_name, FILTER_VALIDATE_BOOLEAN );
   }

@@ -103,7 +103,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
           ),
           'welcome_image'      => array(
             'type' => 'string',
-            'default' => $mepr_options->design_login_welcome_img ? wp_get_attachment_url( $mepr_options->design_login_welcome_img ) : ''
+            'default' => wp_get_attachment_url( $mepr_options->design_login_welcome_img )
           ),
           'admin_view'            => array(
             'type' => 'boolean',
@@ -149,7 +149,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
           ),
           'welcome_image'      => array(
             'type'    => 'string',
-            'default' => $mepr_options->design_account_welcome_img ? wp_get_attachment_url( $mepr_options->design_account_welcome_img ) : ''
+            'default' => wp_get_attachment_url( $mepr_options->design_account_welcome_img )
           ),
         ),
         'render_callback' => array( $this, 'render_pro_account_block' ),

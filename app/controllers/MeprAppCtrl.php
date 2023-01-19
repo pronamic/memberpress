@@ -914,7 +914,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
     // Load Traduttore
     require_once(MEPR_I18N_PATH . '/namespace.php');
 
-    \Required\Traduttore_Registry\add_project(
+    \MP_Required\Traduttore_Registry\add_project(
       'plugin',
       'memberpress',
       'https://translate.memberpress.com/api/translations/memberpress'

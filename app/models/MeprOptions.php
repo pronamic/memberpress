@@ -381,6 +381,82 @@ class MeprOptions {
     if(!isset($this->sslverify)) {
       $this->sslverify = true;
     }
+
+    if(!isset( $this->design_logo_img ) ){
+        $this->design_logo_img = '';
+    }
+
+    if(!isset( $this->design_primary_color ) ){
+        $this->design_primary_color = '#06429E';
+    }
+
+    if(!isset( $this->design_enable_checkout_template ) ){
+        $this->design_enable_checkout_template = false;
+    }
+
+    if(!isset( $this->design_enable_login_template ) ){
+        $this->design_enable_login_template = false;
+    }
+
+    if(!isset( $this->design_show_login_welcome_image ) ){
+        $this->design_show_login_welcome_image = false;
+    }
+
+    if(!isset( $this->design_login_welcome_img ) ){
+        $this->design_login_welcome_img = '';
+    }
+
+    if(!isset( $this->design_enable_account_template ) ){
+        $this->design_enable_account_template = false;
+    }
+
+    if(!isset( $this->design_show_account_welcome_image ) ){
+        $this->design_show_account_welcome_image = false;
+    }
+
+    if(!isset( $this->design_account_welcome_img ) ){
+        $this->design_account_welcome_img = '';
+    }
+
+    if(!isset( $this->design_enable_courses_template ) ){
+        $this->design_enable_courses_template = '';
+    }
+
+    if(!isset( $this->design_enable_thankyou_template ) ){
+        $this->design_enable_thankyou_template = false;
+    }
+
+    if(!isset( $this->design_show_thankyou_welcome_image) ){
+        $this->design_show_thankyou_welcome_image = false;
+    }
+
+    if(!isset( $this->design_thankyou_hide_invoice ) ){
+        $this->design_thankyou_hide_invoice = '';
+    }
+
+    if(!isset( $this->design_thankyou_invoice_message ) ){
+        $this->design_thankyou_invoice_message = '';
+    }
+
+    if(!isset( $this->design_thankyou_welcome_img ) ){
+        $this->design_thankyou_welcome_img = '';
+    }
+
+    if(!isset( $this->design_enable_pricing_template ) ){
+        $this->design_enable_pricing_template = false;
+    }
+
+    if(!isset( $this->design_pricing_title ) ){
+        $this->design_pricing_title = '';
+    }
+
+    if(!isset( $this->design_pricing_cta_color ) ){
+        $this->design_pricing_cta_color = '';
+    }
+
+    if(!isset( $this->design_pricing_subheadline ) ){
+      $this->design_pricing_subheadline = '';
+    }
   }
 
   public function set_strings() {
