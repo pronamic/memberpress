@@ -31,9 +31,6 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
   public function register_block_types_serverside() {
     $mepr_options    = MeprOptions::fetch();
 
-    // Since WP 5.8, this makes sure assets are not loaded on all pages but for content that has such blocks
-    add_filter( 'should_load_separate_core_block_assets', '__return_true' );
-
     // Membership signup form block
     register_block_type(
       'memberpress/membership-signup',
@@ -110,7 +107,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
           )
         ),
         'render_callback' => array( $this, 'render_pro_login_block' ),
-        'style'           => 'mp-pro-login',
+        'editor_style'    => 'mp-pro-login',
       )
     );
 
@@ -133,7 +130,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
           ),
         ),
         'render_callback' => array( $this, 'render_pro_pricing_block' ),
-        'style'    => 'mp-pro-pricing',
+        'editor_style'    => 'mp-pro-pricing',
       )
     );
 
@@ -152,8 +149,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
             'default' => wp_get_attachment_url( $mepr_options->design_account_welcome_img )
           ),
         ),
+        'editor_style'    => 'mp-pro-account',
         'render_callback' => array( $this, 'render_pro_account_block' ),
-        'style'    => 'mp-pro-account',
       )
     );
 
@@ -171,7 +168,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
           ),
         ),
         'render_callback' => array( $this, 'render_checkout_block' ),
-        'style'           => 'mp-pro-checkout'
+        'editor_style'    => 'mp-pro-checkout'
       )
     );
   }
@@ -250,6 +247,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
    * @return string
    */
   public function render_pro_login_block( $atts ) {
+    wp_enqueue_style( 'mp-pro-login' );
 
     $show_welcome_image = filter_var( $atts['show_welcome_image'], FILTER_VALIDATE_BOOLEAN );
 
@@ -276,6 +274,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
    * @return string
    */
   public function render_pro_pricing_block( $atts ) {
+    wp_enqueue_style( 'mp-pro-pricing' );
+
     $show_title = isset( $atts['show_title'] ) &&
     filter_var( $atts['show_title'], FILTER_VALIDATE_BOOLEAN ) ?
     true : false;
@@ -305,6 +305,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
    * @return string
    */
   public function render_pro_account_block( $atts ) {
+    wp_enqueue_style( 'mp-pro-account' );
+
     $show_welcome_image = isset( $atts['show_welcome_image'] ) &&
     filter_var( $atts['show_welcome_image'], FILTER_VALIDATE_BOOLEAN ) ?
     true : false;
@@ -329,6 +331,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
    * @return string
    */
   public function render_checkout_block( $atts ) {
+    wp_enqueue_style( 'mp-pro-checkout' );
+
     $membership_id = isset( $atts['membership_id'] ) ?
     absint( $atts['membership_id'] ) : '';
 
@@ -388,6 +392,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     }
 
     // Assemble MP Groups into an options array
+    $groups = array();
     foreach ( MeprCptModel::all( 'MeprGroup' ) as $group ) {
       $groups[] = array(
         'label' => $group->post_title,

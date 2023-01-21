@@ -14,7 +14,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     add_action( 'admin_head', 'MeprReadyLaunchCtrl::theme_style' );
     add_action( 'mepr_account_nav_content', 'MeprReadyLaunchCtrl::account_home_content', 10, 2 );
     add_action( 'mepr_before_account_render', 'MeprReadyLaunchCtrl::before_account_render', 10 );
-    add_action( 'after_account_render', 'MeprReadyLaunchCtrl::after_account_render', 10, 2 );
+    add_action( 'mepr_after_account_render', 'MeprReadyLaunchCtrl::after_account_render', 10, 2 );
 
     add_filter( 'mepr-validate-options', 'MeprReadyLaunchCtrl::validate_settings_fields' );
     add_filter( 'template_include', array( $this, 'override_page_templates' ), 999999 ); // High priority so we have the last say here
@@ -249,7 +249,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    * @return void
    */
   public static function account_home_content( $action, $atts = array() ) {
-    if ( 'home' == $action || ! $action ) {
+    if ( ( self::template_enabled( 'account' ) && ( 'home' == $action || ! $action ) ) || has_block('memberpress/pro-account-tabs') ) {
       if( is_array($atts) ){
         extract( $atts, EXTR_SKIP );
       }
@@ -258,7 +258,8 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
       $delim        = MeprAppCtrl::get_param_delimiter_char( $account_url );
 
       $mepr_current_user = MeprUtils::get_currentuserinfo();
-      $mepr_current_user = new MeprUser( $mepr_current_user->ID );
+
+      $welcome_message = do_shortcode ( wp_kses_post( wpautop( $mepr_options->custom_message ) ) );
 
       $address_fields = MeprUsersHelper::get_address_fields( $mepr_current_user );
       $address_values = array();
@@ -311,6 +312,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
 
       MeprView::render( '/account/home', get_defined_vars() );
     }
+
   }
 
   /**
@@ -319,7 +321,20 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    * @return void
    */
   public static function before_account_render() {
-    echo "<div class='mepr-account-container'>";
+    if( self::template_enabled( 'account' ) || has_block( 'memberpress/pro-account-tabs' ) ) {
+      echo "<div class='mepr-account-container'>";
+    }
+  }
+
+  /**
+   * Close the div wrapper added by before_account_render
+   *
+   * @return void
+   */
+  public static function after_account_render() {
+    if( self::template_enabled( 'account' ) || has_block( 'memberpress/pro-account-tabs' ) ) {
+      echo "</div></div>";
+    }
   }
 
   /**
@@ -842,6 +857,12 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
   }
 
   public static function getContrastColor( $hexColor ) {
+    $hexColor = trim( $hexColor );
+    $tmp_hexColor = trim( $hexColor, '#' );
+    if( ! ctype_xdigit( $tmp_hexColor ) ) { // Validate HEX code.
+      $hexColor = '#FFFFFF'; // Fallback to white color.
+    }
+
     // hexColor RGB
     $R1 = hexdec( substr( $hexColor, 1, 2 ) );
     $G1 = hexdec( substr( $hexColor, 3, 2 ) );

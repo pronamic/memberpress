@@ -27,5 +27,5 @@
     </span>
 
   </nav>
-  <!-- This opening fiv is necessary for flex to work -->
+  <!-- This opening div is necessary for flex to work -->
   <div id="mepr-account-content" class="mp_wrapper">

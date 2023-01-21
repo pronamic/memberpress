@@ -5,7 +5,7 @@ $welcome_image      = isset( $atts['welcome_image'] ) ? $atts['welcome_image'] :
 
 <h1 class="mepr_page_header"><?php echo esc_html_x( 'Profile', 'ui', 'memberpress' ); ?></h1>
 
-<div class="mepr-account-welcome-message"><?php echo wp_kses_post( wpautop( $mepr_options->custom_message ) ) ?></div>
+<div class="mepr-account-welcome-message"><?php echo $welcome_message ?></div>
 
 <div class="mepr-profile-wrapper">
   <div id="mepr-profile-details">

@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.10.2\n"
+"Project-Id-Version: MemberPress 1.10.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-01-18T16:04:00+00:00\n"
+"POT-Creation-Date: 2023-01-20T16:49:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.6.0\n"
 "X-Domain: memberpress\n"
@@ -40,40 +40,40 @@ msgctxt "ui"
 msgid "You already have a subscription to this Membership. Please %1$supdate your payment details%2$s on the existing subscription instead of purchasing again."
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:243
+#: app/controllers/MeprAccountCtrl.php:245
 msgid "Your account has been saved."
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:255
+#: app/controllers/MeprAccountCtrl.php:257
 msgid "Your password was successfully updated."
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:273
+#: app/controllers/MeprAccountCtrl.php:275
 msgid "Password update failed, please check that your password meets the minimum strength requirement."
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:276
+#: app/controllers/MeprAccountCtrl.php:278
 msgid "Password update failed, please be sure your passwords match and try again."
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:368
+#: app/controllers/MeprAccountCtrl.php:370
 msgid "Your subscription was successfully paused."
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:391
+#: app/controllers/MeprAccountCtrl.php:393
 msgid "You successfully resumed your subscription."
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:407
+#: app/controllers/MeprAccountCtrl.php:409
 msgid "Your subscription was successfully cancelled."
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:448
+#: app/controllers/MeprAccountCtrl.php:450
 #: app/controllers/MeprStripeCtrl.php:784
 msgid "Your account information was successfully updated."
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:536
+#: app/controllers/MeprAccountCtrl.php:538
 #: app/helpers/MeprOnboardingHelper.php:380
 #: app/lib/activation.php:12
 #: app/views/admin/options/form.php:19
@@ -82,7 +82,7 @@ msgstr ""
 msgid "Account"
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:717
+#: app/controllers/MeprAccountCtrl.php:719
 #: app/views/account/nav.php:9
 #: app/views/account/nav.php:21
 #: app/views/pro-templates/account/nav.php:19
@@ -91,7 +91,7 @@ msgctxt "ui"
 msgid "Subscriptions"
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:720
+#: app/controllers/MeprAccountCtrl.php:722
 #: app/views/account/nav.php:11
 #: app/views/pro-templates/account/nav.php:14
 #: app/views/pro-templates/account/payments.php:7
@@ -99,7 +99,7 @@ msgctxt "ui"
 msgid "Payments"
 msgstr ""
 
-#: app/controllers/MeprAccountCtrl.php:723
+#: app/controllers/MeprAccountCtrl.php:725
 msgctxt "ui"
 msgid "Courses"
 msgstr ""
@@ -641,12 +641,12 @@ msgstr ""
 msgid "Analytics"
 msgstr ""
 
-#: app/controllers/MeprBlocksCtrl.php:196
+#: app/controllers/MeprBlocksCtrl.php:193
 msgctxt "ui"
 msgid "Uh oh, something went wrong. Not a valid Membership form."
 msgstr ""
 
-#: app/controllers/MeprBlocksCtrl.php:237
+#: app/controllers/MeprBlocksCtrl.php:234
 msgid "You are unauthorized to view this content."
 msgstr ""
 
@@ -1765,11 +1765,11 @@ msgstr ""
 msgid "No membership found"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:408
+#: app/controllers/MeprReadyLaunchCtrl.php:423
 msgid "ReadyLaunch™"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:493
+#: app/controllers/MeprReadyLaunchCtrl.php:508
 msgid "Welcome Image should be uploaded if Show Welcome Image button is checked"
 msgstr ""
 

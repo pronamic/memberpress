@@ -867,10 +867,28 @@ button.mepr-pro-account-table__badge:hover {
   margin-top: 2rem;
 }
 .mepr-account-welcome-message {
-  padding: 0.5em 0 1.1em;
-  display: inline-block;
+  /* padding: 0.5em 0 1.1em; */
+  background-color: #e6f7ed;
+  /* background-color: rgb(254, 252, 232); */
+  border: 1px solid #339a6b;
+  color: #2b362d;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  font-size: 15px;
+  flex-grow: 0;
+  margin-bottom: 2rem;
+  /* display: inline-block; */
+}
+.mepr-account-welcome-message p:first-child{
+  margin-top: 0;
+}
+.mepr-account-welcome-message p:last-child{
+  margin: 0;
 }
 @media (min-width: 840px) {
+  .mepr-account-welcome-message {
+    width: 60%;
+  }
   .mepr-account-container {
     /* display: grid; */
     grid-template-columns: 250px auto;

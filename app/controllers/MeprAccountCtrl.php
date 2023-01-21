@@ -210,6 +210,8 @@ class MeprAccountCtrl extends MeprBaseCtrl {
           echo '<div class="mepr-' . $action .'-wrapper">' . $custom_content . '</div>';
         }
     }
+
+    MeprHooks::do_action( 'mepr_after_account_render');
   }
 
   public function home() {
