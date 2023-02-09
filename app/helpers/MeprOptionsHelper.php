@@ -181,6 +181,16 @@ class MeprOptionsHelper {
     $field_name = 'mepr_payment_method';
     $radio_html = '';
 
+    if(
+      is_user_logged_in() &&
+      count($payment_methods) > 1 &&
+      isset($payment_methods[0]) &&
+      $payment_methods[0] instanceof MeprStripeGateway &&
+      $payment_methods[0]->settings->stripe_checkout_enabled != 'on'
+    ) {
+      array_splice($payment_methods, 1, 0, array_splice($payment_methods, 0, 1));
+    }
+
     foreach($payment_methods as $payment_method) {
       $first = true;
       $label = self::payment_method_label($payment_method, $first);

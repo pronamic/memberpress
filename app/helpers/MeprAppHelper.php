@@ -159,7 +159,7 @@ class MeprAppHelper {
   public static function pro_template_sub_status( $sub ) {
     $type = $sub->sub_type;
     if( $type == 'transaction' ) {
-      if(strpos($sub->active, 'Yes') !== false){
+      if(strpos($sub->active, 'mepr-active') !== false){
         return 'active';
       } else {
         return 'canceled';

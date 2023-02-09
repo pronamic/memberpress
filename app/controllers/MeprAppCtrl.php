@@ -579,7 +579,6 @@ class MeprAppCtrl extends MeprBaseCtrl {
 
             if($action and $action == 'mepr_unauthorized') {
               $resource = isset($_REQUEST['redirect_to']) ? esc_url(urldecode($_REQUEST['redirect_to'])) : __('the requested resource.','memberpress');
-              $unauth_message = wpautop(MeprHooks::apply_filters('mepr-unauthorized-message', do_shortcode($mepr_options->unauthorized_message), $current_post));
 
               //Maybe override the message if a page id is set
               if(isset($_GET['mepr-unauth-page'])) {
@@ -587,6 +586,8 @@ class MeprAppCtrl extends MeprBaseCtrl {
                 $unauth = MeprRule::get_unauth_settings_for($unauth_post);
                 $unauth_message = $unauth->message;
               }
+
+              $unauth_message = wpautop(MeprHooks::apply_filters('mepr-unauthorized-message', do_shortcode($unauth_message), $current_post));
 
               $message = '<p id="mepr-unauthorized-for-resource">' . __('Unauthorized for', 'memberpress') . ': <span id="mepr-unauthorized-resource-url">' . $resource . '</span></p>' . $unauth_message;
             }

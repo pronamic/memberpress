@@ -398,6 +398,14 @@ class MeprUtils {
     // Remove thousand separator
     $number = str_replace ($thousands_sep, '' , $number);
 
+    //Fix for locales where the thousand seperator is a space -
+    //need to check for the html code, (above) as well as the actual space (handled with preg_replace below) and ascii 160 (str_replace below)
+    //and for some reason str_replace doesn't always work on spaces but the preg_replace does
+    if ($thousands_sep == '&nbsp;' || $thousands_sep == ' ' || $thousands_sep == "\xc2\xa0") {
+      $number = preg_replace("/\s+/", "", $number);
+      $number = str_replace("\xc2\xa0", '', $number);
+    }
+
     // Replaces decimal separator
     $index = strrpos( $number, $decimal_point );
     if( $index !== FALSE ){

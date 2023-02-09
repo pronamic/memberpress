@@ -248,6 +248,7 @@
           paymentMethod.$loader.hide();
 
           if (response.data.is_free_purchase) {
+            paymentMethod.creatingPaymentElement = false;
             paymentMethod.$wrapper.find('.mepr-stripe-gateway-description').show();
             return;
           }

@@ -64,6 +64,10 @@ body.site-health-php .mepr-notice-dismiss-24hour{ display:none; }
 .mepr-notice-modal .button-primary { max-width: 100%; white-space: pre-wrap; background: linear-gradient(90deg, #CF3200 0%, #CF3200 0.01%, #F47B0D 100%); border: 0; border-radius: 100px; font-weight: 600; font-size: 16px; padding: 18px 32px; line-height: 1; -webkit-transition: all 0.3s linear 0s; transition: all 0.25s linear 0s; }
 .mepr-notice-modal .button-primary:hover { background: linear-gradient(180deg, #CF3200 0%, #CF3200 0.01%, #F47B0D 100%); }
 
+.mepr-notice-modal .button-secondary { margin-bottom: 15px; color: #FFF; max-width: 100%; white-space: pre-wrap; background: #135e96; border-color: #135e96; border: 0; border-radius: 100px; font-weight: 600; font-size: 16px; padding: 18px 32px; line-height: 1; -webkit-transition: all 0.3s linear 0s; transition: all 0.25s linear 0s; }
+.mepr-notice-modal .button-secondary:hover { color: #FFF;  background: linear-gradient(90deg, #CF3200 0%, #CF3200 0.01%, #F47B0D 100%);  }
+.mepr-drm-cta{ width: 280px; }
+
 .mepr-notice-modal .mepr-notice-desc form { display: flex; align-items: flex; justify-content: center; align-items: center; }
 
 .mepr-notice-modal .mepr-notice-desc form .field { margin: 0 15px; }
@@ -86,6 +90,10 @@ body.site-health-php .mepr-notice-dismiss-24hour{ display:none; }
   top: 20px;
   background: url("../images/icon-close.png") left top no-repeat;
   background-size: 100%;
+}
+
+@media (min-width: 680px) {
+  .mepr-notice-modal .button-reactivate-fee { margin-right: 20px; }
 }
 
 @media (max-width: 782px) {

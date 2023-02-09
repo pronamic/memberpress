@@ -558,7 +558,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl {
         ( preg_match('/\d\d\d\d-\d\d-\d\d/', $_REQUEST['created_at']) ||
           preg_match('/\d\d\d\d-\d\d-\d\d \d\d-\d\d-\d\d/', $_REQUEST['created_at']) ||
           empty($_REQUEST['created_at']) ) ) {
-      $expires_at_ts = $prd->get_expires_at(strtotime($_REQUEST['created_at']));
+      $expires_at_ts = $prd->get_expires_at(strtotime($_REQUEST['created_at']), false);
 
       if(!is_null($expires_at_ts)) {
         echo date('Y-m-d H:i:s', (int)$expires_at_ts);

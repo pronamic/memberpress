@@ -889,6 +889,9 @@ button.mepr-pro-account-table__badge:hover {
   .mepr-account-welcome-message {
     width: 60%;
   }
+  .mepr-account-welcome-message.has-welcome-image{
+    width: calc(60% - 18px);
+  }
   .mepr-account-container {
     /* display: grid; */
     grid-template-columns: 250px auto;

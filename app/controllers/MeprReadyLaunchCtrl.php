@@ -820,6 +820,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     $current_screen = is_admin() ? get_current_screen() : '';
 
     $is_block_editor = (
+      isset( $current_screen ) && ! empty( $current_screen ) &&
       method_exists( $current_screen, 'is_block_editor' ) &&
       $current_screen->is_block_editor()
     );

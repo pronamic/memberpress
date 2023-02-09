@@ -12,23 +12,42 @@ class MeprDrmCtrl extends MeprBaseCtrl {
     add_action( 'mepr_license_deactivated', array( $this, 'drm_license_deactivated' ) );
     add_action( 'mepr_license_expired', array( $this, 'drm_license_invalid_expired' ) );
     add_action( 'mepr_license_invalidated', array( $this, 'drm_license_invalid_expired' ) );
+    add_action( 'mepr_drm_set_status_locked', array( $this, 'drm_set_status_locked' ), 10, 3 );
     add_action( 'wp_ajax_mepr_dismiss_notice_drm', array( $this, 'drm_dismiss_notice' ) );
+    add_action( 'wp_ajax_mepr_dismiss_fee_notice_drm', array( $this, 'drm_dismiss_fee_notice' ) );
     add_action( 'wp_ajax_mepr_drm_activate_license', array( $this, 'ajax_drm_activate_license' ) );
+    add_action( 'wp_ajax_mepr_drm_use_without_license', array( $this, 'ajax_drm_use_without_license' ) );
     add_action( 'admin_menu', array( $this, 'drm_init' ), 1 );
     add_action( 'admin_init', array( $this, 'drm_throttle' ), 20 );
     add_action( 'admin_footer', array( $this, 'drm_menu_append_alert' ) );
+    add_filter( 'cron_schedules', array( $this, 'drm_cron_schedules' ) );
+    add_action( 'mepr_drm_app_fee_mapper', array( $this, 'drm_app_fee_mapper' ) );
+    add_action( 'mepr_drm_app_fee_reversal', array( $this, 'drm_app_fee_reversal' ) );
+    add_action( 'mepr_drm_app_fee_revision', array( $this, 'drm_app_fee_percentage_revision' ) );
   }
 
   public function drm_license_activated() {
     delete_option( 'mepr_drm_no_license' );
     delete_option( 'mepr_drm_invalid_license' );
+    delete_option( 'mepr_drm_app_fee_notice_dimissed' );
+    wp_clear_scheduled_hook( 'mepr_drm_app_fee_mapper' );
+    wp_clear_scheduled_hook( 'mepr_drm_app_fee_reversal' );
+    wp_clear_scheduled_hook( 'mepr_drm_app_fee_revision' );
 
     // delete DRM notices
     $notiications = new MeprNotifications();
     $notiications->dismiss_events( 'mepr-drm' );
+
+    // Undo DRM Fee
+    $drm_app_fee = new MeprDrmAppFee();
+    $drm_app_fee->undo_app_fee();
   }
 
   public function drm_license_deactivated() {
+    wp_clear_scheduled_hook( 'mepr_drm_app_fee_mapper' );
+    wp_clear_scheduled_hook( 'mepr_drm_app_fee_reversal' );
+    wp_clear_scheduled_hook( 'mepr_drm_app_fee_revision' );
+
     $drm_no_license = get_option( 'mepr_drm_no_license', false );
 
     if ( ! $drm_no_license ) {
@@ -95,6 +114,16 @@ class MeprDrmCtrl extends MeprBaseCtrl {
       return; // bail.
     }
 
+    if ( MeprDrmHelper::is_app_fee_enabled() ) {
+      add_action( 'admin_notices', array( $this, 'app_fee_admin_notices' ), 20 );
+      add_action( 'admin_footer', array( $this, 'app_fee_modal_footer' ), 99 );
+
+      $drm_app_fee = new MeprDrmAppFee();
+      $drm_app_fee->init_crons();
+
+      return; // bail.
+    }
+
     $drm_no_license      = get_option( 'mepr_drm_no_license', false );
     $drm_invalid_license = get_option( 'mepr_drm_invalid_license', false );
 
@@ -114,6 +143,11 @@ class MeprDrmCtrl extends MeprBaseCtrl {
     }
 
     if ( MeprDrmHelper::is_locked() ) {
+
+      if ( MeprDrmHelper::is_app_fee_enabled() ) {
+        return; // bail.
+      }
+
       $page = isset( $_GET['page'] ) ? $_GET['page'] : ''; // phpcs:ignore WordPress.Security.NonceVerification
 
       if ( 'memberpress-members' === $page ) {
@@ -181,4 +215,130 @@ class MeprDrmCtrl extends MeprBaseCtrl {
     <?php
   }
 
+  public function ajax_drm_use_without_license() {
+    if ( ! MeprUtils::is_post_request() ) {
+      wp_send_json_error( sprintf( __( 'An error occurred during activation: %s', 'memberpress' ), __( 'Bad request.', 'memberpress' ) ) );
+    }
+
+    if ( ! MeprUtils::is_logged_in_and_an_admin() ) {
+      wp_send_json_error( __( 'Sorry, you don\'t have permission to do this.', 'memberpress' ) );
+    }
+
+    if ( ! check_ajax_referer( 'mepr_drm_use_without_license', false, false ) ) {
+      wp_send_json_error( sprintf( __( 'An error occurred: %s', 'memberpress' ), __( 'Security check failed.', 'memberpress' ) ) );
+    }
+
+    try {
+
+      if( ! MeprStripeGateway::has_method_with_connect_status() ) {
+        wp_send_json_error( __( 'Invalid request.', 'memberpress' ) );
+      }
+
+      // is it already enabled?
+      if ( MeprDrmHelper::is_app_fee_enabled() ) {
+        wp_send_json_success( array('redirect_to' => admin_url( 'admin.php?page=memberpress-members' )) );
+        return;
+      }
+
+      $drm_app_fee = new MeprDrmAppFee();
+      $drm_app_fee->do_app_fee();
+
+      wp_send_json_success( array('redirect_to' => admin_url( 'admin.php?page=memberpress-members' )) );
+    } catch ( Exception $e ) {
+      wp_send_json_error( $e->getMessage() );
+    }
+  }
+
+  public function drm_set_status_locked( $status, $days, $event_name ){
+
+    if( ! MeprDrmHelper::is_locked($status) ) {
+      return; // bail.
+    }
+
+    if( ! MeprStripeGateway::has_method_with_connect_status() ) {
+      return;
+    }
+
+    $drm_app_fee = new MeprDrmAppFee();
+    $drm_app_fee->do_app_fee();
+
+    if ( ! wp_doing_ajax() ) {
+      wp_safe_redirect( admin_url( 'admin.php?page=memberpress-members' ) );
+      exit;
+    }
+
+  }
+
+   public function app_fee_admin_notices() {
+
+    if ( ! MeprDrmHelper::is_app_fee_enabled() ) {
+      return;
+    }
+
+    $is_dismissed = (bool) MeprDrmHelper::is_app_fee_notice_dismissed();
+    if ( false === $is_dismissed ) {
+      echo'<style>.drm-mepr-activation-warning{display:none;}</style>';
+      MeprView::render( '/admin/drm/notices/fee_notice', get_defined_vars() );
+    }
+
+  }
+
+  public static function drm_dismiss_fee_notice() {
+
+    if ( check_ajax_referer( 'mepr_dismiss_notice', false, false ) ) {
+      MeprDrmHelper::dismiss_app_fee_notice();
+    }
+
+    wp_send_json_success();
+  }
+
+  public function app_fee_modal_footer() {
+    MeprView::render( '/admin/drm/modal_fee' );
+  }
+
+  public function drm_cron_schedules( $array ) {
+
+    $array['mepr_drm_ten_minutes'] = array(
+      'interval' => 300,
+      'display'  => __( 'Every 10 minutes', 'memberpress' ),
+    );
+
+    return $array;
+  }
+
+  public function drm_app_fee_mapper() {
+    if( ! MeprDrmHelper::is_app_fee_enabled() ) {
+      return; // bail.
+    }
+
+    $api_version = MeprDrmHelper::get_drm_app_fee_version();
+    $current_percentage = MeprDrmHelper::get_application_fee_percentage();
+    $meprdrm = new MeprDrmAppFee();
+
+    // --Add fee--
+    $subscriptions = $meprdrm->get_all_active_subs(array('mepr_app_fee_not_applied' => true));
+    $meprdrm->process_subscriptions_fee($subscriptions, $api_version, $current_percentage);
+
+    // --Update fee--
+    $subscriptions = $meprdrm->get_all_active_subs(array('mepr_app_not_fee_version' => $api_version));
+    $meprdrm->process_subscriptions_fee($subscriptions, $api_version, $current_percentage);
+  }
+
+  public function drm_app_fee_reversal() {
+
+    if( ! MeprDrmHelper::is_valid() ) {
+      return; // bail.
+    }
+
+    $api_version = MeprDrmHelper::get_drm_app_fee_version();
+    $current_percentage = MeprDrmHelper::get_application_fee_percentage();
+    $subscriptions = $meprdrm->get_all_active_subs(array('mepr_app_fee_applied' => MeprDrmHelper::get_drm_app_fee_version()));
+    $meprdrm->process_subscriptions_fee($subscriptions, $api_version, 0, true);
+  }
+
+  public function drm_app_fee_percentage_revision() {
+    $current_version = MeprDrmHelper::get_drm_app_fee_version();
+    $current_percentage = MeprDrmHelper::get_application_fee_percentage();
+    MeprDrmHelper::get_application_fee_percentage(true);
+  }
 }

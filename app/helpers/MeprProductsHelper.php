@@ -62,7 +62,7 @@ class MeprProductsHelper {
   /** Especially for formatting a membership's price */
   public static function format_currency($product, $show_symbol = true, $coupon_code = null, $show_prorated = true, &$payment_required = true) {
     return MeprAppHelper::format_price_string($product,
-                                              $product->adjusted_price($coupon_code),
+                                              $product->adjusted_price($coupon_code, $show_prorated),
                                               $show_symbol,
                                               $coupon_code,
                                               $show_prorated,

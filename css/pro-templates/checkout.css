@@ -9,7 +9,8 @@ body {
 }
 
 .mepr-signup-form,
-.mepr-before-signup-form {
+.mepr-before-signup-form,
+.mepr-pro-template #primary {
   max-width: 1000px;
   margin: 0 auto;
 }

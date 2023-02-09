@@ -517,14 +517,16 @@ class MeprStripeCtrl extends MeprBaseCtrl
         $payment_intent_id_hash = isset($_POST['payment_intent_id_hash']) ? sanitize_text_field(wp_unslash($_POST['payment_intent_id_hash'])) : '';
 
         if(!empty($payment_intent_id) && !empty($payment_intent_id_hash) && hash_equals(wp_hash($payment_intent_id), $payment_intent_id_hash)) {
-          $payment_intent = (object) $pm->send_stripe_request("payment_intents/$payment_intent_id", [
+          $args = MeprHooks::apply_filters('mepr_stripe_update_payment_intent_args', [
             'metadata' => [
               'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
               'transaction_id' => $txn->id,
               'site_url' => get_site_url(),
               'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
             ],
-          ]);
+          ], $txn);
+
+          $payment_intent = (object) $pm->send_stripe_request("payment_intents/$payment_intent_id", $args);
 
           $customer_id = $usr->get_stripe_customer_id($pm->get_meta_gateway_id());
 

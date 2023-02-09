@@ -180,6 +180,20 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
         $first_txn->coupon_id  = $sub->coupon_id;
       }
 
+      $existing = MeprTransaction::get_one_by_trans_num( $_POST['txn_id'] );
+
+      //There's a chance this may have already happened during the return handler, if so let's just get everything up to date on the existing one
+      if ( $existing != null && isset( $existing->id ) && (int) $existing->id > 0 ) {
+        $txn = new MeprTransaction( $existing->id );
+        $handled = $txn->get_meta('mepr_paypal_notification_handled');
+
+        if (!empty($handled)) {
+          return;
+        }
+      } else {
+        $txn = new MeprTransaction();
+      }
+
       //If this is a trial payment, let's just convert the confirmation txn into a payment txn
       if ( $this->is_subscr_trial_payment( $sub ) ) {
         $txn                  = $first_txn; //For use below in send notices
@@ -193,15 +207,6 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
         $txn->set_gross( $_POST['mc_gross'] );
         $txn->store();
       } else {
-        $existing = MeprTransaction::get_one_by_trans_num( $_POST['txn_id'] );
-
-        //There's a chance this may have already happened during the return handler, if so let's just get everything up to date on the existing one
-        if ( $existing != null && isset( $existing->id ) && (int) $existing->id > 0 ) {
-          $txn = new MeprTransaction( $existing->id );
-        } else {
-          $txn = new MeprTransaction();
-        }
-
         $txn->created_at      = MeprUtils::ts_to_mysql_date( $timestamp );
         $txn->user_id         = $first_txn->user_id;
         $txn->product_id      = $first_txn->product_id;
@@ -224,6 +229,8 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
         // the total occurrences is already capped in record_create_subscription()
         $sub->limit_payment_cycles();
       }
+
+      $txn->update_meta('mepr_paypal_notification_handled', true);
 
       $this->email_status( "Subscription Transaction\n" . MeprUtils::object_to_string( $txn->rec, true ), $this->debug );
 
@@ -1389,6 +1396,8 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
 
   public function ipn_listener() {
     $_POST = wp_unslash( $_POST );
+    $this->log('IPN received');
+    $this->log($_POST);
     do_action('mepr_paypal_commerce_ipn_listener_preprocess');
     $this->email_status( "PayPal IPN Recieved\n" . MeprUtils::object_to_string( $_POST, true ) . "\n", $this->debug );
 
@@ -1400,6 +1409,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       }
 
       $standard_gateway = new MeprPayPalStandardGateway();
+      $mepr_options->legacy_integrations[ $this->id ]['debug'] = $this->debug;
       $standard_gateway->load( $mepr_options->legacy_integrations[ $this->id ] );
 
       return $standard_gateway->process_ipn();
@@ -1408,43 +1418,10 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     return false;
   }
 
-  public function validate_ipn() {
-    // If not connected yet, use IPN
-    if ( ! $this->is_paypal_connected() && ! $this->is_paypal_connected_live() ) {
-      return parent::validate_ipn();
-    }
-
-    $recurring_payment_txn_types = array(
-      'recurring_payment',
-      'subscr_payment',
-      'recurring_payment_outstanding_payment'
-    );
-
-    if ( isset( $_POST['txn_type'] ) && $_POST['txn_type'] == 'cart' ) {
-      return false;
-    }
-
-    if ( isset( $_POST['txn_type'] ) && in_array( strtolower( $_POST['txn_type'] ), $recurring_payment_txn_types ) ) {
-      if ( isset( $_POST['subscr_id'] ) && ! empty( $_POST['subscr_id'] ) ) {
-        $sub = MeprSubscription::get_one_by_subscr_id( $_POST['subscr_id'] );
-      } else {
-        $sub = MeprSubscription::get_one_by_subscr_id( $_POST['recurring_payment_id'] );
-      }
-
-      $pp_subscription = $this->get_paypal_subscription_object( $sub->subscr_id );
-
-      // This is a subscription created by Commerce, skip the IPN handler, returning false
-      if ( isset( $pp_subscription['custom_id'] ) && $pp_subscription['custom_id'] == $sub->id ) {
-        return false;
-      }
-    }
-
-    return parent::validate_ipn();
-  }
-
   public function webhook_handler() {
     $request = @file_get_contents( 'php://input' );
     $request = json_decode( $request, true );
+    $this->log( 'Webhook received' );
     $this->log( $request );
 
     if ( ! isset( $request['event_type'] ) ) {

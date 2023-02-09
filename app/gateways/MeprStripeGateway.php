@@ -394,6 +394,24 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     $checkout_session = MeprHooks::apply_filters('mepr_stripe_checkout_session_args', $checkout_session, $txn, $sub);
 
+    if( !$product->is_one_time_payment() ){
+      $application_fee_percentage = $this->get_application_fee_percentage();
+      if (!empty( $application_fee_percentage)) {
+        if(!isset($checkout_session['subscription_data'])) {
+          $checkout_session['subscription_data'] = array();
+        }
+        $checkout_session['subscription_data']['application_fee_percent'] = $application_fee_percentage;
+      }
+    } else {
+      $application_fee_percentage = $this->get_application_fee_percentage();
+      $application_fee = floor( $txn->amount * $application_fee_percentage / 100 );
+      if (!empty($application_fee)) {
+        $checkout_session['payment_intent_data'] = [
+          'application_fee_amount' => $application_fee,
+        ];
+      }
+    }
+
     $result = $this->send_stripe_request('checkout/sessions', $checkout_session, 'post');
     $result['public_key'] = $this->settings->public_key;
     wp_send_json( $result );
@@ -436,7 +454,13 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       ],
     ], $txn);
 
+    $args = $this->add_application_fee_amount($args);
+
     $payment_intent = (object) $this->send_stripe_request('payment_intents', $args, 'post');
+
+    if(is_array($payment_intent)) {
+      $this->maybe_record_txn_application_fee_meta($args,$txn);
+    }
 
     return $payment_intent;
   }
@@ -1452,6 +1476,8 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $_REQUEST['trial_days'] = $sub->trial_days;
     }
 
+    $args = $this->add_application_fee_percentage($args);
+
     $subscription = (object) $this->send_stripe_request('subscriptions', $args);
 
     $sub->subscr_id    = $subscription->id;
@@ -1459,6 +1485,8 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $sub->trial_days   = $orig_trial_days;
     $sub->trial_amount = $orig_trial_amount;
     $sub->store();
+
+    $this->maybe_record_sub_application_fee_meta($args,$sub);
 
     $this->email_status( "process_resume_subscription: \n" . MeprUtils::object_to_string($sub) . "\n", $this->settings->debug );
 
@@ -3080,12 +3108,15 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       }
     }
 
-    MeprHooks::apply_filters('mepr_stripe_subscription_args', $args, $txn, $sub);
+    $args = MeprHooks::apply_filters('mepr_stripe_subscription_args', $args, $txn, $sub);
+
+    $args = $this->add_application_fee_percentage($args);
 
     $this->email_status("create_subscription: \n" . MeprUtils::object_to_string($txn) . "\n", $this->settings->debug);
 
     try {
       $subscription = (object) $this->send_stripe_request('subscriptions', $args, 'post');
+      $this->maybe_record_sub_application_fee_meta($args,$sub);
     }
     catch(Exception $e) {
       if(isset($invoice_item)) {
@@ -3293,6 +3324,65 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
 
     return MeprHooks::apply_filters('mepr_stripe_locale_code', $locale_code);
+  }
+
+  private function add_application_fee_percentage($args){
+    $percentage = $this->get_application_fee_percentage();
+
+    if( $percentage > 0 ) {
+        $args['application_fee_percent'] = $percentage;
+    }
+
+    return $args;
+  }
+
+  private function add_application_fee_amount($args){
+    $percentage = $this->get_application_fee_percentage();
+
+    if( $percentage > 0 ) {
+      $amount = $args['amount'];
+      $application_fee = $amount * ( $percentage / 100 );
+      $application_fee = floor( $application_fee );
+      if ( ! empty( $application_fee ) ) {
+        $args['application_fee_amount'] = intval( $application_fee );
+      }
+    }
+
+    return $args;
+  }
+
+  private function get_application_fee_percentage() {
+    $application_fee_percentage = 0;
+    if ( MeprDrmHelper::is_app_fee_enabled() ) {
+      $application_fee_percentage = MeprDrmHelper::get_application_fee_percentage();
+    }
+
+    return round( floatval( $application_fee_percentage ), 2 );
+  }
+
+  public function maybe_record_sub_application_fee_meta($args,$sub) {
+
+    if(!$sub instanceof MeprSubscription) {
+      return;
+    }
+
+    if(isset($args['application_fee_percent'])) {
+      $sub->update_meta( 'application_fee_percent', $args['application_fee_percent']);
+      $sub->update_meta( 'application_fee_version', isset($args['application_fee_version'])?$args['application_fee_version']:MeprDrmHelper::get_drm_app_fee_version());
+    }
+  }
+
+  private function maybe_record_txn_application_fee_meta($args,$txn) {
+
+    if(!$txn instanceof MeprTransaction) {
+      return;
+    }
+
+    if(isset($args['application_fee_amount'])) {
+      $txn->update_meta( 'application_fee_amount', $args['application_fee_amount']);
+      $txn->update_meta( 'application_fee_percent', $this->get_application_fee_percentage());
+      $txn->update_meta( 'application_fee_version', MeprDrmHelper::get_drm_app_fee_version());
+    }
   }
 
   /**

@@ -55,7 +55,7 @@ if ( ! empty( $payments ) ) {
     </td>
     <td data-label="<?php _ex( 'Status', 'ui', 'memberpress' ); ?>"><?php
 
-    echo '<button class="btn mepr-pro-account-table__badge --is-' . MeprAppHelper::pro_template_txn_status($txn) . '">' . ucfirst( MeprAppHelper::pro_template_txn_status($txn) ) . '</button>';
+    echo '<button class="btn mepr-pro-account-table__badge --is-' . MeprAppHelper::pro_template_txn_status($txn) . '">' . MeprAppHelper::human_readable_status($txn->status, 'transaction') . '</button>';
 
     ?></td>
     <td data-label="<?php _ex( 'Email', 'ui', 'memberpress' ); ?>" class="mepr-payment-row__desc text-gray"><?php echo esc_html( $mepr_current_user->user_email ); ?></td>

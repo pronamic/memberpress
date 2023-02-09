@@ -21,6 +21,9 @@ class MeprDrmNokey extends MeprBaseDrm {
         $this->set_status( MeprDrmHelper::DRM_MEDIUM );
       } elseif ( $days >= 30 ) {
         $this->set_status( MeprDrmHelper::DRM_LOCKED );
+        if( $days >= 60 ) {
+          MeprHooks::do_action('mepr_drm_set_status_locked', $status, $days, $this->event_name);
+        }
       }
     }
 

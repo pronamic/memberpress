@@ -177,6 +177,10 @@ jQuery(document).ready(function($) {
 
     var notice = $(this).closest('.notice');
 
+    if( notice.hasClass('mepr-notice-dismiss-fee-notice') ){
+      return;
+    }
+
     $.ajax({
       url: MeprAdminShared.ajax_url,
       method: 'POST',
@@ -187,5 +191,23 @@ jQuery(document).ready(function($) {
         secret: notice.data('secret')
       }
     })
+  });
+
+  $('body').on('click', '.mepr-notice-dismiss-fee-notice button.notice-dismiss', function (e) {
+
+    $.ajax({
+      url: MeprAdminShared.ajax_url,
+      method: 'POST',
+      data: {
+        action: 'mepr_dismiss_fee_notice_drm',
+        _ajax_nonce: MeprAdminShared.dismiss_notice_nonce,
+      }
+    })
+  });
+
+  $('body').on('click', 'a.mepr-btn-fee-learnmore', function (e) {
+    e.preventDefault();
+    $('#mepr-drm-fee-notice-wrapper').hide();
+    $('body').addClass('mepr-locked mepr-notice-modal-active');
   });
 });

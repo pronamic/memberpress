@@ -75,8 +75,8 @@
     </div>
     <div class="mepr-support-help-topic">
       <a target="_blank" href="https://docs.memberpress.com/category/135-managing-members-and-their-subscriptions">
-        <h3><?php _e('Managing Members and Thier Subscriptions', 'memberpress');?></h3>
-        <p><?php _e('Managing Members(users) and thier subscriptions to memberships.', 'memberpress');?></p>
+        <h3><?php _e('Managing Members and their Subscriptions', 'memberpress');?></h3>
+        <p><?php _e('Managing Members(users) and their subscriptions to memberships.', 'memberpress');?></p>
       </a>
     </div>
     <div class="mepr-support-help-topic">

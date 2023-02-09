@@ -101,7 +101,7 @@
       ?>
     <div class="mp-form-row mp-address-group">
       <?php
-      if ( ! $product->disable_address_fields ) {
+      if ( $mepr_options->show_address_fields && ! $product->disable_address_fields ) {
         MeprUsersHelper::render_address_fields();
       }
       ?>
@@ -265,7 +265,7 @@
 
 
   <div class="invoice-wrapper">
-    <h3 class="invoice-heading">Pay <?php echo get_bloginfo( 'name' ); ?></h3>
+    <h3 class="invoice-heading"><?php printf( esc_html_x( 'Pay %s', 'ui', 'memberpress' ), get_bloginfo( 'name' ) ); ?></h3>
 
     <div class="mp-form-row mepr_bold mepr_price">
     <div class="mepr_price_cell invoice-amount">

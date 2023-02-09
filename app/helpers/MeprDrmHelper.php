@@ -368,4 +368,106 @@ class MeprDrmHelper {
 
     return false;
   }
+
+  public static function get_drm_transient_fee_data(){
+    $transient =  get_transient('mepr_drm_app_fee');
+    $transient_data = false;
+    if(!empty($transient) && strstr($transient,'|')) {
+      $data = explode("|",$transient);
+      $transient_data = array(
+        'v' => $data[0],
+        'a99_f33' => $data[1]
+      );
+    }
+
+    return $transient_data;
+  }
+
+  public static function get_drm_app_fee_version(){
+    $transient = self::get_drm_transient_fee_data();
+    if(!empty($transient) && is_array($transient)) {
+      return $transient['v'];
+    }
+
+    return get_option('mepr_drm_application_fee_version',0);
+  }
+
+  private static function get_drm_transient_app_fee(){
+    $transient = self::get_drm_transient_fee_data();
+    if(!empty($transient) && is_array($transient)) {
+      return $transient['a99_f33'];
+    }
+    return false;
+  }
+
+  public static function get_application_fee_percentage($bypass=false){
+    $app_fee = self::get_drm_transient_app_fee();
+    if(false !== $app_fee && false === $bypass) {
+      return $app_fee;
+    }
+
+    $url = 'https://memberpress.com/wp-json/caseproof/d7m/v1/f33';
+    if( defined('MEPR_STAGING_MP_URL') && ( defined('MPSTAGE') && MPSTAGE ) ) {
+      $url = MEPR_STAGING_MP_URL . '/wp-json/caseproof/d7m/v1/f33';
+    }
+
+    $args = array(
+        'method' => 'POST',
+        'headers'     => [
+            'Content-Type'  => 'application/json',
+        ],
+        'sslverify' => false,
+        'body' => json_encode(array(
+            'MEMBERPRESS-DR7-KEY' => 'BAY074X4F4C8UUARHZMV'
+        ))
+    );
+
+    $api_response = wp_remote_post($url, $args);
+    $fee_percentage = apply_filters( 'mepr_drm_application_fee_percentage', 3 );
+    $current_version = get_option('mepr_drm_application_fee_version',0);
+    $transient_data = $current_version.'|'.$fee_percentage;
+
+    if(!is_wp_error($api_response)) {
+      if(null !== ($data = json_decode($api_response['body'], true))) {
+        if( isset($data['v']) ){
+          $fee_percentage = base64_decode($data['a99_f33']);
+          $transient_data = $data['v'].'|'.$fee_percentage;
+          update_option( 'mepr_drm_application_fee_version', $data['v'] );
+        }
+      }
+    }
+
+    set_transient( "mepr_drm_app_fee", $transient_data, DAY_IN_SECONDS);
+
+    return $fee_percentage;
+  }
+
+  public static function is_app_fee_enabled(){
+    return get_option( 'mepr_drm_app_fee_enabled', false );
+  }
+
+  public static function enable_app_fee(){
+    return update_option( 'mepr_drm_app_fee_enabled', time(), false );
+  }
+
+  public static function disable_app_fee(){
+    return delete_option( 'mepr_drm_app_fee_enabled' );
+  }
+
+  public static function is_app_fee_notice_dismissed(){
+    $dimissed_time = get_option( 'mepr_drm_app_fee_notice_dimissed', false );
+
+    if( $dimissed_time ) {
+      $diff = (int) abs( time() - $dimissed_time );
+      if ( $diff <= ( DAY_IN_SECONDS * 30 ) ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public static function dismiss_app_fee_notice(){
+    return update_option( 'mepr_drm_app_fee_notice_dimissed', time(), false );
+  }
 } //End class
