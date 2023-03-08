@@ -785,7 +785,11 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
    * Returs the payment form and required fields for the gateway
    */
   public function spc_payment_fields() {
-    return $this->settings->desc;
+    if($this->settings->use_desc) {
+      return wpautop(esc_html(trim($this->settings->desc)));
+    }
+
+    return '';
   }
 
   /**

@@ -826,29 +826,6 @@ class MeprUser extends MeprBaseModel {
     return $errors;
   }
 
-  /**
-   * Validate single account field
-   *
-   * @param array $field The field array, showuld have name, value keys
-   * @param array $errors The errors array.
-   * @return array
-   */
-  public static function validate_account_field($params, $errors = array()) {
-    if( array_key_exists('user_email', $params) ){
-      if(empty($params['user_email']) || !is_email(stripslashes($params['user_email']))) {
-        $errors[] = __('You must enter a valid email address', 'memberpress');
-      }
-
-      //Old email is not the same as the new, so let's make sure no else has it
-      $user = MeprUtils::get_currentuserinfo(); //Old user info is here since we haven't stored the new stuff yet
-      if($user !== false && $user->user_email != stripslashes($params['user_email']) && email_exists(stripslashes($params['user_email']))) {
-        $errors[] = __('This email is already in use by another member', 'memberpress');
-      }
-    }
-
-    return $errors;
-  }
-
   public static function validate_signup($params, $errors, $current_url = '') {
     $mepr_options = MeprOptions::fetch();
     $custom_fields_errors = array();

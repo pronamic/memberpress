@@ -104,7 +104,7 @@
       </div>
     </div>
   </div>
-  <?php if(!in_array(MEPR_EDITION, array('memberpress-pro', 'memberpress-pro-5'))) : ?>
+  <?php if(!MeprUtils::is_pro_edition(MEPR_EDITION)) : ?>
     <div class="mepr-onboarding-pricing">
       <h2>The Most Powerful WordPress Membership Plugin ... <span class="mepr-onb-underline">Without the Hidden Costs</span></h2>
       <p>Join thousands of professionals who have together sold <strong>over $1 billion in memberships</strong>.</p>

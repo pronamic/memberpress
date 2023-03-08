@@ -623,7 +623,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
   }
 
   /**
-   * Save account profile fields for PRO templates
+   * Save account profile fields for Ready Launch account template
    *
    * @return void
    */
@@ -647,9 +647,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $field_key    = array_map( 'sanitize_key', array_merge( array_keys( $_POST ), array_keys( $_FILES ) ) );
     $current_user = MeprUtils::get_currentuserinfo();
 
-    $errors = MeprUsersCtrl::validate_extra_profile_fields( null, null, $current_user, false, false, $field_key );
-    $errors = MeprUser::validate_account_field( $_POST, $errors );
-    $errors = MeprHooks::apply_filters( 'mepr-validate-account', $errors, $current_user );
+    $errors = MeprHooks::apply_filters( 'mepr-validate-account-ajax', array(), $current_user, $field_key );
 
     if ( empty( $errors ) ) {
       if ( isset( $_POST['user_email'] ) && ! empty( $_POST['user_email'] ) ) {
@@ -665,7 +663,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
       MeprUsersCtrl::save_extra_profile_fields( $current_user->ID, true, false, false, $field_key );
       wp_send_json_success();
     } else {
-      wp_send_json( $errors );
+      wp_send_json_error( $errors );
     }
   }
 

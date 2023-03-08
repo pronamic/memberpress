@@ -91,14 +91,14 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
                 <label for="user_login" class="screen-reader-text"><?php echo ($mepr_options->username_is_email) ? $uname_or_email_str : $uname_str; ?></label>
                 <?php /* <span class="cc-error"><?php _ex('Username Required', 'ui', 'memberpress'); ?></span> */ ?>
               </div>
-              <input type="text" name="log" placeholder="Username (email)" id="user_login" value="<?php echo (isset($_REQUEST['log']) ? esc_html($_REQUEST['log']) : ''); ?>" />
+              <input type="text" name="log" placeholder="<?php _ex('Username (email)', 'ui', 'memberpress'); ?>" id="user_login" value="<?php echo (isset($_REQUEST['log']) ? esc_html($_REQUEST['log']) : ''); ?>" />
             </div>
             <div class="mp-form-row mepr_password">
               <div class="mp-form-label">
                 <label for="user_pass" class="screen-reader-text"><?php _ex('Password', 'ui', 'memberpress'); ?></label>
                 <?php /* <span class="cc-error"><?php _ex('Password Required', 'ui', 'memberpress'); ?></span> */ ?>
                 <div class="mp-hide-pw">
-                  <input type="password" name="pwd" placeholder="Password" id="user_pass" value="" />
+                  <input type="password" name="pwd" placeholder="<?php _ex('Password', 'ui', 'memberpress'); ?>" id="user_pass" value="" />
                   <button type="button" class="button link mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password', 'memberpress'); ?>">
                     <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
                   </button>

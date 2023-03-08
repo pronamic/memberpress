@@ -9,12 +9,16 @@
   <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
   <input type="hidden" name="mepr_stripe_is_checkout" value="1"/>
   <input type="hidden" name="mepr_stripe_checkout_page_mode" value="1"/>
-  <div class="mepr-stripe-gateway-description"><?php esc_html_e('Pay with your Credit Card via Stripe Checkout', 'memberpress'); ?></div>
+  <?php if($payment_method->settings->use_desc) : ?>
+    <div class="mepr-stripe-gateway-description"><?php esc_html_e('Pay with your Credit Card via Stripe Checkout', 'memberpress'); ?></div>
+  <?php endif; ?>
   <span role="alert" class="mepr-stripe-checkout-errors"></span>
 <?php else: ?>
   <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
   <div class="mepr-stripe-form-placeholder"></div>
-  <div class="mepr-stripe-gateway-description"><?php echo esc_html($payment_method->desc); ?></div>
+  <?php if($payment_method->settings->use_desc) : ?>
+    <div class="mepr-stripe-gateway-description"><?php echo esc_html($payment_method->desc); ?></div>
+  <?php endif; ?>
   <div class="mepr-stripe-elements">
     <?php if($payment_method->is_stripe_link_enabled()) : ?>
       <div class="mepr-stripe-link-element" data-stripe-email="<?php echo isset($user) && $user instanceof MeprUser ? esc_attr($user->user_email) : ''; ?>"></div>

@@ -335,22 +335,22 @@ class MeprOnboardingHelper {
   public static function is_pro_license(){
     $li = get_site_transient('mepr_license_info');
     $is_pro = false;
-    if($li){
-      if(in_array($li['product_slug'],['memberpress-pro','memberpress-pro-5'],true)){
-        $is_pro = true;
-      }
+
+    if($li) {
+      $is_pro = MeprUtils::is_pro_edition($li['product_slug']);
     }
+
     return $is_pro;
   }
 
-  public static function get_license_type(){
+  public static function get_license_type() {
     $li = get_site_transient('mepr_license_info');
-    if($li){
-      if(in_array($li['product_slug'],['memberpress-pro','memberpress-pro-5'],true)){
+    if($li) {
+      if(MeprUtils::is_pro_edition($li['product_slug'])) {
         return 'memberpress-pro-5';
       }
 
-      if(in_array($li['product_slug'],['memberpress-plus','memberpress-plus-2'],true)){
+      if(in_array($li['product_slug'],['memberpress-plus','memberpress-plus-2'],true)) {
         return 'memberpress-plus';
       }
 
@@ -439,7 +439,7 @@ class MeprOnboardingHelper {
     }
 
     // Check if license type is not pro or developer and Auth.net payment gateway selected.
-    if( ! in_array($license_type,['developer','memberpress-pro','memberpress-pro-5'], true) && $payment_gateway == 'MeprAuthorizeGateway' ){
+    if( ! (MeprUtils::is_pro_edition($license_type) || $license_type == 'developer') && $payment_gateway == 'MeprAuthorizeGateway' ){
       return 'memberpress-pro-5'; // upgrade to pro required.
     }
 
@@ -513,7 +513,7 @@ class MeprOnboardingHelper {
   }
 
   public static function is_courses_addon_applicable(){
-    if(is_plugin_active('memberpress-courses/main')){
+    if(is_plugin_active('memberpress-courses/main.php')){
         return true;
     }else{
       return false;

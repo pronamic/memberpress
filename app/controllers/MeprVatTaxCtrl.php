@@ -120,7 +120,7 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
   public function signup($prd_id) {
     $prd = new MeprProduct($prd_id);
 
-    if($this->vat_calc_possible() && ($prd->price > 0.00 || ($prd->price <= 0.00 && !$prd->disable_address_fields))) {
+    if($this->vat_calc_possible() && $prd->price > 0.00 && !isset($_GET['ca'])) {
       $vat_customer_type = $this->get_customer_type();
       $vat_number = $this->get_vat_number();
 

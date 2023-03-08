@@ -2293,7 +2293,13 @@ class MeprUtils {
       array('index' => 4, 'slug' => 'developer', 'name' => 'MemberPress Developer'),
       array('index' => 5, 'slug' => 'memberpress-pro', 'name' => 'MemberPress Pro'),
       array('index' => 6, 'slug' => 'memberpress-pro-5', 'name' => 'MemberPress Pro'),
+      array('index' => 7, 'slug' => 'memberpress-reseller', 'name' => 'MemberPress Reseller'),
+      array('index' => 8, 'slug' => 'memberpress-oem', 'name' => 'MemberPress OEM'),
     );
+
+    if(preg_match('/^memberpress-reseller-.+$/', $product_slug)) {
+      $editions[7]['slug'] = $product_slug;
+    }
 
     foreach($editions as $edition) {
       if($product_slug == $edition['slug']) {
@@ -2334,6 +2340,28 @@ class MeprUtils {
       'installed' => $installed_edition,
       'license' => $license_edition
     );
+  }
+
+  /**
+   * Is the given product slug a Pro edition of MemberPress?
+   *
+   * @param string $product_slug
+   * @return bool
+   */
+  public static function is_pro_edition($product_slug) {
+    if(empty($product_slug)) {
+      return false;
+    }
+
+    if(in_array($product_slug, ['memberpress-pro', 'memberpress-pro-5', 'memberpress-oem'], true)) {
+      return true;
+    }
+
+    if(preg_match('/^memberpress-reseller-.+$/', $product_slug)) {
+      return true;
+    }
+
+    return false;
   }
 
   /**

@@ -23,6 +23,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     add_filter( 'mepr_view_paths_get_string', array( $this, 'add_view_paths' ), 10, 3 );
     add_filter( 'show_admin_bar', array( $this, 'remove_admin_bar' ) );
     add_filter( 'mepr-membership-cant-purchase-string', array( $this, 'cant_purchase_message' ) );
+    add_filter( 'mepr-validate-account-ajax', array( $this, 'validate_account_fields' ), 10, 3 );
 
     add_action( 'wp_ajax_prepare_editable_field', 'MeprReadyLaunchCtrl::account_profile_editable_fields' );
     add_action( 'wp_ajax_load_more_subscriptions', array( $this, 'load_more_subscriptions' ) );
@@ -478,7 +479,6 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
         'welcomeImageId'   => isset( $mepr_options->design_account_welcome_img ) ? absint( $mepr_options->design_account_welcome_img ) : '',
       ),
       'courses'  => array(
-        // 'enableTemplate'       => isset( $mepr_options->design_enable_courses_template ) ? filter_var( $mepr_options->design_enable_courses_template, FILTER_VALIDATE_BOOLEAN ) : '',
         'enableTemplate'        => isset( $courses_options['classroom-mode'] ) ? filter_var( $courses_options['classroom-mode'], FILTER_VALIDATE_BOOLEAN ) : '',
         'showProtectedCourses' => isset( $courses_options['show-protected-courses'] ) ? filter_var( $courses_options['show-protected-courses'], FILTER_VALIDATE_BOOLEAN ) : '',
         'removeInstructorLink' => isset( $courses_options['remove-instructor-link'] ) ? filter_var( $courses_options['remove-instructor-link'], FILTER_VALIDATE_BOOLEAN ) : '',
@@ -605,7 +605,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    * @return mixed
    */
   function add_view_paths( $paths, $slug, $vars ) {
-    $paths   = MeprView::paths();
+    $paths = array_merge( $paths, MeprView::paths() );
     $options = MeprOptions::fetch();
 
     $design_checkout_enabled = isset( $options->design_enable_checkout_template ) ? filter_var( $options->design_enable_checkout_template, FILTER_VALIDATE_BOOLEAN ) : null;
@@ -757,6 +757,33 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     $content = ob_get_clean();
 
     wp_send_json_success( $content );
+  }
+
+  public function validate_account_fields($errors, $user, $field_key ){
+    $mepr_options = MeprOptions::fetch();
+
+    $errors = MeprUsersCtrl::validate_extra_profile_fields( null, true, $user, false, false, $field_key );
+
+    // validate first name and last name
+    if(isset($_POST['first_name']) || isset($_POST['last_name'])){
+      if($mepr_options->require_fname_lname && (empty($_POST['first_name']) || empty($_POST['last_name']))) {
+        $errors[] = __('You must enter both your First and Last name', 'memberpress');
+      }
+    }
+
+    if(isset($_POST['user_email'])){
+      if(empty($_POST['user_email']) || !is_email(stripslashes($_POST['user_email']))) {
+        $errors[] = __('You must enter a valid email address', 'memberpress');
+      }
+
+      //Old email is not the same as the new, so let's make sure no else has it
+      // $user = MeprUtils::get_currentuserinfo(); //Old user info is here since we haven't stored the new stuff yet
+      if($user !== false && $user->user_email != stripslashes($_POST['user_email']) && email_exists(stripslashes($_POST['user_email']))) {
+        $errors[] = __('This email is already in use by another member', 'memberpress');
+      }
+    }
+
+    return $errors;
   }
 
   public function load_more_subscriptions() {

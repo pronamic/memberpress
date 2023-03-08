@@ -579,6 +579,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
 
             if($action and $action == 'mepr_unauthorized') {
               $resource = isset($_REQUEST['redirect_to']) ? esc_url(urldecode($_REQUEST['redirect_to'])) : __('the requested resource.','memberpress');
+              $unauth_message = $mepr_options->unauthorized_message;
 
               //Maybe override the message if a page id is set
               if(isset($_GET['mepr-unauth-page'])) {

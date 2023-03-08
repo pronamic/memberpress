@@ -58,8 +58,60 @@ if (!empty($subscriptions)) {
 
           $mepr_options = MeprOptions::fetch();
           $alt          = !$alt; // Facilitiates the alternating lines
-        ?>
 
+
+          // Get row actions
+          ob_start();
+
+          if ($txn != false && $txn instanceof MeprTransaction && $txn->is_sub_account()) {
+            echo '--';
+          } else {
+            if (
+              $is_sub && $pm instanceof MeprBaseRealGateway &&
+              ($s->status == MeprSubscription::$active_str ||
+                $s->status == MeprSubscription::$suspended_str ||
+                strpos($s->active, 'mepr-active') !== false)
+            ) {
+              $subscription = new MeprSubscription($s->id);
+
+              if (!$subscription->in_grace_period()) { // Don't let people change shiz until a payment has come through yo
+                $pm->print_user_account_subscription_row_actions($subscription);
+              }
+            } elseif (!$is_sub && !empty($prd->ID)) {
+              if ($prd->is_renewable() && $prd->is_renewal()) {
+              ?>
+                <a href="<?php echo $prd->url(); ?>" class="mepr-account-row-action mepr-account-renew"><?php _ex('Renew', 'ui', 'memberpress'); ?></a>
+              <?php
+              }
+
+              if ($txn != false && $txn instanceof MeprTransaction && $group !== false && strpos($s->active, 'mepr-inactive') === false) {
+                MeprAccountHelper::group_link($txn);
+              } elseif ( /*$group !== false &&*/strpos($s->active, 'mepr-inactive') !== false /*&& !$prd->is_renewable()*/) {
+                if ($prd->can_you_buy_me()) {
+                  MeprAccountHelper::purchase_link($prd);
+                }
+              }
+            } else {
+              if ($prd->can_you_buy_me()) {
+                if ($group !== false && $txn !== false && $txn instanceof MeprTransaction) {
+                  $sub_in_group  = $mepr_current_user->subscription_in_group($group);
+                  $life_in_group = $mepr_current_user->lifetime_subscription_in_group($group);
+
+                  if (!$sub_in_group && !$life_in_group) { // $prd is in group, but user has no other active subs in this group, so let's show the change plan option
+                    MeprAccountHelper::purchase_link($prd, _x('Re-Subscribe', 'ui', 'memberpress'));
+                    MeprAccountHelper::group_link($txn);
+                  }
+                } else {
+                  MeprAccountHelper::purchase_link($prd);
+                }
+              }
+            }
+
+            MeprHooks::do_action('mepr-account-subscriptions-actions', $mepr_current_user, $s, $txn, $is_sub);
+          }
+
+          $row_actions = ob_get_clean();
+        ?>
 
           <tr x-data="{open:false}">
             <td data-label="<?php _ex('Subscription', 'ui', 'memberpress'); ?>">
@@ -100,62 +152,17 @@ if (!empty($subscriptions)) {
                 <?php endif; ?>
               </div>
             </td>
-            <td class="mepr-pro-account-table__col-actions" data-label="<?php _ex('Actions', 'ui', 'memberpress'); ?>">
-              <svg class="mepr-tooltip-trigger" xmlns="http://www.w3.org/2000/svg" class="" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-              </svg>
+            <?php if ( $row_actions ) { ?>
+              <td class="mepr-pro-account-table__col-actions" data-label="<?php _ex('Actions', 'ui', 'memberpress'); ?>">
+                <svg class="mepr-tooltip-trigger" xmlns="http://www.w3.org/2000/svg" class="" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
 
-              <div class="mepr-tooltip-content">
-                <?php
-                if ($txn != false && $txn instanceof MeprTransaction && $txn->is_sub_account()) {
-                  echo '--';
-                } else {
-                  if (
-                    $is_sub && $pm instanceof MeprBaseRealGateway &&
-                    ($s->status == MeprSubscription::$active_str ||
-                      $s->status == MeprSubscription::$suspended_str ||
-                      strpos($s->active, 'mepr-active') !== false)
-                  ) {
-                    $subscription = new MeprSubscription($s->id);
-
-                    if (!$subscription->in_grace_period()) { // Don't let people change shiz until a payment has come through yo
-                      $pm->print_user_account_subscription_row_actions($subscription);
-                    }
-                  } elseif (!$is_sub && !empty($prd->ID)) {
-                    if ($prd->is_renewable() && $prd->is_renewal()) {
-                ?>
-                      <a href="<?php echo $prd->url(); ?>" class="mepr-account-row-action mepr-account-renew"><?php _ex('Renew', 'ui', 'memberpress'); ?></a>
-                <?php
-                    }
-
-                    if ($txn != false && $txn instanceof MeprTransaction && $group !== false && strpos($s->active, 'mepr-inactive') === false) {
-                      MeprAccountHelper::group_link($txn);
-                    } elseif ( /*$group !== false &&*/strpos($s->active, 'mepr-inactive') !== false /*&& !$prd->is_renewable()*/) {
-                      if ($prd->can_you_buy_me()) {
-                        MeprAccountHelper::purchase_link($prd);
-                      }
-                    }
-                  } else {
-                    if ($prd->can_you_buy_me()) {
-                      if ($group !== false && $txn !== false && $txn instanceof MeprTransaction) {
-                        $sub_in_group  = $mepr_current_user->subscription_in_group($group);
-                        $life_in_group = $mepr_current_user->lifetime_subscription_in_group($group);
-
-                        if (!$sub_in_group && !$life_in_group) { // $prd is in group, but user has no other active subs in this group, so let's show the change plan option
-                          MeprAccountHelper::purchase_link($prd, _x('Re-Subscribe', 'ui', 'memberpress'));
-                          MeprAccountHelper::group_link($txn);
-                        }
-                      } else {
-                        MeprAccountHelper::purchase_link($prd);
-                      }
-                    }
-                  }
-
-                  MeprHooks::do_action('mepr-account-subscriptions-actions', $mepr_current_user, $s, $txn, $is_sub);
-                }
-                ?>
-              </div>
-            </td>
+                <div class="mepr-tooltip-content">
+                  <?php echo $row_actions; ?>
+                </div>
+              </td>
+            <?php } ?>
           </tr>
         <?php endforeach; ?>
         <?php MeprHooks::do_action('mepr-account-subscriptions-table', $mepr_current_user, $subscriptions); ?>

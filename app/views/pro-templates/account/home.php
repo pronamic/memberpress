@@ -69,9 +69,23 @@ $welcome_image      = isset( $atts['welcome_image'] ) ? $atts['welcome_image'] :
     <div>
 
       <form class="mepr_modal_form mepr-account-form mepr-form" action="" enctype="multipart/form-data" novalidate>
-      <div class="mepr_modal__content-placeholder">
-        <!-- JS will populate this -->
-      </div>
+
+        <div class="mp_wrapper">
+          <div class="mepr_pro_error hidden" id="mepr_jump">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <ul>
+            <!-- JS will populate this -->
+            </ul>
+          </div>
+        </div>
+
+        <div class="mepr_modal__content-placeholder">
+          <!-- JS will populate this -->
+        </div>
 
 
 
@@ -154,7 +168,7 @@ $welcome_image      = isset( $atts['welcome_image'] ) ? $atts['welcome_image'] :
       <?php
         MeprUsersHelper::render_custom_fields( null, 'account', '', false );
       ?>
-      <input class="btn btn-primary" type="submit" value="Save Changes">
+      <input class="btn btn-primary" type="submit" value="<?php echo esc_html_x( 'Save Changes', 'ui', 'memberpress' ); ?>">
       </form>
     </div>
     </div>

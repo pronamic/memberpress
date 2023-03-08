@@ -1,12 +1,5 @@
 jQuery(document).ready(function ($) {
 
-
-  // Our HTML Elements
-  // var $modal = $(document).find("#mepr-account-modal");
-  // $modalContent = $modal.find('.mepr_modal__content-placeholder');
-  // $form = $modal.find('form');
-
-
   // Add all our events here
   $(document).on("click", ".mepr-profile-details__button", openModal);
   $(document).on("click", ".mepr_modal", closeModal);
@@ -23,9 +16,6 @@ jQuery(document).ready(function ($) {
    */
   function openModal(event) {
     var $modal = $("#mepr-account-modal");
-    // console.log($modal);
-    // var $modalContent = $modal.find('.mepr_modal__content-placeholder');
-    // var $form = $modal.find('form');
 
     $modal.show();
     var fieldName = $(this).data('name');
@@ -36,7 +26,6 @@ jQuery(document).ready(function ($) {
       $modal.find('#mp-address-group-label').show()
     } else if ('name' == fieldName) {
       var $currentRow = $modal.find($("input[id^='user_first_name'], select[id^='user_last_name']")).closest('.mp-form-row');
-      // $modal.find('#mp-address-group-label').show()
     } else {
       var $currentRow = $modal.find('#' + fieldName).closest('.mp-form-row');
     }
@@ -76,6 +65,10 @@ jQuery(document).ready(function ($) {
       $modal.hide();
       $modal.find('.mp-form-row').hide();
       $modal.find('#mp-address-group-label').hide()
+
+      // clear errors
+      $modal.find('.mepr_pro_error').addClass('hidden')
+      $modal.find('.mepr_pro_error ul').empty()
     }
 
   }
@@ -84,6 +77,7 @@ jQuery(document).ready(function ($) {
   function saveChanges(e) {
     e.preventDefault();
 
+    var $form = $(this);
     var formData = new FormData(this);
     formData.append("action", "save_profile_changes");
     formData.append("nonce", MeprAccount.nonce);
@@ -97,14 +91,19 @@ jQuery(document).ready(function ($) {
       }
     }
 
-    for (var pair of formData.entries()) {
-      console.log(pair[0] + ', ' + pair[1]);
-    }
-
     _fetch(formData).done(function (response) {
-      // $('#mepr-account-main').html(response.data);
-      location.reload();
+      $form.find('.mepr_pro_error ul').empty()
 
+      if(false === response.success){
+        $form.find('.mepr_pro_error').removeClass('hidden');
+        for (let i = 0; i < response.data.length; i++){
+          var list = document.createElement('li');
+          list.innerText=response.data[i];
+          $form.find('.mepr_pro_error ul').append(list);
+        }
+      } else {
+        location.reload();
+      }
     });
   }
 
@@ -140,7 +139,6 @@ jQuery(document).ready(function ($) {
 
     _fetch(formData)
       .done(function (response) {
-        console.log(response);
         $('#mepr-account-content').html(response.data);
 
         $('.mepr-open-resume-confirm, .mepr-open-cancel-confirm').magnificPopup({
@@ -170,7 +168,6 @@ jQuery(document).ready(function ($) {
 
     _fetch(formData)
       .done(function (response) {
-        console.log(response);
         $('#mepr-account-content').html(response.data);
         $spinner.hide();
       });

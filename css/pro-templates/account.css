@@ -1,3 +1,7 @@
+.hidden{
+  display: none;
+}
+
 .mepr-account-container {
   display: grid;
   /* grid-template-columns: 250px auto; */
@@ -866,6 +870,10 @@ button.mepr-pro-account-table__badge:hover {
   margin-left: auto;
   margin-top: 2rem;
 }
+.mepr_modal_form .mepr_pro_error{
+  margin-top: 0;
+  margin-bottom: 2rem;
+}
 .mepr-account-welcome-message {
   /* padding: 0.5em 0 1.1em; */
   background-color: #e6f7ed;
@@ -939,3 +947,4 @@ button.mepr-pro-account-table__badge:hover {
   color: #555;
   font-size: 14px;
 }
+

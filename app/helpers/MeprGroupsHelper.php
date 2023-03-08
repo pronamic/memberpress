@@ -106,8 +106,10 @@ class MeprGroupsHelper {
         <?php elseif($product->pricing_display!=='none'): ?>
           <div class="mepr-price-box-price">
           <?php
-            if(!isset($mepr_coupon_code) || !MeprCoupon::is_valid_coupon_code($mepr_coupon_code, $product->ID)) {
-              $mepr_coupon_code=null;
+            if(isset($_GET['coupon']) && !empty($_GET['coupon']) && MeprCoupon::is_valid_coupon_code($_GET['coupon'], $product->ID)) {
+              $mepr_coupon_code = htmlentities(sanitize_text_field($_GET['coupon']));
+            } else {
+              $mepr_coupon_code = null;
             }
 
             if($product->pricing_display == 'auto') {

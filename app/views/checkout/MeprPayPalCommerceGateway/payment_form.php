@@ -16,14 +16,13 @@ $success_url = $payment_method->notify_url( 'return' );
 $webhook_url = $payment_method->notify_url( 'webhook' );
 $is_one_time = $product->is_one_time_payment();
 $smart_payment_on = $payment_method->settings->enable_smart_button == 'on';
+
+if($payment_method->settings->use_desc) {
+  echo wpautop(esc_html(trim($payment_method->settings->desc)));
+}
 ?>
 
-<div class="mp-form-row">
-  <div class="mp-form-label">
-    <label><?php _ex( $payment_method->settings->desc, 'ui', 'memberpress' ); ?></label>
-    <div role="alert" class="mepr-paypal-card-errors"></div>
-  </div>
-</div>
+<div role="alert" class="mepr-paypal-card-errors"></div>
 
 <?php if ( $smart_payment_on ) { ?>
 <div class="mepr-paypal-button-container"

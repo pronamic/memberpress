@@ -274,7 +274,7 @@ class MeprUsersCtrl extends MeprBaseCtrl {
 
         if(isset($_POST[$line->field_key]) && !empty($_POST[$line->field_key])) {
           if(in_array($line->field_type, array('checkboxes', 'multiselect'))) {
-            update_user_meta($user_id, $line->field_key, array_map('sanitize_text_field', $_POST[$line->field_key]));
+            update_user_meta($user_id, $line->field_key, array_map('sanitize_text_field', array_filter( $_POST[$line->field_key] ) ));
           }
           elseif($line->field_type == 'textarea') {
             update_user_meta($user_id, $line->field_key, sanitize_textarea_field($_POST[$line->field_key]));
@@ -384,7 +384,7 @@ class MeprUsersCtrl extends MeprBaseCtrl {
       }
 
       if((!isset($_POST[$line->field_key]) || (empty($_POST[$line->field_key]) && $_POST[$line->field_key] != '0')) && $line->required && 'file' != $line->field_type) {
-        $errs[] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
+        $errs[$line->field_key] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
 
         //This allows us to run this on dashboard profile fields as well as front end
         if(is_object($errors)) {
@@ -397,19 +397,19 @@ class MeprUsersCtrl extends MeprBaseCtrl {
         $file = get_user_meta(get_current_user_id(), $line->field_key, true);
         $file_headers = $file ? @get_headers($file) : [];
         if($line->required && false == strpos($file_headers[0], '200 OK')){
-          $errs[] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
+          $errs[$line->field_key] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
         }
       }
 
       if( $line->required && 'email' == $line->field_type && !empty($_POST[$line->field_key]) ){
         if( !is_email($_POST[$line->field_key]) ){
-          $errs[] = sprintf(__('%s is not a valid email address.', 'memberpress'), stripslashes($line->field_name));
+          $errs[$line->field_key] = sprintf(__('%s is not a valid email address.', 'memberpress'), stripslashes($line->field_name));
         }
       }
 
       if( $line->required && 'url' == $line->field_type && !empty($_POST[$line->field_key]) ){
         if( !preg_match('/(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&\/\/=]*)/', $_POST[$line->field_key]) ){
-          $errs[] = sprintf(__('%s is not a valid URL.', 'memberpress'), stripslashes($line->field_name));
+          $errs[$line->field_key] = sprintf(__('%s is not a valid URL.', 'memberpress'), stripslashes($line->field_name));
         }
       }
     }

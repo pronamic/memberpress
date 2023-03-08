@@ -64,7 +64,7 @@ elseif ( false !== $upgrade_type || $mepr_onboarding_payment_gateway == 'MeprAut
   $target = '';
   if( 1 == count($features_data['addons_not_installed'])
     && in_array( 'easy-affiliate', $features_data['addons_not_installed'], true )
-    && in_array( $current_license, ['memberpress-pro-5','memberpress-pro'], true )
+    && MeprUtils::is_pro_edition($current_license)
   ){
     $finish_description = '';
     $pricing_url       = 'https://easyaffiliate.com/ipob/pricing/';

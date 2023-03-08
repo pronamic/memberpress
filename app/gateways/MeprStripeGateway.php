@@ -1785,7 +1785,9 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
       <input type="hidden" name="mepr_stripe_is_checkout" value="1"/>
       <input type="hidden" name="mepr_stripe_checkout_page_mode" value="1"/>
-      <div class="mepr-stripe-gateway-description"><?php esc_html_e('Pay with your Credit Card via Stripe Checkout', 'memberpress'); ?></div>
+      <?php if($this->settings->use_desc) : ?>
+        <div class="mepr-stripe-gateway-description"><?php esc_html_e('Pay with your Credit Card via Stripe Checkout', 'memberpress'); ?></div>
+      <?php endif; ?>
       <span role="alert" class="mepr-stripe-checkout-errors"></span>
     <?php else: ?>
       <div class="mepr-stripe-elements">

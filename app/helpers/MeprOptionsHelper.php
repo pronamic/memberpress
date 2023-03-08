@@ -229,27 +229,34 @@ class MeprOptionsHelper {
   * @return string Payment method descirptions and SPC forms HTML
   */
   public static function payment_methods_descriptions($payment_methods) {
-    $mepr_options = MeprOptions::fetch();
     $field_name = 'mepr_payment_method';
     $desc_html = '';
+    $first = true;
 
     foreach($payment_methods as $payment_method) {
-      $first = true;
-      $desc = wpautop(esc_html(trim(stripslashes($payment_method->desc))));
+      $desc = '';
+
+      if($payment_method->use_desc) {
+        $desc = wpautop(esc_html(trim(stripslashes($payment_method->desc))));
+      }
+
       $desc = MeprHooks::apply_filters('mepr_signup_form_payment_description',  $desc,  $payment_method, $first);
+      $first = false;
 
-      $desc_hidden = ($_POST[$field_name] === $payment_method->id ? '' : ' mepr-hidden');
-      ob_start();
-      ?>
-        <div class="mepr-payment-method <?php echo "{$field_name}-{$payment_method->id}"; ?> mepr-payment-method-<?php echo $payment_method->key; ?>">
-          <div class="mepr-payment-method-desc-text mp-pm-desc-<?php echo $payment_method->id; ?> spc <?php echo $desc_hidden; ?>">
-            <?php echo wp_unslash($desc); ?>
+      if(!empty($desc)) {
+        $desc_hidden = ($_POST[$field_name] === $payment_method->id ? '' : ' mepr-hidden');
+        ob_start();
+        ?>
+          <div class="mepr-payment-method <?php echo "{$field_name}-{$payment_method->id}"; ?> mepr-payment-method-<?php echo $payment_method->key; ?>">
+            <div class="mepr-payment-method-desc-text mp-pm-desc-<?php echo $payment_method->id; ?> spc <?php echo $desc_hidden; ?>">
+              <?php echo wp_unslash($desc); ?>
+            </div>
           </div>
-        </div>
-      <?php
-      $desc = ob_get_clean();
+        <?php
+        $desc = ob_get_clean();
 
-      $desc_html .= $desc;
+        $desc_html .= $desc;
+      }
     }
 
     return $desc_html;

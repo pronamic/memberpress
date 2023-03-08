@@ -422,13 +422,12 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
 
   public static function get_content_search_results_html($search_query = '') {
     $posts = array();
+    $post_types = ['page'];
+    if(MeprOnboardingHelper::is_courses_addon_applicable()){
+      $post_types = ['mpcs-course', 'page'];
+    }
     if('' == $search_query){
       $content_id = MeprOnboardingHelper::get_content_post_id();
-      $post_types = ['page'];
-
-      if(MeprOnboardingHelper::is_courses_addon_applicable()){
-        $post_types = ['mpcs-course', 'page'];
-      }
 
       $args = [
         'post_type' => $post_types,
