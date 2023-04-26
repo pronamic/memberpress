@@ -1,4 +1,4 @@
-jQuery(document).ready(function() {
+jQuery(document).ready(function($) {
   //Showing editable
   jQuery('.status_initial a').hover(
   function() {
@@ -175,4 +175,40 @@ jQuery(document).ready(function() {
 
     return false;
   });
+
+  if($.fn.tooltipster) {
+    $('.wp_list_mepr_transactions .column-col_trans_num > a').each(function () {
+      var $link = $(this),
+          tooltip_text = $link.data('tooltip-text'),
+          order_trans_num = $link.data('order-trans-num');
+
+      if(tooltip_text && order_trans_num) {
+        var $content = $('<span>').text(tooltip_text);
+
+        if(window.ClipboardJS) {
+          var $icon = $('<i class="mp-clipboardjs mp-icon mp-icon-clipboard mp-16"></i>').attr('data-clipboard-text', order_trans_num).attr('title', MeprTxn.click_to_copy),
+              clipboard = new ClipboardJS($icon.get(0)),
+              timeout;
+
+          clipboard.on('success', function () {
+            clearTimeout(timeout);
+
+            $icon.removeClass('mp-icon-clipboard').addClass('mp-icon-ok');
+
+            timeout = setTimeout(function () {
+              $icon.removeClass('mp-icon-ok').addClass('mp-icon-clipboard');
+            }, 1000);
+          });
+
+          $content = $content.add($icon);
+        }
+
+        $link.tooltipster({
+          theme: ['tooltipster-borderless', 'mepr-order-trans-num-tooltip'],
+          content: $content,
+          interactive: true
+        });
+      }
+    });
+  }
 });

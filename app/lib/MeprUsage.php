@@ -1,7 +1,17 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
+/**
+ * Generate a website "snapshot" to send to the MemberPress telemetry server.
+ */
 class MeprUsage {
+
+  /**
+   * Generates a unique site ID.
+   *
+   * @param bool $regenerate If true, the UUID will be recreated.
+   * @return string
+   */
   public function uuid($regenerate=false) {
     $uuid_key = 'mepr-usage-uuid';
     $uuid = get_option($uuid_key);
@@ -16,6 +26,11 @@ class MeprUsage {
     return $uuid;
   }
 
+  /**
+   * Retrieves the current site snapshot.
+   *
+   * @return array
+   */
   public function snapshot() {
     global $wpdb, $mepr_update;
 
@@ -60,6 +75,7 @@ class MeprUsage {
       'timestamp'          => gmdate('c'),
       'memberships'        => $this->memberships(),
       'plugins'            => $this->plugins(),
+      'themes'             => $this->themes(),
       'options'            => $this->options(),
       'gateways'           => $this->gateways(),
       'ltv'                => MeprReports::get_average_lifetime_value(),
@@ -139,6 +155,11 @@ class MeprUsage {
     return MeprHooks::apply_filters('mepr_usage_snapshot', $snap);
   }
 
+  /**
+   * Generates an array of data about the site's memberships.
+   *
+   * @return array[]
+   */
   private function memberships() {
     global $wpdb;
     $mepr_db = MeprDb::fetch();
@@ -219,6 +240,18 @@ class MeprUsage {
     return $who_can_purchase;
   }
 
+  /**
+   * Retrieves a list of plugins installed on the site.
+   *
+   * @return array[] {
+   *   An array containing one or more associative arrays of plugin data.
+   *
+   *   @type string  $name    The plugin's name.
+   *   @type string  $slug    The plugin's slug.
+   *   @type string  $version The plugin's current version.
+   *   @type boolean $active  Whether or not the plugin is a child theme.
+   * }
+   */
   private function plugins() {
     $plugin_list = get_plugins();
     wp_cache_delete('plugins', 'plugins');
@@ -245,6 +278,11 @@ class MeprUsage {
     return $plugins;
   }
 
+  /**
+   * Retrieves the site's option data.
+   *
+   * @return array[]
+   */
   private function options() {
     $mepr_options = MeprOptions::fetch();
 
@@ -351,6 +389,12 @@ class MeprUsage {
     return array($options);
   }
 
+  /**
+   * Retrieves an array of information about the site's payment gateways.
+   *
+   * @return array[] An array containing one or more associative arrays of
+   *                 gateway data.
+   */
   private function gateways() {
     $mepr_options = MeprOptions::fetch();
 
@@ -374,6 +418,52 @@ class MeprUsage {
     }
 
     return $gateways;
+  }
+
+  /**
+   * Retrieves information about the site's currently activated theme/s.
+   *
+   * @return array[] An array of one or more theme data arrays, {@see MeprUsage::get_theme_data}.
+   *                 If the currently active theme is a child theme, the return
+   *                 will contain an additional array containing information
+   *                 about the parent theme.
+   */
+  private function themes() {
+    $themes = array();
+
+    $theme    = wp_get_theme();
+    $themes[] = $this->get_theme_data($theme) ;
+
+    if (is_child_theme()) {
+      $themes[] = $this->get_theme_data(
+        wp_get_theme($theme->get('Template'))
+      );
+    }
+
+    return $themes;
+  }
+
+  /**
+   * Builds a theme data array from a given WP_Theme object.
+   *
+   * @param WP_Theme $theme The theme object.
+   * @return array {
+   *   An associative array of theme data.
+   *
+   *   @type string  $name       The theme's name.
+   *   @type string  $stylesheet The theme's stylesheet / slug.
+   *   @type string  $version    The theme's current version.
+   *   @type string  $template   The theme's parent template or an empty string
+   *                             when the theme is not a child theme.
+   * }
+   */
+  private function get_theme_data($theme) {
+    return array(
+      'name'       => $theme->get('Name'),
+      'stylesheet' => $theme->get_stylesheet(),
+      'version'    => $theme->get('Version'),
+      'template'   => $theme->get('Template'),
+    );
   }
 
 } //End class

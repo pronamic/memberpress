@@ -1919,6 +1919,29 @@ class MeprUtils {
     return explode('?', $_SERVER['REQUEST_URI'], 2)[0];
   }
 
+  /**
+   * Get account page URL
+   *
+   * @param WP_Post $post The post object
+   * @return string
+   */
+  public static function get_account_url( $post = null ) {
+    if(null === $post){
+      global $post;
+    }
+
+    // Permalink is empty when set to Plain (default)
+    $pretty_permalink = get_option('permalink_structure');
+
+    if(empty($pretty_permalink) && isset($post->ID) && $post->ID > 0) {
+        $account_url = MeprUtils::get_permalink($post->ID);
+    } else {
+      $account_url = MeprUtils::get_current_url_without_params();
+    }
+
+    return $account_url;
+  }
+
   public static function wp_redirect($location, $status = 302) {
     self::include_pluggables('wp_redirect');
 
@@ -2353,15 +2376,21 @@ class MeprUtils {
       return false;
     }
 
-    if(in_array($product_slug, ['memberpress-pro', 'memberpress-pro-5', 'memberpress-oem'], true)) {
-      return true;
+    return in_array($product_slug, ['memberpress-pro', 'memberpress-pro-5'], true) || MeprUtils::is_oem_edition($product_slug);
+  }
+
+  /**
+   * Is the given product slug an OEM/reseller edition of MemberPress?
+   *
+   * @param string $product_slug
+   * @return bool
+   */
+  public static function is_oem_edition($product_slug) {
+    if(empty($product_slug)) {
+      return false;
     }
 
-    if(preg_match('/^memberpress-reseller-.+$/', $product_slug)) {
-      return true;
-    }
-
-    return false;
+    return $product_slug == 'memberpress-oem' || preg_match('/^memberpress-reseller-.+$/', $product_slug);
   }
 
   /**

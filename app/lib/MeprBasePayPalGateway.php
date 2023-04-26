@@ -53,4 +53,10 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway {
 
     return MeprUtils::format_float($amount);
   }
+
+  protected function do_thankyou_url( $query_params, $txn ) {
+    $mepr_options = MeprOptions::fetch();
+    $query_params['transaction_id'] = $txn->id;
+    return $mepr_options->thankyou_page_url( build_query($query_params) );
+  }
 }

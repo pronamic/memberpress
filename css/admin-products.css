@@ -302,3 +302,51 @@ span.mepr-price-box-price-loading {
 #mepr-custom-pricing-display {
   display: none;
 }
+
+/* Order Bumps Upsell */
+#poststuff .order-bumps-upsell h2 {
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 31px;
+  color: #091D2E;
+  margin: 30px 0 5px 0;
+  padding: 0;
+  text-align: center;
+}
+#poststuff .order-bumps-upsell h4 {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 31px;
+  color: #091D2E;
+  margin: 0 0 25px 0;
+  padding: 0;
+  text-align: center;
+}
+#poststuff .order-bumps-upsell p {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 22px;
+  color: #223443;
+  margin: 0 auto 20px auto;
+  max-width: 650px;
+  text-align: center;
+}
+#poststuff .order-bumps-upsell p:last-child {
+  margin-top: 40px;
+}
+#poststuff .order-bumps-upsell .mepr-order-bumps-upgrade {
+  display: inline-block;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 16px;
+  text-decoration: none;
+  border-radius: 100px;
+  background: linear-gradient(90deg, #CF3200 0%, #CF3200 0.01%, #F47B0D 100%);
+  transition: none;
+  padding: 16px 23px;
+  margin: 0 0 25px 0;
+}
+#poststuff .order-bumps-upsell .mepr-order-bumps-upgrade img {
+  margin-left: 13px;
+}

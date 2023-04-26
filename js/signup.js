@@ -121,7 +121,34 @@
       }
 
       if(form.find('input[name="mpgft-signup-gift-checkbox"]').length > 0){
-        settings.data.mpgft_gift_checkbox = $('input[name="mpgft-signup-gift-checkbox"]').is(':checked');
+        settings.data.mpgft_gift_checkbox = form.find('input[name="mpgft-signup-gift-checkbox"]').is(':checked');
+      }
+
+      if( settings.data.mpgft_gift_checkbox !== undefined && settings.data.mpgft_gift_checkbox ) {
+        form.find('.mepr-order-bumps').hide();
+      } else {
+        form.find('.mepr-order-bumps').show();
+      }
+
+      if(form.find('input[name="mepr_order_bumps[]"]:checked').length > 0 ){
+        var mepr_order_bumps = [];
+        if( settings.data.mpgft_gift_checkbox != undefined && settings.data.mpgft_gift_checkbox ) {
+          var elem_click_trigger_needed = false;
+          form.find('input[name="mepr_order_bumps[]"]:checked').each(function () {
+            elem_click_trigger_needed = $(this);
+            elem_click_trigger_needed.prop('checked',false).removeAttr('checked');
+          });
+
+          if( elem_click_trigger_needed ) {
+            form.find('input[name="mepr_order_bumps[]"]:checked').trigger('click');
+          }
+        } else {
+          form.find('input[name="mepr_order_bumps[]"]:checked').each(function () {
+            mepr_order_bumps.push($(this).val());
+          });
+        }
+
+        settings.data.mepr_order_bumps = mepr_order_bumps;
       }
 
       // Let's update terms
@@ -297,6 +324,173 @@
       $(this).closest('div').find('.mepr-file-uploader').toggle();
     });
 
+    // Set the visibility of payment methods based on order bumps
+    $('body').on('click', '.mepr-signup-form input[name="mepr_order_bumps[]"]', function () {
+      var $input = $(this),
+          $order_bump = $input.closest('.mepr-order-bump'),
+          $order_bumps = $order_bump.closest('.mepr-order-bumps'),
+          $form = $order_bumps.closest('.mepr-signup-form'),
+          has_order_bump = false,
+          has_sub = false,
+          $to_hide = $(),
+          $to_show = $(),
+          $compatible_pm,
+          $incompatible_pm;
+
+      $order_bumps.find('input[name="mepr_order_bumps[]"]:checked').each(function () {
+        has_order_bump = true;
+
+        if($(this).closest('.mepr-order-bump').hasClass('mepr-sub')) {
+          has_sub = true;
+        }
+      });
+
+      $form.find('div[class^=mepr-payment-method] input.mepr-form-radio, input[type="hidden"][name="mepr_payment_method"]').each(function () {
+        var $pm = $(this);
+
+        if(has_order_bump) {
+          if($pm.hasClass('mepr-can-order-bumps')) {
+            if(has_sub) {
+              if($pm.hasClass('mepr-can-multiple-subscriptions')) {
+                $to_show = $to_show.add($pm);
+
+                if(!$compatible_pm) {
+                  $compatible_pm = $pm;
+                }
+              } else {
+                $to_hide = $to_hide.add($pm);
+
+                if($pm.prop('checked')) {
+                  $incompatible_pm = $pm;
+                }
+              }
+            } else {
+              $to_show = $to_show.add($pm);
+
+              if(!$compatible_pm) {
+                $compatible_pm = $pm;
+              }
+            }
+          } else {
+            $to_hide = $to_hide.add($pm);
+
+            if($pm.prop('checked')) {
+              $incompatible_pm = $pm;
+            }
+          }
+        } else {
+          $to_show = $to_show.add($pm);
+        }
+      });
+
+      if(!$to_show.length) {
+        alert(MeprSignup.no_compatible_pms);
+        return false;
+      }
+
+      if($incompatible_pm) {
+        if($compatible_pm) {
+          var compatible_pm_label = $compatible_pm.data('payment-method-type'),
+              prompt = MeprSignup.switch_pm_prompt.replace('%s', compatible_pm_label);
+
+          if($.magnificPopup) {
+            var $switch_button = $('<div class="mepr-btn">').text(MeprSignup.switch_pm.replace('%s', compatible_pm_label)).on('click', function () {
+              $compatible_pm.trigger('click');
+              $input.trigger('click');
+              $.magnificPopup.close();
+            });
+
+            var $cancel_button = $('<div class="mepr-btn mepr-btn-secondary">').text(MeprSignup.cancel).on('click', function () {
+              $.magnificPopup.close();
+            });
+
+            var $popup_content = $('<div class="mepr-switch-pm-popup">').append(
+              $('<img class="mepr-switch-pm-popup-icon">').attr('src', MeprSignup.warning_icon_url),
+              $('<p>').text(prompt),
+              $('<div class="mepr-switch-pm-popup-buttons">').append($switch_button, $cancel_button)
+            );
+
+            $.magnificPopup.open({
+              mainClass: 'mepr-switch-pm-mfp',
+              items: {
+                src: $popup_content,
+                type: 'inline'
+              }
+            });
+          } else if(confirm(prompt)) {
+            $compatible_pm.trigger('click');
+            $input.trigger('click');
+            return;
+          }
+        } else {
+          alert(MeprSignup.no_compatible_pms);
+        }
+
+        return false;
+      }
+
+      $to_hide.closest('.mepr_payment_method, .mepr-payment-option-label').hide();
+      $to_show.closest('.mepr_payment_method, .mepr-payment-option-label').show();
+
+      $order_bump.toggleClass('mepr-order-bump-selected', this.checked);
+    });
+
+    // Hide subscription order bumps if no payment method supports multiple subscriptions
+    $('.mepr-signup-form').each(function () {
+      var $form = $(this),
+          $order_bumps = $form.find('.mepr-order-bumps'),
+          pm_supports_multiple_subs = false;
+
+      if(!$order_bumps.length) {
+        return;
+      }
+
+      $form.find('div[class^=mepr-payment-method] input.mepr-form-radio, input[type="hidden"][name="mepr_payment_method"]').each(function (index) {
+        var $pm = $(this);
+
+        if($pm.hasClass('mepr-can-multiple-subscriptions') && pm_supports_multiple_subs === false) {
+          pm_supports_multiple_subs = index;
+        }
+      });
+
+      if(pm_supports_multiple_subs === false) {
+        $order_bumps.find('.mepr-order-bump.mepr-sub').hide();
+
+        if(!$order_bumps.find('.mepr-order-bump:visible').length) {
+          $order_bumps.hide();
+        }
+      } else if(pm_supports_multiple_subs > 0) {
+        var $new_first_pm = $form.find('div[class^=mepr-payment-method] input.mepr-form-radio').eq(pm_supports_multiple_subs);
+
+        $new_first_pm
+          .closest('.mepr_payment_method, .mepr-payment-option-label')
+          .insertBefore(
+            $form.find('div[class^=mepr-payment-method] input.mepr-form-radio')
+              .eq(0)
+              .closest('.mepr_payment_method, .mepr-payment-option-label')
+          );
+
+        $new_first_pm.trigger('click');
+      }
+
+      // If gift checkbox is checked, hide and disable order bumps
+      if($form.find('input[name="mpgft-signup-gift-checkbox"]').is(':checked')) {
+        $order_bumps.hide().find('input[name="mepr_order_bumps[]"]').prop('checked', false);
+      }
+    });
+
+    $("body").on("change",
+      '.mepr-form input[name="mepr_order_bumps[]"]',
+      function (e) {
+        let form = $(this).closest(".mepr-signup-form");
+        if( $('input[type="hidden"][name="mepr_process_signup_form"]').length ) {
+          if( $('input[type="hidden"][name="mepr_process_signup_form"]').val() == 'Y' ) {
+            return;
+          }
+        }
+        meprUpdatePriceTerms(form);
+      }
+    );
 
   });
 })(jQuery);

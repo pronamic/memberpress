@@ -49,13 +49,26 @@
   <div class="mepr-wizard-nav">
     <?php
       foreach($steps as $key => $step) {
+        $extra_class = '';
+
+        if($key == 0) {
+          $li = get_site_transient('mepr_license_info');
+
+          if(!$li) {
+            $extra_class = ' mepr-hidden';
+          }
+        }
+
         printf(
-          '<div class="mepr-wizard-nav-step mepr-wizard-nav-step-%s">',
-          $key + 1
+          '<div class="mepr-wizard-nav-step mepr-wizard-nav-step-%1$s%2$s">',
+          $key + 1,
+          $extra_class
         );
-        if(file_exists($step['nav'])){
+
+        if(file_exists($step['nav'])) {
           require $step['nav'];
         }
+
         echo '</div>';
       }
     ?>

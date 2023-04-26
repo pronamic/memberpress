@@ -149,7 +149,8 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       'update-subscriptions',
       'suspend-subscriptions',
       'resume-subscriptions',
-      'subscription-trial-payment'
+      'subscription-trial-payment',
+      'order-bumps',
     );
   }
 
@@ -204,6 +205,11 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
         $txn->txn_type        = MeprTransaction::$payment_str;
         $txn->status          = MeprTransaction::$complete_str;
         $txn->subscription_id = $sub->id;
+
+        if(isset($_POST['mepr_order_id'])) {
+          $txn->order_id = $_POST['mepr_order_id'];
+        }
+
         $txn->set_gross( $_POST['mc_gross'] );
         $txn->store();
       } else {
@@ -216,6 +222,11 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
         $txn->txn_type        = MeprTransaction::$payment_str;
         $txn->status          = MeprTransaction::$complete_str;
         $txn->subscription_id = $sub->id;
+
+        if(isset($_POST['mepr_order_id'])) {
+          $txn->order_id = $_POST['mepr_order_id'];
+        }
+
         $txn->set_gross( $_POST['mc_gross'] );
         $txn->store();
 
@@ -343,147 +354,84 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
   }
 
   /**
-   * @param $pp_subscription_id
+   * Process a successful one-time payment
    *
-   * @throws MeprGatewayException
+   * @param MeprTransaction $txn       The MemberPress transaction
+   * @param string          $trans_num The transaction number to set
    */
-  public function process_checkout_supscription_approved( $pp_subscription_id ) {
-    $pp_subscription = $this->get_paypal_subscription_object( $pp_subscription_id );
-    $mepr_options    = MeprOptions::fetch();
-    $this->log( 'Received a subscription' );
-    $this->log( $pp_subscription );
-    if ( isset( $pp_subscription['custom_id'] ) && is_numeric( $pp_subscription['custom_id'] ) ) {
-      $sub            = new MeprSubscription( $pp_subscription['custom_id'] );
-      $sub->subscr_id = $pp_subscription['id'];
-
-      if (
-        ( $pp_subscription['status'] == 'ACTIVE' && $pp_subscription['billing_info']['next_billing_time'] ) ||
-        ( $pp_subscription['status'] == 'EXPIRED' && $pp_subscription['billing_info']['cycle_executions'] )
-      ) {
-        $this->log( 'Creating first txn' );
-        $txn = MeprTransaction::get_first_subscr_transaction( $sub->id );
-
-        if ( $txn instanceof MeprTransaction ) {
-          $sub->first_txn_id = $txn->id;
-        } else {
-          $txn = new MeprTransaction( $txn->id );
-        }
-
-        $first_txn = $sub->first_txn();
-        $this->log( $first_txn );
-
-        if ( $first_txn instanceof MeprTransaction && $sub->status !== MeprSubscription::$active_str ) {
-          $this->activate_subscription( $first_txn, $sub );
-
-          {
-            if ( ! $mepr_options->disable_grace_init_days && $mepr_options->grace_init_days > 0 ) {
-              $expires_at = MeprUtils::ts_to_mysql_date( time() + MeprUtils::days( $mepr_options->grace_init_days ), 'Y-m-d 23:59:59' );
-            } else {
-              $expires_at = $txn->created_at; // Expire immediately
-            }
-
-            $this->log( 'Check next billing' );
-            $first_txn->expires_at = $expires_at;
-            $first_txn->set_gross( $sub->total );
-            $first_txn->status   = \MeprTransaction::$confirmed_str;
-            $first_txn->txn_type = \MeprTransaction::$subscription_confirmation_str;
-            $first_txn->save();
-
-            if ( $pp_subscription['billing_info']['cycle_executions'][0]['tenure_type'] == 'TRIAL' &&
-              $pp_subscription['billing_info']['cycle_executions'][0]['sequence'] == '1' &&
-              $pp_subscription['billing_info']['cycle_executions'][0]['cycles_completed'] == '1'
-            ) {
-              $txn                  = $first_txn;
-              $txn->expires_at      = MeprUtils::ts_to_mysql_date( time() + MeprUtils::days( $sub->trial_days ), 'Y-m-d 23:59:59' );
-              $txn->gateway         = $this->id;
-              $txn->subscription_id = $sub->id;
-              $txn->store();
-            }
-          }
-
-          // This will only work before maybe_cancel_old_sub is run
-          $upgrade   = $sub->is_upgrade();
-          $downgrade = $sub->is_downgrade();
-
-          $event_txn = $sub->maybe_cancel_old_sub();
-
-          if ( $upgrade ) {
-            $this->upgraded_sub( $sub, $event_txn );
-          } else if ( $downgrade ) {
-            $this->downgraded_sub( $sub, $event_txn );
-          } else {
-            $this->new_sub( $sub, true );
-          }
-
-          $sub->save();
-
-          MeprHooks::do_action( 'mepr-signup', $first_txn );
-          MeprUtils::send_signup_notices( $txn );
-        }
-      }
+  public function handle_one_time_payment(MeprTransaction $txn, $trans_num) {
+    // Just short circuit if the txn has already completed
+    if($txn->status == MeprTransaction::$complete_str) {
+      return;
     }
+
+    $txn->trans_num = $trans_num;
+    $txn->status = MeprTransaction::$complete_str;
+    $txn->store();
+
+    $prd = $txn->product();
+
+    // This will only work before maybe_cancel_old_sub is run
+    $upgrade = $txn->is_upgrade();
+    $downgrade = $txn->is_downgrade();
+
+    $event_txn = $txn->maybe_cancel_old_sub();
+
+    if($prd->period_type == 'lifetime') {
+      if($upgrade) {
+        $this->upgraded_sub($txn, $event_txn);
+      }
+      else if($downgrade) {
+        $this->downgraded_sub($txn, $event_txn);
+      }
+      else {
+        $this->new_sub($txn);
+      }
+
+      MeprUtils::send_signup_notices($txn);
+    }
+
+    MeprUtils::send_transaction_receipt_notices($txn);
   }
 
   /**
-   * @param $pp_order_id
+   * Handle the creation of a new subscription
    *
-   * @throws MeprGatewayException
+   * @param MeprSubscription $sub
+   * @param string $subscr_id
    */
-  public function process_checkout_order_approved( $pp_order_id ) {
-    $pp_order = $this->get_paypal_order_object( $pp_order_id );
+  public function handle_create_subscription(MeprSubscription $sub, $subscr_id) {
+    $txn = $sub->first_txn();
 
-    foreach ( $pp_order['purchase_units'] as $purchase_unit ) {
-      $txn = new MeprTransaction( $purchase_unit['custom_id'] );
-      $this->log( 'Capturing pp order' );
-      $this->log( $txn );
-      if ( $txn->total == (float) $purchase_unit['amount']['value'] ) {
-        $pp_order = $this->capture_paypal_commerce_order( $pp_order_id );
-        $this->log( 'Captured order ' . print_r( $pp_order, 1 ) . __LINE__ );
-
-        if ( isset( $pp_order['status'] ) && ( $pp_order['status'] == 'COMPLETED' || $pp_order['status'] == 'PENDING' ) ) {
-          if ( $txn->status == MeprTransaction::$complete_str ) {
-            return;
-          }
-
-          $txn->status    = MeprTransaction::$complete_str;
-          $txn->trans_num = $pp_order['purchase_units'][0]['payments']['captures'][0]['id'];
-          $txn->save();
-
-          $upgrade   = $txn->is_upgrade();
-          $downgrade = $txn->is_downgrade();
-
-          $event_txn = $txn->maybe_cancel_old_sub();
-          $txn->store();
-          $prd = $txn->product();
-
-          if ( $prd->period_type == 'lifetime' ) {
-            if ( $upgrade ) {
-              $this->upgraded_sub( $txn, $event_txn );
-            } elseif ( $downgrade ) {
-              $this->downgraded_sub( $txn, $event_txn );
-            } else {
-              $this->new_sub( $txn );
-            }
-
-            MeprUtils::send_signup_notices( $txn );
-          }
-
-          MeprUtils::send_transaction_receipt_notices( $txn );
-
-          return $txn;
-        } else {
-          if ( isset( $pp_order['details'] ) && is_array( $pp_order['details'] ) ) {
-            if ($pp_order['details'][0]['issue'] === 'ORDER_ALREADY_CAPTURED') {
-              return $txn;
-            }
-            $_POST['txn_id'] = $pp_order_id;
-            $this->record_payment_failure();
-            $this->log( 'capture declined' );
-            throw new MeprGatewayException( __( ' Payer has not yet approved the Order for payment', 'memberpress' ) );
-          }
-        }
-      }
+    if(!($txn instanceof MeprTransaction)) {
+      $txn = new MeprTransaction();
+      $txn->user_id = $sub->user_id;
+      $txn->product_id = $sub->product_id;
+      $txn->gateway = $this->id;
+      $txn->subscription_id = $sub->id;
     }
+
+    $sub->subscr_id = $subscr_id;
+
+    $this->activate_subscription($txn, $sub);
+
+    // This will only work before maybe_cancel_old_sub is run
+    $upgrade = $sub->is_upgrade();
+    $downgrade = $sub->is_downgrade();
+
+    $event_txn = $sub->maybe_cancel_old_sub();
+
+    if($upgrade) {
+      $this->upgraded_sub($sub, $event_txn);
+    }
+    else if($downgrade) {
+      $this->downgraded_sub($sub, $event_txn);
+    }
+    else {
+      $this->new_sub($sub, true);
+    }
+
+    MeprUtils::send_signup_notices($txn);
   }
 
   /** Used to cancel a subscription by the given gateway. This method should be used
@@ -650,54 +598,46 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     return $sub;
   }
 
+  /**
+   * This method is only used when signing up using Smart Buttons
+   *
+   * @param MeprTransaction $txn
+   * @throws Exception
+   * @throws MeprGatewayException
+   */
   public function process_signup_form( $txn ) {
-    if ($txn->amount == 0) {
-      MeprTransaction::create_free_transaction($txn);
-      return;
-    }
-    if ( isset( $_POST['smart-payment-button'] ) && $_POST['smart-payment-button'] == true ) {
-      $data = $this->setup_payment_with_paypal_commerce( $txn, true );
-      wp_send_json( $data );
-      die;
-    } else {
-      $this->setup_payment_with_paypal_commerce( $txn );
+    if(isset($_POST['smart-payment-button']) && $_POST['smart-payment-button']) {
+      $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
+      $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
+
+      $order_bumps = $this->process_order($txn, $order_bump_products);
+
+      $data = $this->setup_payment_with_paypal_commerce($txn, $order_bumps, true);
+
+      MeprHooks::do_action('mepr-signup', $txn);
+
+      wp_send_json_success($data);
     }
   }
 
   /** This gets called on the 'init' hook when the signup form is processed ...
    * this is in place so that payment solutions like paypal can redirect
    * before any content is rendered.
+   *
+   * This method is called when the Single Page Checkout option is disabled. When the option is enabled,
+   * process_payment_form handles the processing.
+   *
+   * @param MeprTransaction $txn
+   * @throws MeprGatewayException
+   * @throws Exception
    */
   public function display_payment_page( $txn ) {
-    //
-  }
+    $order_bump_product_ids = isset($_GET['obs']) && is_array($_GET['obs']) ? array_map('intval', $_GET['obs']) : [];
+    $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
 
-  public function calculate_subscription_trial_vars( $sub ) {
-    $sub_vars = array();
+    $order_bumps = $this->process_order($txn, $order_bump_products);
 
-    //Trial Amount
-    $sub_vars['a1'] = $this->format_currency( $sub->trial_total );
-
-    //Trial Days, Weeks, Months, or Years
-    if ( $sub->trial_days <= 90 ) {
-      $sub_vars['p1'] = $sub->trial_days;
-      $sub_vars['t1'] = 'D';
-    } else {
-      if ( $sub->trial_days % 30 == 0 ) { //30 days in a month
-        $sub_vars['p1'] = (int) ( $sub->trial_days / 30 );
-        $sub_vars['t1'] = 'M';
-      } elseif ( $sub->trial_days % 365 == 0 ) { //365 days in a year
-        $sub_vars['p1'] = (int) ( $sub->trial_days / 365 );
-        $sub_vars['t1'] = 'Y';
-      } else { //force a round to the nearest week - that's the best we can do here
-        $sub_vars['p1']  = round( (int) $sub->trial_days / 7 );
-        $sub_vars['t1']  = 'W';
-        $sub->trial_days = (int) ( $sub_vars['p1'] * 7 );
-        $sub->store();
-      }
-    }
-
-    return $sub_vars;
+    $this->setup_payment_with_paypal_commerce($txn, $order_bumps);
   }
 
   /** This gets called on wp_enqueue_script and enqueues a set of
@@ -716,12 +656,16 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     $mepr_options  = MeprOptions::fetch();
     $currency_code = strtoupper( $mepr_options->currency_code );
     if ( $this->settings->enable_smart_button == 'on' ) {
-      wp_enqueue_script( 'paypal-sdk-js', 'https://www.paypal.com/sdk/js?vault=true&enable-funding=venmo&currency=' . $currency_code . '&client-id=' . $client_id, array(), null );
+      wp_enqueue_script( 'paypal-sdk-js', 'https://www.paypal.com/sdk/js?vault=true&enable-funding=venmo&currency=' . $currency_code . '&client-id=' . $client_id, array(), null, true );
       wp_enqueue_script( 'mepr-paypalcommerce-form', MEPR_GATEWAYS_URL . '/paypal/form.js', array(
         'paypal-sdk-js',
         'mepr-checkout-js',
         'jquery.payment'
-      ), MEPR_VERSION );
+      ), MEPR_VERSION, true );
+
+      wp_localize_script('mepr-paypalcommerce-form', 'MeprPayPalCommerceL10n', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+      ]);
     }
   }
 
@@ -868,163 +812,239 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
   }
 
   /**
-   * @param $txn
+   * Set up the PayPal transaction
    *
+   * Returns an array with the order/subscription ID and the transaction ID if $return_the_object is true,
+   * otherwise redirects to PayPal.
+   *
+   * @param  MeprTransaction   $txn               The main transaction for the product being purchased
+   * @param  MeprTransaction[] $order_bumps       Additional transactions added as order bumps
+   * @param  bool              $return_the_object If true, returns an array for the Smart Buttons request, otherwise
+   *                                              redirects to PayPal
+   * @return array
    * @throws MeprGatewayException
    */
-  public function setup_payment_with_paypal_commerce( $txn, $return_the_object = false ) {
-    $mepr_options  = MeprOptions::fetch();
-    $product       = $txn->product();
-    $currency_code = strtoupper( $mepr_options->currency_code );
-    $api_url       = $this->settings->rest_api_url;
-    $access_token = $this->get_pp_basic_auth_token();
-    $return_url = add_query_arg( [ 'txn_id' => $txn->id ], $this->notify_url( 'return' ) );
-    $txn->update_meta( 'is_paypal_commerce', true );
-    if ( $product->is_one_time_payment() ) {
+  public function setup_payment_with_paypal_commerce($txn, array $order_bumps = array(), $return_the_object = false) {
+    $mepr_options = MeprOptions::fetch();
+    $currency_code = strtoupper($mepr_options->currency_code);
+    $prd = $txn->product();
+    $sub = null;
+
+    if(empty($prd->ID)) {
+      throw new MeprGatewayException(__('Product not found', 'memberpress'));
+    }
+
+    $transactions = array_merge([$txn], $order_bumps);
+
+    foreach($transactions as $transaction) {
+      if(!$transaction->is_one_time_payment()) {
+        $subscription = $transaction->subscription();
+
+        if(!($subscription instanceof MeprSubscription)) {
+          throw new MeprGatewayException(__('Subscription not found', 'memberpress'));
+        }
+
+        if($sub instanceof MeprSubscription) {
+          throw new MeprGatewayException(__('Multiple subscriptions are not supported', 'memberpress'));
+        }
+
+        $sub = $subscription;
+      }
+
+      $transaction->update_meta('is_paypal_commerce', true);
+    }
+
+    if($sub instanceof MeprSubscription) {
+      // Presence of a subscription means we need to use the Subscriptions API
+      $has_trial = $sub->trial && $sub->trial_days > 0;
+      $trial_days = $has_trial ? $sub->trial_days : 0;
+      $trial_total = $has_trial ? (float) $sub->trial_total : 0.00;
+      $trial_tax_amount = $has_trial ? (float) $sub->trial_tax_amount : 0.00;
+      $convert_to_trial = false;
+      $skip_taxes = false;
+
+      foreach($transactions as $transaction) {
+        if(!$transaction->is_payment_required()) {
+          continue;
+        }
+        elseif($transaction->is_one_time_payment()) {
+          $trial_total += (float) $transaction->total;
+          $trial_tax_amount += (float) $transaction->tax_amount;
+
+          if(!$has_trial) {
+            $convert_to_trial = true;
+          }
+        }
+
+        if($txn->tax_rate != $transaction->tax_rate) {
+          // PayPal doesn't let us have a different tax rate for an order bump, so if an order bump has a different
+          // tax rate, we will skip using taxes.
+          $skip_taxes = true;
+        }
+      }
+
+      // If there is no trial period and there is an order bump, set the trial days to cover one payment cycle and
+      // add the first subscription payment to the trial amount
+      if($convert_to_trial) {
+        $now = new DateTimeImmutable('now');
+        $end = $now->modify(sprintf('+%d %s', $sub->period, $sub->period_type));
+        $trial_days = $end->diff($now)->format('%a');
+        $trial_total += (float) $sub->total;
+        $trial_tax_amount += (float) $sub->tax_amount;
+      }
+
+      if(!$skip_taxes && get_option('mepr_calculate_taxes') && $mepr_options->attr('tax_calc_type') != 'inclusive') {
+        $trial_amount = $trial_total - $trial_tax_amount;
+      }
+      else {
+        $trial_amount = $trial_total;
+      }
+
+      $pp_plan_id = $this->get_pp_plan_id($sub, $has_trial || $convert_to_trial, $trial_days, $trial_amount, $skip_taxes);
+
+      $pp_subscription = $this->get_pp_subscription($pp_plan_id, $txn, $sub, $return_the_object, $skip_taxes);
+
+      if(isset($pp_subscription['links']) && is_array($pp_subscription['links'])) {
+        foreach($pp_subscription['links'] as $link) {
+          if(isset($link['rel']) && $link['rel'] == 'approve' && isset($link['href'])) {
+            if($return_the_object) {
+              return [
+                'id' => $pp_subscription['id'],
+                'txn_id' => $txn->id,
+              ];
+            }
+
+            $this->log($link['href']);
+            MeprUtils::wp_redirect($link['href']);
+          }
+        }
+      }
+
+      throw new MeprGatewayException(__('Could not create PayPal subscription', 'memberpress'));
+    }
+    else {
+      $items = [];
+      $amount = 0.00;
+      $tax = 0.00;
+      $total = 0.00;
+
+      foreach($transactions as $transaction) {
+        $product = $transaction->product();
+
+        if(empty($product->ID)) {
+          throw new MeprGatewayException(__('Product not found', 'memberpress'));
+        }
+
+        $items[] = [
+          'name' => $product->post_title,
+          'unit_amount' => [
+            'currency_code' => $currency_code,
+            'value' => (string) $transaction->amount,
+          ],
+          'tax' => [
+            'currency_code' => $currency_code,
+            'value' => (string) $transaction->tax_amount,
+          ],
+          'quantity' => 1,
+        ];
+
+        $amount += (float) $transaction->amount;
+        $tax += (float) $transaction->tax_amount;
+        $total += (float) $transaction->total;
+      }
+
       $payload = [
-        "intent"              => "CAPTURE",
-        "purchase_units"      => [
+        'intent' => 'CAPTURE',
+        'purchase_units' => [
           [
-            "custom_id"   => $txn->id,
-            "description" => $product->post_title,
-            "items"       => [
-              [
-                "name"        => $product->post_title,
-                "unit_amount" => [
-                  "currency_code" => $currency_code,
-                  "value"         => $txn->amount,
+            'custom_id' => $txn->id,
+            'description' => $prd->post_title,
+            'items' => $items,
+            'amount' => [
+              'currency_code' => $currency_code,
+              'value' => (string) $total,
+              'breakdown' => [
+                'item_total' => [
+                  'currency_code' => $currency_code,
+                  'value' => (string) $amount,
                 ],
-                "tax"         => [
-                  "currency_code" => $currency_code,
-                  "value"         => $txn->tax_amount,
-                ],
-                "quantity"    => 1,
-              ],
-            ],
-            "amount"      => [
-              "currency_code" => $currency_code,
-              "value"         => $txn->total,
-              "breakdown"     => [
-                "item_total" => [
-                  "currency_code" => $currency_code,
-                  "value"         => $txn->amount,
-                ],
-                "tax_total"  => [
-                  "currency_code" => $currency_code,
-                  "value"         => $txn->tax_amount,
+                'tax_total' => [
+                  'currency_code' => $currency_code,
+                  'value' => (string) $tax,
                 ],
               ],
             ],
           ],
         ],
-        "application_context" => [
-          "shipping_preference" => "NO_SHIPPING",
-          "user_action"         => "PAY_NOW",
-          "return_url"          => $return_url,
-          "cancel_url"          => $this->notify_url( 'cancel' ),
+        'application_context' => [
+          'shipping_preference' => 'NO_SHIPPING',
+          'user_action' => 'PAY_NOW',
+          'return_url' => add_query_arg(['txn_id' => $txn->id], $this->notify_url('return')),
+          'cancel_url' => $this->notify_url('cancel'),
         ],
       ];
 
       $payload = json_encode( MeprHooks::apply_filters('mepr_paypal_onetime_subscription_args', $payload, $txn), JSON_UNESCAPED_SLASHES );
 
-      $response = wp_remote_post( $api_url . '/v2/checkout/orders', [
-        'body'      => $payload,
-        'headers'   => [
-          'Content-Type'                  => 'application/json',
+      $response = wp_remote_post($this->settings->rest_api_url . '/v2/checkout/orders', [
+        'body' => $payload,
+        'headers' => [
+          'Content-Type' => 'application/json',
           'PayPal-Partner-Attribution-Id' => MeprPayPalConnectCtrl::PAYPAL_BN_CODE,
-          'Authorization'                 => 'Basic ' . $access_token
+          'Authorization' => 'Basic ' . $this->get_pp_basic_auth_token()
         ]
-      ] );
+      ]);
 
-      $response = json_decode( wp_remote_retrieve_body( $response ), true );
-      $this->log( $payload );
-      $this->log( $response );
-      if ( isset( $response['links'] ) ) {
-        foreach ( $response['links'] as $link ) {
-          if ( $link['rel'] == 'approve' ) {
-            $txn->trans_num = $response['id'];
-            $txn->save();
+      $code = wp_remote_retrieve_response_code($response);
+      $response = json_decode(wp_remote_retrieve_body($response), true);
 
-            if ( $return_the_object ) {
-              return $response;
-            }
-            $query = parse_url( $link['href'], PHP_URL_QUERY );
+      $this->log($payload);
+      $this->log($response);
 
-// Returns a string if the URL has parameters or NULL if not
-            if ( $query ) {
-              $link['href'] .= '&Return=TRUE';
-            } else {
-              $link['href'] .= '?Return=TRUE';
-            }
-            MeprUtils::wp_redirect( $link['href'] );
-          }
-        }
-      } else {
-        throw new MeprGatewayException( __( 'Could not create PayPal Order', 'memberpress' ) );
-      }
-    }
-
-    if ( ! $product->is_one_time_payment() && ( $sub = $txn->subscription() ) ) {
-      // Get pp plan id
-      $pp_plan_id = $this->get_pp_plan_id( $sub );
-
-      $pp_subscription = $this->get_pp_subscription( $pp_plan_id, $txn, $sub, $return_the_object );
-
-      if ( $return_the_object ) {
-        return $pp_subscription;
+      if(($code < 200 || $code > 299) || !is_array($response) || !isset($response['links']) || !is_array($response['links'])) {
+        throw new MeprGatewayException(__('Could not create PayPal Order', 'memberpress'));
       }
 
-      if ( isset( $pp_subscription['links'] ) ) {
-        foreach ( $pp_subscription['links'] as $link ) {
-          if ( $link['rel'] == 'approve' ) {
-            $sub->subscr_id = $pp_subscription['id'];
-            $sub->save();
-            $this->log( $link['href'] );
-            MeprUtils::wp_redirect( $link['href'] );
+      foreach($response['links'] as $link) {
+        if(isset($link['rel']) && $link['rel'] == 'approve' && isset($link['href'])) {
+          if($return_the_object) {
+            return [
+              'id' => $response['id'],
+              'txn_id' => $txn->id,
+            ];
           }
+
+          MeprUtils::wp_redirect(esc_url_raw(add_query_arg('Return', 'TRUE', $link['href'])));
         }
       }
+
+      throw new MeprGatewayException(__('Could not create PayPal Order', 'memberpress'));
     }
   }
 
   /**
-   * Returs the payment form and required fields for the gateway
+   * Returns the payment form and required fields for the gateway
    */
   public function spc_payment_fields() {
-    global $mepr_shortcode_registration_product_id;
-    $mepr_options        = MeprOptions::fetch();
-    $payment_method      = $this;
-    $payment_form_action = 'mepr-paypal-payment-form';
-    $user                = MeprUtils::is_user_logged_in() ? MeprUtils::get_currentuserinfo() : null;
-    $membership_id       = get_the_ID();
+    $payment_method = $this;
 
-    if ( ! empty( $mepr_shortcode_registration_product_id ) ) {
-      $membership_id = $mepr_shortcode_registration_product_id;
-    }
-
-    $product             = new MeprProduct( $membership_id );
-
-    return MeprView::get_string( "/checkout/MeprPayPalCommerceGateway/payment_form", get_defined_vars() );
+    return MeprView::get_string( '/checkout/MeprPayPalCommerceGateway/payment_form', get_defined_vars() );
   }
 
   /**
    * This gets called on the_content and just renders the payment form
-   * For PayPal Standard we're loading up a hidden form and submitting it with JS
    */
   public function display_payment_form( $amount, $user, $product_id, $transaction_id ) {
-    $mepr_options        = MeprOptions::fetch();
-    $payment_method      = $this;
-    $payment_form_action = 'mepr-paypal-payment-form';
-    $user                = MeprUtils::is_user_logged_in() ? MeprUtils::get_currentuserinfo() : null;
-    $membership_id       = $product_id;
-    $product             = new MeprProduct( $membership_id );
+    $payment_method = $this;
     ?>
     <div class="mp_wrapper mp_payment_form_wrapper">
       <form action="" method="post" id="mepr-paypal-payment-form">
+        <input type="hidden" name="mepr_process_payment_form" value="Y">
+        <input type="hidden" name="mepr_transaction_id" value="<?php echo esc_attr($transaction_id); ?>">
         <?php
-        echo MeprView::get_string( "/checkout/MeprPayPalCommerceGateway/payment_form", get_defined_vars() );
+          echo MeprView::get_string( '/checkout/MeprPayPalCommerceGateway/payment_form', get_defined_vars() );
         ?>
-
+        <div class="mepr_spacer">&nbsp;</div>
         <input type="submit" class="mepr-submit" value="<?php _ex( 'Submit', 'ui', 'memberpress' ); ?>"/>
       </form>
     </div>
@@ -1036,23 +1056,23 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     // PayPal does this on their own form
   }
 
-
   /**
-   * Redirects the user to Paypal checkout
+   * Process the payment form
+   *
+   * This method is called when the Single Page Checkout option is enabled. When the option is disabled,
+   * display_payment_page handles the processing.
    *
    * @param MeprTransaction $txn
+   * @throws MeprGatewayException
+   * @throws Exception
    */
   public function process_payment_form( $txn ) {
-    if ( $txn->amount > 0.00 ) {
+    $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
+    $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
 
-      if ( $this->is_paypal_connected() || $this->is_paypal_connected_live() ) {
-        $this->setup_payment_with_paypal_commerce( $txn );
-      } else {
-        throw new MeprGatewayException( __( 'Payment gateway is not fully configured. Please contact support.', 'memberpress' ) );
-      }
-    } else {
-      MeprTransaction::create_free_transaction( $txn );
-    }
+    $order_bumps = $this->process_order($txn, $order_bump_products);
+
+    $this->setup_payment_with_paypal_commerce($txn, $order_bumps);
   }
 
   /**
@@ -1107,23 +1127,18 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
   }
 
   /**
-   * @param $pp_plan_id
-   * @param $txn
-   * @param $sub
+   * @param string $pp_plan_id
+   * @param MeprTransaction $txn
+   * @param MeprSubscription $sub
+   * @param bool $return_the_request
+   * @param bool $skip_taxes
    *
    * @return array|WP_Error
    * @throws MeprGatewayException
    */
-  public function get_pp_subscription( $pp_plan_id, $txn, MeprSubscription $sub, $return_the_request = false ) {
+  public function get_pp_subscription( $pp_plan_id, $txn, MeprSubscription $sub, $return_the_request = false, $skip_taxes = false ) {
     $mepr_options = MeprOptions::fetch();
 
-    if ( $mepr_options->attr( 'tax_calc_type' ) == 'inclusive' ) {
-      $tax_inclusive = true;
-    } else {
-      $tax_inclusive = false;
-    }
-
-    $calculate_taxes = get_option( 'mepr_calculate_taxes' );
     $args = [
       'plan_id'             => $pp_plan_id,
       'custom_id'           => $sub->id,
@@ -1135,7 +1150,13 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       ],
     ];
 
-    if ( $calculate_taxes ) {
+    if ( get_option( 'mepr_calculate_taxes' ) && !$skip_taxes ) {
+      if ( $mepr_options->attr( 'tax_calc_type' ) == 'inclusive' ) {
+        $tax_inclusive = true;
+      } else {
+        $tax_inclusive = false;
+      }
+
       $args['plan'] = [
         'taxes' => [
           'percentage' => $sub->tax_rate,
@@ -1143,6 +1164,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
         ],
       ];
     }
+
     $args     = MeprHooks::apply_filters( 'mepr_paypal_subcription_args', $args, $sub );
     $options  = [
       'headers' => [
@@ -1172,22 +1194,23 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
 
   /**
    * @param MeprSubscription $sub
-   *
+   * @param bool $trial
+   * @param bool $trial_days
+   * @param float $trial_amount
+   * @param bool $skip_taxes
    * @return string
    * @throws MeprGatewayException
    */
-  public function get_pp_plan_id( MeprSubscription $sub ) {
+  public function get_pp_plan_id(MeprSubscription $sub, $trial = false, $trial_days = 0, $trial_amount = 0.00, $skip_taxes = false) {
     $product      = $sub->product();
     $mepr_options = MeprOptions::fetch();
 
-    if ( $mepr_options->attr( 'tax_calc_type' ) == 'inclusive' ) {
+    if ( $mepr_options->attr( 'tax_calc_type' ) == 'inclusive' || $skip_taxes ) {
       $tax_inclusive = true;
       $amount        = round( $sub->total, 2 );
-      $trial_amount  = isset ( $sub->trial_total ) && $sub->trial_total ? $sub->trial_total : 0;
     } else {
       $tax_inclusive = false;
       $amount        = round( $sub->total - $sub->tax_amount, 2 );
-      $trial_amount  = isset ( $sub->trial_total ) && $sub->trial_total ? $sub->trial_total - $sub->trial_tax_amount : 0;
     }
 
     $interval = 'day';
@@ -1203,30 +1226,28 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     $args = array(
       'amount'         => $amount,
       'method_id'      => $this->id,
-      'tax_inclusive'  => $tax_inclusive ? 'yes' : 'no',
+      'tax_rate'       => $skip_taxes ? 'na' : $sub->tax_rate,
+      'tax_inclusive'  => $skip_taxes ? 'na' : ($tax_inclusive ? 'yes' : 'no'),
       'test'           => $this->is_test_mode() ? 'test' : 'live',
       'interval'       => $interval,
       'period'         => $sub->period,
-      'trial'          => $sub->trial ? 'yes' : 'no',
+      'trial'          => $trial ? 'yes' : 'no',
       'trial_total'    => $trial_amount,
       'total_cycles'   => $sub->limit_cycles_num,
-      'trial_days'     => isset ( $sub->trial_days ) && $sub->trial_days ? $sub->trial_days : 0,
+      'trial_days'     => $trial_days,
       'interval_count' => $sub->period,
       'currency'       => $mepr_options->currency_code,
+      'memberpress_product_id' => $product->ID,
     );
 
-    $plan_args = $args;
-    $plan_args['memberpress_product_id'] = $product->ID;
-
-    $plan_meta_key = '_mepr_paypal_plan_' . implode( '_', $plan_args );
+    $plan_meta_key = '_mepr_paypal_plan_' . implode( '_', $args );
     $plan_id       = get_post_meta( $product->ID, $plan_meta_key, true );
 
     if ( empty( $plan_id ) ) {
-      $pp_product_id   = $this->get_pp_product_id( $product );
       $billing_cycles  = [];
       $sequence_number = 1;
 
-      if ( $args['trial'] == 'yes' ) {
+      if( $trial ) {
         $billing_cycles[] = [
           'frequency'      => [
             'interval_unit'  => 'DAY',
@@ -1243,7 +1264,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
           'total_cycles'   => 1,
         ];
 
-        $sequence_number ++;
+        $sequence_number++;
       }
 
       $billing_cycles[] = [
@@ -1263,7 +1284,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       ];
 
       $request_args = [
-        'product_id'          => $pp_product_id,
+        'product_id'          => $this->get_pp_product_id( $product ),
         'name'                => $product->post_title,
         'status'              => 'ACTIVE',
         'billing_cycles'      => $billing_cycles,
@@ -1271,11 +1292,14 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
           'auto_bill_outstanding'     => true,
           'payment_failure_threshold' => 3,
         ],
-        'taxes'               => [
-          'percentage' => $sub->tax_rate,
-          "inclusive"  => $tax_inclusive,
-        ],
       ];
+
+      if(!$skip_taxes) {
+        $request_args['taxes'] = [
+          'percentage' => $sub->tax_rate,
+          'inclusive'  => $tax_inclusive,
+        ];
+      }
 
       $request_args = MeprHooks::apply_filters( 'mepr_paypal_plan_args', $request_args, $sub );
       $this->log( 'Sending to pp plan' . print_r( $request_args, true ) );
@@ -1428,27 +1452,40 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       return;
     }
 
-    if ( $request['event_type'] == 'CHECKOUT.ORDER.APPROVED' ) {
-      if ( isset ( $request['resource'] ) && isset ( $request['resource']['id'] ) ) {
-        $this->process_checkout_order_approved( $request['resource']['id'] );
+    if ( $request['event_type'] == 'BILLING.SUBSCRIPTION.ACTIVATED' ) {
+      // Only free trials are handled here
+      if(isset($request['resource']['id'], $request['resource']['custom_id'], $request['resource']['billing_info']) && !isset($request['resource']['billing_info']['last_payment'])) {
+        $sub = new MeprSubscription((int) $request['resource']['custom_id']);
+
+        if($sub->id > 0 && $sub->gateway == $this->id && $sub->trial && $sub->trial_days > 0 && $sub->trial_amount <= 0.00) {
+          // Check if this is a multi-item purchase
+          $txn = $sub->first_txn();
+
+          if($txn instanceof MeprTransaction) {
+            $order = $txn->order();
+            $order_bump_transactions = $order instanceof MeprOrder ? MeprTransaction::get_all_by_order_id_and_gateway($order->id, $this->id, $txn->id) : [];
+
+            if($order instanceof MeprOrder && count($order_bump_transactions)) {
+              foreach($order_bump_transactions as $transaction) {
+                if($transaction->is_payment_required()) {
+                  // If any order bump required payment, we don't want to record subscription creation here.
+                  // It will be handled by the PAYMENT.SALE.COMPLETED webhook below.
+                  return;
+                }
+              }
+
+              // If we reach here, payment was not required for any order bump, create free transactions for any free product
+              foreach($order_bump_transactions as $transaction) {
+                if(!$transaction->is_payment_required()) {
+                  MeprTransaction::create_free_transaction($transaction, false, sprintf('mi_%d_%s', $order->id, uniqid()));
+                }
+              }
+            }
+          }
+
+          $this->handle_create_subscription($sub, $request['resource']['id']);
+        }
       }
-    } elseif ( $request['event_type'] == 'MEMBERPRESS_CAPTURE_ORDER' ) {
-      try {
-        $this->process_checkout_order_approved( $request['order_id'] );
-        wp_send_json( [
-          'error'   => 'NONE',
-          'message' => esc_attr_x( 'Payment completed', 'memberpress' ),
-        ] );
-        die;
-      } catch ( Exception $e ) {
-        wp_send_json( [
-          'error'   => 'INSTRUMENT_DECLINED',
-          'message' => $e->getMessage(),
-        ] );
-        die;
-      }
-    } elseif ( $request['event_type'] == 'BILLING.SUBSCRIPTION.ACTIVATED' ) {
-      $this->process_checkout_supscription_approved( $request['resource']['id'] );
     } elseif ( $request['event_type'] == 'BILLING.SUBSCRIPTION.CANCELLED' || $request['event_type'] == 'BILLING.SUBSCRIPTION.EXPIRED' ) {
       $_REQUEST['subscr_id'] = $request['resource']['id'];
       $this->record_cancel_subscription();
@@ -1486,14 +1523,81 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
 
       if ( $pp_payment['status'] == 'COMPLETED' && isset( $pp_payment['custom_id'] ) ) {
         $this->log( 'Payment confirmed' );
-        $sub = new MeprSubscription( $pp_payment['custom_id'] );
 
-        if ( $sub->subscr_id == $resource['billing_agreement_id'] ) {
-          $_POST['recurring_payment_id'] = $pp_payment['id'];
-          $_POST['txn_id']               = $pp_payment['id'];
-          $_POST['mc_gross']             = $resource['amount']['total'];
-          $_POST['payment_date']         = $resource['create_time'];
-          $_POST['subscr_id']            = $resource['billing_agreement_id'];
+        $_POST['txn_id'] = $pp_payment['id'];
+        $_POST['mc_gross'] = $resource['amount']['total'];
+        $_POST['payment_date'] = $resource['create_time'];
+        $_POST['subscr_id'] = $_POST['recurring_payment_id'] = $resource['billing_agreement_id'];
+
+        // First see if the subscription has already been set up with the correct I- or S- number
+        $sub = MeprSubscription::get_one_by_subscr_id($resource['billing_agreement_id']);
+
+        // If no $sub at this point it's safe to assume this is a new signup so let's get the $sub from the custom_id instead
+        if(!($sub instanceof MeprSubscription)) {
+          $sub = new MeprSubscription($pp_payment['custom_id']);
+
+          if($sub->id > 0 && $sub->gateway == $this->id && ($txn = $sub->first_txn()) instanceof MeprTransaction && $txn->id > 0) {
+            // Check if this is a multi-item purchase
+            $order = $txn->order();
+            $order_bump_transactions = $order instanceof MeprOrder ? MeprTransaction::get_all_by_order_id_and_gateway($order->id, $this->id, $txn->id) : [];
+
+            if($order instanceof MeprOrder && count($order_bump_transactions)) {
+              if(!$order->is_complete() && !$order->is_processing()) {
+                $order->update_meta('processing', true);
+                $transactions = array_merge([$txn], $order_bump_transactions);
+
+                foreach($transactions as $transaction) {
+                  $trans_num = sprintf('mi_%d_%s', $order->id, uniqid());
+
+                  if(!$transaction->is_payment_required()) {
+                    MeprTransaction::create_free_transaction($transaction, false, $trans_num);
+                  }
+                  elseif($transaction->is_one_time_payment()) {
+                    $this->handle_one_time_payment($transaction, $trans_num);
+                  }
+                  else {
+                    $subscription = $txn->subscription();
+
+                    if(!($subscription instanceof MeprSubscription)) {
+                      continue;
+                    }
+
+                    $this->handle_create_subscription($subscription, $resource['billing_agreement_id']);
+
+                    if($subscription->trial && $subscription->trial_days > 0) {
+                      if($subscription->trial_amount > 0) {
+                        $_POST['mc_gross'] = $subscription->trial_amount;
+                      }
+                      else {
+                        continue; // Initial payment for a free trial with order bump, we don't want to record a subscription transaction here
+                      }
+                    }
+                    else {
+                      $_POST['mc_gross'] = $subscription->total;
+                    }
+
+                    $_POST['txn_id'] = $trans_num;
+                    $_POST['mepr_order_id'] = $order->id;
+
+                    $this->record_subscription_payment();
+                  }
+                }
+
+                $order->trans_num = $pp_payment['id'];
+                $order->status = MeprOrder::$complete_str;
+                $order->store();
+                $order->delete_meta('processing');
+              }
+
+              return;
+            }
+          }
+        }
+
+        if($sub instanceof MeprSubscription && $sub->id > 0) {
+          if(strpos($sub->subscr_id, 'S-') === false && strpos($sub->subscr_id, 'I-') === false) {
+            $this->handle_create_subscription($sub, $resource['billing_agreement_id']);
+          }
 
           $this->record_subscription_payment();
         }
@@ -1602,67 +1706,134 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     $this->email_status( "Paypal Return \$_REQUEST:\n" . MeprUtils::object_to_string( $_REQUEST, true ) . "\n", $this->debug );
     $mepr_options = MeprOptions::fetch();
 
-    if ( isset( $_GET['txn_id'] ) ) {
-      $txn = new MeprTransaction( filter_input( INPUT_GET, 'txn_id', FILTER_SANITIZE_NUMBER_INT ) );
+    $transaction_id = isset($_GET['txn_id']) ? (int) sanitize_text_field(wp_unslash($_GET['txn_id'])) : 0;
+    $txn = new MeprTransaction($transaction_id);
 
-      if ( empty( $txn->get_meta( 'is_paypal_commerce' ) ) ) {
-        if ( ! isset( $mepr_options->legacy_integrations[ $this->id ] ) ) {
-          return false;
+    if(empty($txn->id)) {
+      return;
+    }
+
+    if(empty($txn->get_meta('is_paypal_commerce'))) {
+      if(!isset($mepr_options->legacy_integrations[$this->id])) {
+        return;
+      }
+
+      $standard_gateway = new MeprPayPalStandardGateway();
+      $standard_gateway->load($mepr_options->legacy_integrations[$this->id]);
+      $standard_gateway->return_handler();
+
+      return;
+    }
+
+    try {
+      $prd = $txn->product();
+
+      $thankyou_page_args = [
+        'membership' => sanitize_title($prd->post_title),
+        'membership_id' => $prd->ID,
+        'transaction_id' => $txn->id,
+      ];
+
+      $subscription_id = isset($_GET['subscription_id']) ? sanitize_text_field(wp_unslash($_GET['subscription_id'])) : '';
+
+      // Check if this is a multi-item purchase
+      $order = $txn->order();
+      $order_bump_transactions = $order instanceof MeprOrder ? MeprTransaction::get_all_by_order_id_and_gateway($order->id, $this->id, $txn->id) : [];
+      $transactions = array_merge([$txn], $order_bump_transactions);
+
+      if(!empty($subscription_id)) {
+        // Return from a subscription creation
+        $subscription = $this->get_paypal_subscription_object($subscription_id);
+
+        if(!isset($subscription['id'], $subscription['status'])) {
+          throw new MeprGatewayException(__('Subscription not found', 'memberpress'));
         }
 
-        $standard_gateway = new MeprPayPalStandardGateway();
-        $standard_gateway->load( $mepr_options->legacy_integrations[ $this->id ] );
-        $standard_gateway->return_handler();
-        return false;
+        if(
+          ($subscription['status'] == 'ACTIVE' && $subscription['billing_info']['next_billing_time']) ||
+          ($subscription['status'] == 'EXPIRED' && $subscription['billing_info']['cycle_executions'])
+        ) {
+          // The subscription may have been an order bump, so check all transactions for this order (there will only be one sub)
+          foreach($transactions as $transaction) {
+            $sub = $transaction->subscription();
+
+            if($sub instanceof MeprSubscription && $sub->id > 0) {
+              $this->activate_subscription($transaction, $sub);
+            }
+          }
+        }
+        else {
+          throw new MeprGatewayException(__('Subscription not found', 'memberpress'));
+        }
+
+        if(!empty($txn->subscription_id)) {
+          $thankyou_page_args = array_merge($thankyou_page_args, ['subscription_id' => $txn->subscription_id]);
+        }
       }
+      else {
+        // Return from a one-time payment
+        $token = isset($_GET['token']) ? sanitize_text_field(wp_unslash($_GET['token'])) : '';
+
+        if(!empty($token)) {
+          $pp_order = $this->capture_paypal_commerce_order($token);
+
+          if(isset($pp_order['status']) && in_array($pp_order['status'], ['COMPLETED', 'PENDING'], true)) {
+            $trans_num = !empty($pp_order['purchase_units'][0]['payments']['captures'][0]['id']) ? $pp_order['purchase_units'][0]['payments']['captures'][0]['id'] : $token;
+
+            if($order instanceof MeprOrder && count($order_bump_transactions)) {
+              if(!$order->is_complete() && !$order->is_processing()) {
+                $order->update_meta('processing', true);
+                $transactions = array_merge([$txn], $order_bump_transactions);
+
+                foreach($transactions as $transaction) {
+                  if(!$transaction->is_payment_required()) {
+                    MeprTransaction::create_free_transaction($transaction, false, sprintf('mi_%d_%s', $order->id, uniqid()));
+                  }
+                  elseif($transaction->is_one_time_payment()) {
+                    $this->handle_one_time_payment($transaction, sprintf('mi_%d_%s', $order->id, uniqid()));
+                  }
+                }
+
+                $order->trans_num = $trans_num;
+                $order->status = MeprOrder::$complete_str;
+                $order->store();
+                $order->delete_meta('processing');
+              }
+            }
+            else {
+              $this->handle_one_time_payment($txn, $trans_num);
+            }
+          }
+          elseif(isset($pp_order['details']) && is_array($pp_order['details'])) {
+            if($pp_order['details'][0]['issue'] != 'ORDER_ALREADY_CAPTURED') {
+              foreach($transactions as $transaction) {
+                $transaction->status = MeprTransaction::$failed_str;
+                $transaction->store();
+              }
+
+              throw new MeprGatewayException(__('Payer has not yet approved the Order for payment', 'memberpress'));
+            }
+          }
+          else {
+            throw new MeprGatewayException(__('Order could not be captured', 'memberpress'));
+          }
+        }
+        else {
+          return;
+        }
+      }
+
+      MeprUtils::wp_redirect(esc_url_raw($mepr_options->thankyou_page_url($thankyou_page_args)));
     }
+    catch(Exception $e) {
+      $product = $txn->product();
+      $product_url = MeprUtils::get_permalink($product->ID);
+      $product_url = !empty($product_url) ? $product_url : home_url();
 
-    if ( isset( $_GET['token'] ) && ! isset ( $_GET['subscription_id'] ) ) {
-      // REturn from a one time payment
-      $pp_order_id = filter_var( $_GET['token'] );
-      $txn         = MeprTransaction::get_one_by_trans_num( $pp_order_id );
-      $this->log($pp_order_id);
-      $this->log($txn);
-      if ( ! empty( $txn->id ) ) {
-        $txn = new MeprTransaction( $txn->id );
-      }
-
-      try {
-        $txn = $this->process_checkout_order_approved( $pp_order_id );
-        $product     = $txn->product();
-      } catch ( \Exception $e ) {
-        $product     = $txn->product();
-        $product_url = MeprUtils::get_permalink( $product->ID );
-        MeprUtils::wp_redirect( add_query_arg( [
-          'errors' => $e->getMessage(),
-        ], $product_url ) );
-      }
+      MeprUtils::wp_redirect(esc_url_raw(add_query_arg([
+        'errors' => $e->getMessage(),
+      ], $product_url)));
     }
-
-    if ( isset( $_GET['token'] ) && isset ( $_GET['subscription_id'] ) ) {
-      // Return from a subscription payment
-      $pp_sub_id = sanitize_text_field( $_GET['subscription_id'] );
-
-      try {
-        $this->process_checkout_supscription_approved( $pp_sub_id );
-        $sub     = MeprSubscription::get_one_by_subscr_id( $pp_sub_id );
-        $product = $sub->product();
-      } catch ( \Exception $e ) {
-        $product     = $txn->product();
-        $product_url = MeprUtils::get_permalink( $product->ID );
-        MeprUtils::wp_redirect( add_query_arg( [
-          'errors' => $e->getMessage(),
-        ], $product_url ) );
-      }
-    }
-
-    $sanitized_title = sanitize_title( $product->post_title );
-    $query_params    = array(
-      'membership'    => $sanitized_title,
-      'membership_id' => $product->ID
-    );
-
-    MeprUtils::wp_redirect( $mepr_options->thankyou_page_url( build_query( $query_params ) ) );
   }
 
   public function cancel_handler() {

@@ -92,7 +92,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    * @return void
    */
   public function account_shortcode( $atts = array() ) {
-    wp_enqueue_script( 'alpinejs', 'https://unpkg.com/alpinejs@3.9.3/dist/cdn.min.js', array(), MEPR_VERSION, true );
+    wp_enqueue_script( 'alpinejs', MEPR_JS_URL . '/js/vendor/alpine.min.js', array(), MEPR_VERSION, true );
     wp_enqueue_script( 'mepr-accountjs', MEPR_JS_URL . '/pro-templates/account.js', array( 'jquery' ), MEPR_VERSION, true );
     wp_localize_script(
       'mepr-accountjs',
@@ -110,6 +110,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     }
 
     // Get welcome image
+    $welcome_image = '';
     if ( isset( $atts['welcome_image'] ) && ! empty( $atts['welcome_image'] ) ) {
       $welcome_image = $atts['welcome_image'];
     }
@@ -221,22 +222,78 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    */
   public function thankyou_page_content( $content ) {
     if ( self::template_enabled( 'thankyou' ) ) {
-      $mepr_options      = MeprOptions::fetch();
-      $hide_invoice      = $mepr_options->design_thankyou_hide_invoice;
-      $invoice_message   = $mepr_options->design_thankyou_invoice_message;
-      $has_welcome_image = $mepr_options->design_show_thankyou_welcome_image;
-      $welcome_image     = esc_url( wp_get_attachment_url( $mepr_options->design_thankyou_welcome_img ) );
+      $txn = isset( $_GET['trans_num'] ) ? MeprTransaction::get_one_by_trans_num( sanitize_text_field( wp_unslash( $_GET['trans_num'] ) ) ) : null;
+      $txn = null === $txn && isset( $_GET['transaction_id'] ) ? MeprTransaction::get_one( (int) $_GET['transaction_id'] ) : $txn;
+      $txn = !empty($txn->id) ? new MeprTransaction($txn->id) : null;
 
-      $txn = isset( $_GET['trans_num'] ) ? MeprTransaction::get_one_by_trans_num( $_GET['trans_num'] ) : null;
-      $txn = null === $txn && isset( $_GET['transaction_id'] ) ? MeprTransaction::get_one( $_GET['transaction_id'] ) : $txn;
+      if($txn instanceof MeprTransaction && !empty($txn->id)) {
+        $mepr_options = MeprOptions::fetch();
+        $hide_invoice = $mepr_options->design_thankyou_hide_invoice;
+        $invoice_message = $mepr_options->design_thankyou_invoice_message;
+        $has_welcome_image = $mepr_options->design_show_thankyou_welcome_image;
+        $welcome_image = esc_url(wp_get_attachment_url($mepr_options->design_thankyou_welcome_img));
 
-      if ( $txn->txn_type == MeprTransaction::$subscription_confirmation_str ) {
-        $sub = new MeprSubscription( $txn->subscription_id );
-        $txn = $sub->latest_txn();
+        if(($order = $txn->order()) instanceof MeprOrder) {
+          $order_bump_transactions = MeprTransaction::get_all_by_order_id_and_gateway($order->id, $txn->gateway, $txn->id);
+          $transactions = array_merge([$txn], $order_bump_transactions);
+          $processed_sub_ids = [];
+          $order_bumps = [];
+          $amount = 0.00;
+
+          foreach($transactions as $index => $transaction) {
+            if($transaction->is_one_time_payment()) {
+              $amount += (float) $transaction->total;
+
+              if($index > 0) {
+                $order_bumps[] = [$transaction->product(), $transaction, null];
+              }
+            }
+            else {
+              $subscription = $transaction->subscription();
+
+              if($subscription instanceof MeprSubscription) {
+                // Subs can have both a payment txn and confirmation txn, make sure we don't process a sub twice
+                if(in_array((int) $subscription->id, $processed_sub_ids, true)) {
+                  continue;
+                }
+
+                $processed_sub_ids[] = (int) $subscription->id;
+
+                if(($subscription->trial && $subscription->trial_days > 0 && $subscription->txn_count < 1) || $transaction->txn_type == MeprTransaction::$subscription_confirmation_str) {
+                  MeprTransactionsHelper::set_invoice_txn_vars_from_sub($transaction, $subscription);
+                }
+
+                $amount += (float) $transaction->total;
+
+                if($index > 0) {
+                  $order_bumps[] = [$transaction->product(), $transaction, $subscription];
+                }
+              }
+            }
+          }
+
+          $amount = MeprAppHelper::format_currency($amount);
+          $trans_num = $order->trans_num;
+          $invoice_html = MeprTransactionsHelper::get_invoice_order_bumps($txn, '', $order_bumps);
+        }
+        else {
+          $sub = $txn->subscription();
+
+          if($sub instanceof MeprSubscription && (($sub->trial && $sub->trial_days > 0 && $sub->txn_count < 1) || $txn->txn_type == MeprTransaction::$subscription_confirmation_str)) {
+            MeprTransactionsHelper::set_invoice_txn_vars_from_sub($txn, $sub);
+          }
+
+          $amount = strtok(MeprAppHelper::format_price_string($txn, $txn->amount), ' ');
+
+          $trans_num = $txn->trans_num;
+          $invoice_html = MeprTransactionsHelper::get_invoice( $txn );
+        }
+
+        $content = MeprView::get_string('/pro-templates/thankyou', get_defined_vars());
       }
-
-      $amount  = strtok( MeprAppHelper::format_price_string( $txn, $txn->amount ), ' ' );
-      $content = MeprView::get_string( '/pro-templates/thankyou', get_defined_vars() );
+      else {
+        $content = '<p>' . esc_html__('Transaction not found', 'memberpress') . '</p>';
+      }
     }
 
     return $content;
@@ -250,7 +307,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    * @return void
    */
   public static function account_home_content( $action, $atts = array() ) {
-    if ( ( self::template_enabled( 'account' ) && ( 'home' == $action || ! $action ) ) || has_block('memberpress/pro-account-tabs') ) {
+    if ( ( self::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' ) && ( 'home' == $action || ! $action ) ) ) {
       if( is_array($atts) ){
         extract( $atts, EXTR_SKIP );
       }
@@ -354,7 +411,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
         'url'              => admin_url( 'admin-ajax.php' ),
         'filters'          => array(
           'max_file_size' => wp_max_upload_size() . 'b',
-          'mime_types'    => array( array( 'extensions' => 'jpg,gif,png' ) ),
+          'mime_types'    => array( array( 'extensions' => 'jpg,gif,png,jpeg' ) ),
         ),
         'multi_selection'  => false, // Limit selection to just one.
 
@@ -379,10 +436,10 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     global $post;
 
     if ( MeprUser::is_account_page( $post ) ) {
-      wp_enqueue_script( 'mepr-popper', 'https://unpkg.com/@popperjs/core@2', array(), MEPR_VERSION, true );
+      wp_enqueue_script( 'mepr-popper', MEPR_JS_URL . '/vendor/popper.min.js', array(), MEPR_VERSION, true );
     }
 
-    $handles = array( 'dashicons', 'jquery-ui-timepicker-addon' );
+    $handles = array( 'dashicons', 'jquery-ui-timepicker-addon', 'jquery-magnific-popup' );
 
     // Login Scripts
     if ( self::template_enabled( 'login' ) ) {
@@ -558,7 +615,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
       wp_enqueue_style( 'mp-pro-login', MEPR_CSS_URL . '/pro-templates/login.css', null, MEPR_VERSION );
       wp_register_style( 'mp-pro-fonts', MEPR_CSS_URL . '/pro-templates/fonts.css', null, MEPR_VERSION );
       wp_enqueue_style( 'mp-pro-account', MEPR_CSS_URL . '/pro-templates/account.css', array( 'mp-pro-fonts' ), MEPR_VERSION );
-      wp_enqueue_script( 'alpinejs', 'https://unpkg.com/alpinejs@3.9.3/dist/cdn.min.js', array(), MEPR_VERSION, true );
+      wp_enqueue_script( 'alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', array(), MEPR_VERSION, true );
       wp_enqueue_script( 'mepr-accountjs', MEPR_JS_URL . '/pro-templates/account.js', array( 'jquery' ), MEPR_VERSION, true );
 
       wp_localize_script(
@@ -575,13 +632,13 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     if ( 'pricing' == $page ) {
       wp_enqueue_style( 'mp-pro-pricing', MEPR_CSS_URL . '/pro-templates/pricing.css', null, MEPR_VERSION );
       wp_enqueue_script( 'mepr-pro-pricing', MEPR_JS_URL . '/pro-templates/pricing.js', array( 'jquery' ), MEPR_VERSION, true );
-      wp_enqueue_script( 'alpinejs', 'https://unpkg.com/alpinejs@3.9.3/dist/cdn.min.js', array(), MEPR_VERSION, true );
+      wp_enqueue_script( 'alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', array(), MEPR_VERSION, true );
     }
 
     if ( 'checkout' == $page ) {
       wp_enqueue_style( 'mp-pro-checkout', MEPR_CSS_URL . '/pro-templates/checkout.css', null, MEPR_VERSION );
       wp_enqueue_script( 'mepr-signupjs', MEPR_JS_URL . '/pro-templates/signup.js', array( 'jquery' ), MEPR_VERSION, true );
-      wp_enqueue_script( 'alpinejs', 'https://unpkg.com/alpinejs@3.9.3/dist/cdn.min.js', array(), MEPR_VERSION, true );
+      wp_enqueue_script( 'alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', array(), MEPR_VERSION, true );
 
       wp_localize_script(
         'mepr-signupjs',
@@ -617,7 +674,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
       apply_filters( 'mepr_pro_templates_has_checkout_block', false ) ||
       ( $design_checkout_enabled && isset( $_POST['action'] ) && 'mepr_update_spc_invoice_table' == $_POST['action'] )
     ) {
-      $paths = $this->add_view_path_for_slug( $paths, $slug, array( '/checkout/invoice', '/checkout/form', '/checkout/spc_form', '/shared/errors' ) );
+      $paths = $this->add_view_path_for_slug( $paths, $slug, array( '/checkout/invoice', '/checkout/invoice_order_bumps', '/checkout/form', '/checkout/spc_form', '/shared/errors' ) );
       // $paths = $this->add_view_path_for_slug( $paths, $slug, array() );
     }
 

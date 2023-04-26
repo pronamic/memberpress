@@ -67,7 +67,7 @@ jQuery(function($) {
   });
 
   document.body.addEventListener('paste', function (e) {
-    if(e.target && e.target.matches && e.target.matches(selectors)) {
+    if(e.target && e.target.matches && e.target.matches(selectors) && (e.clipboardData || window.clipboardData)) {
       e.preventDefault();
       e.target.value = (e.clipboardData || window.clipboardData).getData('text');
       mepr_score_it($(e.target));

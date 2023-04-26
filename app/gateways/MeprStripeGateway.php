@@ -2,7 +2,7 @@
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
 class MeprStripeGateway extends MeprBaseRealGateway {
-  const STRIPE_API_VERSION = '2022-08-01';
+  const STRIPE_API_VERSION = '2022-11-15';
 
   /** Used in the view to identify the gateway */
   public function __construct() {
@@ -23,7 +23,9 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       'suspend-subscriptions',
       'resume-subscriptions',
       'send-cc-expirations',
-      'subscription-trial-payment'
+      'subscription-trial-payment',
+      'order-bumps',
+      'multiple-subscriptions',
     );
 
     // Setup the notification actions for this gateway
@@ -121,8 +123,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    * @throws MeprHttpException
    * @throws MeprRemoteException
    */
-  public function get_stripe_tax_rate_id($name, $rate, $product, $inclusive = false)
-  {
+  public function get_stripe_tax_rate_id($name, $rate, $product, $inclusive = false) {
     $tax_request = [
       'inclusive' => 'false',
       'percentage' => MeprUtils::format_float((float) $rate, 3),
@@ -413,8 +414,197 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
 
     $result = $this->send_stripe_request('checkout/sessions', $checkout_session, 'post');
+
+    $txn->trans_num = $result['id'];
+    $txn->store();
+
     $result['public_key'] = $this->settings->public_key;
     wp_send_json( $result );
+  }
+
+  /**
+   * Create a checkout.session object that will be used to redirect the user to checkout.stripe.com
+   *
+   * @param  MeprTransaction   $txn                     The MemberPress transaction
+   * @param  MeprProduct       $prd                     The MemberPress product
+   * @param  MeprUser          $usr                     The MemberPress user
+   * @param  string            $coupon_code             The MemberPress coupon code
+   * @param  MeprTransaction[] $order_bump_transactions The array of order bump transactions in the checkout
+   * @throws MeprHttpException
+   * @throws MeprRemoteException
+   */
+  public function create_multi_item_checkout_session(MeprTransaction $txn, MeprProduct $prd, MeprUser $usr, $coupon_code = '', array $order_bump_transactions = array()) {
+    $mepr_options = MeprOptions::fetch();
+    $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
+    $tax_inclusive = $mepr_options->attr('tax_calc_type') == 'inclusive';
+    $line_items = [];
+
+    $thankyou_page_args = [
+      'membership' => sanitize_title($prd->post_title),
+      'transaction_id' => $txn->id,
+      'membership_id' => $prd->ID,
+    ];
+
+    if($prd->is_one_time_payment() || !$prd->is_payment_required($coupon_code)) {
+      if($prd->is_payment_required($coupon_code)) {
+        $amount = $calculate_taxes && !$tax_inclusive && $txn->tax_rate > 0 ? (float) $txn->amount : (float) $txn->total;
+      }
+      else {
+        $amount = 0.00;
+      }
+
+      $line_items[] = $this->build_line_item($this->get_one_time_price_id($prd, $amount), $txn, $prd);
+    }
+    else {
+      $sub = $txn->subscription();
+
+      if(!($sub instanceof MeprSubscription)) {
+        wp_send_json(['error' => __('Subscription not found', 'memberpress')]);
+      }
+
+      $amount = $calculate_taxes && !$tax_inclusive && $txn->tax_rate > 0 ? (float) $sub->price : (float) $sub->total;
+      $line_items[] = $this->build_line_item($this->get_stripe_price_id($sub, $prd, $amount), $txn, $prd);
+      $thankyou_page_args = array_merge($thankyou_page_args, ['subscription_id' => $sub->id]);
+    }
+
+    $total = $amount;
+    $has_subscription = false;
+
+    foreach($order_bump_transactions as $transaction) {
+      $product = $transaction->product();
+
+      if(empty($product->ID)) {
+        wp_send_json(['error' => __('Product not found', 'memberpress')]);
+      }
+
+      if(!$transaction->is_payment_required()) {
+        $amount = 0.00;
+      }
+      elseif($transaction->is_one_time_payment()) {
+        $amount = $calculate_taxes && !$tax_inclusive && $transaction->tax_rate > 0 ? (float) $transaction->amount : (float) $transaction->total;
+      }
+      else {
+        $subscription = $transaction->subscription();
+
+        if(!($subscription instanceof MeprSubscription)) {
+          wp_send_json_error(__('Subscription not found', 'memberpress'));
+        }
+
+        if($subscription->trial && $subscription->trial_days > 0) {
+          $amount = (float) $subscription->trial_amount;
+        }
+        else {
+          $amount = $calculate_taxes && !$tax_inclusive && $transaction->tax_rate > 0 ? (float) $subscription->price : (float) $subscription->total;
+        }
+
+        $has_subscription = true;
+      }
+
+      $line_items[] = $this->build_line_item($this->get_one_time_price_id($product, $amount), $transaction, $product);
+      $total += $amount;
+    }
+
+    if($prd->is_one_time_payment() || !$prd->is_payment_required($coupon_code)) {
+      if($total > 0.00) {
+        $args = [
+          'mode' => 'payment',
+          'customer' => $this->get_customer_id($usr),
+          'payment_method_types' => $this->get_available_methods_for_onetime_payment(),
+          'line_items' => $line_items,
+        ];
+
+        if($has_subscription) {
+          $args = array_merge($args, [
+            'payment_intent_data' => [
+              'setup_future_usage' => 'off_session',
+            ],
+            'payment_method_types' => $this->get_available_methods_for_recurring_payment(),
+          ]);
+        }
+      }
+      else {
+        $args = [
+          'mode' => 'setup',
+          'customer' => $this->get_customer_id($usr),
+          'payment_method_types' => $this->get_available_methods_for_recurring_payment(),
+        ];
+      }
+    }
+    else {
+      $sub = $txn->subscription();
+
+      if(!($sub instanceof MeprSubscription)) {
+        wp_send_json(['error' => __('Subscription not found', 'memberpress')]);
+      }
+
+      $args = [
+        'mode' => 'subscription',
+        'customer' => $this->get_customer_id($usr),
+        'payment_method_types' => $this->get_available_methods_for_recurring_payment(),
+      ];
+
+      if($sub->trial && $sub->trial_days > 0) {
+        $line_item = $this->build_line_item($this->get_one_time_price_id($prd, (float) $sub->trial_amount), $txn, $prd);
+        array_unshift($line_items, $line_item);
+
+        $args = array_merge($args, [
+          'subscription_data' => [
+            'trial_period_days' => $sub->trial_days,
+          ],
+        ]);
+      }
+      elseif(count($line_items) > 1) {
+        // If there is no trial period and there is an order bump, set the trial days to cover one payment cycle and
+        // add the first subscription payment to the trial amount
+        $now = new DateTimeImmutable('now');
+        $end = $now->modify(sprintf('+%d %s', $sub->period, $sub->period_type));
+        $amount = $calculate_taxes && !$tax_inclusive && $txn->tax_rate > 0 ? (float) $sub->price : (float) $sub->total;
+
+        $line_item = $this->build_line_item($this->get_one_time_price_id($prd, $amount), $txn, $prd);
+
+        array_unshift($line_items, $line_item);
+
+        $args = array_merge($args, [
+          'subscription_data' => [
+            'trial_period_days' => $end->diff($now)->format('%a'),
+          ],
+        ]);
+      }
+
+      $args = array_merge($args, [
+        'line_items' => $line_items,
+      ]);
+    }
+
+    $success_url = $mepr_options->thankyou_page_url($thankyou_page_args);
+    $cancel_url = esc_url_raw(strtok($_POST['mepr_current_url'], "#"));
+
+    if(empty($cancel_url)) {
+      $cancel_url = home_url() . $_SERVER['REQUEST_URI'];
+    }
+
+    $args = array_merge($args, [
+      'success_url' => $success_url,
+      'cancel_url' => $cancel_url,
+      'metadata' => [
+        'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
+        'transaction_id' => $txn->id,
+        'site_url' => get_site_url(),
+        'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
+      ],
+    ]);
+
+    $args = MeprHooks::apply_filters('mepr_stripe_checkout_session_args', $args, $txn);
+
+    $checkout_session = (object) $this->send_stripe_request('checkout/sessions', $args, 'post');
+
+    $txn->trans_num = $checkout_session->id;
+    $txn->store();
+
+    wp_send_json([
+      'id' => $checkout_session->id,
+      'public_key' => $this->settings->public_key,
+    ]);
   }
 
   /**
@@ -430,29 +620,36 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   /**
    * Create a PaymentIntent via the Stripe API
    *
-   * @param  MeprTransaction     $txn         The MemberPress transaction
-   * @param  MeprProduct         $prd         The MemberPress product
+   * @param  float               $amount      The payment amount
    * @param  string              $customer_id The Stripe Customer ID
+   * @param  string              $description The payment description
    * @return stdClass                         The Stripe PaymentIntent data
    * @throws MeprHttpException                If there was an HTTP error connecting to Stripe
    * @throws MeprRemoteException              If there was an invalid or error response from Stripe
    */
-  public function create_payment_intent(MeprTransaction $txn, MeprProduct $prd, $customer_id) {
+  public function create_payment_intent($amount, $customer_id, $description) {
     $mepr_options = MeprOptions::fetch();
 
-    $args = MeprHooks::apply_filters('mepr_stripe_payment_intent_args', [
-      'amount' => $this->to_zero_decimal_amount($txn->total),
+    $args = [
+      'amount' => $this->to_zero_decimal_amount($amount),
       'currency' => $mepr_options->currency_code,
       'customer' => $customer_id,
-      'payment_method_types' => MeprHooks::apply_filters('mepr_stripe_payment_intent_payment_method_types', $this->is_stripe_link_enabled() ? ['card', 'link'] : ['card'], $txn, $prd),
+      'payment_method_types' => MeprHooks::apply_filters('mepr_stripe_payment_intent_payment_method_types', $this->is_stripe_link_enabled() ? ['card', 'link'] : ['card']),
       'setup_future_usage' => 'off_session', // Required to allow rebills to use this card
-      'description' => $prd->post_title,
       'metadata' => [
         'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
         'site_url' => get_site_url(),
         'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
       ],
-    ], $txn);
+    ];
+
+    if(!empty($description)) {
+      $args = array_merge($args, [
+        'description' => $description,
+      ]);
+    }
+
+    $args = MeprHooks::apply_filters('mepr_stripe_create_payment_intent_args', $args);
 
     $args = $this->add_application_fee_amount($args);
 
@@ -466,31 +663,56 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   }
 
   /**
-   * Process a successful one-time payment
+   * Record a successful one-time payment
    *
-   * @param  MeprTransaction $txn            The MemberPress transaction
-   * @param  stdClass        $payment_intent The Stripe PaymentIntent data
-   * @return bool|void
+   * @param MeprTransaction $txn       The MemberPress transaction
+   * @param string          $trans_num The transaction number to set
    */
-  public function handle_one_time_payment(MeprTransaction $txn, $payment_intent) {
-    // Get the Charge from the PaymentIntent
-    $charge = (object) $payment_intent->charges['data'][0];
+  public function record_one_time_payment(MeprTransaction $txn, $trans_num) {
+    // Just short circuit if the txn has already completed
+    if($txn->status == MeprTransaction::$complete_str) {
+      return;
+    }
 
-    $txn->trans_num = $charge->id;
+    $txn->trans_num = $trans_num;
+    $txn->status = MeprTransaction::$complete_str;
     $txn->store();
 
-    $_REQUEST['data'] = $charge;
+    $prd = $txn->product();
 
-    return $this->record_payment();
+    // This will only work before maybe_cancel_old_sub is run
+    $upgrade = $txn->is_upgrade();
+    $downgrade = $txn->is_downgrade();
+
+    $event_txn = $txn->maybe_cancel_old_sub();
+
+    if($prd->period_type == 'lifetime') {
+      if($upgrade) {
+        $this->upgraded_sub($txn, $event_txn);
+      }
+      else if($downgrade) {
+        $this->downgraded_sub($txn, $event_txn);
+      }
+      else {
+        $this->new_sub($txn);
+      }
+
+      MeprUtils::send_signup_notices($txn);
+    }
+
+    MeprUtils::send_transaction_receipt_notices($txn);
+    MeprUtils::send_cc_expiration_notices($txn);
   }
 
   public function process_payment_form($txn) {
-    if(isset($_REQUEST['mepr_payment_methods_hidden']) && $txn->amount == 0.00) {
-      MeprTransaction::create_free_transaction($txn);
+    if(isset($_REQUEST['mepr_payment_methods_hidden'])) {
+      $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
+      $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
+
+      $this->process_order($txn, $order_bump_products);
     }
-    else {
-      throw new MeprGatewayException(__('Payment was unsuccessful, please check your payment details and try again.', 'memberpress'));
-    }
+
+    throw new MeprGatewayException(__('Payment was unsuccessful, please check your payment details and try again.', 'memberpress'));
   }
 
   /** Used to send data to a given payment gateway. In gateways which redirect
@@ -506,194 +728,100 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     * Silent Post from Authorize.net.
     */
   public function record_subscription_payment() {
-    if(isset($_REQUEST['data'])) {
-      $charge = (object) $_REQUEST['data'];
+    // Not used
+  }
 
-      if(!isset($charge, $charge->id, $charge->customer)) {
-        return false;
-      }
+  /** Used to record a successful recurring payment by the given gateway. It
+    * should have the ability to record a successful payment or a failure. It is
+    * this method that should be used when receiving an IPN from PayPal or a
+    * Silent Post from Authorize.net.
+    */
+  public function record_sub_payment(MeprSubscription $sub, $amount, $trans_num, $payment_method = null, $txn_expires_at_override = null, $order_id = 0) {
+    if(strpos($trans_num, 'ch_') === 0 && MeprTransaction::txn_exists($trans_num)) {
+      return;
+    }
 
-      $subscription = isset($_REQUEST['subscription']) ? (object) $_REQUEST['subscription'] : null;
-      $invoice = isset($_REQUEST['invoice']) ? (object) $_REQUEST['invoice'] : null;
-      $sub = isset($subscription, $subscription->id) ? MeprSubscription::get_one_by_subscr_id($subscription->id) : null;
+    $first_txn = $sub->first_txn();
 
-      if($sub instanceof MeprSubscription) {
-        $subscr_id = $subscription->id;
-      } else {
-        // Look for an old cus_xxx subscription
-        $sub = MeprSubscription::get_one_by_subscr_id($charge->customer);
-        $subscr_id = $charge->customer;
-      }
+    if($first_txn == false || !($first_txn instanceof MeprTransaction)) {
+      $coupon_id = $sub->coupon_id;
+    }
+    else {
+      $coupon_id = $first_txn->coupon_id;
+    }
 
-      // Make sure there's a valid subscription for this request and this payment hasn't already been recorded
-      if(!($sub instanceof MeprSubscription) || MeprTransaction::txn_exists($charge->id)) {
-        return false;
-      }
+    $txn = new MeprTransaction();
+    $txn->user_id    = $sub->user_id;
+    $txn->product_id = $sub->product_id;
+    $txn->status     = MeprTransaction::$complete_str;
+    $txn->coupon_id  = $coupon_id;
+    $txn->trans_num  = $trans_num;
+    $txn->gateway    = $this->id;
+    $txn->subscription_id = $sub->id;
+    $txn->order_id = $order_id;
+    $txn->set_gross($amount);
 
-      //If this isn't for us, bail
-      if($sub->gateway != $this->id) { return false; }
+    if(!is_null($txn_expires_at_override)) {
+      $txn->expires_at = $txn_expires_at_override;
+    }
 
-      $first_txn = $sub->first_txn();
+    $txn->store();
 
-      if($first_txn == false || !($first_txn instanceof MeprTransaction)) {
-        $coupon_id = $sub->coupon_id;
-      }
-      else {
-        $coupon_id = $first_txn->coupon_id;
-      }
+    // Reload the subscription in case it was modified while storing the transaction
+    $sub = new MeprSubscription($sub->id);
+    $sub->gateway = $this->id;
+    $sub->status = MeprSubscription::$active_str;
 
-      $txn = new MeprTransaction();
-      $txn->user_id    = $sub->user_id;
-      $txn->product_id = $sub->product_id;
-      $txn->status     = MeprTransaction::$complete_str;
-      $txn->coupon_id  = $coupon_id;
-      $txn->trans_num  = $charge->id;
-      $txn->gateway    = $this->id;
-      $txn->subscription_id = $sub->id;
+    if($payment_method && isset($payment_method->card) && is_array($payment_method->card)) {
+      $sub->cc_last4 = $payment_method->card['last4'];
+      $sub->cc_exp_month = $payment_method->card['exp_month'];
+      $sub->cc_exp_year = $payment_method->card['exp_year'];
+    }
 
-      // If this is the first payment for a paid trial, expire the transaction after the trial ends.
-      // The actual number of trial days can be different from $sub->trial_days, for example when resuming, so we'll
-      // calculate the trial days from the Stripe subscription data.
-      if($subscription &&
-        $subscription->status == 'trialing' &&
-        isset($invoice->billing_reason) &&
-        $invoice->billing_reason == 'subscription_create' &&
-        is_numeric($subscription->trial_start) &&
-        is_numeric($subscription->trial_end)
-      ) {
-        $trial_days = ($subscription->trial_end - $subscription->trial_start) / MeprUtils::days(1);
+    $sub->store();
 
-        if($trial_days > 0) {
-          $txn->expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($trial_days), 'Y-m-d 23:59:59');
-        }
-      }
+    // If a limit was set on the recurring cycles we need
+    // to cancel the subscr if the txn_count >= limit_cycles_num
+    // This is not possible natively with Stripe so we
+    // just cancel the subscr when limit_cycles_num is hit
+    $sub->limit_payment_cycles();
 
-      if(self::is_zero_decimal_currency()) {
-        $txn->set_gross((float)$charge->amount);
-      }
-      else {
-        $txn->set_gross((float)$charge->amount / 100);
-      }
-
-      $txn->store();
-
-      // Reload the subscription in case it was modified while storing the transaction
-      $sub = new MeprSubscription($sub->id);
-
-      // Needs to be here to get around some funky GoDaddy caching issue
-      $sub->subscr_id = $subscr_id;
-
-      $this->email_status( "record_subscription_payment:" .
-        "\nSubscription: " . MeprUtils::object_to_string($sub) .
-        "\nTransaction: " . MeprUtils::object_to_string($first_txn),
-        $this->settings->debug);
-
+    if(strpos($trans_num, 'ch_') === 0) {
       // Update Stripe Metadata Asynchronously
       $job = new MeprUpdateStripeMetadataJob();
       $job->gateway_settings = $this->settings;
       $job->transaction_id = $txn->id;
       $job->enqueue();
-
-      $sub->status = MeprSubscription::$active_str;
-
-      $payment_method = isset($_REQUEST['payment_method']) ? (object) $_REQUEST['payment_method'] : null;
-
-      if($payment_method && isset($payment_method->card) && is_array($payment_method->card)) {
-        $sub->cc_last4 = $payment_method->card['last4'];
-        $sub->cc_exp_month = $payment_method->card['exp_month'];
-        $sub->cc_exp_year = $payment_method->card['exp_year'];
-      }
-      elseif($card = $this->get_card($charge)) {
-        $sub->cc_exp_month = $card['exp_month'];
-        $sub->cc_exp_year  = $card['exp_year'];
-        $sub->cc_last4     = $card['last4'];
-      }
-
-      $sub->gateway = $this->id;
-      $sub->store();
-      // If a limit was set on the recurring cycles we need
-      // to cancel the subscr if the txn_count >= limit_cycles_num
-      // This is not possible natively with Stripe so we
-      // just cancel the subscr when limit_cycles_num is hit
-      $sub->limit_payment_cycles();
-
-      $this->email_status( "Subscription Transaction\n" .
-                           MeprUtils::object_to_string($txn->rec),
-                           $this->settings->debug );
-
-      MeprUtils::send_transaction_receipt_notices( $txn );
-      MeprUtils::send_cc_expiration_notices( $txn );
-
-      return $txn;
     }
 
-    return false;
+    MeprUtils::send_transaction_receipt_notices($txn);
+    MeprUtils::send_cc_expiration_notices($txn);
   }
 
   /**
-   * Record a subscription payment that doesn't have an associated charge
+   * Handle a free invoice payment for a subscription
    *
-   * Called when the invoice payment was 0.00, which can happen if the subscription amount is less than
-   * the Stripe minimum payment. We want to record these as subscription payments unless it's the first "payment"
-   * of a free trial.
+   * This can happen if the customer has a credit balance in Stripe that covers the full recurring payment amount.
    *
-   * @return MeprTransaction|false The created transaction or false if no transaction was created
+   * @param MeprSubscription $sub
+   * @param float            $amount
+   * @param string           $trans_num
    */
-  public function record_subscription_free_invoice_payment() {
-    if(isset($_REQUEST['invoice'], $_REQUEST['invoice']->id)) {
-      $invoice = (object) $_REQUEST['invoice'];
-
-      $subscription = isset($_REQUEST['subscription']) ? (object) $_REQUEST['subscription'] : null;
-      $sub = isset($subscription, $subscription->id) ? MeprSubscription::get_one_by_subscr_id($subscription->id) : null;
-
-      if(!($sub instanceof MeprSubscription)) {
-        // Look for an old cus_xxx subscription
-        $sub = isset($invoice->customer['id']) ? MeprSubscription::get_one_by_subscr_id($invoice->customer['id']) : null;
-      }
-
-      // Make sure there's a valid subscription for this request and this payment hasn't already been recorded
-      if(!($sub instanceof MeprSubscription) || MeprTransaction::txn_exists($invoice->id)) {
-        return false;
-      }
-
-      // If this is the first invoice "payment" for a free trial, there is no need to create an extra confirmation txn
-      if($invoice->billing_reason == 'subscription_create' && $sub->trial && $sub->trial_amount <= 0.00) {
-        return false;
-      }
-
-      $txn = new MeprTransaction();
-      $txn->user_id = $sub->user_id;
-      $txn->product_id = $sub->product_id;
-      $txn->status = MeprTransaction::$complete_str;
-      $txn->txn_type = MeprTransaction::$payment_str;
-      $txn->trans_num = $invoice->id;
-      $txn->gateway = $this->id;
-      $txn->subscription_id = $sub->id;
-      $txn->set_gross(self::is_zero_decimal_currency() ? $invoice->total : $invoice->total / 100);
-
-      // If this is the first invoice "payment" for a paid trial, expire the transaction after the trial ends.
-      // The actual number of trial days can be different from $sub->trial_days, for example when resuming, so we'll
-      // calculate the trial days from the Stripe subscription data.
-      if($subscription &&
-        $subscription->status == 'trialing' &&
-        isset($invoice->billing_reason) &&
-        $invoice->billing_reason == 'subscription_create' &&
-        is_numeric($subscription->trial_start) &&
-        is_numeric($subscription->trial_end)
-      ) {
-        $trial_days = ($subscription->trial_end - $subscription->trial_start) / MeprUtils::days(1);
-
-        if($trial_days > 0) {
-          $txn->expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($trial_days), 'Y-m-d 23:59:59');
-        }
-      }
-
-      $txn->store();
-
-      return $txn;
+  public function record_free_sub_payment(MeprSubscription $sub, $amount, $trans_num) {
+    if(MeprTransaction::txn_exists($trans_num)) {
+      return;
     }
 
-    return false;
+    $txn = new MeprTransaction();
+    $txn->user_id = $sub->user_id;
+    $txn->product_id = $sub->product_id;
+    $txn->status = MeprTransaction::$complete_str;
+    $txn->txn_type = MeprTransaction::$payment_str;
+    $txn->trans_num = $trans_num;
+    $txn->gateway = $this->id;
+    $txn->subscription_id = $sub->id;
+    $txn->set_gross($amount);
+    $txn->store();
   }
 
   /**
@@ -704,55 +832,169 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    * @throws MeprRemoteException          If there was an invalid or error response from Stripe
    */
   public function handle_invoice_payment_succeeded_webhook($invoice) {
-    $this->email_status('Stripe handle_invoice_payment_succeeded_webhook response: ' . MeprUtils::object_to_string($invoice), $this->settings->debug);
+    if(empty($invoice->subscription) || empty($invoice->customer)) {
+      return;
+    }
+
+    $sub = MeprSubscription::get_one_by_subscr_id($invoice->subscription);
+
+    if(!($sub instanceof MeprSubscription)) {
+      // Look for an old cus_xxx subscription
+      $sub = MeprSubscription::get_one_by_subscr_id($invoice->customer);
+
+      if(!($sub instanceof MeprSubscription)) {
+        return;
+      }
+    }
+
+    // If this isn't for us, bail
+    if($sub->gateway != $this->id) {
+      return;
+    }
+
+    // We don't do anything here for $0 invoices that are also the first subscription payment, return early to avoid
+    // unnecessary Stripe requests (to prevent rate limit errors)
+    if($invoice->billing_reason == 'subscription_create' && !isset($invoice->charge)) {
+      return;
+    }
 
     // Fetch expanded invoice data from Stripe
-    $args = MeprHooks::apply_filters('mepr_stripe_handle_invoice_payment_succeeded_webhook_args', array(
-      'expand' => array(
-        'customer',
+    $invoice = (object) $this->send_stripe_request("invoices/$invoice->id", [
+      'expand' => [
         'charge',
+        'customer',
         'payment_intent',
         'payment_intent.payment_method',
-        'subscription',
-        'subscription.default_payment_method'
-      )
-    ), $invoice);
+      ]
+    ], 'get');
 
-    $invoice = (object) $this->send_stripe_request("invoices/{$invoice->id}", $args, 'get');
-
-    $_REQUEST['invoice'] = $invoice;
-    $_REQUEST['subscription'] = (object) $invoice->subscription;
-
-    if(isset($invoice->payment_intent['payment_method'])) {
-      $_REQUEST['payment_method'] = (object) $invoice->payment_intent['payment_method'];
-    }
-    elseif(isset($invoice->subscription['default_payment_method'])) {
-      // For free trials, get the payment method from the subscription
-      $_REQUEST['payment_method'] = (object) $invoice->subscription['default_payment_method'];
-    }
+    $customer = isset($invoice->customer) ? (object) $invoice->customer : null;
+    $payment_method = isset($invoice->payment_intent['payment_method']) ? (object) $invoice->payment_intent['payment_method'] : null;
 
     if($invoice->billing_reason == 'subscription_create') {
-      $_REQUEST['data'] = (object) $invoice->customer;
+      $txn_res = MeprTransaction::get_one_by_trans_num($invoice->id);
 
-      if(isset($invoice->customer['invoice_settings']) && is_array($invoice->customer['invoice_settings'])) {
-        $default_payment_method = isset($invoice->customer['invoice_settings']['default_payment_method']) ? $invoice->customer['invoice_settings']['default_payment_method'] : null;
-        $subscription_payment_method = isset($invoice->subscription['default_payment_method']['id']) ? $invoice->subscription['default_payment_method']['id'] : null;
+      if(!empty($txn_res) && isset($txn_res->id)) {
+        $txn = new MeprTransaction($txn_res->id);
 
-        if(empty($default_payment_method) && !empty($subscription_payment_method)) {
-          $this->set_customer_default_payment_method($invoice->customer['id'], $subscription_payment_method);
+        if(!empty($txn->id) && $txn->gateway == $this->id && $txn->subscription_id == $sub->id) {
+          $order = $txn->order();
+          $order_bump_transactions = $order instanceof MeprOrder ? MeprTransaction::get_all_by_order_id_and_gateway($order->id, $this->id, $txn->id) : [];
+
+          if($order instanceof MeprOrder && count($order_bump_transactions)) {
+            if(!$order->is_complete() && !$order->is_processing()) {
+              $order->update_meta('processing', true);
+
+              if($sub->status != MeprSubscription::$active_str) {
+                $this->record_create_sub($sub);
+              }
+
+              if($sub->trial && $sub->trial_days > 0) {
+                $amount = (float) $sub->trial_total;
+                $txn_expires_at_override = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
+              }
+              else {
+                $amount = (float) $sub->total;
+                $txn_expires_at_override = null;
+              }
+
+              if($amount > 0) {
+                $this->record_sub_payment($sub, $amount, sprintf('mi_%d_%s', $order->id, uniqid()), $payment_method, $txn_expires_at_override, $order->id);
+              }
+
+              foreach($order_bump_transactions as $transaction) {
+                $trans_num = sprintf('mi_%d_%s', $order->id, uniqid());
+
+                if(!$transaction->is_payment_required()) {
+                  MeprTransaction::create_free_transaction($transaction, false, $trans_num);
+                  continue;
+                }
+
+                if($transaction->is_one_time_payment()) {
+                  $this->record_one_time_payment($transaction, $trans_num);
+                }
+                else {
+                  if($customer && $payment_method) {
+                    try {
+                      $this->create_sub($transaction, $customer->id, $payment_method, $trans_num, $order->id);
+                    }
+                    catch(Exception $e) {
+                      continue;
+                    }
+                  }
+                }
+              }
+
+              if(isset($invoice->charge['id'])) {
+                $order->trans_num = $invoice->charge['id'];
+              }
+
+              $order->status = MeprOrder::$complete_str;
+              $order->store();
+              $order->delete_meta('processing');
+            }
+
+            if($payment_method && isset($customer->invoice_settings) && is_array($customer->invoice_settings)) {
+              $default_payment_method = isset($customer->invoice_settings['default_payment_method']) ? $customer->invoice_settings['default_payment_method'] : null;
+
+              if(empty($default_payment_method)) {
+                $this->set_customer_default_payment_method($customer->id, $payment_method->id);
+              }
+            }
+
+            return;
+          }
         }
       }
 
-      $this->record_create_subscription();
+      if($sub->status != MeprSubscription::$active_str) {
+        $this->record_create_sub($sub);
+      }
+
+      if($payment_method && isset($customer->invoice_settings) && is_array($customer->invoice_settings)) {
+        $default_payment_method = isset($customer->invoice_settings['default_payment_method']) ? $customer->invoice_settings['default_payment_method'] : null;
+
+        if(empty($default_payment_method)) {
+          $this->set_customer_default_payment_method($customer->id, $payment_method->id);
+        }
+      }
+
+      $order = $sub->order();
+
+      if($order instanceof MeprOrder) {
+        // Workaround for setting the correct first payment amount and trans_num of a subscription that was part of an
+        // order created through Stripe Checkout
+        if($sub->trial && $sub->trial_days > 0) {
+          if($sub->trial_amount > 0) {
+            $amount = (float) $sub->trial_total;
+          }
+          else {
+            return; // We don't want to record a payment for a free trial here
+          }
+        }
+        else {
+          $amount = (float) $sub->total;
+        }
+
+        $this->record_sub_payment($sub, $amount, sprintf('mi_%d_%s', $order->id, uniqid()), null, null, $order->id);
+
+        return;
+      }
     }
 
     if(isset($invoice->charge)) {
-      $_REQUEST['data'] = (object) $invoice->charge;
+      $amount = (float) $invoice->charge['amount'];
 
-      $this->record_subscription_payment();
+      if(!self::is_zero_decimal_currency()) {
+        $amount = $amount / 100;
+      }
+
+      $this->record_sub_payment($sub, $amount, $invoice->charge['id'], $payment_method);
     }
-    else {
-      $this->record_subscription_free_invoice_payment();
+    elseif($invoice->billing_reason != 'subscription_create') {
+      $amount = self::is_zero_decimal_currency() ? $invoice->total : $invoice->total / 100;
+
+      $this->record_free_sub_payment($sub, $amount, $invoice->id);
     }
   }
 
@@ -796,50 +1038,190 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   }
 
   /**
+   * Handle the payment_intent.succeeded webhook
+   *
+   * Processes a successful PaymentIntent, creating subscriptions if necessary.
+   *
+   * @param stdClass $payment_intent
+   */
+  public function handle_payment_intent_succeeded_webhook($payment_intent) {
+    if(
+      empty($payment_intent->id) ||
+      empty($payment_intent->payment_method) ||
+      empty($payment_intent->customer) ||
+      empty($charge_id = $this->get_payment_intent_charge_id($payment_intent))
+    ) {
+      return;
+    }
+
+    $txn_res = MeprTransaction::get_one_by_trans_num($payment_intent->id);
+
+    if(empty($txn_res) || !isset($txn_res->id)) {
+      return;
+    }
+
+    $txn = new MeprTransaction($txn_res->id);
+
+    if(empty($txn->id) || $txn->gateway != $this->id) {
+      return;
+    }
+
+    try {
+      $payment_intent = (object) $this->send_stripe_request("payment_intents/$payment_intent->id", [
+        'expand' => [
+          'payment_method',
+          'customer',
+        ]
+      ], 'get');
+
+      $customer = (object) $payment_intent->customer;
+      $payment_method = (object) $payment_intent->payment_method;
+      $order = $txn->order();
+      $order_bump_transactions = $order instanceof MeprOrder ? MeprTransaction::get_all_by_order_id_and_gateway($order->id, $this->id, $txn->id) : [];
+
+      if($order instanceof MeprOrder && count($order_bump_transactions)) {
+        if(!$order->is_complete() && !$order->is_processing()) {
+          $order->update_meta('processing', true);
+
+          foreach(array_merge([$txn], $order_bump_transactions) as $transaction) {
+            $trans_num = sprintf('mi_%d_%s', $order->id, uniqid());
+
+            if(!$transaction->is_payment_required()) {
+              MeprTransaction::create_free_transaction($transaction, false, $trans_num);
+              continue;
+            }
+
+            if($transaction->is_one_time_payment()) {
+              $this->record_one_time_payment($transaction, $trans_num);
+            }
+            else {
+              try {
+                $this->create_sub($transaction, $customer->id, $payment_method, $trans_num, $order->id);
+              }
+              catch(Exception $e) {
+                continue;
+              }
+            }
+          }
+
+          $order->trans_num = $charge_id;
+          $order->status = MeprOrder::$complete_str;
+          $order->store();
+          $order->delete_meta('processing');
+        }
+      }
+      else {
+        $this->record_one_time_payment($txn, $charge_id);
+      }
+
+      if($payment_method && isset($customer->invoice_settings) && is_array($customer->invoice_settings)) {
+        $default_payment_method = isset($customer->invoice_settings['default_payment_method']) ? $customer->invoice_settings['default_payment_method'] : null;
+
+        if(empty($default_payment_method)) {
+          $this->set_customer_default_payment_method($customer->id, $payment_method->id);
+        }
+      }
+    }
+    catch(Exception $e) {
+      http_response_code(500);
+      die($e->getMessage());
+    }
+  }
+
+  /**
    * Handle the setup_intent.succeeded webhook
    *
-   * Creates a free trial Stripe Subscription from a successful SetupIntent.
+   * Processes a successful SetupIntent, creating subscriptions if necessary.
    *
    * @param stdClass $setup_intent
    */
   public function handle_setup_intent_succeeded_webhook($setup_intent) {
+    if(empty($setup_intent->id) || empty($setup_intent->payment_method) || empty($setup_intent->customer)) {
+      return;
+    }
+
     $txn_res = MeprTransaction::get_one_by_trans_num($setup_intent->id);
 
-    if(is_object($txn_res) && isset($txn_res->id)) {
-      $txn = new MeprTransaction($txn_res->id);
+    if(empty($txn_res) || !isset($txn_res->id)) {
+      return;
+    }
+
+    $txn = new MeprTransaction($txn_res->id);
+
+    if(empty($txn->id) || $txn->gateway != $this->id) {
+      return;
+    }
+
+    // This only handles free trials or 100% off coupons
+    if($txn->is_payment_required()) {
       $sub = $txn->subscription();
 
-      if($sub instanceof MeprSubscription) {
-        if($sub->status == MeprSubscription::$active_str) {
-          return;
-        }
+      if(!($sub instanceof MeprSubscription) || $sub->status == MeprSubscription::$active_str || $sub->gateway != $this->id) {
+        return;
+      }
 
-        if($sub->gateway != $this->id) {
-          return;
-        }
+      if(!($sub->trial && $sub->trial_days > 0 && (float) $sub->trial_amount <= 0.00)) {
+        return;
+      }
+    }
 
-        if(!($sub->trial && $sub->trial_days > 0 && (float) $sub->trial_amount <= 0.00)) {
-          return; // This only handles free trials
-        }
+    try {
+      $setup_intent = (object) $this->send_stripe_request("setup_intents/$setup_intent->id", [
+        'expand' => [
+          'payment_method',
+          'customer',
+        ]
+      ], 'get');
 
-        if(empty($setup_intent->payment_method) || empty($setup_intent->customer)) {
-          return;
-        }
+      $customer = (object) $setup_intent->customer;
+      $payment_method = (object) $setup_intent->payment_method;
+      $order = $txn->order();
+      $order_bump_transactions = $order instanceof MeprOrder ? MeprTransaction::get_all_by_order_id_and_gateway($order->id, $this->id, $txn->id) : [];
 
-        try {
-          $subscription = $this->create_subscription($txn, $sub, $txn->product(), $setup_intent->customer, $setup_intent->payment_method, false);
+      if($order instanceof MeprOrder && count($order_bump_transactions)) {
+        if(!$order->is_complete() && !$order->is_processing()) {
+          $order->update_meta('processing', true);
 
-          $sub->subscr_id = $subscription->id;
-          $sub->store();
+          foreach(array_merge([$txn], $order_bump_transactions) as $transaction) {
+            $trans_num = sprintf('mi_%d_%s', $order->id, uniqid());
 
-          $txn->trans_num = $subscription->id;
-          $txn->store();
-        }
-        catch(Exception $e) {
-          http_response_code(202);
-          die($e->getMessage());
+            if(!$transaction->is_payment_required()) {
+              MeprTransaction::create_free_transaction($transaction, false, $trans_num);
+              continue;
+            }
+
+            // We only need to handle free trials here, not one-time payments
+            if(!$transaction->is_one_time_payment()) {
+              try {
+                $this->create_sub($transaction, $customer->id, $payment_method, $trans_num, $order->id);
+              }
+              catch(Exception $e) {
+                continue;
+              }
+            }
+          }
+
+          $order->trans_num = $setup_intent->id;
+          $order->status = MeprOrder::$complete_str;
+          $order->store();
+          $order->delete_meta('processing');
         }
       }
+      else {
+        $this->create_sub($txn, $customer->id, $payment_method, $setup_intent->id);
+      }
+
+      if($payment_method && isset($customer->invoice_settings) && is_array($customer->invoice_settings)) {
+        $default_payment_method = isset($customer->invoice_settings['default_payment_method']) ? $customer->invoice_settings['default_payment_method'] : null;
+
+        if(empty($default_payment_method)) {
+          $this->set_customer_default_payment_method($customer->id, $payment_method->id);
+        }
+      }
+    }
+    catch(Exception $e) {
+      http_response_code(500);
+      die($e->getMessage());
     }
   }
 
@@ -930,60 +1312,8 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     * that should be used when receiving an IPN from PayPal or a Silent Post
     * from Authorize.net.
     */
-  public function record_payment($charge = null) {
-    $this->email_status( "Starting record_payment: " . MeprUtils::object_to_string($_REQUEST), $this->settings->debug );
-
-    if (empty($charge)) {
-      $charge = isset($_REQUEST['data']) ? (object)$_REQUEST['data'] : [];
-    } else {
-      $charge = (object)$charge;
-    }
-
-    if(!empty($charge)) {
-      $this->email_status("record_payment: \n" . MeprUtils::object_to_string($charge, true) . "\n", $this->settings->debug);
-      $obj = MeprTransaction::get_one_by_trans_num($charge->id);
-
-      if(is_object($obj) and isset($obj->id)) {
-        $txn = new MeprTransaction();
-        $txn->load_data($obj);
-        $usr = $txn->user();
-
-        // Just short circuit if the txn has already completed
-        if($txn->status == MeprTransaction::$complete_str)
-          return;
-
-        $txn->status    = MeprTransaction::$complete_str;
-        // This will only work before maybe_cancel_old_sub is run
-        $upgrade = $txn->is_upgrade();
-        $downgrade = $txn->is_downgrade();
-
-        $event_txn = $txn->maybe_cancel_old_sub();
-        $txn->store();
-
-        $this->email_status("Standard Transaction\n" . MeprUtils::object_to_string($txn->rec, true) . "\n", $this->settings->debug);
-
-        $prd = $txn->product();
-
-        if( $prd->period_type=='lifetime' ) {
-          if( $upgrade ) {
-            $this->upgraded_sub($txn, $event_txn);
-          }
-          else if( $downgrade ) {
-            $this->downgraded_sub($txn, $event_txn);
-          }
-          else {
-            $this->new_sub($txn);
-          }
-
-          MeprUtils::send_signup_notices( $txn );
-        }
-
-        MeprUtils::send_transaction_receipt_notices( $txn );
-        MeprUtils::send_cc_expiration_notices( $txn );
-      }
-    }
-
-    return false;
+  public function record_payment() {
+    // Not used
   }
 
   /** This method should be used by the class to record a successful refund from
@@ -1032,57 +1362,149 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     // Not used
   }
 
-  public function process_stripe_checkout_session_completed($event) {
-    $data = $event->data['object'];
-    $stripe_subscription_id = isset($data['subscription']) && !empty($data['subscription']) ? $data['subscription'] : null;
-    $metadata = $data['metadata'];
-
-    if ($data['mode'] == 'payment') {
-      // Processing one time payment notification
-
-      if (isset($metadata['memberpress_transaction_id'])) {
-        $_REQUEST['data'] = $data;
-        $payment_intent_id = $data['payment_intent'];
-        $payment_intent = $this->retrieve_payment_intent($payment_intent_id);
-        $charges = $payment_intent->charges['data'];
-        $charge = end($charges);
-
-        /** @var MeprTransaction $txn */
-        $txn = new MeprTransaction($metadata['memberpress_transaction_id']);
-        $txn->trans_num = $charge['id'];
-        $txn->store();
-        $this->record_payment($charge);
-        MeprHooks::do_action('mepr-signup', $txn);
-        return;
-      }
-    }
-
-    if (empty($stripe_subscription_id)) {
+  public function process_stripe_checkout_session_completed($checkout_session) {
+    if(empty($checkout_session->id) || empty($checkout_session->customer)) {
       return;
     }
 
-    if (!isset($metadata['memberpress_subscription_id'])) {
+    $txn_res = MeprTransaction::get_one_by_trans_num($checkout_session->id);
+
+    if(empty($txn_res) || !isset($txn_res->id)) {
       return;
     }
 
-    $memberpress_subscription_id = $metadata['memberpress_subscription_id'];
+    $txn = new MeprTransaction($txn_res->id);
 
-    $stripe_subscription = (object) $this->send_stripe_request('subscriptions/' . $stripe_subscription_id, [], 'get');
+    if(empty($txn->id) || $txn->gateway != $this->id) {
+      return;
+    }
 
-    if ($stripe_subscription->status == 'active' or $stripe_subscription->status == 'trialing') {
-      $memberpress_subscription = new MeprSubscription($memberpress_subscription_id);
+    try {
+      $checkout_session = (object) $this->send_stripe_request("checkout/sessions/$checkout_session->id", [
+        'expand' => [
+          'payment_intent.payment_method',
+          'setup_intent.payment_method',
+          'subscription.default_payment_method',
+          'subscription.latest_invoice.payment_intent',
+        ]
+      ], 'get');
 
-      if ($memberpress_subscription->gateway && $memberpress_subscription->gateway == $this->id) {
-        $memberpress_subscription->subscr_id = $stripe_subscription->id;
-        $first_txn = $memberpress_subscription->first_txn();
+      $customer_id = $checkout_session->customer;
+      $payment_method = null;
+      $charge_id = null;
 
-        if ($first_txn instanceof MeprTransaction) {
-          $this->activate_subscription($first_txn, $memberpress_subscription);
-          MeprHooks::do_action('mepr-signup', $first_txn);
+      if($checkout_session->mode == 'subscription') {
+        if(isset($checkout_session->subscription['default_payment_method'])) {
+          $payment_method = (object) $checkout_session->subscription['default_payment_method'];
         }
 
-        $memberpress_subscription->store();
+        if(isset($checkout_session->subscription['latest_invoice']['payment_intent'])) {
+          $payment_intent = (object) $checkout_session->subscription['latest_invoice']['payment_intent'];
+
+          if($payment_intent) {
+            $charge_id = $this->get_payment_intent_charge_id($payment_intent);
+          }
+        }
       }
+      elseif($checkout_session->mode == 'payment') {
+        if(isset($checkout_session->payment_intent['payment_method'])) {
+          $payment_method = (object) $checkout_session->payment_intent['payment_method'];
+        }
+
+        if(isset($checkout_session->payment_intent)) {
+          $payment_intent = (object) $checkout_session->payment_intent;
+
+          if($payment_intent) {
+            $charge_id = $this->get_payment_intent_charge_id($payment_intent);
+          }
+        }
+      }
+      elseif($checkout_session->mode == 'setup') {
+        if(isset($checkout_session->setup_intent['payment_method'])) {
+          $payment_method = (object) $checkout_session->setup_intent['payment_method'];
+        }
+
+        if(isset($checkout_session->setup_intent['id'])) {
+          $charge_id = $checkout_session->setup_intent['id'];
+        }
+      }
+
+      $order = $txn->order();
+      $order_bump_transactions = $order instanceof MeprOrder ? MeprTransaction::get_all_by_order_id_and_gateway($order->id, $this->id, $txn->id) : [];
+
+      if($order instanceof MeprOrder && count($order_bump_transactions)) {
+        if(!$order->is_complete() && !$order->is_processing()) {
+          $order->update_meta('processing', true);
+          $trans_num = sprintf('mi_%d_%s', $order->id, uniqid());
+
+          if(!$txn->is_payment_required()) {
+            MeprTransaction::create_free_transaction($txn, false, $trans_num);
+          }
+          elseif($txn->is_one_time_payment()) {
+            $this->record_one_time_payment($txn, $trans_num);
+          }
+          else {
+            $sub = $txn->subscription();
+
+            if($sub instanceof MeprSubscription && isset($checkout_session->subscription['id'])) {
+              $sub->subscr_id = $checkout_session->subscription['id'];
+
+              $this->record_create_sub($sub);
+            }
+          }
+
+          foreach($order_bump_transactions as $transaction) {
+            $trans_num = sprintf('mi_%d_%s', $order->id, uniqid());
+
+            if(!$transaction->is_payment_required()) {
+              MeprTransaction::create_free_transaction($transaction, false, $trans_num);
+              continue;
+            }
+
+            if($transaction->is_one_time_payment()) {
+              $this->record_one_time_payment($transaction, $trans_num);
+            }
+            else {
+              if($customer_id && $payment_method) {
+                try {
+                  $this->create_sub($transaction, $customer_id, $payment_method, $trans_num, $order->id);
+                }
+                catch(Exception $e) {
+                  continue;
+                }
+              }
+            }
+          }
+
+          if($charge_id) {
+            $order->trans_num = $charge_id;
+          }
+
+          $order->status = MeprOrder::$complete_str;
+          $order->store();
+          $order->delete_meta('processing');
+        }
+      }
+      else {
+        if($txn->is_one_time_payment()) {
+          $trans_num = $charge_id ? $charge_id : $txn->trans_num;
+
+          $this->record_one_time_payment($txn, $trans_num);
+        }
+        else {
+          $sub = $txn->subscription();
+
+          if($sub instanceof MeprSubscription && isset($checkout_session->subscription['id'])) {
+            $sub->subscr_id = $checkout_session->subscription['id'];
+
+            $this->record_create_sub($sub);
+          }
+        }
+      }
+    }
+    catch(Exception $e) {
+      http_response_code(500);
+      die($e->getMessage());
     }
   }
 
@@ -1100,58 +1522,104 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     * from Authorize.net.
     */
   public function record_create_subscription() {
-    if(isset($_REQUEST['data'])) {
-      $customer = (object) $_REQUEST['data'];
-      $subscription = isset($_REQUEST['subscription']) ? (object) $_REQUEST['subscription'] : null;
-      $payment_method = isset($_REQUEST['payment_method']) ? (object) $_REQUEST['payment_method'] : null;
-      $sub = isset($subscription, $subscription->id) ? MeprSubscription::get_one_by_subscr_id($subscription->id) : null;
+    // Not used
+  }
 
-      if(!($sub instanceof MeprSubscription)) {
-        // Look for an old cus_xxx subscription
-        $sub = MeprSubscription::get_one_by_subscr_id($customer->id);
-      }
+  /**
+   * Create a new Stripe subscription and records the first payment as complete
+   *
+   * @param MeprTransaction      $txn            The MemberPress transaction
+   * @param string               $customer_id    The Stripe Customer ID
+   * @param stdClass             $payment_method The Stripe PaymentMethod data
+   * @param string               $trans_num      The transaction number for the payment
+   * @param int                  $order_id       The order ID for the payment transaction
+   * @throws MeprHttpException                   If there was an HTTP error connecting to Stripe
+   * @throws MeprRemoteException                 If there was an invalid or error response from Stripe
+   */
+  public function create_sub(MeprTransaction $txn, $customer_id, $payment_method, $trans_num, $order_id = 0) {
+    $sub = $txn->subscription();
 
-      // Skip if the subscription was not found
-      if($sub instanceof MeprSubscription) {
-        $txn = $sub->first_txn();
-        if($txn == false || !($txn instanceof MeprTransaction)) {
-          $txn = new MeprTransaction();
-          $txn->user_id = $sub->user_id;
-          $txn->product_id = $sub->product_id;
-          $txn->subscription_id = $sub->id;
-        }
-
-        if($payment_method && isset($payment_method->card) && is_array($payment_method->card)) {
-          $sub->cc_last4 = $payment_method->card['last4'];
-          $sub->cc_exp_month = $payment_method->card['exp_month'];
-          $sub->cc_exp_year = $payment_method->card['exp_year'];
-        }
-
-        $this->activate_subscription($txn, $sub);
-
-        // This will only work before maybe_cancel_old_sub is run
-        $upgrade = $sub->is_upgrade();
-        $downgrade = $sub->is_downgrade();
-
-        $event_txn = $sub->maybe_cancel_old_sub();
-
-        if ($upgrade) {
-          $this->upgraded_sub($sub, $event_txn);
-        } else if ($downgrade) {
-          $this->downgraded_sub($sub, $event_txn);
-        } else {
-          $this->new_sub($sub, true);
-        }
-
-        MeprUtils::send_signup_notices($txn);
-
-        MeprHooks::do_action('mepr_stripe_subscription_created', $txn, $sub);
-
-        return array('subscription' => $sub, 'transaction' => $txn);
-      }
+    if(!($sub instanceof MeprSubscription)) {
+      return;
     }
 
-    return false;
+    if($sub->status == MeprSubscription::$active_str) {
+      return;
+    }
+
+    if($sub->trial && $sub->trial_days > 0) {
+      $amount = (float) $sub->trial_total;
+      $trial_days = $sub->trial_days;
+      $txn_expires_at_override = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
+    }
+    else {
+      $amount = (float) $sub->total;
+      $txn_expires_at_override = null;
+
+      // If the sub doesn't have a trial, we want to create a subscription with the trial days set to cover one period
+      // since the initial period was already paid for
+      $now = new DateTimeImmutable('now');
+      $end = $now->modify(sprintf('+%d %s', $sub->period, $sub->period_type));
+      $trial_days = $end->diff($now)->format('%a');
+    }
+
+    $subscription = $this->create_subscription($txn, $sub, $txn->product(), $customer_id, $payment_method->id, false, $trial_days);
+
+    $sub->subscr_id = $subscription->id;
+
+    if(isset($payment_method->card) && is_array($payment_method->card)) {
+      $sub->cc_last4 = $payment_method->card['last4'];
+      $sub->cc_exp_month = $payment_method->card['exp_month'];
+      $sub->cc_exp_year = $payment_method->card['exp_year'];
+    }
+
+    $sub->store();
+
+    $this->record_create_sub($sub);
+
+    if($amount > 0) {
+      $this->record_sub_payment($sub, $amount, $trans_num, $payment_method, $txn_expires_at_override, $order_id);
+    }
+  }
+
+  /**
+   * Record the creation of a new subscription
+   *
+   * @param MeprSubscription $sub
+   */
+  public function record_create_sub(MeprSubscription $sub) {
+    $txn = $sub->first_txn();
+
+    if(!($txn instanceof MeprTransaction)) {
+      $txn = new MeprTransaction();
+      $txn->user_id = $sub->user_id;
+      $txn->product_id = $sub->product_id;
+      $txn->gateway = $this->id;
+      $txn->subscription_id = $sub->id;
+      $txn->order_id = $sub->order_id;
+    }
+
+    $this->activate_subscription($txn, $sub);
+
+    // This will only work before maybe_cancel_old_sub is run
+    $upgrade = $sub->is_upgrade();
+    $downgrade = $sub->is_downgrade();
+
+    $event_txn = $sub->maybe_cancel_old_sub();
+
+    if($upgrade) {
+      $this->upgraded_sub($sub, $event_txn);
+    }
+    else if($downgrade) {
+      $this->downgraded_sub($sub, $event_txn);
+    }
+    else {
+      $this->new_sub($sub, true);
+    }
+
+    MeprUtils::send_signup_notices($txn);
+
+    MeprHooks::do_action('mepr_stripe_subscription_created', $txn, $sub);
   }
 
   public function process_update_subscription($sub_id) {
@@ -1162,12 +1630,13 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    * Create a SetupIntent
    *
    * @param  string              $customer_id The Stripe Customer ID
+   * @param  string              $description The setup description
    * @return stdClass                         The Stripe SetupIntent object
    * @throws MeprHttpException                If there was an HTTP error connecting to Stripe
    * @throws MeprRemoteException              If there was an invalid or error response from Stripe
    */
-  public function create_setup_intent($customer_id) {
-    $setup_intent = (object) $this->send_stripe_request('setup_intents', [
+  public function create_setup_intent($customer_id, $description = '') {
+    $args = [
       'customer' => $customer_id,
       'payment_method_types' => MeprHooks::apply_filters('mepr_stripe_setup_intent_payment_method_types', $this->is_stripe_link_enabled() ? ['card', 'link'] : ['card']),
       'metadata' => [
@@ -1175,7 +1644,17 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         'site_url' => get_site_url(),
         'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
       ],
-    ]);
+    ];
+
+    if(!empty($description)) {
+      $args = array_merge($args, [
+        'description' => $description,
+      ]);
+    }
+
+    $args = MeprHooks::apply_filters('mepr_stripe_setup_intent_args', $args, $customer_id, $description);
+
+    $setup_intent = (object) $this->send_stripe_request('setup_intents', $args);
 
     return $setup_intent;
   }
@@ -1457,6 +1936,9 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       'items' => [$item],
       'expand' => [
         'latest_invoice',
+        'latest_invoice.charge',
+        'latest_invoice.payment_intent',
+        'latest_invoice.payment_intent.payment_method',
       ],
       'metadata' => [
         'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
@@ -1471,9 +1953,11 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $args = array_merge(['default_payment_method' => $payment_method_id], $args);
     }
 
+    $event_args = '';
+
     if($sub->trial) {
       $args = array_merge(['trial_period_days' => $sub->trial_days], $args);
-      $_REQUEST['trial_days'] = $sub->trial_days;
+      $event_args = ['days_until_renewal' => $sub->trial_days];
     }
 
     $args = $this->add_application_fee_percentage($args);
@@ -1503,10 +1987,22 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       );
     }
 
-    $_REQUEST['data'] = $customer;
-    $_REQUEST['sub'] = $sub;
+    $sub->status = MeprSubscription::$active_str;
+    $sub->store();
 
-    return $this->record_resume_subscription();
+    if(isset($invoice->charge)) {
+      $amount = (float) $invoice->charge['amount'];
+
+      if(!self::is_zero_decimal_currency()) {
+        $amount = $amount / 100;
+      }
+
+      $payment_method = isset($invoice->payment_intent['payment_method']) ? (object) $invoice->payment_intent['payment_method'] : null;
+
+      $this->record_sub_payment($sub, $amount, $invoice->charge['id'], $payment_method);
+    }
+
+    MeprUtils::send_resumed_sub_notices($sub, $event_args);
   }
 
   /**
@@ -1553,36 +2049,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     * as subscription from the gateway.
     */
   public function record_resume_subscription() {
-    if(isset($_REQUEST['data'], $_REQUEST['sub'])) {
-      $customer = (object) $_REQUEST['data'];
-      $sub = $_REQUEST['sub'];
-
-      if($sub instanceof MeprSubscription) {
-        $sub->status = MeprSubscription::$active_str;
-        $sub->store();
-
-        //Check if prior txn is expired yet or not, if so create a temporary txn so the user can access the content immediately
-        $prior_txn = $sub->latest_txn();
-        if($prior_txn == false || !($prior_txn instanceof MeprTransaction) || strtotime($prior_txn->expires_at) < time()) {
-          $txn = new MeprTransaction();
-          $txn->subscription_id = $sub->id;
-          $txn->trans_num = $sub->subscr_id . '-' . uniqid();
-          $txn->status = MeprTransaction::$confirmed_str;
-          $txn->txn_type = MeprTransaction::$subscription_confirmation_str;
-          $txn->expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days(0), 'Y-m-d 23:59:59');
-          $txn->set_subtotal(0.00); // Just a confirmation txn
-          $txn->store();
-        }
-
-        $event_args = isset($_REQUEST['trial_days']) ? ['days_until_renewal' => $_REQUEST['trial_days']] : '';
-
-        MeprUtils::send_resumed_sub_notices($sub, $event_args);
-
-        return array('subscription' => $sub, 'transaction' => (isset($txn)) ? $txn : $prior_txn);
-      }
-    }
-
-    return false;
+    // Not used
   }
 
   /** Used to cancel a subscription by the given gateway. This method should be used
@@ -1755,9 +2222,35 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $prd->price = $amount;
     }
 
-    $invoice = MeprTransactionsHelper::get_invoice($txn);
-    echo $invoice;
+    $order_bumps = [];
 
+    try {
+      $order_bump_product_ids = isset($_GET['obs']) && is_array($_GET['obs']) ? array_map('intval', $_GET['obs']) : [];
+      $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
+
+      foreach($order_bump_products as $product) {
+        list($transaction, $subscription) = MeprCheckoutCtrl::prepare_transaction(
+          $product,
+          0,
+          get_current_user_id(),
+          'manual',
+          false,
+          false
+        );
+
+        $order_bumps[] = [$product, $transaction, $subscription];
+      }
+    }
+    catch(Exception $e) {
+      // ignore exception
+    }
+
+    if(count($order_bumps)) {
+      echo MeprTransactionsHelper::get_invoice_order_bumps($txn, '', $order_bumps);
+    }
+    else {
+      echo MeprTransactionsHelper::get_invoice($txn);
+    }
     ?>
       <div class="mp_wrapper mp_payment_form_wrapper">
         <?php
@@ -1781,6 +2274,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
             MeprView::render("/checkout/MeprStripeGateway/payment_gateway_fields", get_defined_vars());
           }
         ?>
+        <?php MeprHooks::do_action('mepr-stripe-payment-form-before-payment-element', $txn); ?>
     <?php if($this->settings->stripe_checkout_enabled == 'on'): ?>
       <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
       <input type="hidden" name="mepr_stripe_is_checkout" value="1"/>
@@ -1802,6 +2296,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       </div>
       <?php MeprHooks::do_action('mepr-stripe-payment-form', $txn); ?>
     <?php endif; ?>
+      <?php MeprHooks::do_action('mepr_render_order_bump_hidden_fields'); ?>
       <div class="mepr_spacer">&nbsp;</div>
       <input type="submit" class="mepr-submit" value="<?php echo esc_attr(_x('Submit', 'ui', 'memberpress')); ?>" />
       <img src="<?php echo esc_url(admin_url('images/loading.gif')); ?>" alt="<?php esc_attr_e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
@@ -2184,7 +2679,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       //$this->record_create_subscription(); // done on page
     }
     else if($event->type=='checkout.session.completed') {
-      $this->process_stripe_checkout_session_completed($event);
+      $this->process_stripe_checkout_session_completed($obj);
     }
     else if($event->type=='customer.subscription.updated') {
       //$this->record_update_subscription(); // done on page
@@ -2208,12 +2703,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       MeprProduct::delete_stripe_product_id($this->get_meta_gateway_id(), $obj->id);
     }
     else if($event->type=='payment_intent.succeeded') {
-      $txn = MeprTransaction::get_one_by_trans_num($obj->id);
-
-      if(is_object($txn) and isset($txn->id)) {
-        $txn = new MeprTransaction($txn->id);
-        $this->handle_one_time_payment($txn, $obj);
-      }
+      $this->handle_payment_intent_succeeded_webhook($obj);
     }
     else if($event->type=='setup_intent.succeeded') {
       $this->handle_setup_intent_succeeded_webhook($obj);
@@ -2384,15 +2874,13 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     return false;
   }
 
-  /** Get card object from a charge response */
+  /**
+   * Get card object from a charge response
+   *
+   * @deprecated No replacement
+   */
   public function get_card($data) {
-    // the card object is no longer returned as of 2015-02-18 ... instead it returns 'source'
-    if(isset($data->source) && $data->source['object']=='card') {
-      return $data->source;
-    }
-    elseif(isset($data->card)) {
-      return $data->card;
-    }
+    return null;
   }
 
   /**
@@ -2897,6 +3385,45 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   }
 
   /**
+   * Get the Stripe Price ID for a one-time payment for the given product and amount
+   *
+   * If the Stripe Price does not exist for the given product and amount, one will be created.
+   *
+   * @param  MeprProduct         $prd    The MemberPress product
+   * @param  float               $amount The amount to charge
+   * @return string                      The Stripe Price ID
+   * @throws MeprHttpException           If there was an HTTP error connecting to Stripe
+   * @throws MeprRemoteException         If there was an invalid or error response from Stripe
+   */
+  public function get_one_time_price_id(MeprProduct $prd, $amount) {
+    $mepr_options = MeprOptions::fetch();
+
+    $terms = [
+      'currency' => $mepr_options->currency_code,
+      'amount' => $amount,
+      'payment_method' => $this->get_meta_gateway_id(),
+    ];
+
+    $meta_key = sprintf('_mepr_stripe_onetime_price_id_%s', md5(serialize($terms)));
+    $price_id = get_post_meta($prd->ID, $meta_key, true);
+
+    if(!is_string($price_id) || strpos($price_id, 'price_') !== 0) {
+      $args = MeprHooks::apply_filters('mepr_stripe_create_price_args', [
+        'product' => $this->get_product_id($prd),
+        'unit_amount' => $this->to_zero_decimal_amount($amount),
+        'currency' => $mepr_options->currency_code,
+      ], $prd, $amount);
+
+      $price = (object) $this->send_stripe_request('prices', $args, 'post');
+
+      update_post_meta($prd->ID, $meta_key, $price->id);
+      $price_id = $price->id;
+    }
+
+    return $price_id;
+  }
+
+  /**
    * Get the Stripe Plan ID
    *
    * If the Stripe Plan does not exist for the given subscription, one will be created.
@@ -3023,42 +3550,15 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    * @throws MeprHttpException                       If there was an HTTP error connecting to Stripe
    * @throws MeprRemoteException                     If there was an invalid or error response from Stripe
    */
-  public function create_subscription(MeprTransaction $txn, MeprSubscription $sub, MeprProduct $prd, $customer_id, $payment_method_id = null, $default_incomplete = true) {
+  public function create_subscription(MeprTransaction $txn, MeprSubscription $sub, MeprProduct $prd, $customer_id, $payment_method_id = null, $default_incomplete = true, $trial_days = 0) {
     $mepr_options = MeprOptions::fetch();
-    $tax_rate_id = null;
-
-    if(get_option('mepr_calculate_taxes') && $txn->tax_rate > 0) {
-      $tax_rate_id = $this->get_stripe_tax_rate_id($txn->tax_desc, $txn->tax_rate, $prd, $mepr_options->attr('tax_calc_type') == 'inclusive');
-    }
-
-    if($sub->trial && $sub->trial_days > 0 && (float) $sub->trial_amount > 0.00) {
-      // For paid trials, add the trial payment amount as an invoice item before creating the subscription
-      $args = [
-        'customer' => $customer_id,
-        'amount' => $this->to_zero_decimal_amount($sub->trial_amount),
-        'currency' => $mepr_options->currency_code,
-        'description' => __('Initial Payment', 'memberpress'),
-        'metadata' => [
-          'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
-          'site_url' => get_site_url(),
-          'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
-        ],
-        'discountable' => 'false'
-      ];
-
-      if($tax_rate_id) {
-        $args['tax_rates'] = [$tax_rate_id];
-      }
-
-      $args = MeprHooks::apply_filters('mepr_stripe_paid_trial_invoice_args', $args, $txn, $sub);
-
-      $invoice_item = (object) $this->send_stripe_request('invoiceitems', $args, 'post');
-    }
 
     $item = ['plan' => $this->get_stripe_plan_id($sub, $prd, $prd->price)];
 
-    if($tax_rate_id) {
-      $item['tax_rates'] = [$tax_rate_id];
+    if(get_option('mepr_calculate_taxes') && $txn->tax_rate > 0) {
+      $item = array_merge($item, [
+        'tax_rates' => [$this->get_stripe_tax_rate_id($txn->tax_desc, $txn->tax_rate, $prd, $mepr_options->attr('tax_calc_type') == 'inclusive')]
+      ]);
     }
 
     $args = [
@@ -3096,14 +3596,14 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       ]);
     }
 
-    if($sub->trial && $sub->trial_days > 0) {
-      $args = array_merge($args, ['trial_period_days' => $sub->trial_days]);
+    if($trial_days > 0) {
+      $args = array_merge($args, ['trial_period_days' => $trial_days]);
     }
 
     $coupon = $sub->coupon();
 
     if($coupon instanceof MeprCoupon) {
-      $discount_amount = $this->get_coupon_discount_amount($coupon, $prd, $txn->tax_rate);
+      $discount_amount = $this->get_coupon_discount_amount($coupon, $prd);
 
       if($discount_amount > 0) {
         $args = array_merge(['coupon' => $this->get_coupon_id($coupon, $discount_amount)], $args);
@@ -3135,13 +3635,11 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   /**
    * Get the discount amount for the given coupon
    *
-   * @param  MeprCoupon  $coupon   The coupon being used
-   * @param  MeprProduct $product  The membership being purchased
-   * @param  string      $tax_rate The tax rate for the transaction
-   * @return string|int            The formatted discount amount or 0 if no discount
+   * @param  MeprCoupon  $coupon  The coupon being used
+   * @param  MeprProduct $product The membership being purchased
+   * @return string|int           The formatted discount amount or 0 if no discount
    */
-  public function get_coupon_discount_amount(MeprCoupon $coupon, MeprProduct $product, $tax_rate) {
-    $mepr_options = MeprOptions::fetch();
+  public function get_coupon_discount_amount(MeprCoupon $coupon, MeprProduct $product) {
     $discount_amount = $coupon->get_discount_amount($product);
 
     if($discount_amount > 0) {
@@ -3149,7 +3647,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         $discount_amount = MeprUtils::format_float($discount_amount);
       }
       else {
-        $discount_amount = self::is_zero_decimal_currency() ? MeprUtils::format_float($discount_amount, 0) : MeprUtils::format_float($discount_amount * 100, 0);
+        $discount_amount = $this->to_zero_decimal_amount($discount_amount);
       }
 
       if($discount_amount > 0) {
@@ -3388,6 +3886,74 @@ class MeprStripeGateway extends MeprBaseRealGateway {
   }
 
   /**
+   * Build an invoice item
+   *
+   * @param  float           $amount
+   * @param  MeprTransaction $txn
+   * @param  MeprProduct     $prd
+   * @param  string          $customer_id
+   * @return array
+   * @throws MeprHttpException
+   * @throws MeprRemoteException
+   */
+  public function build_invoice_item($amount, MeprTransaction $txn, MeprProduct $prd, $customer_id) {
+    $mepr_options = MeprOptions::fetch();
+
+    $args = [
+      'customer' => $customer_id,
+      'amount' => $this->to_zero_decimal_amount($amount),
+      'currency' => $mepr_options->currency_code,
+      'description' => $prd->post_title,
+      'metadata' => [
+        'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
+        'site_url' => get_site_url(),
+        'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
+      ],
+      'discountable' => 'false'
+    ];
+
+    if(get_option('mepr_calculate_taxes') && $txn->tax_rate > 0) {
+      $args['tax_rates'] = [$this->get_stripe_tax_rate_id($txn->tax_desc, $txn->tax_rate, $prd, $mepr_options->attr('tax_calc_type') == 'inclusive')];
+    }
+
+    if(empty($args['description'])) {
+      /* translators: %d: product ID */
+      $args['description'] = sprintf(__('Product %d', 'memberpress'), $prd->ID);
+    }
+
+    return $args;
+  }
+
+  /**
+   * Build a line item for a checkout session
+   *
+   * @param  string          $price The Stripe price ID
+   * @param  MeprTransaction $txn
+   * @param  MeprProduct     $prd
+   * @return array
+   * @throws MeprHttpException
+   * @throws MeprRemoteException
+   */
+  private function build_line_item($price, MeprTransaction $txn, MeprProduct $prd) {
+    $mepr_options = MeprOptions::fetch();
+    $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
+    $tax_inclusive = $mepr_options->attr('tax_calc_type') == 'inclusive';
+
+    $line_item = [
+      'price' => $price,
+      'quantity' => 1,
+    ];
+
+    if($calculate_taxes && $txn->tax_rate > 0) {
+      $line_item = array_merge($line_item, [
+        'tax_rates' => [$this->get_stripe_tax_rate_id($txn->tax_desc, $txn->tax_rate, $prd, $tax_inclusive)]
+      ]);
+    }
+
+    return $line_item;
+  }
+
+  /**
    * Handle the `payment_intent.payment_failed` webhook event
    *
    * For one-time payments, get the IP address from the PaymentIntent metadata, for subscriptions get it from the
@@ -3438,5 +4004,25 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     if(!empty($ip)) {
       MeprHooks::do_action('mepr_stripe_payment_failed', $ip);
     }
+  }
+
+  /**
+   * Get the underlying charge ID from a PaymentIntent
+   *
+   * Since Stripe API version 2022-11-15 the property moved from 'charges' to 'latest_charge'.
+   *
+   * @param stdClass $payment_intent The Stripe PaymentIntent data
+   * @return string|null
+   */
+  private function get_payment_intent_charge_id($payment_intent) {
+    if(isset($payment_intent->latest_charge)) {
+      return $payment_intent->latest_charge;
+    }
+
+    if(isset($payment_intent->charges['data'][0]['id'])) {
+      return $payment_intent->charges['data'][0]['id'];
+    }
+
+    return null;
   }
 }

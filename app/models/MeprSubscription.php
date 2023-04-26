@@ -53,6 +53,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
         'cc_exp_month'        => null,
         'cc_exp_year'         => null,
         'token'               => null,
+        'order_id'            => 0,
       ),
       $obj
     );
@@ -210,9 +211,8 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
   }
 
   /**
-   * @param $subscr_id
-   *
-   * @return bool|MeprSubscription
+   * @param string $subscr_id
+   * @return MeprSubscription|false
    */
   public static function get_one_by_subscr_id($subscr_id) {
     //error_log("********** MeprUtils::get_one_by_subscr_id subscr_id: {$subscr_id}\n");
@@ -824,6 +824,26 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
     if(!isset($coupon->ID) || $coupon->ID <= 0) { return false; }
 
     return $coupon;
+  }
+
+  /**
+   * Get the order associated with this subscription
+   *
+   * @return MeprOrder|false
+   */
+  public function order() {
+    //Don't do static caching stuff here
+    if(empty($this->order_id)) {
+      return false;
+    }
+
+    $order = new MeprOrder($this->order_id);
+
+    if((int) $order->id <= 0) {
+      return false;
+    }
+
+    return $order;
   }
 
   public function first_txn() {

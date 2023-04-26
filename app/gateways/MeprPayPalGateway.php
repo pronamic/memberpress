@@ -1063,7 +1063,9 @@ class MeprPayPalGateway extends MeprBasePayPalGateway {
           $sub = $txn->subscription();
           $query_params = array_merge($query_params, array('subscr_id' => $sub->subscr_id));
         }
-        MeprUtils::wp_redirect($mepr_options->thankyou_page_url(build_query($query_params)));
+
+        $thankyou_url = $this->do_thankyou_url( $query_params, $txn );
+        MeprUtils::wp_redirect( $thankyou_url );
       }
       catch( Exception $e ) {
         $prd = $txn->product();

@@ -27,6 +27,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         'subscription_id' => 0,
         'corporate_account_id' => 0,
         'parent_transaction_id' => 0,
+        'order_id' => 0,
       ),
       $obj
     );
@@ -190,6 +191,77 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     $args = compact('subscription_id');
 
     return $mepr_db->get_records($mepr_db->transactions, $args);
+  }
+
+  /**
+   * Get all transactions with the given order ID
+   *
+   * @param int      $order_id       The order ID
+   * @param int|null $exclude_txn_id Optionally exclude this transaction ID
+   * @return MeprTransaction[]
+   */
+  public static function get_all_by_order_id($order_id, $exclude_txn_id = null) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+    $transactions = [];
+
+    if(empty($order_id)) {
+      return $transactions;
+    }
+
+    $query = $wpdb->prepare("SELECT id FROM {$mepr_db->transactions} WHERE order_id = %d", $order_id);
+
+    if(is_numeric($exclude_txn_id)) {
+      $query .= $wpdb->prepare(" AND id <> %d", $exclude_txn_id);
+    }
+
+    $results = $wpdb->get_col($query);
+
+    foreach($results as $txn_id) {
+      $txn = new MeprTransaction($txn_id);
+
+      if($txn->id > 0) {
+        $transactions[] = $txn;
+      }
+    }
+
+    return $transactions;
+  }
+
+  /**
+   * Get all transactions with the given order ID and gateway
+   *
+   * @param int      $order_id       The order ID
+   * @param string   $gateway        The gateway ID
+   * @param int|null $exclude_txn_id Optionally exclude this transaction ID
+   * @return MeprTransaction[]
+   */
+  public static function get_all_by_order_id_and_gateway($order_id, $gateway, $exclude_txn_id = null) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+    $transactions = [];
+
+    if(empty($order_id)) {
+      return $transactions;
+    }
+
+    $query = $wpdb->prepare("SELECT id FROM {$mepr_db->transactions} WHERE order_id = %d AND gateway = %s", $order_id, $gateway);
+
+    if(is_numeric($exclude_txn_id)) {
+      $query .= $wpdb->prepare(" AND id <> %d", $exclude_txn_id);
+    }
+
+    $results = $wpdb->get_col($query);
+
+    foreach($results as $txn_id) {
+      $txn = new MeprTransaction($txn_id);
+
+      if($txn->id > 0) {
+        $transactions[] = $txn;
+      }
+    }
+
+    return $transactions;
   }
 
   public static function get_first_subscr_transaction($subscription_id) {
@@ -455,7 +527,8 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
       'tax_desc' => 'tr.tax_desc',
       'status' => 'tr.status',
       'coupon_id' => 'tr.coupon_id',
-      'coupon' => 'c.post_title'
+      'coupon' => 'c.post_title',
+      'order_trans_num' => 'ord.trans_num',
     );
 
     if(isset($params['month']) && is_numeric($params['month'])) {
@@ -526,6 +599,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
       "/* IMPORTANT */ LEFT JOIN {$wpdb->posts} AS p ON tr.product_id = p.ID",
       "/* IMPORTANT */ LEFT JOIN {$wpdb->posts} AS c ON tr.coupon_id = c.ID",
       "/* IMPORTANT */ LEFT JOIN {$mepr_db->subscriptions} AS sub ON tr.subscription_id=sub.id",
+      "/* IMPORTANT */ LEFT JOIN {$mepr_db->orders} AS ord ON tr.order_id=ord.id",
     );
 
     return MeprDb::list_table($cols, "{$mepr_db->transactions} AS tr", $joins, $args, $order_by, $order, $paged, $search, $search_field, $perpage);
@@ -626,6 +700,26 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     return $sub;
   }
 
+  /**
+   * Get the order associated with this transaction
+   *
+   * @return MeprOrder|false
+   */
+  public function order() {
+    //Don't do static caching stuff here
+    if(empty($this->order_id)) {
+      return false;
+    }
+
+    $order = new MeprOrder($this->order_id);
+
+    if((int) $order->id <= 0) {
+      return false;
+    }
+
+    return $order;
+  }
+
   public function coupon() {
     //Don't do static caching stuff here
 
@@ -662,9 +756,35 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     return $fallback_txn->id;
   }
 
+  /**
+   * Is payment required for this transaction?
+   *
+   * With a 100% off coupon, payment may not be required.
+   *
+   * @return bool
+   */
+  public function is_payment_required() {
+    $payment_required = true;
+
+    if($this->is_one_time_payment()) {
+      if($this->total <= 0.00) {
+        $payment_required = false;
+      }
+    }
+    else {
+      $sub = $this->subscription();
+
+      if($sub instanceof MeprSubscription && $sub->total <= 0.00) {
+        $payment_required = false;
+      }
+    }
+
+    return $payment_required;
+  }
+
   // Where the magic happens when creating a free transaction ... this is
   // usually called when the price of the membership has been set to zero.
-  public static function create_free_transaction($txn) {
+  public static function create_free_transaction($txn, $redirect = true, $trans_num = null) {
     $mepr_options = MeprOptions::fetch();
 
     // Just short circuit if the transaction has already completed
@@ -686,7 +806,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         $expires_at = MeprUtils::ts_to_mysql_date($product_expiration, 'Y-m-d 23:59:59');
     }
 
-    $txn->trans_num  = MeprTransaction::generate_trans_num();
+    $txn->trans_num  = is_null($trans_num) ? MeprTransaction::generate_trans_num() : $trans_num;
     $txn->status     = self::$pending_str; //This needs to remain as "pending" until we've called maybe_cancel_old_subscription() below
     $txn->txn_type   = self::$payment_str;
     $txn->gateway    = self::$free_gateway_str;
@@ -729,10 +849,12 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     MeprEvent::record('transaction-completed', $txn); //Delete this if we use $free_gateway->send_transaction_receipt_notices later
     MeprEvent::record('non-recurring-transaction-completed', $txn); //Delete this if we use $free_gateway->send_transaction_receipt_notices later
 
-    $sanitized_title = sanitize_title($product->post_title);
-    $query_params = array('membership' => $sanitized_title, 'trans_num' => $txn->trans_num, 'membership_id' => $product->ID);
+    if($redirect) {
+      $sanitized_title = sanitize_title($product->post_title);
+      $query_params = array('membership' => $sanitized_title, 'trans_num' => $txn->trans_num, 'membership_id' => $product->ID);
 
-    MeprUtils::wp_redirect($mepr_options->thankyou_page_url(build_query($query_params)));
+      MeprUtils::wp_redirect($mepr_options->thankyou_page_url(build_query($query_params)));
+    }
   }
 
   public function is_upgrade() {
@@ -1046,7 +1168,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     $this->apply_tax($subtotal, 2, $gross);
   }
 
-  public function checkout_url() {
+  public function checkout_url($args = []) {
     $mepr_options = MeprOptions::fetch();
     $payment_url = get_permalink($this->product_id);
     $delim = MeprAppCtrl::get_param_delimiter_char($payment_url);
@@ -1055,6 +1177,10 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
     if(($pm = $mepr_options->payment_method($this->gateway)) && $pm instanceof MeprBaseRealGateway && $pm->force_ssl()) {
       $payment_url = preg_replace('!^(https?:)?//!','https://',$payment_url);
+    }
+
+    if(count($args)) {
+      $payment_url = add_query_arg($args, $payment_url);
     }
 
     return $payment_url;

@@ -135,6 +135,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
         'remove_payment_method_nonce' => wp_create_nonce('mepr_remove_payment_method'),
         'save_authorize_config_nonce' => wp_create_nonce('mepr_save_authorize_config'),
         'deactivate_confirm' => __('Are you sure? MemberPress will not be functional if this License Key is deactivated.', 'memberpress'),
+        'activate_license_nonce' => wp_create_nonce('mepr_activate_license'),
         'deactivate_license_nonce' => wp_create_nonce('mepr_deactivate_license'),
         'an_error_occurred' => __('An error occurred', 'memberpress'),
         'content_id' => MeprOnboardingHelper::get_content_post_id(),

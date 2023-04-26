@@ -241,37 +241,18 @@ class MeprTransactionsHelper {
   public static function get_invoice( $txn, $tmpsub = '' ) {
     $prd = $txn->product();
 
-    if ( !empty($tmpsub) && $tmpsub instanceof MeprSubscription ){
+    if(!empty($tmpsub) && $tmpsub instanceof MeprSubscription) {
       $sub = $tmpsub;
     }
-    else{
+    else {
       $sub = $txn->subscription();
     }
 
-    if( $sub ) {
-      if( $sub->trial && $sub->txn_count < 1 ) {
-        $desc = __('Initial Payment', 'memberpress');
-
-        $txn = new MeprTransaction();
-        $txn->user_id = $sub->user_id;
-        $txn->product_id = $sub->product_id;
-        // $txn->coupon_id = $sub->coupon_id;
-        $txn->set_subtotal($sub->trial_amount);
-
-        // Must do this *after* apply tax so we don't screw up the invoice
-        $txn->subscription_id = $sub->id;
-        // $txn->coupon_id = $sub->coupon_id;
-      }
-      else if( $sub->txn_count >= 1 ) {
-        $desc = __('Subscription Payment', 'memberpress');
-      }
-      else {
-        $desc = __('Initial Payment', 'memberpress');
-      }
+    if($sub instanceof MeprSubscription && (($sub->trial && $sub->trial_days > 0 && $sub->txn_count < 1) || $txn->txn_type == MeprTransaction::$subscription_confirmation_str)) {
+      self::set_invoice_txn_vars_from_sub($txn, $sub);
     }
-    else {
-      $desc = __('Payment', 'memberpress') . MeprProductsHelper::renewal_str($prd);
-    }
+
+    $desc = self::get_payment_description($txn, $sub, $prd);
 
     if($coupon = $txn->coupon()) {
       $amount = $prd->price;
@@ -434,5 +415,244 @@ class MeprTransactionsHelper {
     }
 
     return false;
+  }
+
+  protected static function get_payment_description($txn, $sub, $prd) {
+    if($sub instanceof MeprSubscription) {
+      if($txn->subscription_payment_index() <= 1) {
+        $desc = __('Initial Payment', 'memberpress');
+      }
+      else {
+        $desc = __('Subscription Payment', 'memberpress');
+      }
+    }
+    else {
+      $desc = __('Payment', 'memberpress') . MeprProductsHelper::renewal_str($prd);
+    }
+
+    return $desc;
+  }
+
+  public static function get_invoice_order_bumps( $txn, $tmpsub = '', $order_bumps = array() ) {
+    $prd = $txn->product();
+
+    if(!empty($tmpsub) && $tmpsub instanceof MeprSubscription) {
+      $sub = $tmpsub;
+    }
+    else {
+      $sub = $txn->subscription();
+    }
+
+    if($sub instanceof MeprSubscription && (($sub->trial && $sub->trial_days > 0 && $sub->txn_count < 1) || $txn->txn_type == MeprTransaction::$subscription_confirmation_str)) {
+      self::set_invoice_txn_vars_from_sub($txn, $sub);
+    }
+
+    $desc = self::get_payment_description($txn, $sub, $prd);
+
+    if($coupon = $txn->coupon()) {
+      $amount = $prd->price;
+      $cpn_id = $coupon->ID;
+      $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+      $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
+    }
+    elseif($sub && ($coupon = $sub->coupon())) {
+      if($coupon->discount_mode == 'trial-override' && $sub->trial){
+        $amount = $prd->trial_amount;
+        $cpn_id = $coupon->ID;
+        $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+        $cpn_amount = MeprUtils::format_float((float)$prd->trial_amount - (float)$txn->amount);
+      }
+      else{
+        $amount = $sub->price;
+        $cpn_id = $coupon->ID;
+        $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+        $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
+      }
+    }
+    else {
+      $amount = $txn->amount;
+      $cpn_id = 0;
+      $cpn_desc = '';
+      $cpn_amount = 0.00;
+    }
+
+    $items = array(
+      array(
+        'description' => $prd->post_title . '&nbsp;&ndash;&nbsp;' . $desc,
+        'quantity' => 1,
+        'amount' => $amount
+      ),
+    );
+
+    $tax_items = array(
+      array(
+        'percent' => $txn->tax_rate,
+        'type' => $txn->tax_desc,
+        'amount' => $txn->tax_amount,
+        'post_title' => $prd->post_title
+      )
+    );
+
+    $tax_amount = $txn->tax_amount;
+
+    foreach($order_bumps as $order_bump) {
+      list($product, $transaction, $subscription) = $order_bump;
+
+      if($subscription instanceof MeprSubscription && (($subscription->trial && $subscription->trial_days > 0 && $subscription->txn_count < 1) || $transaction->txn_type == MeprTransaction::$subscription_confirmation_str)) {
+        self::set_invoice_txn_vars_from_sub($transaction, $subscription);
+      }
+
+      $order_bump_amount = $transaction->amount;
+      $tax_amount = $tax_amount + $transaction->tax_amount;
+
+      if($transaction->tax_rate > 0 && $transaction->tax_amount > 0) {
+        $tax_items[] = array(
+          'percent' => $transaction->tax_rate,
+          'type' => $transaction->tax_desc,
+          'amount' => $transaction->tax_amount,
+          'post_title' => $product->post_title,
+        );
+      }
+
+      $price_string = '';
+      if($product->register_price_action != 'hidden' && MeprHooks::apply_filters('mepr_checkout_show_terms', true, $product)) {
+        if(!$transaction->is_one_time_payment() && $subscription instanceof MeprSubscription && $subscription->id > 0) {
+          $price_string = MeprAppHelper::format_price_string($subscription, $subscription->price);
+        }
+        else {
+          ob_start();
+          MeprProductsHelper::display_invoice($product);
+          $price_string = ob_get_clean();
+        }
+      }
+
+      $order_bump_title = $product->post_title;
+      $order_bump_desc = self::get_payment_description($transaction, $subscription, $product);
+
+      if('' !== $order_bump_desc) {
+        $order_bump_title .= '&nbsp;&ndash;&nbsp;' . $order_bump_desc;
+      }
+
+      if($price_string != '') {
+        $order_bump_title .= apply_filters('mepr_order_bump_price_string', ' <br /><small>' . $price_string . '</small>');
+      }
+
+      $items[] = array(
+        'description' => $order_bump_title,
+        'quantity' => 1,
+        'amount' => $order_bump_amount,
+      );
+    }
+
+    $items = MeprHooks::apply_filters(
+      'mepr-invoice-items-order-bumps',
+      $items,
+      $txn,
+      $order_bumps
+    );
+
+    $invoice = MeprHooks::apply_filters(
+      'mepr-invoice-order-bumps',
+      array(
+        'items' => $items,
+        'coupon' => array(
+          'id' => $cpn_id,
+          'desc' => $cpn_desc,
+          'amount' => $cpn_amount
+        ),
+        'tax_items' => $tax_items,
+        'tax_amount' => $tax_amount
+      ),
+      $txn,
+      $order_bumps
+    );
+
+    $show_quantity = MeprHooks::apply_filters('mepr-invoice-show-quantity', false, $txn);
+
+    $quantities = array();
+    foreach( $invoice['items'] as $item ) {
+      $quantities[] = $item['amount'];
+    }
+
+    $subtotal = (float)array_sum( $quantities ) - (float)$invoice['coupon']['amount'];
+    $total = $subtotal + $tax_amount;
+
+    ob_start();
+
+    if($sub) {
+      $prd = $sub->product();
+      if($prd->register_price_action == 'custom' && !empty($prd->register_price) && !$txn->coupon_id && !$txn->prorated) {
+        $sub_price_str = stripslashes($prd->register_price);
+      }
+      elseif($prd->register_price_action != 'hidden' && ! $tmpsub instanceof MeprSubscription) {
+        $sub_price_str = MeprSubscriptionsHelper::format_currency($sub);
+      }
+    }
+
+    MeprView::render('/checkout/invoice_order_bumps', get_defined_vars());
+
+    $invoice = ob_get_clean();
+    return MeprHooks::apply_filters('mepr-invoice-html', $invoice, $txn );
+  }
+
+  /**
+   * Get the tooltip attributes for the given transaction rec
+   *
+   * Displays the gateway transaction ID in a tooltip for multi-item purchases.
+   *
+   * @param stdClass $rec
+   * @return string
+   */
+  public static function get_tooltip_attributes($rec) {
+    if(strpos($rec->trans_num, 'mi_') === 0 && $rec->order_trans_num) {
+      $gateway = preg_match('/(.*) \((.+)\)/', $rec->gateway, $matches);
+      $gateway = !empty($matches[1]) ? $matches[1] : (!empty($matches[2]) ? $matches[2] : '');
+      $tooltip_text = '';
+
+      if(!empty($gateway)) {
+        $tooltip_text = sprintf(
+          /* translators: %1$s: gateway name, %2$s: transaction ID */
+          __('%1$s Transaction ID: %2$s', 'memberpress'),
+          $gateway,
+          $rec->order_trans_num
+        );
+      }
+      else {
+        $tooltip_text = sprintf(
+          /* translators: %s: transaction ID */
+          __('Transaction ID: %s', 'memberpress'),
+          $rec->order_trans_num
+        );
+      }
+
+      return sprintf(' data-tooltip-text="%s" data-order-trans-num="%s"', $tooltip_text, $rec->order_trans_num);
+    }
+
+    return '';
+  }
+
+  /**
+   * Set the transaction vars from the given subscription
+   *
+   * Used when there is a trial period or confirmation transaction to be displayed in the invoice.
+   *
+   * @param MeprTransaction $txn
+   * @param MeprSubscription $sub
+   */
+  public static function set_invoice_txn_vars_from_sub(MeprTransaction $txn, MeprSubscription $sub) {
+    if($sub->trial && $sub->trial_days > 0) {
+      $txn->amount = $sub->trial_total - $sub->trial_tax_amount;
+      $txn->total = $sub->trial_total;
+      $txn->tax_amount = $sub->trial_tax_amount;
+    }
+    else {
+      $txn->amount = $sub->price;
+      $txn->total = $sub->total;
+      $txn->tax_amount = $sub->tax_amount;
+    }
+
+    $txn->tax_rate = $sub->tax_rate;
+    $txn->tax_desc = $sub->tax_desc;
+    $txn->tax_class = $sub->tax_class;
   }
 }

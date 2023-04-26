@@ -125,7 +125,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
         'custom_payment_methods' => array(),
         'customize_profile_fields' => false,
         'custom_profile_fields' => array(),
-        'cannot_purchase_message' => _x('You don\'t have access to purchase this item.', 'ui', 'memberpress')
+        'cannot_purchase_message' => _x('You don\'t have access to purchase this item.', 'ui', 'memberpress'),
       )
     );
 
@@ -419,6 +419,14 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
     $product_price = MeprHooks::apply_filters('mepr_adjusted_price', $product_price, $coupon_code, $this);
 
     return MeprUtils::format_float($product_price);
+  }
+
+  public function is_payment_required($coupon_code = null) {
+    if($coupon_code && !MeprCoupon::is_valid_coupon_code($coupon_code, $this->ID)) {
+      $coupon_code = null;
+    }
+
+    return $this->adjusted_price($coupon_code) > 0.00;
   }
 
   public function days_in_my_period($default = 'lifetime') {
@@ -1042,6 +1050,28 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
         delete_metadata_by_mid('post', $meta_id);
       }
     }
+  }
+
+  /**
+   * Get the array of order bumps chosen for this product
+   *
+   * @return MeprProduct[]
+   */
+  public function get_order_bumps() {
+    $product_ids = get_post_meta($this->ID, '_mepr_order_bumps', true);
+    $order_bumps = [];
+
+    if(is_array($product_ids)) {
+      foreach($product_ids as $product_id) {
+        $product = new MeprProduct((int) $product_id);
+
+        if($product->ID > 0) {
+          $order_bumps[] = $product;
+        }
+      }
+    }
+
+    return $order_bumps;
   }
 
 } //End class

@@ -24,6 +24,7 @@
       'input[name="mepr-address-zip"], input[name="mepr-address-state"], input[name="mepr_vat_number"]'
     );
     this.$selectFields = this.$form.find('select[data-fieldname="mepr-address-state"], select[name="mepr-address-country"]');
+    this.$orderBumps = this.$form.find('input[name="mepr_order_bumps[]"]');
     this.initPaymentMethods();
     this.maybeShowPlaceholder();
     this.$form.on('submit', $.proxy(this.handleSubmit, this));
@@ -31,6 +32,7 @@
     this.$textFields.add(this.$form.find('input[name="mepr_coupon_code"]')).on('blur', $.proxy(this.maybeCreatePaymentElement, this));
     this.$textFields.on('keyup', $.proxy(this.handleTextFieldKeyUp, this));
     this.$selectFields.on('change', $.proxy(this.maybeCreatePaymentElement, this));
+    this.$orderBumps.on('change', $.proxy(this.maybeCreatePaymentElement, this));
     this.$form.find('input[name="mpgft-signup-gift-checkbox"]').on('change', $.proxy(this.maybeCreatePaymentElement, this));
     this.textFieldKeyupTimeout = null;
   }
@@ -149,6 +151,14 @@
     if($giftCheckbox.length && $giftCheckbox.is(':checked')) {
       data.push('gift');
     }
+
+    this.$orderBumps.each(function (i, orderBump) {
+      var $orderBump = $(orderBump);
+
+      if($orderBump.is(':checked')) {
+        data.push($orderBump.val());
+      }
+    });
 
     return data.join('');
   };

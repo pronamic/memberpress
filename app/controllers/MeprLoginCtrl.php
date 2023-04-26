@@ -174,7 +174,8 @@ class MeprLoginCtrl extends MeprBaseCtrl {
     }
 
     if(!empty($errors)) {
-      do_action('wp_login_failed', $login, $errors[0]);
+      $login_error = new WP_Error('mepr_login_failed', $errors[0]);
+      do_action('wp_login_failed', $login, $login_error);
       $_REQUEST['errors'] = $errors;
       return;
     }

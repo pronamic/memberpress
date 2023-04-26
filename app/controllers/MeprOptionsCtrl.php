@@ -167,7 +167,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
 
       wp_register_script('memberpress-i18n', MEPR_JS_URL.'/i18n.js', array('jquery'), MEPR_VERSION);
       wp_register_script('mepr-uploader', MEPR_JS_URL.'/uploader.js', array(), MEPR_VERSION);
-      wp_enqueue_script('alpinejs', 'https://unpkg.com/alpinejs@3.9.3/dist/cdn.min.js', array(), MEPR_VERSION, true);
+      wp_enqueue_script('alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', array(), MEPR_VERSION, true);
       wp_localize_script('memberpress-i18n', 'MeprI18n', array('states' => MeprUtils::states()));
 
       wp_register_script( 'mepr-clipboard-js', MEPR_JS_URL . '/clipboard.min.js', array(), MEPR_VERSION );
@@ -258,7 +258,14 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
     try {
       $act = MeprUpdateCtrl::activate_license($license_key);
       $li = get_site_transient('mepr_license_info');
-      $output = sprintf('<div class="notice notice-success inline"><p>%s</p></div>', esc_html($act['message']));
+      $onboarding = isset($_POST['onboarding']) && sanitize_text_field(wp_unslash($_POST['onboarding'])) == '1';
+
+      if($onboarding) {
+        $output = '';
+      }
+      else {
+        $output = sprintf('<div class="notice notice-success inline"><p>%s</p></div>', esc_html($act['message']));
+      }
 
       if(is_array($li)) {
         $editions = MeprUtils::is_incorrect_edition_installed();
@@ -276,7 +283,12 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
           }
         }
 
-        $output .= MeprView::get_string('/admin/options/active_license', get_defined_vars());
+        if($onboarding) {
+          $output .= MeprView::get_string('/admin/onboarding/active_license', get_defined_vars());
+        }
+        else {
+          $output .= MeprView::get_string('/admin/options/active_license', get_defined_vars());
+        }
       }
       else {
         $output .= sprintf('<div class="notice notice-warning"><p>%s</p></div>', esc_html__('The license information is not available, try refreshing the page.', 'memberpress'));

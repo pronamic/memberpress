@@ -858,7 +858,7 @@ class MeprUser extends MeprBaseModel {
       }
 
       if(email_exists($user_email)) {
-        $current_url = urlencode(esc_url($current_url ? $current_url : $_SERVER['REQUEST_URI']));
+        $current_url = $current_url ? $current_url : urlencode(esc_url($_SERVER['REQUEST_URI']));
         $login_url = $mepr_options->login_page_url("redirect_to={$current_url}");
 
         $errors['user_email'] = sprintf(__('This email address has already been used. If you are an existing user, please %sLogin%s to complete your purchase. You will be redirected back here to complete your sign-up afterwards.', 'memberpress'), "<a href=\"{$login_url}\"><strong>", "</strong></a>");
@@ -960,6 +960,16 @@ class MeprUser extends MeprBaseModel {
     //Make sure this isn't the logged in purchases form
     if(!isset($logged_in_purchase) || (isset($logged_in_purchase) && $mepr_options->show_fields_logged_in_purchases)) {
       $custom_fields_errors = MeprUsersCtrl::validate_extra_profile_fields(null, null, null, true, $product);
+    }
+
+    $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_filter(array_map('intval', $_POST['mepr_order_bumps'])) : array();
+
+    if( !empty($order_bump_product_ids) ) {
+      try {
+          MeprCheckoutCtrl::get_order_bump_products($mepr_product_id, $order_bump_product_ids);
+      } catch( \Exception $ex ) {
+        $errors[] = $ex->getMessage();
+      }
     }
 
     return array_merge($errors, $custom_fields_errors);

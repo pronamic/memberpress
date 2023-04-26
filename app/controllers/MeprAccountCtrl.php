@@ -155,13 +155,8 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $mepr_options = MeprOptions::fetch();
 
     // When this option is empty, the "Plain" permalink structure is in use.
-    $url_option = get_option('permalink_structure');
 
-    if(empty($url_option) && isset($post->ID) && $post->ID > 0) {
-        $account_url = MeprUtils::get_permalink($post->ID);
-    } else {
-        $account_url = MeprUtils::get_current_url_without_params();
-    }
+    $account_url   = MeprUtils::get_account_url();
 
     $delim = MeprAppCtrl::get_param_delimiter_char($account_url);
 

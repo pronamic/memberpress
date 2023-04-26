@@ -23,7 +23,7 @@
 
     <?php else : ?>
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-    class="w-6 h-6">
+    class="w-6 h-6 thankyou">
     <path stroke-linecap="round" stroke-linejoin="round"
       d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
@@ -33,7 +33,7 @@
     <p class="">
     <?php
     _ex( 'Order: ', 'ui', 'memberpress' );
-          echo $txn->trans_num;
+          echo esc_html($trans_num);
     ?>
           </p>
 
@@ -50,8 +50,7 @@
     </div>
 
     <?php
-    $txn = new MeprTransaction( $txn->id );
-    echo MeprTransactionsHelper::get_invoice( $txn );
+    echo $invoice_html;
     ?>
 
     <?php
@@ -84,7 +83,7 @@
     ?>
 
     <?php endif ?>
-
+    <?php do_action('mepr_readylaunch_thank_you_page_after_content'); ?>
 
     <p>
     <a href="<?php echo esc_url( home_url() ); ?>"><?php _ex( 'Back to home', 'ui', 'memberpress' ); ?></a>

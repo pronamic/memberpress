@@ -89,7 +89,7 @@ body {
   border-top: 2px solid rgba(0, 0, 0, 0.1);
   border-bottom: 0;
 }
-.mepr-checkout-container .invoice-wrapper.thankyou svg {
+.mepr-checkout-container .invoice-wrapper svg.thankyou {
   color: #06429e;
   width: 4rem;
   height: auto;
@@ -372,4 +372,9 @@ body {
 }
 .mepr-payment-option-label.payment-option-authorize {
   background-image: url(../../images/checkout/authorize.svg);
+}
+
+/* .mepr-pro-templates .mepr-checkout-container .mepr-custom-price{ */
+.mepr-pro-template .mepr-checkout-container .mepr-custom-price{
+  display: none;
 }

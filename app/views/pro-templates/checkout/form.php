@@ -185,6 +185,8 @@
     <?php MeprHooks::do_action( 'mepr-before-coupon-field' ); // Deprecated ?>
     <?php MeprHooks::do_action( 'mepr-checkout-before-coupon-field', $product->ID ); ?>
 
+    <?php MeprHooks::do_action('mepr_render_order_bumps', $product); ?>
+
     <?php if ( $payment_required || ! empty( $product->plan_code ) ) : ?>
 
     <div class="mepr-payment-methods-wrapper">
@@ -268,9 +270,9 @@
     <h3 class="invoice-heading"><?php printf( esc_html_x( 'Pay %s', 'ui', 'memberpress' ), get_bloginfo( 'name' ) ); ?></h3>
 
     <div class="mp-form-row mepr_bold mepr_price">
-    <div class="mepr_price_cell invoice-amount">
-      <?php MeprProductsHelper::display_invoice( $product, $mepr_coupon_code ); ?>
-    </div>
+      <div class="mepr_price_cell invoice-amount">
+        <?php MeprProductsHelper::display_invoice( $product, $mepr_coupon_code ); ?>
+      </div>
     </div>
 
 

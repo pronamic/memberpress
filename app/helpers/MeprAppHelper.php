@@ -205,7 +205,7 @@ class MeprAppHelper {
 
   }
 
-  public static function format_price_string($obj, $price = 0.00, $show_symbol = true, $coupon_code = null, $show_prorated = true, &$payment_required = true) {
+  public static function format_price_string($obj, $price = 0.00, $show_symbol = true, $coupon_code = null, $show_prorated = true) {
     global $wp_locale;
 
     $user = MeprUtils::get_currentuserinfo();
@@ -248,19 +248,17 @@ class MeprAppHelper {
     $fprice = MeprAppHelper::format_currency($price, $show_symbol);
     $fprice = preg_replace("#([{$regex_dp}]000?)([^0-9]*)$#", '$2', (string)$fprice);
 
-    $period = (int)$obj->period;
-    $period_type = $obj->period_type;
+    $period = isset($obj->period) ? (int)$obj->period : 1;
+    $period_type = isset($obj->period_type) ? $obj->period_type : 'lifetime';
     $period_type_str = MeprUtils::period_type_name($period_type,$period);
 
     if((float)$price <= 0.00) {
       if( $period_type != 'lifetime' && !empty($coupon) &&
           (($coupon->discount_type == 'percent' && $coupon->discount_amount == 100) or ($coupon->discount_mode == 'standard' && $obj->trial == false)) ) {
         $price_str = __('Free forever', 'memberpress');
-        $payment_required = false;
       }
       elseif($period_type == 'lifetime') {
         $price_str = __('Free', 'memberpress');
-        $payment_required = false;
       }
       elseif($period==1) {
         $price_str = sprintf(__('Free for a %1$s', 'memberpress'), $period_type_str);
@@ -325,8 +323,6 @@ class MeprAppHelper {
           $upgrade_str = '';
         }
 
-        $payment_required = MeprHooks::apply_filters('mepr_signup_payment_required', $payment_required, $product);
-
         if($obj->trial_days > 0) {
           list($conv_trial_type, $conv_trial_count) = MeprUtils::period_type_from_days($obj->trial_days);
 
@@ -390,10 +386,6 @@ class MeprAppHelper {
 
         if(!$product->is_renewal()) { //Just hide this if it's a renewal
           $price_str .= sprintf( __( ' for access until %s', 'memberpress' ), $expire_str );
-
-          if ($price <= 0.00) {
-            $payment_required = false;
-          }
         }
       }
     }

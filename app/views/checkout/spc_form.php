@@ -126,6 +126,8 @@
     <?php MeprHooks::do_action('mepr-before-coupon-field'); //Deprecated ?>
     <?php MeprHooks::do_action('mepr-checkout-before-coupon-field', $product->ID); ?>
 
+    <?php MeprHooks::do_action('mepr_render_order_bumps', $product); ?>
+
     <?php if($payment_required || !empty($product->plan_code)): ?>
       <?php if($mepr_options->coupon_field_enabled): ?>
         <a class="have-coupon-link" data-prdid="<?php echo $product->ID; ?>" href="">
@@ -145,6 +147,8 @@
         <input type="hidden" name="mepr_coupon_code" value="<?php echo (isset($mepr_coupon_code))?esc_attr(stripslashes($mepr_coupon_code)):''; ?>" />
       <?php endif; ?>
 
+      <?php MeprHooks::do_action('mepr-checkout-before-invoice', $product->ID); ?>
+
       <?php if($mepr_options->enable_spc_invoice): ?>
         <div class="mepr-transaction-invoice-wrapper" style="padding-top:10px">
           <span class="mepr-invoice-loader mepr-hidden">
@@ -153,6 +157,8 @@
           <div><?php MeprProductsHelper::display_spc_invoice( $product, $mepr_coupon_code ); ?></div>
         </div>
       <?php endif; ?>
+
+      <?php MeprHooks::do_action('mepr-checkout-before-payment-methods', $product->ID); ?>
 
       <div class="mepr-payment-methods-wrapper">
         <?php if(sizeof($payment_methods) > 1): ?>
@@ -181,7 +187,6 @@
         <div>  <!-- Transaction Invoice shows up here  --> </div>
       </div>
     <?php } ?>
-
 
     <?php if($mepr_options->require_tos): ?>
       <div class="mp-form-row mepr_tos">

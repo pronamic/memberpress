@@ -92,6 +92,8 @@ var MeprOnboarding = (function($) {
         }
       });
 
+      $('#mepr-wizard-activate-license-key').on('click', onboarding.activate_license_key);
+
       $('.mepr-wizard-feature').on('click', function () {
         onboarding.toggle_feature($(this));
       });
@@ -1577,6 +1579,60 @@ var MeprOnboarding = (function($) {
         $button.html(button_html).width('auto');
         working = false;
       });
+    },
+
+    activate_license_key: function () {
+      var $button = $(this),
+        button_width = $button.width(),
+        button_html = $button.html(),
+        key = $('#mepr-wizard-license-key').val();
+
+      if (working || !key) {
+        return;
+      }
+
+      working = true;
+      $button.width(button_width).html('<i class="mp-icon mp-icon-spinner animate-spin"></i>');
+      $('#mepr-wizard-activate-license-container').find('> .notice').remove();
+
+      $.ajax({
+        url: MeprOnboardingL10n.ajax_url,
+        method: 'POST',
+        dataType: 'json',
+        data: {
+          action: 'mepr_activate_license',
+          _ajax_nonce: MeprOnboardingL10n.activate_license_nonce,
+          key: key,
+          onboarding: 1
+        }
+      })
+      .done(function (response) {
+        if (!response || typeof response != 'object' || typeof response.success != 'boolean') {
+          onboarding.activate_license_error('Request failed');
+        } else if (!response.success) {
+          onboarding.activate_license_error(response.data);
+        } else if (response.data === true) {
+          window.location.reload();
+        } else {
+          $('#mepr-wizard-activate-license-container').html(response.data);
+          $('.mepr-wizard-nav-step-1').removeClass('mepr-hidden');
+        }
+      })
+      .fail(function () {
+        onboarding.activate_license_error('Request failed');
+      })
+      .always(function () {
+        working = false;
+        $button.html(button_html).width('auto');
+      });
+    },
+
+    activate_license_error: function (message) {
+      $('#mepr-wizard-activate-license-container').prepend(
+        $('<div class="notice notice-error">').append(
+          $('<p>').html(message)
+        )
+      );
     },
 
     deactivate_license: function () {

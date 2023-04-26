@@ -72,7 +72,7 @@ if(!empty($records))
         case 'col_trans_num':
           ?>
           <td <?php echo $attributes; ?>>
-            <a href="<?php echo admin_url('admin.php?page=memberpress-trans&action=edit&id='.$rec->id); ?>" title="<?php _e('Edit transaction', 'memberpress'); ?>"><b><?php echo $rec->trans_num; ?></b></a> <img src="<?php echo MEPR_IMAGES_URL . '/square-loader.gif'; ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" class="mepr_loader" />
+            <a href="<?php echo admin_url('admin.php?page=memberpress-trans&action=edit&id='.$rec->id); ?>" title="<?php _e('Edit transaction', 'memberpress'); ?>"<?php echo MeprTransactionsHelper::get_tooltip_attributes($rec); ?>><b><?php echo $rec->trans_num; ?></b></a> <img src="<?php echo MEPR_IMAGES_URL . '/square-loader.gif'; ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" class="mepr_loader" />
             <div class="mepr-row-actions">
               <a href="<?php echo admin_url('admin.php?page=memberpress-trans&action=edit&id='.$rec->id); ?>" title="<?php _e('Edit transaction', 'memberpress'); ?>"><?php _e('Edit','memberpress'); ?></a>
               <?php if (!in_array($rec->status, [\MeprTransaction::$pending_str, \MeprTransaction::$failed_str])) { ?>

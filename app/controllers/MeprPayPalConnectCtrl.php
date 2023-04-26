@@ -183,6 +183,8 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl {
     add_action( 'wp_ajax_mepr_paypal_connect_update_creds', array( $this, 'process_update_creds' ) );
     add_action( 'wp_ajax_mepr_paypal_connect_update_creds_sandbox', array( $this, 'process_update_creds_sandbox' ) );
     add_action( 'wp_ajax_mepr_paypal_connect_disconnect', array( $this, 'process_remove_creds' ) );
+    add_action( 'wp_ajax_mepr_paypal_commerce_get_smart_button_mode', array( $this, 'get_smart_button_mode' ) );
+    add_action( 'wp_ajax_nopriv_mepr_paypal_commerce_get_smart_button_mode', array( $this, 'get_smart_button_mode' ) );
     add_action( 'wp_ajax_mepr_paypal_commerce_create_smart_button', array( $this, 'generate_smart_button_object' ) );
     add_action( 'wp_ajax_nopriv_mepr_paypal_commerce_create_smart_button', array( $this, 'generate_smart_button_object' ) );
     add_action( 'admin_init', array( $this, 'onboarding_success' ) );
@@ -610,15 +612,10 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl {
     $response = wp_remote_post( $endpoint, $options );
     $creds    = wp_remote_retrieve_body( $response );
     $creds = json_decode( $creds, true );
-    self::debug_log( $endpoint );
-    self::debug_log( $options );
-    self::debug_log( $creds );
-    self::debug_log( $response );
 
     if ( isset( $creds['client_id'] ) && isset( $creds['client_secret'] ) ) {
       $webhook_id   = self::create_webhook( $pm->notify_url( 'webhook' ), $creds['client_id'], $creds['client_secret'], $sandbox );
 
-      self::debug_log( 'saving gateway' );
       if ( $sandbox ) {
         $integrations[ $methodId ]['test_client_id']     = $creds['client_id'];
         $integrations[ $methodId ]['test_client_secret'] = $creds['client_secret'];
@@ -630,18 +627,66 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl {
         $integrations[ $methodId ]['live_auth_code']     = '';
         $integrations[ $methodId ]['live_webhook_id']    = $webhook_id;
       }
-      self::debug_log( $integrations );
+
       $mepr_options->integrations = $integrations;
       $mepr_options->store( false );
     }
+  }
+
+  public function get_smart_button_mode() {
+    $mepr_options = MeprOptions::fetch();
+    $transaction_id = isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id']) ? (int) $_POST['mepr_transaction_id'] : 0;
+
+    if($transaction_id > 0) {
+      $txn = new MeprTransaction($transaction_id);
+
+      if(!$txn->id) {
+        wp_send_json_error(__('Transaction not found', 'memberpress'));
+      }
+
+      $pm = $mepr_options->payment_method($txn->gateway);
+
+      if(!($pm instanceof MeprPayPalCommerceGateway)) {
+        wp_send_json_error(__('Invalid payment gateway', 'memberpress'));
+      }
+
+      $prd = $txn->product();
+    }
+    else {
+      $product_id = isset($_POST['mepr_product_id']) ? (int) $_POST['mepr_product_id'] : 0;
+      $prd = new MeprProduct($product_id);
+    }
+
+    if(empty($prd->ID)) {
+      wp_send_json_error(__('Product not found', 'memberpress'));
+    }
+
+    $has_subscription = !$prd->is_one_time_payment();
+
+    $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
+
+    foreach($order_bump_product_ids as $order_bump_product_id) {
+      $product = new MeprProduct($order_bump_product_id);
+
+      if(empty($product->ID)) {
+        wp_send_json_error(__('Product not found', 'memberpress'));
+      }
+
+      if(!$product->is_one_time_payment()) {
+        $has_subscription = true;
+      }
+    }
+
+    wp_send_json_success($has_subscription ? 'subscription' : 'order');
   }
 
   public function generate_smart_button_object() {
     $_POST['smart-payment-button'] = true;
     $checkout_ctrl = MeprCtrlFactory::fetch( 'checkout' );
     $checkout_ctrl->process_signup_form();
+
     if ( isset( $_REQUEST['errors'] ) ) {
-      wp_send_json( $_REQUEST, 400 );
+      wp_send_json_error( ['errors' => $_REQUEST['errors']] );
     }
 
     wp_send_json( $_REQUEST );

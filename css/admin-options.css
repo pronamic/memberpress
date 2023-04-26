@@ -356,6 +356,7 @@ td.stripe-checkbox-column-right {
 }
 
 .mepr-form label.switch .slider {
+  width: auto;
   position: absolute;
   cursor: pointer;
   top: 0;

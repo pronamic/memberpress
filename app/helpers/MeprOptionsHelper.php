@@ -176,10 +176,10 @@ class MeprOptionsHelper {
   * @param MeprBaseRealGateway[] $payment_methods
   * @return string Radio HTML
   */
-  public static function payment_methods_radios($payment_methods, $with_icons = false) {
-    $mepr_options = MeprOptions::fetch();
+  public static function payment_methods_radios($payment_methods) {
     $field_name = 'mepr_payment_method';
     $radio_html = '';
+    $first = true;
 
     if(
       is_user_logged_in() &&
@@ -192,7 +192,6 @@ class MeprOptionsHelper {
     }
 
     foreach($payment_methods as $payment_method) {
-      $first = true;
       $label = self::payment_method_label($payment_method, $first);
 
       // This will ensure that the first pm is checked by default
@@ -203,15 +202,27 @@ class MeprOptionsHelper {
         $first = false;
       }
 
+      $classes = ['mepr-form-radio'];
+
+      if($payment_method instanceof MeprBaseRealGateway) {
+        if($payment_method->can('order-bumps')) {
+          $classes[] = 'mepr-can-order-bumps';
+        }
+
+        if($payment_method->can('multiple-subscriptions')) {
+          $classes[] = 'mepr-can-multiple-subscriptions';
+        }
+      }
+
       ob_start();
       ?>
       <label class="mepr-payment-option-label payment-option-<?php echo ! empty( $payment_method->key ) ? esc_attr( $payment_method->key ) : esc_attr( str_replace( ' ', '-', strtolower( $payment_method->name ) ) ); ?>">
         <input
           type="radio"
           name="<?php echo $field_name; ?>"
-          class="mepr-form-radio"
+          class="<?php echo esc_attr(join(' ', $classes)); ?>"
           value="<?php echo $payment_method->id; ?>"
-          data-payment-method-type="<?php echo $payment_method->name; ?>"
+          data-payment-method-type="<?php echo esc_attr($payment_method->name); ?>"
           <?php if(isset($_POST[$field_name])): checked($_POST[$field_name], $payment_method->id); endif ?> />
         <?php echo $label; ?>
 
@@ -341,7 +352,6 @@ class MeprOptionsHelper {
     return $desc_html;
   }
 
-
   public static function payment_methods_dropdown($field_name, $pms = false) {
     $mepr_options = MeprOptions::fetch();
     $pms = $pms ? $pms : array_keys($mepr_options->integrations);
@@ -354,8 +364,17 @@ class MeprOptionsHelper {
       $obj = $mepr_options->payment_method($pm_id);
 
       if($obj instanceof MeprBaseRealGateway):
+        $classes = [];
+
+        if($obj->can('order-bumps')) {
+          $classes[] = 'mepr-can-order-bumps';
+        }
+
+        if($obj->can('multiple-subscriptions')) {
+          $classes[] = 'mepr-can-multiple-subscriptions';
+        }
         ?>
-          <input type="hidden" name="<?php echo $field_name; ?>" value="<?php echo $obj->id; ?>" />
+          <input type="hidden" name="<?php echo $field_name; ?>" value="<?php echo $obj->id; ?>"<?php echo count($classes) ? ' class="' . esc_attr(join(' ', $classes)) . '"' : ''; ?> />
         <?php
       else:
         return false;
@@ -403,6 +422,15 @@ class MeprOptionsHelper {
           }
 
           if($obj instanceof MeprBaseRealGateway):
+            $classes = ['mepr-form-radio'];
+
+            if($obj->can('order-bumps')) {
+              $classes[] = 'mepr-can-order-bumps';
+            }
+
+            if($obj->can('multiple-subscriptions')) {
+              $classes[] = 'mepr-can-multiple-subscriptions';
+            }
             ?>
             <div class="mp-form-row mepr_payment_method">
               <div class="mepr-payment-method <?php echo "{$field_name}-{$obj->id}"; ?>">
@@ -411,8 +439,9 @@ class MeprOptionsHelper {
                     <input
                       type="radio"
                       name="<?php echo $field_name; ?>"
-                      class="mepr-form-radio"
+                      class="<?php echo esc_attr(join(' ', $classes)); ?>"
                       value="<?php echo $obj->id; ?>"
+                      data-payment-method-type="<?php echo esc_attr($obj->name); ?>"
                       <?php if(isset($_POST[$field_name])): checked($_POST[$field_name], $obj->id); endif ?> />
                     <?php echo $label.$icon; ?>
                   </label>

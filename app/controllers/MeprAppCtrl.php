@@ -680,6 +680,10 @@ class MeprAppCtrl extends MeprBaseCtrl {
       wp_enqueue_style('mepr-jquery-ui-smoothness', $url);
       wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL.'/jquery-ui-timepicker-addon.css', array('mepr-jquery-ui-smoothness'));
 
+      $popup_ctrl = new MeprPopupCtrl();
+      wp_enqueue_style('jquery-magnific-popup', $popup_ctrl->popup_css);
+      wp_enqueue_script('jquery-magnific-popup', $popup_ctrl->popup_js, array('jquery'));
+
       $prereqs = MeprHooks::apply_filters('mepr-signup-styles', array());
       wp_enqueue_style('mp-signup',  MEPR_CSS_URL.'/signup.css', $prereqs, MEPR_VERSION);
 
@@ -709,7 +713,12 @@ class MeprAppCtrl extends MeprBaseCtrl {
       $local_data = array(
         'coupon_nonce' => wp_create_nonce('mepr_coupons'),
         'spc_enabled'  => ( $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template ),
-        'spc_invoice'  => ( $mepr_options->enable_spc_invoice || $mepr_options->design_enable_checkout_template )
+        'spc_invoice'  => ( $mepr_options->enable_spc_invoice || $mepr_options->design_enable_checkout_template ),
+        'no_compatible_pms' => __('There are no payment methods available that can purchase this product, please contact the site administrator or purchase it separately.', 'memberpress'),
+        'switch_pm_prompt' => __('It looks like your purchase requires %s. No problem! Just click below to switch.', 'memberpress'),
+        'switch_pm' => __('Switch to %s', 'memberpress'),
+        'cancel' => __('Cancel', 'memberpress'),
+        'warning_icon_url' => MEPR_IMAGES_URL . '/mepr-notice-icon-error.png',
       );
 
       wp_localize_script('mp-signup', 'MeprSignup', $local_data);

@@ -360,16 +360,22 @@ class MeprTransactionsCtrl extends MeprBaseCtrl {
         'edit_txn_status_nonce' => wp_create_nonce('edit_txn_status'),
         'refund_txn_nonce' => wp_create_nonce('refund_txn'),
         'refund_txn_cancel_sub_nonce' => wp_create_nonce('refund_txn_cancel_sub'),
+        'click_to_copy' => __('Click to copy','memberpress'),
       );
 
       wp_register_style('mepr-jquery-ui-smoothness', $url);
       wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL.'/jquery-ui-timepicker-addon.css', array('mepr-jquery-ui-smoothness'));
-      wp_enqueue_style('mepr-transactions-css', MEPR_CSS_URL.'/admin-transactions.css', array('jquery-ui-timepicker-addon'), MEPR_VERSION);
+      wp_register_style('mepr-clipboardtip', MEPR_CSS_URL . '/tooltipster.bundle.min.css', array(), MEPR_VERSION );
+      wp_register_style('mepr-clipboardtip-borderless', MEPR_CSS_URL . '/tooltipster-sideTip-borderless.min.css', array('mepr-clipboardtip'), MEPR_VERSION );
+      wp_enqueue_style('mepr-transactions-css', MEPR_CSS_URL.'/admin-transactions.css', array('jquery-ui-timepicker-addon', 'mepr-clipboardtip', 'mepr-clipboardtip-borderless'), MEPR_VERSION);
 
       wp_register_script('mepr-table-controls-js', MEPR_JS_URL.'/table_controls.js', array('jquery'), MEPR_VERSION);
       wp_register_script('mepr-timepicker-js', MEPR_JS_URL.'/jquery-ui-timepicker-addon.js', array('jquery-ui-datepicker'));
       wp_register_script('mepr-date-picker-js', MEPR_JS_URL.'/date_picker.js', array('mepr-timepicker-js'), MEPR_VERSION);
       wp_register_script('mphelpers', MEPR_JS_URL.'/mphelpers.js', array('suggest'), MEPR_VERSION);
+      wp_register_script( 'mepr-clipboard-js', MEPR_JS_URL . '/clipboard.min.js', array(), MEPR_VERSION );
+      wp_register_script( 'mepr-tooltipster', MEPR_JS_URL . '/tooltipster.bundle.min.js', array('jquery'), MEPR_VERSION );
+
       wp_enqueue_script(
         'mepr-transactions-js',
         MEPR_JS_URL.'/admin_transactions.js',
@@ -377,7 +383,9 @@ class MeprTransactionsCtrl extends MeprBaseCtrl {
           'jquery',
           'mphelpers',
           'mepr-table-controls-js',
-          'mepr-date-picker-js'
+          'mepr-date-picker-js',
+          'mepr-clipboard-js',
+          'mepr-tooltipster',
         ),
         MEPR_VERSION
       );

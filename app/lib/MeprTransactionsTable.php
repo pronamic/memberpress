@@ -34,7 +34,7 @@ class MeprTransactionsTable extends WP_List_Table
     );
 
     $this->db_search_cols = array(
-      'txn' => 'tr.trans_num',
+      'txn' => 'tr.trans_num, ord.trans_num',
       'sub' => 'sub.subscr_id',
       'user' => 'm.user_login',
       'email' => 'm.user_email',

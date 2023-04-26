@@ -546,6 +546,12 @@ class MeprReminder extends MeprCptModel {
                  LIMIT 1
               ) IS NULL " .
 
+         // Ensure that this reminder is only sent for the primary transaction for multi-item purchases
+         "AND (
+           txn.order_id = 0 OR
+           txn.id = ( SELECT ord.primary_transaction_id FROM {$mepr_db->orders} AS ord WHERE ord.id = txn.order_id )
+         )" .
+
          // Don't want to send this reminder twice so make sure there's no
          // reminder that has already been sent for this bro
          "AND ( SELECT ev.id

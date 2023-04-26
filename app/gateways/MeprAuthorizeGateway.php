@@ -17,7 +17,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
       'create-subscriptions',
       'cancel-subscriptions',
       'update-subscriptions',
-      'send-cc-expirations'
+      'send-cc-expirations',
+      'order-bumps',
+      'multiple-subscriptions',
     );
 
     // Setup the notification actions for this gateway
@@ -139,10 +141,55 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     return true;
   }
 
+  public function process_order_bumps($txn, $order_bumps) {
+    $i = 1;
+    foreach ($order_bumps as $order) {
+      if ($i == 1) {
+        $result = $this->process_single_order_bump( $order );
+      } else {
+        try {
+          $result = $this->process_single_order_bump( $order, true );
+        } catch (\Exception $e) {
+          $order->update_meta('_authorizenet_txn_error_', $e->getMessage());
+        }
+      }
+
+      if ($i == count($order_bumps)) {
+        $mepr_order = $txn->order();
+
+        if ( $mepr_order instanceof MeprOrder ) {
+          $mepr_order->status = \MeprOrder::$complete_str;
+          $mepr_order->store();
+        }
+
+        return $result;
+      }
+      $i++;
+    }
+  }
+
   /** Used to send data to a given payment gateway. In gateways which redirect
     * before this step is necessary -- this method should just be left blank.
     */
   public function process_payment($txn) {
+    $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
+    $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
+    $order_bumps = $this->process_order($txn, $order_bump_products);
+
+    if (count($order_bumps) < 1) {
+      return $this->process_single_payment($txn);
+    }
+
+    array_unshift($order_bumps, $txn);
+    unset($_POST['mepr_order_bumps']);
+
+    return $this->process_order_bumps($txn, $order_bumps);
+  }
+
+  /** Used to send data to a given payment gateway. In gateways which redirect
+    * before this step is necessary -- this method should just be left blank.
+    */
+  public function process_single_payment($txn) {
     $mepr_options = MeprOptions::fetch();
 
     if(isset($txn) and $txn instanceof MeprTransaction) {
@@ -152,7 +199,6 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     else
       throw new MeprGatewayException( __('Payment was unsuccessful, please check your payment details and try again.', 'memberpress') );
 
-    $invoice = $txn->id.'-'.time();
 
     if( empty($usr->first_name) or empty($usr->last_name) ) {
       $usr->first_name = sanitize_text_field(wp_unslash($_POST['mepr_first_name']));
@@ -160,6 +206,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
       $usr->store();
     }
 
+    $invoice = $txn->id.'-'.time();
     $args = array( 'x_card_num'    => sanitize_text_field($_POST['mepr_cc_num']),
                    'x_card_code'   => sanitize_text_field($_POST['mepr_cvv_code']),
                    'x_exp_date'    => sprintf('%02d', sanitize_text_field($_POST['mepr_cc_exp_month'])) . '-' . sanitize_text_field($_POST['mepr_cc_exp_year']),
@@ -187,9 +234,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     }
 
     $args = MeprHooks::apply_filters('mepr_authorize_payment_args', $args, $txn);
-
     $res = $this->send_aim_request('AUTH_CAPTURE', $args);
-
     $this->email_status("translated AIM response from Authorize.net: \n" . MeprUtils::object_to_string($res, true) . "\n", $this->settings->debug);
 
     $txn->trans_num = $res['transaction_id'];
@@ -407,7 +452,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     $txn->status = MeprTransaction::$pending_str;
 
     //Attempt processing the payment here - the send_aim_request will throw the exceptions for us
-    $this->process_payment($txn);
+    $this->process_single_payment($txn);
 
     return $this->record_trial_payment($txn);
   }
@@ -468,11 +513,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     $res2 = $this->send_aim_request('VOID', array('x_trans_id' => $res['transaction_id']));
   }
 
-  /** Used to send subscription data to a given payment gateway. In gateways
-    * which redirect before this step is necessary this method should just be
-    * left blank.
-    */
-  public function process_create_subscription($txn) {
+  public function process_create_single_subscription($txn, $check_for_trial = false) {
     $mepr_options = MeprOptions::fetch();
 
     if(isset($txn) and $txn instanceof MeprTransaction) {
@@ -484,13 +525,18 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
       throw new MeprGatewayException( __('Payment was unsuccessful, please check your payment details and try again.', 'memberpress') );
     }
 
+    if ( $check_for_trial && $sub->trial && $sub->trial_amount > 0.00 ) {
+      $txn->set_subtotal( $sub->trial_amount );
+      $this->email_status( "Calling process_trial_payment ...\n\n" . MeprUtils::object_to_string( $txn ) . "\n\n" . MeprUtils::object_to_string( $sub ), $this->settings->debug );
+      $this->process_trial_payment( $txn );
+    }
+
     //Validate card first unless we have a paid trial period as that will go through AIM and validate the card immediately
     if(!$sub->trial || ($sub->trial && $sub->trial_amount <= 0.00)) {
       $this->authorize_card_before_subscription($txn);
     }
 
     //$invoice = $txn->id.'-'.time();
-    $invoice = $this->create_new_order_invoice($sub);
 
     if( empty($usr->first_name) or empty($usr->last_name) ) {
       $usr->first_name  = sanitize_text_field(wp_unslash($_POST['mepr_first_name']));
@@ -499,8 +545,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     }
 
     // Default to 9999 for infinite occurrences
+    $invoice = $this->create_new_order_invoice($sub);
     $total_occurrences = $sub->limit_cycles ? $sub->limit_cycles_num : 9999;
-
     $args = array( "refId" => $invoice,
                    "subscription" => array(
                      "name" => $prd->post_title,
@@ -528,16 +574,16 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
                        "lastName" => $usr->last_name
                      )
                    )
-                 );
+    );
 
     if($mepr_options->show_address_fields && $mepr_options->require_address_fields) {
       $args['subscription']['billTo'] =
         array_merge($args['subscription']['billTo'],
-                    array("address" => str_replace('&', '&amp;', get_user_meta($usr->ID, 'mepr-address-one', true)),
-                          "city"    => get_user_meta($usr->ID, 'mepr-address-city', true),
-                          "state"   => get_user_meta($usr->ID, 'mepr-address-state', true),
-                          "zip"     => get_user_meta($usr->ID, 'mepr-address-zip', true),
-                          "country" => get_user_meta($usr->ID, 'mepr-address-country', true)));
+          array("address" => str_replace('&', '&amp;', get_user_meta($usr->ID, 'mepr-address-one', true)),
+                "city"    => get_user_meta($usr->ID, 'mepr-address-city', true),
+                "state"   => get_user_meta($usr->ID, 'mepr-address-state', true),
+                "zip"     => get_user_meta($usr->ID, 'mepr-address-zip', true),
+                "country" => get_user_meta($usr->ID, 'mepr-address-country', true)));
     }
 
     //If customer provided a new ZIP code let's add it here
@@ -553,6 +599,45 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     $_POST['subscr_id'] = $res->subscriptionId;
 
     return $this->record_create_subscription();
+  }
+
+  /**
+   * @param MeprTransaction $order
+   * @param boolean $check_for_trial
+   */
+  public function process_single_order_bump($order, $check_for_trial = false)
+  {
+    $product = $order->product();
+
+    if(!$order->is_payment_required()) {
+      MeprTransaction::create_free_transaction($order, false, sprintf('mi_%d_%s', $order->id, uniqid()));
+      return;
+    }
+
+    if($product->is_one_time_payment()) {
+      return $this->process_single_payment($order);
+    } else {
+      return $this->process_create_single_subscription($order, $check_for_trial);
+    }
+  }
+
+  /** Used to send subscription data to a given payment gateway. In gateways
+    * which redirect before this step is necessary this method should just be
+    * left blank.
+    */
+  public function process_create_subscription($txn) {
+    $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
+    $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
+    $order_bumps = $this->process_order($txn, $order_bump_products);
+
+    if (count($order_bumps) < 1) {
+      return $this->process_create_single_subscription($txn);
+    }
+
+    array_unshift($order_bumps, $txn);
+    unset($_POST['mepr_order_bumps']);
+
+    return $this->process_order_bumps($txn, $order_bumps);
   }
 
   /** Used to record a successful subscription by the given gateway. It should have
@@ -802,11 +887,13 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     */
   public function display_payment_form($amount, $usr, $product_id, $txn_id) {
     $prd = new MeprProduct($product_id);
+    $order_bump_product_ids = isset($_REQUEST['obs']) && is_array($_REQUEST['obs']) ? array_map('intval', $_REQUEST['obs']) : [];
     $coupon = false;
     $mepr_options = MeprOptions::fetch();
 
     $txn = new MeprTransaction($txn_id);
     $usr = $txn->user();
+    $errors = isset( $_POST['errors'] ) ? $_POST['errors'] : array();
 
     //Artifically set the price of the $prd in case a coupon was used
     if($prd->price != $amount) {
@@ -814,8 +901,35 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
       $prd->price = $amount;
     }
 
-    $invoice = MeprTransactionsHelper::get_invoice($txn);
-    echo $invoice;
+    $order_bumps = [];
+
+    try {
+      $order_bump_product_ids = isset($_GET['obs']) && is_array($_GET['obs']) ? array_map('intval', $_GET['obs']) : [];
+      $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
+
+      foreach($order_bump_products as $product) {
+        list($transaction, $subscription) = MeprCheckoutCtrl::prepare_transaction(
+          $product,
+          0,
+          get_current_user_id(),
+          'manual',
+          false,
+          false
+        );
+
+        $order_bumps[] = [$product, $transaction, $subscription];
+      }
+    }
+    catch(Exception $e) {
+      // ignore exception
+    }
+
+    if(count($order_bumps)) {
+      echo MeprTransactionsHelper::get_invoice_order_bumps($txn, '', $order_bumps);
+    }
+    else {
+      echo MeprTransactionsHelper::get_invoice($txn);
+    }
     ?>
     <div class="mp_wrapper mp_payment_form_wrapper">
       <?php MeprView::render('/shared/errors', get_defined_vars()); ?>
@@ -868,6 +982,13 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
           <input type="tel" class="mepr-form-input cc-exp validation" pattern="\d*" autocomplete="cc-exp" placeholder="mm/yy" required>
           <input type="hidden" class="cc-exp-month" name="mepr_cc_exp_month"/>
           <input type="hidden" class="cc-exp-year" name="mepr_cc_exp_year"/>
+          <?php
+          foreach ($order_bump_product_ids as $orderId) {
+          ?>
+          <input type="hidden" name="mepr_order_bumps[]" value="<?php echo intval($orderId); ?>"/>
+          <?php
+          }
+          ?>
           <script>
             jQuery(document).ready(function($) {
               $('input.cc-exp').on('change blur', function (e) {
@@ -1251,6 +1372,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
                     "split_tender_id" => $answers[52],
                     "requested_amount" => $answers[53],
                     "balance_on_card" => $answers[54] );
+    } else {
+      throw new MeprRemoteException ( $answers[3] );
     }
 
     throw new MeprRemoteException( $response['body'] );

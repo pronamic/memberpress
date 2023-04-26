@@ -610,11 +610,11 @@ class MeprProductsCtrl extends MeprCptCtrl {
   }
 
   public static function shortcode_registration_form($atts, $content = '') {
-    global $mepr_shortcode_registration_product_id;
     $membership_id = (isset($atts['id'])) ? $atts['id'] : 0;
     $membership_id = ($membership_id === 0 && isset($atts['product_id'])) ? $atts['product_id'] : $membership_id; //Back compat
-    $mepr_shortcode_registration_product_id = $membership_id;
+
     $prd = ($membership_id > 0) ? new MeprProduct($membership_id) : false;
+
     if($prd !== false && isset($prd->ID) && $prd->ID > 0) {
       $res = self::get_registration_form($prd);
       return $res->content;

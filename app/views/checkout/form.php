@@ -125,6 +125,8 @@
     <?php MeprHooks::do_action('mepr-before-coupon-field'); //Deprecated ?>
     <?php MeprHooks::do_action('mepr-checkout-before-coupon-field', $product->ID); ?>
 
+    <?php MeprHooks::do_action('mepr_render_order_bumps', $product); ?>
+
     <?php if($payment_required || !empty($product->plan_code)): ?>
       <?php if($mepr_options->coupon_field_enabled): ?>
         <a class="have-coupon-link" data-prdid="<?php echo $product->ID; ?>" href="">

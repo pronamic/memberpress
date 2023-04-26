@@ -11,7 +11,110 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     add_action( 'wp_ajax_nopriv_mepr_update_spc_invoice_table', array( $this, 'update_spc_invoice_table' ) );
     add_action( 'wp_ajax_nopriv_mepr_update_price_string', array( $this, 'update_price_string' ) );
     add_action( 'wp_ajax_mepr_update_price_string', array( $this, 'update_price_string' ) );
+    add_action( 'mepr_readylaunch_thank_you_page_after_content', array( $this, 'maybe_show_order_bumps_error_message_in_readylaunch' ) );
     add_filter('mepr_options_helper_payment_methods', array($this, 'exclude_disconnected_gateways'), 10, 2);
+    add_filter( 'the_content', [$this, 'maybe_show_order_bumps_error_message'], 1 );
+  }
+
+  public function maybe_show_order_bumps_error_message_in_readylaunch()
+  {
+    if (!isset($_GET['trans_num'])) {
+      return;
+    }
+
+    $trans_num = filter_var( $_GET['trans_num'] );
+    $original_txn = MeprTransaction::get_one_by_trans_num( $trans_num );
+
+    if (isset($original_txn->id)) {
+      $original_txn = new MeprTransaction($original_txn->id);
+    }
+
+    $order = $original_txn->order();
+
+    if ( !$order ) {
+      return;
+    }
+
+    $bumps = MeprTransaction::get_all_by_order_id( $order->id );
+    $errors = [];
+
+    foreach ( $bumps as $txn ) {
+      $product = $txn->product();
+      $meta = $txn->get_meta( '_authorizenet_txn_error_', true );
+
+      if (empty($meta)) {
+        continue;
+      }
+
+      $error = (explode('|', $meta));
+      $error_message = sprintf( __( 'Notice: %s purchase failed. Click <a href="%s" target="_blank">here</a> to purchase it separately.', 'memberpress' ), $product->post_title, get_permalink($product->ID) );
+
+
+      if ( ! empty( $error ) ) {
+        $errors[] = $error_message;
+      }
+    }
+
+    if ( !empty($errors) ) {
+      MeprView::render('/shared/errors', get_defined_vars());
+      echo "<br>";
+    }
+  }
+
+  public function maybe_show_order_bumps_error_message( $content ) {
+    if ( is_singular() && in_the_loop() && is_main_query() ) {
+      $mepr_options = MeprOptions::fetch();
+
+      if ( $mepr_options->thankyou_page_id != get_the_ID() ) {
+        return $content;
+      }
+
+      if (!isset($_GET['trans_num'])) {
+        return $content;
+      }
+
+      $trans_num = filter_var( $_GET['trans_num'] );
+      $original_txn = MeprTransaction::get_one_by_trans_num( $trans_num );
+
+      if (isset($original_txn->id)) {
+        $original_txn = new MeprTransaction($original_txn->id);
+      }
+
+      $order = $original_txn->order();
+
+      if ( !$order ) {
+        return $content;
+      }
+
+      $bumps = MeprTransaction::get_all_by_order_id( $order->id );
+      $errors = [];
+
+      foreach ( $bumps as $txn ) {
+        $product = $txn->product();
+        $meta = $txn->get_meta( '_authorizenet_txn_error_', true );
+
+        if (empty($meta)) {
+          continue;
+        }
+
+        $error = (explode('|', $meta));
+        $error_message = sprintf( __( 'Notice: %s purchase failed. Click <a href="%s" target="_blank">here</a> to purchase it separately.', 'memberpress' ), $product->post_title, get_permalink($product->ID) );
+
+        if ( ! empty( $error ) ) {
+          $errors[] = $error_message;
+        }
+      }
+
+      if ( !empty($errors) ) {
+        ob_start();
+        MeprView::render('/shared/errors', get_defined_vars());
+        $error_section = ob_get_contents();
+        ob_end_clean();
+        $content .= $error_section;
+      }
+    }
+
+    return $content;
   }
 
   public function replace_tracking_codes($atts, $content='') {
@@ -228,7 +331,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     static $unique_suffix = 0;
     $unique_suffix++;
 
-    $payment_required = MeprHooks::apply_filters('mepr_signup_payment_required', $product->adjusted_price($mepr_coupon_code) > 0.00 ? true : false, $product);
+    $payment_required = MeprHooks::apply_filters('mepr_signup_payment_required', $product->is_payment_required($mepr_coupon_code), $product);
 
     if($mepr_options->enable_spc) {
       MeprView::render('/checkout/spc_form', get_defined_vars());
@@ -475,10 +578,14 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
       MeprHooks::do_action("mepr-{$signup_type}-signup", $txn);
       MeprHooks::do_action('mepr-signup', $txn);
 
-      MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr-signup-checkout-url', $txn->checkout_url(), $txn));
+      // Pass order bump product IDs to the checkout second page
+      $obs = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_filter(array_map('intval', $_POST['mepr_order_bumps'])) : [];
+      $args = count($obs) ? ['obs' => $obs] : [];
+
+      MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr-signup-checkout-url', $txn->checkout_url($args), $txn));
     }
     catch(Exception $e) {
-      $_POST['errors'] = array($e->getMessage());
+      $_POST['errors'] = $_REQUEST['errors'] = array($e->getMessage());
     }
   }
 
@@ -516,8 +623,11 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
   * Processes the payment for SPC
   */
   public function process_spc_payment_form($txn) {
+    if(did_action('mepr_stripe_payment_pending') || did_action('mepr_stripe_checkout_pending')) {
+      return;
+    }
 
-    if( did_action( 'mepr_stripe_payment_pending' ) ) {
+    if(isset($_POST['smart-payment-button']) && $_POST['smart-payment-button']) {
       return;
     }
 
@@ -599,9 +709,18 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
 
     $code = sanitize_text_field(wp_unslash($code));
     $product = new MeprProduct(sanitize_key(wp_unslash($prd_id)));
+    $order_bump_products = [];
+
+    try {
+      $order_bump_product_ids = isset($mepr_order_bumps) && is_array($mepr_order_bumps) ? array_map('intval', $mepr_order_bumps) : [];
+      $order_bump_products = self::get_order_bump_products($product->ID, $order_bump_product_ids);
+    }
+    catch(Exception $e) {
+      // ignore exception
+    }
 
     ob_start();
-    MeprProductsHelper::display_spc_invoice( $product, $code );
+    MeprProductsHelper::display_spc_invoice( $product, $code, $order_bump_products );
     $invoice_html = ob_get_clean();
 
     wp_send_json(array(
@@ -609,7 +728,6 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
       'invoice' => $invoice_html,
     ));
   }
-
 
   /**
    * Updates price string via AJAX
@@ -629,15 +747,30 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     }
 
     $code = sanitize_text_field(wp_unslash($code));
-    $payment_required = true;
     $product = new MeprProduct(sanitize_key(wp_unslash($prd_id)));
+    $payment_required = $product->is_payment_required($code);
 
     if(isset($_POST['mpgft_gift_checkbox']) && "true" == $_POST['mpgft_gift_checkbox']){
       $product->allow_renewal = false;
     }
+
     ob_start();
-    MeprProductsHelper::display_invoice( $product, $code, $payment_required );
+    MeprProductsHelper::display_invoice( $product, $code );
     $price_string = ob_get_clean();
+
+    try {
+      $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
+      $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($product->ID, $order_bump_product_ids);
+
+      foreach($order_bump_products as $product) {
+        if($product->is_payment_required()) {
+          $payment_required = true;
+        }
+      }
+    }
+    catch(Exception $e) {}
+
+    $payment_required = MeprHooks::apply_filters('mepr_signup_payment_required', $payment_required, $product);
 
     wp_send_json(array(
       'status' => 'success',
@@ -646,8 +779,6 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
       'is_gift' => MeprHooks::apply_filters( 'mepr_signup_product_is_gift', false, $product)
     ));
   }
-
-
 
   public function process_payment_form() {
     if(isset($_POST['mepr_process_payment_form']) && isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id'])) {
@@ -775,5 +906,115 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     }
 
     return false;
+  }
+
+  /**
+   * Prepare transaction variables
+   *
+   * Instantiates and returns a new transaction and subscription (if recurring), based on the given parameters.
+   *
+   * @param MeprProduct      $product    The product being purchased
+   * @param int              $order_id   The order ID
+   * @param int              $user_id    The user ID
+   * @param string           $gateway_id The payment gateway ID
+   * @param MeprCoupon|false $cpn        Optional coupon code
+   * @param bool             $store      Whether to store the transaction & subscription, default true
+   * @return array{0: MeprTransaction, 1: MeprSubscription|null}
+   * @throws Exception If unable to store a transaction or subscription
+   */
+  public static function prepare_transaction(MeprProduct $product, $order_id, $user_id, $gateway_id, $cpn = false, $store = true) {
+    $txn = new MeprTransaction();
+    $txn->order_id = $order_id;
+    $txn->user_id = $user_id;
+    $txn->gateway = $gateway_id;
+    $txn->product_id = $product->ID;
+    $txn->coupon_id = 0;
+
+    // Set default price, adjust it later if coupon applies
+    $price = $product->adjusted_price();
+
+    // Adjust membership price from the coupon code
+    if($cpn instanceof MeprCoupon) {
+      $price = $product->adjusted_price($cpn->post_title);
+      $txn->coupon_id = $cpn->ID;
+    }
+
+    $txn->set_subtotal($price);
+
+    if($product->is_one_time_payment()) {
+      $sub = null;
+    }
+    else {
+      $sub = new MeprSubscription();
+      $sub->order_id = $order_id;
+      $sub->user_id = $user_id;
+      $sub->gateway = $gateway_id;
+      $sub->load_product_vars($product, $cpn instanceof MeprCoupon ? $cpn->post_title : null, true);
+      $sub->maybe_prorate(); // sub to sub
+    }
+
+    if($store) {
+      if($sub instanceof MeprSubscription) {
+        $sub->store();
+
+        if(empty($sub->id)) {
+          throw new Exception(__('Sorry, we were unable to create a subscription.', 'memberpress'));
+        }
+
+        $txn->subscription_id = $sub->id;
+      }
+
+      $txn->store();
+
+      if(empty($txn->id)) {
+        // Don't want any loose ends here if the transaction didn't save for some reason
+        if($sub instanceof MeprSubscription) {
+          $sub->destroy();
+        }
+
+        throw new Exception(__('Sorry, we were unable to create a transaction.', 'memberpress'));
+      }
+    }
+
+    return [$txn, $sub];
+  }
+
+  /**
+   * Get order bump products
+   *
+   * Gets an array that is filled with a MeprProduct for each order bump in the $_POST data.
+   *
+   * @param int $product_id The main product for the purchase, order bumps with this ID will be ignored
+   * @return MeprProduct[]
+   * @throws Exception If a product was not found
+   */
+  public static function get_order_bump_products($product_id, array $order_bump_product_ids) {
+    $order_bump_products = [];
+
+    foreach($order_bump_product_ids as $order_bump_product_id) {
+      $product = new MeprProduct($order_bump_product_id);
+
+      if(empty($product->ID)) {
+        throw new Exception(__('Product not found', 'memberpress'));
+      }
+
+      if($product_id == $product->ID) {
+        continue;
+      }
+
+      if(!$product->can_you_buy_me()) {
+        throw new Exception(sprintf(__("You don't have access to purchase %s.", 'memberpress'), $product->post_title));
+      }
+
+      $group = $product->group();
+
+      if($group instanceof MeprGroup && $group->is_upgrade_path) {
+        throw new Exception(sprintf(__("The product %s cannot be purchased at this time.", 'memberpress'), $product->post_title));
+      }
+
+      $order_bump_products[] = $product;
+    }
+
+    return $order_bump_products;
   }
 }

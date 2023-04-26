@@ -60,13 +60,12 @@ class MeprProductsHelper {
   }
 
   /** Especially for formatting a membership's price */
-  public static function format_currency($product, $show_symbol = true, $coupon_code = null, $show_prorated = true, &$payment_required = true) {
+  public static function format_currency($product, $show_symbol = true, $coupon_code = null, $show_prorated = true) {
     return MeprAppHelper::format_price_string($product,
                                               $product->adjusted_price($coupon_code, $show_prorated),
                                               $show_symbol,
                                               $coupon_code,
-                                              $show_prorated,
-                                              $payment_required);
+                                              $show_prorated);
   }
 
   public static function get_who_can_purchase_items($product) {
@@ -159,7 +158,7 @@ class MeprProductsHelper {
     return ob_get_clean();
   }
 
-  public static function display_invoice( $product, $coupon_code = false, &$payment_required = true ) {
+  public static function display_invoice( $product, $coupon_code = false ) {
     $current_user = MeprUtils::get_currentuserinfo();
     MeprUtils::get_currentuserinfo();
 
@@ -176,11 +175,11 @@ class MeprProductsHelper {
           echo stripslashes($product->register_price);
         }
         else {
-          echo MeprAppHelper::format_price_string($tmp_txn, $tmp_txn->amount, true, $coupon_code, true, $payment_required);
+          echo MeprAppHelper::format_price_string($tmp_txn, $tmp_txn->amount, true, $coupon_code);
         }
       }
       else {
-        echo MeprAppHelper::format_price_string($tmp_txn, $tmp_txn->amount, true, $coupon_code, true, $payment_required);
+        echo MeprAppHelper::format_price_string($tmp_txn, $tmp_txn->amount, true, $coupon_code);
       }
 
       echo self::renewal_str($product); // possibly print out the renewal string
@@ -200,15 +199,15 @@ class MeprProductsHelper {
       $tmp_sub = MeprHooks::apply_filters('mepr_display_invoice_sub', $tmp_sub);
 
       if($product->register_price_action == 'custom' && empty($coupon_code) && !$tmp_sub->prorated_trial) {
-        echo stripslashes($product->register_price);
+        printf('<span class="mepr-custom-price">%s</span>', stripslashes($product->register_price));
       }
       else {
-        echo MeprAppHelper::format_price_string($tmp_sub, $tmp_sub->price, true, $coupon_code, true, $payment_required);
+        echo MeprAppHelper::format_price_string($tmp_sub, $tmp_sub->price, true, $coupon_code);
       }
     }
   }
 
-  public static function display_spc_invoice( $product, $coupon_code = false, &$payment_required = true ) {
+  public static function display_spc_invoice( $product, $coupon_code = false, $order_bump_products = array() ) {
     $current_user = MeprUtils::get_currentuserinfo();
     MeprUtils::get_currentuserinfo();
 
@@ -228,7 +227,33 @@ class MeprProductsHelper {
       $tmp_sub = MeprHooks::apply_filters('mepr_display_invoice_sub', $tmp_sub);
     }
 
-    $invoice_html = MeprTransactionsHelper::get_invoice($tmp_txn, $tmp_sub);
+    $order_bumps = [];
+
+    try {
+      foreach($order_bump_products as $product) {
+        list($transaction, $subscription) = MeprCheckoutCtrl::prepare_transaction(
+          $product,
+          0,
+          get_current_user_id(),
+          'manual',
+          false,
+          false
+        );
+
+        $order_bumps[] = [$product, $transaction, $subscription];
+      }
+    }
+    catch(Exception $e) {
+      // ignore exception
+    }
+
+    if(count($order_bumps)) {
+      $invoice_html = MeprTransactionsHelper::get_invoice_order_bumps($tmp_txn, $tmp_sub, $order_bumps);
+    }
+    else {
+      $invoice_html = MeprTransactionsHelper::get_invoice($tmp_txn, $tmp_sub);
+    }
+
     echo $invoice_html;
   }
 
@@ -279,5 +304,4 @@ class MeprProductsHelper {
       $product
     );
   }
-
 } //End class
