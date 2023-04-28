@@ -198,7 +198,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
               wp_send_json_error(__('Subscription not found', 'memberpress'));
             }
 
-            $total += (float) ($subscription->trial && $subscription->trial_days > 0 ? $subscription->trial_amount : $subscription->total);
+            $total += (float) ($subscription->trial && $subscription->trial_days > 0 ? $subscription->trial_total : $subscription->total);
           }
         }
 
@@ -606,8 +606,8 @@ class MeprStripeCtrl extends MeprBaseCtrl
             }
 
             if($subscription->trial && $subscription->trial_days > 0) {
-              if((float) $subscription->trial_amount > 0) {
-                $order_bump_total += (float) $subscription->trial_amount;
+              if((float) $subscription->trial_total > 0) {
+                $order_bump_total += (float) $subscription->trial_total;
               }
             }
             else {
@@ -622,27 +622,25 @@ class MeprStripeCtrl extends MeprBaseCtrl
       }
 
       if($mode == 'stripe_checkout') {
-        MeprHooks::do_action('mepr_stripe_checkout_pending', $txn, $usr);
-        MeprHooks::do_action('mepr-process-signup', $txn->amount, $usr, $prd->ID, $txn->id);
-        MeprHooks::do_action('mepr-signup', $txn);
-
         if(count($order_bump_products)) {
-          $pm->create_multi_item_checkout_session($txn, $prd, $usr, $coupon_code, $order_bump_transactions);
+          $checkout_session = $pm->create_multi_item_checkout_session($txn, $prd, $usr, $coupon_code, $order_bump_transactions);
         }
         else {
           if(!isset($sub)) {
             $sub = $txn->subscription();
           }
 
-          $pm->create_checkout_session(
-            $txn,
-            $prd,
-            $usr,
-            $sub
-          );
+          $checkout_session = $pm->create_checkout_session($txn, $prd, $usr, $sub);
         }
 
-        return;
+        MeprHooks::do_action('mepr_stripe_checkout_pending', $txn, $usr);
+        MeprHooks::do_action('mepr-process-signup', $txn->amount, $usr, $prd->ID, $txn->id);
+        MeprHooks::do_action('mepr-signup', $txn);
+
+        wp_send_json([
+          'id' => $checkout_session->id,
+          'public_key' => $pm->settings->public_key,
+        ]);
       }
 
       $action = 'confirmPayment';

@@ -28,7 +28,7 @@
           <?php if( $item_index == 0 ) : ?>
             <?php if(isset($txn, $sub) && !$txn->is_one_time_payment() && $sub instanceof MeprSubscription && $sub->id > 0) : ?>
               <p class="desc"><?php echo MeprAppHelper::format_price_string($sub, $sub->price, true, $mepr_coupon_code); ?></p>
-            <?php else : ?>
+            <?php elseif(!(isset($txn) && $txn->txn_type == 'sub_account')) : ?>
               <p class="desc"><?php MeprProductsHelper::display_invoice( $prd, $mepr_coupon_code ); ?></p>
             <?php endif; ?>
           <?php endif; ?>

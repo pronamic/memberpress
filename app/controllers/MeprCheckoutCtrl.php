@@ -22,11 +22,14 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
       return;
     }
 
-    $trans_num = filter_var( $_GET['trans_num'] );
+    $trans_num = sanitize_text_field( wp_unslash( $_GET['trans_num'] ) );
     $original_txn = MeprTransaction::get_one_by_trans_num( $trans_num );
 
-    if (isset($original_txn->id)) {
+    if (isset($original_txn->id) && $original_txn->id > 0) {
       $original_txn = new MeprTransaction($original_txn->id);
+    }
+    else {
+      return;
     }
 
     $order = $original_txn->order();
@@ -73,11 +76,14 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
         return $content;
       }
 
-      $trans_num = filter_var( $_GET['trans_num'] );
+      $trans_num = sanitize_text_field( wp_unslash( $_GET['trans_num'] ) );
       $original_txn = MeprTransaction::get_one_by_trans_num( $trans_num );
 
-      if (isset($original_txn->id)) {
+      if (isset($original_txn->id) && $original_txn->id > 0) {
         $original_txn = new MeprTransaction($original_txn->id);
+      }
+      else {
+        return $content;
       }
 
       $order = $original_txn->order();

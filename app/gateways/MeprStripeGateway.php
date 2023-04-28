@@ -208,6 +208,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    * @param MeprSubscription $sub
    * @param MeprProduct $product
    * @param MeprUser $usr
+   * @return stdClass
    * @throws Exception
    */
   public function create_checkout_session(
@@ -413,13 +414,12 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       }
     }
 
-    $result = $this->send_stripe_request('checkout/sessions', $checkout_session, 'post');
+    $checkout_session = (object) $this->send_stripe_request('checkout/sessions', $checkout_session, 'post');
 
-    $txn->trans_num = $result['id'];
+    $txn->trans_num = $checkout_session->id;
     $txn->store();
 
-    $result['public_key'] = $this->settings->public_key;
-    wp_send_json( $result );
+    return $checkout_session;
   }
 
   /**
@@ -430,6 +430,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    * @param  MeprUser          $usr                     The MemberPress user
    * @param  string            $coupon_code             The MemberPress coupon code
    * @param  MeprTransaction[] $order_bump_transactions The array of order bump transactions in the checkout
+   * @return stdClass                                   The Stripe Checkout Session object
    * @throws MeprHttpException
    * @throws MeprRemoteException
    */
@@ -601,10 +602,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $txn->trans_num = $checkout_session->id;
     $txn->store();
 
-    wp_send_json([
-      'id' => $checkout_session->id,
-      'public_key' => $this->settings->public_key,
-    ]);
+    return $checkout_session;
   }
 
   /**
