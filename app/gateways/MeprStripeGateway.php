@@ -834,22 +834,6 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       return;
     }
 
-    $sub = MeprSubscription::get_one_by_subscr_id($invoice->subscription);
-
-    if(!($sub instanceof MeprSubscription)) {
-      // Look for an old cus_xxx subscription
-      $sub = MeprSubscription::get_one_by_subscr_id($invoice->customer);
-
-      if(!($sub instanceof MeprSubscription)) {
-        return;
-      }
-    }
-
-    // If this isn't for us, bail
-    if($sub->gateway != $this->id) {
-      return;
-    }
-
     // We don't do anything here for $0 invoices that are also the first subscription payment, return early to avoid
     // unnecessary Stripe requests (to prevent rate limit errors)
     if($invoice->billing_reason == 'subscription_create' && !isset($invoice->charge)) {
@@ -868,6 +852,24 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     $customer = isset($invoice->customer) ? (object) $invoice->customer : null;
     $payment_method = isset($invoice->payment_intent['payment_method']) ? (object) $invoice->payment_intent['payment_method'] : null;
+
+    $sub = MeprSubscription::get_one_by_subscr_id($invoice->subscription);
+
+    if(!($sub instanceof MeprSubscription)) {
+      if($customer) {
+        // Look for an old cus_xxx subscription
+        $sub = MeprSubscription::get_one_by_subscr_id($customer->id);
+      }
+
+      if(!($sub instanceof MeprSubscription)) {
+        return;
+      }
+    }
+
+    // If this isn't for us, bail
+    if($sub->gateway != $this->id) {
+      return;
+    }
 
     if($invoice->billing_reason == 'subscription_create') {
       $txn_res = MeprTransaction::get_one_by_trans_num($invoice->id);
@@ -962,7 +964,11 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       if($order instanceof MeprOrder) {
         // Workaround for setting the correct first payment amount and trans_num of a subscription that was part of an
         // order created through Stripe Checkout
+        $txn_expires_at_override = null;
+
         if($sub->trial && $sub->trial_days > 0) {
+          $txn_expires_at_override = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
+
           if($sub->trial_amount > 0) {
             $amount = (float) $sub->trial_total;
           }
@@ -974,7 +980,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           $amount = (float) $sub->total;
         }
 
-        $this->record_sub_payment($sub, $amount, sprintf('mi_%d_%s', $order->id, uniqid()), null, null, $order->id);
+        $this->record_sub_payment($sub, $amount, sprintf('mi_%d_%s', $order->id, uniqid()), null, $txn_expires_at_override, $order->id);
 
         return;
       }
@@ -982,12 +988,17 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     if(isset($invoice->charge)) {
       $amount = (float) $invoice->charge['amount'];
+      $txn_expires_at_override = null;
 
       if(!self::is_zero_decimal_currency()) {
         $amount = $amount / 100;
       }
 
-      $this->record_sub_payment($sub, $amount, $invoice->charge['id'], $payment_method);
+      if($invoice->billing_reason == 'subscription_create' && $sub->trial && $sub->trial_days > 0) {
+        $txn_expires_at_override = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
+      }
+
+      $this->record_sub_payment($sub, $amount, $invoice->charge['id'], $payment_method, $txn_expires_at_override);
     }
     elseif($invoice->billing_reason != 'subscription_create') {
       $amount = self::is_zero_decimal_currency() ? $invoice->total : $invoice->total / 100;
@@ -1378,6 +1389,18 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
 
     try {
+      // There is a race condition between this handler and the invoice.payment_succeeded handler.
+      // If invoice.payment_succeeded is processed first, it will not record the first payment. We need to set the
+      // subscr_id on the subscription as early as possible, before making any other requests.
+      if(!$txn->is_one_time_payment() && $checkout_session->mode == 'subscription') {
+        $sub = $txn->subscription();
+
+        if($sub instanceof MeprSubscription && isset($checkout_session->subscription)) {
+          $sub->subscr_id = $checkout_session->subscription;
+          $sub->store();
+        }
+      }
+
       $checkout_session = (object) $this->send_stripe_request("checkout/sessions/$checkout_session->id", [
         'expand' => [
           'payment_intent.payment_method',
@@ -1444,9 +1467,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           else {
             $sub = $txn->subscription();
 
-            if($sub instanceof MeprSubscription && isset($checkout_session->subscription['id'])) {
-              $sub->subscr_id = $checkout_session->subscription['id'];
-
+            if($sub instanceof MeprSubscription) {
               $this->record_create_sub($sub);
             }
           }
@@ -1492,9 +1513,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         else {
           $sub = $txn->subscription();
 
-          if($sub instanceof MeprSubscription && isset($checkout_session->subscription['id'])) {
-            $sub->subscr_id = $checkout_session->subscription['id'];
-
+          if($sub instanceof MeprSubscription) {
             $this->record_create_sub($sub);
           }
         }

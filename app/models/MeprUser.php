@@ -2812,6 +2812,7 @@ class MeprUser extends MeprBaseModel {
     }
     else {
       MeprUtils::debug_log("PROBLEM WITH MEMBER DATA?!");
+      return $mepr_db->delete_records($mepr_db->members, array('user_id' => $this->ID));
     }
 
     return false;

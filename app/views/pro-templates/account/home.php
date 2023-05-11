@@ -1,4 +1,5 @@
 <?php
+$address_values = isset($address_values) ? $address_values : array();
 $show_welcome_image = isset( $atts['show_welcome_image'] ) ? $atts['show_welcome_image'] : $mepr_options->design_show_account_welcome_image;
 $welcome_image      = isset( $atts['welcome_image'] ) ? $atts['welcome_image'] : wp_get_attachment_url( $mepr_options->design_account_welcome_img );
 ?>

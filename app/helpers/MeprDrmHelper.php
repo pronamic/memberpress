@@ -232,7 +232,10 @@ class MeprDrmHelper {
     $account_link = self::get_drm_link( $drm_status, $purpose, 'account' );
     $support_link = self::get_drm_link( $drm_status, $purpose, 'support' );
     $pricing_link = self::get_drm_link( $drm_status, $purpose, 'pricing' );
-
+    $additional_instructions = sprintf(
+      __( 'This is an automated message from %s.', 'memberpress' ),
+      esc_url( home_url() )
+    );
     switch ( $drm_status ) {
       case self::DRM_LOW:
         $admin_notice_view = 'low_warning';
@@ -254,7 +257,7 @@ class MeprDrmHelper {
         $admin_notice_view = 'medium_warning';
         $heading           = __( 'MemberPress: WARNING! Your Business is at Risk', 'memberpress' );
         $color             = 'orange';
-        $simple_message    = __( 'To continue using MemberPress without interruption, you need to enter your  license key right away. Here’s how:', 'memberpress' );
+        $simple_message    = __( 'To continue using MemberPress without interruption, you need to enter your license key right away. Here’s how:', 'memberpress' );
         $help_message      = __( 'Let us know if you need assistance.', 'memberpress' );
         $label             = __( 'Critical', 'memberpress' );
         $activation_link   = admin_url( 'admin.php?page=memberpress-options#mepr-license' );
@@ -291,9 +294,10 @@ class MeprDrmHelper {
         $activation_link   = '';
         $admin_notice_view = '';
         $simple_message    = '';
+        $additional_instructions = '';
     }
 
-    return compact( 'heading', 'color', 'message', 'simple_message', 'help_message', 'label', 'activation_link', 'account_link', 'support_link', 'pricing_link', 'admin_notice_view' );
+    return compact( 'heading', 'color', 'message', 'simple_message', 'help_message', 'label', 'activation_link', 'account_link', 'support_link', 'pricing_link', 'admin_notice_view', 'additional_instructions' );
   }
 
   protected static function drm_info_invalid_license( $drm_status, $purpose ) {
@@ -301,6 +305,11 @@ class MeprDrmHelper {
     $account_link = self::get_drm_link( $drm_status, $purpose, 'account' );
     $support_link = self::get_drm_link( $drm_status, $purpose, 'support' );
     $pricing_link = self::get_drm_link( $drm_status, $purpose, 'pricing' );
+    $additional_instructions = sprintf(
+      __( 'This is an automated message from %s. If you continue getting these messages, please try deactivating and then re-activating your license key on %s.', 'memberpress' ),
+      esc_url( home_url() ),
+      esc_url( home_url() )
+    );
 
     switch ( $drm_status ) {
       case self::DRM_MEDIUM:
@@ -344,9 +353,10 @@ class MeprDrmHelper {
         $activation_link   = '';
         $admin_notice_view = '';
         $simple_message    = '';
+        $additional_instructions = '';
     }
 
-    return compact( 'heading', 'color', 'message', 'simple_message', 'help_message', 'label', 'activation_link', 'account_link', 'support_link', 'admin_notice_view', 'pricing_link' );
+    return compact( 'heading', 'color', 'message', 'simple_message', 'help_message', 'label', 'activation_link', 'account_link', 'support_link', 'admin_notice_view', 'pricing_link', 'additional_instructions' );
   }
 
   public static function parse_event_args( $args ) {

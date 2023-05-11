@@ -1228,7 +1228,7 @@ class MeprRule extends MeprCptModel {
         else {
           $unauth->excerpt = force_balance_tags((do_shortcode(substr($post->post_content, 0, $pos))));
         }
-
+        $unauth->excerpt = preg_replace('/<!--(.|s)*?-->/', '', $unauth->excerpt);
         $unauth->excerpt = wpautop($unauth->excerpt);
 
       }

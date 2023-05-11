@@ -19,7 +19,13 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway {
 
     // If trial amount is zero then we've got to make sure the confirmation txn lasts through the trial
     if($sub->trial && $sub->trial_amount <= 0.00) {
-      $expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
+      $trial_days = $sub->trial_days;
+
+      if ( !$mepr_options->disable_grace_init_days && $mepr_options->grace_init_days > 1 ) {
+        $trial_days += $mepr_options->grace_init_days;
+      }
+
+      $expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($trial_days), 'Y-m-d 23:59:59');
     } elseif(!$mepr_options->disable_grace_init_days && $mepr_options->grace_init_days > 0) {
       $expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($mepr_options->grace_init_days), 'Y-m-d 23:59:59');
     } else {

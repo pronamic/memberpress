@@ -307,7 +307,8 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    * @return void
    */
   public static function account_home_content( $action, $atts = array() ) {
-    if ( ( self::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' ) && ( 'home' == $action || ! $action ) ) ) {
+
+    if ( ( self::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' ) ) && ( 'home' == $action || ! $action ) ) {
       if( is_array($atts) ){
         extract( $atts, EXTR_SKIP );
       }
@@ -367,7 +368,6 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
       } elseif ( isset( $mepr_options->design_account_welcome_img ) ) {
         $welcome_image = wp_get_attachment_url( $mepr_options->design_account_welcome_img );
       }
-
       MeprView::render( '/account/home', get_defined_vars() );
     }
 
