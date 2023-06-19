@@ -69,6 +69,12 @@ if ( property_exists( $result, 'error' ) ) {
 	exit( 1 );
 }
 
+if ( ! property_exists( $result, 'version' ) ) {
+	echo 'Unknown version';
+
+	exit( 1 );
+}
+
 $version = $result->version;
 
 $url = $result->url;
