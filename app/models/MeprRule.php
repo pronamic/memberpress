@@ -1207,6 +1207,7 @@ class MeprRule extends MeprCptModel {
       }
 
       $unauth->excerpt = do_shortcode($content);
+      $unauth->excerpt = do_blocks($content);
 
       if($unauth->excerpt_size) { //if set to 0, return the whole post -- though why protect it all in this case?
         $unauth->excerpt = strip_tags($unauth->excerpt);
@@ -1217,22 +1218,24 @@ class MeprRule extends MeprCptModel {
       }
     }
     elseif($unauth->excerpt_type == 'more') { //Show till the more tag
-      //mbstring?
+      $post->post_content = do_shortcode($post->post_content);
+      $post->post_content = do_blocks($post->post_content);
       $pos = (extension_loaded('mbstring'))?mb_strpos($post->post_content, '<!--more'):strpos($post->post_content, '<!--more');
 
       if($pos !== false) {
         //mbstring library loaded?
         if(extension_loaded('mbstring')) {
-          $unauth->excerpt = force_balance_tags((do_shortcode(mb_substr($post->post_content, 0, $pos))));
+          $unauth->excerpt = force_balance_tags(mb_substr($post->post_content, 0, $pos));
         }
         else {
-          $unauth->excerpt = force_balance_tags((do_shortcode(substr($post->post_content, 0, $pos))));
+          $unauth->excerpt = force_balance_tags(substr($post->post_content, 0, $pos));
         }
-        $unauth->excerpt = preg_replace('/<!--(.|s)*?-->/', '', $unauth->excerpt);
-        $unauth->excerpt = wpautop($unauth->excerpt);
 
+        $unauth->excerpt = wpautop($unauth->excerpt);
       }
       else { //No more tag?
+        $unauth->excerpt = do_shortcode($post->post_excerpt);
+        $unauth->excerpt = do_blocks($post->post_excerpt);
         $unauth->excerpt = wpautop($post->post_excerpt);
       }
     }

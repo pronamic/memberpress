@@ -1428,7 +1428,7 @@ class MeprUser extends MeprBaseModel {
     $use_address_from_request = false;
     $action = isset($_POST['action']) ? sanitize_text_field(wp_unslash($_POST['action'])) : '';
 
-    if(!empty($action) && in_array($action, ['mepr_update_price_string', 'mepr_update_spc_invoice_table', 'mepr_stripe_create_payment_client_secret'], true)) {
+    if(!empty($action) && in_array($action, ['mepr_update_price_string', 'mepr_update_spc_invoice_table', 'mepr_stripe_get_elements_options'], true)) {
       $mepr_options = MeprOptions::fetch();
 
       if(!MeprUtils::is_user_logged_in() || ($mepr_options->show_address_fields && $mepr_options->show_fields_logged_in_purchases)) {
@@ -1499,31 +1499,20 @@ class MeprUser extends MeprBaseModel {
   }
 
   public function calculate_tax($subtotal, $num_decimals=2, $prd_id=null) {
-    $mepr_options = MeprOptions::fetch();
     $rate = $this->tax_rate($prd_id);
 
     // We assume that we're dealing with the subtotal
     $tax_amount = MeprUtils::format_float(($subtotal*($rate->tax_rate/100.00)), $num_decimals);
     $total = MeprUtils::format_float(($subtotal + $tax_amount), $num_decimals);
+    $tax_reversal_amount = 0.00;
 
-    if (
-      $rate->customer_type === 'business' &&
-      MeprTransactionsHelper::is_charging_business_net_price() &&
-      apply_filters( 'mepr_is_valid_vat_number_reversal', false, $this, $rate, $tax_amount )
-    ) {
-      $show_negative_tax_on_invoice = get_option( 'mepr_show_negative_tax_on_invoice' );
-      if( $show_negative_tax_on_invoice ){
-        $total = $subtotal;
-        $subtotal = $subtotal;
-        $tax_amount = -$tax_amount;
-      }else{
-        $total = $subtotal;
-        $subtotal = $subtotal - $tax_amount;
-        $tax_amount = 0;
-      }
+    if($rate->customer_type === 'business' && $rate->reversal) {
+      $total = MeprUtils::format_float($subtotal, $num_decimals);
+      $tax_reversal_amount = $tax_amount;
+      $tax_amount = 0.00;
     }
 
-    return array(MeprUtils::format_float($total - $tax_amount), $total, $rate->tax_rate, $tax_amount, $rate->tax_desc, $rate->tax_class);
+    return array(MeprUtils::format_float($total - $tax_amount), $total, $rate->tax_rate, $tax_amount, $rate->tax_desc, $rate->tax_class, $tax_reversal_amount);
   }
 
   public function calculate_subtotal($total, $percent=null, $num_decimals=2, $prd=null) {
@@ -1558,7 +1547,7 @@ class MeprUser extends MeprBaseModel {
     if($addr2 and !empty($addr2)) { $addr .= "<br/>{$addr2}"; }
     if($country and !empty($country)) { $country = "<br/>{$country}"; } else { $country = ''; }
 
-    $addr = sprintf( __('<br/>%1$s<br/>%2$s, %3$s %4$s%5$s<br/>', 'memberpress'), $addr, $city, $state, $zip, $country );
+    $addr = sprintf( '<br/>' . __('%1$s', 'memberpress') . '<br/>' . __('%2$s, %3$s %4$s%5$s', 'memberpress') . '<br/>', $addr, $city, $state, $zip, $country );
 
     return MeprHooks::apply_filters( 'mepr-user-formatted-address', $addr, $this );
   }

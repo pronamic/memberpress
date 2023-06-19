@@ -239,6 +239,7 @@ class MeprTransactionsHelper {
 
   /** This is what we use to retrieve the invoice string for the transaction */
   public static function get_invoice( $txn, $tmpsub = '' ) {
+    $mepr_options = MeprOptions::fetch();
     $prd = $txn->product();
 
     if(!empty($tmpsub) && $tmpsub instanceof MeprSubscription) {
@@ -253,12 +254,23 @@ class MeprTransactionsHelper {
     }
 
     $desc = self::get_payment_description($txn, $sub, $prd);
+    $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
+    $tax_inclusive = $mepr_options->attr('tax_calc_type') == 'inclusive';
+    $show_negative_tax_on_invoice = get_option('mepr_show_negative_tax_on_invoice');
 
     if($coupon = $txn->coupon()) {
-      $amount = $prd->price;
+      if($show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0) {
+        $amount = $prd->price;
+        $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount - (float) $txn->tax_reversal_amount);
+      }
+      else {
+        $remove_tax = $calculate_taxes && $tax_inclusive && $txn->tax_rate > 0;
+        $amount = $remove_tax ? ($prd->price/(1+($txn->tax_rate/100))) : $prd->price;
+        $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount);
+      }
+
       $cpn_id = $coupon->ID;
       $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
-      $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
     }
     elseif($sub && ($coupon = $sub->coupon())) {
       if($coupon->discount_mode == 'trial-override' && $sub->trial){
@@ -275,7 +287,7 @@ class MeprTransactionsHelper {
       }
     }
     else {
-      $amount = $txn->amount;
+      $amount = $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? $txn->amount + $txn->tax_reversal_amount : $txn->amount;
       $cpn_id = 0;
       $cpn_desc = '';
       $cpn_amount = 0.00;
@@ -299,7 +311,7 @@ class MeprTransactionsHelper {
         'tax' => array(
           'percent' => $txn->tax_rate,
           'type' => $txn->tax_desc,
-          'amount' => $txn->tax_amount
+          'amount' => $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? -1 * $txn->tax_reversal_amount : $txn->tax_amount
         )
       ),
       $txn
@@ -434,6 +446,7 @@ class MeprTransactionsHelper {
   }
 
   public static function get_invoice_order_bumps( $txn, $tmpsub = '', $order_bumps = array() ) {
+    $mepr_options = MeprOptions::fetch();
     $prd = $txn->product();
 
     if(!empty($tmpsub) && $tmpsub instanceof MeprSubscription) {
@@ -448,12 +461,23 @@ class MeprTransactionsHelper {
     }
 
     $desc = self::get_payment_description($txn, $sub, $prd);
+    $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
+    $tax_inclusive = $mepr_options->attr('tax_calc_type') == 'inclusive';
+    $show_negative_tax_on_invoice = get_option('mepr_show_negative_tax_on_invoice');
 
     if($coupon = $txn->coupon()) {
-      $amount = $prd->price;
+      if($show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0) {
+        $amount = $prd->price;
+        $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount - (float) $txn->tax_reversal_amount);
+      }
+      else {
+        $remove_tax = $calculate_taxes && $tax_inclusive && $txn->tax_rate > 0;
+        $amount = $remove_tax ? ($prd->price/(1+($txn->tax_rate/100))) : $prd->price;
+        $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount);
+      }
+
       $cpn_id = $coupon->ID;
       $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
-      $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
     }
     elseif($sub && ($coupon = $sub->coupon())) {
       if($coupon->discount_mode == 'trial-override' && $sub->trial){
@@ -470,7 +494,7 @@ class MeprTransactionsHelper {
       }
     }
     else {
-      $amount = $txn->amount;
+      $amount = $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? $txn->amount + $txn->tax_reversal_amount : $txn->amount;
       $cpn_id = 0;
       $cpn_desc = '';
       $cpn_amount = 0.00;
@@ -484,16 +508,20 @@ class MeprTransactionsHelper {
       ),
     );
 
-    $tax_items = array(
-      array(
+    $tax_amount = 0.00;
+    $tax_items = array();
+
+    if($txn->tax_rate > 0 || $txn->tax_amount > 0) {
+      $txn_tax_amount = $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? -1 * $txn->tax_reversal_amount : $txn->tax_amount;
+      $tax_amount += $txn_tax_amount;
+
+      $tax_items[] = array(
         'percent' => $txn->tax_rate,
         'type' => $txn->tax_desc,
-        'amount' => $txn->tax_amount,
+        'amount' => $txn_tax_amount,
         'post_title' => $prd->post_title
-      )
-    );
-
-    $tax_amount = $txn->tax_amount;
+      );
+    }
 
     foreach($order_bumps as $order_bump) {
       list($product, $transaction, $subscription) = $order_bump;
@@ -502,14 +530,16 @@ class MeprTransactionsHelper {
         self::set_invoice_txn_vars_from_sub($transaction, $subscription);
       }
 
-      $order_bump_amount = $transaction->amount;
-      $tax_amount = $tax_amount + $transaction->tax_amount;
+      $order_bump_amount = $show_negative_tax_on_invoice && $transaction->tax_reversal_amount > 0 ? $transaction->amount + $transaction->tax_reversal_amount : $transaction->amount;
 
-      if($transaction->tax_rate > 0 && $transaction->tax_amount > 0) {
+      if($transaction->tax_rate > 0 || $transaction->tax_amount > 0) {
+        $transaction_tax_amount = $show_negative_tax_on_invoice && $transaction->tax_reversal_amount > 0 ? -1 * $transaction->tax_reversal_amount : $transaction->tax_amount;
+        $tax_amount += $transaction_tax_amount;
+
         $tax_items[] = array(
           'percent' => $transaction->tax_rate,
           'type' => $transaction->tax_desc,
-          'amount' => $transaction->tax_amount,
+          'amount' => $transaction_tax_amount,
           'post_title' => $product->post_title,
         );
       }
@@ -644,11 +674,13 @@ class MeprTransactionsHelper {
       $txn->amount = $sub->trial_total - $sub->trial_tax_amount;
       $txn->total = $sub->trial_total;
       $txn->tax_amount = $sub->trial_tax_amount;
+      $txn->tax_reversal_amount = $sub->trial_tax_reversal_amount;
     }
     else {
       $txn->amount = $sub->price;
       $txn->total = $sub->total;
       $txn->tax_amount = $sub->tax_amount;
+      $txn->tax_reversal_amount = $sub->tax_reversal_amount;
     }
 
     $txn->tax_rate = $sub->tax_rate;

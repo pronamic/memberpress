@@ -37,7 +37,7 @@
       <?php endif; ?>
     </tbody>
     <tfoot>
-      <?php if( $invoice['tax_amount'] > 0.00 ): ?>
+      <?php if( is_array( $invoice['tax_items'] ) && count( $invoice['tax_items'] ) ): ?>
         <tr>
           <?php if( $show_quantity ): ?>
             <th>&nbsp;</th>

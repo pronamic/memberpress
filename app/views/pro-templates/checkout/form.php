@@ -202,7 +202,7 @@
       <?php if ( sizeof( $payment_methods ) > 1 ) : ?>
     <hr />
     <?php endif; ?>
-      <?php echo MeprOptionsHelper::payment_methods_descriptions( $payment_methods ); ?>
+      <?php echo MeprOptionsHelper::payment_methods_descriptions( $payment_methods, $product ); ?>
     </div>
     <?php else : ?>
     <input type="hidden" id="mepr_coupon_code-<?php echo $product->ID; ?>" name="mepr_coupon_code"

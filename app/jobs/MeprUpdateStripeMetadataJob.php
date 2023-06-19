@@ -10,21 +10,24 @@ class MeprUpdateStripeMetadataJob extends MeprBaseJob {
     }
 
     $txn = new MeprTransaction($this->transaction_id);
+    $prd = $txn->product();
 
     $args = MeprHooks::apply_filters('mepr_stripe_update_transaction_metadata_args', [
       'metadata' => [
         'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
         'transaction_id' => $txn->id,
-        'site_url' => esc_url( get_site_url() )
+        'site_url' => get_site_url(),
+        'memberpress_product' => $prd->post_title,
+        'memberpress_product_id' => $prd->ID,
       ]
     ], $txn);
 
     $this->gateway_settings = (object)$this->gateway_settings;
     $gateway = new MeprStripeGateway();
     $gateway->load($this->gateway_settings);
-    $update = (object)$gateway->send_stripe_request( "charges/{$txn->trans_num}", $args );
+    $gateway->send_stripe_request( "charges/{$txn->trans_num}", $args );
 
-    MeprUtils::debug_log("** Updated Stripe TXN: {$txn->trans_num} | {$txn->id}\n\n" . print_r($update) . "\n\n");
+    MeprUtils::debug_log("** Updated Stripe TXN: {$txn->trans_num} | {$txn->id}");
   }
 }
 

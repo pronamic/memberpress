@@ -9,7 +9,7 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway {
     // We need to send the message back to PayPal just as we received it
     $params = array(
       'method'      => 'POST',
-      'body'        => $_POST,
+      'body'        => stripslashes_deep($_POST),
       'headers'     => array('connection' => 'close'),
       'httpversion' => 1.1,
       'sslverify'   => true,

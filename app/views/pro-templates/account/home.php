@@ -50,6 +50,7 @@ $welcome_image      = isset( $atts['welcome_image'] ) ? $atts['welcome_image'] :
   <div class="mepr-profile-wrapper__footer">
     <a class="mepr-button btn-outline btn btn-outline" href="<?php echo esc_url_raw( MeprHooks::apply_filters( 'mepr-account-nav-payments-link', $account_url . $delim . 'action=payments' ) ); ?>"><?php echo esc_html_x( 'View Payments', 'ui', 'memberpress' ); ?></a>
     <a class="mepr-button btn-outline btn btn-outline" href="<?php echo esc_url_raw( MeprHooks::apply_filters( 'mepr-account-nav-subscriptions-link', $account_url . $delim . 'action=subscriptions' ) ); ?>"><?php echo esc_html_x( 'View Subscriptions', 'ui', 'memberpress' ); ?></a>
+    <a class="mepr-button btn-outline btn btn-outline" href="<?php echo esc_url_raw( MeprHooks::apply_filters( 'mepr-account-nav-change-password', $account_url . $delim . 'action=newpassword' ) ); ?>"><?php echo esc_html_x( 'Change Password', 'ui', 'memberpress' ); ?></a>
   </div>
   </div>
 

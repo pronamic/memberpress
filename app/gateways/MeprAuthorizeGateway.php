@@ -448,7 +448,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     $sub = $txn->subscription();
 
     //Prepare the $txn for the process_payment method
-    $txn->set_subtotal($sub->trial_amount);
+    $txn->set_subtotal($sub->trial_amount + $sub->trial_tax_reversal_amount);
     $txn->status = MeprTransaction::$pending_str;
 
     //Attempt processing the payment here - the send_aim_request will throw the exceptions for us
@@ -526,7 +526,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     }
 
     if ( $check_for_trial && $sub->trial && $sub->trial_amount > 0.00 ) {
-      $txn->set_subtotal( $sub->trial_amount );
+      $txn->set_subtotal( $sub->trial_amount + $sub->trial_tax_reversal_amount );
       $this->email_status( "Calling process_trial_payment ...\n\n" . MeprUtils::object_to_string( $txn ) . "\n\n" . MeprUtils::object_to_string( $sub ), $this->settings->debug );
       $this->process_trial_payment( $txn );
     }

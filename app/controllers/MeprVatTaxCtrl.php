@@ -38,8 +38,7 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
       // TODO: VAT collected by month available as CSV download
       add_action('mepr-report-footer', array($this,'vat_csv_buttons'));
       add_action('wp_ajax_mepr_vat_country_report', array($this,'country_vat_csv'));
-
-      add_filter('mepr_is_valid_vat_number_reversal', array($this,'is_valid_vat_number_reversal'), 10, 4);
+      add_filter('mepr_stripe_product_base_price', array($this, 'maybe_apply_vat_reversal'), 10, 3);
     }
   }
 
@@ -150,6 +149,7 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     $customer_type = $this->get_customer_type($usr);
     $vat_number = $this->get_vat_number($usr);
     $vat_tax_businesses = get_option('mepr_vat_tax_businesses', false);
+    $usr_country = null;
     $vat_country = get_option('mepr_vat_country');
     $vies_country = $country;
 
@@ -204,6 +204,8 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     if(array_key_exists($country,$countries)) {
 
       $is_valid_vat = $this->vat_number_is_valid($vat_number, $vies_country);
+      $is_vat_removal = $this->is_valid_vat_removal_rule($is_valid_vat, $customer_type, $vat_country, $usr_country);
+
       // Conditions for calculating VAT or not
       // If we're taxing all businesses then vat tax validation doesn't matter
       if( $customer_type=='consumer' ||
@@ -211,14 +213,13 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
             ( $vat_country==$usr_country ||
               $vat_tax_businesses ||
               !$is_valid_vat )
-          ) ||
-          (
-            MeprTransactionsHelper::is_charging_business_net_price() &&
-            $is_valid_vat &&
-            $this->mepr_is_valid_vat_removal_rule( $customer_type, $vat_country, $usr_country )
-          )
+          ) || $is_vat_removal
       ) {
         $tax_rate = $this->get_rate($tax_rate, $country, $prd_id);
+
+        if($is_vat_removal) {
+          $tax_rate->reversal = true;
+        }
       }
     }
 
@@ -227,8 +228,11 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
 
   private function get_rate(MeprTaxRate $tax_rate, $country, $prd_id=null) {
     $countries = $this->get_vat_countries();
-    $prd_id = ! empty( $_POST['mepr_product_id'] ) ? (int) $_POST['mepr_product_id'] : $prd_id;
-    $prd_id = ! empty( $_POST['prd_id'] ) ? (int) $_POST['prd_id'] : $prd_id;
+
+    if(empty($prd_id)) {
+      $prd_id = !empty($_POST['mepr_product_id']) ? (int) $_POST['mepr_product_id'] : 0;
+      $prd_id = !empty($_POST['prd_id']) ? (int) $_POST['prd_id'] : $prd_id;
+    }
 
     $prd = new MeprProduct( $prd_id );
 
@@ -261,6 +265,12 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     }
 
     if(extension_loaded('soap')) {
+      static $result = array();
+
+      if(isset($result[$vat_number])) {
+        return $result[$vat_number];
+      }
+
       $client = new SoapClient(
         'http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl'
       );
@@ -273,7 +283,8 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
 
       try {
         $resp = $client->checkVat($args);
-        return (isset($resp->valid) && $resp->valid);
+        $result[$vat_number] = isset($resp->valid) && $resp->valid;
+        return $result[$vat_number];
       }
       catch(Exception $e) {
         // If the VIES service is unavailable just fail silently
@@ -499,82 +510,56 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
              $mepr_options->require_address_fields));
   }
 
-  /**
-   *  If a business is based in an EU country, has a valid VAT number and it is valid?
-   */
-  public function is_valid_vat_number_reversal( $is_valid, $mepr_user, $rate, $tax_amount ){
-
-    if( $rate->tax_rate <= 0 || $tax_amount <= 0 ){
-      return false; // bail.
-    }
-
-    $vat_tax_businesses = (bool) get_option('mepr_vat_tax_businesses');
-    if ($vat_tax_businesses) {
-       return false; // bail.
-    }
-
-    if( get_option('mepr_tax_calc_type') != 'inclusive' ){
-      return false; // bail.
-    }
-
-    if( isset($_POST['action']) && ($_POST['action'] == "mepr_update_price_string" || $_POST['action'] == "mepr_update_spc_invoice_table" || $_POST['action'] == 'mepr_stripe_create_payment_client_secret') ) {
-      $country = isset($_POST['mepr-address-country']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-country'])) : '';
-    }
-    else{
-      $country  = $mepr_user->address('country');
-    }
-
-    if( empty($country) ){
+  private function is_valid_vat_removal_rule($is_valid_vat, $customer_type, $vat_country, $usr_country) {
+    if(!$is_valid_vat) {
       return false;
     }
 
-    $vat_country = get_option('mepr_vat_country');
+    if($customer_type !== 'business') {
+      return false;
+    }
+
+    if(!MeprTransactionsHelper::is_charging_business_net_price()) {
+      return false;
+    }
+
     $vat_countries = $this->get_vat_countries();
-    if( ! array_key_exists($vat_country,$vat_countries) ){
+
+    if(!array_key_exists($vat_country, $vat_countries)) {
       return false;
     }
 
-    if( array_key_exists($country,$vat_countries) && isset($_POST['mepr_vat_number']) ) {
-      // Customer has a valid VAT number?
-      $is_valid_vat = $this->vat_number_is_valid( $_POST['mepr_vat_number'], $country, 1 );
-      if( $is_valid_vat ){
-        $is_valid = true;
-      }
+    if(empty($usr_country) || !array_key_exists($usr_country, $vat_countries)) {
+      return false;
     }
 
     // VAT is charged if Customer is a business with a valid VAT number, but the merchant and customer are both from the same country.
-    if( $country == $vat_country && $is_valid ){
+    if($usr_country == $vat_country) {
       return false;
     }
 
-    return $is_valid;
+    return true;
   }
 
+  /**
+   * Remove the VAT portion from the given price, if charging net price with a valid VAT number.
+   *
+   * @param string $price
+   * @param MeprProduct $prd
+   * @param MeprUser $usr
+   * @return string
+   */
+  public function maybe_apply_vat_reversal($price, $prd, $usr) {
+    if(get_option('mepr_calculate_taxes') && get_option('mepr_vat_enabled') && MeprTransactionsHelper::is_charging_business_net_price()) {
+      $tax_rate = $usr->tax_rate($prd->ID);
 
-  private function mepr_is_valid_vat_removal_rule( $customer_type, $vat_country, $usr_country ){
-
-    if( $customer_type !== 'business' ){
-      return false;
+      if($tax_rate->customer_type === 'business' && $tax_rate->reversal) {
+        $subtotal = $usr->calculate_subtotal($price, null, 2, $prd);
+        $tax_amount = MeprUtils::format_float(($subtotal*($tax_rate->tax_rate/100.00)));
+        $price = MeprUtils::format_float((float) $price - (float) $tax_amount);
+      }
     }
 
-    $vat_countries = $this->get_vat_countries();
-    if( ! array_key_exists($vat_country,$vat_countries) ){
-      return false;
-    }
-
-    if( get_option('mepr_tax_calc_type') != 'inclusive' ){
-      return false;
-    }
-
-    $vat_tax_businesses = (bool) get_option('mepr_vat_tax_businesses');
-    if ($vat_tax_businesses) {
-       return false; // bail.
-    }
-
-    if( array_key_exists($usr_country,$vat_countries) ) {
-      return true;
-    }
-
-    return false;
+    return $price;
   }
 }

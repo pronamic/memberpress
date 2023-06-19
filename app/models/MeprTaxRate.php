@@ -4,6 +4,8 @@ if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');
 class MeprTaxRate extends MeprBaseModel {
   public $customer_type = 'customer';
 
+  public $reversal = false;
+
   public function __construct($obj = null) {
     $this->initialize(
       array(
@@ -58,10 +60,13 @@ class MeprTaxRate extends MeprBaseModel {
     global $wpdb;
 
     $mepr_db = new MeprDb();
-    $prd_id = ! empty( $_POST['mepr_product_id'] ) ? (int) $_POST['mepr_product_id'] : false;
 
     // Get product ID if there is data from webhook
-    $prd_id = ( false == $prd_id ) ? (int) $args['prd_id'] : false;
+    $prd_id = !empty($args['prd_id']) ? (int) $args['prd_id'] : 0;
+
+    if(empty($prd_id) && !empty($_POST['mepr_product_id'])) {
+      $prd_id = (int) $_POST['mepr_product_id'];
+    }
 
     $prd = new MeprProduct( $prd_id );
 

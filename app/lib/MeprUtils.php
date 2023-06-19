@@ -370,7 +370,18 @@ class MeprUtils {
     return ((floor($n) == round($n, $num_decimals)) ? number_format($n, 0, '.', '') : number_format($n, $num_decimals, '.', ''));
   }
 
+  public static function float_value( $val ) {
+    $val = str_replace( ",", ".", $val );
+    $val = preg_replace( '/\.(?=.*\.)/', '', $val );
+
+    return floatval( $val );
+  }
+
   public static function format_currency_float($number, $num_decimals = 2) {
+    if ( is_string( $number ) ) {
+      $number = self::float_value( $number );
+    }
+
     if(function_exists('number_format_i18n')) {
       return number_format_i18n($number, $num_decimals); //The wp way
     }

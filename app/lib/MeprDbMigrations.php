@@ -164,6 +164,16 @@ class MeprDbMigrations {
           )
         )
       ),
+      '1.11.6' => array(
+        'show_ui' => false,
+        'migrations' => array(
+          array(
+            'migration' => 'move_vat_reversal_negative_tax_016',
+            'check'     => false,
+            'message'   => false,
+          )
+        )
+      ),
     );
   }
 
@@ -621,5 +631,38 @@ class MeprDbMigrations {
         $u->update_member_data(array('memberships', 'inactive_memberships'));
       }
     }
+  }
+
+  /**
+   * In versions 1.11.5 and earlier, VAT reversals were stored as a negative tax amount, this migration moves this amount
+   * to a new tax_reversal_amount column for both transactions and subscriptions.
+   */
+  public function move_vat_reversal_negative_tax_016() {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $wpdb->query(
+      "UPDATE {$mepr_db->transactions}
+       SET amount = total,
+           tax_reversal_amount = -tax_amount,
+           tax_amount = 0
+       WHERE tax_amount < 0 AND tax_class = 'vat'
+    ");
+
+    $wpdb->query(
+      "UPDATE {$mepr_db->subscriptions}
+       SET price = total,
+           tax_reversal_amount = -tax_amount,
+           tax_amount = 0
+       WHERE tax_amount < 0 AND tax_class = 'vat'
+    ");
+
+    $wpdb->query(
+      "UPDATE {$mepr_db->subscriptions}
+       SET trial_amount = trial_total,
+           trial_tax_reversal_amount = -trial_tax_amount,
+           trial_tax_amount = 0
+       WHERE trial_tax_amount < 0 AND tax_class = 'vat'
+    ");
   }
 }

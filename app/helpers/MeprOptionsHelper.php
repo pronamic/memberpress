@@ -56,7 +56,7 @@ class MeprOptionsHelper {
   }
 
   public static function payment_currencies_dropdown($field_name, $payment_currency) {
-    $payment_currencies = MeprHooks::apply_filters('mepr-currency-symbols', array('$', 'US$', '£', '€', '¥', ' kr.', 'Kn', 'R$', '฿', '₹', 'zł', ' лв', ' Ft', 'Rp', 'R', '₪', '﷼', 'CHF', ' din.', ' дин.', 'KSh', 'RM', 'Rs', 'руб', '₽', 'NT$', 'Mex$', 'P', 'lei', 'JOD', '₺', 'S/.', '₱', 'د.إ', 'Kč', '₦', '₩', 'ل.د', '₫', 'ƒ', 'GH₵', 'S$', 'K', 'CFA'));
+    $payment_currencies = MeprHooks::apply_filters('mepr-currency-symbols', array('$', 'US$', '£', '€', '¥', ' kr.', 'Kn', 'R$', '฿', '₹', 'zł', ' лв', ' Ft', 'Rp', 'R', '₪', '﷼', 'CHF', ' din.', ' дин.', 'KSh', 'RM', 'Rs', 'руб', '₽', 'NT$', 'Mex$', 'P', 'lei', 'JOD', '₺', 'S/.', '₱', 'د.إ', 'Kč', '₦', '₩', 'ل.د', '₫', 'ƒ', 'GH₵', 'S$', 'K', 'CFA', 'USh'));
     $field_value = isset($_POST[$field_name])?$_POST[$field_name]:null;
 
     ?>
@@ -73,7 +73,7 @@ class MeprOptionsHelper {
   }
 
   public static function payment_currency_code_dropdown($field_name, $code) {
-    $codes = MeprHooks::apply_filters('mepr-currency-codes', array('USD', 'AED', 'AUD', 'AWG', 'BGN', 'BRL', 'BWP', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CVE', 'CZK', 'DKK', 'EUR', 'GBP', 'GHS', 'HKD', 'HRK', 'HUF', 'HUN', 'IDR', 'ILS', 'INR', 'ISK', 'JOD', 'JPY', 'KES', 'KRW', 'LYD', 'MMK', 'MXN', 'MYR', 'NGN', 'NOK', 'NZD', 'PEN', 'PHP', 'PKR', 'PLN', 'RON', 'RSD', 'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWN', 'VND', 'XOF', 'ZAR', 'ZMW'));
+    $codes = MeprHooks::apply_filters('mepr-currency-codes', array('USD', 'AED', 'AUD', 'AWG', 'BGN', 'BRL', 'BWP', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CVE', 'CZK', 'DKK', 'EUR', 'GBP', 'GHS', 'HKD', 'HRK', 'HUF', 'HUN', 'IDR', 'ILS', 'INR', 'ISK', 'JOD', 'JPY', 'KES', 'KRW', 'LYD', 'MMK', 'MXN', 'MYR', 'NGN', 'NOK', 'NZD', 'PEN', 'PHP', 'PKR', 'PLN', 'RON', 'RSD', 'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWN', 'UGX', 'VND', 'XOF', 'ZAR', 'ZMW'));
     $field_value = isset($_POST[$field_name])?$_POST[$field_name]:null;
 
     ?>
@@ -181,16 +181,6 @@ class MeprOptionsHelper {
     $radio_html = '';
     $first = true;
 
-    if(
-      is_user_logged_in() &&
-      count($payment_methods) > 1 &&
-      isset($payment_methods[0]) &&
-      $payment_methods[0] instanceof MeprStripeGateway &&
-      $payment_methods[0]->settings->stripe_checkout_enabled != 'on'
-    ) {
-      array_splice($payment_methods, 1, 0, array_splice($payment_methods, 0, 1));
-    }
-
     foreach($payment_methods as $payment_method) {
       $label = self::payment_method_label($payment_method, $first);
 
@@ -237,9 +227,10 @@ class MeprOptionsHelper {
   /**
   * Payment method descriptions and SPC forms
   * @param MeprBaseRealGateway[] $payment_methods
-  * @return string Payment method descirptions and SPC forms HTML
+  * @param MeprProduct|null $product
+  * @return string Payment method descriptions and SPC forms HTML
   */
-  public static function payment_methods_descriptions($payment_methods) {
+  public static function payment_methods_descriptions($payment_methods, $product = null) {
     $field_name = 'mepr_payment_method';
     $desc_html = '';
     $first = true;
@@ -251,7 +242,7 @@ class MeprOptionsHelper {
         $desc = wpautop(esc_html(trim(stripslashes($payment_method->desc))));
       }
 
-      $desc = MeprHooks::apply_filters('mepr_signup_form_payment_description',  $desc,  $payment_method, $first);
+      $desc = MeprHooks::apply_filters('mepr_signup_form_payment_description',  $desc,  $payment_method, $first, $product);
       $first = false;
 
       if(!empty($desc)) {
@@ -352,7 +343,7 @@ class MeprOptionsHelper {
     return $desc_html;
   }
 
-  public static function payment_methods_dropdown($field_name, $pms = false) {
+  public static function payment_methods_dropdown($field_name, $pms = false, $product = null) {
     $mepr_options = MeprOptions::fetch();
     $pms = $pms ? $pms : array_keys($mepr_options->integrations);
     $pms = MeprHooks::apply_filters('mepr_options_helper_payment_methods',$pms,$field_name);
@@ -411,7 +402,7 @@ class MeprOptionsHelper {
 
           $icon   = MeprHooks::apply_filters('mepr_signup_form_payment_icon',         $icon,  $obj, $first);
           $label  = MeprHooks::apply_filters('mepr_signup_form_payment_label',        $label, $obj, $first);
-          $desc   = MeprHooks::apply_filters('mepr_signup_form_payment_description',  $desc,  $obj, $first);
+          $desc   = MeprHooks::apply_filters('mepr_signup_form_payment_description',  $desc,  $obj, $first, $product);
 
           if($obj->use_desc && !empty($desc)) {
             $desc_hidden = ($_POST[$field_name]==$obj->id ? '' : ' mepr-hidden');

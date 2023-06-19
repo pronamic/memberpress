@@ -255,8 +255,8 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
                   }
 
                   if($subscription->trial && $subscription->trial_days > 0) {
-                    if($subscription->trial_amount > 0) {
-                      $_POST['mc_gross'] = $subscription->trial_amount;
+                    if($subscription->trial_total > 0) {
+                      $_POST['mc_gross'] = $subscription->trial_total;
                     }
                     else {
                       continue; // Initial payment for a free trial with order bump, we don't want to record a subscription transaction here
@@ -290,10 +290,10 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
       if($sub !== false && $sub->gateway == $this->id) {
         //The subscription hasn't been setup yet so let's set it up first
         if(strpos($sub->subscr_id, 'S-') === false && strpos($sub->subscr_id, 'I-') === false) {
-          $this->record_create_subscription();
+          $this->record_create_subscription(); //Is it even possible to get here?
         }
 
-        //Record recurring payment
+        //Record recurring payment on existing sub (this bypasses is_ipn_for_me which is needed in case subscriptions were imported from non-MP services)
         $this->record_subscription_payment();
       }
     }
@@ -327,7 +327,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
     }
 
     if(isset($_POST['custom']) && !empty($_POST['custom'])) {
-      $custom_vars = (array)json_decode($_POST['custom']);
+      $custom_vars = (array)json_decode(stripslashes($_POST['custom']));
 
       if(isset($custom_vars['gateway_id']) && $custom_vars['gateway_id'] == $this->id) {
         return true;

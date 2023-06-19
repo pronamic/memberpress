@@ -1026,6 +1026,7 @@ class MeprOptions {
     $thank_you_page_id = 0;
     $args_array = wp_parse_args($args);
     $url = home_url();
+
     if(isset($args_array['membership_id'])) {
       $product = new MeprProduct($args_array['membership_id']);
       if($product->thank_you_page_enabled && $product->thank_you_page_type == 'page') {
@@ -1037,6 +1038,11 @@ class MeprOptions {
         $thank_you_page_id = $this->thankyou_page_id;
       }
     }
+    elseif(isset($this->thankyou_page_id)) {
+      // Returns the default thank you page from the options
+      $thank_you_page_id = $this->thankyou_page_id;
+    }
+
     if(isset($thank_you_page_id) &&
       is_numeric($thank_you_page_id) &&
       (int)$thank_you_page_id > 0 ) {

@@ -1223,6 +1223,16 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       $interval = 'week';
     }
 
+    $sub_period = $sub->period;
+
+    if ( $interval == 'day' && $sub_period > 365 ) {
+      $sub_period = 365; //Truncate at 365 even for a leap year.
+    }
+
+    if ( $trial_days > 365 ) {
+      $trial_days = 365; //Truncate at 365 even for a leap year.
+    }
+
     $args = array(
       'amount'         => $amount,
       'method_id'      => $this->id,
@@ -1230,12 +1240,12 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       'tax_inclusive'  => $skip_taxes ? 'na' : ($tax_inclusive ? 'yes' : 'no'),
       'test'           => $this->is_test_mode() ? 'test' : 'live',
       'interval'       => $interval,
-      'period'         => $sub->period,
+      'period'         => $sub_period,
       'trial'          => $trial ? 'yes' : 'no',
       'trial_total'    => $trial_amount,
       'total_cycles'   => $sub->limit_cycles_num,
       'trial_days'     => $trial_days,
-      'interval_count' => $sub->period,
+      'interval_count' => $sub_period,
       'currency'       => $mepr_options->currency_code,
       'memberpress_product_id' => $product->ID,
     );
@@ -1270,7 +1280,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       $billing_cycles[] = [
         'frequency'      => [
           'interval_unit'  => strtoupper( $interval ),
-          'interval_count' => intval( $sub->period ),
+          'interval_count' => intval( $sub_period ),
         ],
         'pricing_scheme' => [
           'fixed_price' => [
@@ -1565,8 +1575,8 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
                     $this->handle_create_subscription($subscription, $resource['billing_agreement_id']);
 
                     if($subscription->trial && $subscription->trial_days > 0) {
-                      if($subscription->trial_amount > 0) {
-                        $_POST['mc_gross'] = $subscription->trial_amount;
+                      if($subscription->trial_total > 0) {
+                        $_POST['mc_gross'] = $subscription->trial_total;
                       }
                       else {
                         continue; // Initial payment for a free trial with order bump, we don't want to record a subscription transaction here

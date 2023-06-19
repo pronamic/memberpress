@@ -15,19 +15,9 @@
   <span role="alert" class="mepr-stripe-checkout-errors"></span>
 <?php else: ?>
   <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
-  <div class="mepr-stripe-form-placeholder"></div>
-  <?php if($payment_method->settings->use_desc) : ?>
-    <div class="mepr-stripe-gateway-description"><?php echo esc_html($payment_method->desc); ?></div>
-  <?php endif; ?>
   <div class="mepr-stripe-elements">
-    <?php if($payment_method->is_stripe_link_enabled()) : ?>
-      <div class="mepr-stripe-link-element" data-stripe-email="<?php echo isset($user) && $user instanceof MeprUser ? esc_attr($user->user_email) : ''; ?>"></div>
-    <?php endif; ?>
     <?php MeprHooks::do_action('mepr-stripe-payment-form-card-field', $txn); ?>
-    <div class="mepr-stripe-card-element" data-stripe-public-key="<?php echo esc_attr($payment_method->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($payment_method->settings->id); ?>" data-locale-code="<?php echo esc_attr(MeprStripeGateway::get_locale_code()); ?>"></div>
-    <div class="mepr-stripe-payment-element-loading mepr-hidden">
-      <img src="<?php echo esc_url(admin_url('images/loading.gif')); ?>" alt="<?php esc_attr_e('Loading...', 'memberpress'); ?>" />
-    </div>
+    <div class="mepr-stripe-card-element" data-stripe-public-key="<?php echo esc_attr($payment_method->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($payment_method->settings->id); ?>" data-locale-code="<?php echo esc_attr(MeprStripeGateway::get_locale_code()); ?>" data-elements-options="<?php echo isset($elements_options) ? esc_attr(wp_json_encode($elements_options)) : ''; ?>" data-user-email="<?php echo isset($user) && $user instanceof MeprUser ? esc_attr($user->user_email) : ''; ?>"></div>
     <div role="alert" class="mepr-stripe-card-errors"></div>
   </div>
 <?php endif; ?>

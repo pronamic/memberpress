@@ -597,21 +597,7 @@
 
 .mepr-profile-wrapper__footer > * {
   margin-top: 10px;
-}
-
-@media screen and (max-width: 398px) {
-}
-
-@media screen and (min-width: 409px) and (max-width: 839px) {
-  .mepr-profile-wrapper__footer > * + * {
-    margin-left: 10px;
-  }
-}
-
-@media screen and (min-width: 915px) {
-  .mepr-profile-wrapper__footer > * + * {
-    margin-left: 10px;
-  }
+  margin-right: 10px;
 }
 
 #mepr-profile-details {

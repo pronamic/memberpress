@@ -26,6 +26,7 @@ class MeprTwoFactorIntegration {
 
     if(MeprUser::is_account_page($post)) {
       if(isset($_GET['action']) && $_GET['action'] == '2fa' && class_exists('Two_Factor_FIDO_U2F_Admin')) {
+        wp_enqueue_script( 'wp-api' );
         Two_Factor_FIDO_U2F_Admin::enqueue_assets('profile.php');
       }
     }
@@ -36,11 +37,11 @@ class MeprTwoFactorIntegration {
       global $bp;
       bp_core_new_subnav_item(
         array(
-          'name' => _x('Two Factor Authentication', 'ui', 'memberpress-buddypress', 'memberpress'),
+          'name' => _x('2FA', 'ui', 'memberpress'),
           'slug' => 'mp-two-factor-auth',
           'parent_url' => $bp->loggedin_user->domain . $main_slug . '/',
           'parent_slug' => $main_slug,
-          'screen_function' => array($this, 'bbpress_twofactor_nav'),
+          'screen_function' => array($this, 'bp_twofactor_nav'),
           'position' => 20,
           'user_has_access' => bp_is_my_profile(),
           'site_admin_only' => false,
@@ -50,8 +51,8 @@ class MeprTwoFactorIntegration {
     }
   }
 
-  public function bbpress_twofactor_nav() {
-    add_action('bp_template_content', array($this, 'bbpress_twofactor_content'));
+  public function bp_twofactor_nav() {
+    add_action('bp_template_content', array($this, 'bp_twofactor_content'));
 
     //Enqueue the account page scripts here yo
     $acct_ctrl = new MeprAccountCtrl();
@@ -70,7 +71,7 @@ class MeprTwoFactorIntegration {
       <span class="mepr-nav-item <?php \MeprAccountHelper::active_nav('2fa'); ?>">
         <a
           href="<?php echo MeprHooks::apply_filters('mepr-account-nav-2fa-link', $account_url . $delim . 'action=2fa'); ?>"
-          id="mepr-account-2fa"><?php echo MeprHooks::apply_filters('mepr-account-nav-2fa-label', _x('Two Factor Authentication', 'ui', 'memberpress')); ?></a>
+          id="mepr-account-2fa"><?php echo MeprHooks::apply_filters('mepr-account-nav-2fa-label', _x('2FA', 'ui', 'memberpress')); ?></a>
       </span>
       <?php
     }
@@ -97,7 +98,7 @@ class MeprTwoFactorIntegration {
     }
   }
 
-  public function bbpress_twofactor_content() {
+  public function bp_twofactor_content() {
     if(defined('TWO_FACTOR_DIR')) {
       $user = MeprUtils::get_currentuserinfo();
 
@@ -145,10 +146,10 @@ class MeprTwoFactorIntegration {
       if ( ! empty( $new_provider ) && in_array( $new_provider, $enabled_providers, true ) ) {
         update_user_meta( $user_id, Two_Factor_Core::PROVIDER_USER_META_KEY, $new_provider );
 
-        if ($new_provider == Two_Factor_Totp::class) { //This class has a seperate update function that we need to call, none of the other providers appear to
-          $totp = Two_Factor_Core::get_providers()[Two_Factor_Totp::class];
-          $totp->user_two_factor_options_update($user_id);
-        }
+        // if ($new_provider == Two_Factor_Totp::class) { //This class has a seperate update function that we need to call, none of the other providers appear to
+          // $totp = Two_Factor_Core::get_providers()[Two_Factor_Totp::class];
+          // $totp->user_two_factor_options_update($user_id);
+        // }
       }
     }
   }
@@ -182,15 +183,15 @@ class MeprTwoFactorIntegration {
     <table class="form-table" id="two-factor-options">
       <tr>
         <th>
-          <?php esc_html_e( 'Two-Factor Options', 'two-factor', 'memberpress' ); ?>
+          <?php esc_html_e( 'Two-Factor Options', 'memberpress' ); ?>
         </th>
         <td>
           <table class="two-factor-methods-table">
             <thead>
             <tr>
-              <th class="col-enabled" scope="col"><?php esc_html_e( 'Enabled', 'two-factor', 'memberpress' ); ?></th>
-              <th class="col-primary" scope="col"><?php esc_html_e( 'Primary', 'two-factor', 'memberpress' ); ?></th>
-              <th class="col-name" scope="col"><?php esc_html_e( 'Name', 'two-factor', 'memberpress' ); ?></th>
+              <th class="col-enabled" scope="col"><?php esc_html_e( 'Enabled', 'memberpress' ); ?></th>
+              <th class="col-primary" scope="col"><?php esc_html_e( 'Primary', 'memberpress' ); ?></th>
+              <th class="col-name" scope="col"><?php esc_html_e( 'Name', 'memberpress' ); ?></th>
             </tr>
             </thead>
             <tbody>

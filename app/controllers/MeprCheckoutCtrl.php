@@ -4,7 +4,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
   public function load_hooks() {
     add_action('wp_enqueue_scripts', array($this,'enqueue_scripts'));
     add_action('mepr-signup', array($this, 'process_spc_payment_form'), 100); // 100 priority to give other things a chance to hook in before SPC takes over the world
-    add_filter('mepr_signup_form_payment_description', array($this, 'maybe_render_payment_form'), 10, 3);
+    add_filter('mepr_signup_form_payment_description', array($this, 'maybe_render_payment_form'), 10, 4);
     MeprHooks::add_shortcode('mepr-ecommerce-tracking', array($this, 'replace_tracking_codes'));
     add_filter('mepr-signup-checkout-url', array($this, 'handle_spc_checkout_url'), 10, 2);
     add_action( 'wp_ajax_mepr_update_spc_invoice_table', array( $this, 'update_spc_invoice_table' ) );
@@ -268,14 +268,14 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
   * Called from: mepr_signup_form_payment_description filter
   * Returns: description includding form for SPC if enabled
   */
-  public function maybe_render_payment_form($description, $payment_method, $first) {
+  public function maybe_render_payment_form($description, $payment_method, $first, $product = null) {
     $mepr_options = MeprOptions::fetch();
     if( ($mepr_options->enable_spc || $mepr_options->design_enable_checkout_template) && $payment_method->has_spc_form) {
       // TODO: Maybe we queue these up from wp_enqueue_scripts?
       wp_register_script('mepr-checkout-js', MEPR_JS_URL . '/checkout.js', array('jquery', 'jquery.payment'), MEPR_VERSION);
       wp_enqueue_script('mepr-checkout-js');
       $payment_method->enqueue_payment_form_scripts();
-      $description = $payment_method->spc_payment_fields();
+      $description = $payment_method->spc_payment_fields($product);
     }
     return $description;
   }
@@ -940,7 +940,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     $price = $product->adjusted_price();
 
     // Adjust membership price from the coupon code
-    if($cpn instanceof MeprCoupon) {
+    if($cpn instanceof MeprCoupon && MeprCoupon::is_valid_coupon_code($cpn->post_title, $product->ID)) {
       $price = $product->adjusted_price($cpn->post_title);
       $txn->coupon_id = $cpn->ID;
     }

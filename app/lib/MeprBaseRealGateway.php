@@ -9,8 +9,9 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway {
    *
    * @param MeprTransaction  $txn The MemberPress transaction
    * @param MeprSubscription $sub The MemberPress subscription
+   * @param bool $set_trans_num Whether to set the txn trans_num to the sub subscr_id
    */
-  public function activate_subscription(MeprTransaction $txn, MeprSubscription $sub) {
+  public function activate_subscription(MeprTransaction $txn, MeprSubscription $sub, $set_trans_num = true) {
     $mepr_options = MeprOptions::fetch();
 
     $sub->status = MeprSubscription::$active_str;
@@ -32,7 +33,10 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway {
       $expires_at = $txn->created_at; // Expire immediately
     }
 
-    $txn->trans_num = $sub->subscr_id;
+    if($set_trans_num) {
+      $txn->trans_num = $sub->subscr_id;
+    }
+
     $txn->status = MeprTransaction::$confirmed_str;
     $txn->txn_type = MeprTransaction::$subscription_confirmation_str;
     $txn->expires_at = $expires_at;

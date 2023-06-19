@@ -26,15 +26,11 @@
     this.$selectFields = this.$form.find('select[data-fieldname="mepr-address-state"], select[name="mepr-address-country"]');
     this.$orderBumps = this.$form.find('input[name="mepr_order_bumps[]"]');
     this.initPaymentMethods();
-    this.maybeShowPlaceholder();
     this.$form.on('submit', $.proxy(this.handleSubmit, this));
-    this.$form.find('input[name="mepr_payment_method"]').on('change', $.proxy(this.maybeCreatePaymentElement, this));
-    this.$textFields.add(this.$form.find('input[name="mepr_coupon_code"]')).on('blur', $.proxy(this.maybeCreatePaymentElement, this));
-    this.$textFields.on('keyup', $.proxy(this.handleTextFieldKeyUp, this));
-    this.$selectFields.on('change', $.proxy(this.maybeCreatePaymentElement, this));
-    this.$orderBumps.on('change', $.proxy(this.maybeCreatePaymentElement, this));
-    this.$form.find('input[name="mpgft-signup-gift-checkbox"]').on('change', $.proxy(this.maybeCreatePaymentElement, this));
-    this.textFieldKeyupTimeout = null;
+    this.$form.find('input[name="mepr_payment_method"], input[name="mepr_vat_customer_type"]').on('change', $.proxy(this.maybeUpdateElements, this));
+    this.$textFields.add(this.$form.find('input[name="mepr_coupon_code"]')).on('blur', $.proxy(this.maybeUpdateElements, this));
+    this.$selectFields.on('change', $.proxy(this.maybeUpdateElements, this));
+    this.$orderBumps.on('change', $.proxy(this.maybeUpdateElements, this));
   }
 
   /**
@@ -46,42 +42,83 @@
     self.$form.find('.mepr-stripe-card-element').each(function () {
       var $cardElement = $(this),
           $cardErrors = $cardElement.closest('.mepr-stripe-elements').find('.mepr-stripe-card-errors'),
+          stripe = Stripe($cardElement.data('stripe-public-key'), {
+            locale: $cardElement.data('locale-code').toLowerCase(),
+            apiVersion: MeprStripeGateway.api_version
+          }),
           paymentMethodId = $cardElement.data('payment-method-id'),
+          elementsOptions = $cardElement.data('elements-options'),
           wrapperSelector = self.isSpc ? '.mepr-payment-method' : '.mp_payment_form_wrapper',
           $wrapper = $cardElement.closest(wrapperSelector),
-          $loader = $wrapper.find('.mepr-stripe-payment-element-loading'),
-          $linkElement = $wrapper.find('.mepr-stripe-link-element');
+          paymentMethod = {
+            id: paymentMethodId,
+            $cardElement: $cardElement,
+            $cardErrors: $cardErrors,
+            $wrapper: $wrapper,
+            stripe: stripe,
+            elements: null,
+            paymentElement: null,
+            paymentElementComplete: false,
+            paymentFormData: null,
+            updateElementsTimeout: null,
+            updatingElements: false,
+            updateElementsAgain: false,
+            billingDetailsJson: '',
+            updateBillingDetailsTimeout: null
+          };
 
-      $cardElement.closest('.mp-form-row').hide();
+      self.paymentMethods.push(paymentMethod);
 
-      self.paymentMethods.push({
-        id: paymentMethodId,
-        $cardElement: $cardElement,
-        $cardErrors: $cardErrors,
-        $loader: $loader,
-        $wrapper: $wrapper,
-        $linkElement: $linkElement,
-        stripe: null,
-        elements: null,
-        linkAuthenticationElement: null,
-        paymentElement: null,
-        paymentElementComplete: false,
-        customerId: null,
-        customerIdHash: null,
-        paymentFormData: null,
-        paymentIntentId: null,
-        paymentIntentIdHash: null,
-        setupIntentId: null,
-        setupIntentIdHash: null,
-        subscriptionId: null,
-        subscriptionIdHash: null,
-        createPaymentElementTimeout: null,
-        creatingPaymentElement: false,
-        createPaymentElementOnReady: false
-      });
+      if (elementsOptions) {
+        self.createElements(paymentMethod, elementsOptions);
+      } else {
+        self.updateElements(paymentMethod);
+        console.log('Your MemberPress checkout form template is out of date, please update it to the latest version.');
+      }
     });
+  };
 
-    self.maybeCreatePaymentElement();
+  /**
+   * Create an instance of Elements and a Payment Element
+   *
+   * @param {object} paymentMethod
+   * @param options
+   */
+  MeprStripeForm.prototype.createElements = function (paymentMethod, options) {
+    try {
+      var self = this
+
+      options = $.extend({
+        currency: MeprStripeGateway.currency,
+        appearance: MeprStripeGateway.elements_appearance
+      }, options);
+
+      paymentMethod.elements = paymentMethod.stripe.elements(options);
+
+      paymentMethod.paymentElement = paymentMethod.elements.create('payment', {
+        defaultValues: {
+          billingDetails: self.getBillingDetails(paymentMethod)
+        },
+        terms: MeprStripeGateway.payment_element_terms
+      });
+
+      paymentMethod.paymentElement.on('loaderror', function (event) {
+        if (event.error) {
+          paymentMethod.$cardErrors.html(event.error.message || 'Failed to create Payment element');
+        }
+      });
+
+      paymentMethod.paymentElement.on('change', function (event) {
+        if (typeof event.complete === 'boolean') {
+          paymentMethod.paymentElementComplete = event.complete;
+        }
+      });
+
+      paymentMethod.paymentElement.mount(paymentMethod.$cardElement[0]);
+    } catch (e) {
+      paymentMethod.$cardErrors.html(e.message);
+      throw e;
+    }
   };
 
   /**
@@ -164,74 +201,60 @@
   };
 
   /**
-   * Creates a new Payment element or recreates an existing one if necessary
+   * Updates the Elements instance for the currently selected payment method if the form data has changed
    */
-  MeprStripeForm.prototype.maybeCreatePaymentElement = function () {
+  MeprStripeForm.prototype.maybeUpdateElements = function () {
     var self = this,
         paymentMethod = self.getSelectedPaymentMethod();
 
-    if (paymentMethod && self.areRequiredFieldsValid() && (paymentMethod.paymentFormData === null || paymentMethod.paymentFormData !== self.getPaymentFormData(paymentMethod))) {
-      self.$form.find('.mepr-submit').prop('disabled', true);
+    if (paymentMethod) {
+      if (self.areRequiredFieldsValid() && (paymentMethod.paymentFormData === null || paymentMethod.paymentFormData !== self.getPaymentFormData(paymentMethod))) {
+        clearTimeout(paymentMethod.updateElementsTimeout);
 
-      clearTimeout(self.textFieldKeyupTimeout);
-      clearTimeout(paymentMethod.createPaymentElementTimeout);
+        paymentMethod.updateElementsTimeout = setTimeout(function () {
+          self.updateElements(paymentMethod);
+        }, 50);
+      }
 
-      paymentMethod.createPaymentElementTimeout = setTimeout(function () {
-        self.createPaymentElement(paymentMethod);
-        self.maybeShowPlaceholder('hide');
-      }, 50);
+      if(paymentMethod.paymentElement && paymentMethod.billingDetailsJson !== self.getBillingDetailsJson(paymentMethod)) {
+        clearTimeout(paymentMethod.updateBillingDetailsTimeout);
+
+        paymentMethod.updateBillingDetailsTimeout = setTimeout(function () {
+          var billingDetails = self.getBillingDetails(paymentMethod);
+
+          paymentMethod.billingDetailsJson = JSON.stringify(billingDetails);
+
+          paymentMethod.paymentElement.update({
+            defaultValues: {
+              billingDetails: billingDetails
+            }
+          });
+        }, 50);
+      }
     }
   };
 
   /**
-   * Creates a new Payment element
+   * Updates the Elements instance with new options
    *
    * @param {object} paymentMethod
    */
-  MeprStripeForm.prototype.createPaymentElement = function (paymentMethod) {
-    if (paymentMethod.creatingPaymentElement) {
-      paymentMethod.createPaymentElementOnReady = true;
+  MeprStripeForm.prototype.updateElements = function (paymentMethod) {
+    if (paymentMethod.updatingElements) {
+      // A call to update elements happened when we were already in the process of updating it.
+      // Set this flag to update elements again when finished with the current update.
+      paymentMethod.updateElementsAgain = true;
       return;
     }
 
-    paymentMethod.creatingPaymentElement = true;
-    paymentMethod.$cardElement.closest('.mp-form-row').hide();
-    paymentMethod.$cardErrors.html('');
-    paymentMethod.$wrapper.find('.mepr-stripe-gateway-description').hide();
-    paymentMethod.$loader.show();
-
-    if (!paymentMethod.stripe) {
-      paymentMethod.stripe = Stripe(paymentMethod.$cardElement.data('stripe-public-key'), {
-        locale: paymentMethod.$cardElement.data('locale-code').toLowerCase(),
-        apiVersion: MeprStripeGateway.api_version
-      });
-    }
-
-    if (paymentMethod.paymentElement) {
-      paymentMethod.paymentElement.destroy();
-      paymentMethod.paymentElement = null;
-    }
-
-    if (paymentMethod.linkAuthenticationElement) {
-      paymentMethod.linkAuthenticationElement.destroy();
-      paymentMethod.linkAuthenticationElement = null;
-    }
-
+    paymentMethod.updatingElements = true;
     paymentMethod.paymentFormData = this.getPaymentFormData(paymentMethod);
 
     var self = this,
         formData = new FormData(self.$form.get(0));
 
-    formData.append('action', 'mepr_stripe_create_payment_client_secret');
+    formData.append('action', 'mepr_stripe_get_elements_options');
     formData.append('mepr_payment_method', paymentMethod.id);
-
-    if (paymentMethod.customerId) {
-      formData.append('customer_id', paymentMethod.customerId);
-    }
-
-    if (paymentMethod.customerIdHash) {
-      formData.append('customer_id_hash', paymentMethod.customerIdHash);
-    }
 
     // We don't want to hit our routes for processing the signup or payment forms
     formData.delete('mepr_process_signup_form');
@@ -252,149 +275,45 @@
     .done(function (response) {
       if (response && typeof response.success === 'boolean') {
         if (response.success) {
-          self.$form.find('.mepr-form-has-errors').hide();
-          self.$form.find('.mepr-submit').prop('disabled', false);
-          paymentMethod.$cardElement.closest('.mp-form-row').show();
-          paymentMethod.$loader.hide();
-
-          if (response.data.is_free_purchase) {
-            paymentMethod.creatingPaymentElement = false;
-            paymentMethod.$wrapper.find('.mepr-stripe-gateway-description').show();
+          if (response.data.payment_required === false) {
+            paymentMethod.updatingElements = false;
             return;
           }
 
-          var options = {
-            clientSecret: response.data.client_secret
-          };
-
-          if ($.isPlainObject(MeprStripeGateway.elements_appearance)) {
-            options.appearance = MeprStripeGateway.elements_appearance;
+          if (paymentMethod.elements) {
+            paymentMethod.elements.update(response.data);
+          } else {
+            self.createElements(paymentMethod, response.data);
           }
 
-          paymentMethod.elements = paymentMethod.stripe.elements(options);
+          paymentMethod.updatingElements = false;
 
-          if (paymentMethod.$linkElement.length) {
-            var $emailField = self.$form.find('input[name="user_email"]');
-
-            paymentMethod.linkAuthenticationElement = paymentMethod.elements.create('linkAuthentication', {
-              defaultValues: {
-                email: $emailField.length ? $emailField.val() : paymentMethod.$linkElement.data('stripe-email')
-              }
-            });
-
-            paymentMethod.linkAuthenticationElement.mount(paymentMethod.$linkElement[0]);
-          }
-
-          paymentMethod.paymentElement = paymentMethod.elements.create('payment', {
-            defaultValues: {
-              billingDetails: self.getBillingDetails(paymentMethod)
-            },
-            terms: {
-              card: 'never'
-            }
-          });
-
-          paymentMethod.paymentElementComplete = false;
-
-          paymentMethod.paymentElement.on('ready', function () {
-            paymentMethod.creatingPaymentElement = false;
-
-            if (paymentMethod.createPaymentElementOnReady) {
-              paymentMethod.createPaymentElementOnReady = false;
-              self.createPaymentElement(paymentMethod);
-            }
-          });
-
-          paymentMethod.paymentElement.on('change', function (event) {
-            if (typeof event.complete === 'boolean') {
-              paymentMethod.paymentElementComplete = event.complete;
-            }
-          });
-
-          paymentMethod.paymentElement.on('loaderror', function (event) {
-            paymentMethod.creatingPaymentElement = false;
-
-            if(event.error) {
-              self.createPaymentElementError(paymentMethod, event.error.message);
-            }
-          });
-
-          paymentMethod.paymentElement.mount(paymentMethod.$cardElement[0]);
-
-          if(response.data.customer_id) {
-            paymentMethod.customerId = response.data.customer_id;
-          }
-
-          if(response.data.customer_id_hash) {
-            paymentMethod.customerIdHash = response.data.customer_id_hash;
-          }
-
-          if(response.data.payment_intent_id) {
-            paymentMethod.paymentIntentId = response.data.payment_intent_id;
-          }
-
-          if(response.data.payment_intent_id_hash) {
-            paymentMethod.paymentIntentIdHash = response.data.payment_intent_id_hash;
-          }
-
-          if(response.data.setup_intent_id) {
-            paymentMethod.setupIntentId = response.data.setup_intent_id;
-          }
-
-          if(response.data.setup_intent_id_hash) {
-            paymentMethod.setupIntentIdHash = response.data.setup_intent_id_hash;
-          }
-
-          if(response.data.subscription_id) {
-            paymentMethod.subscriptionId = response.data.subscription_id;
-          }
-
-          if(response.data.subscription_id_hash) {
-            paymentMethod.subscriptionIdHash = response.data.subscription_id_hash;
+          if (paymentMethod.updateElementsAgain) {
+            paymentMethod.updateElementsAgain = false;
+            self.updateElements(paymentMethod);
           }
         } else {
-          self.createPaymentElementError(paymentMethod, response.data);
+          self.updateElementsError(paymentMethod, response.data);
         }
       } else {
-        self.createPaymentElementError(paymentMethod, 'Invalid response');
+        self.updateElementsError(paymentMethod, 'Invalid response');
       }
     })
     .fail(function () {
-      self.createPaymentElementError(paymentMethod, 'Request failed');
+      self.updateElementsError(paymentMethod, 'Request failed');
     });
   };
 
   /**
-   * Handle an error creating the payment element
+   * Handle an error updating the elements options
    *
    * @param {object} paymentMethod
    * @param {string} message
    */
-  MeprStripeForm.prototype.createPaymentElementError = function (paymentMethod, message) {
-    this.$form.find('.mepr-submit').prop('disabled', false);
-    paymentMethod.$cardElement.closest('.mp-form-row').show();
-    paymentMethod.$loader.hide();
-    paymentMethod.creatingPaymentElement = false;
+  MeprStripeForm.prototype.updateElementsError = function (paymentMethod, message) {
+    paymentMethod.updatingElements = false;
     paymentMethod.paymentFormData = null;
-    paymentMethod.$cardErrors.html(message || 'Failed to create Payment element');
-  };
-
-  /**
-   * Disable the submit button temporarily while the payment element loads and
-   * create the payment element 3 seconds after valid data has been entered.
-   */
-  MeprStripeForm.prototype.handleTextFieldKeyUp = function () {
-    var paymentMethod = this.getSelectedPaymentMethod();
-
-    if (paymentMethod && this.areRequiredFieldsValid() && (paymentMethod.paymentFormData === null || paymentMethod.paymentFormData !== this.getPaymentFormData(paymentMethod))) {
-      this.$form.find('.mepr-submit').prop('disabled', true);
-    } else {
-      this.$form.find('.mepr-submit').prop('disabled', false);
-    }
-
-    clearTimeout(this.textFieldKeyupTimeout);
-
-    this.textFieldKeyupTimeout = setTimeout($.proxy(this.maybeCreatePaymentElement, this), 3000);
+    paymentMethod.$cardErrors.html(message || 'Failed to update Elements options');
   };
 
   /**
@@ -427,12 +346,6 @@
     if (self.selectedPaymentMethod) {
       self.selectedPaymentMethod.$cardErrors.html('');
 
-      if(self.selectedPaymentMethod.paymentFormData === null) {
-        self.allowResubmission();
-        self.maybeCreatePaymentElement();
-        return;
-      }
-
       if (!self.selectedPaymentMethod.paymentElementComplete) {
         self.selectedPaymentMethod.$cardErrors.text(MeprStripeGateway.payment_information_incomplete);
         self.allowResubmission();
@@ -446,7 +359,7 @@
         extraData['g-recaptcha-response'] = $recaptcha.val();
       }
 
-      self.confirmPayment(extraData);
+      self.confirmPayment(self.selectedPaymentMethod, extraData);
     } else {
       if (!self.isSpc && self.isStripeCheckoutPageMode == '1') {
         self.redirectToStripeCheckout();
@@ -491,7 +404,7 @@
   /**
    * Get the billing details object to pass to Stripe
    *
-   * @param  {object} paymentMethod
+   * @param  {object} paymentMethod The selected payment method.
    * @return {object}
    */
   MeprStripeForm.prototype.getBillingDetails = function (paymentMethod) {
@@ -504,12 +417,25 @@
           state: 'mepr-address-state',
           postal_code: 'mepr-address-zip'
         },
+        email = '',
         name = [],
         address = {},
         addressFieldsPresent = false,
         details = {
           address: {}
         };
+
+    var $emailField = self.$form.find('input[name="user_email"]');
+
+    if ($emailField.length) {
+      email = $emailField.val();
+    } else {
+      email = paymentMethod.$cardElement.data('user-email');
+    }
+
+    if (email && email.length) {
+      details.email = email;
+    }
 
     $.each(['user_first_name', 'user_last_name'], function (index, value) {
       var $field = self.$form.find('input[name="' + value + '"]');
@@ -578,6 +504,16 @@
   };
 
   /**
+   * Get the billing details as a JSON string
+   *
+   * @param  {object} paymentMethod The selected payment method.
+   * @return {string}
+   */
+  MeprStripeForm.prototype.getBillingDetailsJson = function (paymentMethod) {
+    return JSON.stringify(this.getBillingDetails(paymentMethod));
+  };
+
+  /**
    * Allow the form to be submitted again
    */
   MeprStripeForm.prototype.allowResubmission = function () {
@@ -638,60 +574,26 @@
   };
 
   /**
-   * Handle the response from our Ajax endpoint
-   *
-   * @param {object} response
-   * @param {string} textStatus
-   * @param {object} jqXHR
-   */
-  MeprStripeForm.prototype.handleServerResponse = function (response, textStatus, jqXHR) {
-    if (response === null || typeof response != 'object') {
-      this.handlePaymentError(MeprStripeGateway.invalid_response_error);
-      this.debugCheckoutError({
-        status: jqXHR.status,
-        status_text: jqXHR.statusText,
-        response_text: jqXHR.responseText,
-        text_status: textStatus,
-        error_thrown: 'Response was null or not an object'
-      });
-    } else {
-      if (response.transaction_id) {
-        this.$form.find('input[name="mepr_transaction_id"]').val(response.transaction_id);
-      }
-
-      if (response.errors) {
-        this.handleValidationErrors(response.errors);
-      } else if (response.error) {
-        this.handlePaymentError(response.error);
-      } else if (response.action && (response.action === 'confirmPayment' || response.action === 'confirmSetup')) {
-        this.handleAction(response.action, response.return_url);
-      } else if (!this.$form.hasClass('mepr-payment-submitted')) {
-        this.$form.addClass('mepr-payment-submitted');
-        this.form.submit();
-      }
-    }
-  };
-
-  /**
    * Handle any SCA actions, and confirms the payment or card setup
    *
    * @param {string} action
+   * @param {string} clientSecret
    * @param {string} returnUrl
    */
-  MeprStripeForm.prototype.handleAction = async function (action, returnUrl) {
+  MeprStripeForm.prototype.handleAction = async function (action, clientSecret, returnUrl) {
     var self = this,
         stripe = self.selectedPaymentMethod.stripe,
-        elements = self.selectedPaymentMethod.elements,
-        confirmParams = {
-          return_url: returnUrl,
-          payment_method_data: {
-            billing_details: self.getBillingDetails(self.selectedPaymentMethod)
-          }
-        };
+        elements = self.selectedPaymentMethod.elements;
 
     const { error } = await stripe[action]({
       elements: elements,
-      confirmParams: confirmParams
+      clientSecret: clientSecret,
+      confirmParams: {
+        return_url: returnUrl,
+        payment_method_data: {
+          billing_details: self.getBillingDetails(self.selectedPaymentMethod)
+        }
+      }
     });
 
     if(error) {
@@ -767,9 +669,17 @@
   /**
    * Confirm the payment with our Ajax endpoint
    *
+   * @param {object} paymentMethod
    * @param {object} [extraData] Additional data to send with the request
    */
-  MeprStripeForm.prototype.confirmPayment = function (extraData) {
+  MeprStripeForm.prototype.confirmPayment = async function (paymentMethod, extraData) {
+    const { error } = await paymentMethod.elements.submit();
+
+    if (error) {
+      this.handlePaymentError(error.message);
+      return;
+    }
+
     var self = this,
         formData = new FormData(self.$form.get(0));
 
@@ -780,30 +690,6 @@
       $.each(extraData, function (key, value) {
         formData.append(key, value);
       });
-    }
-
-    if (self.selectedPaymentMethod.paymentIntentId) {
-      formData.append('payment_intent_id', self.selectedPaymentMethod.paymentIntentId);
-    }
-
-    if (self.selectedPaymentMethod.paymentIntentIdHash) {
-      formData.append('payment_intent_id_hash', self.selectedPaymentMethod.paymentIntentIdHash);
-    }
-
-    if (self.selectedPaymentMethod.setupIntentId) {
-      formData.append('setup_intent_id', self.selectedPaymentMethod.setupIntentId);
-    }
-
-    if (self.selectedPaymentMethod.setupIntentIdHash) {
-      formData.append('setup_intent_id_hash', self.selectedPaymentMethod.setupIntentIdHash);
-    }
-
-    if (self.selectedPaymentMethod.subscriptionId) {
-      formData.append('subscription_id', self.selectedPaymentMethod.subscriptionId);
-    }
-
-    if (self.selectedPaymentMethod.subscriptionIdHash) {
-      formData.append('subscription_id_hash', self.selectedPaymentMethod.subscriptionIdHash);
     }
 
     // We don't want to hit our routes for processing the signup or payment forms
@@ -822,7 +708,33 @@
         'cache-control': 'no-cache'
       }
     })
-    .done($.proxy(self.handleServerResponse, self))
+    .done(function (response, textStatus, jqXHR) {
+      if (response === null || typeof response != 'object') {
+        self.handlePaymentError(MeprStripeGateway.invalid_response_error);
+        self.debugCheckoutError({
+          status: jqXHR.status,
+          status_text: jqXHR.statusText,
+          response_text: jqXHR.responseText,
+          text_status: textStatus,
+          error_thrown: 'Response was null or not an object'
+        });
+      } else {
+        if (response.transaction_id) {
+          self.$form.find('input[name="mepr_transaction_id"]').val(response.transaction_id);
+        }
+
+        if (response.errors) {
+          self.handleValidationErrors(response.errors);
+        } else if (response.error) {
+          self.handlePaymentError(response.error);
+        } else if (response.action && (response.action === 'confirmPayment' || response.action === 'confirmSetup')) {
+          self.handleAction(response.action, response.client_secret, response.return_url);
+        } else if (!self.$form.hasClass('mepr-payment-submitted')) {
+          self.$form.addClass('mepr-payment-submitted');
+          self.form.submit();
+        }
+      }
+    })
     .fail(function (jqXHR, textStatus, errorThrown) {
       if (jqXHR.status === 0) {
         // Don't send a debug email for errors with status 0
@@ -859,31 +771,4 @@
       }
     });
   };
-
-  /**
-   * Adds a placeholder for Stripe Elements on SPC forms.
-   *
-   * @param {string} status
-   */
-  MeprStripeForm.prototype.maybeShowPlaceholder = function(status = 'show') {
-    if (!this.isSpc) {
-      return;
-    }
-
-    var $placeholderDiv = $('.mepr-stripe-form-placeholder');
-
-    if(status == 'hide') {
-      $placeholderDiv.hide();
-      $placeholderDiv.html('');
-    } else {
-      if(MeprStripeGateway.address_fields_required) {
-        var $placeholder = $('<p></p>').text(MeprStripeGateway.placeholder_text_email_address);
-      } else {
-        var $placeholder = $('<p></p>').text(MeprStripeGateway.placeholder_text_email);
-      }
-
-      $placeholderDiv.show();
-      $placeholderDiv.html($placeholder);
-    }
-  }
 })(jQuery);

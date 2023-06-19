@@ -128,7 +128,7 @@ use memberpress\courses\helpers as helpers; ?>
                     <div x-show="!courses.logoId" class="upload-ui hide-if-no-js">
                       <div class="drag-drop-area">
                         <div class="drag-drop-inside">
-                          <p class="drag-drop-info"><?php _e('Upload Welcome Image', 'memberpress-courses', 'memberpress'); ?></p>
+                          <p class="drag-drop-info"><?php _e('Upload Image', 'memberpress-courses', 'memberpress'); ?></p>
 
                           <!-- Progress Indicator -->
                           <p class="drag-drop-loader">
@@ -137,7 +137,7 @@ use memberpress\courses\helpers as helpers; ?>
 
                           <div class="drag-drop-buttons">
                             <p>
-                              <?php echo esc_html_x('or', 'Uploader: Upload Welcome Image - or - Select Image', 'memberpress-courses', 'memberpress'); ?>
+                              <?php echo esc_html_x('or', 'Uploader: Upload Image - or - Select Image', 'memberpress-courses', 'memberpress'); ?>
                             </p>
                             <p>
                               <input type="button" value="<?php esc_attr_e('Select Image', 'memberpress-courses', 'memberpress'); ?>" class="button browse-button" />

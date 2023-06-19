@@ -6,8 +6,8 @@ class MeprStripeCtrl extends MeprBaseCtrl
   public function load_hooks() {
     add_action('wp_ajax_mepr_stripe_confirm_payment', array($this, 'confirm_payment'));
     add_action('wp_ajax_nopriv_mepr_stripe_confirm_payment', array($this, 'confirm_payment'));
-    add_action('wp_ajax_mepr_stripe_create_payment_client_secret', array($this, 'create_payment_client_secret'));
-    add_action('wp_ajax_nopriv_mepr_stripe_create_payment_client_secret', array($this, 'create_payment_client_secret'));
+    add_action('wp_ajax_mepr_stripe_get_elements_options', array($this, 'get_elements_options'));
+    add_action('wp_ajax_nopriv_mepr_stripe_get_elements_options', array($this, 'get_elements_options'));
     add_action('wp_ajax_mepr_stripe_create_checkout_session', array($this, 'create_checkout_session'));
     add_action('wp_ajax_nopriv_mepr_stripe_create_checkout_session', array($this, 'create_checkout_session'));
     add_action('wp_ajax_mepr_stripe_create_account_setup_intent', array($this, 'create_account_setup_intent'));
@@ -48,9 +48,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
     }
   }
 
-  public function create_payment_client_secret() {
-    MeprHooks::do_action('mepr_stripe_before_create_payment_client_secret');
-
+  public function get_elements_options() {
     $mepr_options = MeprOptions::fetch();
     $transaction_id = isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id']) ? (int) $_POST['mepr_transaction_id'] : 0;
 
@@ -77,13 +75,6 @@ class MeprStripeCtrl extends MeprBaseCtrl
         wp_send_json_error(__('Product not found', 'memberpress'));
       }
 
-      $usr = $txn->user();
-      $is_user_logged_in = MeprUtils::is_user_logged_in();
-
-      if(!$usr->ID) {
-        wp_send_json_error(__('User not found', 'memberpress'));
-      }
-
       if(!$prd->is_one_time_payment()) {
         $sub = $txn->subscription();
       }
@@ -103,16 +94,6 @@ class MeprStripeCtrl extends MeprBaseCtrl
         wp_send_json_error(__('Bad request', 'memberpress'));
       }
 
-      $usr = MeprUtils::get_currentuserinfo();
-
-      if($usr instanceof MeprUser) {
-        $is_user_logged_in = true;
-      }
-      else {
-        $usr = new MeprUser();
-        $is_user_logged_in = false;
-      }
-
       $product_id = isset($_POST['mepr_product_id']) ? (int) $_POST['mepr_product_id'] : 0;
       $prd = new MeprProduct($product_id);
 
@@ -122,12 +103,13 @@ class MeprStripeCtrl extends MeprBaseCtrl
 
       $coupon_code = isset($_POST['mepr_coupon_code']) ? sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])) : '';
       $cpn = MeprCoupon::get_one_from_code($coupon_code);
+      $coupon_code = $cpn instanceof MeprCoupon ? $cpn->post_title : '';
 
       try {
         list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
           $prd,
           0,
-          $is_user_logged_in ? $usr->ID : 0,
+          get_current_user_id(),
           $pm->id,
           $cpn,
           false
@@ -139,30 +121,6 @@ class MeprStripeCtrl extends MeprBaseCtrl
     }
 
     try {
-      $response = [];
-
-      if($is_user_logged_in) {
-        $customer_id = $pm->get_customer_id($usr);
-      }
-      else {
-        $guest_customer_id = isset($_POST['customer_id']) ? sanitize_text_field(wp_unslash($_POST['customer_id'])) : '';
-        $guest_customer_id_hash = isset($_POST['customer_id_hash']) ? sanitize_text_field(wp_unslash($_POST['customer_id_hash'])) : '';
-
-        if(!empty($guest_customer_id) && !empty($guest_customer_id_hash) && hash_equals(wp_hash($guest_customer_id), $guest_customer_id_hash)) {
-          $pm->send_stripe_request("customers/$guest_customer_id", $this->get_guest_customer_args(), 'post');
-          $customer_id = $guest_customer_id;
-        }
-        else {
-          $customer = (object) $pm->send_stripe_request('customers', $this->get_guest_customer_args(), 'post');
-          $customer_id = $customer->id;
-
-          $response = array_merge($response, [
-            'customer_id' => $customer_id,
-            'customer_id_hash' => wp_hash($customer_id),
-          ]);
-        }
-      }
-
       $payment_required = $prd->is_payment_required($coupon_code);
       $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
       $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($prd->ID, $order_bump_product_ids);
@@ -174,230 +132,22 @@ class MeprStripeCtrl extends MeprBaseCtrl
       }
 
       if(!$payment_required) {
-        wp_send_json_success(['is_free_purchase' => true]);
+        wp_send_json_success(['payment_required' => false]);
       }
 
-      if($prd->is_one_time_payment() || !$prd->is_payment_required($coupon_code)) {
-        $total = $prd->is_payment_required($coupon_code) ? (float) $txn->total : 0.00;
-
-        foreach($order_bump_products as $product) {
-          list($transaction, $subscription) = MeprCheckoutCtrl::prepare_transaction(
-            $product,
-            0,
-            $is_user_logged_in ? $usr->ID : 0,
-            $pm->id,
-            false,
-            false
-          );
-
-          if($product->is_one_time_payment()) {
-            $total += (float) $transaction->total;
-          }
-          else {
-            if(!($subscription instanceof MeprSubscription)) {
-              wp_send_json_error(__('Subscription not found', 'memberpress'));
-            }
-
-            $total += (float) ($subscription->trial && $subscription->trial_days > 0 ? $subscription->trial_total : $subscription->total);
-          }
-        }
-
-        if($total > 0.00) {
-          $payment_intent = $pm->create_payment_intent($total, $customer_id, $prd->post_title);
-
-          $response = array_merge($response, [
-            'client_secret' => $payment_intent->client_secret,
-            'payment_intent_id' => $payment_intent->id,
-            'payment_intent_id_hash' => wp_hash($payment_intent->id),
-          ]);
-        }
-        else {
-          $setup_intent = $pm->create_setup_intent($customer_id, $prd->post_title);
-
-          $response = array_merge($response, [
-            'client_secret' => $setup_intent->client_secret,
-            'setup_intent_id' => $setup_intent->id,
-            'setup_intent_id_hash' => wp_hash($setup_intent->id),
-          ]);
-        }
-      }
-      else {
-        if(!isset($sub) || !($sub instanceof MeprSubscription)) {
-          wp_send_json_error(__('Subscription not found', 'memberpress'));
-        }
-
-        $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
-        $tax_inclusive = $mepr_options->attr('tax_calc_type') == 'inclusive';
-        $invoice_items = [];
-
-        foreach($order_bump_products as $product) {
-          list($transaction, $subscription) = MeprCheckoutCtrl::prepare_transaction(
-            $product,
-            0,
-            $is_user_logged_in ? $usr->ID : 0,
-            $pm->id,
-            false,
-            false
-          );
-
-          if($product->is_one_time_payment()) {
-            if((float) $transaction->total > 0) {
-              $amount = $calculate_taxes && !$tax_inclusive && $transaction->tax_rate > 0 ? (float) $transaction->amount : (float) $transaction->total;
-              $invoice_items[] = $pm->build_invoice_item($amount, $transaction, $product, $customer_id);
-            }
-          }
-          else {
-            if(!($subscription instanceof MeprSubscription)) {
-              wp_send_json_error(__('Subscription not found', 'memberpress'));
-            }
-
-            if($subscription->trial && $subscription->trial_days > 0) {
-              if((float) $subscription->trial_amount > 0) {
-                $invoice_items[] = $pm->build_invoice_item((float) $subscription->trial_amount, $transaction, $product, $customer_id);
-              }
-            }
-            else {
-              if((float) $subscription->total > 0) {
-                $amount = $calculate_taxes && !$tax_inclusive && $transaction->tax_rate > 0 ? (float) $subscription->price : (float) $subscription->total;
-                $invoice_items[] = $pm->build_invoice_item($amount, $transaction, $product, $customer_id);
-              }
-            }
-          }
-        }
-
-        // Use a SetupIntent for free trials, and create the subscription via webhook later
-        if($sub->trial && $sub->trial_days > 0 && (float) $sub->trial_amount <= 0.00 && empty($invoice_items)) {
-          $setup_intent = $pm->create_setup_intent($customer_id, $prd->post_title);
-
-          $response = array_merge($response, [
-            'client_secret' => $setup_intent->client_secret,
-            'setup_intent_id' => $setup_intent->id,
-            'setup_intent_id_hash' => wp_hash($setup_intent->id),
-          ]);
-        }
-        else {
-          $trial_days = 0;
-
-          if($sub->trial && $sub->trial_days > 0) {
-            $trial_days = $sub->trial_days;
-
-            if((float) $sub->trial_amount > 0.00) {
-              array_unshift($invoice_items, $pm->build_invoice_item((float) $sub->trial_amount, $txn, $prd, $customer_id));
-            }
-          }
-          elseif(count($invoice_items)) {
-            // If there is no trial period and there is an order bump, set the trial days to cover one payment cycle and
-            // add the first subscription payment to the trial amount
-            $now = new DateTimeImmutable('now');
-            $end = $now->modify(sprintf('+%d %s', $sub->period, $sub->period_type));
-            $trial_days = $end->diff($now)->format('%a');
-
-            $amount = $calculate_taxes && !$tax_inclusive && $txn->tax_rate > 0 ? (float) $sub->price : (float) $sub->total;
-
-            array_unshift($invoice_items, $pm->build_invoice_item($amount, $txn, $prd, $customer_id));
-          }
-
-          $invoice_item_ids = [];
-
-          foreach($invoice_items as $invoice_item) {
-            $invoice_item = (object) $pm->send_stripe_request('invoiceitems', $invoice_item, 'post');
-            $invoice_item_ids[] = $invoice_item->id;
-          }
-
-          try {
-            $subscription = $pm->create_subscription($txn, $sub, $prd, $customer_id, null, true, $trial_days);
-
-            if(empty($subscription->latest_invoice['payment_intent']['client_secret'])) {
-              throw new MeprGatewayException(__('PaymentIntent not found', 'memberpress'));
-            }
-
-            $response = array_merge($response, [
-              'client_secret' => $subscription->latest_invoice['payment_intent']['client_secret'],
-              'subscription_id' => $subscription->id,
-              'subscription_id_hash' => wp_hash($subscription->id),
-            ]);
-          }
-          catch(Exception $e) {
-            // Delete any created invoice items if the subscription failed to be created
-            foreach($invoice_item_ids as $invoice_item_id) {
-              try {
-                $pm->send_stripe_request("invoiceitems/$invoice_item_id", [], 'delete');
-              }
-              catch(Exception $e) {
-                // ignore any exception here, throw the original
-              }
-            }
-
-            throw $e;
-          }
-        }
-      }
-
-      wp_send_json_success($response);
+      wp_send_json_success(
+        $pm->get_elements_options(
+          $prd,
+          $txn,
+          isset($sub) && $sub instanceof MeprSubscription ? $sub : null,
+          $coupon_code,
+          $order_bump_products
+        )
+      );
     }
     catch(Exception $e) {
-      if(stripos($e->getMessage(), 'The payment method type `link` is invalid.') === 0) {
-        static $attempted;
-
-        if(empty($attempted)) {
-          $attempted = true;
-          $mepr_options->integrations[$pm->id]['stripe_link_enabled'] = false;
-          $mepr_options->store(false);
-          self::create_payment_client_secret();
-          return;
-        }
-      }
-
       wp_send_json_error($e->getMessage());
     }
-  }
-
-  /**
-   * Get the data to send to Stripe for a guest customer (logged-out user)
-   *
-   * @return array
-   */
-  private function get_guest_customer_args() {
-    $args = [];
-    $email = isset($_POST['user_email']) ? sanitize_email(wp_unslash($_POST['user_email'])) : '';
-
-    if(!empty($email)) {
-      $args['email'] = $email;
-    }
-
-    $user_first_name = isset($_POST['user_first_name']) ? sanitize_text_field(wp_unslash($_POST['user_first_name'])) : '';
-    $user_last_name = isset($_POST['user_last_name']) ? sanitize_text_field(wp_unslash($_POST['user_last_name'])) : '';
-
-    if(!empty($user_first_name)) {
-      $name = $user_first_name;
-
-      if(!empty($user_last_name)) {
-        $name .= ' ' . $user_last_name;
-      }
-
-      $args['name'] = $name;
-    }
-
-    $address = [
-      'line1' => isset($_POST['mepr-address-one']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-one'])) : '',
-      'line2' => isset($_POST['mepr-address-two']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-two'])) : '',
-      'city' => isset($_POST['mepr-address-city']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-city'])) : '',
-      'state' => isset($_POST['mepr-address-state']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-state'])) : '',
-      'country' => isset($_POST['mepr-address-country']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-country'])) : '',
-      'postal_code' => isset($_POST['mepr-address-zip']) ? sanitize_text_field(wp_unslash($_POST['mepr-address-zip'])) : '',
-    ];
-
-    foreach($address as $key => $value) {
-      if(empty($value)) {
-        unset($address[$key]);
-      }
-    }
-
-    if(!empty($address) && !empty($address['line1'])) {
-      $args['address'] = $address;
-    }
-
-    return $args;
   }
 
   public function create_checkout_session() {
@@ -568,6 +318,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
       $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($prd->ID, $order_bump_product_ids);
       $order_bump_total = 0.00;
       $order_bump_transactions = [];
+      $has_subscription_order_bump = false;
 
       if(count($order_bump_products)) {
         $order = new MeprOrder();
@@ -604,6 +355,8 @@ class MeprStripeCtrl extends MeprBaseCtrl
             if(!($subscription instanceof MeprSubscription)) {
               wp_send_json_error(__('Subscription not found', 'memberpress'));
             }
+
+            $has_subscription_order_bump = true;
 
             if($subscription->trial && $subscription->trial_days > 0) {
               if((float) $subscription->trial_total > 0) {
@@ -643,6 +396,15 @@ class MeprStripeCtrl extends MeprBaseCtrl
         ]);
       }
 
+      $customer_id = $usr->get_stripe_customer_id($pm->get_meta_gateway_id());
+
+      if(!is_string($customer_id) || strpos($customer_id, 'cus_') !== 0) {
+        $customer_id = $pm->get_customer_id($usr);
+      }
+      else {
+        $pm->update_customer($customer_id, $usr);
+      }
+
       $action = 'confirmPayment';
 
       $thank_you_page_args = [
@@ -651,66 +413,28 @@ class MeprStripeCtrl extends MeprBaseCtrl
         'transaction_id' => $txn->id,
       ];
 
-      $metadata_args = [
-        'metadata' => [
-          'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
-          'transaction_id' => $txn->id,
-          'site_url' => get_site_url(),
-          'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
-        ],
-      ];
-
       if($prd->is_one_time_payment() || !$prd->is_payment_required($coupon_code)) {
         $total = $prd->is_payment_required($coupon_code) ? (float) $txn->total : 0.00;
         $total += $order_bump_total;
 
         if($total > 0.00) {
-          $payment_intent_id = isset($_POST['payment_intent_id']) ? sanitize_text_field(wp_unslash($_POST['payment_intent_id'])) : '';
-          $payment_intent_id_hash = isset($_POST['payment_intent_id_hash']) ? sanitize_text_field(wp_unslash($_POST['payment_intent_id_hash'])) : '';
+          $setup_future_usage = $has_subscription_order_bump ? 'off_session' : null;
+          $payment_intent = $pm->create_payment_intent($total, $customer_id, $txn, $prd, $setup_future_usage);
 
-          if(!empty($payment_intent_id) && !empty($payment_intent_id_hash) && hash_equals(wp_hash($payment_intent_id), $payment_intent_id_hash)) {
-            $args = MeprHooks::apply_filters('mepr_stripe_update_payment_intent_args', $metadata_args, $txn);
+          $client_secret = $payment_intent->client_secret;
 
-            $payment_intent = (object) $pm->send_stripe_request("payment_intents/$payment_intent_id", $args);
-
-            $customer_id = $usr->get_stripe_customer_id($pm->get_meta_gateway_id());
-
-            if(!is_string($customer_id) || strpos($customer_id, 'cus_') !== 0) {
-              $usr->set_stripe_customer_id($pm->get_meta_gateway_id(), $payment_intent->customer);
-            }
-
-            $pm->update_customer($payment_intent->customer, $usr);
-
-            $txn->trans_num = $payment_intent->id;
-            $txn->store();
-          }
-          else {
-            throw new Exception(__('Invalid PaymentIntent ID', 'memberpress'));
-          }
+          $txn->trans_num = $payment_intent->id;
+          $txn->store();
         }
         else {
-          $setup_intent_id = isset($_POST['setup_intent_id']) ? sanitize_text_field(wp_unslash($_POST['setup_intent_id'])) : '';
-          $setup_intent_id_hash = isset($_POST['setup_intent_id_hash']) ? sanitize_text_field(wp_unslash($_POST['setup_intent_id_hash'])) : '';
+          $setup_intent = $pm->create_setup_intent($customer_id, $txn, $prd);
 
-          if(!empty($setup_intent_id) && !empty($setup_intent_id_hash) && hash_equals(wp_hash($setup_intent_id), $setup_intent_id_hash)) {
-            $setup_intent = (object) $pm->send_stripe_request("setup_intents/$setup_intent_id", $metadata_args);
+          $client_secret = $setup_intent->client_secret;
 
-            $customer_id = $usr->get_stripe_customer_id($pm->get_meta_gateway_id());
+          $txn->trans_num = $setup_intent->id;
+          $txn->store();
 
-            if(!is_string($customer_id) || strpos($customer_id, 'cus_') !== 0) {
-              $usr->set_stripe_customer_id($pm->get_meta_gateway_id(), $setup_intent->customer);
-            }
-
-            $pm->update_customer($setup_intent->customer, $usr);
-
-            $txn->trans_num = $setup_intent->id;
-            $txn->store();
-
-            $action = 'confirmSetup';
-          }
-          else {
-            throw new Exception(__('Invalid SetupIntent ID', 'memberpress'));
-          }
+          $action = 'confirmSetup';
         }
       }
       else {
@@ -718,57 +442,116 @@ class MeprStripeCtrl extends MeprBaseCtrl
           wp_send_json_error(__('Subscription not found', 'memberpress'));
         }
 
-        // Use a SetupIntent for free trials, and create the subscription via webhook later
-        if($sub->trial && $sub->trial_days > 0 && (float) $sub->trial_amount <= 0.00 && $order_bump_total <= 0.00) {
-          $setup_intent_id = isset($_POST['setup_intent_id']) ? sanitize_text_field(wp_unslash($_POST['setup_intent_id'])) : '';
-          $setup_intent_id_hash = isset($_POST['setup_intent_id_hash']) ? sanitize_text_field(wp_unslash($_POST['setup_intent_id_hash'])) : '';
+        $thank_you_page_args['subscription_id'] = $sub->id;
 
-          if(!empty($setup_intent_id) && !empty($setup_intent_id_hash) && hash_equals(wp_hash($setup_intent_id), $setup_intent_id_hash)) {
-            $setup_intent = (object) $pm->send_stripe_request("setup_intents/$setup_intent_id", $metadata_args);
+        $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
+        $tax_inclusive = $mepr_options->attr('tax_calc_type') == 'inclusive';
+        $invoice_items = [];
 
-            $customer_id = $usr->get_stripe_customer_id($pm->get_meta_gateway_id());
+        foreach($order_bump_transactions as $transaction) {
+          $product = $transaction->product();
 
-            if(!is_string($customer_id) || strpos($customer_id, 'cus_') !== 0) {
-              $usr->set_stripe_customer_id($pm->get_meta_gateway_id(), $setup_intent->customer);
+          if(empty($product->ID)) {
+            wp_send_json(['error' => __('Product not found', 'memberpress')]);
+          }
+
+          if(!$transaction->is_payment_required()) {
+            continue;
+          }
+          elseif($transaction->is_one_time_payment()) {
+            if((float) $transaction->total > 0) {
+              $amount = $calculate_taxes && !$tax_inclusive && $transaction->tax_rate > 0 ? (float) $transaction->amount : (float) $transaction->total;
+              $invoice_items[] = $pm->build_invoice_item($amount, $transaction, $product, $customer_id);
             }
-
-            $pm->update_customer($setup_intent->customer, $usr);
-
-            $txn->trans_num = $setup_intent->id;
-            $txn->store();
-
-            $action = 'confirmSetup';
-            $thank_you_page_args['subscription_id'] = $sub->id;
           }
           else {
-            throw new Exception(__('Invalid SetupIntent ID', 'memberpress'));
-          }
-        }
-        else {
-          $subscription_id = isset($_POST['subscription_id']) ? sanitize_text_field(wp_unslash($_POST['subscription_id'])) : '';
-          $subscription_id_hash = isset($_POST['subscription_id_hash']) ? sanitize_text_field(wp_unslash($_POST['subscription_id_hash'])) : '';
+            $subscription = $transaction->subscription();
 
-          if(!empty($subscription_id) && !empty($subscription_id_hash) && hash_equals(wp_hash($subscription_id), $subscription_id_hash)) {
-            $subscription = (object) $pm->send_stripe_request("subscriptions/$subscription_id", $metadata_args, 'post');
-
-            $customer_id = $usr->get_stripe_customer_id($pm->get_meta_gateway_id());
-
-            if(!is_string($customer_id) || strpos($customer_id, 'cus_') !== 0) {
-              $usr->set_stripe_customer_id($pm->get_meta_gateway_id(), $subscription->customer);
+            if(!($subscription instanceof MeprSubscription)) {
+              wp_send_json_error(__('Subscription not found', 'memberpress'));
             }
 
-            $pm->update_customer($subscription->customer, $usr);
+            if($subscription->trial && $subscription->trial_days > 0) {
+              if((float) $subscription->trial_total > 0) {
+                $amount = $calculate_taxes && !$tax_inclusive && $transaction->tax_rate > 0 ? (float) $subscription->trial_amount : (float) $subscription->trial_total;
+                $invoice_items[] = $pm->build_invoice_item($amount, $transaction, $product, $customer_id);
+              }
+            }
+            else {
+              $amount = $calculate_taxes && !$tax_inclusive && $transaction->tax_rate > 0 ? (float) $subscription->price : (float) $subscription->total;
+              $invoice_items[] = $pm->build_invoice_item($amount, $transaction, $product, $customer_id);
+            }
+          }
+        }
+
+        // Use a SetupIntent for free trials, and create the subscription via webhook later
+        if($sub->trial && $sub->trial_days > 0 && (float) $sub->trial_total <= 0.00 && empty($invoice_items)) {
+          $setup_intent = $pm->create_setup_intent($customer_id, $txn, $prd);
+
+          $client_secret = $setup_intent->client_secret;
+
+          $txn->trans_num = $setup_intent->id;
+          $txn->store();
+
+          $action = 'confirmSetup';
+        }
+        else {
+          $trial_days = 0;
+
+          if($sub->trial && $sub->trial_days > 0) {
+            $trial_days = $sub->trial_days;
+
+            if((float) $sub->trial_total > 0.00) {
+              $amount = $calculate_taxes && !$tax_inclusive && $txn->tax_rate > 0 ? (float) $sub->trial_amount : (float) $sub->trial_total;
+              array_unshift($invoice_items, $pm->build_invoice_item($amount, $txn, $prd, $customer_id));
+            }
+          }
+          elseif(count($invoice_items)) {
+            // If there is no trial period and there is an order bump, set the trial days to cover one payment cycle and
+            // add the first subscription payment to the trial amount
+            $now = new DateTimeImmutable('now');
+            $end = $now->modify(sprintf('+%d %s', $sub->period, $sub->period_type));
+            $trial_days = $end->diff($now)->format('%a');
+
+            $amount = $calculate_taxes && !$tax_inclusive && $txn->tax_rate > 0 ? (float) $sub->price : (float) $sub->total;
+
+            array_unshift($invoice_items, $pm->build_invoice_item($amount, $txn, $prd, $customer_id));
+          }
+
+          $invoice_item_ids = [];
+
+          foreach($invoice_items as $invoice_item) {
+            $invoice_item = (object) $pm->send_stripe_request('invoiceitems', $invoice_item, 'post');
+            $invoice_item_ids[] = $invoice_item->id;
+          }
+
+          try {
+            $subscription = $pm->create_subscription($txn, $sub, $prd, $customer_id, null, true, $trial_days);
+
+            if(empty($subscription->latest_invoice['payment_intent']['client_secret'])) {
+              throw new MeprGatewayException(__('PaymentIntent not found', 'memberpress'));
+            }
+
+            $client_secret = $subscription->latest_invoice['payment_intent']['client_secret'];
 
             $sub->subscr_id = $subscription->id;
             $sub->store();
 
-            $txn->trans_num = $subscription->latest_invoice;
+            $txn->trans_num = $subscription->latest_invoice['id'];
             $txn->store();
-
-            $thank_you_page_args['subscription_id'] = $sub->id;
           }
-          else {
-            throw new Exception(__('Invalid Subscription ID', 'memberpress'));
+          catch(Exception $e) {
+            // Delete any created invoice items if the subscription failed to be created
+            foreach($invoice_item_ids as $invoice_item_id) {
+              try {
+                $pm->send_stripe_request("invoiceitems/$invoice_item_id", [], 'delete');
+              }
+              catch(Exception $e) {
+                // ignore any exception here, throw the original
+              }
+            }
+
+            throw $e;
           }
         }
       }
@@ -777,12 +560,22 @@ class MeprStripeCtrl extends MeprBaseCtrl
       MeprHooks::do_action('mepr-process-signup', $txn->amount, $usr, $prd->ID, $txn->id);
       MeprHooks::do_action('mepr-signup', $txn);
 
+      $return_url = add_query_arg(
+        [
+          'txn_id' => $txn->id,
+          'redirect_to' => urlencode($mepr_options->thankyou_page_url($thank_you_page_args)),
+        ],
+        $pm->notify_url('return')
+      );
+
       wp_send_json([
         'action' => $action,
-        'return_url' => $mepr_options->thankyou_page_url($thank_you_page_args),
+        'client_secret' => $client_secret,
+        'return_url' => $return_url,
         'transaction_id' => $txn->id,
       ]);
-    } catch (Exception $e) {
+    }
+    catch(Exception $e) {
       wp_send_json([
         'error' => $e->getMessage(),
         'transaction_id' => $txn->id
@@ -856,7 +649,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
         $subscription = $pm->get_customer_subscription($sub->subscr_id);
       }
 
-      $setup_intent = $pm->create_setup_intent($subscription->customer);
+      $setup_intent = $pm->create_update_setup_intent($subscription->customer);
 
       wp_send_json_success($setup_intent->client_secret);
     }
@@ -894,7 +687,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
 
     $sub = new MeprSubscription($subscription_id);
 
-    if(!($sub instanceof MeprSubscription)) {
+    if(!($sub->id > 0)) {
       MeprUtils::wp_redirect(add_query_arg(['errors' => urlencode(__('Subscription not found', 'memberpress'))], $return_url));
     }
 

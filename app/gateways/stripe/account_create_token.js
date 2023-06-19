@@ -1,72 +1,72 @@
 jQuery(function ($) {
-  var $stripePaymentForm = $('#mepr-stripe-payment-form'),
+  let $stripePaymentForm = $('#mepr-stripe-payment-form'),
       $cardElement = $('#card-element'),
-      formData = new FormData($stripePaymentForm.get(0)),
-      $loader = $stripePaymentForm.find('.mepr-stripe-payment-element-loading').show(),
-      $linkElement = $stripePaymentForm.find('.mepr-stripe-link-element');
+      billingDetails = getBillingDetails(),
+      stripe = Stripe(MeprStripeAccountForm.public_key, {
+        locale: $cardElement.data('locale-code').toLowerCase(),
+        apiVersion: MeprStripeAccountForm.api_version
+      }),
+      elements = stripe.elements({
+        mode: 'setup',
+        currency: MeprStripeAccountForm.currency,
+        paymentMethodTypes: MeprStripeAccountForm.payment_method_types,
+        appearance: MeprStripeAccountForm.elements_appearance
+      }),
+      paymentElement = elements.create('payment', {
+        defaultValues: {
+          billingDetails: billingDetails
+        },
+        terms: MeprStripeAccountForm.payment_element_terms
+      }),
+      submitting = false;
 
-  formData.append('action', 'mepr_stripe_create_account_setup_intent');
-  formData.append('subscription_id', $stripePaymentForm.data('sub-id'));
+  paymentElement.mount($cardElement[0]);
 
-  $.ajax({
-    type: 'POST',
-    url: MeprStripeAccountForm.ajax_url,
-    data: formData,
-    processData: false,
-    contentType: false,
-    dataType: 'json'
-  })
-  .done(function (response) {
-    if (response && typeof response.success === 'boolean') {
-      if (response.success) {
-        $loader.hide();
+  paymentElement.on('loaderror', function (e) {
+    if (e.error) {
+      handleError(e.error.message);
+    }
+  });
 
-        var billingDetails = getBillingDetails(),
-            stripe = Stripe(MeprStripeAccountForm.public_key, {
-              locale: $cardElement.data('locale-code').toLowerCase(),
-              apiVersion: MeprStripeAccountForm.api_version
-            });
+  $stripePaymentForm.on('submit', async function (e) {
+    e.preventDefault();
 
-        var options = {
-          clientSecret: response.data
-        };
+    if (submitting) {
+      return;
+    }
 
-        if ($.isPlainObject(MeprStripeAccountForm.elements_appearance)) {
-          options.appearance = MeprStripeAccountForm.elements_appearance;
-        }
+    submitting = true;
 
-        var elements = stripe.elements(options);
+    const {error} = await elements.submit();
 
-        if ($linkElement.length) {
-          var linkAuthenticationElement = elements.create('linkAuthentication', {
-            defaultValues: {
-              email: $linkElement.data('stripe-email')
-            }
-          });
+    if (error) {
+      handleError(error.message);
+      submitting = false;
+      return;
+    }
 
-          linkAuthenticationElement.mount($linkElement[0]);
-        }
+    $stripePaymentForm.find('.mepr-submit').prop('disabled', true);
+    $stripePaymentForm.find('.mepr-loading-gif').show();
 
-        var paymentElement = elements.create('payment', {
-          defaultValues: {
-            billingDetails: billingDetails
-          },
-          terms: {
-            card: 'never'
-          }
-        });
+    const formData = new FormData($stripePaymentForm.get(0));
 
-        paymentElement.mount($cardElement[0]);
+    formData.append('action', 'mepr_stripe_create_account_setup_intent');
+    formData.append('subscription_id', $stripePaymentForm.data('sub-id'));
 
-        $stripePaymentForm.on('submit', async function (e) {
-          e.preventDefault();
-
-          $stripePaymentForm.find('.mepr-form-has-errors').hide();
-          $stripePaymentForm.find('.mepr-submit').prop('disabled', true);
-          $stripePaymentForm.find('.mepr-loading-gif').show();
-
+    $.ajax({
+      type: 'POST',
+      url: MeprStripeAccountForm.ajax_url,
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json'
+    })
+    .done(async function (response) {
+      if (response && typeof response.success === 'boolean') {
+        if (response.success) {
           const { error } = await stripe.confirmSetup({
             elements: elements,
+            clientSecret: response.data,
             confirmParams: {
               return_url: MeprStripeAccountForm.return_url,
               payment_method_data: {
@@ -78,33 +78,20 @@ jQuery(function ($) {
           if (error) {
             handleError(error.message);
           }
-        });
+        } else {
+          handleError(response.data);
+        }
       } else {
-        handleCreatePaymentElementError(response.data);
+        handleError('Invalid response');
       }
-    } else {
-      handleCreatePaymentElementError('Invalid response');
-    }
-  })
-  .fail(function () {
-    handleCreatePaymentElementError('Request failed');
-  });
-
-  /**
-   * Handle an error creating the payment element
-   *
-   * @param {string} message The error message to display
-   */
-  function handleCreatePaymentElementError(message) {
-    $loader.hide();
-
-    handleError(message);
-
-    $stripePaymentForm.on('submit', function (e) {
-      e.preventDefault();
-      alert('Please refresh the page to try again');
+    })
+    .fail(function () {
+      handleError('Request failed');
+    })
+    .always(function () {
+      submitting = false;
     });
-  }
+  });
 
   /**
    * Get the billing details object to pass to Stripe
@@ -112,7 +99,8 @@ jQuery(function ($) {
    * @return {object}
    */
   function getBillingDetails() {
-    var name = [],
+    let email = $cardElement.data('user-email'),
+        name = [],
         keys = {
           line1: 'card-address-one',
           line2: 'card-address-two',
@@ -125,11 +113,15 @@ jQuery(function ($) {
           address: {}
         };
 
+    if (email && email.length) {
+      details.email = email;
+    }
+
     $.each(['card-first-name', 'card-last-name'], function (index, value) {
-      var $field = $stripePaymentForm.find('input[name="' + value + '"]');
+      let $field = $stripePaymentForm.find('input[name="' + value + '"]');
 
       if ($field.length) {
-        var val = $field.val();
+        let val = $field.val();
 
         if (typeof val == 'string' && val.length) {
           name.push(val);
@@ -142,10 +134,10 @@ jQuery(function ($) {
     }
 
     $.each(keys, function (key, value) {
-      var $field = $stripePaymentForm.find('input[name="' + value + '"]');
+      let $field = $stripePaymentForm.find('input[name="' + value + '"]');
 
       if ($field.length) {
-        var val = $field.val();
+        let val = $field.val();
 
         if (typeof val == 'string' && val.length) {
           details.address[key] = val;
@@ -165,7 +157,6 @@ jQuery(function ($) {
     // re-enable the submit button
     $stripePaymentForm.find('.mepr-submit').prop('disabled', false);
     $stripePaymentForm.find('.mepr-loading-gif').hide();
-    $stripePaymentForm.find('.mepr-form-has-errors').show();
 
     // Inform the user that there was an error
     $('#card-errors').text(message);

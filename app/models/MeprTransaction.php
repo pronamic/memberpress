@@ -11,6 +11,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         'amount'          => 0.00,
         'total'           => 0.00,
         'tax_amount'      => 0.00,
+        'tax_reversal_amount' => 0.00,
         'tax_rate'        => 0.00,
         'tax_desc'        => '',
         'tax_class'       => 'standard',
@@ -1060,23 +1061,19 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
   }
 
   public function apply_tax($subtotal, $num_decimals = 2, $gross = 0.00) {
-    $mepr_options = MeprOptions::fetch();
     $usr = $this->user();
     $prd = $this->product();
     $calculate_taxes = get_option('mepr_calculate_taxes');
 
     // Now try to calculate tax info from the user info
     if($prd->tax_exempt) { //don't do taxes here yo
-      list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class) = array($gross, $gross, 0.00, 0.00, '', 'standard');
+      list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class, $this->tax_reversal_amount) = array($gross, $gross, 0.00, 0.00, '', 'standard', 0.00);
     }
-    elseif($calculate_taxes && (int)$usr->ID > 0) {
-      list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class) = $usr->calculate_tax($subtotal, $num_decimals, $prd->ID);
-    }
-    elseif($calculate_taxes && 0 == absint($usr->ID)) { // Enables VAT calc for SPC Invoice
-      list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class) = $usr->calculate_tax($subtotal, $num_decimals);
+    elseif($calculate_taxes) {
+      list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class, $this->tax_reversal_amount) = $usr->calculate_tax($subtotal, $num_decimals, $prd->ID);
     }
     else { // If all else fails, let's blank out the tax info
-      list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class) = array($subtotal, $subtotal, 0.00, 0.00, '', 'standard');
+      list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class, $this->tax_reversal_amount) = array($subtotal, $subtotal, 0.00, 0.00, '', 'standard', 0.00);
     }
 
     MeprHooks::do_action('mepr_transaction_apply_tax', $this);
@@ -1127,6 +1124,9 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
       $this->trial = false;
       $this->trial_days = 0;
       $this->trial_amount = 0.00;
+      $this->trial_tax_amount = 0.00;
+      $this->trial_total = 0.00;
+      $this->trial_tax_reversal_amount = 0.00;
     }
 
     if($set_subtotal) {
@@ -1153,18 +1153,16 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     MeprHooks::do_action('mepr_transaction_applied_product_vars', $this);
   }
 
-
-
-
-
-
   /** Sets up the transaction total, subtotal and tax based on a gross value.
    * This will never check for tax inclusion because since it's the gross
    *kit doesn't matter (since we already know the gross amount).
    */
   public function set_gross($gross) {
     $usr = $this->user();
-    $subtotal = $usr->calculate_subtotal($gross, null, 2, $this->product());
+    $prd = $this->product();
+    $tax_rate = $usr->tax_rate($prd->ID);
+    $subtotal = $usr->calculate_subtotal($gross, $tax_rate->reversal ? 0 : null, 2, $prd);
+
     $this->apply_tax($subtotal, 2, $gross);
   }
 
