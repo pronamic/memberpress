@@ -63,6 +63,12 @@ if ( ! is_object( $result ) ) {
 	exit( 1 );
 }
 
+if ( property_exists( $result, 'error' ) ) {
+	echo $result->error;
+
+	exit( 1 );
+}
+
 $version = $result->version;
 
 $url = $result->url;
