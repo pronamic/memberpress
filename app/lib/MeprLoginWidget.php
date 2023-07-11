@@ -15,12 +15,14 @@ class MeprLoginWidget extends WP_Widget {
   }
 
   public static function register_widget() {
-    $mepr_options = MeprOptions::fetch();
+    if(MeprHooks::apply_filters('mepr-enable-legacy-widgets', !current_theme_supports('widgets-block-editor'))) {
+      $mepr_options = MeprOptions::fetch();
 
-    if( !empty($mepr_options->login_page_id) and
+      if (!empty($mepr_options->login_page_id) and
         is_numeric($mepr_options->login_page_id) and
-        ($mepr_options->login_page_id > 0) ) {
-      register_widget("MeprLoginWidget");
+        ($mepr_options->login_page_id > 0)) {
+        register_widget("MeprLoginWidget");
+      }
     }
   }
 

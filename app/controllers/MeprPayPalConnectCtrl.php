@@ -23,8 +23,54 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl {
     } );
 
     add_action( 'admin_init', [ $this, 'admin_init' ] );
+    add_action('mepr-transaction-expired', array($this, 'check_for_renewal_transactions'), 10, 2);
     add_action( 'mepr-saved-options', [ $this, 'mepr_saved_options' ] );
     $this->add_ajax_endpoints();
+  }
+
+  /**
+   * @param   MeprTransaction  $txn
+   * @param   false            $sub_status
+   */
+  public function check_for_renewal_transactions($txn, $sub_status=false)
+  {
+    $sub = $txn->subscription();
+
+    if (empty($sub->id)) return;
+
+    $mepr_options = MeprOptions::fetch();
+    $subscr_id = $sub->subscr_id;
+    /** @var MeprPayPalCommerceGateway $gateway */
+    $gateway = $mepr_options->payment_method($subscr_id);
+
+    if (!$gateway instanceof MeprPayPalCommerceGateway) {
+      return;
+    }
+
+    $date = new DateTime();
+    $nextDate = new DateTime();
+
+    if ($txn->txn_type == MeprTransaction::$subscription_confirmation_str) {
+      $nextDate->add(new DateInterval('P1D'));
+      $date->sub(new DateInterval('P1D'));
+    } elseif ($txn->txn_type == MeprTransaction::$payment_str) {
+      $nextDate->add(new DateInterval('P1D'));
+      $date->sub(new DateInterval('P5D'));
+    } else {
+      $date = null;
+      $nextDate = null;
+    }
+
+    // Get transactions from yesterday
+    $pp_transactions = $gateway->get_paypal_subscription_transactions($subscr_id, $date, $nextDate);
+
+    foreach ($pp_transactions as $pp_transaction) {
+      $_POST['txn_id'] = $pp_transaction['id'];
+      $_POST['mc_gross'] = $pp_transaction['amount_with_breakdown']['gross_amount']['value'];
+      $_POST['payment_date'] = $pp_transaction['time'];
+      $_POST['subscr_id'] = $subscr_id;
+      $gateway->record_subscription_payment();
+    }
   }
 
   public function mepr_saved_options($settings) {

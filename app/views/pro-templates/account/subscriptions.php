@@ -130,7 +130,8 @@ if (!empty($subscriptions)) {
             </td>
             <td data-label="<?php _ex('Status', 'ui', 'memberpress'); ?>">
               <?php
-              echo '<button class="btn mepr-pro-account-table__badge --is-' . MeprAppHelper::pro_template_sub_status($s) . '">' . ucfirst( MeprAppHelper::pro_template_sub_status($s) ) . '</button>';
+              $sub_status = MeprAppHelper::pro_template_sub_status($s);
+              echo '<button class="btn mepr-pro-account-table__badge --is-' . $sub_status . '">' .  esc_html( MeprAppHelper::status_human_readable($sub_status) ) . '</button>';
               ?>
             </td>
             <td data-label="<?php _ex('Dates', 'ui', 'memberpress'); ?>">

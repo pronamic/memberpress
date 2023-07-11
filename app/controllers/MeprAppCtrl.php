@@ -11,10 +11,10 @@ class MeprAppCtrl extends MeprBaseCtrl {
     add_action('admin_enqueue_scripts', 'MeprAppCtrl::load_admin_scripts', 1);
     add_action('init', 'MeprAppCtrl::parse_standalone_request', 10);
     add_action('wp_dashboard_setup', 'MeprAppCtrl::add_dashboard_widgets');
-    add_action('widgets_init', 'MeprAppCtrl::add_sidebar_widgets');
     add_filter('custom_menu_order', '__return_true');
     add_filter('menu_order', 'MeprAppCtrl::admin_menu_order');
     add_filter('menu_order', 'MeprAppCtrl::admin_submenu_order');
+    add_action('widgets_init', 'MeprAccountLinksWidget::register_widget');
     add_action('widgets_init', 'MeprLoginWidget::register_widget');
     add_action('widgets_init', 'MeprSubscriptionsWidget::register_widget');
     add_action('add_meta_boxes', 'MeprAppCtrl::add_meta_boxes', 10, 2);
@@ -967,18 +967,6 @@ class MeprAppCtrl extends MeprBaseCtrl {
     $wp_meta_boxes['dashboard']['normal']['core'] = $sorted_dashboard;
   }
 
-  public static function add_sidebar_widgets() {
-    try {
-      $account_ctrl = MeprCtrlFactory::fetch('account');
-      wp_register_sidebar_widget( 'mepr-account-links', __('MemberPress Account Links', 'memberpress'), array($account_ctrl,'account_links_widget') );
-      //control func below doesn't do anything, but without it a bunch of debug notices are logged when in the theme customizer
-      wp_register_widget_control( 'mepr-account-links', __('MemberPress Account Links', 'memberpress'), function($args=array(), $params=array()){} );
-    }
-    catch(Exception $e) {
-      // Silently fail if the account controller is absent
-    }
-  }
-
   public static function weekly_stats_widget() {
     $mepr_options = MeprOptions::fetch();
     $failed_transactions = $pending_transactions = $refunded_transactions = $completed_transactions = $revenue = $refunds = 0;
@@ -1147,7 +1135,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
 
     add_submenu_page('memberpress', __('Subscriptions', 'memberpress'), __('Subscriptions', 'memberpress'), $capability, 'memberpress-subscriptions', array( $sub_ctrl, 'listing' ));
     // Specifically for subscriptions listing
-    add_submenu_page(null, __('Subscriptions', 'memberpress'), __('Subscriptions', 'memberpress'), $capability, 'memberpress-lifetimes', array( $sub_ctrl, 'listing' ));
+    add_submenu_page('', __('Subscriptions', 'memberpress'), __('Subscriptions', 'memberpress'), $capability, 'memberpress-lifetimes', array( $sub_ctrl, 'listing' ));
     add_submenu_page('memberpress', __('Transactions', 'memberpress'), __('Transactions', 'memberpress'), $capability, 'memberpress-trans', array( $txn_ctrl, 'listing' ));
     add_submenu_page('memberpress', __('Reports', 'memberpress'), __('Reports', 'memberpress'), $capability, 'memberpress-reports', 'MeprReportsCtrl::main');
     add_dashboard_page(__('MemberPress', 'memberpress'), __('MemberPress', 'memberpress'), $capability, 'memberpress-reports', 'MeprReportsCtrl::main');
@@ -1180,7 +1168,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
       }
     }
 
-    add_submenu_page(null, __('Support', 'memberpress'), __('Support', 'memberpress'), $capability, 'memberpress-support', 'MeprAppCtrl::render_admin_support');
+    add_submenu_page('', __('Support', 'memberpress'), __('Support', 'memberpress'), $capability, 'memberpress-support', 'MeprAppCtrl::render_admin_support');
 
     MeprHooks::do_action('mepr_menu');
   }

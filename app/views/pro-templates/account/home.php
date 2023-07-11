@@ -6,7 +6,11 @@ $welcome_image      = isset( $atts['welcome_image'] ) ? $atts['welcome_image'] :
 
 <h1 class="mepr_page_header"><?php echo esc_html_x( 'Profile', 'ui', 'memberpress' ); ?></h1>
 
-<div class="mepr-account-welcome-message <?php echo $welcome_image ? 'has-welcome-image'  : ''  ?>"><?php echo $welcome_message ?></div>
+<div class="mepr-account-message mepr-account-welcome-message <?php echo $welcome_image ? 'has-welcome-image'  : ''  ?>"><?php echo $welcome_message ?></div>
+
+<div class="mepr-account-message mepr-account-user-message">
+  <?php echo MeprHooks::apply_filters( 'mepr-user-message', wpautop( do_shortcode( $mepr_current_user->user_message ) ), $mepr_current_user ); ?>
+</div>
 
 <div class="mepr-profile-wrapper">
   <div id="mepr-profile-details">

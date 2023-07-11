@@ -38,14 +38,13 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
           <ul class="stripe-features">
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept all Major Credit Cards", 'memberpress' ); ?></li>
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Flexible subscriptions and billing terms", 'memberpress' ); ?></li>
-            <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept SEPA", 'memberpress' ); ?></li>
+            <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "25+ ways to pay", 'memberpress' ); ?></li>
           </ul>
         </td>
         <td>
           <ul class="stripe-features">
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept Apple Pay", 'memberpress' ); ?></li>
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept Google Wallet", 'memberpress' ); ?></li>
-            <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept iDeal", 'memberpress' ); ?></li>
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Fraud prevention tools", 'memberpress' ); ?></li>
           </ul>
         </td>
@@ -77,14 +76,13 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
           <ul class="stripe-features">
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept all Major Credit Cards", 'memberpress' ); ?></li>
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Flexible subscriptions and billing terms", 'memberpress' ); ?></li>
-            <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept SEPA", 'memberpress' ); ?></li>
+            <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "25+ ways to pay", 'memberpress' ); ?></li>
           </ul>
         </td>
         <td>
           <ul class="stripe-features">
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept Apple Pay", 'memberpress' ); ?></li>
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept Google Wallet", 'memberpress' ); ?></li>
-            <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept iDeal", 'memberpress' ); ?></li>
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Fraud prevention tools", 'memberpress' ); ?></li>
           </ul>
         </td>
@@ -105,14 +103,13 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
           <ul class="stripe-features">
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept all Major Credit Cards", 'memberpress' ); ?></li>
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Flexible subscriptions and billing terms", 'memberpress' ); ?></li>
-            <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept SEPA", 'memberpress' ); ?></li>
+            <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "25+ ways to pay", 'memberpress' ); ?></li>
           </ul>
         </td>
         <td>
           <ul class="stripe-features">
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept Apple Pay", 'memberpress' ); ?></li>
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept Google Wallet", 'memberpress' ); ?></li>
-            <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Accept iDeal", 'memberpress' ); ?></li>
             <li><img src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e( "Fraud prevention tools", 'memberpress' ); ?></li>
           </ul>
         </td>

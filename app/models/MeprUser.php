@@ -966,7 +966,7 @@ class MeprUser extends MeprBaseModel {
 
     if( !empty($order_bump_product_ids) ) {
       try {
-          MeprCheckoutCtrl::get_order_bump_products($mepr_product_id, $order_bump_product_ids);
+        MeprCheckoutCtrl::get_order_bump_products($mepr_product_id, $order_bump_product_ids);
       } catch( \Exception $ex ) {
         $errors[] = $ex->getMessage();
       }
@@ -1507,6 +1507,15 @@ class MeprUser extends MeprBaseModel {
     $tax_reversal_amount = 0.00;
 
     if($rate->customer_type === 'business' && $rate->reversal) {
+      if($subtotal > 0) {
+        $minimum_amount = MeprUtils::get_minimum_amount();
+
+        if($minimum_amount && $subtotal < $minimum_amount) {
+          $subtotal = $minimum_amount;
+          $tax_amount = 0.00;
+        }
+      }
+
       $total = MeprUtils::format_float($subtotal, $num_decimals);
       $tax_reversal_amount = $tax_amount;
       $tax_amount = 0.00;

@@ -551,4 +551,22 @@ class MeprAppHelper {
       </span>
     <?php
   }
+
+  public static function status_human_readable( $status ) {
+    $status = strtolower( $status );
+    $map = array(
+      'active'   => __('Active', 'memberpress'),
+      'canceled' => __('Canceled', 'memberpress'),
+      'lapsed'   => __('Lapsed', 'memberpress'),
+      'pending'  => __('Pending', 'memberpress'),
+      'paused'   => __('Paused', 'memberpress'),
+      'unknown'  => __('Unknown', 'memberpress')
+    );
+
+    if( isset($map[$status]) ) {
+      return $map[$status];
+    } else {
+      return __('Unknown', 'memberpress');
+    }
+  }
 } //End class

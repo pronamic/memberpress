@@ -2,9 +2,6 @@
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
 class MeprAccountCtrl extends MeprBaseCtrl {
-  //Prevent a silly error with BuddyPress and our account links widget
-  //We should eventually change our account links widget to properly inherit the WP_Widget class
-  public $id_base = 'mepr_account_links_widget';
 
   public function load_hooks() {
     add_action('wp_enqueue_scripts',        array($this,  'enqueue_scripts'));
@@ -141,7 +138,8 @@ class MeprAccountCtrl extends MeprBaseCtrl {
         wp_enqueue_script( 'mepr-tel-config-js', MEPR_JS_URL . '/tel_input.js', array( 'mepr-phone-js', 'mp-account' ), MEPR_VERSION, true );
         wp_localize_script( 'mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters( 'mepr-phone-input-config', array(
           'defaultCountry' => strtolower( get_option( 'mepr_biz_country' ) ),
-          'utilsUrl' => MEPR_JS_URL . '/intlTelInputUtils.js'
+          'utilsUrl' => MEPR_JS_URL . '/intlTelInputUtils.js',
+          'onlyCountries' => ''
         ) ) );
       }
     }
@@ -524,27 +522,6 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     return ob_get_clean();
   }
 
-  public function account_links_widget($args) {
-    $mepr_options = MeprOptions::fetch();
-
-    extract($args);
-
-    echo $before_widget;
-    echo $before_title.__('Account', 'memberpress').$after_title;
-
-    if(MeprUtils::is_user_logged_in()) {
-      $account_url = $mepr_options->account_page_url();
-      $logout_url = MeprUtils::logout_url();
-      MeprView::render('/account/logged_in_widget', get_defined_vars());
-    }
-    else {
-      $login_url = MeprUtils::login_url();
-      MeprView::render('/account/logged_out_widget', get_defined_vars());
-    }
-
-    echo $after_widget;
-  }
-
   public function output_account_meta($atts=array(), $content='') {
     global $mepr_options, $user_ID;
 
@@ -589,7 +566,10 @@ class MeprAccountCtrl extends MeprBaseCtrl {
         return wpautop(stripslashes(do_shortcode($usermeta[$atts['field']])));
         break;
       default:
-        return $usermeta[$atts['field']];
+        //Make sure field actually exists
+        if(isset($usermeta[$atts['field']]) && !empty($usermeta[$atts['field']])) {
+          return $usermeta[$atts['field']];
+        }
         break;
     }
   }

@@ -236,7 +236,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
         wp_enqueue_script( 'mepr-tel-config-js', MEPR_JS_URL . '/tel_input.js', array( 'mepr-phone-js', 'mp-signup' ), MEPR_VERSION, true );
         wp_localize_script( 'mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters( 'mepr-phone-input-config', array(
           'defaultCountry' => strtolower( get_option( 'mepr_biz_country' ) ),
-          'utilsUrl' => MEPR_JS_URL . '/intlTelInputUtils.js'
+          'utilsUrl' => MEPR_JS_URL . '/intlTelInputUtils.js',
+          'onlyCountries' => ''
         ) ) );
       }
 
@@ -474,7 +475,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
         }
       }
 
-      $txn->set_subtotal($price);
+      $txn->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($price));
 
       // Set the coupon id of the transaction
       $txn->coupon_id = $cpn->ID;
@@ -528,7 +529,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
             $price = $product->adjusted_price($cpn->post_title);
           }
         }
-        $txn->set_subtotal($price);
+        $txn->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($price));
+
         // Set the coupon id of the transaction
         $txn->coupon_id = $cpn->ID;
         // Create a new subscription
@@ -945,7 +947,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
       $txn->coupon_id = $cpn->ID;
     }
 
-    $txn->set_subtotal($price);
+    $txn->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($price));
 
     if($product->is_one_time_payment()) {
       $sub = null;

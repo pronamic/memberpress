@@ -800,8 +800,8 @@ class MeprPayPalGateway extends MeprBasePayPalGateway {
     $sub->store();
 
     //Expire the grace period (confirmation) if no completed payments have come through
-    //We may need to tweak this a bit in the future for free trial period cancellations
-    if((int)$sub->txn_count <= 0) { $sub->expire_txns(); }
+    //If sub had a free trial, we shouldn't expire that
+    if((int)$sub->txn_count <= 0 && (!$sub->trial || $sub->trial_amount > 0)) { $sub->expire_txns(); }
 
     if(isset($_REQUEST['expire'])) { $sub->limit_reached_actions(); }
 

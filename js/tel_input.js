@@ -4,5 +4,6 @@ for (var i = 0; i < telInputs.length; i++) {
     separateDialCode: true,
     initialCountry: meprTel.defaultCountry,
     utilsScript: meprTel.utilsUrl,
+    onlyCountries: meprTel.onlyCountries ? meprTel.onlyCountries : [],
   });
 }

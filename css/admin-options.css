@@ -107,6 +107,36 @@ textarea#mepr-custom-message {
   background-color: white;
 }
 
+.mepr-stripe-customize-payment-methods {
+  font-weight: normal;
+}
+
+.mepr-stripe-payment-methods > p {
+  color: #626262;
+  margin-bottom: 22px;
+}
+
+.mepr-stripe-payment-method {
+  margin-top: 12px;
+}
+
+.mepr-stripe-payment-method label {
+  color: #1d2327;
+}
+
+.mepr-update-stripe-payment-methods {
+  margin-top: 22px;
+}
+
+.mepr-update-stripe-payment-methods button i {
+  font-size: inherit;
+  color: inherit;
+}
+
+.mepr-update-stripe-payment-methods button {
+  justify-content: center;
+}
+
 ul.custom_options_list {
   margin:18px;
   padding:15px;
@@ -401,5 +431,9 @@ td.stripe-checkbox-column-right {
   transform: translateX(15px);
   background-color: #06429E;
 
+}
+
+.mepr-form label.switch input:disabled + .slider {
+  opacity: 0.5;
 }
 /* End Form Slider */

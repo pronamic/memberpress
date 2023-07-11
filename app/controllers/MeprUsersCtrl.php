@@ -78,7 +78,8 @@ class MeprUsersCtrl extends MeprBaseCtrl {
       wp_enqueue_script( 'mepr-tel-config-js', MEPR_JS_URL . '/tel_input.js', array( 'mepr-phone-js' ), MEPR_VERSION, true );
       wp_localize_script( 'mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters( 'mepr-phone-input-config', array(
         'defaultCountry' => strtolower( get_option( 'mepr_biz_country' ) ),
-        'utilsUrl' => MEPR_JS_URL . '/intlTelInputUtils.js'
+        'utilsUrl' => MEPR_JS_URL . '/intlTelInputUtils.js',
+        'onlyCountries' => ''
       ) ) );
     }
   }
@@ -94,6 +95,7 @@ class MeprUsersCtrl extends MeprBaseCtrl {
 
   public static function erase_pii($email, $page = 1) {
     $user = get_user_by('email', $email);
+    if(!$user) { return; }
 
     delete_user_meta($user->ID, 'mepr_vat_number');
     delete_user_meta($user->ID, 'mepr-geo-country');

@@ -10,6 +10,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
     add_action('admin_enqueue_scripts', 'MeprOptionsCtrl::enqueue_scripts');
     add_action('admin_print_footer_scripts', 'MeprOptionsCtrl::enqueue_footer_scripts');
     add_action('admin_notices', 'MeprOptionsCtrl::maybe_show_stripe_checkout_warning');
+    add_action('wp_ajax_mepr_validate_stripe_payment_method_types', 'MeprOptionsCtrl::validate_stripe_payment_method_types');
   }
 
   public static function maybe_show_stripe_checkout_warning() {
@@ -82,7 +83,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
     if(MeprUtils::is_logged_in_and_an_admin()) {
       $errors = MeprHooks::apply_filters('mepr-validate-options', $mepr_options->validate($_POST, array()));
 
-      if(count($errors) <= 0) {
+      if(empty($errors)) {
         MeprHooks::do_action('mepr-process-options', $_POST);
         $settings = MeprHooks::apply_filters( 'mepr-saved-options', $_POST );
         $mepr_options->update($settings);
@@ -163,6 +164,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
         'deactivate_confirm' => sprintf(__('Are you sure? MemberPress will not be functional on %s if this License Key is deactivated.', 'memberpress'), MeprUtils::site_domain()),
         'deactivation_error'  => __('An error occurred during deactivation: %s', 'memberpress'),
         'install_license_edition_nonce' => wp_create_nonce('mepr_install_license_edition'),
+        'validate_stripe_payment_methods_nonce' => wp_create_nonce('mepr_validate_stripe_payment_method_types'),
       );
 
       wp_register_script('memberpress-i18n', MEPR_JS_URL.'/i18n.js', array('jquery'), MEPR_VERSION);
@@ -412,5 +414,42 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
     }
 
     wp_send_json_error(__('License data not found', 'memberpress'));
+  }
+
+  public static function validate_stripe_payment_method_types() {
+    if(!MeprUtils::is_post_request()) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    if(!MeprUtils::is_logged_in_and_an_admin()) {
+      wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
+    }
+
+    if(!check_ajax_referer('mepr_validate_stripe_payment_method_types', false, false)) {
+      wp_send_json_error(__('Security check failed.', 'memberpress'));
+    }
+
+    $gateway_id = isset($_POST['gateway_id']) ? sanitize_text_field(wp_unslash($_POST['gateway_id'])) : '';
+    $payment_method_types = isset($_POST['payment_method_types']) && is_array($_POST['payment_method_types']) ? array_filter(array_map('sanitize_key', array_map('wp_unslash', $_POST['payment_method_types']))) : [];
+
+    if(empty($gateway_id) || empty($payment_method_types)) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    $mepr_options = MeprOptions::fetch();
+    $pm = $mepr_options->payment_method($gateway_id);
+
+    if(!$pm instanceof MeprStripeGateway) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    try {
+      $pm->create_test_payment_intent($payment_method_types);
+
+      wp_send_json_success();
+    }
+    catch(Exception $e) {
+      wp_send_json_error($e->getMessage());
+    }
   }
 } //End class

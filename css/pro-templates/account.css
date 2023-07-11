@@ -678,6 +678,10 @@
   color: #fff;
 }
 
+.mepr-subscriptions-wrapper {
+  padding-bottom: 50px;
+}
+
 .mepr-pro-account-table {
   border-collapse: separate;
   border-spacing: 0 10px;
@@ -860,12 +864,7 @@ button.mepr-pro-account-table__badge:hover {
   margin-top: 0;
   margin-bottom: 2rem;
 }
-.mepr-account-welcome-message {
-  /* padding: 0.5em 0 1.1em; */
-  background-color: #e6f7ed;
-  /* background-color: rgb(254, 252, 232); */
-  border: 1px solid #339a6b;
-  color: #2b362d;
+.mepr-account-message {
   padding: 1rem;
   border-radius: 0.375rem;
   font-size: 15px;
@@ -873,14 +872,24 @@ button.mepr-pro-account-table__badge:hover {
   margin-bottom: 2rem;
   /* display: inline-block; */
 }
-.mepr-account-welcome-message p:first-child{
+.mepr-account-message p:first-child{
   margin-top: 0;
 }
-.mepr-account-welcome-message p:last-child{
+.mepr-account-message p:last-child{
   margin: 0;
 }
+.mepr-account-welcome-message {
+  background-color: #e6f7ed;
+  border: 1px solid #339a6b;
+  color: #2b362d;
+}
+.mepr-account-user-message {
+  background-color: #ffffe4;
+  border: 1px solid #c5c51c;
+  color: #3e3e30;
+}
 @media (min-width: 840px) {
-  .mepr-account-welcome-message {
+  .mepr-account-message {
     width: 60%;
   }
   .mepr-account-welcome-message.has-welcome-image{

@@ -696,10 +696,15 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
     }
   }
 
-  public function get_paypal_subscription_transactions( $pp_subscription_id ) {
-    $date = new DateTime();
-    $date->sub( new DateInterval( 'P1D' ) );
-    $time = 'start_time=' . $date->format( 'Y-m-d' ) . 'T00:00:00.90Z&end_time=' . date( 'Y-m-d' ) . 'T23:59:59.90Z';
+  public function get_paypal_subscription_transactions( $pp_subscription_id, $start_date = null, $end_date = null) {
+    if (empty($start_date) && empty($end_date)) {
+      $start_date    = new DateTime();
+      $end_date = new DateTime();
+      $end_date->add(new DateInterval('P1D'));
+      $start_date->sub(new DateInterval('P1D'));
+    }
+    $time = 'start_time=' . $start_date->format( 'Y-m-d' ) . 'T00:00:00.90Z&end_time=' . $end_date->format( 'Y-m-d' ) . 'T23:59:59.90Z';
+
     $this->log( $this->settings->rest_api_url . '/v1/billing/subscriptions/' . $pp_subscription_id . '/transactions?' . $time );
     $response = wp_remote_get( $this->settings->rest_api_url . '/v1/billing/subscriptions/' . $pp_subscription_id . '/transactions?' . $time, [
       'headers' => [
@@ -901,8 +906,9 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       }
 
       $pp_plan_id = $this->get_pp_plan_id($sub, $has_trial || $convert_to_trial, $trial_days, $trial_amount, $skip_taxes);
-
       $pp_subscription = $this->get_pp_subscription($pp_plan_id, $txn, $sub, $return_the_object, $skip_taxes);
+      $sub->subscr_id = $pp_subscription['id'];
+      $sub->store();
 
       if(isset($pp_subscription['links']) && is_array($pp_subscription['links'])) {
         foreach($pp_subscription['links'] as $link) {

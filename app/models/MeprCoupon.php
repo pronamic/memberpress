@@ -221,16 +221,16 @@ class MeprCoupon extends MeprCptModel {
     if($this->discount_mode=='trial-override') {
       $obj->trial = true;
       $obj->trial_days = $this->trial_days;
-      $obj->trial_amount = $this->trial_amount;
+      $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount($this->trial_amount);
     }
     else if($this->discount_mode=='first-payment') {
       $obj->trial = true;
       $obj->trial_days = (($obj instanceof MeprProduct) ? $obj->days_in_my_period() : $obj->days_in_this_period());
 
       if ($obj instanceof MeprSubscription) {
-        $obj->trial_amount = $this->apply_discount( $obj->product()->price, true, $obj->product() );
+        $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount( $this->apply_discount( $obj->product()->price, true, $obj->product() ) );
       } else {
-        $obj->trial_amount = $this->apply_discount( $obj->price, true, $obj );
+        $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount( $this->apply_discount( $obj->price, true, $obj ) );
       }
     }
 
@@ -302,10 +302,11 @@ class MeprCoupon extends MeprCptModel {
         FROM {$mepr_db->transactions}
        WHERE coupon_id = %d
          AND subscription_id > 0
-         AND txn_type IN (%s,%s);
+         AND txn_type IN (%s,%s)
+         AND status <> %s;
     ";
 
-    $sq = $wpdb->prepare($sq, $this->ID, MeprTransaction::$payment_str, MeprTransaction::$subscription_confirmation_str);
+    $sq = $wpdb->prepare($sq, $this->ID, MeprTransaction::$payment_str, MeprTransaction::$subscription_confirmation_str, MeprSubscription::$pending_str);
 
     if($sqcount = $wpdb->get_var($sq)) { $tcount += $sqcount; }
 
@@ -316,9 +317,10 @@ class MeprCoupon extends MeprCptModel {
        WHERE coupon_id = %d
          AND (subscription_id <= 0 OR subscription_id IS NULL)
          AND txn_type = %s
+         AND status <> %s
     ";
 
-    $lq = $wpdb->prepare($lq, $this->ID, MeprTransaction::$payment_str);
+    $lq = $wpdb->prepare($lq, $this->ID, MeprTransaction::$payment_str, MeprTransaction::$pending_str);
 
     if($lqcount = $wpdb->get_var($lq)) { $tcount += $lqcount; }
 

@@ -259,13 +259,14 @@ class MeprTransactionsHelper {
     $show_negative_tax_on_invoice = get_option('mepr_show_negative_tax_on_invoice');
 
     if($coupon = $txn->coupon()) {
+      $amount = MeprUtils::maybe_round_to_minimum_amount($prd->price);
+
       if($show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0) {
-        $amount = $prd->price;
         $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount - (float) $txn->tax_reversal_amount);
       }
       else {
         $remove_tax = $calculate_taxes && $tax_inclusive && $txn->tax_rate > 0;
-        $amount = $remove_tax ? ($prd->price/(1+($txn->tax_rate/100))) : $prd->price;
+        $amount = $remove_tax ? ($amount/(1+($txn->tax_rate/100))) : $amount;
         $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount);
       }
 
@@ -274,10 +275,10 @@ class MeprTransactionsHelper {
     }
     elseif($sub && ($coupon = $sub->coupon())) {
       if($coupon->discount_mode == 'trial-override' && $sub->trial){
-        $amount = $prd->trial_amount;
+        $amount = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
         $cpn_id = $coupon->ID;
         $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
-        $cpn_amount = MeprUtils::format_float((float)$prd->trial_amount - (float)$txn->amount);
+        $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
       }
       else{
         $amount = $sub->price;
@@ -466,13 +467,14 @@ class MeprTransactionsHelper {
     $show_negative_tax_on_invoice = get_option('mepr_show_negative_tax_on_invoice');
 
     if($coupon = $txn->coupon()) {
+      $amount = MeprUtils::maybe_round_to_minimum_amount($prd->price);
+
       if($show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0) {
-        $amount = $prd->price;
         $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount - (float) $txn->tax_reversal_amount);
       }
       else {
         $remove_tax = $calculate_taxes && $tax_inclusive && $txn->tax_rate > 0;
-        $amount = $remove_tax ? ($prd->price/(1+($txn->tax_rate/100))) : $prd->price;
+        $amount = $remove_tax ? ($amount/(1+($txn->tax_rate/100))) : $amount;
         $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount);
       }
 
@@ -481,10 +483,10 @@ class MeprTransactionsHelper {
     }
     elseif($sub && ($coupon = $sub->coupon())) {
       if($coupon->discount_mode == 'trial-override' && $sub->trial){
-        $amount = $prd->trial_amount;
+        $amount = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
         $cpn_id = $coupon->ID;
         $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
-        $cpn_amount = MeprUtils::format_float((float)$prd->trial_amount - (float)$txn->amount);
+        $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
       }
       else{
         $amount = $sub->price;

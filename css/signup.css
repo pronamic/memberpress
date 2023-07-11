@@ -103,6 +103,15 @@
   /* margin-top: -10px; */
 }
 
+.mp_wrapper .mepr-authorizenet-cc-form .mepr-cc-second-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.mp_wrapper .mepr-authorizenet-cc-form .mepr-cc-second-row > div {
+  width: 49%;
+}
+
 .mp_wrapper .mepr-form-checkbox, .mepr-form-radio {
   /* width: 20px !important; */
 }

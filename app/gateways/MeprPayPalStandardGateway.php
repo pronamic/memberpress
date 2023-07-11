@@ -1125,23 +1125,21 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
 
     ?>
     <?php if ( ! empty( $paypal_email ) && class_exists( 'MeprPayPalCommerceGateway' ) ) { ?>
-      <div class="mepr-paypal-standard-upgrade-box"><img width="200px" src="<?php echo MEPR_IMAGES_URL . '/PayPal_with_Tagline.svg'; ?>" alt="PayPal logo"/>
-                <p style="color: red"><?php _e('Your PayPal payment connection is out of date, and may become insecure. Use the upgrade button below to fix this.', 'memberpress'); ?></p>
-    <button
-                type="button"
-                data-mepr-upgrade-paypal="1"
-                data-disconnect-confirm-msg="<?php echo esc_attr(__('Are you sure?', 'memberpress')); ?>"
-                data-method-id="<?php echo esc_attr($this->id); ?>"
-                class="button-primary"> <img class="mepr-pp-icon" src="<?php echo MEPR_IMAGES_URL . '/PayPal_Icon_For_Button.svg'; ?>"/><?php _e( 'Upgrade to new PayPal Commerce Platform', 'memberpress' ); ?></button>
-      </div>
-      <div x-data="{ open: false }">
-      <button type="button" x-on:click="open =! open"><?php _e('PayPal standard Settings', 'memberpress'); ?></button>
-    <?php } else { ?>
-      <div x-data="{ open: true }">
-    <?php } ?>
-
-
-    <table x-show="open">
+      <!--<div class="mepr-paypal-standard-upgrade-box"><img width="200px"
+                                                         src="<?php /*echo MEPR_IMAGES_URL . '/PayPal_with_Tagline.svg'; */?>"
+                                                         alt="PayPal logo"/>
+        <p style="color: red"><?php /*_e('Your PayPal payment connection is out of date, and may become insecure. Use the upgrade button below to fix this.', 'memberpress'); */?></p>
+        <button
+            type="button"
+            data-mepr-upgrade-paypal="1"
+            data-disconnect-confirm-msg="<?php /*echo esc_attr(__('Are you sure?', 'memberpress')); */?>"
+            data-method-id="<?php /*echo esc_attr($this->id); */?>"
+            class="button-primary"><img class="mepr-pp-icon"
+                                        src="<?php /*echo MEPR_IMAGES_URL . '/PayPal_Icon_For_Button.svg'; */?>"/><?php /*_e('Upgrade to new PayPal Commerce Platform', 'memberpress'); */?>
+        </button>
+        <button type="button" x-on:click="open =! open"><?php /*_e('PayPal standard Settings', 'memberpress'); */?></button>
+      </div>-->
+    <table >
       <tr>
         <td><?php _e('Primary PayPal Email*:', 'memberpress'); ?></td>
         <td><input type="text" class="mepr-auto-trim" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][paypal_email]" value="<?php echo $paypal_email; ?>" /></td>
@@ -1181,8 +1179,9 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
       </tr>
       <?php MeprHooks::do_action('mepr-paypal-standard-options-form', $this); ?>
     </table>
-      </div>
+
     <?php
+      }
   }
 
   /** Validates the form for the given payment gateway on the MemberPress Options page */

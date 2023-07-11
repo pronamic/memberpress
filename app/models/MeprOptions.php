@@ -679,7 +679,9 @@ class MeprOptions {
     $this->anti_card_testing_blocked     = isset($params[$this->anti_card_testing_blocked_str]) && is_string($params[$this->anti_card_testing_blocked_str]) ? array_unique(array_filter(array_map('trim', explode("\n", $params[$this->anti_card_testing_blocked_str])))) : array();
 
     $this->custom_message                = wp_kses_post(stripslashes($params[$this->custom_message_str]));
-    $this->currency_code                 = stripslashes($params[$this->currency_code_str]);
+    $currency_code                       = stripslashes($params[$this->currency_code_str]);
+    $currency_code_changed               = $this->currency_code != $currency_code;
+    $this->currency_code                 = $currency_code;
     $this->currency_symbol               = stripslashes($params[$this->currency_symbol_str]);
     $this->currency_symbol_after         = isset($params[$this->currency_symbol_after_str]);
     $this->language_code                 = stripslashes($params[$this->language_code_str]);
@@ -689,6 +691,11 @@ class MeprOptions {
         $params[$this->integrations_str][$intg_key]['use_icon'] = isset($params[$this->integrations_str][$intg_key]['use_icon']);
         $params[$this->integrations_str][$intg_key]['use_label'] = isset($params[$this->integrations_str][$intg_key]['use_label']);
         $params[$this->integrations_str][$intg_key]['use_desc'] = isset($params[$this->integrations_str][$intg_key]['use_desc']);
+
+        if(isset($intg['gateway']) && $intg['gateway'] == 'MeprStripeGateway' && $currency_code_changed) {
+          // Reset Stripe payment methods if currency code has changed
+          $params[$this->integrations_str][$intg_key]['payment_methods'] = [];
+        }
       }
     }
 

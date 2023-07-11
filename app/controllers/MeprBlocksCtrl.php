@@ -57,6 +57,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     register_block_type(
       'memberpress/login-form',
       array(
+        'api_version' => 2,
         'attributes'      => array(
           'use_redirect' => array(
             'type' => 'boolean',
@@ -154,6 +155,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
       )
     );
 
+    // Checkout
     register_block_type(
       'memberpress/checkout',
       array(
@@ -169,6 +171,59 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
         ),
         'render_callback' => array( $this, 'render_checkout_block' ),
         'editor_style'    => 'mp-pro-checkout'
+      )
+    );
+
+    // Account Links
+    register_block_type(
+      'memberpress/account-links',
+      array(
+        'api_version' => 2,
+        'attributes' => array(),
+        'render_callback' => array( $this, 'render_account_links_block')
+      )
+    );
+
+    // Subscriptions
+    register_block_type(
+      'memberpress/subscriptions',
+      array(
+        'api_version' => 2,
+        'attributes' => array(
+          'not_logged_in_message' => array(
+            'type' => 'string',
+            'default' => __('You are not logged in.', 'memberpress')
+          ),
+          'no_subscriptions_message' => array(
+            'type' => 'string',
+            'default' => __('You have no Subscriptions yet.', 'memberpress')
+          ),
+          'top_description' => array(
+            'type' => 'string'
+          ),
+          'bottom_description' => array(
+            'type' => 'string'
+          ),
+          'use_access_url' => array(
+            'type' => 'boolean'
+          )
+        ),
+        'render_callback' => array( $this, 'render_subscriptions_block')
+      )
+    );
+
+    // Accounts Info
+    register_block_type(
+      'memberpress/account-info',
+      array(
+        'api_version' => 2,
+        'attributes'  => array(
+          'field' => array(
+            'type' => 'string',
+            'default' => 'full_name'
+          ),
+        ),
+        'render_callback' => array( $this, 'render_account_info' ),
       )
     );
   }
@@ -212,7 +267,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
    * @return string
    */
   public function render_login_block( $props ) {
-    $shortcode = isset( $props['use_redirect'] ) && true === $props['use_redirect'] ? "[mepr-login-form show_logged_in='false' use_redirect='true']" : '[mepr-login-form]';
+    $shortcode = isset( $props['use_redirect'] ) && true === $props['use_redirect'] ? "[mepr-login-form use_redirect='true']" : '[mepr-login-form]';
     ob_start();
     echo do_shortcode( $shortcode );
     return ob_get_clean();
@@ -342,9 +397,74 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     return ob_get_clean();
   }
 
+  /**
+   * Renders the MP account links
+   *
+   * @param array $atts Properties/data from the block
+   *
+   * @return string
+   */
+  public function render_account_links_block(array $atts ) {
+    ob_start();
+    $mepr_options = MeprOptions::fetch();
+    if(MeprUtils::is_user_logged_in()) {
+      $account_url = $mepr_options->account_page_url();
+      $logout_url = MeprUtils::logout_url();
+      MeprView::render('/account/logged_in_widget', get_defined_vars());
+    }
+    else {
+      $login_url = MeprUtils::login_url();
+      MeprView::render('/account/logged_out_widget', get_defined_vars());
+    }
+    return ob_get_clean();
+  }
 
   /**
-   * Enqueue the necessary JS in the editor
+   * Renders the MP subscriptions
+   *
+   * @param array $atts Properties/data from the block
+   *
+   * @return string
+   */
+  public function render_subscriptions_block(array $atts ) {
+    ob_start();
+    $user = MeprUtils::get_currentuserinfo();
+    $mepr_options = MeprOptions::fetch();
+
+    $not_logged_in_message = isset( $atts['not_logged_in_message'] ) ?
+      sanitize_text_field( $atts['not_logged_in_message'] ) : '';
+    $no_subscriptions_message = isset( $atts['no_subscriptions_message'] ) ?
+      sanitize_text_field( $atts['no_subscriptions_message'] ) : '';
+    $top_desc = isset( $atts['top_description'] ) ?
+      sanitize_text_field( $atts['top_description'] ) : '';
+    $bottom_desc = isset( $atts['bottom_description'] ) ?
+      sanitize_text_field( $atts['bottom_description'] ) : '';
+    $use_access_url = isset( $atts['use_access_url'] ) &&
+    filter_var( $atts['use_access_url'], FILTER_VALIDATE_BOOLEAN ) ?
+      true : false;
+
+    MeprView::render('/account/subscriptions_widget', get_defined_vars());
+    return ob_get_clean();
+  }
+
+  /**
+   * Renders the MP account info
+   *
+   * @param array $props    Properties/data from the block
+   *
+   * @return string
+   */
+  public function render_account_info(array $props ) {
+    $shortcode = isset( $props['field'] )
+      ? '[mepr-account-info field="' . sanitize_text_field($props['field']) . '"]'
+      : '[mepr-account-info field="full_name"]';
+    ob_start();
+    echo '<p>' . do_shortcode( $shortcode ) . '</p>';
+    return ob_get_clean();
+  }
+
+  /**
+   * Enqueue the necessary scripts/styles in the editor
    *
    * @return void
    */
@@ -400,6 +520,18 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
       );
     }
 
+    // Assemble custom fields into an options array
+    $mepr_options = MeprOptions::fetch();
+    $custom_fields = array();
+    if(!empty($mepr_options->custom_fields)) {
+      foreach ( $mepr_options->custom_fields as $field ) {
+        $custom_fields[] = array(
+          'label' => $field->field_key,
+          'value' => $field->field_key,
+        );
+      }
+    }
+
     // Make the data available to the script
     wp_localize_script(
       'memberpress/blocks',
@@ -408,9 +540,12 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
         'memberships'              => $membership_options,
         'rules'                    => $rule_options,
         'groups'                   => $groups,
+        'custom_fields'            => $custom_fields,
         'redirect_url_setting_url' => menu_page_url( 'memberpress-options', false ) . '#mepr-accounts',
       )
     );
+
+    wp_enqueue_style('mp-theme', MEPR_CSS_URL . '/ui/theme.css', null, MEPR_VERSION);
 
   }
 

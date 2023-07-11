@@ -97,12 +97,12 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
       // AUTHORIZE.NET HAS DEPRECATED MD5, BUT SILENT POST IS STILL AROUND
       // WE'RE GOING TO USE SP TO CAPTURE FAILED PAYMENTS STILL
       // else if(isset($_REQUEST['x_subscription_id']) and !empty($_REQUEST['x_subscription_id'])) {
-        // $sub = MeprSubscription::get_one_by_subscr_id($_REQUEST['x_subscription_id']);
-        // if(!$sub) { return false; }
-        // return $this->record_subscription_payment();
+      // $sub = MeprSubscription::get_one_by_subscr_id($_REQUEST['x_subscription_id']);
+      // if(!$sub) { return false; }
+      // return $this->record_subscription_payment();
       // }
       // else if(strtoupper($_REQUEST['x_type']) == 'VOID' || strtoupper($_REQUEST['x_type']) == 'CREDIT')
-        // return $this->record_refund();
+      // return $this->record_refund();
 
       // Nothing applied so let's bail
       return false;
@@ -110,9 +110,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /**
-  * Webhook listener. Responds to select Auth.net webhook notifications.
-  *
-  */
+   * Webhook listener. Responds to select Auth.net webhook notifications.
+   *
+   */
   public function webhook_listener() {
     $this->email_status("Webhook Just Came In (" . $_SERVER['REQUEST_METHOD'] . "):\n" . MeprUtils::object_to_string($_REQUEST, true) . "\n", $this->settings->debug);
     require_once(__DIR__ . '/MeprAuthorizeWebhooks.php');
@@ -126,10 +126,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /**
-  * Validate the request using the MD5 hash
-  * @deprecated 1.3.49 will be removed in future release
-  * @see https://developer.authorize.net/support/hash_upgrade/
-  */
+   * Validate the request using the MD5 hash
+   * @deprecated 1.3.49 will be removed in future release
+   * @see https://developer.authorize.net/support/hash_upgrade/
+   */
   public function validate_sp_md5() {
     // $md5_input = $this->hash . $this->settings->login_name . $_REQUEST['x_trans_id'] . $_REQUEST['x_amount'];
     // $md5 = md5($md5_input);
@@ -169,8 +169,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** Used to send data to a given payment gateway. In gateways which redirect
-    * before this step is necessary -- this method should just be left blank.
-    */
+   * before this step is necessary -- this method should just be left blank.
+   */
   public function process_payment($txn) {
     $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
     $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
@@ -187,8 +187,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** Used to send data to a given payment gateway. In gateways which redirect
-    * before this step is necessary -- this method should just be left blank.
-    */
+   * before this step is necessary -- this method should just be left blank.
+   */
   public function process_single_payment($txn) {
     $mepr_options = MeprOptions::fetch();
 
@@ -247,10 +247,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** Used to record a successful recurring payment by the given gateway. It
-    * should have the ability to record a successful payment or a failure. It is
-    * this method that should be used when receiving an IPN from PayPal or a
-    * Silent Post from Authorize.net.
-    */
+   * should have the ability to record a successful payment or a failure. It is
+   * this method that should be used when receiving an IPN from PayPal or a
+   * Silent Post from Authorize.net.
+   */
   public function record_subscription_payment() {
     // Make sure there's a valid subscription for this request and this payment hasn't already been recorded
     if( !($sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field($_POST['x_subscription_id']))) or
@@ -349,10 +349,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** Used to record a successful payment by the given gateway. It should have
-    * the ability to record a successful payment or a failure. It is this method
-    * that should be used when receiving an IPN from PayPal or a Silent Post
-    * from Authorize.net.
-    */
+   * the ability to record a successful payment or a failure. It is this method
+   * that should be used when receiving an IPN from PayPal or a Silent Post
+   * from Authorize.net.
+   */
   public function record_payment()
   {
     if(isset($_POST['x_trans_id']) and !empty($_POST['x_trans_id'])) {
@@ -622,9 +622,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** Used to send subscription data to a given payment gateway. In gateways
-    * which redirect before this step is necessary this method should just be
-    * left blank.
-    */
+   * which redirect before this step is necessary this method should just be
+   * left blank.
+   */
   public function process_create_subscription($txn) {
     $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
     $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
@@ -641,10 +641,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** Used to record a successful subscription by the given gateway. It should have
-    * the ability to record a successful subscription or a failure. It is this method
-    * that should be used when receiving an IPN from PayPal or a Silent Post
-    * from Authorize.net.
-    */
+   * the ability to record a successful subscription or a failure. It is this method
+   * that should be used when receiving an IPN from PayPal or a Silent Post
+   * from Authorize.net.
+   */
   public function record_create_subscription() {
     $mepr_options = MeprOptions::fetch();
 
@@ -707,9 +707,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** Used to cancel a subscription by the given gateway. This method should be used
-    * by the class to record a successful cancellation from the gateway. This method
-    * should also be used by any IPN requests or Silent Posts.
-    */
+   * by the class to record a successful cancellation from the gateway. This method
+   * should also be used by any IPN requests or Silent Posts.
+   */
   public function process_update_subscription($sub_id) {
     $mepr_options = MeprOptions::fetch();
 
@@ -736,16 +736,16 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
                        "lastName" => $usr->last_name
                      )
                    )
-                 );
+    );
 
     if($mepr_options->show_address_fields && $mepr_options->require_address_fields) {
       $args['subscription']['billTo'] =
         array_merge($args['subscription']['billTo'],
-                    array("address" => str_replace('&', '&amp;', get_user_meta($usr->ID, 'mepr-address-one', true)),
-                          "city" => get_user_meta($usr->ID, 'mepr-address-city', true),
-                          "state" => get_user_meta($usr->ID, 'mepr-address-state', true),
-                          "zip" => get_user_meta($usr->ID, 'mepr-address-zip', true),
-                          "country" => get_user_meta($usr->ID, 'mepr-address-country', true)));
+          array("address" => str_replace('&', '&amp;', get_user_meta($usr->ID, 'mepr-address-one', true)),
+                "city" => get_user_meta($usr->ID, 'mepr-address-city', true),
+                "state" => get_user_meta($usr->ID, 'mepr-address-state', true),
+                "zip" => get_user_meta($usr->ID, 'mepr-address-zip', true),
+                "country" => get_user_meta($usr->ID, 'mepr-address-country', true)));
     }
 
     if(isset($_POST['update_zip_post_code'])) {
@@ -760,35 +760,35 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** This method should be used by the class to record a successful cancellation
-    * from the gateway. This method should also be used by any IPN requests or
-    * Silent Posts.
-    */
+   * from the gateway. This method should also be used by any IPN requests or
+   * Silent Posts.
+   */
   public function record_update_subscription() {
     // I don't think we need to do anything here
   }
 
   /** Used to suspend a subscription by the given gateway.
-    */
+   */
   public function process_suspend_subscription($sub_id) {}
 
   /** This method should be used by the class to record a successful suspension
-    * from the gateway.
-    */
+   * from the gateway.
+   */
   public function record_suspend_subscription() {}
 
   /** Used to suspend a subscription by the given gateway.
-    */
+   */
   public function process_resume_subscription($sub_id) {}
 
   /** This method should be used by the class to record a successful resuming of
-    * as subscription from the gateway.
-    */
+   * as subscription from the gateway.
+   */
   public function record_resume_subscription() {}
 
   /** Used to cancel a subscription by the given gateway. This method should be used
-    * by the class to record a successful cancellation from the gateway. This method
-    * should also be used by any IPN requests or Silent Posts.
-    */
+   * by the class to record a successful cancellation from the gateway. This method
+   * should also be used by any IPN requests or Silent Posts.
+   */
   public function process_cancel_subscription($sub_id) {
     $sub = new MeprSubscription($sub_id);
 
@@ -808,9 +808,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** This method should be used by the class to record a successful cancellation
-    * from the gateway. This method should also be used by any IPN requests or
-    * Silent Posts.
-    */
+   * from the gateway. This method should also be used by any IPN requests or
+   * Silent Posts.
+   */
   public function record_cancel_subscription() {
     $subscr_ID = (isset($_POST['subscr_ID'])) ? (int)$_POST['subscr_ID'] : null;
     $sub = new MeprSubscription($subscr_ID);
@@ -833,9 +833,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** This gets called on the 'init' hook when the signup form is processed ...
-    * this is in place so that payment solutions like paypal can redirect
-    * before any content is rendered.
-    */
+   * this is in place so that payment solutions like paypal can redirect
+   * before any content is rendered.
+   */
   public function process_signup_form($txn) {
     //if($txn->amount <= 0.00) {
     //  MeprTransaction::create_free_transaction($txn);
@@ -848,16 +848,16 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** This gets called on wp_enqueue_script and enqueues a set of
-    * scripts for use on the page containing the payment form
-    */
+   * scripts for use on the page containing the payment form
+   */
   public function enqueue_payment_form_scripts() {
     wp_enqueue_script('mepr-gateway-checkout', MEPR_JS_URL . '/gateway/checkout.js', array('mepr-checkout-js'), MEPR_VERSION);
   }
 
   /** This gets called on wp_enqueue_script and enqueues a set of
-    * scripts for use on the front end user account page.
-    * Can be overridden if custom scripts are necessary.
-    */
+   * scripts for use on the front end user account page.
+   * Can be overridden if custom scripts are necessary.
+   */
   public function enqueue_user_account_scripts() {
     if( MeprUtils::valid_url_param('action','update','GET') && // (routing) Are we on the update credit card page?
         MeprUtils::valid_url_param('sub', null, 'GET') && // (routing) Do we have a sub url parameter?
@@ -872,8 +872,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /**
-  * Returs the payment for and required fields for the gateway
-  */
+   * Returs the payment for and required fields for the gateway
+   */
   public function spc_payment_fields() {
     $payment_method = $this;
     $payment_form_action = 'mepr-authorize-net-payment-form';
@@ -882,9 +882,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   /** This spits out html for the payment form on the registration / payment
-    * page for the user to fill out for payment. If we're using an offsite
-    * payment solution like PayPal then this method will just redirect to it.
-    */
+   * page for the user to fill out for payment. If we're using an offsite
+   * payment solution like PayPal then this method will just redirect to it.
+   */
   public function display_payment_form($amount, $usr, $product_id, $txn_id) {
     $prd = new MeprProduct($product_id);
     $order_bump_product_ids = isset($_REQUEST['obs']) && is_array($_REQUEST['obs']) ? array_map('intval', $_REQUEST['obs']) : [];
@@ -937,7 +937,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
         <input type="hidden" name="mepr_process_payment_form" value="Y" />
         <input type="hidden" name="mepr_transaction_id" value="<?php echo $txn_id; ?>" />
         <?php // Authorize requires a firstname / lastname so if it's hidden on the signup form ...
-              // guess what, the user will still have to fill it out here ?>
+        // guess what, the user will still have to fill it out here ?>
         <?php if( empty($usr->first_name) or empty($usr->last_name) ): ?>
           <div class="mp-form-row">
             <label><?php _e('First Name', 'memberpress'); ?></label>
@@ -963,12 +963,12 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
           <input type="tel" class="mepr-form-input cc-number validation" pattern="\d*" autocomplete="cc-number" required />
           <input type="hidden" class="mepr-cc-num" name="mepr_cc_num"/>
           <script>
-            jQuery(document).ready(function($) {
-              $('input.cc-number').on('change blur', function (e) {
-                var num = $(this).val().replace(/ /g, '');
-                $('input.mepr-cc-num').val( num );
+              jQuery(document).ready(function($) {
+                  $('input.cc-number').on('change blur', function (e) {
+                      var num = $(this).val().replace(/ /g, '');
+                      $('input.mepr-cc-num').val( num );
+                  });
               });
-            });
           </script>
         </div>
 
@@ -984,19 +984,19 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
           <input type="hidden" class="cc-exp-year" name="mepr_cc_exp_year"/>
           <?php
           foreach ($order_bump_product_ids as $orderId) {
-          ?>
-          <input type="hidden" name="mepr_order_bumps[]" value="<?php echo intval($orderId); ?>"/>
-          <?php
+            ?>
+            <input type="hidden" name="mepr_order_bumps[]" value="<?php echo intval($orderId); ?>"/>
+            <?php
           }
           ?>
           <script>
-            jQuery(document).ready(function($) {
-              $('input.cc-exp').on('change blur', function (e) {
-                var exp = $(this).payment('cardExpiryVal');
-                $( 'input.cc-exp-month' ).val( exp.month );
-                $( 'input.cc-exp-year' ).val( exp.year );
+              jQuery(document).ready(function($) {
+                  $('input.cc-exp').on('change blur', function (e) {
+                      var exp = $(this).payment('cardExpiryVal');
+                      $( 'input.cc-exp-month' ).val( exp.month );
+                      $( 'input.cc-exp-year' ).val( exp.year );
+                  });
               });
-            });
           </script>
         </div>
 
@@ -1068,8 +1068,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
     // Authorize requires a firstname / lastname so if it's hidden on the signup form ...
     // guess what, the user will still have to fill it out here
     if(!$mepr_options->show_fname_lname &&
-        (!isset($_POST['mepr_first_name']) || empty($_POST['mepr_first_name']) ||
-         !isset($_POST['mepr_last_name']) || empty($_POST['mepr_last_name']))) {
+       (!isset($_POST['mepr_first_name']) || empty($_POST['mepr_first_name']) ||
+        !isset($_POST['mepr_last_name']) || empty($_POST['mepr_last_name']))) {
       $errors[] = __('Your first name and last name must not be blank.', 'memberpress');
     }
 
@@ -1157,7 +1157,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
       $errors[] = __("Transaction Key field cannot be blank.", 'memberpress');
 
     if(!isset($_POST[$mepr_options->integrations_str][$this->id]['signature_key']) ||
-        empty($_POST[$mepr_options->integrations_str][$this->id]['signature_key'])) {
+       empty($_POST[$mepr_options->integrations_str][$this->id]['signature_key'])) {
       $errors[] = __("Signature Key field cannot be blank.", 'memberpress');
     }
 
@@ -1200,12 +1200,12 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
             <input type="text" class="mepr-form-input cc-number validation" pattern="\d*" autocomplete="cc-number" placeholder="<?php echo MeprUtils::cc_num($last4); ?>" required />
             <input type="hidden" class="mepr-cc-num" name="update_cc_num"/>
             <script>
-              jQuery(document).ready(function($) {
-                $('input.cc-number').on('change blur', function (e) {
-                  var num = $(this).val().replace(/ /g, '');
-                  $('input.mepr-cc-num').val( num );
+                jQuery(document).ready(function($) {
+                    $('input.cc-number').on('change blur', function (e) {
+                        var num = $(this).val().replace(/ /g, '');
+                        $('input.mepr-cc-num').val( num );
+                    });
                 });
-              });
             </script>
           </div>
 
@@ -1220,13 +1220,13 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
             <input type="hidden" class="cc-exp-month" name="update_cc_exp_month"/>
             <input type="hidden" class="cc-exp-year" name="update_cc_exp_year"/>
             <script>
-              jQuery(document).ready(function($) {
-                $('input.cc-exp').on('change blur', function (e) {
-                  var exp = $(this).payment('cardExpiryVal');
-                  $( 'input.cc-exp-month' ).val( exp.month );
-                  $( 'input.cc-exp-year' ).val( exp.year );
+                jQuery(document).ready(function($) {
+                    $('input.cc-exp').on('change blur', function (e) {
+                        var exp = $(this).payment('cardExpiryVal');
+                        $( 'input.cc-exp-month' ).val( exp.month );
+                        $( 'input.cc-exp-year' ).val( exp.year );
+                    });
                 });
-              });
             </script>
           </div>
 
@@ -1382,11 +1382,11 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   protected function send_arb_request($method, $args, $http_method='post') {
     // This method automatically puts the authentication credentials in place
     $args = array_merge( array( "merchantAuthentication" => array(
-                                  "name" => $this->settings->login_name,
-                                  "transactionKey" => $this->settings->transaction_key
-                                )
-                              ),
-                         $args );
+      "name" => $this->settings->login_name,
+      "transactionKey" => $this->settings->transaction_key
+    )
+    ),
+      $args );
 
     $args = MeprHooks::apply_filters('mepr_authorize_send_arb_request_args', $args);
 
@@ -1416,7 +1416,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
       $this->email_status( "Got this from AuthorizeNet when sending an arb request \n" .
                            MeprUtils::object_to_string($answers, true) .
                            "\nSent with this XML:\n{$content}\n",
-                           $this->settings->debug );
+        $this->settings->debug );
 
       if(!empty($answers) and strtolower($answers->messages->resultCode) == 'ok')
         return $answers;

@@ -367,14 +367,18 @@ body {
 .mepr-payment-option-label.payment-option-stripe {
   background-image: url(../../images/checkout/stripe.svg);
 }
-.mepr-payment-option-label.payment-option-paypal {
+.mepr-payment-option-label.payment-option-paypal,
+.mepr-payment-option-label.payment-option-paypalcommerce {
   background-image: url(../../images/checkout/paypal.svg);
 }
+.mepr-payment-option-label.payment-option-authorizeprofile,
 .mepr-payment-option-label.payment-option-authorize {
   background-image: url(../../images/checkout/authorize.svg);
 }
-
 /* .mepr-pro-templates .mepr-checkout-container .mepr-custom-price{ */
 .mepr-pro-template .mepr-checkout-container .mepr-custom-price{
   display: none;
+}
+.mepr-pro-template .mepr-checkout-container .mepr-order-bump .mepr-custom-price{
+  display: inline;
 }

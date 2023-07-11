@@ -4,6 +4,10 @@ if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');
 class MeprDb {
   private $tables;
 
+  /**
+   * @param bool $force
+   * @return MeprDb
+   */
   public static function fetch($force = false) {
     static $mepr_db;
 

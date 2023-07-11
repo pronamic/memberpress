@@ -12,7 +12,9 @@ class MeprSubscriptionsWidget extends WP_Widget {
   }
 
   public static function register_widget() {
-    register_widget('MeprSubscriptionsWidget');
+    if(MeprHooks::apply_filters('mepr-enable-legacy-widgets', !current_theme_supports('widgets-block-editor'))) {
+      register_widget('MeprSubscriptionsWidget');
+    }
   }
 
   public function widget($args, $instance) {

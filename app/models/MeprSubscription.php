@@ -1222,7 +1222,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
         $this->prorated_trial = true;
         $this->trial          = true;
         $this->trial_days     = $r->days;
-        $this->trial_amount   = $r->proration;
+        $this->trial_amount   = MeprUtils::maybe_round_to_minimum_amount($r->proration);
 
         $prd = $this->product();
 
@@ -1411,7 +1411,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
     $this->limit_cycles_expires_type = $prd->limit_cycles_expires_type;
     $this->trial = $prd->trial;
     $this->trial_days = $prd->trial ? $prd->trial_days : 0;
-    $this->trial_amount = $prd->trial_amount;
+    $this->trial_amount = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
 
     // If trial only once is set and the member has
     // already had a trial then get rid of it
@@ -1425,10 +1425,10 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
     }
 
     if($set_subtotal) {
-      $this->set_subtotal($prd->adjusted_price());
+      $this->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($prd->adjusted_price()));
     }
     else {
-      $this->price = $prd->adjusted_price();
+      $this->price = MeprUtils::maybe_round_to_minimum_amount($prd->adjusted_price());
     }
 
     // This will only happen with a real coupon
@@ -1438,10 +1438,10 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
       // We can't do this above because we don't want to
       // screw up the price before applying the trial override
       if($set_subtotal) {
-        $this->set_subtotal($prd->adjusted_price($cpn->post_title));
+        $this->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($prd->adjusted_price($cpn->post_title)));
       }
       else {
-        $this->price = $prd->adjusted_price($cpn->post_title);
+        $this->price = MeprUtils::maybe_round_to_minimum_amount($prd->adjusted_price($cpn->post_title));
       }
     }
 
@@ -2049,7 +2049,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
     $pms = self::upgrade_attrs();
 
     foreach($pms as $slug => $default) {
-      if(preg_match("/^\{\{([^\{\}]*)\}\}$/",$default,$m)) {
+      if(is_string($default) && preg_match("/^\{\{([^\{\}]*)\}\}$/",$default,$m)) {
         $cols[$slug] = "IFNULL(pm_{$slug}.meta_value," . self::col_stmt($m[1],$pms[$m[1]]) . ')';
       }
       else {

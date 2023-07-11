@@ -184,7 +184,7 @@ if(!empty($records))
           break;
         case 'col_expires_at':
         case 'col_txn_expires_at':
-          $expire_ts = strtotime($rec->expires_at);
+          $expire_ts = is_null($rec->expires_at) ? 0 : strtotime($rec->expires_at);
           $lifetime = (MeprAppHelper::format_date($rec->expires_at, 0) == 0);
 
           $expired_class = '';

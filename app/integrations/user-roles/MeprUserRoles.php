@@ -57,6 +57,11 @@ class MeprUserRoles  {
     $wp_user = get_user_by('id', $obj->user_id);
 
     if(!$wp_user) { return; }
+
+    if( true === MeprHooks::apply_filters( 'mepr-bypass-user-roles-setup', false, $obj, $sub_status, $wp_user ) ) {
+      return; // No need to process user roles
+    }
+
     $this->set_users_roles($wp_user);
   }
 

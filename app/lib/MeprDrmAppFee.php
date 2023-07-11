@@ -141,7 +141,7 @@ class MeprDrmAppFee {
 
   public function process_subscriptions_fee( $subscriptions, $api_version, $current_percentage, $delete_metadata = false ) {
 
-    if ( empty($subscriptions) ) {
+    if ( ! is_array($subscriptions) || empty($subscriptions) ) {
       return;
     }
 

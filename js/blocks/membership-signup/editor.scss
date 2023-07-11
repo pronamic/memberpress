@@ -1,0 +1,23 @@
+.mepr-signup-form {
+  margin: 0 0 20px !important;
+
+  input[type=email],
+  input[type=number],
+  input[type=password],
+  input[type=tel],
+  input[type=text],
+  input[type=url],
+  select,
+  textarea {
+    background: #f9fafb;
+  }
+
+  input[type=submit] {
+    margin-bottom: 20px;
+    padding: 15px 30px;
+    background-color: #046bd2;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}

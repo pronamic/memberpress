@@ -18,17 +18,17 @@ class MeprGoogleCaptchaIntegration {
 
     if(gglcptch_is_recaptcha_required('memberpress_checkout')) {
       add_action('mepr-checkout-before-submit', array($this, 'add_recaptcha'));
-      add_filter('mepr-validate-signup', array($this, 'verify_recaptcha'));
+      add_filter('mepr-validate-signup', array($this, 'verify_recaptcha_checkout'));
     }
 
     if(gglcptch_is_recaptcha_required('memberpress_login')) {
       add_action('mepr-login-form-before-submit', array($this, 'add_recaptcha'));
-      add_filter('mepr-validate-login', array($this, 'verify_recaptcha'));
+      add_filter('mepr-validate-login', array($this, 'verify_recaptcha_login'));
     }
 
     if(gglcptch_is_recaptcha_required('memberpress_forgot_password')) {
       add_action('mepr-forgot-password-form', array($this, 'add_recaptcha'));
-      add_filter('mepr-validate-forgot-password', array($this, 'verify_recaptcha'));
+      add_filter('mepr-validate-forgot-password', array($this, 'verify_recaptcha_forgot_password'));
     }
   }
 
@@ -48,12 +48,28 @@ class MeprGoogleCaptchaIntegration {
     <?php
   }
 
-  public function verify_recaptcha($errors) {
-    if(wp_doing_ajax() && isset($_GET['action']) && $_GET['action'] == 'mepr_paypal_commerce_create_smart_button') {
-      return $errors;
+  public function verify_recaptcha_checkout($errors) {
+    $is_valid = apply_filters('gglcptch_verify_recaptcha', true, 'bool', 'memberpress_checkout');
+
+    if(!$is_valid) {
+      $errors[] = __('Captcha verification failed', 'memberpress');
     }
 
-    $is_valid = apply_filters('gglcptch_verify_recaptcha', true);
+    return $errors;
+  }
+
+  public function verify_recaptcha_login($errors) {
+    $is_valid = apply_filters('gglcptch_verify_recaptcha', true, 'bool', 'memberpress_login');
+
+    if(!$is_valid) {
+      $errors[] = __('Captcha verification failed', 'memberpress');
+    }
+
+    return $errors;
+  }
+
+  public function verify_recaptcha_forgot_password($errors) {
+    $is_valid = apply_filters('gglcptch_verify_recaptcha', true, 'bool', 'memberpress_forgot_password');
 
     if(!$is_valid) {
       $errors[] = __('Captcha verification failed', 'memberpress');

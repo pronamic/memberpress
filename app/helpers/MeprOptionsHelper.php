@@ -56,7 +56,7 @@ class MeprOptionsHelper {
   }
 
   public static function payment_currencies_dropdown($field_name, $payment_currency) {
-    $payment_currencies = MeprHooks::apply_filters('mepr-currency-symbols', array('$', 'US$', '£', '€', '¥', ' kr.', 'Kn', 'R$', '฿', '₹', 'zł', ' лв', ' Ft', 'Rp', 'R', '₪', '﷼', 'CHF', ' din.', ' дин.', 'KSh', 'RM', 'Rs', 'руб', '₽', 'NT$', 'Mex$', 'P', 'lei', 'JOD', '₺', 'S/.', '₱', 'د.إ', 'Kč', '₦', '₩', 'ل.د', '₫', 'ƒ', 'GH₵', 'S$', 'K', 'CFA', 'USh'));
+    $payment_currencies = MeprHooks::apply_filters('mepr-currency-symbols', array('$', 'US$', '£', '€', '¥', ' kr.', 'Kn', 'R$', '฿', '₹', 'zł', ' лв', ' Ft', 'Rp', 'R', '₪', '﷼', 'CHF', ' din.', ' дин.', 'KSh', 'RM', 'Rs', 'руб', '₽', 'NT$', 'Mex$', 'P', 'lei', 'JOD', '₺', 'S/.', '₱', 'د.إ', 'Kč', '₦', '₩', 'ل.د', '₫', 'ƒ', 'GH₵', 'S$', 'K', 'CFA', 'USh', 'AED'));
     $field_value = isset($_POST[$field_name])?$_POST[$field_name]:null;
 
     ?>
@@ -77,7 +77,7 @@ class MeprOptionsHelper {
     $field_value = isset($_POST[$field_name])?$_POST[$field_name]:null;
 
     ?>
-      <select name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" class="mepr-dropdown mepr-payment-formats-dropdown">
+      <select name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" class="mepr-dropdown mepr-payment-formats-dropdown" data-saved-currency="<?php echo esc_attr($code); ?>">
       <?php
         foreach($codes as $curr_code) {
           ?>
@@ -122,6 +122,8 @@ class MeprOptionsHelper {
           if($gateway == 'MeprPayPalProGateway') { continue; } //Don't show PayPal Pro any more to new users
 
           if($gateway == 'MeprPayPalGateway') { continue; }
+
+          if($gateway == 'MeprAuthorizeGateway') { continue; }
 
           if($gateway == 'MeprPayPalCommerceGateway') { continue; }
 

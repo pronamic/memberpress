@@ -59,6 +59,7 @@
             elements: null,
             paymentElement: null,
             paymentElementComplete: false,
+            paymentMethodType: null,
             paymentFormData: null,
             updateElementsTimeout: null,
             updatingElements: false,
@@ -112,6 +113,12 @@
         if (typeof event.complete === 'boolean') {
           paymentMethod.paymentElementComplete = event.complete;
         }
+
+        if (typeof event.value === 'object' && typeof event.value.type === 'string') {
+          paymentMethod.paymentMethodType = event.value.type;
+        } else {
+          paymentMethod.paymentMethodType = null;
+        }
       });
 
       paymentMethod.paymentElement.mount(paymentMethod.$cardElement[0]);
@@ -153,46 +160,41 @@
   };
 
   /**
-   * Get the form data that, when changed, will cause the payment element to be recreated
+   * Get the form data that, when changed, will cause the payment element to be updated
    *
-   * We only need to recreate the payment element when the price or tax amounts change, so we'll keep track of these
-   * values so that we only recreate it when necessary.
+   * We only need to update the payment element when the price or tax amounts change, so we'll keep track of these
+   * values so that we only update it when necessary.
    *
    * @param   {object} paymentMethod
    * @returns {string}
    */
   MeprStripeForm.prototype.getPaymentFormData = function (paymentMethod) {
     var $coupon = this.$form.find('input[name="mepr_coupon_code"]'),
+        billingDetails = this.getBillingDetails(paymentMethod),
+        $vatNumber = this.$form.find('input[name="mepr_vat_number"]'),
+        $giftCheckbox = this.$form.find('input[name="mpgft-signup-gift-checkbox"]'),
         data = [];
 
     if ($coupon.length) {
       data.push($coupon.val());
     }
 
-    if(MeprStripeGateway.taxes_enabled) {
-      var billing_details = this.getBillingDetails(paymentMethod);
+    $.each(billingDetails.address, function (key, value) {
+      data.push(value);
+    });
 
-      $.each(billing_details.address, function (key, value) {
-        data.push(value);
-      });
-
-      var $vatNumber = this.$form.find('input[name="mepr_vat_number"]');
-
-      if ($vatNumber.length && this.$form.find('input[name="mepr_vat_customer_type"]:checked').val() === 'business') {
-        data.push($vatNumber.val());
-      }
+    if ($vatNumber.length && this.$form.find('input[name="mepr_vat_customer_type"]:checked').val() === 'business') {
+      data.push($vatNumber.val());
     }
 
-    var $giftCheckbox = this.$form.find('input[name="mpgft-signup-gift-checkbox"]');
-
-    if($giftCheckbox.length && $giftCheckbox.is(':checked')) {
+    if ($giftCheckbox.length && $giftCheckbox.is(':checked')) {
       data.push('gift');
     }
 
     this.$orderBumps.each(function (i, orderBump) {
       var $orderBump = $(orderBump);
 
-      if($orderBump.is(':checked')) {
+      if ($orderBump.is(':checked')) {
         data.push($orderBump.val());
       }
     });
@@ -322,6 +324,10 @@
    * @param {jQuery.Event} e
    */
   MeprStripeForm.prototype.handleSubmit = function (e) {
+    if (e.result === false) {
+      return;
+    }
+
     var self = this;
 
     e.preventDefault();
@@ -374,9 +380,13 @@
           )
       ) {
         self.redirectToStripeCheckout();
+
         return;
       }
-      self.form.submit();
+
+      if (!self.$form.find('[data-merp-gateway-async]').is(':visible')) {
+        self.form.submit();
+      }
     }
   };
 
@@ -583,17 +593,32 @@
   MeprStripeForm.prototype.handleAction = async function (action, clientSecret, returnUrl) {
     var self = this,
         stripe = self.selectedPaymentMethod.stripe,
-        elements = self.selectedPaymentMethod.elements;
+        elements = self.selectedPaymentMethod.elements,
+        billingDetails = self.getBillingDetails(self.selectedPaymentMethod),
+        confirmParams = {
+          return_url: returnUrl,
+          payment_method_data: {
+            billing_details: billingDetails
+          }
+        };
+
+    if (self.selectedPaymentMethod.paymentMethodType === 'affirm') {
+      // Affirm seems to have issues if the billing address is provided
+      delete confirmParams.payment_method_data;
+    }
+
+    if (self.selectedPaymentMethod.paymentMethodType === 'afterpay_clearpay') {
+      // Afterpay/Clearpay require a shipping address
+      confirmParams.shipping = {
+        name: billingDetails.name || '',
+        address: billingDetails.address
+      };
+    }
 
     const { error } = await stripe[action]({
       elements: elements,
       clientSecret: clientSecret,
-      confirmParams: {
-        return_url: returnUrl,
-        payment_method_data: {
-          billing_details: self.getBillingDetails(self.selectedPaymentMethod)
-        }
-      }
+      confirmParams: confirmParams
     });
 
     if(error) {
@@ -602,7 +627,7 @@
   };
 
   /**
-   * Create stripe checkout page session then redirect user o checkout.stripe.com
+   * Create stripe checkout page session then redirect user to checkout.stripe.com
    */
   MeprStripeForm.prototype.redirectToStripeCheckout = function() {
     var self = this,

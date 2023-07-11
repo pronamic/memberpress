@@ -15,22 +15,53 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
         <th scope="row"><label for="<?php echo $test_mode_str; ?>"><?php _e('Test Mode', 'memberpress'); ?></label></th>
         <td><input class="mepr-stripe-testmode" data-integration="<?php echo $id; ?>" type="checkbox" name="<?php echo $test_mode_str; ?>"<?php echo checked($test_mode); ?> <?php disabled((defined('MEMBERPRESS_STRIPE_TESTING') && MEMBERPRESS_STRIPE_TESTING == true));?> /></td>
       </tr>
-      <?php if($currency_supports_link) : ?>
+      <?php if(count($payment_methods)) : ?>
         <tr valign="top">
-          <th scope="row" class="stripe-checkbox-column-left">
-            <label for="<?php echo $stripe_link_enabled_str ?>"><?php _e('Enable <a href="https://link.co/" target="_blank">Link</a> (recommended)', 'memberpress'); ?>
-              <?php
-                MeprAppHelper::info_tooltip(
-                  'mepr-stripe-link-info',
-                  __('Stripe Link Considerations', 'memberpress'),
-                  __('If the buyer is not already using Link, they will see a message to save their data for future use. This information is stored by Stripe and not MemberPress.<br /><br/>Buyers can un-enroll from link at anytime on the Link.co website.<br /><br/>For more information, see our help documentation or Stripe\'s Link FAQ.', 'memberpress')
-                );
-              ?>
-             </label>
+          <th colspan="2">
+            <div x-data="{ open: false }" class="mepr-stripe-customize-payment-methods">
+              <button x-on:click="open = true" type="button" class="button button-secondary"><?php esc_html_e('Customize Payment Methods', 'memberpress'); ?></button>
+              <div x-show="open" class="mepr_modal" role="dialog" aria-modal="true" x-cloak>
+                <div class="mepr_modal__overlay"></div>
+                <div class="mepr_modal__content_wrapper">
+                  <div class="mepr_modal__content">
+                    <div class="mepr_modal__box" @click.away="open = false">
+                      <button x-on:click="open = false" type="button" class="mepr_modal__close">&#x2715;</button>
+                      <div>
+                        <h3><?php esc_html_e('Customize Payment Methods', 'memberpress'); ?></h3>
+                        <div class="notice notice-info inline mepr-hidden mepr-stripe-currency-changed-notice">
+                          <p><?php esc_html_e('The configured currency has changed, please save the options to change the payment methods.', 'memberpress'); ?></p>
+                        </div>
+                        <div class="mepr-stripe-payment-methods">
+                          <p>
+                            <?php
+                              printf(
+                                /* translators: %1$s: open link tag, %2$s: close link tag */
+                                esc_html__('Some of these payment methods have limitations. %1$sClick here%2$s to learn more.', 'memberpress'),
+                                '<a href="https://docs.memberpress.com/article/35-stripe" target="_blank">',
+                                '</a>'
+                              );
+                            ?>
+                          </p>
+                          <?php foreach($payment_methods as $key => $payment_method) : ?>
+                            <div class="mepr-stripe-payment-method">
+                              <label class="switch">
+                                <input type="checkbox" id="<?php echo esc_attr(sanitize_key("$payment_methods_str-{$payment_method['key']}")); ?>" class="mepr-stripe-payment-method-checkbox" name="<?php echo esc_attr($payment_methods_str); ?>[]" value="<?php echo esc_attr($payment_method['key']); ?>" <?php checked(in_array($payment_method['key'], $enabled_payment_methods, true)); ?>>
+                                <span class="slider round"></span>
+                              </label>
+                              <label for="<?php echo esc_attr(sanitize_key("$payment_methods_str-{$payment_method['key']}")); ?>"><?php echo esc_html($payment_method['name']); ?></label>
+                            </div>
+                          <?php endforeach; ?>
+                        </div>
+                        <div class="mepr-update-stripe-payment-methods">
+                          <button class="mepr_modal__button button button-primary"><?php echo esc_html_x( 'Update', 'ui', 'memberpress' ); ?></button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </th>
-          <td class="stripe-checkbox-column-right">
-              <input class="mepr-stripe-no-link" data-integration="<?php echo $id; ?>" type="checkbox" name="<?php echo $stripe_link_enabled_str; ?>"<?php echo checked($stripe_link_enabled); ?> />
-          </td>
         </tr>
       <?php endif; ?>
     <?php endif; ?>

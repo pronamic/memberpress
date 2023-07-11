@@ -2426,4 +2426,44 @@ class MeprUtils {
         return true;
     }
   }
+
+  /**
+   * Returns the minimum charge amount for the currently configured currency, or false if there is no minimum.
+   *
+   * We are aligning with the Stripe minimum charge amounts from:
+   * https://stripe.com/docs/currencies#minimum-and-maximum-charge-amounts
+   *
+   * @return float|int|false
+   */
+  public static function get_minimum_amount() {
+    static $minimum_amount;
+
+    if($minimum_amount === null) {
+      $mepr_options = MeprOptions::fetch();
+      $currency_code = strtoupper(MeprHooks::apply_filters('mepr_minimum_charge_currency', $mepr_options->currency_code));
+
+      $minimums = require MEPR_DATA_PATH . '/minimum_charge_amounts.php';
+      $minimum_amount = isset($minimums[$currency_code]) ? $minimums[$currency_code] : false;
+    }
+
+    return $minimum_amount;
+  }
+
+  /**
+   * Returns the minimum amount if the given amount is above zero and below the minimum charge amount.
+   *
+   * @param string|float|int $amount
+   * @return string|float|int
+   */
+  public static function maybe_round_to_minimum_amount($amount) {
+    if($amount > 0) {
+      $minimum_amount = self::get_minimum_amount();
+
+      if($minimum_amount && $amount < $minimum_amount) {
+        $amount = $minimum_amount;
+      }
+    }
+
+    return $amount;
+  }
 } // End class

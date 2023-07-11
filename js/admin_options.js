@@ -775,4 +775,87 @@ jQuery(document).ready(function($) {
       $('#mepr_show_negative_tax_on_invoice_section').hide();
     }
   });
+
+  $('#mepr-currency-code').on('change', function () {
+    var $currency = $(this);
+
+    if($currency.val() !== $currency.data('saved-currency')) {
+      $('.mepr-stripe-customize-payment-methods').each(function () {
+        var $container = $(this);
+
+        $container.find('.mepr-stripe-currency-changed-notice').show();
+        $container.find('.mepr-stripe-payment-methods').hide().find('input[type="checkbox"]').prop('checked', false);
+        $container.find('.mepr-update-stripe-payment-methods').hide();
+      });
+    }
+  });
+
+  var validating_payment_method = false;
+
+  $('.mepr-stripe-payment-method-checkbox').on('click', function (e) {
+    var $checkbox = $(this),
+        $integration,
+        payment_method_types = [],
+        $heading,
+        $button,
+        original_button_html;
+
+    if(!$checkbox.is(':checked') || validating_payment_method) {
+      return; // Do nothing if unchecking, or if we're already validating
+    }
+
+    validating_payment_method = true;
+    $integration = $checkbox.closest('.mepr-integration');
+    $heading = $integration.find('.mepr_modal__content h3');
+    $button = $integration.find('.mepr-update-stripe-payment-methods button');
+    original_button_html = $button.html();
+
+    $integration.find('.mepr-stripe-payment-method-checkbox').each(function () {
+      if ($(this).is(':checked')) {
+        payment_method_types.push($(this).val());
+      }
+    });
+
+    e.preventDefault();
+    $button.width($button.width()).html('<i class="mp-icon mp-icon-spinner animate-spin" aria-hidden="true"></i>').prop('disabled', true);
+    $integration.find('.mepr-stripe-payment-method-checkbox:not(:checked)').add($checkbox).prop('disabled', true);
+    $integration.find('.mepr_modal__content .notice-error').remove();
+
+    $.ajax({
+      url: ajaxurl,
+      method: 'POST',
+      dataType: 'json',
+      data: {
+        action: 'mepr_validate_stripe_payment_method_types',
+        gateway_id: $integration.data('id'),
+        payment_method_types: payment_method_types,
+        _ajax_nonce: MeprOptions.validate_stripe_payment_methods_nonce
+      }
+    })
+    .done(function (response) {
+      if (response && typeof response == 'object' && typeof response.success === 'boolean') {
+        if (response.success) {
+          $checkbox.prop('checked', true);
+        } else {
+          onError(response.data);
+        }
+      }
+    })
+    .fail(function () {
+      onError('Request failed');
+    })
+    .always(function () {
+      $integration.find('.mepr-stripe-payment-method-checkbox:not(:checked)').add($checkbox).prop('disabled', false);
+      validating_payment_method = false;
+      $button.html(original_button_html).width('auto').prop('disabled', false);
+    });
+
+    function onError (message) {
+      $heading.after(
+        $('<div class="notice notice-error">').append(
+          $('<p>').html(message)
+        )
+      );
+    }
+  });
 });

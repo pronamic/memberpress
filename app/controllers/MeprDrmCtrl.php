@@ -330,6 +330,7 @@ class MeprDrmCtrl extends MeprBaseCtrl {
       return; // bail.
     }
 
+    $meprdrm = new MeprDrmAppFee();
     $api_version = MeprDrmHelper::get_drm_app_fee_version();
     $current_percentage = MeprDrmHelper::get_application_fee_percentage();
     $subscriptions = $meprdrm->get_all_active_subs(array('mepr_app_fee_applied' => MeprDrmHelper::get_drm_app_fee_version()));
