@@ -1124,7 +1124,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
     $debug        = ($this->settings->debug == 'on' or $this->settings->debug == true);
 
     ?>
-    <?php if ( ! empty( $paypal_email ) && class_exists( 'MeprPayPalCommerceGateway' ) ) { ?>
+    <?php //if ( class_exists( 'MeprPayPalCommerceGateway' ) ) { ?>
       <!--<div class="mepr-paypal-standard-upgrade-box"><img width="200px"
                                                          src="<?php /*echo MEPR_IMAGES_URL . '/PayPal_with_Tagline.svg'; */?>"
                                                          alt="PayPal logo"/>
@@ -1181,7 +1181,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
     </table>
 
     <?php
-      }
+      //}
   }
 
   /** Validates the form for the given payment gateway on the MemberPress Options page */
