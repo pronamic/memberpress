@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.11.8\n"
+"Project-Id-Version: MemberPress 1.11.9\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-07-11T09:05:25-06:00\n"
+"POT-Creation-Date: 2023-07-12T11:36:22-06:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: memberpress\n"
@@ -5969,7 +5969,7 @@ msgstr ""
 #: app/views/account/home.php:27
 #: app/views/checkout/form.php:43
 #: app/views/checkout/spc_form.php:44
-#: app/views/pro-templates/account/home.php:125
+#: app/views/pro-templates/account/home.php:128
 #: app/views/pro-templates/checkout/form.php:70
 msgctxt "ui"
 msgid "First Name:"
@@ -5978,7 +5978,7 @@ msgstr ""
 #: app/views/account/home.php:28
 #: app/views/checkout/form.php:44
 #: app/views/checkout/spc_form.php:45
-#: app/views/pro-templates/account/home.php:129
+#: app/views/pro-templates/account/home.php:132
 #: app/views/pro-templates/checkout/form.php:74
 msgctxt "ui"
 msgid "First Name Required"
@@ -5987,7 +5987,7 @@ msgstr ""
 #: app/views/account/home.php:34
 #: app/views/checkout/form.php:50
 #: app/views/checkout/spc_form.php:51
-#: app/views/pro-templates/account/home.php:137
+#: app/views/pro-templates/account/home.php:140
 #: app/views/pro-templates/checkout/form.php:82
 msgctxt "ui"
 msgid "Last Name:"
@@ -5996,7 +5996,7 @@ msgstr ""
 #: app/views/account/home.php:35
 #: app/views/checkout/form.php:51
 #: app/views/checkout/spc_form.php:52
-#: app/views/pro-templates/account/home.php:141
+#: app/views/pro-templates/account/home.php:144
 #: app/views/pro-templates/checkout/form.php:86
 msgctxt "ui"
 msgid "Last Name Required"
@@ -6005,7 +6005,7 @@ msgstr ""
 #: app/views/account/home.php:45
 #: app/views/checkout/form.php:86
 #: app/views/checkout/spc_form.php:87
-#: app/views/pro-templates/account/home.php:151
+#: app/views/pro-templates/account/home.php:154
 #: app/views/pro-templates/checkout/form.php:135
 msgctxt "ui"
 msgid "Email:*"
@@ -6014,7 +6014,7 @@ msgstr ""
 #: app/views/account/home.php:46
 #: app/views/checkout/form.php:87
 #: app/views/checkout/spc_form.php:88
-#: app/views/pro-templates/account/home.php:152
+#: app/views/pro-templates/account/home.php:155
 #: app/views/pro-templates/checkout/form.php:136
 msgctxt "ui"
 msgid "Invalid Email"
@@ -6026,7 +6026,7 @@ msgid "Save Profile"
 msgstr ""
 
 #: app/views/account/home.php:65
-#: app/views/pro-templates/account/home.php:57
+#: app/views/pro-templates/account/home.php:60
 msgctxt "ui"
 msgid "Change Password"
 msgstr ""
@@ -10878,7 +10878,7 @@ msgstr ""
 #: app/views/emails/admin_sub_renews_reminder.php:14
 #: app/views/emails/admin_suspended_sub.php:9
 #: app/views/emails/admin_upgraded_sub.php:9
-#: app/views/pro-templates/account/home.php:108
+#: app/views/pro-templates/account/home.php:111
 #: app/views/pro-templates/checkout/form.php:47
 msgctxt "ui"
 msgid "Name:"
@@ -11744,57 +11744,57 @@ msgctxt "ui"
 msgid "My Courses"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:7
+#: app/views/pro-templates/account/home.php:8
 msgctxt "ui"
 msgid "Profile"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:20
+#: app/views/pro-templates/account/home.php:23
 msgctxt "ui"
 msgid "Name"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:29
+#: app/views/pro-templates/account/home.php:32
 #: app/views/pro-templates/account/payments.php:20
 #: app/views/pro-templates/account/payments.php:61
 msgctxt "ui"
 msgid "Email"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:39
+#: app/views/pro-templates/account/home.php:42
 msgctxt "ui"
 msgid "Billing Address"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:55
+#: app/views/pro-templates/account/home.php:58
 msgctxt "ui"
 msgid "View Payments"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:56
+#: app/views/pro-templates/account/home.php:59
 msgctxt "ui"
 msgid "View Subscriptions"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:114
+#: app/views/pro-templates/account/home.php:117
 #: app/views/pro-templates/checkout/form.php:54
 msgctxt "ui"
 msgid "First Name"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:117
+#: app/views/pro-templates/account/home.php:120
 #: app/views/pro-templates/checkout/form.php:60
 msgctxt "ui"
 msgid "Last Name"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:158
-#: app/views/pro-templates/account/home.php:164
+#: app/views/pro-templates/account/home.php:161
+#: app/views/pro-templates/account/home.php:167
 msgctxt "ui"
 msgid "Change your billing address:*"
 msgstr ""
 
-#: app/views/pro-templates/account/home.php:177
+#: app/views/pro-templates/account/home.php:180
 msgctxt "ui"
 msgid "Save Changes"
 msgstr ""

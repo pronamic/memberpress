@@ -1,16 +1,19 @@
 <?php
 $address_values = isset($address_values) ? $address_values : array();
 $show_welcome_image = isset( $atts['show_welcome_image'] ) ? $atts['show_welcome_image'] : $mepr_options->design_show_account_welcome_image;
-$welcome_image      = isset( $atts['welcome_image'] ) ? $atts['welcome_image'] : wp_get_attachment_url( $mepr_options->design_account_welcome_img );
+$welcome_image = isset( $atts['welcome_image'] ) ? $atts['welcome_image'] : wp_get_attachment_url( $mepr_options->design_account_welcome_img );
+$user_message = MeprHooks::apply_filters( 'mepr-user-message', wpautop( do_shortcode( trim( $mepr_current_user->user_message ) ) ), $mepr_current_user );
 ?>
 
 <h1 class="mepr_page_header"><?php echo esc_html_x( 'Profile', 'ui', 'memberpress' ); ?></h1>
 
 <div class="mepr-account-message mepr-account-welcome-message <?php echo $welcome_image ? 'has-welcome-image'  : ''  ?>"><?php echo $welcome_message ?></div>
 
-<div class="mepr-account-message mepr-account-user-message">
-  <?php echo MeprHooks::apply_filters( 'mepr-user-message', wpautop( do_shortcode( $mepr_current_user->user_message ) ), $mepr_current_user ); ?>
-</div>
+<?php if(!empty($user_message)): ?>
+  <div class="mepr-account-message mepr-account-user-message">
+    <?php echo $user_message; ?>
+  </div>
+<?php endif; ?>
 
 <div class="mepr-profile-wrapper">
   <div id="mepr-profile-details">

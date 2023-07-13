@@ -9,7 +9,7 @@ class MeprAuthorizeWebhooks {
   /** @var MeprArtificialAuthorizeNetProfileHttpClient $authorize_api */
   private $authorize_api;
 
-  public function __construct($gateway_settings, $authorize_api) {
+  public function __construct($gateway_settings, $authorize_api = null) {
     $this->gateway_settings = $gateway_settings;
     // This allows me to pass in a mock API for tests.
     $this->authorize_api = $authorize_api;
