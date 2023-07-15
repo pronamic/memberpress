@@ -6,13 +6,13 @@ require_once(__DIR__ . '/../jobs/MeprAuthorizeRetryJob.php');
 
 class MeprAuthorizeWebhooks {
   private $gateway_settings;
-  /** @var MeprArtificialAuthorizeNetProfileHttpClient $authorize_api */
+  /** @var MeprAuthorizeAPI|MeprArtificialAuthorizeNetProfileHttpClient $authorize_api */
   private $authorize_api;
 
   public function __construct($gateway_settings, $authorize_api = null) {
     $this->gateway_settings = $gateway_settings;
     // This allows me to pass in a mock API for tests.
-    $this->authorize_api = $authorize_api;
+    $this->authorize_api = isset($authorize_api) ? $authorize_api : new MeprAuthorizeAPI($gateway_settings);
   }
 
   /**
@@ -28,7 +28,7 @@ class MeprAuthorizeWebhooks {
       $request_json = json_decode($request_body);
       if($request_json && preg_match('/^net.authorize.payment/', $request_json->eventType)) {
         MeprUtils::debug_log('Authorize.net Valid eventType');
-        $auth_transaction = $this->authorize_api->getTransactionDetails($request_json->payload->id);
+        $auth_transaction = $this->authorize_api->get_transaction_details($request_json->payload->id);
         if($auth_transaction && $auth_transaction !== '') {
           MeprUtils::debug_log('Authorize.net auth_transaction: ' . MeprUtils::object_to_string($auth_transaction));
           switch($request_json->eventType) {

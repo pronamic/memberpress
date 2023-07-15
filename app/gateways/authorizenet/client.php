@@ -469,6 +469,13 @@ class MeprArtificialAuthorizeNetProfileHttpClient {
     return @json_decode( json_encode( (array) $response ), true );
   }
 
+  /*
+   * Alias to getTransactionDetails
+   */
+  public function get_transaction_details($transactionId) {
+    return $this->getTransactionDetails($transactionId);
+  }
+
   public function getTransactionDetails( $transactionId ) {
     $xml = '
 <getTransactionDetailsRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
