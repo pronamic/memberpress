@@ -18,17 +18,23 @@ class MeprGoogleCaptchaIntegration {
 
     if(gglcptch_is_recaptcha_required('memberpress_checkout')) {
       add_action('mepr-checkout-before-submit', array($this, 'add_recaptcha'));
-      add_filter('mepr-validate-signup', array($this, 'verify_recaptcha_checkout'));
+      if(!function_exists('gglcptch_memberpress_checkout_check')) {
+        add_filter('mepr-validate-signup', array($this, 'verify_recaptcha_checkout'));
+      }
     }
 
     if(gglcptch_is_recaptcha_required('memberpress_login')) {
       add_action('mepr-login-form-before-submit', array($this, 'add_recaptcha'));
-      add_filter('mepr-validate-login', array($this, 'verify_recaptcha_login'));
+      if(!function_exists('gglcptch_memberpress_login_check')) {
+        add_filter('mepr-validate-login', array($this, 'verify_recaptcha_login'));
+      }
     }
 
     if(gglcptch_is_recaptcha_required('memberpress_forgot_password')) {
       add_action('mepr-forgot-password-form', array($this, 'add_recaptcha'));
-      add_filter('mepr-validate-forgot-password', array($this, 'verify_recaptcha_forgot_password'));
+      if(!function_exists('gglcptch_memberpress_forgot_password_check')) {
+        add_filter('mepr-validate-forgot-password', array($this, 'verify_recaptcha_forgot_password'));
+      }
     }
   }
 
