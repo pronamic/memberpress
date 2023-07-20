@@ -31,6 +31,7 @@
     this.$textFields.add(this.$form.find('input[name="mepr_coupon_code"]')).on('blur', $.proxy(this.maybeUpdateElements, this));
     this.$selectFields.on('change', $.proxy(this.maybeUpdateElements, this));
     this.$orderBumps.on('change', $.proxy(this.maybeUpdateElements, this));
+    this.$form.find('input[name="mpgft-signup-gift-checkbox"]').on('change', $.proxy(this.maybeUpdateElements, this));
   }
 
   /**

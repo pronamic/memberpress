@@ -101,7 +101,7 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
   [
     'key' => 'afterpay_clearpay',
     'name' => 'Afterpay and Clearpay',
-    'currencies' => ['AUD', 'CAD', 'NZD', 'GBP', 'USD', 'EUR'],
+    'currencies' => ['AUD', 'CAD', 'NZD', 'GBP', 'USD'],
     'capabilities' => ['payment_intents'],
   ],
   [

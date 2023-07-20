@@ -535,7 +535,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
   }
 
   public function is_one_time_payment() {
-    return ($this->period_type == 'lifetime' || $this->price == 0.00);
+    return MeprHooks::apply_filters('mepr_product_is_one_time_payment', $this->period_type == 'lifetime' || $this->price == 0.00);
   }
 
   //Just for checking if the membership type is a renewable type
