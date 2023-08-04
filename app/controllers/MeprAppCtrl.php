@@ -431,11 +431,9 @@ class MeprAppCtrl extends MeprBaseCtrl {
    */
   public static function admin_menu_order($menu_order)
   {
-    if(!$menu_order)
-      return true;
-
-    if(!is_array($menu_order))
+    if(!$menu_order) {
       return $menu_order;
+    }
 
     // Initialize our custom order array
     $new_menu_order = array();

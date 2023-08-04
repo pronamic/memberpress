@@ -190,6 +190,14 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
       array(
         'api_version' => 2,
         'attributes' => array(
+          'order_by' => array(
+            'type' => 'string',
+            'default' => ''
+          ),
+          'order' => array(
+            'type' => 'string',
+            'default' => ''
+          ),
           'not_logged_in_message' => array(
             'type' => 'string',
             'default' => __('You are not logged in.', 'memberpress')
@@ -431,6 +439,10 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     $user = MeprUtils::get_currentuserinfo();
     $mepr_options = MeprOptions::fetch();
 
+    $order_by = isset( $atts['order_by'] ) ?
+      sanitize_text_field( $atts['order_by'] ) : '';
+    $order = isset( $atts['order'] ) ?
+      sanitize_text_field( $atts['order'] ) : '';
     $not_logged_in_message = isset( $atts['not_logged_in_message'] ) ?
       sanitize_text_field( $atts['not_logged_in_message'] ) : '';
     $no_subscriptions_message = isset( $atts['no_subscriptions_message'] ) ?

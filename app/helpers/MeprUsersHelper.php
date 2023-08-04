@@ -84,7 +84,11 @@ class MeprUsersHelper {
     $array_types = array( 'multiselect', 'checkboxes' ); //If we update this, we need make sure it doesn't break the {$usermeta:slug} stuff in MeprTransactionsHelper
     $bool_types  = array( 'checkbox' );
     $classes = MeprHooks::apply_filters('mepr-custom-field-classes', $classes, $line);
-    $placeholder_attr = isset($line->placeholder) ? 'placeholder="'. $line->placeholder .'"' : '';
+    if(isset($line->placeholder)) {
+      $placeholder_attr = (isset($line->required) && $line->required) ? 'placeholder="'. $line->placeholder .'*"' : 'placeholder="'. $line->placeholder .'"';
+    } else {
+      $placeholder_attr = '';
+    }
 
     $required_attr = $placeholder_attr .' '. $required_attr;
 

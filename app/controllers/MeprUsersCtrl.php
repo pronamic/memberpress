@@ -604,6 +604,7 @@ class MeprUsersCtrl extends MeprBaseCtrl {
 
     foreach($all_ids as $id) {
       $prd = new MeprProduct($id);
+      $created_at = MeprUser::get_user_product_signup_date($user->ID, $id);
 
       if(in_array($id, $active_ids) && $status !== 'expired') {
         $expiring_txn = MeprUser::get_user_product_expires_at_date($user->ID, $id, true);
@@ -615,10 +616,62 @@ class MeprUsersCtrl extends MeprBaseCtrl {
           $expires_at = MeprAppHelper::format_date($expiring_txn->expires_at, _x('Never', 'ui', 'memberpress'));
         }
 
-        $active_rows[] = (object)array('membership' => $prd->post_title, 'expires' => $expires_at, 'renewal_link' => $renewal_link, 'access_url' => $prd->access_url);
+        $active_rows[] = (object)array('membership' => $prd->post_title, 'expires' => $expires_at, 'renewal_link' => $renewal_link, 'access_url' => $prd->access_url, 'created_at' => $created_at);
       }
       elseif(!in_array($id, $active_ids) && in_array($status, array('expired', 'all'))) {
-        $inactive_rows[] = (object)array('membership' => $prd->post_title, 'purchase_link' => $prd->url());
+        $inactive_rows[] = (object)array('membership' => $prd->post_title, 'purchase_link' => $prd->url(), 'created_at' => $created_at);
+      }
+    }
+
+    // Sorting active subs
+    if(!empty($active_rows) && isset($atts['orderby']) && in_array($atts['orderby'], array('date', 'title'))) {
+      if($atts['orderby'] == 'date') {
+        if($atts['order'] == 'asc') {
+          usort($active_rows, function ($a, $b) {
+            return $a->created_at <=> $b->created_at;
+          });
+        } else {
+          usort($active_rows, function ($a, $b) {
+            return $b->created_at <=> $a->created_at;
+          });
+        }
+      }
+      if($atts['orderby'] == 'title') {
+        if($atts['order'] == 'desc') {
+          usort($active_rows, function ($a, $b) {
+            return $b->membership <=> $a->membership;
+          });
+        } else {
+          usort($active_rows, function ($a, $b) {
+            return $a->membership <=> $b->membership;
+          });
+        }
+      }
+    }
+
+    // Sorting inactive subs
+    if (!empty($inactive_rows) && isset($atts['orderby']) && in_array($atts['orderby'], array('date', 'title'))) {
+      if($atts['orderby'] == 'date') {
+        if($atts['order'] == 'asc') {
+          usort($inactive_rows, function ($a, $b) {
+            return $a->created_at <=> $b->created_at;
+          });
+        } else {
+          usort($inactive_rows, function ($a, $b) {
+            return $b->created_at <=> $a->created_at;
+          });
+        }
+      }
+      if($atts['orderby'] == 'title') {
+        if($atts['order'] == 'desc') {
+          usort($inactive_rows, function ($a, $b) {
+            return $b->membership <=> $a->membership;
+          });
+        } else {
+          usort($inactive_rows, function ($a, $b) {
+            return $a->membership <=> $b->membership;
+          });
+        }
       }
     }
 

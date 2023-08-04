@@ -61,6 +61,8 @@
             <a class="profile-menu__dropdown-item dropdown__item"
               href="<?php echo esc_url( $account_url ); ?>"><?php _ex( 'Account', 'ui', 'memberpress' ); ?></a>
             <a class="profile-menu__dropdown-item dropdown__item"
+              href="<?php echo esc_url( $change_password_url ); ?>"><?php echo _ex( 'Change Password', 'ui', 'memberpress' ); ?></a>
+            <a class="profile-menu__dropdown-item dropdown__item"
               href="<?php echo esc_url( $logout_url ); ?>"><?php _ex( 'Logout', 'ui', 'memberpress' ); ?></a>
           </div>
 

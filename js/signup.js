@@ -50,6 +50,7 @@
 
         if($(obj).val().match(/(\s|\S)/)) {
           $(obj).prev('.mp-form-label').find('.mepr-coupon-loader').fadeIn();
+          $(obj).data('validating', true);
 
           var data = {
             action: 'mepr_validate_coupon',
@@ -64,6 +65,13 @@
             mpToggleFieldValidation($(obj), (res.toString() == 'true'));
 
             if(res.toString() == 'true') {
+              if($(obj).data('submit-when-valid')) {
+                $(obj).removeData('submit-when-valid');
+
+                form.one('meprAfterPriceStringUpdated', function () {
+                  form.find('.mepr-submit').trigger('click');
+                });
+              }
 
               // Let's update price string
               meprUpdatePriceTerms(form);
@@ -76,7 +84,9 @@
               // Invalid Coupon - update SPC Invoice
               meprUpdatePriceTerms(form);
             }
-
+          })
+          .always(function () {
+            $(obj).removeData('validating');
           });
         }
         else if($(obj).val().trim() === '') {
@@ -220,7 +230,12 @@
       e.preventDefault();
 
       var form = $(this).closest('.mepr-signup-form');
-      var button = $(this);
+      var coupon = form.find('.mepr-coupon-code');
+
+      if(coupon.data('validating')) {
+        coupon.data('submit-when-valid', true);
+        return;
+      }
 
       $.each(form.find('.mepr-form-input:visible'), function(i,obj) {
         meprValidateInput(obj, true);

@@ -11,7 +11,39 @@
     <div class="mepr-subscriptions-widget-no-sub mepr-widget-error"><?php echo $no_subscriptions_message; ?></div>
   <?php
   } else {
-    $prev_dups = array(); ?>
+    $prev_dups = array();
+
+    if(!empty($order_by)) {
+      $subs_sorted = array();
+      foreach($subs as $prd) {
+        if($order_by == 'date') {
+          $created_at = MeprUser::get_user_product_signup_date($user->ID, $prd->ID);
+          $subs_sorted[$prd->ID] = $created_at;
+        } elseif ($order_by == 'title') {
+          $subs_sorted[$prd->ID] = $prd->post_title;
+        }
+      }
+      if($order_by == 'date') {
+        if($order == 'asc') {
+          asort($subs_sorted);
+        } else {
+          arsort($subs_sorted);
+        }
+      } elseif($order_by == 'title') {
+        if($order == 'desc') {
+          arsort($subs_sorted);
+        } else {
+          asort($subs_sorted);
+        }
+      }
+      $subs_sorted = array_keys($subs_sorted);
+
+      $subs = array();
+      foreach($subs_sorted as $sub) {
+        $subs[] = new MeprProduct($sub);
+      }
+    }
+    ?>
 
     <ul class="mepr-subscriptions-widget-list">
     <?php foreach($subs as $prd) {

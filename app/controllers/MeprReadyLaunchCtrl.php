@@ -166,12 +166,14 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    */
   public function override_page_templates( $template ) {
     global $post;
-    $mepr_options    = MeprOptions::fetch();
-    $logout_url      = MeprUtils::logout_url();
-    $account_url     = $mepr_options->account_page_url();
-    $logo            = esc_url( wp_get_attachment_url( $mepr_options->design_logo_img ) );
-    $user            = MeprUtils::get_currentuserinfo();
-    $wrapper_classes = '';
+    $mepr_options         = MeprOptions::fetch();
+    $logout_url           = MeprUtils::logout_url();
+    $account_url          = $mepr_options->account_page_url();
+    $delim                = MeprAppCtrl::get_param_delimiter_char($account_url);
+    $change_password_url  = MeprHooks::apply_filters( 'mepr-rl-change-password-url', $account_url . $delim . 'action=newpassword' );
+    $logo                 = esc_url( wp_get_attachment_url( $mepr_options->design_logo_img ) );
+    $user                 = MeprUtils::get_currentuserinfo();
+    $wrapper_classes      = '';
 
     if ( self::template_enabled( 'pricing' ) ) {
       $user              = MeprUtils::get_currentuserinfo();

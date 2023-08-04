@@ -971,7 +971,8 @@ class MeprDb {
     global $wpdb;
     $q = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
     $table_res = $wpdb->get_var($q);
-    return (strtolower($table_res) == strtolower($table));
+
+    return is_null($table_res) ? false : (strtolower($table_res) == strtolower($table));
   }
 
   public function get_collation($table) {

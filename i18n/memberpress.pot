@@ -2,20 +2,20 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.11.12\n"
+"Project-Id-Version: MemberPress 1.11.14\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-07-19T15:09:16-06:00\n"
+"POT-Creation-Date: 2023-08-03T10:20:32-06:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: memberpress\n"
 
 #. Plugin Name of the plugin
-#: app/controllers/MeprAppCtrl.php:1141
+#: app/controllers/MeprAppCtrl.php:1139
 msgid "MemberPress"
 msgstr ""
 
@@ -357,7 +357,7 @@ msgid "UNAUTHORIZED: %s"
 msgstr ""
 
 #: app/controllers/MeprAppCtrl.php:62
-#: app/controllers/MeprAppCtrl.php:1171
+#: app/controllers/MeprAppCtrl.php:1169
 #: app/views/admin/support/view.php:6
 msgid "Support"
 msgstr ""
@@ -406,7 +406,7 @@ msgstr ""
 msgid "<strong>MemberPress: Your PHP version (%s) is out of date!</strong> This version has reached official End Of Life and as such may expose your site to security vulnerabilities. Please contact your web hosting provider to update to %s or newer"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:490
+#: app/controllers/MeprAppCtrl.php:488
 #: app/controllers/MeprMembersCtrl.php:126
 #: app/controllers/MeprProductsCtrl.php:42
 #: app/controllers/MeprRemindersCtrl.php:94
@@ -414,60 +414,60 @@ msgstr ""
 msgid "Memberships"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:492
+#: app/controllers/MeprAppCtrl.php:490
 #: app/controllers/MeprGroupsCtrl.php:35
 msgid "Groups"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:494
+#: app/controllers/MeprAppCtrl.php:492
 #: app/controllers/MeprRulesCtrl.php:60
 msgid "Rules"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:496
+#: app/controllers/MeprAppCtrl.php:494
 #: app/controllers/MeprCouponsCtrl.php:29
 msgid "Coupons"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:498
-#: app/controllers/MeprAppCtrl.php:1148
+#: app/controllers/MeprAppCtrl.php:496
+#: app/controllers/MeprAppCtrl.php:1146
 #: app/controllers/MeprCoursesCtrl.php:35
 msgid "Courses"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:551
+#: app/controllers/MeprAppCtrl.php:549
 msgid "We can't display your account form right now. Please come back soon and try again."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:581
+#: app/controllers/MeprAppCtrl.php:579
 msgid "the requested resource."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:593
+#: app/controllers/MeprAppCtrl.php:591
 msgid "Unauthorized for"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:610
+#: app/controllers/MeprAppCtrl.php:608
 msgid "There was a problem with our system. Please come back soon and try again."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:701
+#: app/controllers/MeprAppCtrl.php:699
 msgid "-- Select State --"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:717
+#: app/controllers/MeprAppCtrl.php:715
 msgid "There are no payment methods available that can purchase this product, please contact the site administrator or purchase it separately."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:718
+#: app/controllers/MeprAppCtrl.php:716
 msgid "It looks like your purchase requires %s. No problem! Just click below to switch."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:719
+#: app/controllers/MeprAppCtrl.php:717
 msgid "Switch to %s"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:720
+#: app/controllers/MeprAppCtrl.php:718
 #: app/helpers/MeprAccountHelper.php:54
 #: app/lib/MeprBaseGateway.php:380
 #: app/lib/MeprBaseGateway.php:432
@@ -480,117 +480,117 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:743
+#: app/controllers/MeprAppCtrl.php:741
 msgctxt "ui"
 msgid "Done"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:744
+#: app/controllers/MeprAppCtrl.php:742
 msgctxt "ui"
 msgid "Today"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:745
+#: app/controllers/MeprAppCtrl.php:743
 msgctxt "ui"
 msgid "Jan"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:745
+#: app/controllers/MeprAppCtrl.php:743
 msgctxt "ui"
 msgid "Feb"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:745
+#: app/controllers/MeprAppCtrl.php:743
 msgctxt "ui"
 msgid "Mar"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:745
+#: app/controllers/MeprAppCtrl.php:743
 msgctxt "ui"
 msgid "Apr"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:745
+#: app/controllers/MeprAppCtrl.php:743
 msgctxt "ui"
 msgid "May"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:745
+#: app/controllers/MeprAppCtrl.php:743
 msgctxt "ui"
 msgid "Jun"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:746
+#: app/controllers/MeprAppCtrl.php:744
 msgctxt "ui"
 msgid "Jul"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:746
+#: app/controllers/MeprAppCtrl.php:744
 msgctxt "ui"
 msgid "Aug"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:746
+#: app/controllers/MeprAppCtrl.php:744
 msgctxt "ui"
 msgid "Sep"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:746
+#: app/controllers/MeprAppCtrl.php:744
 msgctxt "ui"
 msgid "Oct"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:746
+#: app/controllers/MeprAppCtrl.php:744
 msgctxt "ui"
 msgid "Nov"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:746
+#: app/controllers/MeprAppCtrl.php:744
 msgctxt "ui"
 msgid "Dec"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:747
+#: app/controllers/MeprAppCtrl.php:745
 msgctxt "ui"
 msgid "Su"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:747
+#: app/controllers/MeprAppCtrl.php:745
 msgctxt "ui"
 msgid "Mo"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:747
+#: app/controllers/MeprAppCtrl.php:745
 msgctxt "ui"
 msgid "Tu"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:747
+#: app/controllers/MeprAppCtrl.php:745
 msgctxt "ui"
 msgid "We"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:747
+#: app/controllers/MeprAppCtrl.php:745
 msgctxt "ui"
 msgid "Th"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:747
+#: app/controllers/MeprAppCtrl.php:745
 msgctxt "ui"
 msgid "Fr"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:747
+#: app/controllers/MeprAppCtrl.php:745
 msgctxt "ui"
 msgid "Sa"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:876
+#: app/controllers/MeprAppCtrl.php:874
 msgid "There was a problem with our system: %s. Please come back soon and try again."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1125
-#: app/controllers/MeprAppCtrl.php:1185
+#: app/controllers/MeprAppCtrl.php:1123
+#: app/controllers/MeprAppCtrl.php:1183
 #: app/controllers/MeprDbCtrl.php:226
 #: app/controllers/MeprMembersCtrl.php:235
 #: app/helpers/MeprProductsHelper.php:115
@@ -598,13 +598,13 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1129
-#: app/controllers/MeprAppCtrl.php:1132
+#: app/controllers/MeprAppCtrl.php:1127
+#: app/controllers/MeprAppCtrl.php:1130
 msgid "Affiliates"
 msgstr ""
 
+#: app/controllers/MeprAppCtrl.php:1134
 #: app/controllers/MeprAppCtrl.php:1136
-#: app/controllers/MeprAppCtrl.php:1138
 #: app/controllers/MeprDbCtrl.php:227
 #: app/controllers/MeprMembersCtrl.php:115
 #: app/controllers/MeprSubscriptionsCtrl.php:552
@@ -614,7 +614,7 @@ msgstr ""
 msgid "Subscriptions"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1139
+#: app/controllers/MeprAppCtrl.php:1137
 #: app/controllers/MeprMembersCtrl.php:116
 #: app/controllers/MeprReportsCtrl.php:120
 #: app/controllers/MeprTransactionsCtrl.php:627
@@ -624,59 +624,59 @@ msgstr ""
 msgid "Transactions"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1140
+#: app/controllers/MeprAppCtrl.php:1138
 #: app/views/admin/reports/main.php:4
 msgid "Reports"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1142
+#: app/controllers/MeprAppCtrl.php:1140
 #: app/views/admin/options/form.php:4
 #: app/views/admin/options/form.php:529
 msgid "Settings"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1143
+#: app/controllers/MeprAppCtrl.php:1141
 msgid "Onboarding"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1144
+#: app/controllers/MeprAppCtrl.php:1142
 #: app/views/admin/options/account_login.php:6
 msgid "Account Login"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1145
+#: app/controllers/MeprAppCtrl.php:1143
 msgid "Add-ons"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1150
+#: app/controllers/MeprAppCtrl.php:1148
 #: app/views/admin/support/view.php:124
 msgid "MemberPress Courses"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1155
-#: app/controllers/MeprAppCtrl.php:1158
+#: app/controllers/MeprAppCtrl.php:1153
+#: app/controllers/MeprAppCtrl.php:1156
 msgid "SMTP"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1164
-#: app/controllers/MeprAppCtrl.php:1167
+#: app/controllers/MeprAppCtrl.php:1162
+#: app/controllers/MeprAppCtrl.php:1165
 msgid "Analytics"
 msgstr ""
 
-#: app/controllers/MeprBlocksCtrl.php:195
+#: app/controllers/MeprBlocksCtrl.php:203
 msgid "You are not logged in."
 msgstr ""
 
-#: app/controllers/MeprBlocksCtrl.php:199
+#: app/controllers/MeprBlocksCtrl.php:207
 msgid "You have no Subscriptions yet."
 msgstr ""
 
-#: app/controllers/MeprBlocksCtrl.php:248
+#: app/controllers/MeprBlocksCtrl.php:256
 msgctxt "ui"
 msgid "Uh oh, something went wrong. Not a valid Membership form."
 msgstr ""
 
-#: app/controllers/MeprBlocksCtrl.php:289
+#: app/controllers/MeprBlocksCtrl.php:297
 msgid "You are unauthorized to view this content."
 msgstr ""
 
@@ -1543,6 +1543,8 @@ msgstr ""
 #: app/views/admin/options/custom_fields_row.php:14
 #: app/views/admin/reports/month_table.php:6
 #: app/views/admin/reports/year_table.php:6
+#: js/blocks/subscriptions/edit.js:23
+#: js/build/blocks.js:1
 msgid "Date"
 msgstr ""
 
@@ -1677,7 +1679,7 @@ msgid "You do not have sufficient permission to perform this operation"
 msgstr ""
 
 #: app/controllers/MeprPayPalConnectCtrl.php:690
-#: app/controllers/MeprReadyLaunchCtrl.php:295
+#: app/controllers/MeprReadyLaunchCtrl.php:297
 #: app/controllers/MeprStripeCtrl.php:59
 #: app/controllers/MeprStripeCtrl.php:187
 msgid "Transaction not found"
@@ -1855,26 +1857,26 @@ msgstr ""
 msgid "No membership found"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:481
+#: app/controllers/MeprReadyLaunchCtrl.php:483
 msgid "ReadyLaunch™"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:565
+#: app/controllers/MeprReadyLaunchCtrl.php:567
 msgid "Welcome Image should be uploaded if Show Welcome Image button is checked"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:827
+#: app/controllers/MeprReadyLaunchCtrl.php:829
 #: app/models/MeprUser.php:813
 #: app/models/MeprUser.php:889
 msgid "You must enter both your First and Last name"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:833
+#: app/controllers/MeprReadyLaunchCtrl.php:835
 #: app/models/MeprUser.php:817
 msgid "You must enter a valid email address"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:839
+#: app/controllers/MeprReadyLaunchCtrl.php:841
 #: app/models/MeprUser.php:823
 msgid "This email is already in use by another member"
 msgstr ""
@@ -2065,6 +2067,8 @@ msgid "All Content: "
 msgstr ""
 
 #: app/controllers/MeprRulesCtrl.php:99
+#: js/blocks/subscriptions/edit.js:24
+#: js/build/blocks.js:1
 msgid "Title"
 msgstr ""
 
@@ -2756,7 +2760,7 @@ msgstr ""
 msgid "MemberPress Settings"
 msgstr ""
 
-#: app/controllers/MeprUsersCtrl.php:611
+#: app/controllers/MeprUsersCtrl.php:612
 #: app/views/account/payments.php:38
 #: app/views/account/subscriptions.php:46
 #: app/views/account/subscriptions.php:52
@@ -2766,7 +2770,7 @@ msgctxt "ui"
 msgid "Unknown"
 msgstr ""
 
-#: app/controllers/MeprUsersCtrl.php:615
+#: app/controllers/MeprUsersCtrl.php:616
 #: app/views/account/subscriptions.php:31
 #: app/views/account/subscriptions.php:49
 #: app/views/pro-templates/account/subscriptions.php:37
@@ -4471,7 +4475,7 @@ msgstr ""
 
 #: app/helpers/MeprGroupsHelper.php:177
 #: app/helpers/MeprOptionsHelper.php:34
-#: app/helpers/MeprUsersHelper.php:171
+#: app/helpers/MeprUsersHelper.php:175
 #: app/views/pro-templates/groups/front_groups_page.php:115
 msgid "View"
 msgstr ""
@@ -5030,19 +5034,19 @@ msgstr ""
 msgid "F j, Y, g:i a"
 msgstr ""
 
-#: app/helpers/MeprUsersHelper.php:147
+#: app/helpers/MeprUsersHelper.php:151
 msgid "A URL must be prefixed with a protocol (eg. http://)"
 msgstr ""
 
-#: app/helpers/MeprUsersHelper.php:173
+#: app/helpers/MeprUsersHelper.php:177
 msgid "Replace"
 msgstr ""
 
-#: app/helpers/MeprUsersHelper.php:443
+#: app/helpers/MeprUsersHelper.php:447
 msgid "(required)"
 msgstr ""
 
-#: app/helpers/MeprUsersHelper.php:448
+#: app/helpers/MeprUsersHelper.php:452
 msgid "%1$s:%2$s"
 msgstr ""
 
@@ -5543,25 +5547,25 @@ msgid "Your Subscriptions"
 msgstr ""
 
 #: app/lib/MeprSubscriptionsWidget.php:105
-#: js/blocks/subscriptions/edit.js:23
+#: js/blocks/subscriptions/edit.js:62
 #: js/build/blocks.js:1
 msgid "Not Logged In Message:"
 msgstr ""
 
 #: app/lib/MeprSubscriptionsWidget.php:109
-#: js/blocks/subscriptions/edit.js:29
+#: js/blocks/subscriptions/edit.js:68
 #: js/build/blocks.js:1
 msgid "No Subscriptions Message:"
 msgstr ""
 
 #: app/lib/MeprSubscriptionsWidget.php:113
-#: js/blocks/subscriptions/edit.js:35
+#: js/blocks/subscriptions/edit.js:74
 #: js/build/blocks.js:1
 msgid "Top Description (optional):"
 msgstr ""
 
 #: app/lib/MeprSubscriptionsWidget.php:117
-#: js/blocks/subscriptions/edit.js:41
+#: js/blocks/subscriptions/edit.js:80
 #: js/build/blocks.js:1
 msgid "Bottom Description (optional):"
 msgstr ""
@@ -6027,6 +6031,7 @@ msgstr ""
 
 #: app/views/account/home.php:65
 #: app/views/pro-templates/account/home.php:60
+#: app/views/pro-templates/layout/app.php:64
 msgctxt "ui"
 msgid "Change Password"
 msgstr ""
@@ -6042,7 +6047,7 @@ msgstr ""
 #: app/views/account/logged_in_widget.php:5
 #: app/views/account/nav.php:14
 #: app/views/pro-templates/account/nav.php:26
-#: app/views/pro-templates/layout/app.php:64
+#: app/views/pro-templates/layout/app.php:66
 msgctxt "ui"
 msgid "Logout"
 msgstr ""
@@ -17972,12 +17977,42 @@ msgstr ""
 msgid "Add child blocks that will only be shown to authorized members."
 msgstr ""
 
-#: js/blocks/subscriptions/edit.js:47
+#: js/blocks/subscriptions/edit.js:22
+#: js/build/blocks.js:1
+msgid "-- Sort by"
+msgstr ""
+
+#: js/blocks/subscriptions/edit.js:32
+#: js/build/blocks.js:1
+msgid "-- Sort order"
+msgstr ""
+
+#: js/blocks/subscriptions/edit.js:33
+#: js/build/blocks.js:1
+msgid "Ascending"
+msgstr ""
+
+#: js/blocks/subscriptions/edit.js:34
+#: js/build/blocks.js:1
+msgid "Descending"
+msgstr ""
+
+#: js/blocks/subscriptions/edit.js:46
+#: js/build/blocks.js:1
+msgid "Sort by:"
+msgstr ""
+
+#: js/blocks/subscriptions/edit.js:54
+#: js/build/blocks.js:1
+msgid "Sort order:"
+msgstr ""
+
+#: js/blocks/subscriptions/edit.js:86
 #: js/build/blocks.js:1
 msgid "Use Membership Access URLs"
 msgstr ""
 
-#: js/blocks/subscriptions/edit.js:48
+#: js/blocks/subscriptions/edit.js:87
 #: js/build/blocks.js:1
 msgid "Makes the Subscription name clickable, pointing to the Membership Access URL you have set in the Membership settings (Advanced tab)"
 msgstr ""
