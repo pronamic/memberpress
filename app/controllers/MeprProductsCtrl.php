@@ -158,6 +158,12 @@ class MeprProductsCtrl extends MeprCptCtrl {
       $product->limit_cycles_expires_type = (isset($_mepr_product_limit_cycles_expires_type)?sanitize_text_field($_mepr_product_limit_cycles_expires_type):$product->attrs['limit_cycles_expires_type']);
       $product->trial = isset($_mepr_product_trial);
       $product->trial_days = (isset($_mepr_product_trial_days))?sanitize_text_field($_mepr_product_trial_days):$product->attrs['trial_days'];
+
+      // Make sure the number of trial days is always set to at least 1 day.
+      if($product->trial_days <= 0) {
+        $product->trial_days = 1;
+      }
+
       $product->trial_amount = (isset($_mepr_product_trial_amount))?MeprUtils::format_currency_us_float(sanitize_text_field($_mepr_product_trial_amount)):$product->attrs['trial_amount'];
       $product->trial_once = isset($_mepr_product_trial_once);
       $product->who_can_purchase = self::get_who_can_purchase_array();

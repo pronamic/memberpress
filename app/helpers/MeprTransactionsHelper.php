@@ -266,7 +266,12 @@ class MeprTransactionsHelper {
       }
       else {
         $remove_tax = $calculate_taxes && $tax_inclusive && $txn->tax_rate > 0;
-        $amount = $remove_tax ? ($amount/(1+($txn->tax_rate/100))) : $amount;
+        if($remove_tax) {
+          $amount = ($amount/(1+($txn->tax_rate/100)));
+        }
+        if(!$remove_tax && $prd->trial && $txn->amount == 0) {
+          $amount = 0;
+        }
         $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount);
       }
 

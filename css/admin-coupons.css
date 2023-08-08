@@ -2,6 +2,7 @@
   width:100%;
   height:200px;
   min-height:200px;
+  resize: vertical;
 }
 
 .mepr-coupons-trial-hidden {

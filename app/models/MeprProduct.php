@@ -79,7 +79,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
         'limit_cycles_expires_after' => 1,
         'limit_cycles_expires_type' => 'days',
         'trial' => false,
-        'trial_days' => 0,
+        'trial_days' => 1,
         'trial_amount' => 0.00,
         'trial_once' => true,
         'group_id' => 0,

@@ -157,7 +157,7 @@
       $('.mepr-product-trial-hidden').slideToggle();
     });
 
-    $('#_mepr_product_trial_days').spinner({ min: 0 });
+    $('#_mepr_product_trial_days').spinner({ min: 1 });
 
     //limit cycles
     if($('#_mepr_product_limit_cycles').is(":checked")) {
