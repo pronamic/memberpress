@@ -437,3 +437,12 @@ td.stripe-checkbox-column-right {
   opacity: 0.5;
 }
 /* End Form Slider */
+
+.mepr-stripe-tax-enabled #mepr_tax_calc_location_section,
+.mepr-stripe-tax-enabled #mepr_tax_default_address_section,
+.mepr-stripe-tax-enabled #mepr_vat_country_section,
+.mepr-stripe-tax-enabled #mepr_vat_tax_businesses_section,
+.mepr-stripe-tax-enabled #mepr_charge_business_customer_net_price_section,
+.mepr-stripe-tax-enabled #mepr_show_negative_tax_on_invoice_section {
+  display: none !important;
+}

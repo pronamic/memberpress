@@ -5,6 +5,7 @@
 <div id="mepro-login-hero">
   <div class="mepro-boxed">
     <div class="mepro-login-contents">
+    <?php MeprView::render('/readylaunch/shared/errors', get_defined_vars()); ?>
 
       <div id="mepr-template-login" class="mp_wrapper">
         <h3><?php _ex('Request a Password Reset', 'ui', 'memberpress'); ?></h3>

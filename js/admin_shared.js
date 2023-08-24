@@ -164,6 +164,18 @@ jQuery(document).ready(function($) {
     })
   });
 
+  $('body').on('click', '.mepr-notice-dismiss-weekly button.notice-dismiss', function () {
+    $.ajax({
+      url: MeprAdminShared.ajax_url,
+      method: 'POST',
+      data: {
+        action: 'mepr_dismiss_weekly_notice',
+        _ajax_nonce: MeprAdminShared.dismiss_notice_nonce,
+        notice: $(this).closest('.notice').data('notice')
+      }
+    })
+  });
+
   $('#mepAdminHeaderNotifications').on('click', function(e) {
     e.preventDefault();
     $('#mepr-notifications').toggleClass('visible');
@@ -209,5 +221,72 @@ jQuery(document).ready(function($) {
     e.preventDefault();
     $('#mepr-drm-fee-notice-wrapper').hide();
     $('body').addClass('mepr-locked mepr-notice-modal-active');
+  });
+
+  var enabling_stripe_tax = false;
+
+  $('#mepr-enable-stripe-tax').on('click', function () {
+    var $button = $(this),
+        button_html = $button.html(),
+        button_width = $button.width();
+
+    if(enabling_stripe_tax) {
+      return;
+    }
+
+    enabling_stripe_tax = true;
+    $button.width(button_width).html('<i class="mp-icon mp-icon-spinner animate-spin"></i>');
+
+    $.ajax({
+      url: MeprAdminShared.ajax_url,
+      method: 'POST',
+      data: {
+        action: 'mepr_enable_stripe_tax',
+        _ajax_nonce: MeprAdminShared.enable_stripe_tax_nonce,
+        gateway_id: $button.data('gateway-id')
+      }
+    })
+    .done(function (response) {
+      if(response && typeof response.success === 'boolean' && response.success && $.magnificPopup) {
+        $.magnificPopup.open({
+          mainClass: 'mepr-shared-mfp',
+          items: {
+            src: '#mepr-stripe-tax-enabled-popup',
+            type: 'inline'
+          }
+        });
+
+        $button.closest('.notice').remove();
+      }
+    })
+    .always(function () {
+      $button.html(button_html).width('auto');
+      enabling_stripe_tax = false;
+    });
+  });
+
+  $('#mepr-enable-stripe-tax-no').on('click', function (e) {
+    e.preventDefault();
+
+    $.ajax({
+      url: MeprAdminShared.ajax_url,
+      method: 'POST',
+      data: {
+        action: 'mepr_dismiss_stripe_tax_notice',
+        _ajax_nonce: MeprAdminShared.dismiss_notice_nonce,
+      }
+    });
+
+    if($.magnificPopup) {
+      $.magnificPopup.open({
+        mainClass: 'mepr-shared-mfp',
+        items: {
+          src: '#mepr-stripe-tax-no-popup',
+          type: 'inline'
+        }
+      });
+    }
+
+    $(this).closest('.notice').remove();
   });
 });

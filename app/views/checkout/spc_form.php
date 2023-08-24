@@ -3,7 +3,7 @@
 <?php do_action('mepr-above-checkout-form', $product->ID); ?>
 
 <div class="mp_wrapper">
-  <form class="mepr-signup-form mepr-form" method="post" action="<?php echo $_SERVER['REQUEST_URI'].'#mepr_jump'; ?>" enctype="multipart/form-data" novalidate>
+  <form name="mepr_signup_form" id="mepr_signup_form" class="mepr-signup-form mepr-form" method="post" action="<?php echo $_SERVER['REQUEST_URI'].'#mepr_jump'; ?>" enctype="multipart/form-data" novalidate>
     <input type="hidden" name="mepr_process_signup_form" value="<?php echo isset($_GET['mepr_process_signup_form']) ? esc_attr($_GET['mepr_process_signup_form']) : 1 ?>" />
     <input type="hidden" name="mepr_product_id" value="<?php echo esc_attr($product->ID); ?>" />
     <input type="hidden" name="mepr_transaction_id" value="<?php echo isset($_GET['mepr_transaction_id']) ? esc_attr($_GET['mepr_transaction_id']) : ""; ?>" />

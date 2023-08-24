@@ -6,8 +6,6 @@ class MeprStripeCtrl extends MeprBaseCtrl
   public function load_hooks() {
     add_action('wp_ajax_mepr_stripe_confirm_payment', array($this, 'confirm_payment'));
     add_action('wp_ajax_nopriv_mepr_stripe_confirm_payment', array($this, 'confirm_payment'));
-    add_action('wp_ajax_mepr_stripe_get_elements_options', array($this, 'get_elements_options'));
-    add_action('wp_ajax_nopriv_mepr_stripe_get_elements_options', array($this, 'get_elements_options'));
     add_action('wp_ajax_mepr_stripe_create_checkout_session', array($this, 'create_checkout_session'));
     add_action('wp_ajax_nopriv_mepr_stripe_create_checkout_session', array($this, 'create_checkout_session'));
     add_action('wp_ajax_mepr_stripe_create_account_setup_intent', array($this, 'create_account_setup_intent'));
@@ -45,108 +43,6 @@ class MeprStripeCtrl extends MeprBaseCtrl
           $payment_method->send_stripe_request( 'customers/' . $stripe_customer_id, $args, 'post' );
         } catch (\Exception $exception) {}
       }
-    }
-  }
-
-  public function get_elements_options() {
-    $mepr_options = MeprOptions::fetch();
-    $transaction_id = isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id']) ? (int) $_POST['mepr_transaction_id'] : 0;
-
-    if($transaction_id > 0) {
-      $txn = new MeprTransaction($transaction_id);
-
-      if(!$txn->id) {
-        wp_send_json_error(__('Transaction not found', 'memberpress'));
-      }
-
-      $pm = $mepr_options->payment_method($txn->gateway, true, true);
-
-      if(!($pm instanceof MeprStripeGateway)) {
-        wp_send_json_error(__('Invalid payment gateway', 'memberpress'));
-      }
-
-      $prd = $txn->product();
-
-      if($pm->settings->stripe_checkout_enabled == 'on') {
-        wp_send_json_error(__('Bad request', 'memberpress'));
-      }
-
-      if(!$prd->ID) {
-        wp_send_json_error(__('Product not found', 'memberpress'));
-      }
-
-      if(!$prd->is_one_time_payment()) {
-        $sub = $txn->subscription();
-      }
-
-      $cpn = $txn->coupon();
-      $coupon_code = $cpn instanceof MeprCoupon ? $cpn->post_title : '';
-    }
-    else {
-      $payment_method_id = isset($_POST['mepr_payment_method']) ? sanitize_text_field(wp_unslash($_POST['mepr_payment_method'])) : '';
-      $pm = $mepr_options->payment_method($payment_method_id, true, true);
-
-      if(!($pm instanceof MeprStripeGateway)) {
-        wp_send_json_error(__('Invalid payment gateway', 'memberpress'));
-      }
-
-      if($pm->settings->stripe_checkout_enabled == 'on') {
-        wp_send_json_error(__('Bad request', 'memberpress'));
-      }
-
-      $product_id = isset($_POST['mepr_product_id']) ? (int) $_POST['mepr_product_id'] : 0;
-      $prd = new MeprProduct($product_id);
-
-      if(empty($prd->ID)) {
-        wp_send_json_error(__('Sorry, we were unable to find the product.', 'memberpress'));
-      }
-
-      $coupon_code = isset($_POST['mepr_coupon_code']) ? sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])) : '';
-      $cpn = MeprCoupon::get_one_from_code($coupon_code);
-      $coupon_code = $cpn instanceof MeprCoupon ? $cpn->post_title : '';
-
-      try {
-        list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
-          $prd,
-          0,
-          get_current_user_id(),
-          $pm->id,
-          $cpn,
-          false
-        );
-      }
-      catch(Exception $e) {
-        wp_send_json_error($e->getMessage());
-      }
-    }
-
-    try {
-      $payment_required = $prd->is_payment_required($coupon_code);
-      $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
-      $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($prd->ID, $order_bump_product_ids);
-
-      foreach($order_bump_products as $product) {
-        if($product->is_payment_required()) {
-          $payment_required = true;
-        }
-      }
-
-      if(!$payment_required) {
-        wp_send_json_success(['payment_required' => false]);
-      }
-
-      wp_send_json_success(
-        $pm->get_elements_options(
-          $prd,
-          $txn,
-          isset($sub) && $sub instanceof MeprSubscription ? $sub : null,
-          $coupon_code,
-          $order_bump_products
-        )
-      );
-    }
-    catch(Exception $e) {
-      wp_send_json_error($e->getMessage());
     }
   }
 

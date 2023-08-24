@@ -71,3 +71,42 @@
     <a href="<?php echo admin_url('admin.php?page=memberpress-onboarding&step=7'); ?>" id="mepr-wizard-configure-authorize-continue" class="mepr-wizard-button-orange"><?php esc_html_e('Continue to Upgrade', 'memberpress'); ?></a>
   </div>
 </div>
+
+<?php if($existing_gateway instanceof MeprStripeGateway && !get_option('mepr_tax_stripe_enabled') && isset($_GET['step']) && $_GET['step'] == '6') : ?>
+  <div id="mepr-wizard-enable-stripe-tax-popup" class="mepr-wizard-popup mfp-hide">
+    <h2><?php esc_html_e('Do you need to collect taxes?', 'memberpress'); ?></h2>
+    <p>
+      <input type="checkbox" id="mepr_wizard_enable_stripe_tax" data-gateway-id="<?php echo esc_attr($existing_gateway->id); ?>">
+      <label for="mepr_wizard_enable_stripe_tax">
+        <img class="mepr-wizard-stripe-tax-checked" src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/checkbox-checked.svg'); ?>" alt="">
+        <img class="mepr-wizard-stripe-tax-unchecked" src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/checkbox-unchecked.svg'); ?>" alt="">
+        <span id="mepr-wizard-stripe-tax-label"><?php esc_html_e('Just check this box to enable automatic tax rate lookups and calculations with Stripe.*', 'memberpress'); ?></span>
+      </label>
+    </p>
+    <p class="mepr-wizard-stripe-tax-fine-print">
+      <?php
+        printf(
+          /* translators: %1$s: open link tag, %2$s: close link tag */
+          esc_html__('* Pricing for Stripe Tax API starts at 0.50 USD per transaction, where you\'re registered to collect taxes. This includes 10 calculation API calls per transaction and is priced at 0.05 USD per additional calculation API call beyond 10. To learn more, visit the %1$sStripe Tax pricing page%2$s.', 'memberpress'),
+          '<a href="https://stripe.com/tax#pricing" target="_blank">',
+          '</a>'
+        );
+      ?>
+    </p>
+  </div>
+  <div id="mepr-wizard-stripe-tax-enabled-popup" class="mepr-wizard-popup mfp-hide">
+    <h2 class="mepr-text-align-center"><?php esc_html_e('Stripe Tax is now enabled', 'memberpress'); ?></h2>
+    <p class="mepr-wizard-step-description mepr-text-align-center">
+      <?php
+        printf(
+          /* translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag */
+          __('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
+          '<a href="https://dashboard.stripe.com/tax" target="_blank">',
+          '</a>',
+          '<a href="https://dashboard.stripe.com/tax/registrations" target="_blank">',
+          '</a>'
+        );
+      ?>
+    </p>
+  </div>
+<?php endif; ?>

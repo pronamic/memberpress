@@ -1428,7 +1428,7 @@ class MeprUser extends MeprBaseModel {
     $use_address_from_request = false;
     $action = isset($_POST['action']) ? sanitize_text_field(wp_unslash($_POST['action'])) : '';
 
-    if(!empty($action) && in_array($action, ['mepr_update_price_string', 'mepr_update_spc_invoice_table', 'mepr_stripe_get_elements_options'], true)) {
+    if(!empty($action) && $action == 'mepr_get_checkout_state') {
       $mepr_options = MeprOptions::fetch();
 
       if(!MeprUtils::is_user_logged_in() || ($mepr_options->show_address_fields && $mepr_options->show_fields_logged_in_purchases)) {

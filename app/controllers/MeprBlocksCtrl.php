@@ -569,17 +569,17 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
   public function enqueue_block_scripts() {
 
     // Register account scripts
-    wp_register_style( 'mp-pro-fonts', MEPR_CSS_URL . '/pro-templates/fonts.css', null, MEPR_VERSION );
-    wp_register_style( 'mp-pro-login', MEPR_CSS_URL . '/pro-templates/login.css', null, MEPR_VERSION );
-    wp_register_style( 'mp-pro-account', MEPR_CSS_URL . '/pro-templates/account.css', array( 'mp-pro-fonts', 'mp-pro-login' ), MEPR_VERSION );
+    wp_register_style( 'mp-pro-fonts', MEPR_CSS_URL . '/readylaunch/fonts.css', null, MEPR_VERSION );
+    wp_register_style( 'mp-pro-login', MEPR_CSS_URL . '/readylaunch/login.css', null, MEPR_VERSION );
+    wp_register_style( 'mp-pro-account', MEPR_CSS_URL . '/readylaunch/account.css', array( 'mp-pro-fonts', 'mp-pro-login' ), MEPR_VERSION );
 
     // Register pricing scripts
-    wp_register_style( 'mp-pro-pricing', MEPR_CSS_URL . '/pro-templates/pricing.css', null, MEPR_VERSION );
+    wp_register_style( 'mp-pro-pricing', MEPR_CSS_URL . '/readylaunch/pricing.css', null, MEPR_VERSION );
 
     // Register checkout scripts
     $prereqs = MeprHooks::apply_filters( 'mepr-signup-styles', array() );
     wp_register_style( 'mp-signup', MEPR_CSS_URL . '/signup.css', $prereqs, MEPR_VERSION );
-    wp_register_style( 'mp-pro-checkout', MEPR_CSS_URL . '/pro-templates/checkout.css', array( 'mp-signup' ), MEPR_VERSION );
+    wp_register_style( 'mp-pro-checkout', MEPR_CSS_URL . '/readylaunch/checkout.css', array( 'mp-signup' ), MEPR_VERSION );
   }
 
   /**

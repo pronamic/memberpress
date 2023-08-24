@@ -15,28 +15,23 @@
           __('This Membership is Tax Exempt', 'memberpress'),
           __('If this option is checked then taxes won\'t be calculated for this Membership.', 'memberpress'));
       ?>
-
-      <div id="mepr-product-tax-class-fields" class="mepr-options-pane">
-      <h4></h4>
-        <label for="<?php echo MeprProduct::$tax_class_str; ?>">
-          <span><?php _e('Tax Rates:', 'memberpress'); ?></span>
-          <select name="<?php echo MeprProduct::$tax_class_str; ?>" id="<?php echo MeprProduct::$tax_class_str; ?>">
-            <option value="standard" <?php selected($product->tax_class, 'standard'); ?>><?php _e('Standard Rate', 'memberpress'); ?></option>
-            <option value="reduced" <?php selected($product->tax_class, 'reduced'); ?>><?php _e('Reduced Rate', 'memberpress'); ?></option>
-          </select>
-          <?php
-            MeprAppHelper::info_tooltip( 'mepr-register-price',
-                                        __('Reduced VAT Tax Rates', 'memberpress'),
-                                        __('By default MemberPress will automatically apply standard VAT tax rates. But in some cases you\'ll want to use a reduced VAT rate for your membership. This only applies to the EU VAT rates.', 'memberpress') . '<br/><br/>' .
-                                        __('This will allow you to choose appropriate tax for your tangible/intangible products.', 'memberpress') . '<br/><br/>' );
-          ?>
-        </label>
-
-      </div>
-
-
-
-
+      <?php if(!get_option('mepr_tax_stripe_enabled')) : ?>
+        <div id="mepr-product-tax-class-fields" class="mepr-options-pane">
+          <label for="<?php echo MeprProduct::$tax_class_str; ?>">
+            <span><?php _e('Tax Rates:', 'memberpress'); ?></span>
+            <select name="<?php echo MeprProduct::$tax_class_str; ?>" id="<?php echo MeprProduct::$tax_class_str; ?>">
+              <option value="standard" <?php selected($product->tax_class, 'standard'); ?>><?php _e('Standard Rate', 'memberpress'); ?></option>
+              <option value="reduced" <?php selected($product->tax_class, 'reduced'); ?>><?php _e('Reduced Rate', 'memberpress'); ?></option>
+            </select>
+            <?php
+              MeprAppHelper::info_tooltip( 'mepr-register-price',
+                                          __('Reduced VAT Tax Rates', 'memberpress'),
+                                          __('By default MemberPress will automatically apply standard VAT tax rates. But in some cases you\'ll want to use a reduced VAT rate for your membership. This only applies to the EU VAT rates.', 'memberpress') . '<br/><br/>' .
+                                          __('This will allow you to choose appropriate tax for your tangible/intangible products.', 'memberpress') . '<br/><br/>' );
+            ?>
+          </label>
+        </div>
+      <?php endif; ?>
     </div>
   <?php endif; ?>
   <div id="mepr-product-thank-you-page" class="mepr-product-adv-item">

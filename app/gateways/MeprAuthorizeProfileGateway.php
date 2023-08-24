@@ -419,7 +419,9 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
     );
     $jsURL = $this->is_test_mode() ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js';
     wp_enqueue_style( 'mepr-authorizenet-form', MEPR_GATEWAYS_URL . '/authorizenet/form.css' );
+    wp_enqueue_style( 'cardjs-css', MEPR_GATEWAYS_URL . '/authorizenet/card-js.min.css' );
     wp_enqueue_script( 'authorize-net-accept-js', $jsURL, null, null );
+    wp_enqueue_script( 'cardjs-js', MEPR_GATEWAYS_URL . '/authorizenet/card-js.min.js', ['jquery'], null, true );
   }
 
   public function display_payment_form( $amount, $user, $product_id, $transaction_id ) {

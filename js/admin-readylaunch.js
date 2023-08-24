@@ -63,7 +63,7 @@ window.meprProTemplates = {
     showWelcomeImage: false,
     welcomeImageId: null
   },
-  thankyou: { // default unauthorized values
+  thankyou: { // default thank you page values
     openModal: false,
     enableTemplate: false,
     showWelcomeImage: false,
@@ -81,14 +81,16 @@ window.meprProTemplates = {
     showWelcomeImage: false,
     logoId: null
   },
-  pricing: { // default courses values
+  pricing: { // default pricing page values
     openModal: false,
     enableTemplate: false,
     showWelcomeImage: false,
     // logoId: null
   },
-  checkout: { // default courses values
+  checkout: { // default registration page values
+    openModal: false,
     enableTemplate: false,
+    showPriceTerms: true,
   },
   init(data) {
     // console.log('yup');
@@ -117,6 +119,9 @@ window.meprProTemplates = {
     })
     this.$watch('courses.enableTemplate', (value) => {
       if (true === value) this.courses.openModal = true;
+    })
+    this.$watch('checkout.enableTemplate', (value) => {
+      if (true === value) this.checkout.openModal = true;
     })
   },
   closeModal($event, modal){

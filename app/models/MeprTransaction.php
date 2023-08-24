@@ -140,7 +140,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     MeprHooks::do_action('mepr_post_delete_transaction', $id, $user, $result);
 
     if($user && $user->ID > 0) {
-      $user->update_member_data(array('txn_count', 'active_txn_count'));
+      $user->update_member_data(array('txn_count', 'active_txn_count', 'memberships', 'inactive_memberships'));
     }
 
     return $result;

@@ -387,7 +387,12 @@ class MeprRulesCtrl extends MeprCptCtrl {
     }
 
     ob_start();
-    MeprView::render('/shared/unauthorized_message', get_defined_vars());
+    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' )){
+      MeprView::render('/readylaunch/shared/unauthorized_message', get_defined_vars());
+    } else {
+      MeprView::render('/shared/unauthorized_message', get_defined_vars());
+    }
+
     $content = ob_get_clean();
 
     // TODO: oEmbed still not working for some strange reason
@@ -435,6 +440,8 @@ class MeprRulesCtrl extends MeprCptCtrl {
       $rule->is_mepr_content_regexp = isset($_POST[MeprRule::$is_mepr_content_regexp_str]);
 
       $rule->store_meta();
+
+      self::validate_rule_content($rule, $post_id);
 
       // Delete rules first then add them back below
       MeprRuleAccessCondition::delete_all_by_rule($post_id);
@@ -940,5 +947,31 @@ class MeprRulesCtrl extends MeprCptCtrl {
     if(isset($post) && isset($post->post_type) && $post->post_type == 'product') { return false; }
 
     return $protect;
+  }
+
+  // Validates rule content and force the post status to draft if it's empty.
+  public static function validate_rule_content($rule, $post_id) {
+    // If the rule requires exclusion - Bailout.
+    if( 0 === (int) $post_id || $rule->mepr_type == 'all' || (strstr($rule->mepr_type, 'all_') !== false && !preg_match('#^all_tax_#',$rule->mepr_type))) {
+      return;
+    }
+
+    $mepr_rules_content = isset($_POST[MeprRule::$mepr_content_str]) ? trim($_POST[MeprRule::$mepr_content_str]) : '';
+    // If no content is added, force the status to draft.
+    if(empty($mepr_rules_content)) {
+      // Unhook so it doesn't loop infinitely.
+      remove_action('save_post', 'MeprRulesCtrl::save_postdata');
+
+      // Update the post status to draft.
+      $rule_post = array(
+          'ID'  => $post_id,
+          'post_status'  => 'draft'
+      );
+      wp_update_post( $rule_post );
+
+      // Hook it again.
+      add_action('save_post', 'MeprRulesCtrl::save_postdata');
+      MeprUtils::debug_log("Rule (#{$post_id}) content can't be empty. Post status forced to 'draft'");
+    }
   }
 } //End class

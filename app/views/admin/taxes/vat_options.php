@@ -17,7 +17,7 @@
       <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
       <table class="form-table">
         <tbody>
-          <tr valign="top">
+          <tr valign="top" id="mepr_vat_country_section">
             <th scope="row">
               <label for="mepr_vat_country"><?php _e('Merchant VAT Country', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip('mepr-merchant-vat-country',
@@ -32,7 +32,7 @@
               </select>
             </td>
           </tr>
-          <tr valign="top">
+          <tr valign="top" id="mepr_vat_tax_businesses_section">
             <th scope="row">
               <label for="mepr_vat_tax_businesses"><?php _e('Tax all EU Businesses', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip('mepr-merchant-vat-tax-businesses',

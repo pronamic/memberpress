@@ -30,6 +30,11 @@ function mepr_show_content_dropdown(field_name, type) {
     mepr_autocomplete_setup( type );
     jQuery('#_mepr_rules_content-wrap').show();
     jQuery('#mepr-rule-loading-icon').hide();
+
+    //jQuery form validation
+    jQuery.validate({
+      errorMessagePosition : 'inline'
+    });
   });
 }
 

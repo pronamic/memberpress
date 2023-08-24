@@ -650,7 +650,7 @@
               <label for="<?php echo $mepr_options->currency_symbol_after_str; ?>"><?php _e('Symbol After Amount', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip( 'mepr-currency-symbol-after',
                                                  __('Display Currency Symbol After Amount', 'memberpress'),
-                                                 __('Will display the currency symbol after the price of the item. For example: 5.00$ instead of $5.00. Unless you know your countries currency symbol should be listed after, leave this unchecked.', 'memberpress') . '</strong>' ); ?>
+                                                 __('Will display the currency symbol after the price of the item. For example: 5.00$ instead of $5.00. Unless you know your countries currency symbol should be listed after, leave this unchecked.', 'memberpress')); ?>
             </th>
             <td>
               <input type="checkbox" name="<?php echo $mepr_options->currency_symbol_after_str; ?>" id="<?php echo $mepr_options->currency_symbol_after_str; ?>" <?php checked($mepr_options->currency_symbol_after); ?> />

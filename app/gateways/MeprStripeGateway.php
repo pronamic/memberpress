@@ -2552,10 +2552,14 @@ class MeprStripeGateway extends MeprBaseRealGateway {
    */
   private function get_payment_element_terms() {
     $terms = [
+      'applePay' => 'never',
       'auBecsDebit' => 'never',
       'bancontact' => 'never',
       'card' => 'never',
+      'cashapp' => 'never',
+      'googlePay' => 'never',
       'ideal' => 'never',
+      'paypal' => 'never',
       'sepaDebit' => 'never',
       'sofort' => 'never',
       'usBankAccount' => 'never',
@@ -3561,6 +3565,24 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
 
     return $mepr_options->store(false);
+  }
+
+  /**
+   * Is this payment method connected to Stripe?
+   *
+   * @return bool
+   */
+  public function is_connected() {
+    if(!empty($this->settings->connect_status) && $this->settings->connect_status != 'not-connected') {
+      return true;
+    }
+
+    return (
+      !empty($this->settings->api_keys['test']['public']) ||
+      !empty($this->settings->api_keys['test']['secret']) ||
+      !empty($this->settings->api_keys['live']['public']) ||
+      !empty($this->settings->api_keys['live']['secret'])
+    );
   }
 
   /**

@@ -251,6 +251,22 @@ var MeprOnboarding = (function($) {
         }
       }
 
+      if(MeprOnboardingL10n.step == 6) {
+        var $stripe_tax_popup = $('#mepr-wizard-enable-stripe-tax-popup');
+
+        if($.magnificPopup && $stripe_tax_popup.length) {
+          $.magnificPopup.open({
+            mainClass: 'mepr-wizard-mfp',
+            items: {
+              src: '#mepr-wizard-enable-stripe-tax-popup',
+              type: 'inline'
+            }
+          });
+        }
+      }
+
+      $('#mepr_wizard_enable_stripe_tax').on('click', onboarding.enable_stripe_tax);
+
       $(document.body).on('click', '#mepr-wizard-finish-configure-authorize', function () {
         if($.magnificPopup) {
           $.magnificPopup.open({
@@ -1681,6 +1697,64 @@ var MeprOnboarding = (function($) {
           $('<p>').html(message)
         )
       );
+    },
+
+    enable_stripe_tax: function () {
+      var $checkbox = $(this),
+          $popup = $('#mepr-wizard-enable-stripe-tax-popup'),
+          $label = $('#mepr-wizard-stripe-tax-label'),
+          $loading = $('<i class="mp-icon mp-icon-spinner animate-spin">');
+
+      if (working) {
+        return false;
+      }
+
+      working = true;
+
+      $popup.find('.notice').remove();
+      $loading.appendTo($label);
+
+      $.ajax({
+        url: MeprOnboardingL10n.ajax_url,
+        method: 'POST',
+        dataType: 'json',
+        data: {
+          action: 'mepr_onboarding_enable_stripe_tax',
+          _ajax_nonce: MeprOnboardingL10n.enable_stripe_tax_nonce,
+          data: JSON.stringify({
+            gateway_id: $checkbox.data('gateway-id')
+          })
+        }
+      })
+      .done(function (response) {
+        if(response && typeof response.success === 'boolean') {
+          if(response.success) {
+            $.magnificPopup.close();
+
+            $.magnificPopup.open({
+              mainClass: 'mepr-wizard-mfp',
+              items: {
+                src: '#mepr-wizard-stripe-tax-enabled-popup',
+                type: 'inline'
+              }
+            });
+          }
+          else {
+            console.log(response.data);
+            alert('Request failed');
+          }
+        }
+        else {
+          alert('Request failed');
+        }
+      })
+      .fail(function () {
+        alert('Request failed');
+      })
+      .always(function () {
+        $loading.remove();
+        working = false;
+      });
     },
 
     finish: function () {

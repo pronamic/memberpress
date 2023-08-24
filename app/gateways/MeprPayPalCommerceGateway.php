@@ -1611,10 +1611,6 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
         }
 
         if($sub instanceof MeprSubscription && $sub->id > 0) {
-          if(strpos($sub->subscr_id, 'S-') === false && strpos($sub->subscr_id, 'I-') === false) {
-            $this->handle_create_subscription($sub, $resource['billing_agreement_id']);
-          }
-
           $this->record_subscription_payment();
         }
       }
@@ -1774,7 +1770,7 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
             $sub = $transaction->subscription();
 
             if($sub instanceof MeprSubscription && $sub->id > 0) {
-              $this->activate_subscription($transaction, $sub);
+              $this->handle_create_subscription($sub, $sub->subscr_id);
             }
           }
         }

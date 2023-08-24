@@ -18,6 +18,132 @@
       $(this).data('default-price-string', $(this).text());
     });
 
+    let updateCheckoutStateTimeout,
+        lastRequestData,
+        updatingCheckoutState = false,
+        updateCheckoutStateAgain = false,
+        updateCheckoutState = function ($form) {
+          clearTimeout(updateCheckoutStateTimeout);
+
+          updateCheckoutStateTimeout = setTimeout(function () {
+            debouncedUpdateCheckoutState($form);
+          }, 50);
+        },
+        getRequestData = function ($form) {
+          let payment_methods = [];
+
+          $form.find('input[name="mepr_payment_method"]').each(function () {
+            payment_methods.push($(this).val());
+          });
+
+          const data = {
+            action: 'mepr_get_checkout_state',
+            mepr_product_id: $form.find('input[name="mepr_product_id"]').val(),
+            'mepr-address-one': $form.find('input[name="mepr-address-one"]').val(),
+            'mepr-address-two': $form.find('input[name="mepr-address-two"]').val(),
+            'mepr-address-city': $form.find('input[name="mepr-address-city"]').val(),
+            'mepr-address-state': $form.find('select[name="mepr-address-state"]').is(':visible') ? $form.find('select[name="mepr-address-state"]').val() : $form.find('input[name="mepr-address-state"]').val(),
+            'mepr-address-country': $form.find('select[name="mepr-address-country"]').val(),
+            'mepr-address-zip': $form.find('input[name="mepr-address-zip"]').val(),
+            mepr_vat_number: $form.find('input[name="mepr_vat_number"]').val(),
+            mepr_vat_customer_type: $form.find('input[name="mepr_vat_customer_type"]:checked').val(),
+            mepr_coupon_code: $form.find('input[name="mepr_coupon_code"]').val(),
+            mepr_coupon_nonce: MeprSignup.coupon_nonce,
+            mpca_corporate_account_id: $form.find('input[name="mpca_corporate_account_id"]').val(),
+            mpgft_gift_checkbox: $form.find('input[name="mpgft-signup-gift-checkbox"]').is(':checked'),
+            mepr_payment_methods: payment_methods
+          };
+
+          if (!data.mpgft_gift_checkbox) {
+            let order_bumps = [];
+
+            $form.find('input[name="mepr_order_bumps[]"]:checked').each(function () {
+              order_bumps.push($(this).val());
+            });
+
+            data.mepr_order_bumps = order_bumps;
+          }
+
+          return data;
+        };
+
+    const debouncedUpdateCheckoutState = function ($form) {
+      if (updatingCheckoutState) {
+        updateCheckoutStateAgain = true;
+        return;
+      }
+
+      const data = getRequestData($form);
+
+      if (JSON.stringify(data) === JSON.stringify(lastRequestData)) {
+        return;
+      }
+
+      updatingCheckoutState = true;
+      lastRequestData = data;
+
+      if (MeprSignup.spc_enabled === '1' && MeprSignup.spc_invoice === '1') {
+        $form.find('.mepr-invoice-loader').fadeIn();
+      }
+
+      const onComplete = function () {
+        if (MeprSignup.spc_enabled === '1' && MeprSignup.spc_invoice === '1') {
+          $form.find('.mepr-invoice-loader').hide();
+        }
+
+        updatingCheckoutState = false;
+      };
+
+      $.ajax({
+        type: 'POST',
+        url: MeprI18n.ajaxurl,
+        dataType: 'json',
+        data: getRequestData($form)
+      })
+      .done(function (response) {
+        if (response && typeof response.success === 'boolean' && response.success) {
+          $form.trigger('meprPriceStringUpdated', [response.data]);
+          $form.find('div.mepr_price_cell').html(response.data.price_string);
+
+          if (response.data.payment_required) {
+            $form.find('.mepr-payment-methods-wrapper').show();
+            $form.find('input[name="mepr_payment_methods_hidden"]').remove();
+          } else {
+            $form.find('.mepr-payment-methods-wrapper').hide();
+            $form.append('<input type="hidden" name="mepr_payment_methods_hidden" value="1">');
+
+            // Clear validation errors on fields now hidden
+            $form.find('.mepr-payment-methods-wrapper .mepr-form-input').each(function () {
+              meprValidateInput(this);
+            });
+          }
+
+          $form.trigger('meprAfterPriceStringUpdated', [response.data]);
+
+          if (MeprSignup.spc_enabled === '1' && MeprSignup.spc_invoice === '1') {
+            $form.find('.mepr-transaction-invoice-wrapper > div').replaceWith(response.data.invoice_html);
+            $form.find(".mepr-transaction-invoice-wrapper .mp_invoice").css({ opacity: 1 });
+          }
+
+          $form.trigger('meprAfterCheckoutStateUpdated', [response.data]);
+
+          onComplete();
+
+          if (updateCheckoutStateAgain) {
+            updateCheckoutStateAgain = false;
+            updateCheckoutState($form);
+          }
+        } else {
+          onComplete();
+        }
+      })
+      .fail(onComplete);
+    };
+
+    $('.mepr-signup-form').on('meprUpdateCheckoutState', function () {
+      updateCheckoutState($(this));
+    });
+
     var meprValidateInput = function (obj, submitting) {
       $(obj).removeClass('invalid');
 
@@ -66,15 +192,13 @@
 
             if(res.toString() == 'true') {
               if($(obj).data('submit-when-valid')) {
-                $(obj).removeData('submit-when-valid');
-
                 form.one('meprAfterPriceStringUpdated', function () {
                   form.find('.mepr-submit').trigger('click');
                 });
               }
 
-              // Let's update price string
-              meprUpdatePriceTerms(form);
+              // Let's update price string and invoice
+              updateCheckoutState(form);
             }
             else {
               form.find('.mepr-payment-methods-wrapper:hidden').show();
@@ -82,11 +206,12 @@
               price_string.text(price_string.data('default-price-string'));
 
               // Invalid Coupon - update SPC Invoice
-              meprUpdatePriceTerms(form);
+              updateCheckoutState(form);
             }
           })
           .always(function () {
             $(obj).removeData('validating');
+            $(obj).removeData('submit-when-valid');
           });
         }
         else if($(obj).val().trim() === '') {
@@ -98,115 +223,12 @@
 
           price_string.text(price_string.data('default-price-string'));
           // Enpty Coupon - update SPC Invoice
-          meprUpdatePriceTerms(form);
+          updateCheckoutState(form);
         }
       }
 
       $(obj).trigger('mepr-validate-input');
     };
-
-    window.mepr_validate_input = meprValidateInput;
-
-    var meprUpdatePriceTerms = function (form) {
-      var price_string = form.find('div.mepr_price_cell');
-
-      let settings = {
-        url: MeprI18n.ajaxurl,
-        type: 'POST',
-        dataType: 'json',
-        data: {
-          code: form.find('input[name="mepr_coupon_code"]').val(),
-          prd_id: form.find('input[name="mepr_product_id"]').val(),
-          'mepr-address-one': form.find('input[name="mepr-address-one"]').val(),
-          'mepr-address-two': form.find('input[name="mepr-address-two"]').val(),
-          'mepr-address-city': form.find('input[name="mepr-address-city"]').val(),
-          'mepr-address-state': form.find('select[name="mepr-address-state"]').is(':visible') ? form.find('select[name="mepr-address-state"]').val() : form.find('input[name="mepr-address-state"]').val(),
-          'mepr-address-country': form.find('select[name="mepr-address-country"]').val(),
-          'mepr-address-zip': form.find('input[name="mepr-address-zip"]').val(),
-          mepr_vat_number: form.find('input[name="mepr_vat_number"]').val(),
-          mepr_vat_customer_type: form.find('input[name="mepr_vat_customer_type"]:checked').val(),
-          coupon_nonce: MeprSignup.coupon_nonce,
-          mpca_corporate_account_id: form.find('input[name="mpca_corporate_account_id"]').val()
-        }
-      }
-
-      if(form.find('input[name="mpgft-signup-gift-checkbox"]').length > 0){
-        settings.data.mpgft_gift_checkbox = form.find('input[name="mpgft-signup-gift-checkbox"]').is(':checked');
-      }
-
-      if( settings.data.mpgft_gift_checkbox !== undefined && settings.data.mpgft_gift_checkbox ) {
-        form.find('.mepr-order-bumps').hide();
-      } else {
-        form.find('.mepr-order-bumps').show();
-      }
-
-      if(form.find('input[name="mepr_order_bumps[]"]:checked').length > 0 ){
-        var mepr_order_bumps = [];
-        if( settings.data.mpgft_gift_checkbox != undefined && settings.data.mpgft_gift_checkbox ) {
-          var elem_click_trigger_needed = false;
-          form.find('input[name="mepr_order_bumps[]"]:checked').each(function () {
-            elem_click_trigger_needed = $(this);
-            elem_click_trigger_needed.prop('checked',false).removeAttr('checked');
-          });
-
-          if( elem_click_trigger_needed ) {
-            form.find('input[name="mepr_order_bumps[]"]:checked').trigger('click');
-          }
-        } else {
-          form.find('input[name="mepr_order_bumps[]"]:checked').each(function () {
-            mepr_order_bumps.push($(this).val());
-          });
-        }
-
-        settings.data.mepr_order_bumps = mepr_order_bumps;
-      }
-
-      // Let's update terms
-      settings.data.action = 'mepr_update_price_string';
-      $.ajax(settings)
-      .done(function (response) {
-        if (response && typeof response == 'object' && response.status === 'success') {
-          form.trigger('meprPriceStringUpdated', [response]);
-          if(price_string.length) {
-            var scroll_top = price_string.offset().top;
-            price_string.html(response.price_string);
-          }
-
-          if(response.payment_required) {
-            form.find('.mepr-payment-methods-wrapper').show();
-            form.find('input[name="mepr_payment_methods_hidden"]').remove();
-          } else {
-            form.find('.mepr-payment-methods-wrapper').hide();
-            form.append('<input type="hidden" name="mepr_payment_methods_hidden" value="1">');
-
-            // Clear validation errors on fields now hidden
-            form.find('.mepr-payment-methods-wrapper .mepr-form-input').each(function () {
-              meprValidateInput(this);
-            });
-          }
-
-          form.trigger('meprAfterPriceStringUpdated', [response]);
-        }
-      });
-
-      // Let's update SPC Invoice
-      if (MeprSignup.spc_enabled == '1'){
-        settings.data.action = 'mepr_update_spc_invoice_table';
-
-        // Show SPC invoice table loader
-        form.find('.mepr-invoice-loader').fadeIn();
-
-        $.ajax(settings)
-        .done(function (response) {
-          if (response && typeof response == 'object' && response.status === 'success') {
-            $(form).find('.mepr-transaction-invoice-wrapper > div').replaceWith(response.invoice);
-          }
-          $(form).find('.mepr-invoice-loader').hide();
-          $(form).find(".mepr-transaction-invoice-wrapper .mp_invoice").css({ opacity: 1 });
-        });
-      }
-    }
-
 
     $('body').on('focus', '.mepr-form .mepr-form-input', function (e) {
       $(this).prev('.mp-form-label').find('.cc-error').hide();
@@ -307,10 +329,9 @@
     });
 
     // Update price string & invoice when certain inputs change value
-    $("body").on("change",
+    $("body").on("change mepr-geolocated",
       ".mepr-form .mepr-form-input, .mepr-form .mepr-form-radios-input, .mepr-form .mepr-select-field",
-      function (e) {
-
+      function () {
         if($(this).attr('name') == 'mepr-address-zip' ||
           $(this).attr('name') == 'mepr-address-city' ||
           $(this).attr('name') == 'mepr-address-country' ||
@@ -320,17 +341,10 @@
           $(this).attr('name') == 'mepr_vat_number' ||
           $(this).attr('name') == 'mpgft-signup-gift-checkbox'
         ) {
-          let form = $(this).closest(".mepr-signup-form");
-          meprUpdatePriceTerms(form);
+          updateCheckoutState($(this).closest(".mepr-signup-form"));
         }
       }
     );
-
-    // Update price string & invoice when geolocation occurs
-    $('body').on('mepr-geolocated', '.mepr-form .mepr-countries-dropdown', function () {
-      meprUpdatePriceTerms($(this).closest('.mepr-signup-form'));
-    });
-
 
     $(".mepr-replace-file").each(function(){
       $(this).closest('div').find('.mepr-file-uploader').hide();
@@ -340,7 +354,7 @@
     });
 
     // Set the visibility of payment methods based on order bumps
-    $('body').on('click', '.mepr-signup-form input[name="mepr_order_bumps[]"]', function () {
+    var handleOrderBumpToggle = function () {
       var $input = $(this),
           $order_bump = $input.closest('.mepr-order-bump'),
           $order_bumps = $order_bump.closest('.mepr-order-bumps'),
@@ -448,7 +462,9 @@
       $to_show.closest('.mepr_payment_method, .mepr-payment-option-label').show();
 
       $order_bump.toggleClass('mepr-order-bump-selected', this.checked);
-    });
+    };
+
+    $('body').on('click', '.mepr-signup-form input[name="mepr_order_bumps[]"]', handleOrderBumpToggle);
 
     // Hide subscription order bumps if no payment method supports multiple subscriptions
     $('.mepr-signup-form').each(function () {
@@ -503,9 +519,21 @@
             return;
           }
         }
-        meprUpdatePriceTerms(form);
+        updateCheckoutState(form);
       }
     );
 
+    $("body").on('change', '.mepr-signup-form input[name="mpgft-signup-gift-checkbox"]', function () {
+      let $is_gift = $(this),
+          $form = $is_gift.closest('.mepr-signup-form');
+
+      if ($is_gift.is(':checked')) {
+        $form.find('.mepr-order-bumps').hide().find('input[name="mepr_order_bumps[]"]:checked').prop('checked', false).each(function () {
+          handleOrderBumpToggle.call(this);
+        });
+      } else {
+        $form.find('.mepr-order-bumps').show();
+      }
+    });
   });
 })(jQuery);

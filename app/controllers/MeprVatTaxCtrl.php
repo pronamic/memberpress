@@ -8,10 +8,9 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
 
     $calculate_taxes = get_option('mepr_calculate_taxes');
     $vat_enabled = get_option('mepr_vat_enabled');
+    $tax_stripe_enabled = (bool) get_option('mepr_tax_stripe_enabled');
 
     if($calculate_taxes && $vat_enabled) {
-      $mepr_options = MeprOptions::fetch();
-
       // Enqueue scripts
       add_filter('mepr-signup-scripts', array($this,'product_scripts'), 10, 3);
 
@@ -24,8 +23,10 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
       // STORE THE VAT FIELDS WITH THE USER RECORD
       add_action('mepr-process-signup', array($this,'process_signup'), 10, 4);
 
-      // Filter for tax calculation
-      add_filter('mepr_find_tax_rate', array($this,'find_rate'), 20, 8);
+      if(!$tax_stripe_enabled) {
+        // Filter for tax calculation
+        add_filter('mepr_find_tax_rate', array($this, 'find_rate'), 20, 8);
+      }
 
       // Follow use merchant address from here on out?
       //add_filter('mepr-tax-rate-use-customer-address', array($this,'use_customer_address'), 10, 2);
@@ -82,8 +83,8 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
 
     if($this->vat_calc_possible() && ($prd->price > 0.00 || ($prd->price <= 0.00 && !$prd->disable_address_fields))) {
       $country = $_POST['mepr-address-country'];
-      $customer_type = $this->get_customer_type();
-      $vat_number = $this->get_vat_number();
+      $customer_type = self::get_customer_type();
+      $vat_number = self::get_vat_number();
       $vat_tax_businesses = get_option('mepr_vat_tax_businesses', false);
 
       //If customer is a business, then a value must be entered for the vat number
@@ -120,8 +121,8 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     $prd = new MeprProduct($prd_id);
 
     if($this->vat_calc_possible() && $prd->price > 0.00 && !isset($_GET['ca'])) {
-      $vat_customer_type = $this->get_customer_type();
-      $vat_number = $this->get_vat_number();
+      $vat_customer_type = self::get_customer_type();
+      $vat_number = self::get_vat_number();
 
       static $unique_suffix = 0;
       $unique_suffix++;
@@ -133,11 +134,11 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
   public function process_signup($amt, $usr, $pid, $tid) {
     if($this->vat_calc_possible()) {
       if(isset($_POST['mepr_vat_customer_type'])) {
-        update_user_meta($usr->ID, 'mepr_vat_customer_type', $this->get_customer_type());
+        update_user_meta($usr->ID, 'mepr_vat_customer_type', self::get_customer_type());
       }
 
       if(isset($_POST['mepr_vat_number'])) {
-        update_user_meta($usr->ID, 'mepr_vat_number', $this->get_vat_number());
+        update_user_meta($usr->ID, 'mepr_vat_number', self::get_vat_number());
       }
     }
   }
@@ -146,8 +147,8 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
   public function find_rate($tax_rate, $country, $state, $postcode, $city, $street, $usr=null, $prd_id = null) {
     $mepr_options = MeprOptions::fetch();
     $countries = $this->get_vat_countries();
-    $customer_type = $this->get_customer_type($usr);
-    $vat_number = $this->get_vat_number($usr);
+    $customer_type = self::get_customer_type($usr);
+    $vat_number = self::get_vat_number($usr);
     $vat_tax_businesses = get_option('mepr_vat_tax_businesses', false);
     $usr_country = null;
     $vat_country = get_option('mepr_vat_country');
@@ -294,7 +295,7 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     return true; // Silently fail for now?
   }
 
-  private function get_customer_type($usr=null) {
+  public static function get_customer_type($usr=null) {
     if(array_key_exists('mepr_vat_customer_type',$_POST)) {
       return sanitize_text_field($_POST['mepr_vat_customer_type']);
     }
@@ -314,7 +315,7 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     return 'consumer';
   }
 
-  private function get_vat_number($usr=null) {
+  public static function get_vat_number($usr=null) {
     if(array_key_exists('mepr_vat_number',$_POST)) {
       return sanitize_text_field($_POST['mepr_vat_number']);
     }
@@ -452,8 +453,8 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     $tax_rate = $usr->tax_rate();
 
     // We're showing these regardless
-    $ctype = $this->get_customer_type($usr);
-    $vnum = $this->get_vat_number($usr);
+    $ctype = self::get_customer_type($usr);
+    $vnum = self::get_vat_number($usr);
     MeprView::render('/admin/taxes/vat_profile_fields', get_defined_vars());
   }
 
@@ -462,8 +463,8 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     if (MeprUtils::is_logged_in_and_an_admin()) {
       if($update === false) { return $errors; }
 
-      $ctype = $this->get_customer_type($user);
-      $vnum = $this->get_vat_number($user);
+      $ctype = self::get_customer_type($user);
+      $vnum = self::get_vat_number($user);
       $country = get_user_meta($user->ID, 'mepr-address-country', true);
 
       if($ctype=='business' && !empty($vnum) && !empty($country) && !$this->vat_number_is_valid($vnum, $country)) {

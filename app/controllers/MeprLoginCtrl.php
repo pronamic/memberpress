@@ -143,16 +143,28 @@ class MeprLoginCtrl extends MeprBaseCtrl {
       $redirect_to = MeprProductsCtrl::track_and_override_login_redirect_mepr($redirect_to, $wp_user, true, false);
       $redirect_to = urlencode($redirect_to);
 
-      MeprView::render('/login/form', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+        MeprView::render('/readylaunch/login/form', get_defined_vars());
+      } else {
+        MeprView::render('/login/form', get_defined_vars());
+      }
       return;
     }
 
     if(!empty($_REQUEST['mepr_process_login_form']) && !empty($_REQUEST['errors'])) {
       $errors = array_map( 'wp_kses_post', $_REQUEST['errors'] );
-      MeprView::render('/shared/errors', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+        MeprView::render('/readylaunch/shared/errors', get_defined_vars());
+      } else {
+        MeprView::render('/shared/errors', get_defined_vars());
+      }
     }
 
-    MeprView::render('/login/form', get_defined_vars());
+    if(MeprReadyLaunchCtrl::template_enabled( 'login' ) || MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-login-form' )){
+      MeprView::render('/readylaunch/login/form', get_defined_vars());
+    } else {
+      MeprView::render('/login/form', get_defined_vars());
+    }
   }
 
   // Processes the login form
@@ -258,7 +270,11 @@ class MeprLoginCtrl extends MeprBaseCtrl {
     $process = MeprAppCtrl::get_param('mepr_process_forgot_password_form','');
 
     if(empty($process)) {
-      MeprView::render('/login/forgot_password', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+        MeprView::render('/readylaunch/login/forgot_password', get_defined_vars());
+      } else {
+        MeprView::render('/login/forgot_password', get_defined_vars());
+      }
     }
     else {
       $this->process_forgot_password_form();
@@ -287,15 +303,24 @@ class MeprLoginCtrl extends MeprBaseCtrl {
       if($user->ID) {
         $user->send_password_notification('reset');
 
-        MeprView::render('/login/forgot_password_requested', get_defined_vars());
+        if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+          MeprView::render('/readylaunch/login/forgot_password_requested', get_defined_vars());
+        } else {
+          MeprView::render('/login/forgot_password_requested', get_defined_vars());
+        }
       }
       else {
         MeprView::render('/shared/unknown_error', get_defined_vars());
       }
     }
     else {
-      MeprView::render('/shared/errors', get_defined_vars());
-      MeprView::render('/login/forgot_password', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+        MeprView::render('/readylaunch/shared/errors', get_defined_vars());
+        MeprView::render('/readylaunch/login/forgot_password', get_defined_vars());
+      } else {
+        MeprView::render('/shared/errors', get_defined_vars());
+        MeprView::render('/login/forgot_password', get_defined_vars());
+      }
     }
   }
 
@@ -304,21 +329,38 @@ class MeprLoginCtrl extends MeprBaseCtrl {
     $user->load_user_data_by_login($mepr_screenname);
 
     if($user->ID && $user->reset_form_key_is_valid($mepr_key)) {
-      MeprView::render('/login/reset_password', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+        MeprView::render('/readylaunch/login/reset_password', get_defined_vars());
+      } else {
+        MeprView::render('/login/reset_password', get_defined_vars());
+      }
     }
     elseif($user->ID && $user->reset_form_key_has_expired($mepr_key)) {
-      MeprView::render('/shared/expired_password_reset', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+        MeprView::render('/readylaunch/shared/expired_password_reset', get_defined_vars());
+      } else {
+        MeprView::render('/shared/expired_password_reset', get_defined_vars());
+      }
     }
     else {
-      MeprView::render('/shared/unauthorized', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+        MeprView::render('/readylaunch/shared/unauthorized', get_defined_vars());
+      } else {
+        MeprView::render('/shared/unauthorized', get_defined_vars());
+      }
     }
   }
 
   public function display_reset_password_form_errors($errors) {
     if(!empty($errors)) {
       extract($_POST, EXTR_SKIP);
-      MeprView::render('/shared/errors', get_defined_vars());
-      MeprView::render('/login/reset_password', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+        MeprView::render('/readylaunch/shared/errors', get_defined_vars());
+        MeprView::render('/readylaunch/login/reset_password', get_defined_vars());
+      } else {
+        MeprView::render('/shared/errors', get_defined_vars());
+        MeprView::render('/login/reset_password', get_defined_vars());
+      }
     }
   }
 

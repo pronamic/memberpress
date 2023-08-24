@@ -158,9 +158,11 @@ class MeprAccountCtrl extends MeprBaseCtrl {
 
     $delim = MeprAppCtrl::get_param_delimiter_char($account_url);
 
-    MeprHooks::do_action( 'mepr_before_account_render');
-
-    MeprView::render('/account/nav', get_defined_vars());
+    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' )){
+      MeprView::render('/readylaunch/account/nav', get_defined_vars());
+    } else {
+      MeprView::render('/account/nav', get_defined_vars());
+    }
 
     $action = MeprHooks::apply_filters('mepr-account-action', (isset($_REQUEST['action']))?$_REQUEST['action']:false);
 
@@ -197,7 +199,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
         $custom_content = ob_get_clean();
 
         if(empty($custom_content)) {
-          $this->home();
+          $this->home($atts);
         }
         else {
           echo '<div class="mepr-' . $action .'-wrapper">' . $custom_content . '</div>';
@@ -207,7 +209,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     MeprHooks::do_action( 'mepr_after_account_render');
   }
 
-  public function home() {
+  public function home($atts = array()) {
     $mepr_current_user = MeprUtils::get_currentuserinfo();
     $mepr_options = MeprOptions::fetch();
     $account_url = $mepr_options->account_page_url();
@@ -253,8 +255,70 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     //Load user last in case we saved above, we want the saved info to show up
     $mepr_current_user = new MeprUser($mepr_current_user->ID);
 
-    MeprHooks::do_action('mepr-before-render-account', $mepr_current_user);
-    MeprView::render('/account/home', get_defined_vars());
+    if ( ( MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' ) )) {
+      if( is_array($atts) ){
+        extract( $atts, EXTR_SKIP );
+      }
+      $mepr_options = MeprOptions::fetch();
+      $account_url  = $mepr_options->account_page_url();
+      $delim        = MeprAppCtrl::get_param_delimiter_char( $account_url );
+
+      $mepr_current_user = MeprUtils::get_currentuserinfo();
+
+      $welcome_message = do_shortcode ( wp_kses_post( wpautop( $mepr_options->custom_message ) ) );
+
+      $address_fields = MeprUsersHelper::get_address_fields( $mepr_current_user );
+      $address_values = array();
+      foreach ( $address_fields as $address_field ) {
+        $value            = $mepr_current_user ? get_user_meta( $mepr_current_user->ID, $address_field->field_key, true ) : '';
+        $address_values[] = $value;
+      }
+
+      static $unique_suffix = 0;
+      $unique_suffix++;
+
+      $first_name_value = '';
+      if ( isset( $user_first_name ) ) {
+        $first_name_value = esc_attr( stripslashes( $user_first_name ) );
+      } elseif ( MeprUtils::is_user_logged_in() ) {
+        $first_name_value = (string) $mepr_current_user->first_name;
+      }
+
+      $last_name_value = '';
+      if ( isset( $user_last_name ) ) {
+        $last_name_value = esc_attr( stripslashes( $user_last_name ) );
+      } elseif ( MeprUtils::is_user_logged_in() ) {
+        $last_name_value = (string) $mepr_current_user->last_name;
+      }
+
+      $custom_fields = MeprUsersHelper::get_custom_fields();
+      ob_start();
+      foreach ( $custom_fields as $custom_field ) {
+        if ( isset( $custom_field->show_in_account ) && ! $custom_field->show_in_account ) {
+          continue; }
+        MeprUsersHelper::render_pro_templates_custom_field_values( $custom_field, $mepr_current_user );
+      }
+      $custom_fields_values = ob_get_clean();
+
+      $has_welcome_image = $welcome_image = null;
+
+      // Has welcome image? Priority given to shortcode.
+      if ( isset( $atts['show_welcome_image'] ) ) {
+        $show_welcome_image = filter_var( $atts['show_welcome_image'], FILTER_VALIDATE_BOOLEAN );
+      } elseif ( isset( $mepr_options->design_account_welcome_img ) ) {
+        $show_welcome_image = $mepr_options->design_account_welcome_img;
+      }
+
+      // Get welcome image? Priority given to shortcode.
+      if ( isset( $atts['welcome_image'] ) && $atts['welcome_image'] > 0 ) {
+        $welcome_image = wp_get_attachment_url( $atts['welcome_image'] );
+      } elseif ( isset( $mepr_options->design_account_welcome_img ) ) {
+        $welcome_image = wp_get_attachment_url( $mepr_options->design_account_welcome_img );
+      }
+      MeprView::render('/readylaunch/account/home', get_defined_vars());
+    } else {
+      MeprView::render('/account/home', get_defined_vars());
+    }
   }
 
   public function password() {
@@ -272,7 +336,11 @@ class MeprAccountCtrl extends MeprBaseCtrl {
       }
     }
 
-    MeprView::render('/account/password', get_defined_vars());
+    if(MeprReadyLaunchCtrl::template_enabled( 'account' )){
+      MeprView::render('/readylaunch/account/password', get_defined_vars());
+    } else {
+      MeprView::render('/account/password', get_defined_vars());
+    }
   }
 
   public function payments($args = array()) {
@@ -304,7 +372,11 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $next_page = (($curr_page * $perpage) >= $all)?false:$curr_page+1;
     $prev_page = ($curr_page > 1)?$curr_page - 1:false;
 
-    MeprView::render('/account/payments', get_defined_vars());
+    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' )){
+      MeprView::render('/readylaunch/account/payments', get_defined_vars());
+    } else {
+      MeprView::render('/account/payments', get_defined_vars());
+    }
   }
 
   public function subscriptions($message='',$errors=array(), $args = array()) {
@@ -344,8 +416,13 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $next_page = (($curr_page * $perpage) >= $all)?false:$curr_page + 1;
     $prev_page = ($curr_page > 1)?$curr_page - 1:false;
 
-    MeprView::render('/shared/errors', get_defined_vars());
-    MeprView::render('/account/subscriptions', get_defined_vars());
+    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' )){
+      MeprView::render('/readylaunch/shared/errors', get_defined_vars());
+      MeprView::render('/readylaunch/account/subscriptions', get_defined_vars());
+    } else {
+      MeprView::render('/shared/errors', get_defined_vars());
+      MeprView::render('/account/subscriptions', get_defined_vars());
+    }
   }
 
   public function suspend() {
@@ -512,11 +589,19 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     if(MeprUtils::is_user_logged_in()) {
       $account_url = $mepr_options->account_page_url();
       $logout_url = MeprUtils::logout_url();
-      MeprView::render('/account/logged_in_template', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'account' )){
+        MeprView::render('/readylaunch/account/logged_in_template', get_defined_vars());
+      } else {
+        MeprView::render('/account/logged_in_template', get_defined_vars());
+      }
     }
     else {
       $login_url = MeprUtils::login_url();
-      MeprView::render('/account/logged_out_template', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'account' )){
+        MeprView::render('/readylaunch/account/logged_out_template', get_defined_vars());
+      } else {
+        MeprView::render('/account/logged_out_template', get_defined_vars());
+      }
     }
 
     return ob_get_clean();

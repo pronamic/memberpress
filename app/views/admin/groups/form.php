@@ -94,24 +94,27 @@
                                 __('This will disable the pricing page from being accessed on the front end of your site. It will return a 404 (not found) page if a user attempts to access it.<br/><br/>You can optionally provide an alternate URL to take the member to if they try to visit this page.', 'memberpress'));
   ?>
   <br/>
-  <div id="mepr_hidden_pricing_page_theme">
-    <label for="<?php echo MeprGroup::$group_theme_str; ?>">
-      <?php _e('Pricing Page Theme:', 'memberpress') . ' ' . $group->group_theme; ?>
-    </label>
-    <?php echo MeprGroupsHelper::theme_dropdown($group->group_theme); ?>
-    <br/><br/>
+  <div class="<?php echo isset( $mepr_options->design_enable_pricing_template ) && $mepr_options->design_enable_pricing_template ? 'mepr_hidden' : '' ?>">
+    <div id="mepr_hidden_pricing_page_theme">
+      <label for="<?php echo MeprGroup::$group_theme_str; ?>">
+        <?php _e('Pricing Page Theme:', 'memberpress') . ' ' . $group->group_theme; ?>
+      </label>
+      <?php echo MeprGroupsHelper::theme_dropdown($group->group_theme); ?>
+      <br/><br/>
 
-    <label><?php _e('Custom Button CSS classes (optional):', 'memberpress'); ?></label><br/>
-    <input type="text" class="mepr-group-button-css" name="<?php echo MeprGroup::$page_button_class_str; ?>" id="<?php echo MeprGroup::$page_button_class_str; ?>" value="<?php echo $group->page_button_class; ?>" />
-    <br/><br/>
+      <label><?php _e('Custom Button CSS classes (optional):', 'memberpress'); ?></label><br/>
+      <input type="text" class="mepr-group-button-css" name="<?php echo MeprGroup::$page_button_class_str; ?>" id="<?php echo MeprGroup::$page_button_class_str; ?>" value="<?php echo $group->page_button_class; ?>" />
+      <br/><br/>
 
-    <label><?php _e('Custom Highlighted Button CSS classes (optional):', 'memberpress'); ?></label><br/>
-    <input type="text" class="mepr-group-button-css" name="<?php echo MeprGroup::$page_button_highlighted_class_str; ?>" id="<?php echo MeprGroup::$page_button_highlighted_class_str; ?>" value="<?php echo $group->page_button_highlighted_class; ?>" />
-    <br/><br/>
+      <label><?php _e('Custom Highlighted Button CSS classes (optional):', 'memberpress'); ?></label><br/>
+      <input type="text" class="mepr-group-button-css" name="<?php echo MeprGroup::$page_button_highlighted_class_str; ?>" id="<?php echo MeprGroup::$page_button_highlighted_class_str; ?>" value="<?php echo $group->page_button_highlighted_class; ?>" />
+      <br/><br/>
 
-    <label><?php _e('Custom Disabled Button CSS classes (optional):', 'memberpress'); ?></label><br/>
-    <input type="text" class="mepr-group-button-css" name="<?php echo MeprGroup::$page_button_disabled_class_str; ?>" id="<?php echo MeprGroup::$page_button_disabled_class_str; ?>" value="<?php echo $group->page_button_disabled_class; ?>" />
+      <label><?php _e('Custom Disabled Button CSS classes (optional):', 'memberpress'); ?></label><br/>
+      <input type="text" class="mepr-group-button-css" name="<?php echo MeprGroup::$page_button_disabled_class_str; ?>" id="<?php echo MeprGroup::$page_button_disabled_class_str; ?>" value="<?php echo $group->page_button_disabled_class; ?>" />
+    </div>
   </div>
+
   <div id="mepr_hidden_alternate_group_url">
     <label><?php _e('Alternate Group URL:', 'memberpress'); ?></label><br/>
     <input type="text" class="mepr-group-button-css" name="<?php echo MeprGroup::$alternate_group_url_str; ?>" id="<?php echo MeprGroup::$alternate_group_url_str; ?>" value="<?php echo $group->alternate_group_url; ?>" />

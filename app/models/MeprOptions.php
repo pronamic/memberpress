@@ -563,11 +563,12 @@ class MeprOptions {
     $this->design_show_thankyou_welcome_image_str   = 'mepr-design-show-thankyou-welcome-image';
     $this->design_thankyou_welcome_img_str          = 'mepr-design-thankyou-welcome-img';
     $this->design_thankyou_hide_invoice_str         = 'mepr-design-thankyou-hide-invoice';
-    $this->design_thankyou_invoice_message_str              = 'mepr-design-thankyou-message';
+    $this->design_thankyou_invoice_message_str      = 'mepr-design-thankyou-message';
     $this->design_enable_pricing_template_str       = 'mepr-design-enable-pricing-template';
     $this->design_pricing_title_str                 = 'mepr-design-pricing-title';
     $this->design_pricing_cta_color_str             = 'mepr-design-pricing-cta-color';
     $this->design_pricing_subheadline_str           = 'mepr-design-pricing-subheadline';
+    $this->design_show_checkout_price_terms_str     = 'mepr-design-show-checkout-price-terms';
   }
 
   public function validate($params, $errors = array()) {
@@ -692,9 +693,12 @@ class MeprOptions {
         $params[$this->integrations_str][$intg_key]['use_label'] = isset($params[$this->integrations_str][$intg_key]['use_label']);
         $params[$this->integrations_str][$intg_key]['use_desc'] = isset($params[$this->integrations_str][$intg_key]['use_desc']);
 
-        if(isset($intg['gateway']) && $intg['gateway'] == 'MeprStripeGateway' && $currency_code_changed) {
-          // Reset Stripe payment methods if currency code has changed
-          $params[$this->integrations_str][$intg_key]['payment_methods'] = [];
+        if(isset($intg['gateway']) && $intg['gateway'] == 'MeprStripeGateway') {
+          if($currency_code_changed || empty($params[$this->integrations_str][$intg_key]['payment_methods'])) {
+            // Set the Stripe payment methods to be an empty array if the currency code has changed
+            // or no payment methods were selected.
+            $params[$this->integrations_str][$intg_key]['payment_methods'] = [];
+          }
         }
       }
     }
@@ -781,6 +785,7 @@ class MeprOptions {
     $this->design_pricing_title               = sanitize_text_field($params[$this->design_pricing_title_str]);
     $this->design_pricing_cta_color           = sanitize_text_field($params[$this->design_pricing_cta_color_str]);
     $this->design_pricing_subheadline         = wp_kses_post(stripslashes($params[$this->design_pricing_subheadline_str]));
+    $this->design_show_checkout_price_terms   = isset($params[$this->design_show_checkout_price_terms_str]);
   }
 
   public function update_address_fields_required() {

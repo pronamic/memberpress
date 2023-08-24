@@ -19,26 +19,19 @@
     this.selectedPaymentMethod = null;
     this.submitting = false;
     this.isStripeCheckoutPageMode = this.$form.find('input[name=mepr_stripe_checkout_page_mode]').val();
-    this.$textFields = this.$form.find(
-      'input[name="user_email"], input[name="mepr-address-one"], input[name="mepr-address-city"], ' +
-      'input[name="mepr-address-zip"], input[name="mepr-address-state"], input[name="mepr_vat_number"]'
-    );
-    this.$selectFields = this.$form.find('select[data-fieldname="mepr-address-state"], select[name="mepr-address-country"]');
-    this.$orderBumps = this.$form.find('input[name="mepr_order_bumps[]"]');
+    this.updateBillingDetailsTimeout = null;
     this.initPaymentMethods();
     this.$form.on('submit', $.proxy(this.handleSubmit, this));
-    this.$form.find('input[name="mepr_payment_method"], input[name="mepr_vat_customer_type"]').on('change', $.proxy(this.maybeUpdateElements, this));
-    this.$textFields.add(this.$form.find('input[name="mepr_coupon_code"]')).on('blur', $.proxy(this.maybeUpdateElements, this));
-    this.$selectFields.on('change', $.proxy(this.maybeUpdateElements, this));
-    this.$orderBumps.on('change', $.proxy(this.maybeUpdateElements, this));
-    this.$form.find('input[name="mpgft-signup-gift-checkbox"]').on('change', $.proxy(this.maybeUpdateElements, this));
+    this.$form.on('meprAfterCheckoutStateUpdated', $.proxy(this.updateElements, this));
+    this.$form.find('input[name="user_email"]').on('change', $.proxy(this.updateBillingDetails, this));
   }
 
   /**
    * Initialize Stripe elements
    */
   MeprStripeForm.prototype.initPaymentMethods = function () {
-    var self = this;
+    var self = this,
+        templateOutdated = false;
 
     self.$form.find('.mepr-stripe-card-element').each(function () {
       var $cardElement = $(this),
@@ -59,25 +52,22 @@
             stripe: stripe,
             elements: null,
             paymentElement: null,
-            paymentElementComplete: false,
-            paymentMethodType: null,
-            paymentFormData: null,
-            updateElementsTimeout: null,
-            updatingElements: false,
-            updateElementsAgain: false,
-            billingDetailsJson: '',
-            updateBillingDetailsTimeout: null
+            paymentElementComplete: false
           };
 
       self.paymentMethods.push(paymentMethod);
 
       if (elementsOptions) {
         self.createElements(paymentMethod, elementsOptions);
-      } else {
-        self.updateElements(paymentMethod);
-        console.log('Your MemberPress checkout form template is out of date, please update it to the latest version.');
+      } else if (self.isSpc) {
+        templateOutdated = true;
       }
     });
+
+    if (templateOutdated) {
+      self.$form.trigger('meprUpdateCheckoutState');
+      console.log('Your MemberPress form template is out of date, please update it to the latest version.');
+    }
   };
 
   /**
@@ -130,193 +120,52 @@
   };
 
   /**
-   * Checks if the fields required to create the Payment element are valid
-   *
-   * @returns {boolean}
-   */
-  MeprStripeForm.prototype.areRequiredFieldsValid = function () {
-    if (!this.isSpc) {
-      return true;
-    }
-
-    var self = this,
-        $fields = self.$textFields.add(self.$selectFields),
-        hasInvalidField = false;
-
-    $fields.each(function (index, field) {
-      var $field = $(field);
-
-      if(
-        $field.is(':visible') && (
-          ($field.attr('required') !== undefined && !mpValidateFieldNotBlank($field)) ||
-          ($field.attr('type') === 'email' && $field.val().length > 0 && !mpValidateEmail($field.val()))
-        )
-      ) {
-        hasInvalidField = true;
-        return false;
-      }
-    });
-
-    return !hasInvalidField;
-  };
-
-  /**
-   * Get the form data that, when changed, will cause the payment element to be updated
-   *
-   * We only need to update the payment element when the price or tax amounts change, so we'll keep track of these
-   * values so that we only update it when necessary.
-   *
-   * @param   {object} paymentMethod
-   * @returns {string}
-   */
-  MeprStripeForm.prototype.getPaymentFormData = function (paymentMethod) {
-    var $coupon = this.$form.find('input[name="mepr_coupon_code"]'),
-        billingDetails = this.getBillingDetails(paymentMethod),
-        $vatNumber = this.$form.find('input[name="mepr_vat_number"]'),
-        $giftCheckbox = this.$form.find('input[name="mpgft-signup-gift-checkbox"]'),
-        data = [];
-
-    if ($coupon.length) {
-      data.push($coupon.val());
-    }
-
-    $.each(billingDetails.address, function (key, value) {
-      data.push(value);
-    });
-
-    if ($vatNumber.length && this.$form.find('input[name="mepr_vat_customer_type"]:checked').val() === 'business') {
-      data.push($vatNumber.val());
-    }
-
-    if ($giftCheckbox.length && $giftCheckbox.is(':checked')) {
-      data.push('gift');
-    }
-
-    this.$orderBumps.each(function (i, orderBump) {
-      var $orderBump = $(orderBump);
-
-      if ($orderBump.is(':checked')) {
-        data.push($orderBump.val());
-      }
-    });
-
-    return data.join('');
-  };
-
-  /**
-   * Updates the Elements instance for the currently selected payment method if the form data has changed
-   */
-  MeprStripeForm.prototype.maybeUpdateElements = function () {
-    var self = this,
-        paymentMethod = self.getSelectedPaymentMethod();
-
-    if (paymentMethod) {
-      if (self.areRequiredFieldsValid() && (paymentMethod.paymentFormData === null || paymentMethod.paymentFormData !== self.getPaymentFormData(paymentMethod))) {
-        clearTimeout(paymentMethod.updateElementsTimeout);
-
-        paymentMethod.updateElementsTimeout = setTimeout(function () {
-          self.updateElements(paymentMethod);
-        }, 50);
-      }
-
-      if(paymentMethod.paymentElement && paymentMethod.billingDetailsJson !== self.getBillingDetailsJson(paymentMethod)) {
-        clearTimeout(paymentMethod.updateBillingDetailsTimeout);
-
-        paymentMethod.updateBillingDetailsTimeout = setTimeout(function () {
-          var billingDetails = self.getBillingDetails(paymentMethod);
-
-          paymentMethod.billingDetailsJson = JSON.stringify(billingDetails);
-
-          paymentMethod.paymentElement.update({
-            defaultValues: {
-              billingDetails: billingDetails
-            }
-          });
-        }, 50);
-      }
-    }
-  };
-
-  /**
    * Updates the Elements instance with new options
    *
-   * @param {object} paymentMethod
+   * @param {object} event
+   * @param {object} response
    */
-  MeprStripeForm.prototype.updateElements = function (paymentMethod) {
-    if (paymentMethod.updatingElements) {
-      // A call to update elements happened when we were already in the process of updating it.
-      // Set this flag to update elements again when finished with the current update.
-      paymentMethod.updateElementsAgain = true;
-      return;
+  MeprStripeForm.prototype.updateElements = function (event, response) {
+    var self = this;
+
+    if (response.payment_required && response.elements_options) {
+      $.each(response.elements_options, function (paymentMethodId, options) {
+        var paymentMethod = self.getPaymentMethodById(paymentMethodId);
+
+        if (paymentMethod) {
+          if (paymentMethod.elements) {
+            paymentMethod.elements.update(options);
+          } else {
+            self.createElements(paymentMethod, options);
+          }
+        }
+      });
     }
 
-    paymentMethod.updatingElements = true;
-    paymentMethod.paymentFormData = this.getPaymentFormData(paymentMethod);
-
-    var self = this,
-        formData = new FormData(self.$form.get(0));
-
-    formData.append('action', 'mepr_stripe_get_elements_options');
-    formData.append('mepr_payment_method', paymentMethod.id);
-
-    // We don't want to hit our routes for processing the signup or payment forms
-    formData.delete('mepr_process_signup_form');
-    formData.delete('mepr_process_payment_form');
-
-    $.ajax({
-      type: 'POST',
-      url: MeprStripeGateway.ajax_url,
-      data: formData,
-      dataType: 'json',
-      cache: false,
-      processData: false,
-      contentType: false,
-      headers: {
-        'cache-control': 'no-cache'
-      }
-    })
-    .done(function (response) {
-      if (response && typeof response.success === 'boolean') {
-        if (response.success) {
-          if (response.data.payment_required === false) {
-            paymentMethod.updatingElements = false;
-            return;
-          }
-
-          if (paymentMethod.elements) {
-            paymentMethod.elements.update(response.data);
-          } else {
-            self.createElements(paymentMethod, response.data);
-          }
-
-          paymentMethod.updatingElements = false;
-
-          if (paymentMethod.updateElementsAgain) {
-            paymentMethod.updateElementsAgain = false;
-            self.updateElements(paymentMethod);
-          }
-        } else {
-          self.updateElementsError(paymentMethod, response.data);
-        }
-      } else {
-        self.updateElementsError(paymentMethod, 'Invalid response');
-      }
-    })
-    .fail(function () {
-      self.updateElementsError(paymentMethod, 'Request failed');
-    });
+    self.updateBillingDetails();
   };
 
   /**
-   * Handle an error updating the elements options
-   *
-   * @param {object} paymentMethod
-   * @param {string} message
+   * Update the billing details on each Payment Element in this form
    */
-  MeprStripeForm.prototype.updateElementsError = function (paymentMethod, message) {
-    paymentMethod.updatingElements = false;
-    paymentMethod.paymentFormData = null;
-    paymentMethod.$cardErrors.html(message || 'Failed to update Elements options');
+  MeprStripeForm.prototype.updateBillingDetails = function () {
+    var self = this;
+
+    clearTimeout(self.updateBillingDetailsTimeout);
+
+    self.updateBillingDetailsTimeout = setTimeout(function () {
+      for (var i = 0; i < self.paymentMethods.length; i++) {
+        var paymentMethod = self.paymentMethods[i];
+
+        if (paymentMethod.paymentElement) {
+          paymentMethod.paymentElement.update({
+            defaultValues: {
+              billingDetails: self.getBillingDetails(paymentMethod)
+            }
+          });
+        }
+      }
+    }, 50);
   };
 
   /**
@@ -392,21 +241,29 @@
   };
 
   /**
+   * Get the data for a payment method by ID
+   *
+   * @param {string} paymentMethodId
+   * @return {object|null}
+   */
+  MeprStripeForm.prototype.getPaymentMethodById = function (paymentMethodId) {
+    for (var i = 0; i < this.paymentMethods.length; i++) {
+      if (this.paymentMethods[i].id === paymentMethodId) {
+        return this.paymentMethods[i];
+      }
+    }
+
+    return null;
+  };
+
+  /**
    * Get the currently selected payment method data
    *
    * @return {object|null}
    */
   MeprStripeForm.prototype.getSelectedPaymentMethod = function () {
     if (this.isSpc) {
-      var paymentMethodId = this.$form.find('input[name="mepr_payment_method"]:checked').val();
-
-      for (var i = 0; i < this.paymentMethods.length; i++) {
-        if (this.paymentMethods[i].id === paymentMethodId) {
-          return this.paymentMethods[i];
-        }
-      }
-
-      return null;
+      return this.getPaymentMethodById(this.$form.find('input[name="mepr_payment_method"]:checked').val());
     } else {
       return this.paymentMethods.length ? this.paymentMethods[0] : null;
     }
@@ -512,16 +369,6 @@
     }
 
     return details;
-  };
-
-  /**
-   * Get the billing details as a JSON string
-   *
-   * @param  {object} paymentMethod The selected payment method.
-   * @return {string}
-   */
-  MeprStripeForm.prototype.getBillingDetailsJson = function (paymentMethod) {
-    return JSON.stringify(this.getBillingDetails(paymentMethod));
   };
 
   /**

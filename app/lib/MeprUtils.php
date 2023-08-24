@@ -2466,4 +2466,13 @@ class MeprUtils {
 
     return $amount;
   }
+
+  /**
+   * Get the HTML for the 'NEW' badge
+   *
+   * @return string
+   */
+  public static function new_badge() {
+    return sprintf('<span class="mepr-new-badge">%s</span>', esc_html__('NEW', 'memberpress'));
+  }
 } // End class

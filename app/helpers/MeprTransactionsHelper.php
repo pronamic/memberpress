@@ -337,10 +337,7 @@ class MeprTransactionsHelper {
 
     if($sub) {
       $prd = $sub->product();
-      if($prd->register_price_action == 'custom' && !empty($prd->register_price) && !$txn->coupon_id && !$txn->prorated) {
-        $sub_price_str = stripslashes($prd->register_price);
-      }
-      elseif($prd->register_price_action != 'hidden' && ! $tmpsub instanceof MeprSubscription) {
+      if($prd->register_price_action == 'custom' && $mepr_options->design_show_checkout_price_terms) {
         $sub_price_str = MeprSubscriptionsHelper::format_currency($sub);
       }
     }
@@ -618,10 +615,7 @@ class MeprTransactionsHelper {
 
     if($sub) {
       $prd = $sub->product();
-      if($prd->register_price_action == 'custom' && !empty($prd->register_price) && !$txn->coupon_id && !$txn->prorated) {
-        $sub_price_str = stripslashes($prd->register_price);
-      }
-      elseif($prd->register_price_action != 'hidden' && ! $tmpsub instanceof MeprSubscription) {
+      if($prd->register_price_action == 'custom' && $mepr_options->design_show_checkout_price_terms) {
         $sub_price_str = MeprSubscriptionsHelper::format_currency($sub);
       }
     }

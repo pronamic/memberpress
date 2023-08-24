@@ -531,6 +531,7 @@
 
     $('#_mepr_tax_exempt').on('click', function () {
       $('#mepr-product-tax-class-fields').slideToggle('fast');
+      $('#mepr-stripe-tax-options')[this.checked ? 'hide' : 'show']();
     });
 
 //CUSTOM USER INFORMATION FIELDS STUFF
@@ -603,5 +604,12 @@
     $('#mepr-pricing-display').on('change', function() {
       check_pricing_display();
     });
+
+    var check_stripe_tax_custom_display = function () {
+      $('#_mepr_tax_stripe_tax_code_custom')[$('#_mepr_tax_stripe_tax_code').val() === 'custom' ? 'show' : 'hide']();
+    };
+
+    $('#_mepr_tax_stripe_tax_code').on('change', check_stripe_tax_custom_display);
+    check_stripe_tax_custom_display();
   });
 })(jQuery);

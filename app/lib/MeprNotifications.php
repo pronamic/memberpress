@@ -492,6 +492,12 @@ class MeprNotifications {
             $buttons_html = ! empty( $buttons_html ) ? '<div class="mepr-notifications-buttons">' . $buttons_html . '</div>' : '';
           }
 
+          // Icon HTML
+          $icon_html = '';
+          if ( ! empty( $notification['icon'] ) ) {
+            $icon_html = '<img src="' . esc_url( sanitize_text_field( $notification['icon'] ) ) . '" width="32" height="32">';
+          }
+
           $time_diff = ceil( ( time() - $notification['saved'] ) );
           $time_diff_string = '';
           if ( $time_diff < MINUTE_IN_SECONDS ) {
@@ -513,7 +519,7 @@ class MeprNotifications {
           $notifications_html .= sprintf(
             '<div id="mepr-notifications-message-%4$s" class="mepr-notifications-message" data-message-id="%4$s">
               <div class="mepr-notification-icon-title">
-              <img src="%5$s" width="32" height="32">
+              %5$s
               <h3 class="mepr-notifications-title">%1$s</h3>
               <time datetime="%6$s">%7$s</time>
               </div>
@@ -524,7 +530,7 @@ class MeprNotifications {
             ! empty( $notification['content'] ) ? apply_filters( 'the_content', $notification['content'] ) : '',
             $buttons_html,
             ! empty( $notification['id'] ) ? esc_attr( sanitize_text_field( $notification['id'] ) ) : 0,
-            ! empty( $notification['icon'] ) ? esc_url( sanitize_text_field( $notification['icon'] ) ) : '',
+            $icon_html,
             date( 'Y-m-d G:i a', $notification['saved'] ),
             $time_diff_string
           );

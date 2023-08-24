@@ -12,7 +12,7 @@ class MeprTaxesCtrl extends MeprBaseCtrl {
 
   public function display_option_tab() {
     ?>
-      <a class="nav-tab" id="taxes" href="#"><?php _e('Taxes', 'memberpress'); ?></a>
+      <a class="nav-tab" id="taxes" href="#"><?php _e('Taxes', 'memberpress'); ?><?php echo MeprUtils::new_badge(); ?></a>
     <?php
   }
 

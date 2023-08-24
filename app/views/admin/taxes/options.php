@@ -36,7 +36,7 @@
             </select>
           </td>
         </tr>
-        <tr valign="top">
+        <tr valign="top" id="<?php echo esc_attr($mepr_options->attr_slug('tax_calc_location')); ?>_section">
           <th scope="row">
             <label for="<?php echo $mepr_options->attr_slug('tax_calc_location'); ?>"><?php _e('Calculate Tax Based On', 'memberpress'); ?></label>
             <?php MeprAppHelper::info_tooltip('mepr-tax-calc-location',
@@ -50,7 +50,7 @@
             </select>
           </td>
         </tr>
-        <tr valign="top">
+        <tr valign="top" id="<?php echo esc_attr($mepr_options->attr_slug('tax_default_address')); ?>_section">
           <th scope="row">
             <label for="<?php echo $mepr_options->attr_slug('tax_default_address'); ?>"><?php _e('Default Address', 'memberpress'); ?></label>
             <?php MeprAppHelper::info_tooltip('mepr-tax-default-address',

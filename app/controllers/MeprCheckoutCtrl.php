@@ -7,13 +7,11 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     add_filter('mepr_signup_form_payment_description', array($this, 'maybe_render_payment_form'), 10, 4);
     MeprHooks::add_shortcode('mepr-ecommerce-tracking', array($this, 'replace_tracking_codes'));
     add_filter('mepr-signup-checkout-url', array($this, 'handle_spc_checkout_url'), 10, 2);
-    add_action( 'wp_ajax_mepr_update_spc_invoice_table', array( $this, 'update_spc_invoice_table' ) );
-    add_action( 'wp_ajax_nopriv_mepr_update_spc_invoice_table', array( $this, 'update_spc_invoice_table' ) );
-    add_action( 'wp_ajax_nopriv_mepr_update_price_string', array( $this, 'update_price_string' ) );
-    add_action( 'wp_ajax_mepr_update_price_string', array( $this, 'update_price_string' ) );
     add_action( 'mepr_readylaunch_thank_you_page_after_content', array( $this, 'maybe_show_order_bumps_error_message_in_readylaunch' ) );
     add_filter('mepr_options_helper_payment_methods', array($this, 'exclude_disconnected_gateways'), 10, 2);
     add_filter( 'the_content', [$this, 'maybe_show_order_bumps_error_message'], 1 );
+    add_action('wp_ajax_mepr_get_checkout_state', [$this, 'get_checkout_state']);
+    add_action('wp_ajax_nopriv_mepr_get_checkout_state', [$this, 'get_checkout_state']);
   }
 
   public function maybe_show_order_bumps_error_message_in_readylaunch()
@@ -341,10 +339,18 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     $payment_required = MeprHooks::apply_filters('mepr_signup_payment_required', $product->is_payment_required($mepr_coupon_code), $product);
 
     if($mepr_options->enable_spc) {
-      MeprView::render('/checkout/spc_form', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'checkout' ) || has_block( 'memberpress/checkout' )){
+        MeprView::render('/readylaunch/checkout/form', get_defined_vars());
+      } else {
+        MeprView::render('/checkout/spc_form', get_defined_vars());
+      }
     }
     else {
-      MeprView::render('/checkout/form', get_defined_vars());
+      if(MeprReadyLaunchCtrl::template_enabled( 'checkout' )){
+        MeprView::render('/readylaunch/checkout/form', get_defined_vars());
+      } else {
+        MeprView::render('/checkout/form', get_defined_vars());
+      }
     }
   }
 
@@ -702,92 +708,6 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     }
   }
 
-  // Called in the 'the_content' hook ... used to display invoice on single page checkout forms
-  public function update_spc_invoice_table() {
-    extract($_POST, EXTR_SKIP);
-
-    if(!isset($prd_id) || empty($prd_id)) {
-      echo 'false';
-      die();
-    }
-
-    if(isset($code) && !empty($code)){
-      check_ajax_referer('mepr_coupons', 'coupon_nonce');
-    }
-
-    $code = sanitize_text_field(wp_unslash($code));
-    $product = new MeprProduct(sanitize_key(wp_unslash($prd_id)));
-    $order_bump_products = [];
-
-    try {
-      $order_bump_product_ids = isset($mepr_order_bumps) && is_array($mepr_order_bumps) ? array_map('intval', $mepr_order_bumps) : [];
-      $order_bump_products = self::get_order_bump_products($product->ID, $order_bump_product_ids);
-    }
-    catch(Exception $e) {
-      // ignore exception
-    }
-
-    ob_start();
-    MeprProductsHelper::display_spc_invoice( $product, $code, $order_bump_products );
-    $invoice_html = ob_get_clean();
-
-    wp_send_json(array(
-      'status' => 'success',
-      'invoice' => $invoice_html,
-    ));
-  }
-
-  /**
-   * Updates price string via AJAX
-   *
-   * @return void
-   */
-  public static function update_price_string() {
-    extract($_POST, EXTR_SKIP);
-
-    if(!isset($prd_id) || empty($prd_id)) {
-      echo 'false';
-      die();
-    }
-
-    if(isset($code) && !empty($code)){
-      check_ajax_referer('mepr_coupons', 'coupon_nonce');
-    }
-
-    $code = sanitize_text_field(wp_unslash($code));
-    $product = new MeprProduct(sanitize_key(wp_unslash($prd_id)));
-    $payment_required = $product->is_payment_required($code);
-
-    if(isset($_POST['mpgft_gift_checkbox']) && "true" == $_POST['mpgft_gift_checkbox']){
-      $product->allow_renewal = false;
-    }
-
-    ob_start();
-    MeprProductsHelper::display_invoice( $product, $code );
-    $price_string = ob_get_clean();
-
-    try {
-      $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
-      $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($product->ID, $order_bump_product_ids);
-
-      foreach($order_bump_products as $product) {
-        if($product->is_payment_required()) {
-          $payment_required = true;
-        }
-      }
-    }
-    catch(Exception $e) {}
-
-    $payment_required = MeprHooks::apply_filters('mepr_signup_payment_required', $payment_required, $product);
-
-    wp_send_json(array(
-      'status' => 'success',
-      'price_string' => $price_string,
-      'payment_required' => $payment_required,
-      'is_gift' => MeprHooks::apply_filters( 'mepr_signup_product_is_gift', false, $product)
-    ));
-  }
-
   public function process_payment_form() {
     if(isset($_POST['mepr_process_payment_form']) && isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id'])) {
       $txn = new MeprTransaction($_POST['mepr_transaction_id']);
@@ -1024,5 +944,110 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     }
 
     return $order_bump_products;
+  }
+
+  /**
+   * Get dynamic updates when the checkout state changes
+   */
+  public function get_checkout_state() {
+    $mepr_options = MeprOptions::fetch();
+    $product_id = isset($_POST['mepr_product_id']) ? (int) sanitize_text_field(wp_unslash($_POST['mepr_product_id'])) : 0;
+    $coupon_code = isset($_POST['mepr_coupon_code']) ? sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])) : '';
+
+    if(empty($product_id)) {
+      wp_send_json_error();
+    }
+
+    $prd = new MeprProduct($product_id);
+
+    if(empty($prd->ID)) {
+      wp_send_json_error();
+    }
+
+    if(!empty($coupon_code) && !check_ajax_referer('mepr_coupons', 'mepr_coupon_nonce', false)) {
+      wp_send_json_error();
+    }
+
+    $is_gift = isset($_POST['mpgft_gift_checkbox']) ? sanitize_text_field(wp_unslash($_POST['mpgft_gift_checkbox'])) : 'false';
+    $payment_required = $prd->is_payment_required($coupon_code);
+    $order_bump_products = [];
+
+    if($is_gift == 'true') {
+      $prd->allow_renewal = false;
+    }
+
+    try {
+      $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
+      $order_bump_products = self::get_order_bump_products($prd->ID, $order_bump_product_ids);
+
+      foreach($order_bump_products as $product) {
+        if($product->is_payment_required()) {
+          $payment_required = true;
+        }
+      }
+    }
+    catch(Exception $e) {
+      // ignore exception
+    }
+
+    $payment_required = MeprHooks::apply_filters('mepr_signup_payment_required', $payment_required, $prd);
+
+    ob_start();
+    MeprProductsHelper::display_invoice($prd, $coupon_code);
+    $price_string = ob_get_clean();
+
+    ob_start();
+    MeprProductsHelper::display_spc_invoice($prd, $coupon_code, $order_bump_products);
+    $invoice_html = ob_get_clean();
+
+    $data = [
+      'payment_required' => $payment_required,
+      'price_string' => $price_string,
+      'invoice_html' => $invoice_html,
+      'is_gift' => MeprHooks::apply_filters('mepr_signup_product_is_gift', false, $prd),
+    ];
+
+    if($payment_required) {
+      $payment_method_ids = isset($_POST['mepr_payment_methods']) && is_array($_POST['mepr_payment_methods']) ? array_map('sanitize_text_field', array_map('wp_unslash', $_POST['mepr_payment_methods'])) : [];
+
+      if(count($payment_method_ids)) {
+        $payment_methods = $mepr_options->payment_methods(false);
+        $coupon = MeprCoupon::get_one_from_code($coupon_code);
+        $coupon_code = $coupon instanceof MeprCoupon ? $coupon->post_title : '';
+        $elements_options = [];
+
+        foreach($payment_methods as $pm) {
+          if($pm instanceof MeprStripeGateway && $pm->settings->stripe_checkout_enabled != 'on' && in_array($pm->id, $payment_method_ids, true)) {
+            try {
+              list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
+                $prd,
+                0,
+                get_current_user_id(),
+                $pm->id,
+                $coupon,
+                false
+              );
+
+              $elements_options[$pm->id] = $pm->get_elements_options(
+                $prd,
+                $txn,
+                $sub,
+                $coupon_code,
+                $order_bump_products
+              );
+            }
+            catch(Exception $e) {
+              // ignore exception
+            }
+          }
+        }
+
+        if(count($elements_options)) {
+          $data['elements_options'] = $elements_options;
+        }
+      }
+    }
+
+    wp_send_json_success($data);
   }
 }

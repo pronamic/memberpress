@@ -81,6 +81,10 @@
             <label for="<?php echo esc_attr($mepr_options->design_enable_checkout_template_str); ?>"><?php esc_html_e('Registration Page', 'memberpress'); ?></label>
           </td>
           <td x-show="checkout.enableTemplate">
+            <button x-on:click="checkout.openModal = true" class="link" type="button">
+              <?php esc_html_e('Customize', 'memberpress'); ?>
+            </button>
+            <a href="#0"></a>
           </td>
         </tr>
         <tr>
@@ -156,13 +160,14 @@
       </tbody>
     </table>
 
-    <?php MeprView::render('/admin/pro-templates/pricing', get_defined_vars()); ?>
-    <?php MeprView::render('/admin/pro-templates/login', get_defined_vars()); ?>
-    <?php MeprView::render('/admin/pro-templates/account', get_defined_vars()); ?>
-    <?php MeprView::render('/admin/pro-templates/thankyou', get_defined_vars()); ?>
+    <?php MeprView::render('/admin/readylaunch/pricing', get_defined_vars()); ?>
+    <?php MeprView::render('/admin/readylaunch/login', get_defined_vars()); ?>
+    <?php MeprView::render('/admin/readylaunch/account', get_defined_vars()); ?>
+    <?php MeprView::render('/admin/readylaunch/thankyou', get_defined_vars()); ?>
+    <?php MeprView::render('/admin/readylaunch/checkout', get_defined_vars()); ?>
     <?php
     if (class_exists('memberpress\courses\models\Course')) {
-      MeprView::render('/admin/pro-templates/courses', get_defined_vars());
+      MeprView::render('/admin/readylaunch/courses', get_defined_vars());
     }
     ?>
   </div>

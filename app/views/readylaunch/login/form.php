@@ -15,7 +15,7 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
       <?php
       if(!empty($_REQUEST['mepr_process_login_form']) && !empty($_REQUEST['errors'])) {
         $errors = array_map( 'wp_kses_post', $_REQUEST['errors'] );
-        MeprView::render('/shared/errors', get_defined_vars());
+        MeprView::render('/readylaunch/shared/errors', get_defined_vars());
       }
 
 

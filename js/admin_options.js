@@ -776,6 +776,19 @@ jQuery(document).ready(function($) {
     }
   });
 
+  var set_stripe_tax_options_visibility = function () {
+    if($('#mepr_tax_stripe_enabled').is(':checked')) {
+      $('#mepr_tax_taxjar_enabled, #mepr_tax_quaderno_enabled').prop('checked', false);
+      $('#mepr_tax_taxjar_box, #mepr_tax_quaderno_box').hide();
+      $('div#taxes').addClass('mepr-stripe-tax-enabled');
+    } else {
+      $('div#taxes').removeClass('mepr-stripe-tax-enabled');
+    }
+  };
+
+  $('#mepr_tax_stripe_enabled').on('change', set_stripe_tax_options_visibility);
+  set_stripe_tax_options_visibility();
+
   $('#mepr-currency-code').on('change', function () {
     var $currency = $(this);
 

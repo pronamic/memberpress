@@ -174,7 +174,7 @@ class MeprRulesHelper
       ?>
       <span id="<?php echo $field_name; ?>-wrap">
         <?php self::get_page_title($type, $content); ?>
-        <input type="text" name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" class="mepr-input" value="<?php echo isset($_POST[$field_name]) ? $_POST[$field_name] : $content; ?>" onblur="mepr_update_rule_post_title( jQuery('#_mepr_rules_type').val(), this.value )" />
+        <input type="text" name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" class="mepr-input" value="<?php echo isset($_POST[$field_name]) ? $_POST[$field_name] : $content; ?>" onblur="mepr_update_rule_post_title( jQuery('#_mepr_rules_type').val(), this.value )" data-validation="required" data-validation-error-msg="<?php echo esc_html__('Content cannot be blank', 'memberpress'); ?>" />
         <input type="checkbox" name="_is<?php echo $field_name; ?>_regexp" id="_is<?php echo $field_name; ?>_regexp" <?php checked($is_regexp); ?> />&nbsp;<?php _e('Regular Expression', 'memberpress'); ?>
       </span>
       <?php
@@ -216,7 +216,7 @@ class MeprRulesHelper
     ?>
     <span id="<?php echo $field_name; ?>-wrap">
       <?php self::get_page_title($type, $content); ?>
-      <input type="text" id="rule-content-text" class="mepr-rule-types-autocomplete" value="<?php echo esc_attr($obj->label); ?>" placeholder="<?php _e('Begin Typing Title', 'memberpress'); ?>" />
+      <input type="text" id="rule-content-text" class="mepr-rule-types-autocomplete" value="<?php echo esc_attr($obj->label); ?>" placeholder="<?php _e('Begin Typing Title', 'memberpress'); ?>" data-validation="required" data-validation-error-msg="<?php echo esc_html__('Content cannot be blank', 'memberpress'); ?>" />
       <input type="hidden" name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" class="mepr-rule-types-autocomplete" value="<?php echo $obj->id; ?>" />
       <span id="rule-content-info"><?php echo $obj->desc; ?></span>
     </span>

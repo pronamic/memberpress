@@ -1515,3 +1515,30 @@ a.mepr-wizard-popuphelp{text-decoration: none !important;}
 .mepr-animation-shaking {
  animation: meprShakeX 5s ease-in-out 0.5s infinite;
 }
+#mepr-wizard-enable-stripe-tax-popup input[type="checkbox"],
+.mepr-wizard-stripe-tax-checked {
+  display: none;
+}
+#mepr-wizard-enable-stripe-tax-popup input[type="checkbox"]:checked + label .mepr-wizard-stripe-tax-checked {
+  display: inline;
+}
+#mepr-wizard-enable-stripe-tax-popup input[type="checkbox"]:checked + label .mepr-wizard-stripe-tax-unchecked {
+  display: none;
+}
+#mepr-wizard-enable-stripe-tax-popup label {
+  display: flex;
+  gap: 20px;
+}
+#mepr-wizard-enable-stripe-tax-popup label span {
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 26px;
+  color: #5B748A;
+  margin: 0;
+}
+#mepr-wizard-enable-stripe-tax-popup label span i {
+  margin-left: 5px;
+}
+.mepr-wizard-stripe-tax-fine-print {
+  margin-top: 30px;
+}

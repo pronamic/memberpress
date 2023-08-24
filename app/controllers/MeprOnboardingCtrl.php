@@ -29,6 +29,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
     add_action('wp_ajax_mepr_onboarding_install_addons', 'MeprOnboardingCtrl::install_addons');
     add_action('wp_ajax_mepr_onboarding_load_complete_step', 'MeprOnboardingCtrl::load_complete_step');
     add_action('wp_ajax_mepr_onboarding_load_create_new_content', 'MeprOnboardingCtrl::load_create_new_content');
+    add_action('wp_ajax_mepr_onboarding_enable_stripe_tax', 'MeprOnboardingCtrl::enable_stripe_tax');
     add_action('wp_ajax_mepr_onboarding_load_finish_step', 'MeprOnboardingCtrl::load_finish_step');
     add_action('wp_ajax_mepr_onboarding_finish', 'MeprOnboardingCtrl::finish');
     add_action('mepr_license_activated', 'MeprOnboardingCtrl::license_activated');
@@ -146,6 +147,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
         'course' => __('Course', 'memberpress'),
         'page' => __('Page', 'memberpress'),
         'may_take_couple_minutes' => __('This may take a couple of minutes', 'memberpress'),
+        'enable_stripe_tax_nonce' => wp_create_nonce('mepr_enable_stripe_tax'),
         'finish_nonce' => wp_create_nonce('mepr_onboarding_finish'),
         'memberships_url' => admin_url('edit.php?post_type=memberpressproduct'),
         'error_installing_addon' => __('An error occurred when installing an add-on, please download and install the add-ons manually.', 'memberpress'),
@@ -1272,6 +1274,31 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
     $data = self::get_request_data('mepr_onboarding_load_create_new_content');
 
     wp_send_json_success(['html' =>  MeprView::get_string('/admin/onboarding/parts/content_popup', get_defined_vars())]);
+  }
+
+  public static function enable_stripe_tax() {
+    $data = self::get_request_data('mepr_enable_stripe_tax');
+
+    if(!isset($data['gateway_id']) || !is_string($data['gateway_id'])) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    $mepr_options = MeprOptions::fetch();
+    $pm = $mepr_options->payment_method(sanitize_text_field($data['gateway_id']));
+
+    if(!$pm instanceof MeprStripeGateway) {
+      wp_send_json_error(__('Invalid payment gateway', 'memberpress'));
+    }
+
+    update_option('mepr_calculate_taxes', true);
+    update_option('mepr_tax_stripe_enabled', true);
+    update_option('mepr_tax_stripe_payment_method', $pm->id);
+    update_option('mepr_stripe_tax_notice_dismissed', true);
+    update_option('mepr_tax_avalara_enabled', false);
+    update_option('mepr_tax_quaderno_enabled', false);
+    update_option('mepr_tax_taxjar_enabled', false);
+
+    wp_send_json_success();
   }
 
   public static function load_finish_step() {

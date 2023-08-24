@@ -165,7 +165,8 @@ div#mepr-shortcode-product-signup-form-area {
   font-weight:bold;
 }
 
-div#mepr-product-thank-you-area {
+div#mepr-product-thank-you-area,
+#mepr-product-tax-class-fields {
   margin-top:5px;
   padding:15px;
 }

@@ -104,7 +104,11 @@ class MeprGroupsCtrl extends MeprCptCtrl {
   }
 
   public static function display_pricing_boxes($group, $theme=null, $args = []) {
-    MeprView::render('/groups/front_groups_page', get_defined_vars());
+    if(MeprReadyLaunchCtrl::template_enabled( 'pricing' ) || has_block( 'memberpress/pro-pricing-table' )){
+      MeprView::render('/readylaunch/groups/front_groups_page', get_defined_vars());
+    } else {
+      MeprView::render('/groups/front_groups_page', get_defined_vars());
+    }
   }
 
   public static function columns($columns) {
@@ -284,6 +288,7 @@ class MeprGroupsCtrl extends MeprCptCtrl {
 
   public static function group_meta_box($post, $args) { //Don't use $post here, it is null on new group - use args instead
     $group = $args['args']['group'];
+    $mepr_options = MeprOptions::fetch();
 
     MeprView::render('/admin/groups/form', get_defined_vars());
   }

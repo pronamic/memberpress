@@ -1037,3 +1037,68 @@ button.mepr_modal__close:hover {
   object-fit: cover;
   object-position: center;
 }
+.mepr-shared-mfp.mfp-bg {
+  z-index: 100005;
+}
+.mepr-shared-mfp.mfp-wrap {
+  z-index: 100006;
+}
+.mepr-shared-mfp .mfp-content {
+  z-index: 100007;
+}
+.mepr-shared-popup {
+  position: relative;
+  background: #fff;
+  padding: 40px;
+  width: auto;
+  max-width: 600px;
+  margin: 20px auto;
+  border-radius: 6px;
+}
+.mepr-shared-popup > h2 {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 35px;
+  color: #091D2E;
+  margin: 0 0 22px 0;
+}
+.mepr-shared-popup p {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #5B748A;
+}
+.mepr-text-align-center {
+  text-align: center;
+}
+.mepr-stripe-tax-notice {
+  padding: 12px;
+}
+.mepr-stripe-tax-notice-heading {
+  vertical-align: top !important;
+  margin: 0 !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  line-height: 32px !important;
+}
+.mepr-stripe-tax-notice > div,
+.mepr-stripe-tax-notice-button-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.mepr-stripe-tax-notice .mepr-stripe-tax-fine-print {
+  margin-bottom: 17px;
+}
+.mepr-new-badge {
+  background-color: #ed5a4c;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1.4;
+  margin-left: 5px;
+  padding: 2px 6px 3px;
+  border-radius: 100px;
+  position: relative;
+  top: -1px;
+}

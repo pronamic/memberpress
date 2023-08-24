@@ -12,7 +12,7 @@
         $errors[] = $reset_error;
       ?>
         <h3><?php _ex('Password could not be reset.', 'ui', 'memberpress'); ?></h3>
-        <?php MeprView::render('/shared/errors', get_defined_vars()); ?>
+        <?php MeprView::render('/readylaunch/shared/errors', get_defined_vars()); ?>
         <div><?php _ex('Please contact us for further assistance.', 'ui', 'memberpress'); ?></div>
       <?php
       } else {

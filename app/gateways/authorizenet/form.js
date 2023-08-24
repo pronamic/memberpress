@@ -79,10 +79,10 @@
 
             var cardData = {};
             const container = this.getSelectedWrapper();
-            cardData.cardNumber = container.find(".cc-number").val();
-            cardData.month = container.find(".cc-expires").val().substring(0, 2);
-            cardData.year = container.find(".cc-expires").val().substring(2);
-            cardData.cardCode = container.find(".cc-cvc").val();
+            cardData.cardNumber = container.find(".card-number").val().replace(/\s/g, '');
+            cardData.month = container.find(".expiry").val().substring(0, 2).trim();
+            cardData.year = container.find(".expiry").val().substring(2).trim();
+            cardData.cardCode = container.find(".cvc").val();
 
             var secureData = {};
             secureData.authData = authData;
