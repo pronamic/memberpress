@@ -183,7 +183,7 @@ class MeprApiCtrl extends MeprBaseCtrl
         }
 
         // Enclose fields containing $delimiter, $enclosure or whitespace
-        if( $enclose_all or preg_match( "/(?:${delimiter_esc}|${enclosure_esc}|\s)/", $field ) )
+  if( $enclose_all or preg_match( "/(?:{$delimiter_esc}|{$enclosure_esc}|\s)/", $field ) )
           $output[] = $enclosure . str_replace($enclosure, $enclosure . $enclosure, $field) . $enclosure;
         else
           $output[] = $field;

@@ -317,6 +317,8 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
         $txn->trans_num = $txn_num;
         $txn->save();
 
+        MeprUtils::send_signup_notices($txn);
+
         add_filter( 'mepr-signup-checkout-url', function ( $uri, $txn ) {
           $mepr_options    = MeprOptions::fetch();
           $product         = new MeprProduct( $txn->product_id );
@@ -360,6 +362,8 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
 
         $txn->save();
       }
+
+      MeprUtils::send_signup_notices($txn);
 
       add_filter( 'mepr-signup-checkout-url', function ( $uri, $txn ) {
         $mepr_options    = MeprOptions::fetch();

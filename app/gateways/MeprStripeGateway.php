@@ -1,6 +1,7 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
+#[AllowDynamicProperties]
 class MeprStripeGateway extends MeprBaseRealGateway {
   const STRIPE_API_VERSION = '2022-11-15';
 

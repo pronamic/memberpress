@@ -1,6 +1,7 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
+#[AllowDynamicProperties]
 class MeprArtificialGateway extends MeprBaseRealGateway {
   /** Used in the view to identify the gateway */
   public function __construct() {

@@ -1,6 +1,7 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
+#[AllowDynamicProperties]
 class MeprAuthorizeGateway extends MeprBaseRealGateway {
   public static $order_invoice_str = '_mepr_authnet_order_invoice';
 

@@ -1,6 +1,7 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
+#[AllowDynamicProperties]
 class MeprUserProductWelcomeEmail extends MeprBaseProductEmail {
   /** Set the default enabled, title, subject & body */
   public function set_defaults($args=array()) {

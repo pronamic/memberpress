@@ -1,6 +1,7 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
+#[AllowDynamicProperties]
 class MeprPayPalGateway extends MeprBasePayPalGateway {
   // This is stored with the user meta & the subscription meta
   public static $paypal_token_str = '_mepr_paypal_token';

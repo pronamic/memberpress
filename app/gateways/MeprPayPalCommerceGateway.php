@@ -3,6 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
   die( 'You are not allowed to call this page directly.' );
 }
 
+#[AllowDynamicProperties]
 class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
   /** Used in the view to identify the gateway */
   public function __construct() {

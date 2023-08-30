@@ -1,6 +1,7 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
+#[AllowDynamicProperties]
 class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface, MeprTransactionInterface {
   /** INSTANCE VARIABLES & METHODS **/
   public function __construct($obj = null) {

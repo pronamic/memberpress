@@ -910,7 +910,7 @@ class MeprUtils {
         $last_path = $new_path;
 
         // Enclose fields containing $delimiter, $enclosure or whitespace
-        if($enclose_all or preg_match("/(?:${delimiter_esc}|${enclosure_esc}|\s)/", $field)) {
+  if($enclose_all or preg_match("/(?:{$delimiter_esc}|{$enclosure_esc}|\s)/", $field)) {
           $output[$new_path] = $enclosure . str_replace($enclosure, $enclosure . $enclosure, $field) . $enclosure;
         }
         else {

@@ -2,6 +2,7 @@
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
 /** To add new dynamic options please edit the config file in lib/data/options/dynamic_attrs.json */
+#[AllowDynamicProperties]
 class MeprOptions {
   public $dynamic_attrs;
 

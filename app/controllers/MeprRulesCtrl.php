@@ -952,7 +952,7 @@ class MeprRulesCtrl extends MeprCptCtrl {
   // Validates rule content and force the post status to draft if it's empty.
   public static function validate_rule_content($rule, $post_id) {
     // If the rule requires exclusion - Bailout.
-    if( 0 === (int) $post_id || $rule->mepr_type == 'all' || (strstr($rule->mepr_type, 'all_') !== false && !preg_match('#^all_tax_#',$rule->mepr_type))) {
+    if( 0 === (int) $post_id || $rule->mepr_type == 'all' || (strstr($rule->mepr_type, 'all_') !== false && !preg_match('#^all_tax_#',$rule->mepr_type)) || $rule->mepr_type == 'partial') {
       return;
     }
 

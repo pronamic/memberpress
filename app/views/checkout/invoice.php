@@ -13,7 +13,7 @@
         <?php if( $show_quantity ): ?>
           <th><?php _ex('Quantity', 'ui', 'memberpress'); ?></th>
         <?php endif; ?>
-        <th><?php _ex('Amount', 'ui', 'memberpress'); ?></th>
+        <th class="mp-currency-cell"><?php _ex('Amount', 'ui', 'memberpress'); ?></th>
       </tr>
     </thead>
     <tbody>

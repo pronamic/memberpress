@@ -342,7 +342,11 @@ class MeprTransactionsHelper {
       }
     }
 
-    MeprView::render('/checkout/invoice', get_defined_vars());
+    if($mepr_options->design_enable_checkout_template) {
+      MeprView::render('/readylaunch/checkout/invoice', get_defined_vars());
+    } else {
+      MeprView::render('/checkout/invoice', get_defined_vars());
+    }
 
     $invoice = ob_get_clean();
     return MeprHooks::apply_filters('mepr-invoice-html', $invoice, $txn );
@@ -620,7 +624,11 @@ class MeprTransactionsHelper {
       }
     }
 
-    MeprView::render('/checkout/invoice_order_bumps', get_defined_vars());
+    if($mepr_options->design_enable_checkout_template) {
+      MeprView::render('/readylaunch/checkout/invoice_order_bumps', get_defined_vars());
+    } else {
+      MeprView::render('/checkout/invoice_order_bumps', get_defined_vars());
+    }
 
     $invoice = ob_get_clean();
     return MeprHooks::apply_filters('mepr-invoice-html', $invoice, $txn );
