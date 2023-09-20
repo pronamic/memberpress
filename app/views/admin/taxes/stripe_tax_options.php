@@ -45,6 +45,22 @@
                     <option value="<?php echo esc_attr($id); ?>" <?php echo selected($selected_payment_method, $id); ?>><?php echo esc_html($label); ?></option>
                   <?php endforeach; ?>
                 </select>
+                <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/square-loader.gif'); ?>" alt="<?php esc_attr_e('Loading...', 'memberpress'); ?>" id="mepr-loader-validate-stripe-tax" class="mepr_loader">
+                <div id="mepr-stripe-tax-inactive-popup" class="mepr-shared-popup mfp-hide">
+                  <h2 class="mepr-text-align-center"><?php esc_html_e('Stripe Tax is not active on that Stripe account', 'memberpress'); ?></h2>
+                  <p class="mepr-text-align-center">
+                    <?php
+                      printf(
+                        /* translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag */
+                        esc_html__('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
+                        '<a href="https://dashboard.stripe.com/tax" target="_blank">',
+                        '</a>',
+                        '<a href="https://dashboard.stripe.com/tax/registrations" target="_blank">',
+                        '</a>'
+                      );
+                    ?>
+                  </p>
+                </div>
               </td>
             </tr>
           </tbody>

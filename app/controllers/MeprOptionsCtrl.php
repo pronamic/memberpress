@@ -165,6 +165,8 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
         'deactivation_error'  => __('An error occurred during deactivation: %s', 'memberpress'),
         'install_license_edition_nonce' => wp_create_nonce('mepr_install_license_edition'),
         'validate_stripe_payment_methods_nonce' => wp_create_nonce('mepr_validate_stripe_payment_method_types'),
+        'validate_stripe_tax_nonce' => wp_create_nonce('mepr_validate_stripe_tax'),
+        'unable_to_verify_stripe_tax' => __('Unable to verify Stripe Tax status', 'memberpress')
       );
 
       wp_register_script('memberpress-i18n', MEPR_JS_URL.'/i18n.js', array('jquery'), MEPR_VERSION);

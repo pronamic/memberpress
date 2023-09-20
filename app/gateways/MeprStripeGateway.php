@@ -1921,7 +1921,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $txn->order_id = $sub->order_id;
     }
 
-    $this->activate_subscription($txn, $sub);
+    $this->activate_subscription($txn, $sub, true, $sub->txn_count < 1);
 
     // This will only work before maybe_cancel_old_sub is run
     $upgrade = $sub->is_upgrade();

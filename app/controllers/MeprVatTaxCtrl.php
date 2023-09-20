@@ -245,7 +245,7 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     $tax_rate->tax_desc = sprintf(__('VAT (%s)', 'memberpress'), $countries[$country]['name']);
     $tax_rate->tax_class = 'vat';
 
-    return $tax_rate;
+    return MeprHooks::apply_filters( 'mepr_vat_tax_rate', $tax_rate, $country, $prd_id );
   }
 
   public function vat_number_is_valid($vat_number, $country) {

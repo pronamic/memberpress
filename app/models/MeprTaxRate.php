@@ -264,7 +264,7 @@ class MeprTaxRate extends MeprBaseModel {
     $tax_rate_info = array(
       'tax_country'  => MeprUtils::clean($row['tax_country']),
       'tax_state'    => MeprUtils::clean($row['tax_state']),
-      'tax_rate'     => trim($row['tax_rate']),
+      'tax_rate'     => trim(str_replace('%', '', $row['tax_rate'])),
       'tax_desc'     => trim($row['tax_desc']),
       'tax_priority' => isset($row['tax_priority'])?$row['tax_priority']:'',
       'tax_compound' => isset($row['tax_compound'])?$row['tax_compound']:'',

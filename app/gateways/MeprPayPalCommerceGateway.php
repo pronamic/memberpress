@@ -1874,6 +1874,12 @@ class MeprPayPalCommerceGateway extends MeprBasePayPalGateway {
       }
     }
 
+    if ( isset( $_REQUEST['subscription_id'] ) ) {
+      $sub = MeprSubscription::get_one_by_subscr_id($_REQUEST['subscription_id']);
+      $prd = $sub->product();
+      MeprUtils::wp_redirect( $this->message_page_url( $prd, 'cancel' ) );
+    }
+
     //If all else fails, just send them to their account page
     MeprUtils::wp_redirect( $mepr_options->account_page_url( 'action=subscriptions' ) );
   }

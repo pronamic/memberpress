@@ -144,6 +144,14 @@
       updateCheckoutState($(this));
     });
 
+    $('.mepr-signup-form').each(function () {
+      var $form = $(this);
+
+      if($form.find('input[name="mpgft-signup-gift-checkbox"]').is(':checked')) {
+        updateCheckoutState($form);
+      }
+    });
+
     var meprValidateInput = function (obj, submitting) {
       $(obj).removeClass('invalid');
 

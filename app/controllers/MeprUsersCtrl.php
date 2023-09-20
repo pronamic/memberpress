@@ -693,6 +693,8 @@ class MeprUsersCtrl extends MeprBaseCtrl {
     $userid = (isset($atts['userid'])) ? $atts['userid'] : get_current_user_id();
     $download = get_user_meta($userid, $key, true);
 
+    if(empty($download)) { return; }
+
     $file_headers = @get_headers($download);
     if(strpos($file_headers[0], '200 OK')){
       ob_start();

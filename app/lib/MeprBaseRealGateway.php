@@ -11,11 +11,15 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway {
    * @param MeprSubscription $sub The MemberPress subscription
    * @param bool $set_trans_num Whether to set the txn trans_num to the sub subscr_id
    */
-  public function activate_subscription(MeprTransaction $txn, MeprSubscription $sub, $set_trans_num = true) {
+  public function activate_subscription(MeprTransaction $txn, MeprSubscription $sub, $set_trans_num = true, $set_created_at = true) {
     $mepr_options = MeprOptions::fetch();
 
     $sub->status = MeprSubscription::$active_str;
-    $sub->created_at = gmdate('c');
+
+    if($set_created_at) {
+      $sub->created_at = gmdate('c');
+    }
+
     $sub->store();
 
     // If trial amount is zero then we've got to make sure the confirmation txn lasts through the trial

@@ -1739,6 +1739,17 @@ var MeprOnboarding = (function($) {
               }
             });
           }
+          else if(response.data === false) {
+            $.magnificPopup.close();
+
+            $.magnificPopup.open({
+              mainClass: 'mepr-wizard-mfp',
+              items: {
+                src: '#mepr-wizard-stripe-tax-inactive-popup',
+                type: 'inline'
+              }
+            });
+          }
           else {
             console.log(response.data);
             alert('Request failed');

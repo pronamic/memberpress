@@ -471,6 +471,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway {
   }
 
   public function authorize_card_before_subscription($txn) {
+    if(MeprHooks::apply_filters('mepr_authorize_skip_auth_charge', false, $txn)) {
+      return;
+    }
+
     $mepr_options = MeprOptions::fetch();
 
     if(isset($txn) and $txn instanceof MeprTransaction) {

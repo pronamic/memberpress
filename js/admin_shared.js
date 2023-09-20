@@ -247,17 +247,34 @@ jQuery(document).ready(function($) {
       }
     })
     .done(function (response) {
-      if(response && typeof response.success === 'boolean' && response.success && $.magnificPopup) {
-        $.magnificPopup.open({
-          mainClass: 'mepr-shared-mfp',
-          items: {
-            src: '#mepr-stripe-tax-enabled-popup',
-            type: 'inline'
-          }
-        });
+      if(response && typeof response.success === 'boolean') {
+        if(response.success) {
+          $.magnificPopup.open({
+            mainClass: 'mepr-shared-mfp',
+            items: {
+              src: '#mepr-stripe-tax-enabled-popup',
+              type: 'inline'
+            }
+          });
 
-        $button.closest('.notice').remove();
+          $button.closest('.notice').remove();
+        }
+        else if(response.data === false) {
+          $.magnificPopup.open({
+            mainClass: 'mepr-shared-mfp',
+            items: {
+              src: '#mepr-stripe-tax-inactive-popup',
+              type: 'inline'
+            }
+          });
+        }
       }
+      else {
+        alert('Request failed.');
+      }
+    })
+    .fail(function () {
+      alert('Request failed.');
     })
     .always(function () {
       $button.html(button_html).width('auto');

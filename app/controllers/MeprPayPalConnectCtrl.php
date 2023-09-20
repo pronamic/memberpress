@@ -549,27 +549,20 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl {
 
     self::debug_log( $body );
 
-    if ( $response_code === 200 ) {
-      if ( empty( $sandbox ) ) {
-        $integrations[ $methodId ]['live_client_id']     = '';
-        $integrations[ $methodId ]['live_client_secret'] = '';
-        $integrations[ $methodId ]['live_merchant_id'] = '';
-      } else {
-        $integrations[ $methodId ]['test_client_id']     = '';
-        $integrations[ $methodId ]['test_client_secret'] = '';
-        $integrations[ $methodId ]['test_merchant_id'] = '';
-      }
-
-      $mepr_options->integrations = $integrations;
-      $mepr_options->store( false );
-      $message = esc_html( __( 'You have disconnected your PayPal. You should login to your PayPal account and go to Developer settings to delete the app created by this gateway unless you have active recurring subscriptions that were created with this gateway', 'memberpress' ) );
-      $url     = admin_url( 'admin.php?page=memberpress-options&paypal-gateway-message-success=' . $message . '#mepr-integration' );
+    if (empty($sandbox)) {
+      $integrations[$methodId]['live_client_id'] = '';
+      $integrations[$methodId]['live_client_secret'] = '';
+      $integrations[$methodId]['live_merchant_id'] = '';
     } else {
-      self::debug_log( $options );
-      self::debug_log( $endpoint );
-      $message = esc_html( __( 'Something could not be executed', 'memberpress' ) );
-      $url     = admin_url( 'admin.php?page=memberpress-options&paypal-gateway-message=' . $message . '#mepr-integration' );
+      $integrations[$methodId]['test_client_id'] = '';
+      $integrations[$methodId]['test_client_secret'] = '';
+      $integrations[$methodId]['test_merchant_id'] = '';
     }
+
+    $mepr_options->integrations = $integrations;
+    $mepr_options->store(false);
+    $message = esc_html(__('You have disconnected your PayPal. You should login to your PayPal account and go to Developer settings to delete the app created by this gateway unless you have active recurring subscriptions that were created with this gateway', 'memberpress'));
+    $url = admin_url('admin.php?page=memberpress-options&paypal-gateway-message-success=' . $message . '#mepr-integration');
 
     MeprUtils::wp_redirect( $url );
   }

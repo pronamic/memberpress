@@ -109,4 +109,22 @@
       ?>
     </p>
   </div>
+  <div id="mepr-wizard-stripe-tax-inactive-popup" class="mepr-wizard-popup mfp-hide">
+    <h2 class="mepr-text-align-center"><?php esc_html_e('Stripe Tax could not be enabled', 'memberpress'); ?></h2>
+    <p class="mepr-wizard-step-description mepr-text-align-center">
+      <?php
+        printf(
+          /* translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag */
+          esc_html__('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
+          '<a href="https://dashboard.stripe.com/tax" target="_blank">',
+          '</a>',
+          '<a href="https://dashboard.stripe.com/tax/registrations" target="_blank">',
+          '</a>'
+        );
+      ?>
+    </p>
+    <p class="mepr-wizard-step-description mepr-text-align-center">
+      <?php esc_html_e('Once Stripe Tax is enabled in the Stripe dashboard, you can enable Stripe Tax at MemberPress &rarr; Settings &rarr; Taxes.', 'memberpress'); ?>
+    </p>
+  </div>
 <?php endif; ?>

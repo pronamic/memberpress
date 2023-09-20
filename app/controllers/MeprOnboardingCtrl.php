@@ -1290,15 +1290,29 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
       wp_send_json_error(__('Invalid payment gateway', 'memberpress'));
     }
 
-    update_option('mepr_calculate_taxes', true);
-    update_option('mepr_tax_stripe_enabled', true);
-    update_option('mepr_tax_stripe_payment_method', $pm->id);
-    update_option('mepr_stripe_tax_notice_dismissed', true);
-    update_option('mepr_tax_avalara_enabled', false);
-    update_option('mepr_tax_quaderno_enabled', false);
-    update_option('mepr_tax_taxjar_enabled', false);
+    try {
+      $tax_settings = (object) $pm->send_stripe_request('tax/settings', array(), 'get');
 
-    wp_send_json_success();
+      if($tax_settings->status != 'active') {
+        wp_send_json_error(false);
+      }
+
+      update_option('mepr_calculate_taxes', true);
+      update_option('mepr_tax_stripe_enabled', true);
+      update_option('mepr_tax_calc_location', 'customer');
+      update_option('mepr_tax_default_address', 'none');
+      update_option('mepr_tax_stripe_payment_method', $pm->id);
+      update_option('mepr_stripe_tax_notice_dismissed', true);
+      update_option('mepr_tax_avalara_enabled', false);
+      update_option('mepr_tax_quaderno_enabled', false);
+      update_option('mepr_tax_taxjar_enabled', false);
+      delete_option('mepr_tax_stripe_deactivated');
+
+      wp_send_json_success();
+    }
+    catch(Exception $e) {
+      wp_send_json_error($e->getMessage());
+    }
   }
 
   public static function load_finish_step() {

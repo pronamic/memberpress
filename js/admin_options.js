@@ -781,6 +781,8 @@ jQuery(document).ready(function($) {
       $('#mepr_tax_taxjar_enabled, #mepr_tax_quaderno_enabled').prop('checked', false);
       $('#mepr_tax_taxjar_box, #mepr_tax_quaderno_box').hide();
       $('div#taxes').addClass('mepr-stripe-tax-enabled');
+      $('select[name="mepr_tax_calc_location"]').val('customer');
+      $('select[name="mepr_tax_default_address"]').val('none');
     } else {
       $('div#taxes').removeClass('mepr-stripe-tax-enabled');
     }
@@ -870,5 +872,65 @@ jQuery(document).ready(function($) {
         )
       );
     }
+  });
+
+  var $stripe_tax_payment_method = $('#mepr_tax_stripe_payment_method'),
+      old_stripe_tax_payment_method = $stripe_tax_payment_method.val();
+
+  $stripe_tax_payment_method.on('change', function () {
+    var gateway_id = $stripe_tax_payment_method.val(),
+        $loader = $('#mepr-loader-validate-stripe-tax');
+
+    if(gateway_id === '') {
+      return;
+    }
+
+    $loader.show();
+
+    $.ajax({
+      method: 'POST',
+      url: ajaxurl,
+      data: {
+        action: 'mepr_validate_stripe_tax',
+        gateway_id: $(this).val(),
+        _ajax_nonce: MeprOptions.validate_stripe_tax_nonce
+      }
+    })
+    .done(function (response) {
+      if(response && typeof response.success === 'boolean') {
+        if(response.success) {
+          if(response.data === true) {
+            old_stripe_tax_payment_method = gateway_id;
+          }
+          else {
+            $stripe_tax_payment_method.val(old_stripe_tax_payment_method);
+
+            $.magnificPopup.open({
+              mainClass: 'mepr-shared-mfp',
+              items: {
+                src: '#mepr-stripe-tax-inactive-popup',
+                type: 'inline'
+              }
+            });
+          }
+        }
+        else {
+          $stripe_tax_payment_method.val(old_stripe_tax_payment_method);
+          console.log(response.data);
+          alert(MeprOptions.unable_to_verify_stripe_tax);
+        }
+      }
+      else {
+        $stripe_tax_payment_method.val(old_stripe_tax_payment_method);
+        alert(MeprOptions.unable_to_verify_stripe_tax);
+      }
+    })
+    .fail(function () {
+      $stripe_tax_payment_method.val(old_stripe_tax_payment_method);
+      alert(MeprOptions.unable_to_verify_stripe_tax);
+    })
+    .always(function () {
+      $loader.hide();
+    });
   });
 });

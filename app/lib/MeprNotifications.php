@@ -233,8 +233,8 @@ class MeprNotifications {
     // Remove notfications that are not active.
     foreach ( $notifications as $key => $notification ) {
       if (
-        ( ! empty( $notification['start'] ) && strtotime( $notification['start'] . ' America/Denver' ) < strtotime( $notification['start'] . ' America/Denver' ) ) ||
-        ( ! empty( $notification['end'] ) && strtotime( $notification['end'] . ' America/Denver' ) > strtotime( $notification['end'] . ' America/Denver' ) )
+        ( ! empty( $notification['start'] ) && strtotime( $notification['start'] . ' America/New_York' ) > strtotime( date('F j, Y') . ' America/New_York' ) ) ||
+        ( ! empty( $notification['end'] ) && strtotime( $notification['end'] . ' America/New_York' ) < strtotime( date('F j, Y') . ' America/New_York' ) )
       ) {
         unset( $notifications[ $key ] );
       }

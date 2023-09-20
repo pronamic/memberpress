@@ -354,7 +354,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $start = ($curr_page - 1) * $perpage;
     $end = $start + $perpage;
 
-    if(isset($args['mode']) && 'pro-templates' == $args['mode']){
+    if(isset($args['mode']) && 'readylaunch' == $args['mode']){
       $perpage = isset($args['count']) ? $args['count'] + $perpage : $perpage;
     }
 
@@ -372,7 +372,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $next_page = (($curr_page * $perpage) >= $all)?false:$curr_page+1;
     $prev_page = ($curr_page > 1)?$curr_page - 1:false;
 
-    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' )){
+    if($mepr_options->design_enable_account_template){
       MeprView::render('/readylaunch/account/payments', get_defined_vars());
     } else {
       MeprView::render('/account/payments', get_defined_vars());
@@ -393,7 +393,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     // This is necessary to optimize the queries ... only query what we need
     $sub_cols = array('id','user_id','product_id','subscr_id','status','created_at','expires_at','active');
 
-    if(isset($args['mode']) && 'pro-templates' == $args['mode']){
+    if(isset($args['mode']) && 'readylaunch' == $args['mode']){
       $perpage = isset($args['count']) ? $args['count'] + $perpage : $perpage;
     }
 
@@ -416,7 +416,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $next_page = (($curr_page * $perpage) >= $all)?false:$curr_page + 1;
     $prev_page = ($curr_page > 1)?$curr_page - 1:false;
 
-    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' )){
+    if($mepr_options->design_enable_account_template){
       MeprView::render('/readylaunch/shared/errors', get_defined_vars());
       MeprView::render('/readylaunch/account/subscriptions', get_defined_vars());
     } else {

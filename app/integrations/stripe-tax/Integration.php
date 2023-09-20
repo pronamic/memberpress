@@ -5,8 +5,10 @@ class MeprStripeTaxIntegration {
     add_action('mepr_tax_rate_options', [$this, 'options']);
     add_action('mepr-process-options', [$this, 'store_options']);
     add_action('admin_notices', [$this, 'new_feature_admin_notice']);
+    add_action('admin_notices', [$this, 'deactivated_admin_notice']);
     add_action('wp_ajax_mepr_dismiss_stripe_tax_notice', [$this, 'dismiss_stripe_tax_notice']);
     add_action('wp_ajax_mepr_enable_stripe_tax', [$this, 'enable_stripe_tax']);
+    add_action('wp_ajax_mepr_validate_stripe_tax', [$this, 'validate_stripe_tax']);
 
     $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
     $tax_stripe_enabled = (bool) get_option('mepr_tax_stripe_enabled');
@@ -40,6 +42,7 @@ class MeprStripeTaxIntegration {
   public function store_options() {
     update_option('mepr_tax_stripe_enabled', isset($_POST['mepr_tax_stripe_enabled']));
     update_option('mepr_tax_stripe_payment_method', isset($_POST['mepr_tax_stripe_payment_method']) ? sanitize_text_field(wp_unslash($_POST['mepr_tax_stripe_payment_method'])) : '');
+    delete_option('mepr_tax_stripe_deactivated');
   }
 
   public function find_rate($tax_rate, $country, $state, $postcode, $city, $street, $user = null, $prd_id = null) {
@@ -248,6 +251,12 @@ class MeprStripeTaxIntegration {
         return $tax_calculation;
       }
       catch(Exception $e) {
+        if(strpos($e->getMessage(), 'Stripe Tax has not been activated on your account') !== false) {
+          update_option('mepr_tax_stripe_enabled', false);
+          update_option('mepr_tax_stripe_payment_method', '');
+          update_option('mepr_tax_stripe_deactivated', true);
+        }
+
         MeprUtils::debug_log($e->getMessage());
       }
     }
@@ -567,11 +576,54 @@ class MeprStripeTaxIntegration {
       <p class="mepr-text-align-center">
         <?php
           printf(
+            /* translators: %1$s: open link tag, %2$s: close link tag */
+            esc_html__('In the Stripe dashboard, please ensure that a %1$sRegistration is added%2$s for each location where tax should be collected.', 'memberpress'),
+            '<a href="https://dashboard.stripe.com/tax/registrations" target="_blank">',
+            '</a>'
+          );
+        ?>
+      </p>
+    </div>
+    <div id="mepr-stripe-tax-inactive-popup" class="mepr-shared-popup mfp-hide">
+      <h2 class="mepr-text-align-center"><?php esc_html_e('Stripe Tax could not be enabled', 'memberpress'); ?></h2>
+      <p class="mepr-text-align-center">
+        <?php
+          printf(
             /* translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag */
-            __('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
+            esc_html__('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
             '<a href="https://dashboard.stripe.com/tax" target="_blank">',
             '</a>',
             '<a href="https://dashboard.stripe.com/tax/registrations" target="_blank">',
+            '</a>'
+          );
+        ?>
+      </p>
+      <p class="mepr-text-align-center">
+        <?php esc_html_e('If you have more than one Stripe payment method, you can configure which payment method to use for Stripe Tax at MemberPress &rarr; Settings &rarr; Taxes.', 'memberpress'); ?>
+      </p>
+    </div>
+    <?php
+  }
+  public function deactivated_admin_notice() {
+    if(
+      !MeprUtils::is_memberpress_admin_page() ||
+      !MeprUtils::is_logged_in_and_an_admin() ||
+      !get_option('mepr_tax_stripe_deactivated') ||
+      get_user_meta(get_current_user_id(), 'mepr_dismiss_notice_deactivated_stripe_tax', true) ||
+      (isset($_GET['page']) && $_GET['page'] == 'memberpress-options')
+    ) {
+      return;
+    }
+    ?>
+    <div class="notice notice-warning is-dismissible mepr-notice-dismiss-permanently" data-notice="deactivated_stripe_tax">
+      <p>
+        <?php
+          printf(
+            /* translators: %1$s open link tag, %2$s: close link tag, %3$s open link tag, %4$s: close link tag */
+            esc_html__('Stripe Tax was deactivated because it is not enabled in the Stripe dashboard. Please ensure that %1$sStripe Tax is enabled%2$s at Stripe, then go to %3$sMemberPress &rarr; Settings &rarr; Taxes%4$s to reactivate Stripe Tax.', 'memberpress'),
+            '<a href="https://dashboard.stripe.com/tax" target="_blank">',
+            '</a>',
+            sprintf('<a href="%s">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-taxes'))),
             '</a>'
           );
         ?>
@@ -598,13 +650,13 @@ class MeprStripeTaxIntegration {
       !MeprUtils::is_logged_in_and_an_admin() ||
       !check_ajax_referer('mepr_enable_stripe_tax', false, false)
     ) {
-      wp_send_json_error();
+      wp_send_json_error(__('Security check failed.', 'memberpress'));
     }
 
     $gateway_id = isset($_POST['gateway_id']) ? sanitize_text_field(wp_unslash($_POST['gateway_id'])) : '';
 
     if(empty($gateway_id)) {
-      wp_send_json_error();
+      wp_send_json_error(__('Bad request.', 'memberpress'));
     }
 
     $mepr_options = MeprOptions::fetch();
@@ -612,18 +664,64 @@ class MeprStripeTaxIntegration {
     $pm = $mepr_options->payment_method($gateway_id);
 
     if(!$pm instanceof MeprStripeGateway || !$pm->is_connected()) {
-      wp_send_json_error();
+      wp_send_json_error(__('Bad request.', 'memberpress'));
     }
 
-    update_option('mepr_calculate_taxes', true);
-    update_option('mepr_tax_stripe_enabled', true);
-    update_option('mepr_tax_stripe_payment_method', $pm->id);
-    update_option('mepr_stripe_tax_notice_dismissed', true);
-    update_option('mepr_tax_avalara_enabled', false);
-    update_option('mepr_tax_quaderno_enabled', false);
-    update_option('mepr_tax_taxjar_enabled', false);
+    try {
+      $tax_settings = (object) $pm->send_stripe_request('tax/settings', array(), 'get');
 
-    wp_send_json_success();
+      if($tax_settings->status != 'active') {
+        wp_send_json_error(false);
+      }
+
+      update_option('mepr_calculate_taxes', true);
+      update_option('mepr_tax_stripe_enabled', true);
+      update_option('mepr_tax_calc_location', 'customer');
+      update_option('mepr_tax_default_address', 'none');
+      update_option('mepr_tax_stripe_payment_method', $pm->id);
+      update_option('mepr_stripe_tax_notice_dismissed', true);
+      update_option('mepr_tax_avalara_enabled', false);
+      update_option('mepr_tax_quaderno_enabled', false);
+      update_option('mepr_tax_taxjar_enabled', false);
+      delete_option('mepr_tax_stripe_deactivated');
+
+      wp_send_json_success();
+    }
+    catch(Exception $e) {
+      wp_send_json_error($e->getMessage());
+    }
+  }
+
+  public function validate_stripe_tax() {
+    if(
+      !MeprUtils::is_logged_in_and_an_admin() ||
+      !check_ajax_referer('mepr_validate_stripe_tax', false, false)
+    ) {
+      wp_send_json_error(__('Security check failed.', 'memberpress'));
+    }
+
+    $gateway_id = isset($_POST['gateway_id']) ? sanitize_text_field(wp_unslash($_POST['gateway_id'])) : '';
+
+    if(empty($gateway_id)) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    $mepr_options = MeprOptions::fetch();
+
+    $pm = $mepr_options->payment_method($gateway_id);
+
+    if(!$pm instanceof MeprStripeGateway || !$pm->is_connected()) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    try {
+      $tax_settings = (object) $pm->send_stripe_request('tax/settings', array(), 'get');
+
+      wp_send_json_success($tax_settings->status == 'active');
+    }
+    catch(Exception $e) {
+      wp_send_json_error($e->getMessage());
+    }
   }
 }
 
