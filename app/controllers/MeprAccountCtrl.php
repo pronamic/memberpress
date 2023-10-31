@@ -158,7 +158,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
 
     $delim = MeprAppCtrl::get_param_delimiter_char($account_url);
 
-    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' )){
+    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || MeprAppHelper::has_block('memberpress/pro-account-tabs' )){
       MeprView::render('/readylaunch/account/nav', get_defined_vars());
     } else {
       MeprView::render('/account/nav', get_defined_vars());
@@ -255,7 +255,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     //Load user last in case we saved above, we want the saved info to show up
     $mepr_current_user = new MeprUser($mepr_current_user->ID);
 
-    if ( ( MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' ) )) {
+    if ( ( MeprReadyLaunchCtrl::template_enabled( 'account' ) || MeprAppHelper::has_block('memberpress/pro-account-tabs' ) )) {
       if( is_array($atts) ){
         extract( $atts, EXTR_SKIP );
       }
@@ -730,9 +730,15 @@ class MeprAccountCtrl extends MeprBaseCtrl {
 
   //Shortcode is meant to be placed on the thank you page or per-membership thank you page messages
   public function offline_gateway_instructions($atts = array(), $content = '') {
-    if(!isset($_GET['trans_num']) || empty($_GET['trans_num']) || !isset($atts['gateway_id']) || empty($atts['gateway_id'])) { return ''; }
+    if(!isset($atts['gateway_id']) || empty($atts['gateway_id'])) { return ''; }
 
-    $txn = MeprTransaction::get_one_by_trans_num($_GET['trans_num']);
+    if(isset($_GET['trans_num']) && !empty($_GET['trans_num'])) {
+      $txn = MeprTransaction::get_one_by_trans_num($_GET['trans_num']);
+    } elseif(isset($_GET['transaction_id']) && !empty($_GET['transaction_id'])) {
+      $txn = MeprTransaction::get_one($_GET['transaction_id']);
+    } else {
+      return '';
+    }
 
     if(!isset($txn->gateway) || $txn->gateway != $atts['gateway_id']) { return ''; }
 

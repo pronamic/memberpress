@@ -27,6 +27,11 @@
       return false;
     }
     function show_readylaunch_limit() {
+      // Baily early if RL isn't enabled for pricing page.
+      if(!MeprAdminGroups.readylaunch_enabled) {
+        return;
+      }
+
       var count = $('ol#sortable-products li').length;
 
       if(count > 5){

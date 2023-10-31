@@ -104,9 +104,10 @@ function mepr_autocomplete_setup( type ) {
   .data( "ui-autocomplete" )._renderItem = function( ul, item ) {
     var max_title_size = 30;
     var elipses = '';
+    var slug = (item.desc !== undefined && item.desc.indexOf('Course:') >= 0) ? 'Course: ' + item.slug : 'Slug: ' + item.slug;
     if( item.label.length > max_title_size ) { elipses = '...'; }
     return jQuery( "<li>" )
-      .append( "<a><b>" + item.label.substr(0,max_title_size) + elipses + "</b><br/><small>ID: " + item.id + " | Slug: " + item.slug + "</small></a>" )
+      .append( "<a><b>" + item.label.substr(0,max_title_size) + elipses + "</b><br/><small>ID: " + item.id + " | " + slug + "</small></a>" )
       .appendTo( ul );
   };
 }

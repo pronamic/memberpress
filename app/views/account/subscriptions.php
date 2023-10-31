@@ -163,7 +163,7 @@ if(!empty($subscriptions)) {
                       }
                     }
                     elseif(!$is_sub && !empty($prd->ID)) {
-                      if($prd->is_renewable() && $prd->is_renewal()) {
+                      if($prd->is_one_time_payment() && $prd->is_renewable() && $prd->is_renewal()) {
                         ?>
                           <a href="<?php echo esc_url($prd->url()); ?>" class="mepr-account-row-action mepr-account-renew"><?php _ex('Renew', 'ui', 'memberpress'); ?></a>
                         <?php

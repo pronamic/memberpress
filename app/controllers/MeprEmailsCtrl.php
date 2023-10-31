@@ -23,7 +23,7 @@ class MeprEmailsCtrl extends MeprBaseCtrl
     if(!isset($_POST['a'])) { $_POST['a'] = array(); }
 
     try {
-      $email = MeprEmailFactory::fetch( $_POST['e'], 'MeprBaseEmail', $_POST['a'] );
+      $email = MeprEmailFactory::fetch( wp_unslash( $_POST['e'] ), 'MeprBaseEmail', $_POST['a'] );
     }
     catch( Exception $e ) {
       die(json_encode(array('error' => $e->getMessage())));
@@ -48,7 +48,7 @@ class MeprEmailsCtrl extends MeprBaseCtrl
     if(!isset($_POST['a'])) { $_POST['a']=array(); }
 
     try {
-      $email = MeprEmailFactory::fetch( $_POST['e'], 'MeprBaseEmail', $_POST['a'] );
+      $email = MeprEmailFactory::fetch( wp_unslash( $_POST['e'] ), 'MeprBaseEmail', $_POST['a'] );
     }
     catch( Exception $e ) {
       die(json_encode(array('error' => $e->getMessage())));

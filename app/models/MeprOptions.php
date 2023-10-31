@@ -102,6 +102,9 @@ class MeprOptions {
     if(!isset($this->thankyou_page_id))
       $this->thankyou_page_id = 0;
 
+    if(!isset($this->coaching_page_id))
+      $this->coaching_page_id = 0;
+
     if(!isset($this->force_login_page_url)) //Forces wp's login_url filter to be overridden with MP login page permalink
       $this->force_login_page_url = false;
 
@@ -458,12 +461,17 @@ class MeprOptions {
     if(!isset( $this->design_pricing_subheadline ) ){
       $this->design_pricing_subheadline = '';
     }
+
+    if(!isset( $this->rl_enable_coaching_template ) ){
+      $this->rl_enable_coaching_template = false;
+    }
   }
 
   public function set_strings() {
     $this->account_page_id_str                      = 'mepr-account-page-id';
     $this->login_page_id_str                        = 'mepr-login-page-id';
     $this->thankyou_page_id_str                     = 'mepr-thankyou-page-id';
+    $this->coaching_page_id_str                     = 'mepr-coaching-page-id';
     $this->force_login_page_url_str                 = 'mepr-force-login-page-url';
     $this->login_redirect_url_str                   = 'mepr-login-redirect-url';
     $this->logout_redirect_url_str                  = 'mepr-logout-redirect-url';
@@ -569,6 +577,7 @@ class MeprOptions {
     $this->design_pricing_title_str                 = 'mepr-design-pricing-title';
     $this->design_pricing_cta_color_str             = 'mepr-design-pricing-cta-color';
     $this->design_pricing_subheadline_str           = 'mepr-design-pricing-subheadline';
+    $this->rl_enable_coaching_template_str          = 'mepr-rl-enable-coaching-template';
     $this->design_show_checkout_price_terms_str     = 'mepr-design-show-checkout-price-terms';
   }
 
@@ -658,6 +667,15 @@ class MeprOptions {
       $this->thankyou_page_id = $_POST[$this->thankyou_page_id_str] = MeprAppHelper::auto_add_page($matches[1], esc_html__('Your subscription has been set up successfully.', 'memberpress'));
     else
       $this->thankyou_page_id = (int)$params[$this->thankyou_page_id_str];
+
+    if(isset($params[$this->coaching_page_id_str])){
+      if(!is_numeric($params[$this->coaching_page_id_str]) &&
+        preg_match("#^__auto_page:(.*?)$#",$params[$this->coaching_page_id_str],$matches)):
+       $this->coaching_page_id = $_POST[$this->coaching_page_id_str] = MeprAppHelper::auto_add_page($matches[1]);
+      else:
+       $this->coaching_page_id = (int)$params[$this->coaching_page_id_str];
+      endif;
+    }
 
     $this->force_login_page_url = isset($params[$this->force_login_page_url_str]);
 
@@ -786,6 +804,7 @@ class MeprOptions {
     $this->design_pricing_title               = sanitize_text_field($params[$this->design_pricing_title_str]);
     $this->design_pricing_cta_color           = sanitize_text_field($params[$this->design_pricing_cta_color_str]);
     $this->design_pricing_subheadline         = wp_kses_post(stripslashes($params[$this->design_pricing_subheadline_str]));
+    $this->rl_enable_coaching_template        = isset($params[$this->rl_enable_coaching_template_str]);
     $this->design_show_checkout_price_terms   = isset($params[$this->design_show_checkout_price_terms_str]);
   }
 

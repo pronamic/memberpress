@@ -1328,7 +1328,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
 
           // Fixes bug 1136 early/late monthly renewals
           if( $period == 1 ) {
-            if( $days_till_expire < 27 ) {
+            if( $days_till_expire < ( 27 - $mepr_options->grace_expire_days ) ) {
               // Early renewal - we need to add a month in this case
               $expires_ts += MeprUtils::months( $period, $expires_ts, false, $renewal_dom );
             }
@@ -1340,7 +1340,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
             $new_days_till_expire = floor( ( $expires_ts - $created_ts ) / MeprUtils::days(1) );
 
             // One final check, if we're still outside of tolerance just add 1 month from the created_ts like we used to
-            if( ( $new_days_till_expire < 27 ) || $new_days_till_expire > 32) {
+            if( ( $new_days_till_expire < ( 27 - $mepr_options->grace_expire_days ) ) || $new_days_till_expire > 32) {
               $expires_ts = ( $created_ts + MeprUtils::months( $period, $created_ts ) );
             }
           }

@@ -217,7 +217,7 @@ class MeprProductsCtrl extends MeprCptCtrl {
       $product->expire_fixed = isset(${MeprProduct::$expire_fixed_str}) ? sanitize_text_field($_POST[MeprProduct::$expire_fixed_str]) : $product->attrs['expire_fixed'];
       $product->tax_exempt = isset($_POST[MeprProduct::$tax_exempt_str]);
       $product->tax_class = isset(${MeprProduct::$tax_class_str}) ? sanitize_text_field($_POST[MeprProduct::$tax_class_str]) : $product->attrs['tax_class'];
-      $product->allow_renewal = (($product->expire_type == 'delay' && isset($_POST[MeprProduct::$allow_renewal_str])) || ($product->expire_type == 'fixed' && isset($_POST[MeprProduct::$allow_renewal_str.'-fixed'])));
+      $product->allow_renewal = (($product->period_type == 'lifetime' || $product->price == 0.00) && (($product->expire_type == 'delay' && isset($_POST[MeprProduct::$allow_renewal_str])) || ($product->expire_type == 'fixed' && isset($_POST[MeprProduct::$allow_renewal_str.'-fixed']))));
       $product->access_url = isset($_mepr_access_url)?sanitize_text_field(wp_unslash(trim($_mepr_access_url))):$product->attrs['access_url'];
       $product->disable_address_fields = (isset($_mepr_disable_address_fields) && $product->price <= 0.00);
       $product->cannot_purchase_message = (!empty($meprcannotpurchasemessage))?wp_kses_post(wp_unslash($meprcannotpurchasemessage)):$product->cannot_purchase_message;

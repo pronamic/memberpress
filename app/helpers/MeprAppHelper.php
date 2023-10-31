@@ -569,4 +569,49 @@ class MeprAppHelper {
       return __('Unknown', 'memberpress');
     }
   }
+
+  public  static function is_coaching_enabled(){
+    $slug = 'memberpress-coachkit/main.php';
+    return is_plugin_active( $slug );
+  }
+
+  /**
+   * Checks if a block template of a post contains a specific block.
+   *
+   * This function searches the content of a block template associated with a post
+   * to determine if the specified block is present within it.
+   *
+   * @param string $block_name The name of the block to check for.
+   *                           If the block name does not include a namespace, 'memberpress/' is prepended.
+   * @return bool True if the block is found in the block template, false otherwise.
+   */
+  public static function block_template_has_block( $block_name ){
+    global $_wp_current_template_content;
+
+    if( null === $_wp_current_template_content || ! $_wp_current_template_content ){
+      return false;
+    }
+
+    if ( ! MeprUtils::str_contains( $block_name, '/' ) ) {
+      $block_name = 'memberpress/' . $block_name;
+    }
+
+    $has_block = MeprUtils::str_contains( $_wp_current_template_content, '<!-- wp:' . $block_name . ' ' );
+
+    return $has_block;
+  }
+
+  /**
+   * Checks if a block is present in the current content or block template.
+   *
+   * This function checks if the specified block is either present in the content of
+   * the post or is defined in the block template associated with the post.
+   *
+   * @param string $block_name The name of the block to check for.
+   * @return bool True if the block is found in the content or block template, false otherwise.
+   */
+  public static function has_block( $block_name ){
+    return has_block($block_name) || self::block_template_has_block($block_name);
+  }
+
 } //End class

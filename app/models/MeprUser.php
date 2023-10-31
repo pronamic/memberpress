@@ -503,6 +503,10 @@ class MeprUser extends MeprBaseModel {
       }
     }
 
+    if( empty( trim( $name ) ) ) {
+      $name = $this->display_name;
+    }
+
     return $name;
   }
 

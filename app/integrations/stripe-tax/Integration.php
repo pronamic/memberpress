@@ -315,7 +315,7 @@ class MeprStripeTaxIntegration {
 
     $txn = $event->get_data();
 
-    if(!$txn instanceof MeprTransaction) {
+    if(!$txn instanceof MeprTransaction || $txn->amount <= 0) {
       return;
     }
 

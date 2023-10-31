@@ -838,6 +838,20 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       }
     }
 
+    if(($key = array_search('konbini', $types)) !== false) {
+      if(!is_null($amount) && ($amount < 120 || $amount > 300000)) {
+        // Konbini does not support a payment amount less than 120 or greater than 300000 JPY
+        array_splice($types, $key, 1);
+      }
+    }
+
+    if(($key = array_search('boleto', $types)) !== false) {
+      if(!is_null($amount) && ($amount < 5 || $amount > 49999.99)) {
+        // Boleto does not support a payment amount less than 5 or greater than 49999.99 BRL
+        array_splice($types, $key, 1);
+      }
+    }
+
     return $types;
   }
 
@@ -1078,9 +1092,9 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       return;
     }
 
-    // We don't do anything here for $0 invoices that are also the first subscription payment, return early to avoid
-    // unnecessary Stripe requests (to prevent rate limit errors)
-    if($invoice->billing_reason == 'subscription_create' && !isset($invoice->charge)) {
+    // We don't do anything here for $0 invoices that are also the first subscription payment, or the first subscription
+    // payment for Stripe Checkout. Return early to avoid unnecessary Stripe requests (to prevent rate limit errors).
+    if($invoice->billing_reason == 'subscription_create' && (!isset($invoice->charge) || $this->settings->stripe_checkout_enabled == 'on')) {
       return;
     }
 
@@ -1189,10 +1203,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         }
       }
 
-      // Record subscription creation here if using Stripe Elements
-      if($this->settings->stripe_checkout_enabled != 'on') {
-        $this->record_create_sub($sub);
-      }
+      $this->record_create_sub($sub);
 
       if($payment_method && isset($customer->invoice_settings) && is_array($customer->invoice_settings)) {
         $default_payment_method = isset($customer->invoice_settings['default_payment_method']) ? $customer->invoice_settings['default_payment_method'] : null;
@@ -1200,32 +1211,6 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         if(empty($default_payment_method)) {
           $this->set_customer_default_payment_method($customer->id, $payment_method->id);
         }
-      }
-
-      $order = $sub->order();
-
-      if($order instanceof MeprOrder) {
-        // Workaround for setting the correct first payment amount and trans_num of a subscription that was part of an
-        // order created through Stripe Checkout
-        $txn_expires_at_override = null;
-
-        if($sub->trial && $sub->trial_days > 0) {
-          $txn_expires_at_override = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
-
-          if($sub->trial_total > 0) {
-            $amount = (float) $sub->trial_total;
-          }
-          else {
-            return; // We don't want to record a payment for a free trial here
-          }
-        }
-        else {
-          $amount = (float) $sub->total;
-        }
-
-        $this->record_sub_payment($sub, $amount, sprintf('mi_%d_%s', $order->id, uniqid()), null, $txn_expires_at_override, $order->id);
-
-        return;
       }
     }
 
@@ -1632,24 +1617,13 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
 
     try {
-      // There is a race condition between this handler and the invoice.payment_succeeded handler.
-      // If invoice.payment_succeeded is processed first, it will not record the first payment. We need to set the
-      // subscr_id on the subscription as early as possible, before making any other requests.
-      if(!$txn->is_one_time_payment() && $checkout_session->mode == 'subscription') {
-        $sub = $txn->subscription();
-
-        if($sub instanceof MeprSubscription && isset($checkout_session->subscription)) {
-          $sub->subscr_id = $checkout_session->subscription;
-          $sub->store();
-        }
-      }
-
       $checkout_session = (object) $this->send_stripe_request("checkout/sessions/$checkout_session->id", [
         'expand' => [
           'customer',
           'payment_intent.payment_method',
           'setup_intent.payment_method',
           'subscription.default_payment_method',
+          'subscription.latest_invoice.charge',
           'subscription.latest_invoice.payment_intent.payment_method',
         ]
       ], 'get');
@@ -1720,7 +1694,24 @@ class MeprStripeGateway extends MeprBaseRealGateway {
             $sub = $txn->subscription();
 
             if($sub instanceof MeprSubscription) {
+              if(isset($checkout_session->subscription['id'])) {
+                $sub->subscr_id = $checkout_session->subscription['id'];
+              }
+
               $this->record_create_sub($sub);
+
+              if($sub->trial && $sub->trial_days > 0) {
+                $amount = (float) $sub->trial_total;
+                $txn_expires_at_override = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
+              }
+              else {
+                $amount = (float) $sub->total;
+                $txn_expires_at_override = null;
+              }
+
+              if($amount > 0) {
+                $this->record_sub_payment($sub, $amount, sprintf('mi_%d_%s', $order->id, uniqid()), $payment_method, $txn_expires_at_override, $order->id);
+              }
             }
           }
 
@@ -1766,7 +1757,27 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           $sub = $txn->subscription();
 
           if($sub instanceof MeprSubscription) {
+            if(isset($checkout_session->subscription['id'])) {
+              $sub->subscr_id = $checkout_session->subscription['id'];
+            }
+
             $this->record_create_sub($sub);
+
+            if(isset($checkout_session->subscription['latest_invoice']['charge'])) {
+              $charge = (object) $checkout_session->subscription['latest_invoice']['charge'];
+              $amount = (float) $charge->amount;
+              $txn_expires_at_override = null;
+
+              if(!self::is_zero_decimal_currency()) {
+                $amount = $amount / 100;
+              }
+
+              if($sub->trial && $sub->trial_days > 0) {
+                $txn_expires_at_override = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
+              }
+
+              $this->record_sub_payment($sub, $amount, $charge->id, $payment_method, $txn_expires_at_override);
+            }
           }
         }
       }
@@ -4725,6 +4736,14 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     if($mepr_options->currency_code == 'USD' && in_array('affirm', $payment_method_types, true)) {
       $amount = 50; // 50 USD is the minimum charge amount for Affirm
+    }
+
+    if($mepr_options->currency_code == 'JPY' && in_array('konbini', $payment_method_types, true)) {
+      $amount = 120; // 120 JPY is the minimum charge amount for Konbini
+    }
+
+    if($mepr_options->currency_code == 'BRL' && in_array('boleto', $payment_method_types, true)) {
+      $amount = 5; // 5 BRL is the minimum charge amount for Boleto
     }
 
     $amount = MeprHooks::apply_filters('mepr_stripe_test_payment_amount', $amount, $payment_method_types, $this);

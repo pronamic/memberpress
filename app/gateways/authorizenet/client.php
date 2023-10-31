@@ -14,7 +14,6 @@ class MeprArtificialAuthorizeNetProfileHttpClient {
   public function __construct( $is_test, $endpoint, $gatewayID, $login_name, $transaction_key ) {
     $this->is_test         = $is_test;
     $this->endpoint        = $endpoint;
-    $this->endpoint        = $endpoint;
     $this->gatewayID       = $gatewayID;
     $this->login_name      = $login_name;
     $this->transaction_key = $transaction_key;
@@ -128,8 +127,6 @@ class MeprArtificialAuthorizeNetProfileHttpClient {
   }
 
   public function createCustomerPaymentProfile( $user, $authorizenet_customer, $dataValue, $dataDesc ) {
-    $mode = $this->is_test ? "testMode" : 'liveMode';
-
     if (empty($dataValue) || empty($dataDesc)) {
       return null;
     }
@@ -167,7 +164,6 @@ class MeprArtificialAuthorizeNetProfileHttpClient {
          </payment>
         <defaultPaymentProfile>true</defaultPaymentProfile>
     </paymentProfile>
-    <validationMode>' . $mode . '</validationMode>
 </createCustomerPaymentProfileRequest>';
 
     $cacheKey = md5(serialize($xml));
@@ -212,6 +208,47 @@ class MeprArtificialAuthorizeNetProfileHttpClient {
       return $subscription_id;
     } else {
       throw new MeprException( __( 'Can not cancel subscription', 'memberpress' ) );
+    }
+  }
+
+  /**
+   * @param SimpleXMLElement $simpleXml
+   * @param $array
+   */
+  public function array2Xml($simpleXml, $array) {
+    foreach ($array as $key => $item) {
+      if (!is_array($item)) {
+        $simpleXml->addChild($key, $item);
+      } else {
+        $child = $simpleXml->addChild($key);
+        $this->array2Xml($child, $item);
+      }
+    }
+    return $simpleXml;
+  }
+
+  public function updateSubscription($args)
+  {
+    $xmlStr = <<<XML
+<ARBUpdateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
+</ARBUpdateSubscriptionRequest>
+XML;
+    $simpleXml = @new SimpleXMLElement($xmlStr);
+    $auth = $simpleXml->addChild('merchantAuthentication');
+    $auth->addChild('name', $this->login_name);
+    $auth->addChild('transactionKey', $this->transaction_key);
+    $this->array2Xml($simpleXml, $args);
+    $xml = $simpleXml->asXML();
+    $response = wp_remote_post( $this->endpoint, $this->prepareOptions( $xml ) );
+    $response = wp_remote_retrieve_body( $response );
+    $response = $this->parseAuthnetResponse( $response );
+    $this->log( $xml );
+    $this->log( $response );
+
+    if ( isset( $response['messages']['resultCode'] ) && $response['messages']['resultCode'] == 'Ok' ) {
+      return $response;
+    } else {
+      throw new MeprException( __( 'Can not update subscription', 'memberpress' ) );
     }
   }
 
@@ -392,8 +429,6 @@ class MeprArtificialAuthorizeNetProfileHttpClient {
   }
 
   public function createCustomerProfile( $user, $dataValue, $dataDesc ) {
-    $mode = $this->is_test ? "testMode" : 'liveMode';
-
     $address = [
       'line1'       => get_user_meta( $user->ID, 'mepr-address-one', true ),
       'line2'       => get_user_meta( $user->ID, 'mepr-address-two', true ),
@@ -436,7 +471,6 @@ class MeprArtificialAuthorizeNetProfileHttpClient {
          </payment>
       </paymentProfiles>
     </profile>
-  <validationMode>' . $mode . '</validationMode>
   </createCustomerProfileRequest>';
 
     $response = wp_remote_post( $this->endpoint, $this->prepareOptions( $xml ) );

@@ -92,6 +92,10 @@ window.meprProTemplates = {
     enableTemplate: false,
     showPriceTerms: true,
   },
+  coaching: { // default checkout values
+    enableTemplate: false,
+    showPriceTerms: true,
+  },
   init(data) {
     // console.log('yup');
   },
@@ -103,6 +107,7 @@ window.meprProTemplates = {
     this.pricing = data.pricing;
     this.thankyou = data.thankyou;
     this.checkout = data.checkout;
+    this.coaching = data.coaching;
 
     // console.log('value')
     this.$watch('login.enableTemplate', (value) => {

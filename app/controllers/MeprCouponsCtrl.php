@@ -345,7 +345,8 @@ class MeprCouponsCtrl extends MeprCptCtrl {
       }
     }
 
-    $output = MeprCoupon::is_valid_coupon_code($code, $product_id);
+    $is_valid = MeprCoupon::is_valid_coupon_code($code, $product_id);
+    $output = apply_filters( 'mepr-validate-coupon', $is_valid, $code, $product_id );
 
     if($output) {
       echo 'true';

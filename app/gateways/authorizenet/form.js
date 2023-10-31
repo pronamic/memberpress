@@ -14,6 +14,11 @@
                 return true;
             }
 
+            if (this.$form.find('.mepr-payment-methods-wrapper').is(':hidden')) {
+                this.form.submit();
+                return;
+            }
+
             const container = this.getSelectedWrapper();
 
             if (container.find('.dataValue').val().length > 0) {
@@ -47,6 +52,15 @@
             }
         }
 
+        getTestMode() {
+            if (this.isSpc) {
+                var paymentMethodId = this.$form.find('input[name="mepr_payment_method"]:checked').val();
+                return this.$form.find('.mepr_payment_method-'+ paymentMethodId +' [data-authorizenet]').data('is-test');
+            } else {
+                return this.$form.find('[data-authorizenet]').data('is-test');
+            }
+        }
+
         allowResubmission() {
             this.$form.find('.mepr-submit').prop('disabled', false);
             this.$form.find('.mepr-loading-gif').hide();
@@ -74,6 +88,7 @@
 
         sendPaymentDataToAnet() {
             var authData = {};
+            var self = this;
             authData.clientKey = this.getPublicKey();
             authData.apiLoginID = this.getLoginID();
 
@@ -88,9 +103,19 @@
             secureData.authData = authData;
             secureData.cardData = cardData;
 
-            Accept.dispatchData(secureData, $.proxy(this.responseHandler, this));
+            if (this.getTestMode() == 'on') {
+                self.loadScript('https://jstest.authorize.net/v1/Accept.js');
+            } else {
+                self.loadScript('https://js.authorize.net/v1/Accept.js');
+            }
+            setTimeout(function () {
+                Accept.dispatchData(secureData, $.proxy(self.responseHandler, self));
+            }, 1000);
         }
-
+        loadScript(url) {
+            var b = document.createElement("script");
+            b.type = "text/javascript", b.src = url, (document.getElementsByTagName("head")[0] || document.documentElement).appendChild(b)
+        }
         responseHandler(response) {
             var self = this;
             var container = self.getSelectedWrapper();

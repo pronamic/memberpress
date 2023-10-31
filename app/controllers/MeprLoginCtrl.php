@@ -160,7 +160,7 @@ class MeprLoginCtrl extends MeprBaseCtrl {
       }
     }
 
-    if(MeprReadyLaunchCtrl::template_enabled( 'login' ) || MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-login-form' )){
+    if(MeprReadyLaunchCtrl::template_enabled( 'login' ) || MeprReadyLaunchCtrl::template_enabled( 'account' ) || MeprAppHelper::has_block('memberpress/pro-login-form' )){
       MeprView::render('/readylaunch/login/form', get_defined_vars());
     } else {
       MeprView::render('/login/form', get_defined_vars());

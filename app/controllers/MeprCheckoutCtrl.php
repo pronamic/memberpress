@@ -339,7 +339,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     $payment_required = MeprHooks::apply_filters('mepr_signup_payment_required', $product->is_payment_required($mepr_coupon_code), $product);
 
     if($mepr_options->enable_spc) {
-      if(MeprReadyLaunchCtrl::template_enabled( 'checkout' ) || has_block( 'memberpress/checkout' )){
+      if(MeprReadyLaunchCtrl::template_enabled( 'checkout' ) || MeprAppHelper::has_block( 'memberpress/checkout' )){
         MeprView::render('/readylaunch/checkout/form', get_defined_vars());
       } else {
         MeprView::render('/checkout/spc_form', get_defined_vars());

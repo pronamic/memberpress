@@ -2475,4 +2475,20 @@ class MeprUtils {
   public static function new_badge() {
     return sprintf('<span class="mepr-new-badge">%s</span>', esc_html__('NEW', 'memberpress'));
   }
+
+  /**
+   * Performs a case-sensitive check indicating if needle is
+   * contained in haystack.
+   *
+   * @param string $haystack The string to search in.
+   * @param string $needle   The substring to search for in the `$haystack`.
+   * @return bool True if `$needle` is in `$haystack`, otherwise false.
+   */
+  public static function str_contains( $haystack, $needle ) {
+    if ( '' === $needle ) {
+      return true;
+    }
+
+    return false !== strpos( $haystack, $needle );
+  }
 } // End class

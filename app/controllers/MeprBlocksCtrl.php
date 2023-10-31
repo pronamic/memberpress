@@ -519,7 +519,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
       $rule_options[] = array(
         'label'    => $rule->post_title,
         'value'    => $rule->ID,
-        'ruleLink' => get_edit_post_link( $rule->ID, null ),
+        'ruleLink' => get_edit_post_link( $rule->ID, '&' ),
       );
     }
 
@@ -637,7 +637,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl {
     }
 
     // Post is an "Account" page if it has the Account Form block
-    if ( has_block( 'memberpress/account-form', $post ) ) {
+    if ( has_block( 'memberpress/account-form', $post ) || MeprAppHelper::block_template_has_block('account-form') ) {
       $return = true;
     }
 

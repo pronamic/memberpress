@@ -190,6 +190,7 @@
             action: 'mepr_validate_coupon',
             code: $(obj).val(),
             prd_id: $(obj).data("prdid"),
+            user_email: form.find("input[name='user_email']").val(),
             coupon_nonce: MeprSignup.coupon_nonce
           };
 

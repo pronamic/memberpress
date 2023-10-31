@@ -387,7 +387,7 @@ class MeprRulesCtrl extends MeprCptCtrl {
     }
 
     ob_start();
-    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || has_block('memberpress/pro-account-tabs' )){
+    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || MeprAppHelper::has_block('memberpress/pro-account-tabs' ) ){
       MeprView::render('/readylaunch/shared/unauthorized_message', get_defined_vars());
     } else {
       MeprView::render('/shared/unauthorized_message', get_defined_vars());

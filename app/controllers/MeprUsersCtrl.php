@@ -404,7 +404,7 @@ class MeprUsersCtrl extends MeprBaseCtrl {
       }
 
       if( $line->required && 'email' == $line->field_type && !empty($_POST[$line->field_key]) ){
-        if( !is_email($_POST[$line->field_key]) ){
+        if( !is_email(stripcslashes($_POST[$line->field_key])) ){
           $errs[$line->field_key] = sprintf(__('%s is not a valid email address.', 'memberpress'), stripslashes($line->field_name));
         }
       }

@@ -1,6 +1,7 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
+#[AllowDynamicProperties]
 class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
   /** Used in the view to identify the gateway */
   public function __construct() {
@@ -1033,8 +1034,6 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
         }
       }
 
-      $sub->set_subtotal($sub->price);
-
       //Handle Trial period stuff
       if($has_trial || $convert_to_trial) {
         if($convert_to_trial) {
@@ -1331,6 +1330,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
     // Let's find the transaction from the PayPal return URL vars
     $txn = $this->get_paypal_return_txn();
 
+
     if(isset($txn->id) && $txn->id) {
       $product  = new MeprProduct($txn->product_id);
 
@@ -1347,7 +1347,6 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway {
 
         MeprUtils::wp_redirect( $thankyou_url );
       }
-
       // Check if this is a multi-item purchase
       $order = $txn->order();
       $order_bump_transactions = $order instanceof MeprOrder ? MeprTransaction::get_all_by_order_id_and_gateway($order->id, $this->id, $txn->id) : [];

@@ -104,7 +104,7 @@ class MeprGroupsCtrl extends MeprCptCtrl {
   }
 
   public static function display_pricing_boxes($group, $theme=null, $args = []) {
-    if(MeprReadyLaunchCtrl::template_enabled( 'pricing' ) || has_block( 'memberpress/pro-pricing-table' )){
+    if(MeprReadyLaunchCtrl::template_enabled( 'pricing' ) || MeprAppHelper::has_block( 'memberpress/pro-pricing-table' )){
       MeprView::render('/readylaunch/groups/front_groups_page', get_defined_vars());
     } else {
       MeprView::render('/groups/front_groups_page', get_defined_vars());
@@ -308,6 +308,8 @@ class MeprGroupsCtrl extends MeprCptCtrl {
       wp_dequeue_script('autosave'); //Disable auto-saving
 
       wp_enqueue_script('mepr-groups-js', MEPR_JS_URL.'/admin_groups.js', array('jquery','jquery-ui-sortable','mepr-settings-table-js'), MEPR_VERSION);
+
+      wp_localize_script('mepr-groups-js', 'MeprAdminGroups', array('readylaunch_enabled' => MeprReadyLaunchCtrl::template_enabled('pricing')));
     }
   }
 

@@ -29,7 +29,7 @@
           <label for="user_login"><?php echo ($mepr_options->username_is_email)?$uname_or_email_str:$uname_str; ?></label>
           <?php /* <span class="cc-error"><?php _ex('Username Required', 'ui', 'memberpress'); ?></span> */ ?>
         </div>
-        <input type="text" name="log" id="user_login" value="<?php echo (isset($_REQUEST['log'])?esc_html($_REQUEST['log']):''); ?>" />
+        <input type="text" name="log" id="user_login" value="<?php echo (isset($_REQUEST['log'])?esc_html(stripcslashes($_REQUEST['log'])):''); ?>" />
       </div>
       <div class="mp-form-row mepr_password">
         <div class="mp-form-label">

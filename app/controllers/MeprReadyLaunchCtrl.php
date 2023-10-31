@@ -447,6 +447,9 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
         'removeInstructorLink' => isset( $courses_options['remove-instructor-link'] ) ? filter_var( $courses_options['remove-instructor-link'], FILTER_VALIDATE_BOOLEAN ) : '',
         'logoId'               => isset( $courses_options['classroom-logo'] ) ? absint( $courses_options['classroom-logo'] ) : '',
       ),
+      'coaching'  => array(
+        'enableTemplate'        =>  isset( $mepr_options->rl_enable_coaching_template ) ? filter_var( $mepr_options->rl_enable_coaching_template, FILTER_VALIDATE_BOOLEAN ) : '',
+      ),
     );
 
     MeprView::render( '/admin/readylaunch/options', get_defined_vars() );
