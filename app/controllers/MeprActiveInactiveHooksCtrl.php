@@ -8,6 +8,7 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl {
   public function load_hooks() {
     add_action('mepr-txn-store', array($this, 'handle_txn_store'), 99, 2);
     add_action('mepr-txn-expired', array($this, 'handle_txn_expired'), 11, 2);
+    add_action( 'delete_user', array( $this, 'handle_delete_user' ) );
   }
 
   public function handle_txn_store($txn, $old_txn) {
@@ -85,6 +86,14 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl {
     }
     else {
       MeprHooks::do_action('mepr-account-is-inactive', $txn);
+    }
+  }
+
+  public function handle_delete_user($user_id) {
+    $user = new MeprUser( $user_id );
+    $transactions  = (array) $user->active_product_subscriptions( 'transactions', true, true );
+    foreach ($transactions as $transaction) {
+      do_action('mepr-account-is-inactive', $transaction);
     }
   }
 } // End Class

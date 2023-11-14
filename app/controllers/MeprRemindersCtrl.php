@@ -153,6 +153,7 @@ class MeprRemindersCtrl extends MeprCptCtrl {
         'labels' => array(
           'name' => __('Reminders', 'memberpress'),
           'singular_name' => __('Reminder', 'memberpress'),
+          'add_new' => __('Add New', 'memberpress'),
           'add_new_item' => __('Add New Reminder', 'memberpress'),
           'edit_item' => __('Edit Reminder', 'memberpress'),
           'new_item' => __('New Reminder', 'memberpress'),

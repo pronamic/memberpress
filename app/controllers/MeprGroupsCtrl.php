@@ -34,6 +34,7 @@ class MeprGroupsCtrl extends MeprCptCtrl {
         'labels' => array(
           'name' => __('Groups', 'memberpress'),
           'singular_name' => __('Group', 'memberpress'),
+          'add_new' => __('Add New', 'memberpress'),
           'add_new_item' => __('Add New Group', 'memberpress'),
           'edit_item' => __('Edit Group', 'memberpress'),
           'new_item' => __('New Group', 'memberpress'),

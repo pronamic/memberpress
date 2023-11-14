@@ -2329,6 +2329,7 @@ class MeprUtils {
       array('index' => 6, 'slug' => 'memberpress-pro-5', 'name' => 'MemberPress Pro'),
       array('index' => 7, 'slug' => 'memberpress-reseller', 'name' => 'MemberPress Reseller'),
       array('index' => 8, 'slug' => 'memberpress-oem', 'name' => 'MemberPress OEM'),
+      array('index' => 9, 'slug' => 'memberpress-elite', 'name' => 'MemberPress Elite'),
     );
 
     if(preg_match('/^memberpress-reseller-.+$/', $product_slug)) {
@@ -2387,7 +2388,7 @@ class MeprUtils {
       return false;
     }
 
-    return in_array($product_slug, ['memberpress-pro', 'memberpress-pro-5'], true) || MeprUtils::is_oem_edition($product_slug);
+    return in_array($product_slug, ['memberpress-pro', 'memberpress-pro-5', 'memberpress-elite'], true) || MeprUtils::is_oem_edition($product_slug);
   }
 
   /**

@@ -41,6 +41,7 @@ class MeprProductsCtrl extends MeprCptCtrl {
         'labels' => array(
           'name' => __('Memberships', 'memberpress'),
           'singular_name' => __('Membership', 'memberpress'),
+          'add_new' => __('Add New', 'memberpress'),
           'add_new_item' => __('Add New Membership', 'memberpress'),
           'edit_item' => __('Edit Membership', 'memberpress'),
           'new_item' => __('New Membership', 'memberpress'),

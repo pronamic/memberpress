@@ -28,6 +28,7 @@ class MeprCouponsCtrl extends MeprCptCtrl {
         'labels' => array(
           'name' => __('Coupons', 'memberpress'),
           'singular_name' => __('Coupon', 'memberpress'),
+          'add_new' => __('Add New', 'memberpress'),
           'add_new_item' => __('Add New Coupon', 'memberpress'),
           'edit_item' => __('Edit Coupon', 'memberpress'),
           'new_item' => __('New Coupon', 'memberpress'),

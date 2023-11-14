@@ -610,7 +610,9 @@ abstract class MeprBaseGateway {
       MeprHooks::do_action("mepr-upgraded-{$type}-sub", $obj);
       MeprHooks::do_action("mepr-upgraded-sub", $type, $obj);
       MeprHooks::do_action("mepr-sub-created", $type, $obj, 'upgraded');
-      MeprUtils::send_upgraded_sub_notices($obj);
+      if( MeprHooks::apply_filters('mepr_send_upgraded_sub_notices', true, $obj, $event_txn)) {
+        MeprUtils::send_upgraded_sub_notices($obj);
+      }
       MeprUtils::record_upgraded_sub_events($obj, $event_txn);
     }
   }
@@ -621,7 +623,9 @@ abstract class MeprBaseGateway {
       MeprHooks::do_action("mepr-downgraded-{$type}-sub", $obj);
       MeprHooks::do_action("mepr-downgraded-sub", $type, $obj);
       MeprHooks::do_action("mepr-sub-created", $type, $obj, 'downgraded');
-      MeprUtils::send_downgraded_sub_notices($obj);
+      if( MeprHooks::apply_filters('mepr_send_downgraded_sub_notices', true, $obj, $event_txn) ) {
+        MeprUtils::send_downgraded_sub_notices($obj);
+      }
       MeprUtils::record_downgraded_sub_events($obj, $event_txn);
     }
   }

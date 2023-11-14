@@ -32,8 +32,6 @@ class MeprUsage {
    * @return array
    */
   public function snapshot() {
-    global $wpdb, $mepr_update;
-
     $mepr_options = MeprOptions::fetch();
 
     $txn_stats = MeprReports::transaction_stats();
@@ -62,7 +60,8 @@ class MeprUsage {
       'uuid'               => $this->uuid(),
       'mp_version'         => MEPR_VERSION,
       'php_version'        => phpversion(),
-      'mysql_version'      => $wpdb->db_version(),
+      'mysql_version'      => $this->get_database_version(),
+      'db_provider'        => $this->get_database_provider(),
       'os'                 => (function_exists('php_uname')) ? php_uname('s') : '',
       'webserver'          => $_SERVER["SERVER_SOFTWARE"],
       'active_license'     => MeprUpdateCtrl::is_activated(),
@@ -466,4 +465,51 @@ class MeprUsage {
     );
   }
 
+  /**
+   * Get the database version.
+   *
+   * @return string
+   */
+  private function get_database_version() {
+    global $wpdb;
+
+    $db_version = $wpdb->db_version();
+
+    if(method_exists($wpdb, 'db_server_info')) {
+      $db_server_info = $wpdb->db_server_info();
+
+      // Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
+      if(
+        '5.5.5' === $db_version &&
+        is_string($db_server_info) &&
+        strpos($db_server_info, 'MariaDB') !== false &&
+        PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+      ) {
+        // Strip the '5.5.5-' prefix and set the version to the correct value.
+        $db_server_info = preg_replace('/^5\.5\.5-(.*)/', '$1', $db_server_info);
+        $db_version = preg_replace('/[^0-9.].*/', '', $db_server_info);
+      }
+    }
+
+    return $db_version;
+  }
+
+  /**
+   * Get the database provider.
+   *
+   * @return string
+   */
+  private function get_database_provider() {
+    global $wpdb;
+
+    if(method_exists($wpdb, 'db_server_info')) {
+      $db_server_info = $wpdb->db_server_info();
+
+      if(is_string($db_server_info) && strpos($db_server_info, 'MariaDB') !== false) {
+        return 'MariaDB';
+      }
+    }
+
+    return 'MySQL';
+  }
 } //End class

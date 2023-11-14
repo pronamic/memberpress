@@ -59,6 +59,7 @@ class MeprRulesCtrl extends MeprCptCtrl {
         'labels' => array(
           'name' => __('Rules', 'memberpress'),
           'singular_name' => __('Rule', 'memberpress'),
+          'add_new' => __('Add New', 'memberpress'),
           'add_new_item' => __('Add New Rule', 'memberpress'),
           'edit_item' => __('Edit Rule', 'memberpress'),
           'new_item' => __('New Rule', 'memberpress'),

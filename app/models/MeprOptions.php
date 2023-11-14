@@ -463,7 +463,7 @@ class MeprOptions {
     }
 
     if(!isset( $this->rl_enable_coaching_template ) ){
-      $this->rl_enable_coaching_template = false;
+      $this->rl_enable_coaching_template = true;
     }
   }
 

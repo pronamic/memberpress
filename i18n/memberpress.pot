@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.11.19\n"
+"Project-Id-Version: MemberPress 1.11.20\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-10-30T15:07:16-06:00\n"
+"POT-Creation-Date: 2023-11-13T15:48:14-07:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: memberpress\n"
@@ -396,7 +396,7 @@ msgid "Public"
 msgstr ""
 
 #: app/controllers/MeprAppCtrl.php:220
-#: app/controllers/MeprRulesCtrl.php:102
+#: app/controllers/MeprRulesCtrl.php:103
 msgid "Access"
 msgstr ""
 
@@ -759,95 +759,106 @@ msgid "Coupon"
 msgstr ""
 
 #: app/controllers/MeprCouponsCtrl.php:31
-msgid "Add New Coupon"
+#: app/controllers/MeprGroupsCtrl.php:37
+#: app/controllers/MeprProductsCtrl.php:44
+#: app/controllers/MeprRemindersCtrl.php:156
+#: app/controllers/MeprRulesCtrl.php:62
+#: app/views/admin/members/list.php:3
+#: app/views/admin/subscriptions/list.php:7
+#: app/views/admin/transactions/list.php:10
+msgid "Add New"
 msgstr ""
 
 #: app/controllers/MeprCouponsCtrl.php:32
-msgid "Edit Coupon"
+msgid "Add New Coupon"
 msgstr ""
 
 #: app/controllers/MeprCouponsCtrl.php:33
-msgid "New Coupon"
+msgid "Edit Coupon"
 msgstr ""
 
 #: app/controllers/MeprCouponsCtrl.php:34
-msgid "View Coupon"
+msgid "New Coupon"
 msgstr ""
 
 #: app/controllers/MeprCouponsCtrl.php:35
-msgid "Search Coupons"
+msgid "View Coupon"
 msgstr ""
 
 #: app/controllers/MeprCouponsCtrl.php:36
-msgid "No Coupons found"
+msgid "Search Coupons"
 msgstr ""
 
 #: app/controllers/MeprCouponsCtrl.php:37
-msgid "No Coupons found in Trash"
+msgid "No Coupons found"
 msgstr ""
 
 #: app/controllers/MeprCouponsCtrl.php:38
+msgid "No Coupons found in Trash"
+msgstr ""
+
+#: app/controllers/MeprCouponsCtrl.php:39
 msgid "Parent Coupon:"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:55
+#: app/controllers/MeprCouponsCtrl.php:56
 msgid "Code"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:56
-#: app/controllers/MeprCouponsCtrl.php:149
+#: app/controllers/MeprCouponsCtrl.php:57
+#: app/controllers/MeprCouponsCtrl.php:150
 #: app/gateways/MeprArtificialGateway.php:444
 msgid "Description"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:57
+#: app/controllers/MeprCouponsCtrl.php:58
 #: app/views/admin/members/new_member.php:156
 msgid "Created"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:58
+#: app/controllers/MeprCouponsCtrl.php:59
 msgid "Discount"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:59
+#: app/controllers/MeprCouponsCtrl.php:60
 msgid "Mode"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:60
+#: app/controllers/MeprCouponsCtrl.php:61
 msgid "Starts"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:61
+#: app/controllers/MeprCouponsCtrl.php:62
 #: app/views/admin/members/new_member.php:170
 msgid "Expires"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:62
+#: app/controllers/MeprCouponsCtrl.php:63
 msgid "Usage Count"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:63
+#: app/controllers/MeprCouponsCtrl.php:64
 msgid "Applies To"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:81
-#: app/controllers/MeprCouponsCtrl.php:86
+#: app/controllers/MeprCouponsCtrl.php:82
+#: app/controllers/MeprCouponsCtrl.php:87
 #: app/views/admin/coupons/form.php:23
 #: app/views/admin/coupons/form.php:94
 msgid "%"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:94
+#: app/controllers/MeprCouponsCtrl.php:95
 msgid "Immediately"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:98
-#: app/controllers/MeprCouponsCtrl.php:111
+#: app/controllers/MeprCouponsCtrl.php:99
+#: app/controllers/MeprCouponsCtrl.php:112
 #: app/views/admin/members/row.php:140
 msgid "Expired"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:107
+#: app/controllers/MeprCouponsCtrl.php:108
 #: app/controllers/MeprUsersCtrl.php:501
 #: app/controllers/MeprUsersCtrl.php:504
 #: app/helpers/MeprSubscriptionsHelper.php:75
@@ -860,36 +871,36 @@ msgstr ""
 msgid "Never"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:120
+#: app/controllers/MeprCouponsCtrl.php:121
 msgid "Unlimited"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:126
+#: app/controllers/MeprCouponsCtrl.php:127
 msgid "Trial: %1$s days for %2$s"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:129
+#: app/controllers/MeprCouponsCtrl.php:130
 msgctxt "ui"
 msgid "First Payment"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:132
+#: app/controllers/MeprCouponsCtrl.php:133
 msgctxt "ui"
 msgid "Standard"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:135
+#: app/controllers/MeprCouponsCtrl.php:136
 #: app/views/account/subscriptions.php:89
 msgctxt "ui"
 msgid "None"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:148
+#: app/controllers/MeprCouponsCtrl.php:149
 msgid "Coupon Options"
 msgstr ""
 
-#: app/controllers/MeprCouponsCtrl.php:308
-#: app/controllers/MeprRulesCtrl.php:563
+#: app/controllers/MeprCouponsCtrl.php:309
+#: app/controllers/MeprRulesCtrl.php:564
 msgid "Please select at least one Membership before saving."
 msgstr ""
 
@@ -1118,75 +1129,75 @@ msgstr ""
 msgid "Group"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:37
+#: app/controllers/MeprGroupsCtrl.php:38
 msgid "Add New Group"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:38
+#: app/controllers/MeprGroupsCtrl.php:39
 msgid "Edit Group"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:39
+#: app/controllers/MeprGroupsCtrl.php:40
 msgid "New Group"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:40
+#: app/controllers/MeprGroupsCtrl.php:41
 msgid "View Group"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:41
+#: app/controllers/MeprGroupsCtrl.php:42
 msgid "Search Group"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:42
+#: app/controllers/MeprGroupsCtrl.php:43
 msgid "No Group found"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:43
+#: app/controllers/MeprGroupsCtrl.php:44
 msgid "No Group found in Trash"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:44
+#: app/controllers/MeprGroupsCtrl.php:45
 msgid "Parent Group:"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:117
-#: app/controllers/MeprProductsCtrl.php:69
-#: app/controllers/MeprRulesCtrl.php:98
+#: app/controllers/MeprGroupsCtrl.php:118
+#: app/controllers/MeprProductsCtrl.php:70
+#: app/controllers/MeprRulesCtrl.php:99
 msgid "ID"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:118
+#: app/controllers/MeprGroupsCtrl.php:119
 msgid "Group Title"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:119
+#: app/controllers/MeprGroupsCtrl.php:120
 #: app/controllers/MeprOptionsCtrl.php:142
-#: app/controllers/MeprProductsCtrl.php:72
+#: app/controllers/MeprProductsCtrl.php:73
 #: app/views/admin/options/custom_fields_row.php:12
 #: app/views/admin/products/advanced.php:68
 #: app/views/admin/products/advanced.php:83
 msgid "URL"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:120
+#: app/controllers/MeprGroupsCtrl.php:121
 msgid "Memberships in Group"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:171
+#: app/controllers/MeprGroupsCtrl.php:172
 msgid "Group Options"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:172
-#: app/controllers/MeprProductsCtrl.php:122
+#: app/controllers/MeprGroupsCtrl.php:173
+#: app/controllers/MeprProductsCtrl.php:123
 msgid "Custom Page Template"
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:318
+#: app/controllers/MeprGroupsCtrl.php:319
 msgid "Unknown error has occured."
 msgstr ""
 
-#: app/controllers/MeprGroupsCtrl.php:334
+#: app/controllers/MeprGroupsCtrl.php:335
 msgid "This membership already belongs to another group. If you assign it to this group, it will be removed from the other."
 msgstr ""
 
@@ -1195,8 +1206,8 @@ msgid "Logout"
 msgstr ""
 
 #: app/controllers/MeprLoginCtrl.php:37
-#: app/controllers/MeprRulesCtrl.php:386
-#: app/controllers/MeprRulesCtrl.php:726
+#: app/controllers/MeprRulesCtrl.php:387
+#: app/controllers/MeprRulesCtrl.php:727
 #: app/helpers/MeprOnboardingHelper.php:372
 #: app/lib/activation.php:16
 #: app/lib/MeprAccountLinksWidget.php:64
@@ -1416,7 +1427,7 @@ msgid "Price must be greater than zero for the Billing."
 msgstr ""
 
 #: app/controllers/MeprOnboardingCtrl.php:775
-#: app/lib/MeprUsage.php:205
+#: app/lib/MeprUsage.php:204
 #: app/models/MeprProduct.php:75
 #: app/views/admin/products/price_box.php:69
 msgid "Sign Up"
@@ -1783,82 +1794,82 @@ msgstr ""
 msgid "Membership"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:44
+#: app/controllers/MeprProductsCtrl.php:45
 msgid "Add New Membership"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:45
+#: app/controllers/MeprProductsCtrl.php:46
 msgid "Edit Membership"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:46
+#: app/controllers/MeprProductsCtrl.php:47
 msgid "New Membership"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:47
+#: app/controllers/MeprProductsCtrl.php:48
 msgid "View Membership"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:48
+#: app/controllers/MeprProductsCtrl.php:49
 msgid "Search Membership"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:49
+#: app/controllers/MeprProductsCtrl.php:50
 msgid "No Membership found"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:50
+#: app/controllers/MeprProductsCtrl.php:51
 msgid "No Membership found in Trash"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:51
+#: app/controllers/MeprProductsCtrl.php:52
 msgid "Parent Membership:"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:70
+#: app/controllers/MeprProductsCtrl.php:71
 msgid "Membership Title"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:71
+#: app/controllers/MeprProductsCtrl.php:72
 #: app/controllers/MeprSubscriptionsCtrl.php:525
 msgid "Terms"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:120
+#: app/controllers/MeprProductsCtrl.php:121
 msgid "Membership Terms"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:124
+#: app/controllers/MeprProductsCtrl.php:125
 msgid "Membership Options"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:200
+#: app/controllers/MeprProductsCtrl.php:201
 #: app/helpers/MeprOnboardingHelper.php:376
 #: app/lib/activation.php:8
 #: app/models/MeprOptions.php:667
 msgid "Your subscription has been set up successfully."
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:483
-#: app/controllers/MeprProductsCtrl.php:551
+#: app/controllers/MeprProductsCtrl.php:484
+#: app/controllers/MeprProductsCtrl.php:552
 msgid "There was a problem with our payment system. Please come back soon and try again."
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:514
+#: app/controllers/MeprProductsCtrl.php:515
 msgid "%1$sYou have already subscribed to this item. %2$sClick here to access it%3$s"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:590
+#: app/controllers/MeprProductsCtrl.php:591
 #: app/helpers/MeprProductsHelper.php:38
 #: app/helpers/MeprProductsHelper.php:49
 msgid "Remove Benefit"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:748
+#: app/controllers/MeprProductsCtrl.php:749
 msgid "An unknown error has occurred"
 msgstr ""
 
-#: app/controllers/MeprProductsCtrl.php:754
+#: app/controllers/MeprProductsCtrl.php:755
 msgid "Please save membership first to see the Price here."
 msgstr ""
 
@@ -1922,48 +1933,48 @@ msgstr ""
 msgid "Reminder"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:156
+#: app/controllers/MeprRemindersCtrl.php:157
 msgid "Add New Reminder"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:157
+#: app/controllers/MeprRemindersCtrl.php:158
 msgid "Edit Reminder"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:158
+#: app/controllers/MeprRemindersCtrl.php:159
 msgid "New Reminder"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:159
+#: app/controllers/MeprRemindersCtrl.php:160
 msgid "View Reminder"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:160
+#: app/controllers/MeprRemindersCtrl.php:161
 msgid "Search Reminders"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:161
+#: app/controllers/MeprRemindersCtrl.php:162
 msgid "No Reminders found"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:162
+#: app/controllers/MeprRemindersCtrl.php:163
 msgid "No Reminders found in Trash"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:163
+#: app/controllers/MeprRemindersCtrl.php:164
 msgid "Parent Reminder:"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:179
+#: app/controllers/MeprRemindersCtrl.php:180
 msgid "Trigger"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:181
+#: app/controllers/MeprRemindersCtrl.php:182
 #: app/views/admin/options/form.php:22
 msgid "Emails"
 msgstr ""
 
-#: app/controllers/MeprRemindersCtrl.php:277
+#: app/controllers/MeprRemindersCtrl.php:278
 msgid "MemberPress Reminders Worker"
 msgstr ""
 
@@ -2049,98 +2060,98 @@ msgstr ""
 msgid "Rule"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:62
+#: app/controllers/MeprRulesCtrl.php:63
 msgid "Add New Rule"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:63
+#: app/controllers/MeprRulesCtrl.php:64
 msgid "Edit Rule"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:64
+#: app/controllers/MeprRulesCtrl.php:65
 msgid "New Rule"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:65
+#: app/controllers/MeprRulesCtrl.php:66
 #: js/blocks/protected-content/index.js:68
 #: js/build/blocks.js:1
 msgid "View Rule"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:66
+#: app/controllers/MeprRulesCtrl.php:67
 msgid "Search Rules"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:67
+#: app/controllers/MeprRulesCtrl.php:68
 msgid "No Rules found"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:68
+#: app/controllers/MeprRulesCtrl.php:69
 msgid "No Rules found in Trash"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:69
+#: app/controllers/MeprRulesCtrl.php:70
 msgid "Parent Rule:"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:88
+#: app/controllers/MeprRulesCtrl.php:89
 msgid "All Content: "
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:99
+#: app/controllers/MeprRulesCtrl.php:100
 #: js/blocks/subscriptions/edit.js:24
 #: js/build/blocks.js:1
 msgid "Title"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:100
+#: app/controllers/MeprRulesCtrl.php:101
 msgid "Type"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:101
+#: app/controllers/MeprRulesCtrl.php:102
 msgid "Content"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:103
+#: app/controllers/MeprRulesCtrl.php:104
 msgid "Drip time"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:104
+#: app/controllers/MeprRulesCtrl.php:105
 msgid "Expiration time"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:134
+#: app/controllers/MeprRulesCtrl.php:135
 #: app/helpers/MeprRulesHelper.php:189
 msgid "Except"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:142
-#: app/controllers/MeprRulesCtrl.php:154
+#: app/controllers/MeprRulesCtrl.php:143
+#: app/controllers/MeprRulesCtrl.php:155
 msgid "%s %s after %s"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:148
-#: app/controllers/MeprRulesCtrl.php:160
+#: app/controllers/MeprRulesCtrl.php:149
+#: app/controllers/MeprRulesCtrl.php:161
 msgid "--"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:403
+#: app/controllers/MeprRulesCtrl.php:404
 msgid "Content & Access"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:404
+#: app/controllers/MeprRulesCtrl.php:405
 msgid "Drip / Expiration"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:405
+#: app/controllers/MeprRulesCtrl.php:406
 #: app/views/admin/options/form.php:130
 #: js/blocks/protected-content/index.js:91
 #: js/build/blocks.js:1
 msgid "Unauthorized Access"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:511
-#: app/controllers/MeprRulesCtrl.php:525
+#: app/controllers/MeprRulesCtrl.php:512
+#: app/controllers/MeprRulesCtrl.php:526
 msgid "Error"
 msgstr ""
 
@@ -5762,7 +5773,7 @@ msgctxt "ui"
 msgid "Checked"
 msgstr ""
 
-#: app/lib/MeprUtils.php:2476
+#: app/lib/MeprUtils.php:2477
 msgid "NEW"
 msgstr ""
 
@@ -7537,12 +7548,6 @@ msgstr ""
 
 #: app/views/admin/groups/form.php:133
 msgid "Shortcode which can be used on any other WordPress page, post or custom post type."
-msgstr ""
-
-#: app/views/admin/members/list.php:3
-#: app/views/admin/subscriptions/list.php:7
-#: app/views/admin/transactions/list.php:10
-msgid "Add New"
 msgstr ""
 
 #: app/views/admin/members/new_member.php:4

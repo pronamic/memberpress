@@ -345,7 +345,7 @@
               <label for="<?php echo $mepr_options->tos_title_str; ?>"><?php _e('Terms of Service Checkbox Title:', 'memberpress'); ?></label>
             </div>
             <div class="mp-col-4">
-              <input type="text" id="<?php echo $mepr_options->tos_title_str; ?>" name="<?php echo $mepr_options->tos_title_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->tos_title); ?>" />
+              <input type="text" id="<?php echo $mepr_options->tos_title_str; ?>" name="<?php echo $mepr_options->tos_title_str; ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->tos_title)); ?>" />
             </div>
           </div>
         </div>
@@ -380,7 +380,7 @@
                                            __('This will appear next to the Privacy Policy checkbox on membership registration forms. The text between % characters will become the link text to your Privacy Policy page.', 'memberpress') ); ?>
             </div>
             <div class="mp-col-4">
-              <input type="text" id="<?php echo $mepr_options->privacy_policy_title_str; ?>" name="<?php echo $mepr_options->privacy_policy_title_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->privacy_policy_title); ?>" />
+              <input type="text" id="<?php echo $mepr_options->privacy_policy_title_str; ?>" name="<?php echo $mepr_options->privacy_policy_title_str; ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->privacy_policy_title)); ?>" />
             </div>
           </div>
         </div>
