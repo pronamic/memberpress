@@ -291,6 +291,7 @@
         title="<?php _ex( 'Loading icon', 'ui', 'memberpress' ); ?>" width="100" height="10" />
       </span>
       <span class="cc-error"><?php _ex( 'Invalid Coupon', 'ui', 'memberpress' ); ?></span>
+      <span class="cc-success"><?php _ex( 'Coupon applied successfully', 'ui', 'memberpress' ); ?></span>
       </div>
       <input type="text" id="mepr_coupon_code<?php echo $unique_suffix; ?>" class="mepr-form-input mepr-coupon-code"
       placeholder="<?php _ex( 'Coupon Code:', 'ui', 'memberpress' ); ?>"

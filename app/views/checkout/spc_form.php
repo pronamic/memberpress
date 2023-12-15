@@ -140,6 +140,7 @@
               <img src="<?php echo includes_url('js/thickbox/loadingAnimation.gif'); ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" title="<?php _ex('Loading icon', 'ui', 'memberpress'); ?>" width="100" height="10" />
             </span>
             <span class="cc-error"><?php _ex('Invalid Coupon', 'ui', 'memberpress'); ?></span>
+            <span class="cc-success"><?php _ex( 'Coupon applied successfully', 'ui', 'memberpress' ); ?></span>
           </div>
           <input type="text" id="mepr_coupon_code<?php echo $unique_suffix; ?>" class="mepr-form-input mepr-coupon-code" name="mepr_coupon_code" value="<?php echo (isset($mepr_coupon_code))?esc_attr(stripslashes($mepr_coupon_code)):''; ?>" data-prdid="<?php echo $product->ID; ?>" />
         </div>

@@ -240,6 +240,10 @@ class MeprDrmCtrl extends MeprBaseCtrl {
         return;
       }
 
+      if( true !== MeprHooks::apply_filters('mepr_do_app_fee', true) ) {
+        wp_send_json_error( __( 'Not allowed.', 'memberpress' ) );
+      }
+
       $drm_app_fee = new MeprDrmAppFee();
       $drm_app_fee->do_app_fee();
 

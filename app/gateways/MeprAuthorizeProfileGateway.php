@@ -461,6 +461,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
         <br>
         <input type="submit" class="mepr-submit"
                value="<?php echo esc_attr( _x( 'Submit', 'ui', 'memberpress' ) ); ?>"/>
+        <img src="<?php echo admin_url('images/loading.gif'); ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
       </div>
     </form>
     <?php

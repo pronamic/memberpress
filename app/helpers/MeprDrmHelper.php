@@ -36,6 +36,15 @@ class MeprDrmHelper {
     return ! empty( $key );
   }
 
+  public static function get_key() {
+    $mepr_options = MeprOptions::fetch();
+    $key          = '';
+    if ( isset( $mepr_options->mothership_license ) ) {
+      $key = $mepr_options->mothership_license;
+    }
+    return $key;
+  }
+
   public static function is_aov() {
     $aov = get_option( 'mepr_activation_override' );
 
@@ -125,7 +134,8 @@ class MeprDrmHelper {
         $out = self::drm_info_no_license( $drm_status, $purpose );
         break;
       case self::INVALID_LICENSE_EVENT:
-        $out = self::drm_info_invalid_license( $drm_status, $purpose );
+        $drm_info = self::drm_info_invalid_license( $drm_status, $purpose );
+        $out = MeprHooks::apply_filters( 'mepr_drm_invalid_license_info', $drm_info, $drm_status );
         break;
       default:
     }
@@ -201,7 +211,7 @@ class MeprDrmHelper {
       );
     }
 
-    return self::$drm_links;
+    return MeprHooks::apply_filters( 'mepr_drm_links', self::$drm_links );
   }
 
   public static function get_drm_link( $drm_status, $purpose, $type ) {

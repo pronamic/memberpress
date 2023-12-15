@@ -11,6 +11,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
     add_action('admin_print_footer_scripts', 'MeprOptionsCtrl::enqueue_footer_scripts');
     add_action('admin_notices', 'MeprOptionsCtrl::maybe_show_stripe_checkout_warning');
     add_action('wp_ajax_mepr_validate_stripe_payment_method_types', 'MeprOptionsCtrl::validate_stripe_payment_method_types');
+    add_action('wp_ajax_mepr_activate_stripe_payment_method', 'MeprOptionsCtrl::activate_stripe_payment_method');
   }
 
   public static function maybe_show_stripe_checkout_warning() {
@@ -165,6 +166,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
         'deactivation_error'  => __('An error occurred during deactivation: %s', 'memberpress'),
         'install_license_edition_nonce' => wp_create_nonce('mepr_install_license_edition'),
         'validate_stripe_payment_methods_nonce' => wp_create_nonce('mepr_validate_stripe_payment_method_types'),
+        'activate_stripe_payment_method_nonce' => wp_create_nonce('mepr_activate_stripe_payment_method'),
         'validate_stripe_tax_nonce' => wp_create_nonce('mepr_validate_stripe_tax'),
         'unable_to_verify_stripe_tax' => __('Unable to verify Stripe Tax status', 'memberpress')
       );
@@ -446,6 +448,10 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
     }
 
     try {
+      if(in_array('link', $payment_method_types, true) && !self::is_payment_method_active('link', $pm->id)) {
+        self::activate_payment_method('link', $pm);
+      }
+
       $pm->create_test_payment_intent($payment_method_types);
 
       wp_send_json_success();
@@ -453,5 +459,152 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
     catch(Exception $e) {
       wp_send_json_error($e->getMessage());
     }
+  }
+
+  public static function activate_stripe_payment_method() {
+    if(!MeprUtils::is_post_request()) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    if(!MeprUtils::is_logged_in_and_an_admin()) {
+      wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
+    }
+
+    if(!check_ajax_referer('mepr_activate_stripe_payment_method', false, false)) {
+      wp_send_json_error(__('Security check failed.', 'memberpress'));
+    }
+
+    $gateway_id = isset($_POST['gateway_id']) ? sanitize_text_field(wp_unslash($_POST['gateway_id'])) : '';
+    $payment_method_type = isset($_POST['payment_method_type']) ? sanitize_key(wp_unslash($_POST['payment_method_type'])) : '';
+    $supported_types = ['apple_pay', 'google_pay'];
+
+    if(empty($gateway_id) || empty($payment_method_type) || !in_array($payment_method_type, $supported_types, true)) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    $mepr_options = MeprOptions::fetch();
+    $pm = $mepr_options->payment_method($gateway_id);
+
+    if(!$pm instanceof MeprStripeGateway) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    try {
+      if($payment_method_type == 'apple_pay') {
+        $domain_association_file_name = 'apple-developer-merchantid-domain-association';
+        $well_known_dir = untrailingslashit(ABSPATH) . '/.well-known';
+        $full_path = "$well_known_dir/$domain_association_file_name";
+
+        if(!file_exists($full_path)) {
+          if(!is_dir($well_known_dir) && !@mkdir($well_known_dir, 0755) && !is_dir($well_known_dir)) {
+            throw new Exception(__('Unable to create domain association folder in domain root', 'memberpress'));
+          }
+
+          if(!@copy(MEPR_GATEWAYS_PATH . "/stripe/$domain_association_file_name", $full_path)) {
+            throw new Exception(__('Unable to copy the domain association file', 'memberpress'));
+          }
+        }
+      }
+
+      self::activate_payment_method($payment_method_type, $pm);
+
+      wp_send_json_success();
+    }
+    catch(Exception $e) {
+      wp_send_json_error($e->getMessage());
+    }
+  }
+
+  /**
+   * Is the given payment method active on the given Stripe gateway?
+   *
+   * Checks that the current site is registered as a payment method domain, and that the given payment method is active.
+   *
+   * @param string $payment_method_type The payment method type: 'apple_pay', 'google_pay' or 'link'
+   * @param string $gateway_id The ID of the Stripe payment method
+   * @return bool
+   */
+  public static function is_payment_method_active($payment_method_type, $gateway_id) {
+    $pmd = get_option("mepr_stripe_payment_method_domain_$gateway_id");
+
+    if(
+      is_array($pmd) &&
+      isset($pmd['domain_name']) && $pmd['domain_name'] == self::get_site_domain() &&
+      isset($pmd['enabled']) && $pmd['enabled'] &&
+      isset($pmd[$payment_method_type]['status']) && $pmd[$payment_method_type]['status'] == 'active'
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Activate the given payment method on the given gateway
+   *
+   * Registers the current site as a Stripe payment method domain, in both live and test mode, and ensures that the
+   * given payment method is active.
+   *
+   * @param string $payment_method_type
+   * @param MeprStripeGateway $pm
+   * @throws Exception If the payment method couldn't be activated
+   * @throws MeprHttpException
+   * @throws MeprRemoteException
+   */
+  public static function activate_payment_method($payment_method_type, MeprStripeGateway $pm) {
+    $domain = self::get_site_domain();
+
+    add_filter('mepr_stripe_is_test_mode', '__return_false');
+
+    $live = $pm->send_stripe_request('payment_method_domains', [
+      'domain_name' => $domain,
+      'enabled' => 'true'
+    ], 'post');
+
+    if($live[$payment_method_type]['status'] != 'active') {
+      $live = $pm->send_stripe_request("payment_method_domains/{$live['id']}/validate", [], 'post');
+
+      if($live[$payment_method_type]['status'] != 'active') {
+        if(isset($live[$payment_method_type]['status_details']['error_message'])) {
+          $message = $live[$payment_method_type]['status_details']['error_message'];
+        }
+        else {
+          $message = sprintf(__('Unable to activate payment method `%s`', 'memberpress'), $payment_method_type);
+        }
+
+        throw new Exception($message);
+      }
+    }
+
+    remove_filter('mepr_stripe_is_test_mode', '__return_false');
+
+    update_option("mepr_stripe_payment_method_domain_$pm->id", $live);
+
+    add_filter('mepr_stripe_is_test_mode', '__return_true');
+
+    try {
+      $test = $pm->send_stripe_request('payment_method_domains', [
+        'domain_name' => $domain,
+        'enabled' => 'true'
+      ], 'post');
+
+      if($test[$payment_method_type]['status'] != 'active') {
+        $pm->send_stripe_request("payment_method_domains/{$test['id']}/validate", [], 'post');
+      }
+    }
+    catch(Exception $e) {
+      // ignore exceptions in Test mode
+    }
+
+    remove_filter('mepr_stripe_is_test_mode', '__return_true');
+  }
+
+  /**
+   * Get the domain of the current site, to be registered as a payment method domain
+   *
+   * @return string
+   */
+  private static function get_site_domain() {
+    return isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : str_replace(array('https://', 'http://'), '', get_site_url());
   }
 } //End class

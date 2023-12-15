@@ -59,6 +59,14 @@ var mpToggleFieldValidation = function(field, valid) {
     field.prev('.mp-form-label').find('.cc-error').toggle(!valid);
   }
 
+  if(field.hasClass('mepr-coupon-code') && valid) {
+    field.prev('.mp-form-label').find('.cc-success').toggle(valid);
+    setTimeout(function() {
+      field.prev('.mp-form-label').find('.cc-success').toggle(!valid);
+      field.removeClass('valid');
+    }, 2000);
+  }
+
   if(field.hasClass('mepr-countries-dropdown')) {
     field.closest('.mepr-form').find('.mepr_mepr-address-state .cc-error').toggle(!valid);
   }

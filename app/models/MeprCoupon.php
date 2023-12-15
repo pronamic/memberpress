@@ -218,7 +218,12 @@ class MeprCoupon extends MeprCptModel {
 
   /** Applies a trial override where appropriate. $obj must be a MeprProduct or MeprSubscription. */
   public function maybe_apply_trial_override(&$obj) {
-    if($this->discount_mode=='trial-override') {
+    if($this->discount_type =='percent' && $this->discount_amount == 100) {
+      $obj->trial = false;
+      $obj->trial_days = 0;
+      $obj->trial_amount = 0;
+    }
+    else if($this->discount_mode=='trial-override') {
       $obj->trial = true;
       $obj->trial_days = $this->trial_days;
       $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount($this->trial_amount);

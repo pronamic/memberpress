@@ -2727,7 +2727,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       <span role="alert" class="mepr-stripe-checkout-errors"></span>
     <?php else: ?>
       <div class="mepr-stripe-elements">
-        <div class="mepr-stripe-card-element" data-stripe-public-key="<?php echo esc_attr($this->settings->public_key); ?>" data-payment-method-id="<?php echo esc_attr($this->settings->id); ?>" data-locale-code="<?php echo esc_attr(self::get_locale_code()); ?>" data-elements-options="<?php echo isset($elements_options) ? esc_attr(wp_json_encode($elements_options)) : ''; ?>" data-user-email="<?php echo esc_attr($user->user_email); ?>"></div>
+        <div class="mepr-stripe-card-element" data-stripe-public-key="<?php echo esc_attr($this->get_public_key()); ?>" data-payment-method-id="<?php echo esc_attr($this->settings->id); ?>" data-locale-code="<?php echo esc_attr(self::get_locale_code()); ?>" data-elements-options="<?php echo isset($elements_options) ? esc_attr(wp_json_encode($elements_options)) : ''; ?>" data-user-email="<?php echo esc_attr($user->user_email); ?>"></div>
         <div role="alert" class="mepr-stripe-card-errors"></div>
       </div>
       <?php MeprHooks::do_action('mepr-stripe-payment-form', $txn); ?>
@@ -2762,7 +2762,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $live_public_key      = trim($this->settings->api_keys['live']['public']);
     $force_ssl            = ($this->settings->force_ssl == 'on' or $this->settings->force_ssl == true);
     $debug                = ($this->settings->debug == 'on' or $this->settings->debug == true);
-    $test_mode            = ($this->settings->test_mode == 'on' or $this->settings->test_mode == true);
+    $test_mode            = $this->is_test_mode();
     $connect_status       = trim($this->settings->connect_status);
     $service_account_id   = trim($this->settings->service_account_id);
     $service_account_name = stripslashes(trim($this->settings->service_account_name));
@@ -2851,7 +2851,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
       wp_localize_script('stripe-account-create-token', 'MeprStripeAccountForm', array(
         'api_version' => self::STRIPE_API_VERSION,
-        'public_key' => $this->settings->public_key,
+        'public_key' => $this->get_public_key(),
         'currency' => strtolower($mepr_options->currency_code),
         'payment_method_types' => $this->get_update_setup_intent_payment_method_types(),
         'elements_appearance' => $this->get_elements_appearance(),
@@ -2955,14 +2955,46 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     return $payment_methods;
   }
 
-  /** Returns boolean ... whether or not we should be sending in test mode or not */
+  /**
+   * Whether we should be sending in test mode or not
+   *
+   * @return bool
+   */
   public function is_test_mode() {
-    if (defined('MEMBERPRESS_STRIPE_TESTING') && MEMBERPRESS_STRIPE_TESTING == true) {
-      $this->settings->test_mode = true;
-      return true;
+    if(defined('MEMBERPRESS_STRIPE_TESTING') && MEMBERPRESS_STRIPE_TESTING) {
+      $test_mode = true;
+    }
+    else {
+      $test_mode = isset($this->settings->test_mode) && $this->settings->test_mode;
     }
 
-    return (isset($this->settings->test_mode) && $this->settings->test_mode);
+    return apply_filters('mepr_stripe_is_test_mode', $test_mode, $this);
+  }
+
+  /**
+   * Get the Stripe publishable key
+   *
+   * @return string
+   */
+  public function get_public_key() {
+    if($this->is_test_mode()) {
+      return trim($this->settings->api_keys['test']['public']);
+    }
+
+    return trim($this->settings->api_keys['live']['public']);
+  }
+
+  /**
+   * Get the Stripe secret key
+   *
+   * @return string
+   */
+  public function get_secret_key() {
+    if($this->is_test_mode()) {
+      return trim($this->settings->api_keys['test']['secret']);
+    }
+
+    return trim($this->settings->api_keys['live']['secret']);
   }
 
   public function force_ssl() {
@@ -3085,8 +3117,18 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $body = @file_get_contents('php://input');
     $event_json = (object)json_decode($body,true);
 
+    if(!isset($event_json->id)) {
+      return;
+    }
 
-    if(!isset($event_json->id)) return;
+    if(apply_filters('mepr_stripe_webhook_livemode_detection', false) && isset($event_json->livemode) && is_bool($event_json->livemode)) {
+      if($event_json->livemode) {
+        add_filter('mepr_stripe_is_test_mode', '__return_false');
+      }
+      else {
+        add_filter('mepr_stripe_is_test_mode', '__return_true');
+      }
+    }
 
     // Use the id to pull the event directly from the API (purely a security measure)
     try {
@@ -3096,69 +3138,74 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       http_response_code(202); //Throw a 202 here so stripe doesn't send out a billion webhook broken emails
       die($e->getMessage()); // Do nothing
     }
-    //$event = $event_json;
 
-    $_REQUEST['data'] = $obj = (object)$event->data['object'];
+    try {
+      $_REQUEST['data'] = $obj = (object) $event->data['object'];
 
-    if($event->type=='charge.succeeded') {
-      // For one time payment with stripe checkout session
+      if($event->type == 'charge.succeeded') {
+        // For one time payment with stripe checkout session
+      }
+      else if($event->type == 'charge.failed') {
+        $this->record_payment_failure();
+      }
+      else if($event->type == 'charge.refunded') {
+        $this->record_refund();
+      }
+      else if($event->type == 'charge.disputed') {
+        // Not worried about this right now
+      }
+      else if($event->type == 'customer.subscription.created') {
+        //$this->record_create_subscription(); // done on page
+      }
+      else if($event->type == 'checkout.session.completed' || $event->type == 'checkout.session.async_payment_succeeded') {
+        $this->process_stripe_checkout_session_completed($obj);
+      }
+      else if($event->type == 'checkout.session.async_payment_failed') {
+        $this->process_checkout_session_async_payment_failed($obj);
+      }
+      else if($event->type == 'customer.subscription.updated') {
+        //$this->record_update_subscription(); // done on page
+      }
+      else if($event->type == 'customer.subscription.deleted') {
+        $this->record_cancel_subscription();
+      }
+      else if($event->type == 'customer.subscription.trial_will_end') {
+        // We may want to implement this feature at some point
+      }
+      else if($event->type == 'invoice.payment_succeeded') {
+        $this->handle_invoice_payment_succeeded_webhook($obj);
+      }
+      else if($event->type == 'invoice.payment_failed') {
+        $this->handle_invoice_payment_failed_webhook($obj);
+      }
+      else if($event->type == 'customer.deleted') {
+        MeprUser::delete_stripe_customer_id($this->get_meta_gateway_id(), $obj->id);
+      }
+      else if($event->type == 'product.deleted') {
+        MeprProduct::delete_stripe_product_id($this->get_meta_gateway_id(), $obj->id);
+      }
+      else if($event->type == 'payment_intent.succeeded') {
+        $this->handle_payment_intent_succeeded_webhook($obj);
+      }
+      else if($event->type == 'setup_intent.succeeded') {
+        $this->handle_setup_intent_succeeded_webhook($obj);
+      }
+      else if($event->type == 'plan.deleted') {
+        MeprProduct::delete_stripe_plan_id($this->get_meta_gateway_id(), $obj->id);
+      }
+      else if($event->type == 'coupon.deleted') {
+        MeprCoupon::delete_stripe_coupon_id($this->get_meta_gateway_id(), $obj->id);
+      }
+      else if($event->type == 'payment_intent.payment_failed') {
+        $this->handle_payment_intent_payment_failed_webhook($obj);
+      }
+      else if($event->type == 'setup_intent.setup_failed') {
+        $this->handle_setup_intent_setup_failed_webhook($obj);
+      }
     }
-    else if($event->type=='charge.failed') {
-      $this->record_payment_failure();
-    }
-    else if($event->type=='charge.refunded') {
-      $this->record_refund();
-    }
-    else if($event->type=='charge.disputed') {
-      // Not worried about this right now
-    }
-    else if($event->type=='customer.subscription.created') {
-      //$this->record_create_subscription(); // done on page
-    }
-    else if($event->type=='checkout.session.completed' || $event->type=='checkout.session.async_payment_succeeded') {
-      $this->process_stripe_checkout_session_completed($obj);
-    }
-    else if($event->type=='checkout.session.async_payment_failed') {
-      $this->process_checkout_session_async_payment_failed($obj);
-    }
-    else if($event->type=='customer.subscription.updated') {
-      //$this->record_update_subscription(); // done on page
-    }
-    else if($event->type=='customer.subscription.deleted') {
-      $this->record_cancel_subscription();
-    }
-    else if($event->type=='customer.subscription.trial_will_end') {
-      // We may want to implement this feature at some point
-    }
-    else if($event->type=='invoice.payment_succeeded') {
-      $this->handle_invoice_payment_succeeded_webhook($obj);
-    }
-    else if ($event->type=='invoice.payment_failed') {
-      $this->handle_invoice_payment_failed_webhook($obj);
-    }
-    else if($event->type=='customer.deleted') {
-      MeprUser::delete_stripe_customer_id($this->get_meta_gateway_id(), $obj->id);
-    }
-    else if($event->type=='product.deleted') {
-      MeprProduct::delete_stripe_product_id($this->get_meta_gateway_id(), $obj->id);
-    }
-    else if($event->type=='payment_intent.succeeded') {
-      $this->handle_payment_intent_succeeded_webhook($obj);
-    }
-    else if($event->type=='setup_intent.succeeded') {
-      $this->handle_setup_intent_succeeded_webhook($obj);
-    }
-    else if($event->type=='plan.deleted') {
-      MeprProduct::delete_stripe_plan_id($this->get_meta_gateway_id(), $obj->id);
-    }
-    else if($event->type=='coupon.deleted') {
-      MeprCoupon::delete_stripe_coupon_id($this->get_meta_gateway_id(), $obj->id);
-    }
-    else if($event->type=='payment_intent.payment_failed') {
-      $this->handle_payment_intent_payment_failed_webhook($obj);
-    }
-    else if($event->type=='setup_intent.setup_failed') {
-      $this->handle_setup_intent_setup_failed_webhook($obj);
+    catch(Exception $e) {
+      http_response_code(500);
+      die($e->getMessage());
     }
   }
 
@@ -3410,6 +3457,8 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
   /**
    * Generates the headers to pass to API request.
+   *
+   * @return array
    */
   public function get_headers() {
     $user_agent = $this->get_user_agent();
@@ -3417,7 +3466,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     return apply_filters(
       'mepr_stripe_request_headers', [
-        'Authorization'              => 'Basic ' . base64_encode("{$this->settings->secret_key}:"),
+        'Authorization'              => 'Basic ' . base64_encode("{$this->get_secret_key()}:"),
         'Stripe-Version'             => self::STRIPE_API_VERSION,
         'User-Agent'                 => $app_info['name'] . '/' . $app_info['version'] . ' (' . $app_info['url'] . ')',
         'X-Stripe-Client-User-Agent' => json_encode( $user_agent ),

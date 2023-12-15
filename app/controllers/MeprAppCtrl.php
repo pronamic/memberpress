@@ -947,7 +947,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
     \MP_Required\Traduttore_Registry\add_project(
       'plugin',
       'memberpress',
-      'https://translate.memberpress.com/api/translations/memberpress'
+      'https://translate.memberpress.com/wp-content/uploads/api/translations/memberpress.json'
     );
   }
 

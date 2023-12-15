@@ -99,6 +99,7 @@ class MeprOnboardingHelper {
       'memberpress-corporate' => MeprOnboardingHelper::is_addon_selectable('memberpress-corporate/main'),
       'memberpress-developer-tools' => MeprOnboardingHelper::is_addon_selectable('memberpress-developer-tools/main'),
       'easy-affiliate' => MeprOnboardingHelper::is_addon_selectable('easy-affiliate/easy-affiliate'),
+      'memberpress-coachkit' => MeprOnboardingHelper::is_addon_selectable('memberpress-coachkit/main'),
     );
   }
 
@@ -162,7 +163,7 @@ class MeprOnboardingHelper {
         'id' => $gateway->id,
         'key' => 'stripe',
         'logo_url' => MEPR_IMAGES_URL . '/stripe-logo.png',
-        'connected' => !empty($gateway->settings->public_key) && !empty($gateway->settings->secret_key),
+        'connected' => !empty($gateway->get_public_key()) && !empty($gateway->get_secret_key()),
         'account' => $gateway->service_account_name,
       ];
     }
@@ -319,6 +320,7 @@ class MeprOnboardingHelper {
       'memberpress-gifting' => esc_html__('Gifting', 'memberpress'),
       'memberpress-corporate' => esc_html__('Corporate Accounts', 'memberpress'),
       'easy-affiliate' => esc_html__('Affiliate Program', 'memberpress'),
+      'memberpress-coachkit' => esc_html__('CoachKit™', 'memberpress'),
     );
   }
 
@@ -346,6 +348,10 @@ class MeprOnboardingHelper {
   public static function get_license_type() {
     $li = get_site_transient('mepr_license_info');
     if($li) {
+      if(MeprUtils::is_elite_edition($li['product_slug'])) {
+        return 'memberpress-elite';
+      }
+
       if(MeprUtils::is_pro_edition($li['product_slug'])) {
         return 'memberpress-pro-5';
       }
@@ -438,6 +444,11 @@ class MeprOnboardingHelper {
       $addons_not_installed = array();
     }
 
+    // Check if license type is not elite and CoachKit is selected.
+    if( ! MeprUtils::is_elite_edition($license_type) && ! empty($addons_not_installed) && in_array( 'memberpress-coachkit', $addons_not_installed, true )  ){
+      return 'memberpress-elite'; // upgrade to elite required.
+    }
+
     // Check if license type is not pro or developer and Auth.net payment gateway selected.
     if( ! (MeprUtils::is_pro_edition($license_type) || $license_type == 'developer') && $payment_gateway == 'MeprAuthorizeGateway' ){
       return 'memberpress-pro-5'; // upgrade to pro required.
@@ -459,16 +470,19 @@ class MeprOnboardingHelper {
       return false;
     }
 
+
     if(  in_array($license_type,['developer','memberpress-plus','memberpress-plus-2'], true) ){
       return 'memberpress-pro-5'; // upgrade to pro required.
     }
 
     $pro_addons = self::get_mepr_edition_features( 'memberpress-pro-5', 'addons' );
     $plus_addons = self::get_mepr_edition_features( 'memberpress-plus-2', 'addons' );
+    $elite_addons = self::get_mepr_edition_features( 'memberpress-elite', 'addons' );
 
     // Time to check what kind of plan we should offer based on features selection.
     $pro_count = 0;
     $plus_count = 0;
+    $elite_count = 0;
     foreach( $addons_not_installed as $addon_slug ){
       if( in_array($addon_slug,$pro_addons,true) ){
         $pro_count++;
@@ -477,9 +491,15 @@ class MeprOnboardingHelper {
       if( in_array($addon_slug,$plus_addons,true) ){
         $plus_count++;
       }
+
+      if( in_array($addon_slug,$elite_addons,true) ){
+        $elite_count++;
+      }
     }
 
-    if($pro_count > $plus_count){
+    if( $elite_count > $pro_count ) {
+      return 'memberpress-elite'; // upgrade to elite required.
+    }else if($pro_count > $plus_count){
       return 'memberpress-pro-5'; // upgrade to pro required.
     }else{
       return 'memberpress-plus-2'; // upgrade to plus required.
@@ -499,6 +519,12 @@ class MeprOnboardingHelper {
           'url' => 'https://memberpress.com/ipob/upgrade-plus/',
           'label' => esc_html__('Upgrade to Plus','memberpress'),
           'heading' => esc_html__('To unlock selected features, upgrade to Plus.', 'memberpress')
+      ),
+      'memberpress-elite' => array(
+          'token' => esc_html__('Elite','memberpress'),
+          'url' => 'https://memberpress.com/ipob/upgrade-elite/',
+          'label' => esc_html__('Upgrade to Elite','memberpress'),
+          'heading' => esc_html__('To unlock selected features, upgrade to Elite.', 'memberpress')
       )
     );
 

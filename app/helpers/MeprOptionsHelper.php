@@ -328,7 +328,7 @@ class MeprOptionsHelper {
     $field_name = 'mepr_payment_method';
     $desc_html = '';
 
-    $desc = wpautop(esc_html(trim(stripslashes($payment_method->desc))));
+    $desc = wpautop(wp_kses_post(trim(stripslashes($payment_method->desc))));
 
     ob_start();
     ?>

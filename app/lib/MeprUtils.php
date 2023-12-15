@@ -2388,7 +2388,7 @@ class MeprUtils {
       return false;
     }
 
-    return in_array($product_slug, ['memberpress-pro', 'memberpress-pro-5', 'memberpress-elite'], true) || MeprUtils::is_oem_edition($product_slug);
+    return in_array($product_slug, ['memberpress-pro', 'memberpress-pro-5'], true) || MeprUtils::is_oem_edition($product_slug);
   }
 
   /**
@@ -2491,5 +2491,19 @@ class MeprUtils {
     }
 
     return false !== strpos( $haystack, $needle );
+  }
+
+  /**
+   * Is the given product slug an Elite edition of MemberPress?
+   *
+   * @param string $product_slug
+   * @return bool
+   */
+  public static function is_elite_edition($product_slug) {
+    if(empty($product_slug)) {
+      return false;
+    }
+
+    return in_array($product_slug, ['memberpress-elite'], true);
   }
 } // End class

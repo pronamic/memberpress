@@ -259,7 +259,8 @@ class MeprTransactionsHelper {
     $show_negative_tax_on_invoice = get_option('mepr_show_negative_tax_on_invoice');
 
     if($coupon = $txn->coupon()) {
-      $amount = MeprUtils::maybe_round_to_minimum_amount($prd->price);
+      $raw_amount = MeprUtils::maybe_round_to_minimum_amount($prd->price);
+      $amount = $raw_amount;
 
       if($show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0) {
         $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount - (float) $txn->tax_reversal_amount);
@@ -271,6 +272,9 @@ class MeprTransactionsHelper {
         }
         if(!$remove_tax && $prd->trial && $txn->amount == 0) {
           $amount = 0;
+          if( $coupon->discount_type == 'percent' && $coupon->discount_amount == 100 ) {
+            $amount = $raw_amount;
+          }
         }
         $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount);
       }
@@ -474,13 +478,22 @@ class MeprTransactionsHelper {
 
     if($coupon = $txn->coupon()) {
       $amount = MeprUtils::maybe_round_to_minimum_amount($prd->price);
+      $raw_amount = $amount;
 
       if($show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0) {
         $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount - (float) $txn->tax_reversal_amount);
       }
       else {
         $remove_tax = $calculate_taxes && $tax_inclusive && $txn->tax_rate > 0;
-        $amount = $remove_tax ? ($amount/(1+($txn->tax_rate/100))) : $amount;
+        if($remove_tax) {
+          $amount = ($amount/(1+($txn->tax_rate/100)));
+        }
+        if(!$remove_tax && $prd->trial && $txn->amount == 0) {
+          $amount = 0;
+          if( $coupon->discount_type == 'percent' && $coupon->discount_amount == 100 ) {
+            $amount = $raw_amount;
+          }
+        }
         $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount);
       }
 

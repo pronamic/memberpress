@@ -14,6 +14,8 @@
                 return true;
             }
 
+            this.$form.find('.mepr-loading-gif').show();
+
             if (this.$form.find('.mepr-payment-methods-wrapper').is(':hidden')) {
                 this.form.submit();
                 return;

@@ -482,6 +482,18 @@
   height: 32px;
 }
 
+.mepr-account-container .mepr-pro-account-terms {
+  font-size: 15px;
+}
+.mepr-account-container .mepr-pro-account-rebill {
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-style: italic;
+}
+.mepr-account-container .mepr-pro-account-table__subscription {
+  font-size: 14px;
+}
+
 #mepr-account-nav {
   background: #06429e;
   display: none;

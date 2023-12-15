@@ -230,7 +230,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
       if($txn instanceof MeprTransaction && !empty($txn->id)) {
         $mepr_options = MeprOptions::fetch();
         $hide_invoice = $mepr_options->design_thankyou_hide_invoice;
-        $invoice_message = $mepr_options->design_thankyou_invoice_message;
+        $invoice_message = do_shortcode($mepr_options->design_thankyou_invoice_message);
         $has_welcome_image = $mepr_options->design_show_thankyou_welcome_image;
         $welcome_image = esc_url(wp_get_attachment_url($mepr_options->design_thankyou_welcome_img));
 

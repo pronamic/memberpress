@@ -80,4 +80,12 @@ return array(
       'memberpress-courses', 'memberpress-downloads', 'memberpress-buddypress', 'memberpress-developer-tools', 'memberpress-gifting', 'memberpress-corporate'
     )
   ),
+  'memberpress-elite' => array(
+    'payments' => array(
+      'MeprStripeGateway', 'MeprPayPalCommerceGateway', 'MeprAuthorizeGateway', 'MeprPayPalStandardGateway'
+    ),
+    'addons' => array(
+      'memberpress-courses', 'memberpress-downloads', 'memberpress-buddypress', 'memberpress-developer-tools', 'memberpress-gifting', 'memberpress-corporate', 'memberpress-coachkit'
+    )
+  ),
 );

@@ -13,7 +13,7 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
     <?php if ( MeprStripeGateway::is_stripe_connect( $id ) || MeprStripeGateway::keys_are_set( $id ) ) : ?>
       <tr valign="top">
         <th scope="row"><label for="<?php echo $test_mode_str; ?>"><?php _e('Test Mode', 'memberpress'); ?></label></th>
-        <td><input class="mepr-stripe-testmode" data-integration="<?php echo $id; ?>" type="checkbox" name="<?php echo $test_mode_str; ?>"<?php echo checked($test_mode); ?> <?php disabled((defined('MEMBERPRESS_STRIPE_TESTING') && MEMBERPRESS_STRIPE_TESTING == true));?> /></td>
+        <td><input class="mepr-stripe-testmode" data-integration="<?php echo $id; ?>" type="checkbox" name="<?php echo $test_mode_str; ?>"<?php echo checked($test_mode); ?> <?php disabled((defined('MEMBERPRESS_STRIPE_TESTING') && MEMBERPRESS_STRIPE_TESTING));?> /></td>
       </tr>
       <?php if(count($payment_methods)) : ?>
         <tr valign="top">
@@ -50,6 +50,26 @@ if ( ! isset( $_GET['display-keys'] ) && ! isset( $_COOKIE['mepr_stripe_display_
                               </label>
                               <label for="<?php echo esc_attr(sanitize_key("$payment_methods_str-{$payment_method['key']}")); ?>"><?php echo esc_html($payment_method['name']); ?></label>
                             </div>
+                            <?php if($key == 0) : ?>
+                              <?php
+                                // These payment methods require domain verification, but aren't separate payment method types
+                                // that can be activated like the others, nor can they be deactivated.
+                                $domain_payment_methods = [
+                                  'apple_pay' => __('Apple Pay', 'memberpress'),
+                                  'google_pay' => __('Google Pay', 'memberpress'),
+                                ];
+                              ?>
+                              <?php foreach($domain_payment_methods as $domain_payment_method => $domain_payment_method_label) : ?>
+                                <?php $domain_payment_method_active = MeprOptionsCtrl::is_payment_method_active($domain_payment_method, $id); ?>
+                                <div class="mepr-stripe-payment-method">
+                                  <label class="switch">
+                                    <input type="checkbox" id="<?php echo esc_attr(sanitize_key("$payment_methods_str-$domain_payment_method")); ?>" class="mepr-stripe-domain-payment-method-checkbox" value="<?php echo esc_attr($domain_payment_method); ?>" <?php checked($domain_payment_method_active); ?> <?php disabled($domain_payment_method_active); ?>>
+                                    <span class="slider round"></span>
+                                  </label>
+                                  <label for="<?php echo esc_attr(sanitize_key("$payment_methods_str-$domain_payment_method")); ?>"><?php echo esc_html($domain_payment_method_label); ?></label>
+                                </div>
+                              <?php endforeach; ?>
+                            <?php endif; ?>
                           <?php endforeach; ?>
                         </div>
                         <div class="mepr-update-stripe-payment-methods">

@@ -167,6 +167,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
       'memberpress-gifting' => 'MemberPress Gifting',
       'memberpress-corporate' => 'MemberPress Corporate Accounts',
       'easy-affiliate' => 'Easy Affiliate',
+      'memberpress-coachkit' => 'CoachKit™',
     ];
   }
 

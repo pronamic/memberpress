@@ -1016,14 +1016,8 @@ class MeprUser extends MeprBaseModel {
   public static function validate_forgot_password($params, $errors) {
     extract($params);
 
-    if(empty($mepr_user_or_email))
+    if(empty($mepr_user_or_email)){
       $errors[] = __('You must enter a Username or Email', 'memberpress');
-    else {
-      $is_email = (is_email($mepr_user_or_email) and email_exists($mepr_user_or_email));
-      $is_username = username_exists($mepr_user_or_email);
-
-      if(!$is_email and !$is_username)
-        $errors[] = __("That Username or Email wasn't found.", 'memberpress');
     }
 
     return $errors;

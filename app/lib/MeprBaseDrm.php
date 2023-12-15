@@ -151,7 +151,9 @@ abstract class MeprBaseDrm {
   }
 
   public function admin_footer() {
-    MeprView::render( '/admin/drm/modal' );
+    $view = MeprView::get_string( '/admin/drm/modal' );
+
+    echo MeprHooks::apply_filters( 'mepr_drm_modal', $view );
   }
 
   public function admin_notices() {

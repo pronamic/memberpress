@@ -288,7 +288,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
 
         wp_send_json([
           'id' => $checkout_session->id,
-          'public_key' => $pm->settings->public_key,
+          'public_key' => $pm->get_public_key(),
         ]);
       }
 

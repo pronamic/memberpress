@@ -203,6 +203,11 @@ table.mp-table .mp-currency-cell {
   background-color: #FF6666 !important;
 }
 
+.mepr-form .mepr-coupon-code.valid {
+  border: 2px solid #61cb7f;
+  background-color: #89e8a4;
+}
+
 .validation.failed:after {
   color: red;
   content: 'Validation failed';

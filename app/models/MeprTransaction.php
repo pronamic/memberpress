@@ -1108,47 +1108,10 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
     $this->product_id = $prd->ID;
     $this->coupon_id = $cpn->ID;
-    $this->period = $prd->period;
-    $this->period_type = $prd->period_type;
-    $this->expire_type = $prd->expire_type;
-    $this->expire_unit = $prd->expire_unit;
-    $this->expire_after = $prd->expire_after;
-    $this->expire_fixed = $prd->expire_fixed;
-    $this->expires_at = $prd->expires_at;
-    $this->trial = $prd->trial;
-    $this->trial_days = $prd->trial ? $prd->trial_days : 0;
-    $this->trial_amount = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
-
-    // If trial only once is set and the member has
-    // already had a trial then get rid of it
-    if($prd->trial_once && $prd->trial_is_expired()) {
-      $this->trial = false;
-      $this->trial_days = 0;
-      $this->trial_amount = 0.00;
-      $this->trial_tax_amount = 0.00;
-      $this->trial_total = 0.00;
-      $this->trial_tax_reversal_amount = 0.00;
-    }
 
     if($set_subtotal) {
-      $this->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($prd->adjusted_price()));
-    }
-    else {
-      $this->price = MeprUtils::maybe_round_to_minimum_amount($prd->adjusted_price());
-    }
-
-    // This will only happen with a real coupon
-    if($cpn instanceof MeprCoupon) {
-      $cpn->maybe_apply_trial_override($this);
-
-      // We can't do this above because we don't want to
-      // screw up the price before applying the trial override
-      if($set_subtotal) {
-        $this->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($prd->adjusted_price($cpn->post_title)));
-      }
-      else {
-        $this->price = MeprUtils::maybe_round_to_minimum_amount($prd->adjusted_price($cpn->post_title));
-      }
+      $coupon_code = $cpn instanceof MeprCoupon ? $cpn->post_title : null;
+      $this->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($prd->adjusted_price($coupon_code)));
     }
 
     MeprHooks::do_action('mepr_transaction_applied_product_vars', $this);

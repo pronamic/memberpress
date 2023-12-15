@@ -258,8 +258,11 @@ class MeprRule extends MeprCptModel {
       $contents[$type] = self::get_tax_array($matches[1]);
       return $contents[$type];
     }
+    elseif($type == 'partial' || $type == 'custom') {
+      $contents[$type] = false;
+    }
 
-    return MeprHooks::apply_filters('mepr-rule-contents-array', $contents[$type], $type);
+    return MeprHooks::apply_filters('mepr-rule-contents-array', $contents, $type);
   }
 
   public static function search_content($type, $search = '') {

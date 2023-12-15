@@ -4,6 +4,8 @@ if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');
 class MeprReminderEmailException extends Exception { }
 
 abstract class MeprBaseReminderEmail extends MeprBaseEmail {
+  public $reminder;
+
   // Override the constructor to setup reminders and then
   // call the parent constructor to get everything else setup
   public function __construct($args=array()) {

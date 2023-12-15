@@ -43,6 +43,22 @@ $addons_selectable = MeprOnboardingHelper::features_addons_selectable_list();
   </div>
   <div class="mepr-wizard-feature">
     <div>
+      <h3><?php esc_html_e('CoachKit™', 'memberpress'); ?></h3>
+      <p><?php esc_html_e('Seamlessly integrates with your existing Members, Memberships and Courses to provide a dynamic platform to sell an Unlimited number of coaching programs. Available with MemberPress Elite.', 'memberpress'); ?></p>
+    </div>
+    <div class="mepr-wizard-feature-right">
+    <?php if($addons_selectable['memberpress-coachkit']): ?>
+      <input type="checkbox" class="mepr-wizard-feature-input" value="memberpress-coachkit" <?php checked(in_array('memberpress-coachkit', $features, true)); ?>>
+      <img class="mepr-wizard-feature-checked" src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/checkbox-checked.svg'); ?>" alt="">
+      <img class="mepr-wizard-feature-unchecked" src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/checkbox-unchecked.svg'); ?>" alt="">
+    <?php else: ?>
+      <input type="hidden" class="mepr-wizard-feature-input-active" value="memberpress-coachkit">
+      <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/checkbox-disabled.svg'); ?>" alt="">
+    <?php endif; ?>
+    </div>
+  </div>
+  <div class="mepr-wizard-feature">
+    <div>
       <h3><?php esc_html_e('Digital Downloads', 'memberpress'); ?></h3>
       <p><?php esc_html_e('Add value to your memberships by giving users access to downloadable files like white papers, guides, checklists, and videos – the sky’s the limit.', 'memberpress'); ?></p>
     </div>
