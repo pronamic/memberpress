@@ -256,48 +256,12 @@ class MeprAddonsCtrl extends MeprBaseCtrl {
     return '';
   }
 
-  public static function analytics() {
-    $plugin = array(
-      'active' => function_exists('MonsterInsights'),
-      'installed' => is_dir(WP_PLUGIN_DIR . '/google-analytics-for-wordpress'),
-      'url' => 'https://downloads.wordpress.org/plugin/google-analytics-for-wordpress.latest-stable.zip',
-      'slug' => 'google-analytics-for-wordpress/googleanalytics.php',
-      'activate_button_text' => __('Activate MonsterInsights', 'memberpress'),
-      'next_step_button_html' => sprintf(
-        '<a href="%s" class="button button-primary button-hero">%s</a>',
-        esc_url(admin_url('admin.php?page=monsterinsights-onboarding')),
-        esc_html__('Run Setup Wizard', 'memberpress')
-      )
-    );
-
-    $step = $plugin['active'] ? (function_exists('monsterinsights_get_ua') && monsterinsights_get_ua() ? 3 : 2) : 1;
-
-    MeprView::render('/admin/addons/analytics', get_defined_vars());
-  }
-
   public function monsterinsights_shareasale_id($id) {
     if(get_option('memberpress_installed_monsterinsights')) {
       $id = '409876';
     }
 
     return $id;
-  }
-
-  public static function smtp() {
-    $plugin = array(
-      'active' => function_exists('wp_mail_smtp'),
-      'installed' => is_dir(WP_PLUGIN_DIR . '/wp-mail-smtp'),
-      'url' => 'https://downloads.wordpress.org/plugin/wp-mail-smtp.latest-stable.zip',
-      'slug' => 'wp-mail-smtp/wp_mail_smtp.php',
-      'activate_button_text' => __('Activate WP Mail SMTP', 'memberpress'),
-      'next_step_button_html' => sprintf(
-        '<a href="%s" class="button button-primary button-hero">%s</a>',
-        esc_url(admin_url('admin.php?page=wp-mail-smtp')),
-        esc_html__('Start Setup', 'memberpress')
-      )
-    );
-
-    MeprView::render('/admin/addons/smtp', get_defined_vars());
   }
 
   public function smtp_affiliate_link($link) {

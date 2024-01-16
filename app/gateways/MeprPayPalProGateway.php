@@ -5,6 +5,8 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway {
   // This is stored with the user meta & the subscription meta
   public static $paypal_token_str = '_mepr_paypal_pro_token';
 
+  public $key;
+
   /** Used in the view to identify the gateway */
   public function __construct() {
     $this->name = __('PayPal Payments Pro', 'memberpress');

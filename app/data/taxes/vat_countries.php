@@ -9,7 +9,7 @@ return MeprHooks::apply_filters('mepr-vat-countries', array(
   'CZ' => array( 'name' => __('Czech Republic', 'memberpress'), 'rate' => 21, 'reduced_rate' => 10,   'fmt' => '(CZ)?[0-9]{8,10}' ),
   'DE' => array( 'name' => __('Germany', 'memberpress'),        'rate' => 19, 'reduced_rate' => 7,    'fmt' => '(DE)?[0-9]{9}' ),
   'DK' => array( 'name' => __('Denmark', 'memberpress'),        'rate' => 25, 'reduced_rate' => 0,    'fmt' => '(DK)?[0-9]{8}' ),
-  'EE' => array( 'name' => __('Estonia', 'memberpress'),        'rate' => 20, 'reduced_rate' => 9,    'fmt' => '(EE)?[0-9]{9}' ),
+  'EE' => array( 'name' => __('Estonia', 'memberpress'),        'rate' => 22, 'reduced_rate' => 9,    'fmt' => '(EE)?[0-9]{9}' ),
   'GR' => array( 'name' => __('Greece', 'memberpress'),         'rate' => 24, 'reduced_rate' => 6,    'fmt' => '(EL|GR)?[0-9]{9}' ),
   'ES' => array( 'name' => __('Spain', 'memberpress'),          'rate' => 21, 'reduced_rate' => 4,    'fmt' => '(ES)?[0-9A-Z][0-9]{7}[0-9A-Z]' ),
   'FI' => array( 'name' => __('Finland', 'memberpress'),        'rate' => 24, 'reduced_rate' => 10,   'fmt' => '(FI)?[0-9]{8}' ),

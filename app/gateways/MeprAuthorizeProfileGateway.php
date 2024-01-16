@@ -8,8 +8,18 @@ require_once( MEPR_GATEWAYS_PATH . '/authorizenet/client.php' );
 class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
   public static $order_invoice_str = '_mepr_authnet_order_invoice';
 
+  public $key;
+
   /** @var MeprArtificialAuthorizeNetProfileHttpClient */
   protected $client = null;
+
+  /**
+   * Mainly used in order bumps , so we only do 1$ validating transaction on the first bump
+   * In the following up bumps we know this card is good or not already so we don't need validation
+   *
+   * @var boolean
+   */
+  protected $payment_validated;
 
   /** Used in the view to identify the gateway */
   public function __construct() {
@@ -301,7 +311,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
 
     if ( $is_new_user || empty($dataDescriptor) || empty($dataValue) ) {
       // wait some time for the customer to occupy on authorizenet server
-      sleep( 9 );
+      sleep( 14 );
     }
 
     if ( $txn->is_one_time_payment() ) {
@@ -339,7 +349,20 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
         $this->new_sub( $sub, true );
       }
 
-      $subscr_id = $client->createSubscriptionFromCustomer( $authorizenet_customer, $txn, $sub, $dataDescriptor, $dataValue );
+      // Charge a 1 dollar to validate payment source
+      if ( apply_filters( 'mepr_authorize_profile_validation_txn_enabled', false ) && $this->payment_validated !== true ) {
+          $validationTxn = clone $txn;
+          $validationTxn->set_subtotal( 1 );
+          $validationTxn->trans_num = $client->chargeCustomer( $authorizenet_customer, $validationTxn, false );
+      }
+
+      $subscr_id = $client->createSubscriptionFromCustomer( $authorizenet_customer, $txn, $sub, $dataDescriptor,
+        $dataValue );
+
+      if ( isset( $validationTxn ) ) {
+        $client->voidTransaction( $validationTxn );
+        $this->payment_validated = true;
+      }
 
       if ( $subscr_id ) {
         $sub->subscr_id = $subscr_id;

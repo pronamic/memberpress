@@ -73,4 +73,8 @@ jQuery(function($) {
       mepr_score_it($(e.target));
     }
   });
+
+  $(document).on('change', selectors, function(e) {
+    mepr_score_it($(e.target));
+  });
 });

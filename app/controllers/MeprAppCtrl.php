@@ -1169,24 +1169,6 @@ class MeprAppCtrl extends MeprBaseCtrl {
       add_submenu_page('memberpress', __('MemberPress Courses', 'memberpress'), $menu_title, $capability, 'memberpress-courses', 'MeprCoursesCtrl::route');
     }
 
-    if(!get_option('mepr_disable_smtp_menu_item')) {
-      if(function_exists('wp_mail_smtp')) {
-        $submenu['memberpress'][998] = array(__('SMTP', 'memberpress'), $capability, admin_url('admin.php?page=wp-mail-smtp'));
-      }
-      else {
-        add_submenu_page('memberpress', __('SMTP', 'memberpress'), __('SMTP', 'memberpress'), $capability, 'memberpress-smtp', 'MeprAddonsCtrl::smtp');
-      }
-    }
-
-    if(!get_option('mepr_disable_analytics_menu_item')) {
-      if(class_exists('MonsterInsights_eCommerce')) {
-        $submenu['memberpress'][999] = array(__('Analytics', 'memberpress'), $capability, admin_url('admin.php?page=monsterinsights_reports#/ecommerce'));
-      }
-      else {
-        add_submenu_page('memberpress', __('Analytics', 'memberpress'), __('Analytics', 'memberpress'), $capability, 'memberpress-analytics', 'MeprAddonsCtrl::analytics');
-      }
-    }
-
     add_submenu_page('', __('Support', 'memberpress'), __('Support', 'memberpress'), $capability, 'memberpress-support', 'MeprAppCtrl::render_admin_support');
 
     MeprHooks::do_action('mepr_menu');

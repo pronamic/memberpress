@@ -628,7 +628,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     if ( 'checkout' === $template ) {
       return isset( $options->$attribute_name ) &&
         filter_var( $options->$attribute_name, FILTER_VALIDATE_BOOLEAN ) &&
-        ( isset( $post ) && is_a( $post, 'WP_Post' ) && $post->post_type == MeprProduct::$cpt );
+        ( isset( $post ) && is_a( $post, 'WP_Post' ) && is_singular( MeprProduct::$cpt ) );
     }
 
     if ( 'courses' === $template && is_array($courses_options) ) {

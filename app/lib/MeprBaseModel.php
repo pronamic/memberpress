@@ -1,6 +1,7 @@
 <?php
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
+#[AllowDynamicProperties]
 abstract class MeprBaseModel {
   protected $rec, $attrs, $defaults;
 

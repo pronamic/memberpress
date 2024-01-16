@@ -10,82 +10,14 @@ class MeprGoogleCaptchaIntegration {
       return;
     }
 
-    add_filter('gglcptch_add_custom_form', array($this, 'add_options'));
     add_filter('mepr-validate-signup', array($this, 'remove_authenticate_action'));
     add_filter('mepr-validate-login', array($this, 'remove_authenticate_action'));
     add_filter('mepr-validate-forgot-password', array($this, 'remove_allow_password_reset_action'));
     add_filter('mepr-validate-reset-password', array($this, 'remove_authenticate_action'));
-
-    if(gglcptch_is_recaptcha_required('memberpress_checkout')) {
-      add_action('mepr-checkout-before-submit', array($this, 'add_recaptcha'));
-      if(!function_exists('gglcptch_memberpress_checkout_check')) {
-        add_filter('mepr-validate-signup', array($this, 'verify_recaptcha_checkout'));
-      }
-    }
-
-    if(gglcptch_is_recaptcha_required('memberpress_login')) {
-      add_action('mepr-login-form-before-submit', array($this, 'add_recaptcha'));
-      if(!function_exists('gglcptch_memberpress_login_check')) {
-        add_filter('mepr-validate-login', array($this, 'verify_recaptcha_login'));
-      }
-    }
-
-    if(gglcptch_is_recaptcha_required('memberpress_forgot_password')) {
-      add_action('mepr-forgot-password-form', array($this, 'add_recaptcha'));
-      if(!function_exists('gglcptch_memberpress_forgot_password_check')) {
-        add_filter('mepr-validate-forgot-password', array($this, 'verify_recaptcha_forgot_password'));
-      }
-    }
-  }
-
-  public function add_options($forms) {
-    $forms['memberpress_checkout'] = array('form_name' => __('MemberPress checkout form', 'memberpress'));
-    $forms['memberpress_login'] = array('form_name' => __('MemberPress login form', 'memberpress'));
-    $forms['memberpress_forgot_password'] = array('form_name' => __('MemberPress forgot password form', 'memberpress'));
-
-    return $forms;
-  }
-
-  public function add_recaptcha() {
-    ?>
-    <div class="mp-form-row mepr-google-captcha">
-      <?php echo do_shortcode('[bws_google_captcha]'); ?>
-    </div>
-    <?php
-  }
-
-  public function verify_recaptcha_checkout($errors) {
-    $is_valid = apply_filters('gglcptch_verify_recaptcha', true, 'bool', 'memberpress_checkout');
-
-    if(!$is_valid) {
-      $errors[] = __('Captcha verification failed', 'memberpress');
-    }
-
-    return $errors;
-  }
-
-  public function verify_recaptcha_login($errors) {
-    $is_valid = apply_filters('gglcptch_verify_recaptcha', true, 'bool', 'memberpress_login');
-
-    if(!$is_valid) {
-      $errors[] = __('Captcha verification failed', 'memberpress');
-    }
-
-    return $errors;
-  }
-
-  public function verify_recaptcha_forgot_password($errors) {
-    $is_valid = apply_filters('gglcptch_verify_recaptcha', true, 'bool', 'memberpress_forgot_password');
-
-    if(!$is_valid) {
-      $errors[] = __('Captcha verification failed', 'memberpress');
-    }
-
-    return $errors;
+    add_filter('gglcptch_is_recaptcha_required', array($this, 'disable_recaptcha_pro_checks'), 10, 2);
   }
 
   public function remove_authenticate_action($errors) {
-    // We need to remove this action or the reCAPTCHA is checked twice
     remove_action('authenticate', 'gglcptch_login_check', 21);
 
     return $errors;
@@ -96,6 +28,14 @@ class MeprGoogleCaptchaIntegration {
     remove_action('allow_password_reset', 'gglcptch_lostpassword_check');
 
     return $errors;
+  }
+
+  public function disable_recaptcha_pro_checks($result, $form_slug) {
+    if(in_array($form_slug, array('memberpress_login', 'memberpress_forgot_password', 'memberpress_checkout'), true)) {
+      $result = false;
+    }
+
+    return $result;
   }
 }
 

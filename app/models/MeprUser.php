@@ -1560,7 +1560,7 @@ class MeprUser extends MeprBaseModel {
   }
 
   public function formatted_email() {
-    return $this->full_name() . " <{$this->user_email}>";
+    return str_replace(',', '', $this->full_name()) . " <{$this->user_email}>";
   }
 
   public static function manually_place_account_form($post) {

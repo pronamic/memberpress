@@ -1143,6 +1143,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
             if(!$order->is_complete() && !$order->is_processing()) {
               $order->update_meta('processing', true);
 
+              $this->record_cc_vars($sub, $payment_method);
               $this->record_create_sub($sub);
 
               if($sub->trial && $sub->trial_days > 0) {
@@ -1203,6 +1204,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         }
       }
 
+      $this->record_cc_vars($sub, $payment_method);
       $this->record_create_sub($sub);
 
       if($payment_method && isset($customer->invoice_settings) && is_array($customer->invoice_settings)) {
@@ -1698,6 +1700,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
                 $sub->subscr_id = $checkout_session->subscription['id'];
               }
 
+              $this->record_cc_vars($sub, $payment_method);
               $this->record_create_sub($sub);
 
               if($sub->trial && $sub->trial_days > 0) {
@@ -1761,6 +1764,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
               $sub->subscr_id = $checkout_session->subscription['id'];
             }
 
+            $this->record_cc_vars($sub, $payment_method);
             $this->record_create_sub($sub);
 
             if(isset($checkout_session->subscription['latest_invoice']['charge'])) {
@@ -4805,5 +4809,19 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     ];
 
     $this->send_stripe_request('payment_intents', $args);
+  }
+
+  /**
+   * Records CC Variables.
+   *
+   * @param object $sub
+   * @param mixed $payment_method
+   */
+  private function record_cc_vars($sub, $payment_method) {
+     if( $sub instanceof MeprSubscription && isset($payment_method) && is_object($payment_method) && isset($payment_method->card) && is_array($payment_method->card)) {
+      $sub->cc_last4 = $payment_method->card['last4'];
+      $sub->cc_exp_month = $payment_method->card['exp_month'];
+      $sub->cc_exp_year = $payment_method->card['exp_year'];
+    }
   }
 }

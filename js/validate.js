@@ -21,7 +21,8 @@ var mpValidateUrl = function(url) {
 };
 
 var mpValidateNotBlank = function(val) {
-  return (val && val.length > 0);
+  var str = val.trim();
+  return (str && str.length > 0);
 };
 
 var mpValidateFieldNotBlank = function($field) {
