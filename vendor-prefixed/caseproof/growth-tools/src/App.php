@@ -23,7 +23,7 @@ class App
      *
      * @var Config
      */
-    protected Config $config;
+    protected $config;
 
     /**
      * Constructor.

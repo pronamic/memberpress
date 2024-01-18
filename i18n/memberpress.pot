@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.11.23\n"
+"Project-Id-Version: MemberPress 1.11.24\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-01-15T23:52:09-07:00\n"
+"POT-Creation-Date: 2024-01-17T12:55:43-07:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: memberpress\n"
@@ -3571,8 +3571,8 @@ msgstr ""
 #: app/gateways/MeprArtificialGateway.php:402
 #: app/gateways/MeprAuthorizeGateway.php:1026
 #: app/gateways/MeprAuthorizeGateway.php:1257
-#: app/gateways/MeprAuthorizeProfileGateway.php:487
-#: app/gateways/MeprAuthorizeProfileGateway.php:643
+#: app/gateways/MeprAuthorizeProfileGateway.php:488
+#: app/gateways/MeprAuthorizeProfileGateway.php:644
 #: app/gateways/MeprPayPalProGateway.php:901
 #: app/gateways/MeprPayPalProGateway.php:1093
 #: app/gateways/MeprStripeGateway.php:2742
@@ -3655,8 +3655,8 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:723
 #: app/gateways/MeprAuthorizeGateway.php:727
-#: app/gateways/MeprAuthorizeProfileGateway.php:511
-#: app/gateways/MeprAuthorizeProfileGateway.php:515
+#: app/gateways/MeprAuthorizeProfileGateway.php:512
+#: app/gateways/MeprAuthorizeProfileGateway.php:516
 msgid "Your payment details are invalid, please check them and try again."
 msgstr ""
 
@@ -3680,7 +3680,7 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:965
 #: app/gateways/MeprAuthorizeGateway.php:1204
-#: app/gateways/MeprAuthorizeProfileGateway.php:590
+#: app/gateways/MeprAuthorizeProfileGateway.php:591
 #: app/gateways/MeprPayPalProGateway.php:829
 #: app/gateways/MeprPayPalProGateway.php:1047
 msgid "Credit Card Number"
@@ -3693,7 +3693,7 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:984
 #: app/gateways/MeprAuthorizeGateway.php:1221
-#: app/gateways/MeprAuthorizeProfileGateway.php:607
+#: app/gateways/MeprAuthorizeProfileGateway.php:608
 #: app/gateways/MeprPayPalProGateway.php:848
 #: app/gateways/MeprPayPalProGateway.php:1064
 msgid "Expiration"
@@ -3701,7 +3701,7 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:985
 #: app/gateways/MeprAuthorizeGateway.php:1222
-#: app/gateways/MeprAuthorizeProfileGateway.php:608
+#: app/gateways/MeprAuthorizeProfileGateway.php:609
 #: app/gateways/MeprPayPalProGateway.php:849
 #: app/gateways/MeprPayPalProGateway.php:1065
 msgid "Invalid Expiration"
@@ -3709,7 +3709,7 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1010
 #: app/gateways/MeprAuthorizeGateway.php:1240
-#: app/gateways/MeprAuthorizeProfileGateway.php:626
+#: app/gateways/MeprAuthorizeProfileGateway.php:627
 #: app/gateways/MeprPayPalProGateway.php:867
 #: app/gateways/MeprPayPalProGateway.php:1083
 msgid "CVC"
@@ -3717,7 +3717,7 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1011
 #: app/gateways/MeprAuthorizeGateway.php:1241
-#: app/gateways/MeprAuthorizeProfileGateway.php:627
+#: app/gateways/MeprAuthorizeProfileGateway.php:628
 #: app/gateways/MeprPayPalProGateway.php:868
 #: app/gateways/MeprPayPalProGateway.php:1084
 msgid "Invalid CVC Code"
@@ -3739,7 +3739,7 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1082
 #: app/gateways/MeprAuthorizeGateway.php:1271
-#: app/gateways/MeprAuthorizeProfileGateway.php:657
+#: app/gateways/MeprAuthorizeProfileGateway.php:658
 #: app/gateways/MeprPayPalProGateway.php:942
 #: app/gateways/MeprPayPalProGateway.php:1107
 msgid "You must enter your Credit Card number."
@@ -3747,7 +3747,7 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1085
 #: app/gateways/MeprAuthorizeGateway.php:1273
-#: app/gateways/MeprAuthorizeProfileGateway.php:659
+#: app/gateways/MeprAuthorizeProfileGateway.php:660
 #: app/gateways/MeprPayPalProGateway.php:945
 #: app/gateways/MeprPayPalProGateway.php:1109
 msgid "Your credit card number is invalid."
@@ -3755,7 +3755,7 @@ msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1089
 #: app/gateways/MeprAuthorizeGateway.php:1276
-#: app/gateways/MeprAuthorizeProfileGateway.php:662
+#: app/gateways/MeprAuthorizeProfileGateway.php:663
 #: app/gateways/MeprPayPalProGateway.php:949
 #: app/gateways/MeprPayPalProGateway.php:1112
 msgid "You must enter your CVV code."
@@ -3817,25 +3817,25 @@ msgid "Signature Key field cannot be blank."
 msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1201
-#: app/gateways/MeprAuthorizeProfileGateway.php:587
+#: app/gateways/MeprAuthorizeProfileGateway.php:588
 #: app/gateways/MeprPayPalProGateway.php:1044
 msgid "Update your Credit Card information below"
 msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1248
-#: app/gateways/MeprAuthorizeProfileGateway.php:634
+#: app/gateways/MeprAuthorizeProfileGateway.php:635
 #: app/views/checkout/MeprAuthorizeGateway/payment_gateway_fields.php:14
 msgid "Zip code for Card"
 msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1256
-#: app/gateways/MeprAuthorizeProfileGateway.php:642
+#: app/gateways/MeprAuthorizeProfileGateway.php:643
 #: app/gateways/MeprPayPalProGateway.php:1092
 msgid "Update Credit Card"
 msgstr ""
 
 #: app/gateways/MeprAuthorizeGateway.php:1268
-#: app/gateways/MeprAuthorizeProfileGateway.php:654
+#: app/gateways/MeprAuthorizeProfileGateway.php:655
 #: app/gateways/MeprPayPalProGateway.php:1104
 msgid "An unknown error has occurred. Please try again."
 msgstr ""
@@ -3859,7 +3859,7 @@ msgstr ""
 msgid "Public Key*:"
 msgstr ""
 
-#: app/gateways/MeprAuthorizeProfileGateway.php:486
+#: app/gateways/MeprAuthorizeProfileGateway.php:487
 #: app/gateways/MeprPayPalCommerceGateway.php:1055
 #: app/gateways/MeprStripeGateway.php:2741
 #: app/gateways/MeprStripeGateway.php:2913

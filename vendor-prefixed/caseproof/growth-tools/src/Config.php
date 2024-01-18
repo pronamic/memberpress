@@ -15,63 +15,63 @@ class Config
      *
      * @var string
      */
-    protected string $instanceId;
+    protected $instanceId;
 
     /**
      * The path to the plugin main file.
      *
      * @var string
      */
-    protected string $file;
+    protected $file;
 
     /**
      * The plugin path.
      *
      * @var string
      */
-    protected string $path;
+    protected $path;
 
     /**
      * The menu path.
      *
      * @var string
      */
-    protected string $menuSlug;
+    protected $menuSlug;
 
     /**
      * The full URL to the plugin's assets path.
      *
      * @var string
      */
-    protected string $assetsUrl;
+    protected $assetsUrl;
 
     /**
      * Denotes the slug of the admin menu's parent menu.
      *
      * @var string
      */
-    protected string $parentMenuSlug = 'tools.php';
+    protected $parentMenuSlug = 'tools.php';
 
     /**
      * List of css classes for action buttons.
      *
      * @var string[]
      */
-    protected array $buttonCSSClasses;
+    protected $buttonCSSClasses;
 
     /**
      * Base URl for images
      *
      * @var string
      */
-    protected string $imageBaseUrl = 'https://cspf-growth-tools.s3.us-east-2.amazonaws.com/img';
+    protected $imageBaseUrl = 'https://cspf-growth-tools.s3.us-east-2.amazonaws.com/img';
 
     /**
      * Url to configuration file
      *
      * @var string
      */
-    protected string $configFileUrl = 'https://cspf-growth-tools.s3.us-east-2.amazonaws.com/tools.json';
+    protected $configFileUrl = 'https://cspf-growth-tools.s3.us-east-2.amazonaws.com/tools.json';
 
     /**
      * Constructor

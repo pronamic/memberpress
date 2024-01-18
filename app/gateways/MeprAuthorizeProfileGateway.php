@@ -379,6 +379,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
         }
 
         $txn->save();
+        MeprHooks::do_action('mepr-auth-net-subscription-initialized', $txn);
       }
 
       MeprUtils::send_signup_notices($txn);
