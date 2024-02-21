@@ -38,7 +38,13 @@
           <?php if( $show_quantity ): ?>
             <td>&nbsp;</td>
           <?php endif; ?>
-          <td class="mp-currency-cell"><?php echo MeprAppHelper::format_currency(MeprCouponsHelper::format_coupon_amount($invoice['coupon']['amount']), true, false); ?></td>
+          <td class="mp-currency-cell">
+            <?php if( '0' !== $invoice['coupon']['amount'] ) : ?>
+              <?php echo MeprAppHelper::format_currency(MeprCouponsHelper::format_coupon_amount($invoice['coupon']['amount']), true, false); ?>
+            <?php else: ?>
+              &nbsp;
+            <?php endif; ?>
+          </td>
         </tr>
       <?php endif; ?>
     </tbody>

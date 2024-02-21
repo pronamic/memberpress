@@ -1017,6 +1017,9 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
 
   /* Paid or Free trial ... it matters not ... this will return true */
   public function in_trial($type = 'all') {
+    // If no sub id then we're still checking out and this should return false, we're not YET in a trial
+    if($this->id <= 0) { return false; }
+
     if($this->trial) {
       $trial_started = is_null($this->created_at) ? time() : strtotime($this->created_at);
       $trial_ended   = $trial_started + MeprUtils::days($this->trial_days);

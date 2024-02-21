@@ -13,7 +13,7 @@
 
       <ul>
         <?php foreach ($errors as $error) : ?>
-          <li><?php print $error; ?></li>
+          <li><?php print wp_kses_post($error); ?></li>
         <?php endforeach; ?>
       </ul>
     </div>
@@ -22,6 +22,6 @@
 
 <?php if (isset($message) and !empty($message)) : ?>
   <div class="mp_wrapper">
-    <div class="mepr_updated"><?php echo $message; ?></div>
+    <div class="mepr_updated"><?php echo wp_kses_post($message); ?></div>
   </div>
 <?php endif; ?>

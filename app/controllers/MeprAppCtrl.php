@@ -988,21 +988,32 @@ class MeprAppCtrl extends MeprBaseCtrl {
 
   public static function weekly_stats_widget() {
     $mepr_options = MeprOptions::fetch();
-    $failed_transactions = $pending_transactions = $refunded_transactions = $completed_transactions = $revenue = $refunds = 0;
-    $time = time();
-    for($i = 0; $i < 7; $i++) {
-      $ts = $time - MeprUtils::days($i);
-      $month = gmdate('n', $ts);
-      $day = gmdate('j', $ts);
-      $year = gmdate('Y', $ts);
 
-      $pending_transactions += MeprReports::get_transactions_count(MeprTransaction::$pending_str, $day, $month, $year);
-      $failed_transactions += MeprReports::get_transactions_count(MeprTransaction::$failed_str, $day, $month, $year);
-      $refunded_transactions += MeprReports::get_transactions_count(MeprTransaction::$refunded_str, $day, $month, $year);
-      $completed_transactions += MeprReports::get_transactions_count(MeprTransaction::$complete_str, $day, $month, $year);
+    $status_collection = array(
+      MeprTransaction::$pending_str,
+      MeprTransaction::$failed_str,
+      MeprTransaction::$refunded_str,
+      MeprTransaction::$complete_str
+    );
 
-      $revenue += MeprReports::get_revenue($month, $day, $year);
-      $refunds += MeprReports::get_refunds($month, $day, $year);
+    $start_date = new \DateTimeImmutable('-6 days', new \DateTimeZone('UTC'));
+    $end_date = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
+    $status_data = MeprReports::get_date_range_transactions_counts($status_collection, $start_date, $end_date);
+    $pending_transactions = $status_data[MeprTransaction::$pending_str];
+    $failed_transactions = $status_data[MeprTransaction::$failed_str];
+    $refunded_transactions = $status_data[MeprTransaction::$refunded_str];
+    $completed_transactions = $status_data[MeprTransaction::$complete_str];
+
+    $revenue = MeprReports::get_date_range_revenue($start_date, $end_date);
+    $refunds = MeprReports::get_date_range_refunds($start_date, $end_date);
+
+    if( empty($revenue) || is_null($revenue) ) {
+      $revenue = 0;
+    }
+
+    if( empty($refunds) || is_null($refunds) ) {
+      $refunds = 0;
     }
 
     MeprView::render('/admin/widgets/admin_stats_widget', get_defined_vars());

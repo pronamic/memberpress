@@ -3,27 +3,32 @@
 <table class="widefat" style="margin-top:25px;">
   <thead>
     <tr>
-      <th width="15%"><?php _e('Date', 'memberpress'); ?></th>
-      <th width="12%"><?php _e('Pending', 'memberpress'); ?></th>
-      <th width="12%"><?php _e('Failed', 'memberpress'); ?></th>
-      <th width="12%"><?php _e('Complete', 'memberpress'); ?></th>
-      <th width="12%"><?php _e('Refunded', 'memberpress'); ?></th>
-      <th width="12%"><?php _e('Collected', 'memberpress'); ?></th>
-      <th width="12%"><?php _e('Refunded', 'memberpress'); ?></th>
-      <th width="12%"><?php _e('Tax', 'memberpress'); ?></th>
-      <th width="12%"><?php _e('Net Total', 'memberpress'); ?></th>
+      <th width="15.11%"><?php _e('Date', 'memberpress'); ?></th>
+      <th width="11.11%"><?php _e('Pending', 'memberpress'); ?></th>
+      <th width="11.11%"><?php _e('Failed', 'memberpress'); ?></th>
+      <th width="11.11%"><?php _e('Complete', 'memberpress'); ?></th>
+      <th width="11.11%"><?php _e('Refunded', 'memberpress'); ?></th>
+      <th width="11.11%"><?php _e('Collected', 'memberpress'); ?></th>
+      <th width="11.11%"><?php _e('Refunded', 'memberpress'); ?></th>
+      <th width="6.11%"><?php _e('Tax', 'memberpress'); ?></th>
+      <th width="11.11%"><?php _e('Net Total', 'memberpress'); ?></th>
     </tr>
   </thead>
   <tbody>
     <?php
-    $records = MeprReports::get_monthly_data('transactions', $curr_month, $curr_year, $curr_product);
+    $records = MeprReports::get_monthly_dataset('transactions', $curr_month, $curr_year, $curr_product);
     $pTotal = $fTotal = $cTotal = $rTotal = $revTotal = $refTotal = $taxTotal = 0;
     $row_index = 0;
 
+    $revenue_dataset = MeprReports::get_revenue_dataset($curr_month, $curr_year, $curr_product);
+    $taxes_dataset = MeprReports::get_taxes_dataset($curr_month, $curr_year, $curr_product);
+    $refunds_dataset = MeprReports::get_refunds_dataset($curr_month, $curr_year, $curr_product);
+
     foreach($records as $r) {
-      $revenue = (float)MeprReports::get_revenue($curr_month, $r->day, $curr_year, $curr_product);
-      $taxes = (float)MeprReports::get_taxes($curr_month, $r->day, $curr_year, $curr_product);
-      $refunds = (float)MeprReports::get_refunds($curr_month, $r->day, $curr_year, $curr_product);
+      $revenue = isset($revenue_dataset[$r->day]) ? (float) $revenue_dataset[$r->day] : 0.00;
+      $taxes = isset($taxes_dataset[$r->day]) ? (float) $taxes_dataset[$r->day] : 0.00;
+      $refunds = isset($refunds_dataset[$r->day]) ? (float) $refunds_dataset[$r->day] : 0.00;
+
       $all = (float)($revenue + $refunds + $taxes);
       $alternate = ( $row_index++ % 2 ? '' : 'alternate' );
     ?>

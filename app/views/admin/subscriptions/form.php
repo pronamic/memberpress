@@ -22,7 +22,7 @@
 <tr valign="top">
   <th scope="row"><label for="product_id"><?php _e('Membership*:', 'memberpress'); ?></label></th>
   <td>
-    <?php $products = MeprCptModel::all('MeprProduct'); ?>
+    <?php $products = MeprCptModel::all('MeprProduct', false, array('orderby' => 'title', 'order' => 'ASC')); ?>
     <select name="product_id" id="product_id" class="mepr-membership-dropdown" data-expires_at_field_id="expires_at">
       <?php foreach($products as $product): ?>
         <option value="<?php echo $product->ID; ?>" <?php selected( $sub->product_id, $product->ID ); ?>><?php echo $product->post_title; ?></option>

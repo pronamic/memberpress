@@ -206,6 +206,7 @@ if (!empty($subscriptions)) {
                 </div>
               <?php } ?>
             </td>
+            <?php MeprHooks::do_action('mepr-account-subscriptions-td', $mepr_current_user, $s, $txn, $is_sub); ?>
           </tr>
         <?php endforeach; ?>
         <?php MeprHooks::do_action('mepr-account-subscriptions-table', $mepr_current_user, $subscriptions); ?>

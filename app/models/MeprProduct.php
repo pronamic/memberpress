@@ -61,6 +61,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface {
   public static $last_run_str                   = 'mepr_products_db_cleanup_last_run';
 
   public static $cpt                            = 'memberpressproduct';
+  public static $taxonomy_product_category      = 'mepr-product-category';
 
   public $period_types, $limit_cycles_actions, $expire_units,
          $register_price_actions, $pricing_displays, $expire_types;

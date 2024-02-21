@@ -77,7 +77,7 @@ class MeprCoursesCtrl extends MeprBaseCtrl {
         $message = $installed ? esc_html__( 'Courses has been installed and activated successfully. Enjoy!', 'memberpress' ) : esc_html__( 'Courses could not be installed. Please check your license settings, or contact MemberPress support for help.', 'memberpress' );
         break;
       case 'activate' : // Just activate (already installed)
-        $activated = activate_plugin( $this->courses_slug );
+        $activated = is_null( activate_plugin( $this->courses_slug ) );
         $result = 'success';
         $message = esc_html__( 'Courses has been activated successfully. Enjoy!', 'memberpress' );
         break;

@@ -9,6 +9,12 @@ class MeprReportsCtrl extends MeprBaseCtrl {
     add_action('wp_ajax_mepr_month_report', 'MeprReportsCtrl::load_monthly');
     add_action('wp_ajax_mepr_year_report', 'MeprReportsCtrl::load_yearly');
     add_action('wp_ajax_mepr_widget_report', 'MeprReportsCtrl::load_widget');
+    add_action('wp_ajax_mepr_overall_info_blocks', 'MeprReportsCtrl::load_overall_info');
+    add_action('wp_ajax_mepr_month_info_blocks', 'MeprReportsCtrl::load_month_info_blocks');
+    add_action('wp_ajax_mepr_month_info_table', 'MeprReportsCtrl::load_month_info_table');
+    add_action('wp_ajax_mepr_year_info_blocks', 'MeprReportsCtrl::load_year_info_blocks');
+    add_action('wp_ajax_mepr_year_info_table', 'MeprReportsCtrl::load_year_info_table');
+    add_action('wp_ajax_mepr_all_time_info_blocks', 'MeprReportsCtrl::load_all_time_info_blocks');
   }
 
   public static function main() {
@@ -155,14 +161,14 @@ class MeprReportsCtrl extends MeprBaseCtrl {
     $q = (isset($_REQUEST['q']) && $_REQUEST['q'] != 'none')?$_REQUEST['q']:array();
 
     if( $export ) {
-      $txns = MeprReports::get_monthly_data('transactions', $month, $year, $product, $q);
-      $amts = MeprReports::get_monthly_data('amounts', $month, $year, $product, $q);
+      $txns = MeprReports::get_monthly_dataset('transactions', $month, $year, $product, $q);
+      $amts = MeprReports::get_monthly_dataset('amounts', $month, $year, $product, $q);
       $filename = "memberpress-monthly-{$month}-{$year}-{$type}-for-{$product}";
       $results = self::format_for_csv( $txns, $amts );
       MeprUtils::render_csv( array_values($results), $filename );
     }
 
-    $results = MeprReports::get_monthly_data($type, $month, $year, $product);
+    $results = MeprReports::get_monthly_dataset($type, $month, $year, $product);
 
     $chart_data =
       array( 'cols' =>
@@ -221,13 +227,13 @@ class MeprReportsCtrl extends MeprBaseCtrl {
 
     if( $export ) {
       $filename = "memberpress-yearly-{$year}-{$type}-for-{$product}";
-      $txns = MeprReports::get_yearly_data('transactions', $year, $product, $q);
-      $amts = MeprReports::get_yearly_data('amounts', $year, $product, $q);
+      $txns = MeprReports::get_yearly_dataset('transactions', $year, $product, $q);
+      $amts = MeprReports::get_yearly_dataset('amounts', $year, $product, $q);
       $results = self::format_for_csv( $txns, $amts );
       MeprUtils::render_csv( $results, $filename );
     }
 
-    $results = MeprReports::get_yearly_data($type, $year, $product);
+    $results = MeprReports::get_yearly_dataset($type, $year, $product);
 
     $chart_data =
       array( 'cols' =>
@@ -313,5 +319,59 @@ class MeprReportsCtrl extends MeprBaseCtrl {
     }
 
     return $csv;
+  }
+
+  public static function load_overall_info() {
+    check_ajax_referer('mepr_reports', 'report_nonce');
+    wp_send_json_success(array(
+      'output' => MeprView::get_string("/admin/reports/overall_info_blocks")
+    ));
+  }
+
+  protected static function do_common_vars(){
+    $curr_month = (isset($_GET['month']) && !empty($_GET['month']))?$_GET['month']:gmdate('n');
+    $curr_year = (isset($_GET['year']) && !empty($_GET['year']))?$_GET['year']:gmdate('Y');
+    $curr_product = (isset($_GET['product']) && !empty($_GET['product']))?$_GET['product']:'all';
+
+    return array(
+      'curr_month' => $curr_month,
+      'curr_year' => $curr_year,
+      'curr_product' => $curr_product
+    );
+  }
+
+  public static function load_month_info_blocks() {
+    check_ajax_referer('mepr_reports', 'report_nonce');
+    wp_send_json_success(array(
+      'output' => MeprView::get_string("/admin/reports/month_info_blocks", self::do_common_vars())
+    ));
+  }
+
+  public static function load_month_info_table() {
+    check_ajax_referer('mepr_reports', 'report_nonce');
+    wp_send_json_success(array(
+      'output' => MeprView::get_string("/admin/reports/month_table", self::do_common_vars())
+    ));
+  }
+
+  public static function load_year_info_blocks() {
+    check_ajax_referer('mepr_reports', 'report_nonce');
+    wp_send_json_success(array(
+      'output' => MeprView::get_string("/admin/reports/year_info_blocks", self::do_common_vars())
+    ));
+  }
+
+  public static function load_year_info_table() {
+    check_ajax_referer('mepr_reports', 'report_nonce');
+    wp_send_json_success(array(
+      'output' => MeprView::get_string("/admin/reports/year_table", self::do_common_vars())
+    ));
+  }
+
+  public static function load_all_time_info_blocks() {
+    check_ajax_referer('mepr_reports', 'report_nonce');
+    wp_send_json_success(array(
+      'output' => MeprView::get_string("/admin/reports/all_time_info_blocks", self::do_common_vars())
+    ));
   }
 }

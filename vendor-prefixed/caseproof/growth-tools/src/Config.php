@@ -2,7 +2,7 @@
 /**
  * @license GPL-3.0
  *
- * Modified by caseproof on 12-December-2023 using Strauss.
+ * Modified by caseproof on 22-January-2024 using Strauss.
  * @see https://github.com/BrianHenryIE/strauss
  */
 
@@ -15,63 +15,63 @@ class Config
      *
      * @var string
      */
-    protected $instanceId;
+    protected string $instanceId;
 
     /**
      * The path to the plugin main file.
      *
      * @var string
      */
-    protected $file;
+    protected string $file;
 
     /**
      * The plugin path.
      *
      * @var string
      */
-    protected $path;
+    protected string $path;
 
     /**
      * The menu path.
      *
      * @var string
      */
-    protected $menuSlug;
+    protected string $menuSlug;
 
     /**
      * The full URL to the plugin's assets path.
      *
      * @var string
      */
-    protected $assetsUrl;
+    protected string $assetsUrl;
 
     /**
      * Denotes the slug of the admin menu's parent menu.
      *
      * @var string
      */
-    protected $parentMenuSlug = 'tools.php';
+    protected string $parentMenuSlug = 'tools.php';
 
     /**
      * List of css classes for action buttons.
      *
      * @var string[]
      */
-    protected $buttonCSSClasses;
+    protected array $buttonCSSClasses;
 
     /**
      * Base URl for images
      *
      * @var string
      */
-    protected $imageBaseUrl = 'https://cspf-growth-tools.s3.us-east-2.amazonaws.com/img';
+    protected string $imageBaseUrl = 'https://cspf-growth-tools.s3.us-east-2.amazonaws.com/img';
 
     /**
      * Url to configuration file
      *
      * @var string
      */
-    protected $configFileUrl = 'https://cspf-growth-tools.s3.us-east-2.amazonaws.com/tools.json';
+    protected string $configFileUrl = 'https://cspf-growth-tools.s3.us-east-2.amazonaws.com/tools.json';
 
     /**
      * Constructor

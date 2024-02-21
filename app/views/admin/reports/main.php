@@ -4,50 +4,7 @@
   <h2><?php _e('Reports', 'memberpress'); ?></h2>
 
   <div id="overall_info_blocks">
-    <div class="info_block">
-      <span class="info_block_title"><?php _e('Active Members', 'memberpress'); ?></span>
-      <h3><?php echo MeprReports::get_active_members_count(); ?></h3>
-    </div>
-
-    <div class="info_block">
-      <span class="info_block_title"><?php _e('Inactive Members', 'memberpress'); ?></span>
-      <h3><?php echo MeprReports::get_inactive_members_count(); ?></h3>
-    </div>
-
-    <div class="info_block">
-      <span class="info_block_title"><?php _e('Total Members', 'memberpress'); ?></span>
-      <h3><?php echo MeprReports::get_total_members_count(); ?></h3>
-    </div>
-
-    <div class="info_block">
-      <span class="info_block_title"><?php _e('Total WP Users', 'memberpress'); ?></span>
-      <h3><?php echo MeprReports::get_total_wp_users_count(); ?></h3>
-    </div>
-
-    <div class="info_block">
-      <span class="info_block_title"><?php _e('Active Free Members', 'memberpress'); ?></span>
-      <h3><?php echo MeprReports::get_free_active_members_count(); ?></h3>
-    </div>
-
-    <div class="info_block">
-      <span class="info_block_title"><?php _e('Active Paid Members', 'memberpress'); ?></span>
-      <h3><?php echo MeprReports::get_paid_active_members_count(); ?></h3>
-    </div>
-    <div class="info_block">
-      <span class="info_block_title"><?php _e('Avg Mbr Lifetime Val', 'memberpress'); ?></span>
-      <h3><?php echo MeprAppHelper::format_currency(MeprReports::get_average_lifetime_value(), true, false); ?></h3>
-    </div>
-<?php /** These are slowing things down too much for now
-    <div class="info_block">
-      <span class="info_block_title"><?php _e('Avg Num Mbr Pmts', 'memberpress'); ?></span>
-      <h3><?php echo MeprUtils::format_float(MeprReports::get_average_payments_per_member()); ?></h3>
-    </div>
-
-    <div class="info_block">
-      <span class="info_block_title"><?php _e('% Members Rebill', 'memberpress'); ?></span>
-      <h3><?php echo MeprUtils::format_float(MeprReports::get_percentage_members_who_rebill()) . '%'; ?></h3>
-    </div>
-*/ ?>
+      <?php MeprView::render("/admin/reports/skeleton_info_blocks", array('count' => 7)); ?>
   </div>
 
   <h2 class="nav-tab-wrapper">
@@ -64,12 +21,12 @@
 
     <?php if($curr_product == 'all'): ?>
       <div id="monthly-pie-chart-area" class="pie_chart_area">
-        <img src="<?php echo admin_url('images/wpspin_light-2x.gif'); ?>" width="16px" height="16px" />
+        <?php MeprView::render("/admin/reports/skeleton_pie"); ?>
       </div>
     <?php endif; ?>
 
     <div id="monthly-info-blocks" class="info_blocks_area">
-      <?php MeprView::render('/admin/reports/month_info_blocks', get_defined_vars()); ?>
+      <?php MeprView::render("/admin/reports/skeleton_info_blocks", array('count' => 8)); ?>
     </div>
 
     <div class="float_block_separator"></div>
@@ -80,17 +37,17 @@
         <a class="nav-tab monthly-nav-tab" href="#" id="mtransactions"><?php _e('Transactions', 'memberpress'); ?></a>
       </h2>
 
-      <div id="monthly-amounts-area-graph" class="mamounts monthly_graph_area">
-        <img src="<?php echo admin_url('images/wpspin_light-2x.gif'); ?>" width="16px" height="16px" />
+      <div id="monthly-amounts-area-graph" class="mamounts monthly_graph_area mepr-loading">
+        <?php MeprView::render("/admin/reports/svg_loader"); ?>
       </div>
 
-      <div id="monthly-transactions-area-graph" class="mtransactions monthly_graph_area">
-        <img src="<?php echo admin_url('images/wpspin_light-2x.gif'); ?>" width="16px" height="16px" />
+      <div id="monthly-transactions-area-graph" class="mtransactions monthly_graph_area mepr-loading">
+        <?php MeprView::render("/admin/reports/svg_loader"); ?>
       </div>
     </div>
 
     <div id="monthly-data-table">
-      <?php MeprView::render('/admin/reports/month_table', get_defined_vars()); ?>
+      <?php MeprView::render("/admin/reports/skeleton_table"); ?>
     </div>
   </div>
 
@@ -102,12 +59,12 @@
 
     <?php if($curr_product == 'all'): ?>
       <div id="yearly-pie-chart-area" class="pie_chart_area">
-        <img src="<?php echo admin_url('images/wpspin_light-2x.gif'); ?>" width="16px" height="16px" />
+        <?php MeprView::render("/admin/reports/skeleton_pie"); ?>
       </div>
     <?php endif; ?>
 
     <div id="yearly-info-blocks" class="info_blocks_area">
-      <?php MeprView::render('/admin/reports/year_info_blocks', get_defined_vars()); ?>
+      <?php MeprView::render("/admin/reports/skeleton_info_blocks", array('count' => 8)); ?>
     </div>
 
     <div class="float_block_separator"></div>
@@ -118,17 +75,17 @@
         <a class="nav-tab yearly-nav-tab" href="#" id="ytransactions"><?php _e('Transactions', 'memberpress'); ?></a>
       </h2>
 
-      <div id="yearly-amounts-area-graph" class="yamounts yearly_graph_area">
-        <img src="<?php echo admin_url('images/wpspin_light-2x.gif'); ?>" width="16px" height="16px" />
+      <div id="yearly-amounts-area-graph" class="yamounts yearly_graph_area mepr-loading">
+        <?php MeprView::render("/admin/reports/svg_loader"); ?>
       </div>
 
-      <div id="yearly-transactions-area-graph" class="ytransactions yearly_graph_area">
-        <img src="<?php echo admin_url('images/wpspin_light-2x.gif'); ?>" width="16px" height="16px" />
+      <div id="yearly-transactions-area-graph" class="ytransactions yearly_graph_area mepr-loading">
+        <?php MeprView::render("/admin/reports/svg_loader"); ?>
       </div>
     </div>
 
     <div id="yearly-data-table">
-      <?php MeprView::render('/admin/reports/year_table', get_defined_vars()); ?>
+      <?php MeprView::render("/admin/reports/skeleton_table"); ?>
     </div>
   </div>
 
@@ -140,12 +97,12 @@
 
     <?php if($curr_product == 'all'): ?>
       <div id="all-time-pie-chart-area" class="pie_chart_area">
-        <img src="<?php echo admin_url('images/wpspin_light-2x.gif'); ?>" width="16px" height="16px" />
+        <?php MeprView::render("/admin/reports/skeleton_pie"); ?>
       </div>
     <?php endif; ?>
 
     <div id="all-time-info-blocks" class="info_blocks_area">
-      <?php MeprView::render('/admin/reports/all_time_info_blocks', get_defined_vars()); ?>
+      <?php MeprView::render("/admin/reports/skeleton_info_blocks", array('count' => 8)); ?>
     </div>
 
     <div class="float_block_separator"></div>
@@ -154,6 +111,11 @@
 <!-- HIDDEN STUFF FOR JS HERE -->
   <div id="mepr-reports-hidden-stuff">
     <div id="mepr-reports-main-view" data-value="<?php echo (isset($_GET['main-view']) && !empty($_GET['main-view']))?$_GET['main-view']:'monthly'; ?>"></div>
+    <div id="mepr-reports-current-data"
+      data-current-product="<?php echo esc_attr($curr_product); ?>"
+      data-current-month="<?php echo esc_attr($curr_month); ?>"
+      data-current-year="<?php echo esc_attr($curr_year); ?>"
+    ></div>
     <div id="mepr-reports-pie-title" data-value="<?php _e('Total Transactions By Membership', 'memberpress'); ?>"></div>
     <div id="mepr-reports-monthly-areas-title" data-value="<?php _e('Amounts By Day Of Month', 'memberpress'); ?>"></div>
     <div id="mepr-reports-monthly-transactions-title" data-value="<?php _e('Transactions By Day Of Month', 'memberpress'); ?>"></div>

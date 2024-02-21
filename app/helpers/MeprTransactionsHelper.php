@@ -344,6 +344,16 @@ class MeprTransactionsHelper {
       if($prd->register_price_action == 'custom' && $mepr_options->design_show_checkout_price_terms) {
         $sub_price_str = MeprSubscriptionsHelper::format_currency($sub);
       }
+
+      //If the coupon amount is HIGHER than the membership renewal price, then HIDE the coupon line in the invoice.
+      if( isset($invoice['coupon']) && $cpn_id > 0
+        && $coupon && $coupon->discount_mode == 'trial-override'
+        && $sub instanceof MeprSubscription && $sub->trial
+        && $coupon->trial_amount > $prd->price
+      ){
+        $invoice['items'][0]['amount'] = $txn->amount;
+        $invoice['coupon']['amount']   = '0';
+      }
     }
 
     if($mepr_options->design_enable_checkout_template) {
@@ -372,7 +382,7 @@ class MeprTransactionsHelper {
   public static function transaction_membership_field( $field, $value='', $expires_at_field_id='', $id='', $classes='' ) {
     if(empty($id)) { $id = $field; }
 
-    $products = MeprCptModel::all('MeprProduct');
+    $products = MeprCptModel::all('MeprProduct', false, array('orderby' => 'title', 'order' => 'ASC'));
 
     ?>
 
@@ -634,6 +644,16 @@ class MeprTransactionsHelper {
       $prd = $sub->product();
       if($prd->register_price_action == 'custom' && $mepr_options->design_show_checkout_price_terms) {
         $sub_price_str = MeprSubscriptionsHelper::format_currency($sub);
+      }
+
+      //If the coupon amount is HIGHER than the membership renewal price, then HIDE the coupon line in the invoice.
+      if( isset($invoice['coupon'])
+        && $cpn_id > 0 && $coupon && $coupon->discount_mode == 'trial-override'
+        && $sub instanceof MeprSubscription && $sub->trial
+        && $coupon->trial_amount > $prd->price
+      ){
+        $invoice['items'][0]['amount'] = $txn->amount;
+        $invoice['coupon']['amount']   = '0';
       }
     }
 

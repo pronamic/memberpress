@@ -324,7 +324,7 @@ class MeprMembersCtrl extends MeprBaseCtrl {
     if(isset($_REQUEST['page']) && $_REQUEST['page']=='memberpress-members') {
       $membership = (isset($_REQUEST['membership'])?$_REQUEST['membership']:false);
       $status = (isset($_REQUEST['status'])?$_REQUEST['status']:'all');
-      $prds = MeprCptModel::all('MeprProduct');
+      $prds = MeprCptModel::all('MeprProduct', false, array('orderby' => 'title', 'order' => 'ASC'));
       MeprView::render('/admin/members/search_box', compact('membership','status','prds'));
     }
   }

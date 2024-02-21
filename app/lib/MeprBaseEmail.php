@@ -83,7 +83,7 @@ abstract class MeprBaseEmail {
     $subject = MeprHooks::apply_filters('mepr_email_send_subject', $subject, $this, $body,    $values);
     $attachments = MeprHooks::apply_filters('mepr_email_send_attachments', array(), $this, $body,    $values);
 
-    $bkg_enabled = get_option('mp-bkg-email-jobs-enabled');
+    $bkg_enabled =  MeprHooks::apply_filters('mepr_bkg_email_jobs_enabled', get_option('mp-bkg-email-jobs-enabled') );
 
     if( !$bkg_enabled || ( defined('DOING_CRON') && DOING_CRON ) ) {
       if( !isset($this->to) or empty($this->to) ) {

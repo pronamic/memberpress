@@ -91,7 +91,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    * @return void
    */
   public function account_shortcode( $atts = array() ) {
-    wp_enqueue_script( 'alpinejs', MEPR_JS_URL . '/js/vendor/alpine.min.js', array(), MEPR_VERSION, true );
+    wp_enqueue_script( 'alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', array(), MEPR_VERSION, true );
     wp_enqueue_script( 'mepr-accountjs', MEPR_JS_URL . '/readylaunch/account.js', array( 'jquery' ), MEPR_VERSION, true );
     wp_localize_script(
       'mepr-accountjs',

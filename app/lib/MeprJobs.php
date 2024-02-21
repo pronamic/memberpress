@@ -182,15 +182,15 @@ class MeprJobs
     if($when==='now') { $when = time(); }
 
     $config = array(
-      'runtime' => gmdate('c', $when),
-      'firstrun' => gmdate('c', $when),
+      'runtime' => MeprUtils::ts_to_mysql_date($when),
+      'firstrun' => MeprUtils::ts_to_mysql_date($when),
       'priority' => $priority,
       'tries' => 0,
       'class' => $classname,
       'args' => json_encode($args),
       'reason' => '',
       'status' => $this->config->status->pending,
-      'lastrun' => gmdate('c')
+      'lastrun' => MeprUtils::db_now()
     );
 
     // returns the job id to dequeue later if necessary
@@ -212,7 +212,7 @@ class MeprJobs
     $args = array(
       'status'  => $this->config->status->working,
       'tries'   => $job->tries + 1,
-      'lastrun' => gmdate('c')
+      'lastrun' => MeprUtils::db_now()
     );
 
     $mepr_db->update_record($mepr_db->jobs, $job->id, $args);
@@ -226,7 +226,7 @@ class MeprJobs
 
     $args = array(
       'status'  => $this->config->status->pending,
-      'runtime' => gmdate('c', $when),
+      'runtime' => MeprUtils::ts_to_mysql_date($when),
       'reason'  => $reason
     );
 

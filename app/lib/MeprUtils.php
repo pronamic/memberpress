@@ -550,7 +550,9 @@ class MeprUtils {
     $new_price = $new_sub->price;
     $days_in_new_period = $new_sub->days_in_this_period(true);
 
-    if( $new_sub->trial && $new_sub->trial_amount > 0.00 ) {
+    if($new_sub->trial && $new_sub->trial_amount > 0.00 ||
+        ($coupon = $new_sub->coupon()) && ($coupon->discount_mode == 'first-payment' || $coupon->discount_mode == 'trial-override')
+    ) {
       $new_price = $new_sub->trial_amount;
       $days_in_new_period = $new_sub->trial_days;
     }

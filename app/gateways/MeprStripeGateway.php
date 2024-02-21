@@ -277,7 +277,22 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     if ($calculate_taxes && $txn->tax_rate > 0 && $txn->tax_amount > 0) {
       $tax_rate_id = $this->get_stripe_tax_rate_id($txn->tax_desc, $txn->tax_rate, $product, $tax_inclusive);
     }
+
+    $metadata = array_filter([
+      'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
+      'site_url' => get_site_url(),
+      'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
+      'transaction_id' => $txn->id,
+      'memberpress_transaction_id' => $txn->id,
+      'memberpress_product' => $product->post_title,
+      'memberpress_product_id' => $product->ID,
+    ]);
+
     if (!$product->is_one_time_payment()) {
+      $metadata = array_filter(array_merge($metadata, [
+        'memberpress_subscription_id' => $sub->id,
+      ]));
+
       $checkout_session = [
         'customer'=> $customer_id,
         'payment_method_types' => $this->get_subscription_payment_method_types(),
@@ -288,10 +303,15 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         'mode' => 'subscription',
         'success_url' => $success_url,
         'cancel_url' => $cancel_url,
-        'metadata' => [
-          'memberpress_subscription_id' => $sub->id,
-        ]
+        'metadata' => $metadata,
+        'subscription_data' => [
+          'metadata' => $metadata,
+        ],
       ];
+
+      if(!empty($product->post_title)) {
+        $checkout_session['subscription_data']['description'] = $product->post_title;
+      }
     } else {
       $payment_method_types = $this->get_payment_intent_payment_method_types(null, (float) $txn->total);
       $payment_method_options = [];
@@ -312,12 +332,17 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           'quantity' => 1,
         ]],
         'mode' => 'payment',
-        'metadata' => [
-          'memberpress_transaction_id' => $txn->id,
-        ],
+        'metadata' => $metadata,
         'success_url' => $success_url,
         'cancel_url' => $cancel_url,
+        'payment_intent_data' => [
+          'metadata' => $metadata,
+        ],
       ];
+
+      if(!empty($product->post_title)) {
+        $checkout_session['payment_intent_data']['description'] = $product->post_title;
+      }
 
       if(($index = array_search('afterpay_clearpay', $payment_method_types)) !== false) {
         $full_name = $usr->get_full_name();
@@ -353,9 +378,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     }
 
     if ($sub instanceof MeprSubscription && $sub->trial > 0) {
-      $checkout_session['subscription_data'] = [
-        'trial_period_days' => $sub->trial_days,
-      ];
+      $checkout_session['subscription_data']['trial_period_days'] = $sub->trial_days;
 
       // The section below sets the recurring price amount to the coupon discounted amount.
       // Since a Stripe coupon will also discount the trial amount, we can't use a Stripe coupon if there is a paid trial.
@@ -431,9 +454,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $application_fee_percentage = $this->get_application_fee_percentage();
       $application_fee = floor( $txn->amount * $application_fee_percentage / 100 );
       if (!empty($application_fee)) {
-        $checkout_session['payment_intent_data'] = [
-          'application_fee_amount' => $application_fee,
-        ];
+        $checkout_session['payment_intent_data']['application_fee_amount'] = $application_fee;
       }
     }
 
@@ -528,6 +549,16 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $total += $amount;
     }
 
+    $metadata = array_filter([
+      'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
+      'site_url' => get_site_url(),
+      'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
+      'transaction_id' => $txn->id,
+      'memberpress_transaction_id' => $txn->id,
+      'memberpress_product' => $prd->post_title,
+      'memberpress_product_id' => $prd->ID,
+    ]);
+
     if($prd->is_one_time_payment() || !$prd->is_payment_required($coupon_code)) {
       if($total > 0.00) {
         $setup_future_usage = $has_subscription ? 'off_session' : null;
@@ -547,14 +578,18 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           'customer' => $this->get_customer_id($usr),
           'payment_method_options' => $payment_method_options,
           'line_items' => $line_items,
+          'metadata' => $metadata,
+          'payment_intent_data' => [
+            'metadata' => $metadata,
+          ],
         ];
 
         if($has_subscription) {
-          $args = array_merge($args, [
-            'payment_intent_data' => [
-              'setup_future_usage' => 'off_session',
-            ],
-          ]);
+          $args['payment_intent_data']['setup_future_usage'] = 'off_session';
+        }
+
+        if(!empty($prd->post_title)) {
+          $args['payment_intent_data']['description'] = $prd->post_title;
         }
 
         if(($index = array_search('afterpay_clearpay', $payment_method_types)) !== false) {
@@ -594,7 +629,15 @@ class MeprStripeGateway extends MeprBaseRealGateway {
           'mode' => 'setup',
           'customer' => $this->get_customer_id($usr),
           'payment_method_types' => $this->get_setup_intent_payment_method_types(),
+          'metadata' => $metadata,
+          'setup_intent_data' => [
+            'metadata' => $metadata,
+          ],
         ];
+
+        if(!empty($prd->post_title)) {
+          $args['setup_intent_data']['description'] = $prd->post_title;
+        }
       }
     }
     else {
@@ -604,22 +647,30 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         wp_send_json(['error' => __('Subscription not found', 'memberpress')]);
       }
 
+      $metadata = array_filter(array_merge($metadata, [
+        'memberpress_subscription_id' => $sub->id,
+      ]));
+
       $args = [
         'mode' => 'subscription',
         'customer' => $this->get_customer_id($usr),
         'payment_method_types' => $this->get_subscription_payment_method_types(),
+        'metadata' => $metadata,
+        'subscription_data' => [
+          'metadata' => $metadata,
+        ],
       ];
+
+      if(!empty($prd->post_title)) {
+        $args['subscription_data']['description'] = $prd->post_title;
+      }
 
       if($sub->trial && $sub->trial_days > 0) {
         $amount = $calculate_taxes && !$tax_inclusive && $txn->tax_rate > 0 ? (float) $sub->trial_amount : (float) $sub->trial_total;
         $line_item = $this->build_line_item($this->get_one_time_price_id($prd, $amount), $txn, $prd);
         array_unshift($line_items, $line_item);
 
-        $args = array_merge($args, [
-          'subscription_data' => [
-            'trial_period_days' => $sub->trial_days,
-          ],
-        ]);
+        $args['subscription_data']['trial_period_days'] = $sub->trial_days;
       }
       elseif(count($line_items) > 1) {
         // If there is no trial period and there is an order bump, set the trial days to cover one payment cycle and
@@ -632,11 +683,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
         array_unshift($line_items, $line_item);
 
-        $args = array_merge($args, [
-          'subscription_data' => [
-            'trial_period_days' => $end->diff($now)->format('%a'),
-          ],
-        ]);
+        $args['subscription_data']['trial_period_days'] = $end->diff($now)->format('%a');
       }
 
       $args = array_merge($args, [
@@ -661,12 +708,6 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     $args = array_merge($args, [
       'success_url' => $success_url,
       'cancel_url' => $cancel_url,
-      'metadata' => [
-        'platform' => 'MemberPress Connect acct_1FIIDhKEEWtO8ZWC',
-        'transaction_id' => $txn->id,
-        'site_url' => get_site_url(),
-        'ip_address' => MeprAntiCardTestingCtrl::get_ip(),
-      ],
     ]);
 
     $args = MeprHooks::apply_filters('mepr_stripe_checkout_session_args', $args, $txn);
@@ -848,6 +889,13 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     if(($key = array_search('boleto', $types)) !== false) {
       if(!is_null($amount) && ($amount < 5 || $amount > 49999.99)) {
         // Boleto does not support a payment amount less than 5 or greater than 49999.99 BRL
+        array_splice($types, $key, 1);
+      }
+    }
+
+    if(($key = array_search('oxxo', $types)) !== false) {
+      if(!is_null($amount) && ($amount < 10 || $amount > 10000)) {
+        // OXXO does not support a payment amount less than 10 or greater than 10000 MXN
         array_splice($types, $key, 1);
       }
     }
@@ -4185,6 +4233,10 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         'memberpress_product_id' => $prd->ID,
       ],
     ];
+
+    if(!empty($prd->post_title)) {
+      $args['description'] = $prd->post_title;
+    }
 
     if($payment_method_id) {
       $args = array_merge($args, ['default_payment_method' => $payment_method_id]);

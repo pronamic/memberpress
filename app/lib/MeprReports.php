@@ -851,5 +851,364 @@ class MeprReports {
 
     return $wpdb->get_var($q);
   }
+
+  public static function get_date_range_transactions_counts(array $status_collection, \DateTimeImmutable $start_date, \DateTimeImmutable $end_date, $product = null) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+
+    $q = "SELECT COUNT(*) as total_count, status
+            FROM {$mepr_db->transactions}
+            WHERE status IN ('".implode("','", $status_collection)."')
+              AND txn_type = %s
+              AND DATE(created_at) >= %s
+              AND DATE(created_at) <= %s
+              {$andproduct}
+              GROUP BY status";
+
+    $results = $wpdb->get_results($wpdb->prepare($q, MeprTransaction::$payment_str, $start_date->format('Y-m-d'), $end_date->format('Y-m-d')));
+
+    $data = array();
+    foreach( $status_collection as $status ) {
+      $data[$status] = 0;
+    }
+
+    if( ! empty($results) ){
+      foreach( $results as $row ) {
+        $data[$row->status] = $row->total_count;
+      }
+    }
+
+    return $data;
+  }
+
+  public static function get_date_range_revenue(\DateTimeImmutable $start_date, \DateTimeImmutable $end_date, $product = null) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+
+    $q = "SELECT SUM(amount)
+            FROM {$mepr_db->transactions}
+            WHERE status = %s
+              AND txn_type = %s
+              AND DATE(created_at) >= %s
+              AND DATE(created_at) <= %s
+              {$andproduct}";
+
+    return $wpdb->get_var($wpdb->prepare($q, MeprTransaction::$complete_str, MeprTransaction::$payment_str, $start_date->format('Y-m-d'), $end_date->format('Y-m-d')));
+  }
+
+  public static function get_date_range_refunds(\DateTimeImmutable $start_date, \DateTimeImmutable $end_date, $product = null) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+
+    $q = "SELECT (SUM(amount)+SUM(tax_amount))
+            FROM {$mepr_db->transactions}
+            WHERE status = %s
+              AND txn_type = %s
+              AND DATE(created_at) >= %s
+              AND DATE(created_at) <= %s
+              {$andproduct}";
+
+    return $wpdb->get_var($wpdb->prepare($q, MeprTransaction::$refunded_str, MeprTransaction::$payment_str, $start_date->format('Y-m-d'), $end_date->format('Y-m-d')));
+  }
+
+  public static function get_monthly_dataset($type, $month, $year, $product, $q=array()) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $results = array();
+    $days_in_month = gmdate('t', mktime(0, 0, 0, $month, 1, $year));
+    $andproduct = ($product == "all")?"":" AND product_id = {$product}";
+    $where = MeprUtils::build_where_clause($q);
+
+    $selecttype = ($type == 'amounts')?"SUM(amount)":"COUNT(*)";
+
+    $queries = array();
+
+    $queries['p'] = "SELECT {$selecttype} as mepr_value, DAY(created_at) as mepr_day
+            FROM {$mepr_db->transactions}
+            WHERE YEAR(created_at) = {$year}
+              AND MONTH(created_at) = {$month}
+              AND txn_type = '".MeprTransaction::$payment_str."'
+              AND status = '".MeprTransaction::$pending_str."'
+              {$andproduct}{$where}
+            GROUP BY DAY(created_at)";
+
+    $queries['f'] = "SELECT {$selecttype} as mepr_value, DAY(created_at) as mepr_day
+            FROM {$mepr_db->transactions}
+            WHERE YEAR(created_at) = {$year}
+              AND MONTH(created_at) = {$month}
+              AND txn_type = '".MeprTransaction::$payment_str."'
+              AND status = '".MeprTransaction::$failed_str."'
+              {$andproduct}{$where}
+              GROUP BY DAY(created_at)";
+
+    $queries['c'] = "SELECT {$selecttype} as mepr_value, DAY(created_at) as mepr_day
+            FROM {$mepr_db->transactions}
+            WHERE YEAR(created_at) = {$year}
+              AND MONTH(created_at) = {$month}
+              AND txn_type = '".MeprTransaction::$payment_str."'
+              AND status = '".MeprTransaction::$complete_str."'
+              {$andproduct}{$where}
+              GROUP BY DAY(created_at)";
+
+    $queries['r'] = "SELECT {$selecttype} as mepr_value, DAY(created_at) as mepr_day
+            FROM {$mepr_db->transactions}
+            WHERE YEAR(created_at) = {$year}
+              AND MONTH(created_at) = {$month}
+              AND txn_type = '".MeprTransaction::$payment_str."'
+              AND status = '".MeprTransaction::$refunded_str."'
+              {$andproduct}{$where}
+              GROUP BY DAY(created_at)";
+
+    if($type == "amounts") {
+      $queries['x'] = "SELECT SUM(tax_amount) as mepr_value, DAY(created_at) as mepr_day
+          FROM {$mepr_db->transactions}
+          WHERE YEAR(created_at) = {$year}
+            AND MONTH(created_at) = {$month}
+            AND txn_type = '".MeprTransaction::$payment_str."'
+            AND status = '".MeprTransaction::$complete_str."'
+            {$andproduct}{$where}
+            GROUP BY DAY(created_at)";
+
+      $queries['t'] = "SELECT (SUM(tax_amount)+SUM(amount)) as mepr_value, DAY(created_at) as mepr_day
+        FROM {$mepr_db->transactions}
+        WHERE YEAR(created_at) = {$year}
+          AND MONTH(created_at) = {$month}
+          AND DAY(created_at) = %d
+          AND txn_type = '".MeprTransaction::$payment_str."'
+          AND status IN ('".MeprTransaction::$complete_str."', '".MeprTransaction::$refunded_str."')
+          {$andproduct}{$where}
+          GROUP BY DAY(created_at)";
+    }
+
+    foreach( $queries as $type => $sql ) {
+
+      for($i = 1; $i <= $days_in_month; $i++) {
+        if( ! isset($results[$i]) ) {
+          $results[$i] = new stdClass();
+          $results[$i]->day = $i;
+        }
+
+        $results[$i]->$type = 0;
+      }
+
+      $resultset = $wpdb->get_results( $wpdb->prepare($sql) );
+
+      if( ! empty($resultset) ) {
+        foreach( $resultset as $row ) {
+          $results[$row->mepr_day]->$type = $row->mepr_value;
+        }
+      }
+
+    }
+
+    return $results;
+  }
+
+  protected static function format_mepr_dataset($results) {
+    $ds = array();
+    if( ! empty($results) ) {
+      foreach( $results as $row ) {
+        if( isset($row->mepr_day) && isset($row->mepr_value) ) {
+          $ds[$row->mepr_day] = $row->mepr_value;
+        }
+
+        if( isset($row->mepr_month) && isset($row->mepr_month) ) {
+          $ds[$row->mepr_month] = $row->mepr_value;
+        }
+      }
+    }
+
+    return $ds;
+  }
+
+  public static function get_revenue_dataset($month, $year, $product = null) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
+    $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
+    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $groupby = !empty($andmonth) ? "GROUP BY DAY(created_at)" : "GROUP BY MONTH(created_at)";
+    $mepr_col = !empty($andmonth) ? "DAY(created_at) as mepr_day" : "MONTH(created_at) as mepr_month";
+
+    $q = "SELECT SUM(amount) as mepr_value, {$mepr_col}
+            FROM {$mepr_db->transactions}
+            WHERE status = %s
+              AND txn_type = %s
+              {$andmonth}
+              {$andyear}
+              {$andproduct}
+              {$groupby}";
+
+    return self::format_mepr_dataset(
+      $wpdb->get_results($wpdb->prepare($q, MeprTransaction::$complete_str, MeprTransaction::$payment_str))
+    );
+  }
+
+  public static function get_taxes_dataset($month = false, $year = false, $product = null) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
+    $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
+    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $groupby = !empty($andmonth) ? "GROUP BY DAY(created_at)" : "GROUP BY MONTH(created_at)";
+    $mepr_col = !empty($andmonth) ? "DAY(created_at) as mepr_day" : "MONTH(created_at) as mepr_month";
+
+    $q = "SELECT SUM(tax_amount) as mepr_value, {$mepr_col}
+            FROM {$mepr_db->transactions}
+            WHERE status = %s
+              AND txn_type = %s
+              {$andmonth}
+              {$andyear}
+              {$andproduct}
+              {$groupby}";
+
+    return self::format_mepr_dataset(
+      $wpdb->get_results($wpdb->prepare($q, MeprTransaction::$complete_str, MeprTransaction::$payment_str))
+    );
+  }
+
+  public static function get_refunds_dataset($month = false, $year = false, $product = null) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
+    $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
+    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $groupby = !empty($andmonth) ? "GROUP BY DAY(created_at)" : "GROUP BY MONTH(created_at)";
+    $mepr_col = !empty($andmonth) ? "DAY(created_at) as mepr_day" : "MONTH(created_at) as mepr_month";
+
+    $q = "SELECT (SUM(amount)+SUM(tax_amount)) as mepr_value, {$mepr_col}
+            FROM {$mepr_db->transactions}
+            WHERE status = %s
+              AND txn_type = %s
+              {$andmonth}
+              {$andyear}
+              {$andproduct}
+              {$groupby}";
+
+    return self::format_mepr_dataset(
+      $wpdb->get_results($wpdb->prepare($q, MeprTransaction::$refunded_str, MeprTransaction::$payment_str))
+    );
+  }
+
+  public static function get_collected_dataset($month = false, $year = false, $product = null) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
+    $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
+    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $groupby = !empty($andmonth) ? "GROUP BY DAY(created_at)" : "GROUP BY MONTH(created_at)";
+    $mepr_col = !empty($andmonth) ? "DAY(created_at) as mepr_day" : "MONTH(created_at) as mepr_month";
+
+    $q = "SELECT (SUM(amount)+SUM(tax_amount)), {$mepr_col}
+            FROM {$mepr_db->transactions}
+            WHERE status IN (%s,%s)
+              AND txn_type = %s
+              {$andmonth}
+              {$andyear}
+              {$andproduct}
+              {$groupby}";
+
+    return self::format_mepr_dataset(
+      $wpdb->get_var($wpdb->get_results($q, MeprTransaction::$complete_str, MeprTransaction::$refunded_str, MeprTransaction::$payment_str))
+    );
+  }
+
+  public static function get_yearly_dataset($type, $year, $product, $q=array()) {
+    global $wpdb;
+    $mepr_db = new MeprDb();
+
+    $results = array();
+    $andproduct = ($product == "all")?"":" AND product_id = {$product}";
+    $where = MeprUtils::build_where_clause($q);
+
+    $selecttype = ($type == "amounts")?"SUM(amount)":"COUNT(*)";
+
+    $queries = array();
+    $queries['p'] = "SELECT {$selecttype} as mepr_value, MONTH(created_at) as mepr_month
+          FROM {$mepr_db->transactions}
+          WHERE YEAR(created_at) = {$year}
+            AND txn_type = '".MeprTransaction::$payment_str."'
+            AND status = '".MeprTransaction::$pending_str."'
+            {$andproduct}{$where}
+            GROUP BY MONTH(created_at)";
+
+    $queries['f'] = "SELECT {$selecttype} as mepr_value, MONTH(created_at) as mepr_month
+          FROM {$mepr_db->transactions}
+          WHERE YEAR(created_at) = {$year}
+            AND txn_type = '".MeprTransaction::$payment_str."'
+            AND status = '".MeprTransaction::$failed_str."'
+            {$andproduct}{$where}
+            GROUP BY MONTH(created_at)";
+
+    $queries['c'] = "SELECT {$selecttype} as mepr_value, MONTH(created_at) as mepr_month
+          FROM {$mepr_db->transactions}
+          WHERE YEAR(created_at) = {$year}
+            AND txn_type = '".MeprTransaction::$payment_str."'
+            AND status = '".MeprTransaction::$complete_str."'
+            {$andproduct}{$where}
+            GROUP BY MONTH(created_at)";
+
+    $queries['r'] = "SELECT {$selecttype} as mepr_value, MONTH(created_at) as mepr_month
+          FROM {$mepr_db->transactions}
+          WHERE YEAR(created_at) = {$year}
+            AND txn_type = '".MeprTransaction::$payment_str."'
+            AND status = '".MeprTransaction::$refunded_str."'
+            {$andproduct}{$where}
+            GROUP BY MONTH(created_at)";
+
+
+    if($type == "amounts") {
+
+      $queries['x'] = "SELECT SUM(tax_amount) as mepr_value, MONTH(created_at) as mepr_month
+          FROM {$mepr_db->transactions}
+          WHERE YEAR(created_at) = {$year}
+            AND txn_type = '".MeprTransaction::$payment_str."'
+            AND status = '".MeprTransaction::$complete_str."'
+            {$andproduct}{$where}
+            GROUP BY MONTH(created_at)";
+
+      $queries['t'] = "SELECT (SUM(tax_amount)+SUM(amount)) as mepr_value, MONTH(created_at) as mepr_month
+          FROM {$mepr_db->transactions}
+          WHERE YEAR(created_at) = {$year}
+            AND txn_type = '".MeprTransaction::$payment_str."'
+            AND status IN ('".MeprTransaction::$complete_str."', '".MeprTransaction::$refunded_str."')
+            {$andproduct}{$where}
+            GROUP BY MONTH(created_at)";
+    }
+
+    foreach( $queries as $type => $sql ) {
+
+      for($i = 1; $i <= 12; $i++) {
+        if( ! isset($results[$i]) ) {
+          $results[$i] = new stdClass();
+          $results[$i]->month = $i;
+        }
+
+        $results[$i]->$type = 0;
+      }
+
+      $resultset = $wpdb->get_results( $wpdb->prepare($sql) );
+
+      if( ! empty($resultset) ) {
+        foreach( $resultset as $row ) {
+          $results[$row->mepr_month]->$type = $row->mepr_value;
+        }
+      }
+
+    }
+
+    return $results;
+  }
 } //End class
 

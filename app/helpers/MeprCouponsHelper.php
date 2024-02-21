@@ -8,7 +8,7 @@ class MeprCouponsHelper
     $access = is_array($access) ? $access : array();
     $contents = array();
 
-    $posts = MeprCptModel::all('MeprProduct');
+    $posts = MeprCptModel::all('MeprProduct', false, array('orderby' => 'title', 'order' => 'ASC'));
 
     foreach($posts as $post)
       $contents[$post->ID] = $post->post_title;

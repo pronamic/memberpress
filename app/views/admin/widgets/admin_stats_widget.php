@@ -45,7 +45,7 @@
 <div style="clear:both;height:10px;"></div>
 
 <div id="mepr-widget-report">
-  <img src="<?php echo admin_url('images/wpspin_light-2x.gif'); ?>" width="16px" height="16px" />
+  <?php MeprView::render("/admin/reports/svg_loader"); ?>
 </div>
 
 <div class="alignright">

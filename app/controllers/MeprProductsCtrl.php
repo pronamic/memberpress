@@ -31,6 +31,12 @@ class MeprProductsCtrl extends MeprCptCtrl {
 
     // Cleanup list view
     add_filter('views_edit-'.MeprProduct::$cpt, 'MeprAppCtrl::cleanup_list_view' );
+
+    // Category filter
+    add_action('init', 'MeprProductsCtrl::register_taxonomy');
+    add_action('admin_init', 'MeprProductsCtrl::register_filter_queries');
+    add_action('restrict_manage_posts', 'MeprProductsCtrl::render_memberships_filters', 10, 1);
+    add_action('admin_footer-edit.php', 'MeprProductsCtrl::render_categories_button');
   }
 
   public function register_post_type() {
@@ -64,13 +70,53 @@ class MeprProductsCtrl extends MeprCptCtrl {
     register_post_type( $this->cpt->slug, $this->cpt->config );
   }
 
+  public static function register_taxonomy() {
+    register_taxonomy(
+      MeprProduct::$taxonomy_product_category,
+      MeprProduct::$cpt,
+      array(
+        'labels'                       => array(
+          'name'                       => esc_html_x( 'Categories', 'taxonomy general name', 'memberpress' ),
+          'singular_name'              => esc_html_x( 'Category', 'taxonomy singular name', 'memberpress' ),
+          'search_items'               => esc_html__( 'Search Categories', 'memberpress' ),
+          'all_items'                  => esc_html__( 'All Categories', 'memberpress' ),
+          'parent_item'                => esc_html__( 'Parent Category', 'memberpress' ),
+          'parent_item_colon'          => esc_html__( 'Parent Category:', 'memberpress' ),
+          'edit_item'                  => esc_html__( 'Edit Category', 'memberpress' ),
+          'update_item'                => esc_html__( 'Update Category', 'memberpress' ),
+          'add_new_item'               => esc_html__( 'Add New Category', 'memberpress' ),
+          'new_item_name'              => esc_html__( 'New Category Name', 'memberpress' ),
+          'menu_name'                  => esc_html__( 'Categories', 'memberpress' ),
+          'separate_items_with_commas' => esc_html__( 'Separate Categories with commas', 'memberpress' ),
+          'add_or_remove_items'        => esc_html__( 'Add or remove Categories', 'memberpress' ),
+          'choose_from_most_used'      => esc_html__( 'Choose from the most used', 'memberpress' ),
+          'popular_items'              => esc_html__( 'Popular Categories', 'memberpress' ),
+          'not_found'                  => esc_html__( 'Not Found', 'memberpress' ),
+          'no_terms'                   => esc_html__( 'No Categories', 'memberpress' ),
+          'items_list'                 => esc_html__( 'Categories list', 'memberpress' ),
+          'items_list_navigation'      => esc_html__( 'Categories list navigation', 'memberpress' )
+        ),
+        'hierarchical'      => false,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'rewrite'           => false,
+        'capabilities'      => array(
+          'manage_terms' => 'manage_options',
+          'edit_terms'   => 'manage_options',
+          'delete_terms' => 'manage_options',
+          'assign_terms' => 'manage_options'
+        )
+      )
+    );
+  }
+
   public static function columns($columns) {
     $columns = array(
       "cb" => "<input type=\"checkbox\" />",
-      "ID" => __("ID", 'memberpress'),
-      "title" => __("Membership Title", 'memberpress'),
-      "terms" => __("Terms", 'memberpress'),
-      "url" => __('URL', 'memberpress')
+      "ID" => esc_html__("ID", 'memberpress'),
+      "title" => esc_html__("Membership Title", 'memberpress'),
+      "terms" => esc_html__("Terms", 'memberpress'),
+      "url" => esc_html__('URL', 'memberpress')
     );
     return MeprHooks::apply_filters('mepr-admin-memberships-columns', $columns);
   }
@@ -840,4 +886,118 @@ class MeprProductsCtrl extends MeprCptCtrl {
     return MeprUtils::format_float_drop_zero_decimals($display_price);
   }
 
+  /**
+   * Render filters for membership products.
+   */
+  public static function render_memberships_filters($post_type) {
+    if ($post_type === MeprProduct::$cpt) {
+      $taxonomy      = MeprProduct::$taxonomy_product_category;
+      $selected      = isset($_GET[$taxonomy]) ? $_GET[$taxonomy] : '';
+      $info_taxonomy = get_taxonomy($taxonomy);
+
+      if( false === $info_taxonomy ) {
+        return;
+      }
+
+      $taxonomy_args = array(
+        'taxonomy'   => $taxonomy,
+        'hide_empty' => false,
+        'fields'     => 'ids',
+        'number'     => 1
+      );
+
+      $taxonomy_terms = get_terms( $taxonomy_args );
+
+      if ( empty( $taxonomy_terms ) ) {
+        return;
+      }
+
+      wp_dropdown_categories(array(
+        'show_option_all' => sprintf( esc_html__( 'Show all %s', 'memberpress' ), $info_taxonomy->label ),
+        'taxonomy'        => $taxonomy,
+        'name'            => $taxonomy,
+        'orderby'         => 'name',
+        'selected'        => $selected,
+        'show_count'      => true,
+        'hide_empty'      => false
+      ));
+
+      echo wp_kses(
+        sprintf( '<input type="submit" id="mepr_filter_submit" class="button" value="%s">', esc_html__('Filter', 'memberpress') ),
+          array(
+              'input' => array(
+                  'type' => array(),
+                  'name' => array(),
+                  'id'   => array(),
+                  'class'=> array(),
+                  'value'=> array(),
+              )
+          )
+      );
+    }
+  }
+
+  public static function register_filter_queries() {
+    add_action('parse_query', 'MeprProductsCtrl::filter_memberships');
+  }
+
+  /**
+   * Filter the memberships as per selected taxonomy.
+   *
+   * @param $query
+   */
+  public static function filter_memberships($query) {
+    global $pagenow;
+    $taxonomy = MeprProduct::$taxonomy_product_category;
+    if (
+      $pagenow == 'edit.php' && is_admin()
+      && isset($query->query_vars['post_type'])
+      && $query->query_vars['post_type'] === MeprProduct::$cpt
+      && isset($query->query_vars[$taxonomy])
+      && is_numeric($query->query_vars[$taxonomy])
+      && 0 < absint($query->query_vars[$taxonomy])
+    ) {
+      $term = get_term_by('id', (int) $query->query_vars[$taxonomy], $taxonomy);
+      if ($term && ! is_wp_error($term)) {
+        $query->query_vars[$taxonomy] = $term->slug;
+      }
+    }
+  }
+  /**
+   * Render category button beside 'Add New' button.
+   *
+   * @return void
+   */
+  public static function render_categories_button(){
+    if ( empty( $_GET['post_type'] ) || MeprProduct::$cpt !== $_GET['post_type'] ) {
+      return;
+    }
+    $category_link = add_query_arg( array(
+        'taxonomy'  => MeprProduct::$taxonomy_product_category,
+        'post_type' => MeprProduct::$cpt
+      ),
+      esc_url(admin_url('edit-tags.php'))
+    );
+    $category_btn = wp_kses(
+      sprintf(
+        '<a href="%1$s" class="page-title-action" target = _blank>%2$s</a>',
+        $category_link,
+        esc_html__( 'Categories', 'memberpress' )
+      ),
+      array(
+        'a' => array(
+          'href'   => array(),
+          'class'  => array(),
+          'target' => array()
+        )
+      )
+    );
+    ?>
+    <script>
+      jQuery(document).ready(function($) {
+        $('.wrap .wp-header-end').before("<?php echo addslashes( $category_btn ); ?>");
+      });
+    </script>
+    <?php
+  }
 } //End class

@@ -10,7 +10,7 @@ class MeprReportsHelper
     $product = (isset($_GET['product']) && $_GET['product'] != 'all')?$_GET['product']:'all';
     $contents = array();
 
-    $posts = MeprCptModel::all('MeprProduct');
+    $posts = MeprCptModel::all('MeprProduct', false, array('orderby' => 'title', 'order' => 'ASC'));
 
     foreach($posts as $post)
       $contents[$post->ID] = $post->post_title;

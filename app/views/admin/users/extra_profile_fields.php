@@ -69,6 +69,7 @@
         <td colspan="2">
           <a href="<?php echo admin_url('admin.php?page=memberpress-subscriptions&search='.urlencode($user->user_email)).'&search-field=email'; ?>" class="button"><?php _e("View Member's Subscriptions", "memberpress");?></a>
         </td>
+        <?php MeprHooks::do_action('mepr_after_user_profile_subs_btn', $user); ?>
       </tr>
       <tr>
         <td colspan="2">

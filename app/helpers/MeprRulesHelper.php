@@ -272,7 +272,7 @@ class MeprRulesHelper
 
   public static function drip_expires_after_dropdown($rule, $type)
   {
-    $products = MeprCptModel::all('MeprProduct');
+    $products = MeprCptModel::all('MeprProduct', false, array('orderby' => 'title', 'order' => 'ASC'));
     ?>
     <select name="<?php echo $type; ?>" id="<?php echo $type; ?>">
       <option value="registers" <?php selected((($type == MeprRule::$drip_after_str && $rule->drip_after == 'registers') || ($type == MeprRule::$expires_after_str && $rule->expires_after == 'registers'))); ?>><?php _e('member registers', 'memberpress'); ?></option>

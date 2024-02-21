@@ -474,7 +474,7 @@ class MeprAppHelper {
     $memberships = is_array($memberships) ? $memberships : array();
     $contents = array();
 
-    $posts = MeprCptModel::all('MeprProduct');
+    $posts = MeprCptModel::all('MeprProduct', false, array('orderby' => 'title', 'order' => 'ASC'));
 
     foreach($posts as $post) {
       $contents[$post->ID] = $post->post_title;

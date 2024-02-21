@@ -47,7 +47,12 @@
         <td>&nbsp;</td>
         <?php endif; ?>
         <td class="mp-currency-cell">
-          -<?php echo MeprAppHelper::format_currency( $invoice['coupon']['amount'], true, false ); ?></td>
+          <?php if( '0' !== $invoice['coupon']['amount'] ) : ?>
+            <?php echo MeprAppHelper::format_currency(MeprCouponsHelper::format_coupon_amount($invoice['coupon']['amount']), true, false); ?>
+          <?php else: ?>
+            &nbsp;
+          <?php endif; ?>
+        </td>
       </tr>
       <?php endif; ?>
     </tbody>

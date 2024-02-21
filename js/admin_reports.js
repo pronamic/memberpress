@@ -1,27 +1,132 @@
 var main_view = jQuery('div#mepr-reports-main-view').attr('data-value');
 var currency_symbol = jQuery('div#mepr-reports-currency-symbol').attr('data-value');
+var mepr_current_product = jQuery('div#mepr-reports-current-data').data('current-product');
+var mepr_current_month = jQuery('div#mepr-reports-current-data').data('current-month');
+var mepr_current_year = jQuery('div#mepr-reports-current-data').data('current-year');
 
-var drawReportingCharts = function () {
-  var month = jQuery('div#monthly-dropdowns-form select[name="month"]').val();
-  var year = jQuery('div#monthly-dropdowns-form select[name="year"]').val();
-  var product = jQuery('div#monthly-dropdowns-form select[name="product"]').val();
-  var main_width = jQuery('div#'+main_view+'-reports-area').width() - 55;
+function mepr_all_time_info_blocks() {
+  return new Promise((resolve, reject) => {
+    var args = {
+      action: 'mepr_all_time_info_blocks',
+      product: mepr_current_product,
+      month: mepr_current_month,
+      year: mepr_current_year,
+      report_nonce: MeprReportData.report_nonce
+    };
 
-  //Monthly Amounts Area Chart
-  var args = {
-    action: 'mepr_month_report',
-    type: 'amounts',
-    month: month,
-    year: year,
-    product: product,
-    report_nonce: MeprReportData.report_nonce
-  };
+    jQuery.getJSON(ajaxurl, args, function (json_object) {
+      jQuery('#all-time-info-blocks').html(json_object.data.output);
+      resolve();
+    });
+  });
+}
 
-  jQuery
-    .getJSON(ajaxurl, args, function (data) {
+function mepr_month_info_blocks() {
+  return new Promise((resolve, reject) => {
+    var args = {
+      action: 'mepr_month_info_blocks',
+      product: mepr_current_product,
+      month: mepr_current_month,
+      year: mepr_current_year,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (json_object) {
+      jQuery('#monthly-info-blocks').html(json_object.data.output);
+      resolve();
+    });
+  });
+}
+
+function mepr_month_info_table() {
+  return new Promise((resolve, reject) => {
+    var args = {
+      action: 'mepr_month_info_table',
+      product: mepr_current_product,
+      month: mepr_current_month,
+      year: mepr_current_year,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (json_object) {
+      jQuery('#monthly-data-table').html(json_object.data.output);
+      resolve();
+    });
+  });
+}
+
+function mepr_year_info_blocks() {
+  return new Promise((resolve, reject) => {
+    var args = {
+      action: 'mepr_year_info_blocks',
+      product: mepr_current_product,
+      month: mepr_current_month,
+      year: mepr_current_year,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (json_object) {
+      jQuery('#yearly-info-blocks').html(json_object.data.output);
+      resolve();
+    });
+  });
+}
+
+function mepr_year_info_table() {
+  return new Promise((resolve, reject) => {
+    var args = {
+      action: 'mepr_year_info_table',
+      product: mepr_current_product,
+      month: mepr_current_month,
+      year: mepr_current_year,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (json_object) {
+      jQuery('#yearly-data-table').html(json_object.data.output);
+      resolve();
+    });
+  });
+}
+
+function mepr_overall_info_blocks() {
+  return new Promise((resolve, reject) => {
+    var args = {
+      action: 'mepr_overall_info_blocks',
+      product: mepr_current_product,
+      month: mepr_current_month,
+      year: mepr_current_year,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (json_object) {
+      jQuery('#overall_info_blocks').html(json_object.data.output);
+      resolve();
+    });
+  });
+}
+
+function mepr_monthly_report() {
+  return new Promise((resolve, reject) => {
+    var month = jQuery('div#monthly-dropdowns-form select[name="month"]').val();
+    var year = jQuery('div#monthly-dropdowns-form select[name="year"]').val();
+    var product = jQuery('div#monthly-dropdowns-form select[name="product"]').val();
+    var main_width = jQuery('div#'+main_view+'-reports-area').width() - 55;
+
+    //Monthly Amounts Area Chart
+    var args = {
+      action: 'mepr_month_report',
+      type: 'amounts',
+      month: month,
+      year: year,
+      product: product,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (data) {
       var chartData = new google.visualization.DataTable(data);
       var chart = new google.visualization.AreaChart(document.getElementById('monthly-amounts-area-graph'));
-
+      jQuery('#monthly-amounts-area-graph').removeClass('mepr-loading');
       var chartSettings = {
          height:'350',
          width: main_width,
@@ -34,24 +139,29 @@ var drawReportingCharts = function () {
          }
       };
 
-      //NOT WORKING
-      // var monthlyAmountsFormatter = new google.visualization.NumberFormat({fractionDigits: 2});
-      // monthlyAmountsFormatter.format(MonthlyAmountsChartData, 2);
-
       chart.draw(chartData, chartSettings);
+      resolve();
+    });
   });
+}
 
-  //Yearly Amounts Area Chart
-  args = {
-    action: 'mepr_year_report',
-    type: 'amounts',
-    year: year,
-    product: product,
-    report_nonce: MeprReportData.report_nonce
-  };
+function mepr_yearly_report() {
+  return new Promise((resolve, reject) => {
+    var month = jQuery('div#monthly-dropdowns-form select[name="month"]').val();
+    var year = jQuery('div#monthly-dropdowns-form select[name="year"]').val();
+    var product = jQuery('div#monthly-dropdowns-form select[name="product"]').val();
+    var main_width = jQuery('div#'+main_view+'-reports-area').width() - 55;
 
-  jQuery
-    .getJSON(ajaxurl, args, function (data) {
+    //Yearly Amounts Area Chart
+    var args = {
+      action: 'mepr_year_report',
+      type: 'amounts',
+      year: year,
+      product: product,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (data) {
       var $chart = jQuery('#yearly-amounts-area-graph'),
         chartSettings = {
           height: '350',
@@ -65,6 +175,8 @@ var drawReportingCharts = function () {
           }
         };
 
+        $chart.removeClass('mepr-loading');
+
       if($chart.is(':visible')) {
         var chartData = new google.visualization.DataTable(data);
         var chart = new google.visualization.AreaChart($chart[0]);
@@ -77,20 +189,29 @@ var drawReportingCharts = function () {
           chartSettings: chartSettings
         });
       }
+      resolve();
+    });
   });
+}
 
-  //Monthly Transactions Area Chart
-  args = {
-    action: 'mepr_month_report',
-    type: 'transactions',
-    month: month,
-    year: year,
-    product: product,
-    report_nonce: MeprReportData.report_nonce
-  };
+function mepr_monthly_report_txn() {
+  return new Promise((resolve, reject) => {
+    var month = jQuery('div#monthly-dropdowns-form select[name="month"]').val();
+    var year = jQuery('div#monthly-dropdowns-form select[name="year"]').val();
+    var product = jQuery('div#monthly-dropdowns-form select[name="product"]').val();
+    var main_width = jQuery('div#'+main_view+'-reports-area').width() - 55;
 
-  jQuery
-    .getJSON(ajaxurl, args, function (data) {
+    //Monthly Transactions Area Chart
+    var args = {
+      action: 'mepr_month_report',
+      type: 'transactions',
+      month: month,
+      year: year,
+      product: product,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (data) {
       var $chart = jQuery('#monthly-transactions-area-graph'),
         chartSettings = {
           height: '350',
@@ -101,6 +222,8 @@ var drawReportingCharts = function () {
           }
         };
 
+        $chart.removeClass('mepr-loading');
+
       if($chart.is(':visible')) {
         var chartData = new google.visualization.DataTable(data);
         var chart = new google.visualization.AreaChart($chart[0]);
@@ -113,19 +236,28 @@ var drawReportingCharts = function () {
           chartSettings: chartSettings
         });
       }
+      resolve();
     });
+  });
+}
 
-  //Yearly Transactions Area Chart
-  args = {
-    action: 'mepr_year_report',
-    type: 'transactions',
-    year: year,
-    product: product,
-    report_nonce: MeprReportData.report_nonce
-  };
+function mepr_yearly_report_txn() {
+  return new Promise((resolve, reject) => {
+    var month = jQuery('div#monthly-dropdowns-form select[name="month"]').val();
+    var year = jQuery('div#monthly-dropdowns-form select[name="year"]').val();
+    var product = jQuery('div#monthly-dropdowns-form select[name="product"]').val();
+    var main_width = jQuery('div#'+main_view+'-reports-area').width() - 55;
 
-  jQuery
-    .getJSON(ajaxurl, args, function (data) {
+    //Yearly Transactions Area Chart
+    var args = {
+      action: 'mepr_year_report',
+      type: 'transactions',
+      year: year,
+      product: product,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (data) {
       var $chart = jQuery('#yearly-transactions-area-graph'),
         chartSettings = {
           height: '350',
@@ -136,6 +268,8 @@ var drawReportingCharts = function () {
           }
         };
 
+      $chart.removeClass('mepr-loading');
+
       if($chart.is(':visible')) {
         var chartData = new google.visualization.DataTable(data);
         var chart = new google.visualization.AreaChart($chart[0]);
@@ -148,78 +282,164 @@ var drawReportingCharts = function () {
           chartSettings: chartSettings
         });
       }
+      resolve();
     });
+  });
+}
 
-  // Pie charts are hidden for per-membership reporting, so bail early.
-  if(product !== 'all') {
-    return;
-  }
+function mepr_pie_report_monthly() {
+  return new Promise((resolve, reject) => {
+    var month = jQuery('div#monthly-dropdowns-form select[name="month"]').val();
+    var year = jQuery('div#monthly-dropdowns-form select[name="year"]').val();
+    var product = jQuery('div#monthly-dropdowns-form select[name="product"]').val();
+    var main_width = jQuery('div#'+main_view+'-reports-area').width() - 55;
 
-  //Monthly Pie Chart Totals
-  args = {
-    action: 'mepr_pie_report',
-    type: 'monthly',
-    month: month,
-    year: year,
-    report_nonce: MeprReportData.report_nonce
-  };
+    // Pie charts are hidden for per-membership reporting, so bail early.
+    if(product !== 'all') {
+      resolve();
+      return;
+    }
 
-  jQuery
-    .getJSON(ajaxurl, args, function (data) {
+    //Monthly Pie Chart Totals
+    var args = {
+      action: 'mepr_pie_report',
+      type: 'monthly',
+      month: month,
+      year: year,
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (data) {
+      resolve();
+
       var chartData = new google.visualization.DataTable(data);
       var chart = new google.visualization.PieChart(document.getElementById('monthly-pie-chart-area'));
 
       var chartSettings = {
-        height:185,
-        width:330,
+        width: 360,
+        height: 250,
+        chartArea:{width:"100%"},
         title:jQuery('div#mepr-reports-pie-title').attr('data-value')
       };
 
       chart.draw(chartData, chartSettings);
     });
+  });
+}
 
-  //Yearly Pie Chart Totals
-  args = {
-    action: 'mepr_pie_report',
-    type: 'yearly',
-    year: year,
-    report_nonce: MeprReportData.report_nonce
-  };
+function mepr_pie_report_yearly() {
+  return new Promise((resolve, reject) => {
+    var month = jQuery('div#yearly-dropdowns-form select[name="month"]').val();
+    var year = jQuery('div#yearly-dropdowns-form select[name="year"]').val();
+    var product = jQuery('div#yearly-dropdowns-form select[name="product"]').val();
+    var main_width = jQuery('div#'+main_view+'-reports-area').width() - 55;
 
-  jQuery
-    .getJSON(ajaxurl, args, function (data) {
-      var chartData = new google.visualization.DataTable(data);
-      var chart = new google.visualization.PieChart(document.getElementById('yearly-pie-chart-area'));
+    // Pie charts are hidden for per-membership reporting, so bail early.
+    if(product !== 'all') {
+      resolve();
+      return;
+    }
 
-      var chartSettings = {
-        height:185,
-        width:330,
-        title:jQuery('div#mepr-reports-pie-title').attr('data-value')
-      };
+    //Yearly Pie Chart Totals
+    var args = {
+      action: 'mepr_pie_report',
+      type: 'yearly',
+      year: year,
+      report_nonce: MeprReportData.report_nonce
+    };
 
-      chart.draw(chartData, chartSettings);
+    jQuery.getJSON(ajaxurl, args, function (data) {
+      resolve();
+      try {
+
+        var chartData = new google.visualization.DataTable(data);
+        var chart = new google.visualization.PieChart(document.getElementById('yearly-pie-chart-area'));
+
+        var chartSettings = {
+          width: 360,
+          height: 250,
+          chartArea:{width:"100%"},
+          title:jQuery('div#mepr-reports-pie-title').attr('data-value')
+        };
+
+        chart.draw(chartData, chartSettings);
+      } catch( ex ) {
+
+      }
     });
+  });
+}
 
-  //All-Time Pie Chart Totals
-  args = {
-    action: 'mepr_pie_report',
-    type: 'all-time',
-    report_nonce: MeprReportData.report_nonce
-  };
+function mepr_pie_report_alltime() {
+  return new Promise((resolve, reject) => {
+    var product = jQuery('div#all-time-dropdowns-form select[name="product"]').val();
 
-  jQuery
-    .getJSON( ajaxurl, args, function (data) {
+    // Pie charts are hidden for per-membership reporting, so bail early.
+    if(product !== 'all') {
+      resolve();
+      return;
+    }
+
+    //All-Time Pie Chart Totals
+    var args = {
+      action: 'mepr_pie_report',
+      type: 'all-time',
+      report_nonce: MeprReportData.report_nonce
+    };
+
+    jQuery.getJSON(ajaxurl, args, function (data) {
       var chartData = new google.visualization.DataTable(data);
       var chart = new google.visualization.PieChart(document.getElementById('all-time-pie-chart-area'));
 
       var chartSettings = {
-        height: 185,
-        width: 330,
+        width: 360,
+        height: 250,
+        chartArea:{width:"100%"},
         title: jQuery('div#mepr-reports-pie-title').attr('data-value')
       };
-
       chart.draw(chartData, chartSettings);
+      resolve();
     });
+  });
+}
+
+function mepr_load_nav_tab(main_view) {
+
+  mepr_overall_info_blocks();
+
+  if( 'monthly' === main_view ) {
+    mepr_month_info_blocks()
+    .then(() => mepr_pie_report_monthly())
+    .then(() => mepr_month_info_table())
+    .then(() => mepr_monthly_report())
+    .catch((error) => {
+
+    });
+  }
+
+  if( 'yearly' === main_view ) {
+    mepr_pie_report_yearly()
+    .then(() => mepr_year_info_blocks())
+    .then(() => mepr_yearly_report())
+    .then(() => mepr_year_info_table())
+    .catch((error) => {
+
+    });
+  }
+
+  if( 'all-time' === main_view ) {
+     mepr_pie_report_alltime()
+    .then(() => mepr_all_time_info_blocks())
+    .catch((error) => {
+
+    });
+  }
+
+  jQuery('a#'+main_view).addClass('loaded');
+}
+
+var drawReportingCharts = function () {
+  mepr_load_nav_tab(main_view);
 }
 
 google.charts.load('current', { packages: ['corechart'] });
@@ -238,6 +458,10 @@ google.charts.setOnLoadCallback(drawReportingCharts);
     $('a.main-nav-tab').click(function() {
       if($(this).hasClass('nav-tab-active'))
         return false;
+
+      if(!$(this).hasClass('loaded')){
+        mepr_load_nav_tab($(this).attr('id'));
+      }
 
       var $chosen = $('div.' + $(this).attr('id'));
 
@@ -259,6 +483,8 @@ google.charts.setOnLoadCallback(drawReportingCharts);
       if($(this).hasClass('nav-tab-active'))
         return false;
 
+      mepr_monthly_report_txn();
+
       var $chosen = $('div.' + $(this).attr('id'));
 
       $('a.monthly-nav-tab').removeClass('nav-tab-active');
@@ -276,6 +502,8 @@ google.charts.setOnLoadCallback(drawReportingCharts);
     $('a.yearly-nav-tab').click(function() {
       if($(this).hasClass('nav-tab-active'))
         return false;
+
+      mepr_yearly_report_txn();
 
       var $chosen = $('div.' + $(this).attr('id'));
 

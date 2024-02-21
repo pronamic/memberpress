@@ -287,6 +287,8 @@ class MeprLoginCtrl extends MeprBaseCtrl {
 
     extract($_POST, EXTR_SKIP);
 
+    $mepr_user_or_email = wp_unslash($mepr_user_or_email);
+
     if(empty($errors)) {
       $is_email = (is_email($mepr_user_or_email) and email_exists($mepr_user_or_email));
       $is_username = username_exists($mepr_user_or_email);

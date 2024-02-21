@@ -1624,7 +1624,7 @@ class MeprUser extends MeprBaseModel {
     $count = $wpdb->get_var($q);
 
     //If force all fields enabled, or no memberships have customized fields, just return the MeprOptions->custom_fields
-    if($force_all || empty($count)) { return $mepr_options->custom_fields; }
+    if(MeprHooks::apply_filters('mepr_show_all_custom_fields_on_account', $force_all) || empty($count)) { return $mepr_options->custom_fields; }
 
     //If the user hasn't purchased anything, and at least one membership has customized fields just show all fields
     $prods = $this->active_product_subscriptions('products');
