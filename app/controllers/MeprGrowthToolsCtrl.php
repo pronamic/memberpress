@@ -6,7 +6,7 @@ class MeprGrowthToolsCtrl extends MeprBaseCtrl
 {
   public function load_hooks()
   {
-    if (class_exists('\MemberPress\Caseproof\GrowthTools\App') && version_compare(phpversion(), '7.4', '>=')) {
+    if (version_compare(phpversion(), '7.4', '>=') && class_exists('\MemberPress\Caseproof\GrowthTools\App')) {
       add_action('admin_enqueue_scripts', function () {
         $screen = get_current_screen();
         if ($screen->id == 'memberpress_page_memberpress-growth-tools') {
