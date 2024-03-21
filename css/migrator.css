@@ -1,0 +1,39 @@
+.mepr-migrator > .notice {
+  margin: 5px 0 0;
+}
+.mepr-migrator > p:last-child,
+.mepr-migrator > .notice:last-child {
+  margin-bottom: 0;
+}
+.mepr-migrator-boxes {
+  display: flex;
+  margin-top: 20px;
+}
+.mepr-migrator-box {
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #c3c4c7;
+  border-radius: 3px;
+}
+.mepr-migrator-box h3 {
+  margin-top: 0;
+}
+.mepr-migrator-settings label {
+  font-size: 12px;
+}
+.mepr-wizard .mepr-migrator-settings {
+  margin: 1.5em 0 1.5em 5px;
+}
+.mepr-wizard .mepr-migrator-settings label {
+  font-size: 15px;
+}
+.mepr-migrator .mepr-wizard-button-group {
+  margin-bottom: 20px;
+}
+#mepr-migrator-learndash-please-wait {
+  font-size: 12px;
+  padding-left: 20px;
+}
+.mepr-wizard #mepr-migrator-learndash-please-wait {
+  font-size: 13px;
+}

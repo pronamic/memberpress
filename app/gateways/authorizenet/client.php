@@ -124,9 +124,12 @@ class MeprArtificialAuthorizeNetProfileHttpClient {
     $paymentProfile = '';
     $captureMode = $capture ? 'final' : 'pre';
 
-//    $captureMode = 'final';
     if (isset($authorize_net_customer["paymentProfiles"]["customerPaymentProfileId"])) {
       $paymentProfile = $authorize_net_customer["paymentProfiles"]["customerPaymentProfileId"];
+    }
+
+    if ( isset( $authorize_net_customer['newCustomerPaymentProfileId'] ) ) {
+      $paymentProfile = $authorize_net_customer['newCustomerPaymentProfileId'];
     }
 
     if (empty($paymentProfile)) {
@@ -239,6 +242,12 @@ class MeprArtificialAuthorizeNetProfileHttpClient {
 
       return $response['customerPaymentProfileId'];
     } elseif ( isset( $response['messages']['message']['code'] ) && $response['messages']['message']['code'] == 'E00039' ) {
+      if ($response['messages']['message']['text'] == 'A duplicate customer payment profile already exists.') {
+        $this->cache[ $cacheKey ] = $response['customerPaymentProfileId'];
+
+        return $response['customerPaymentProfileId'];
+      }
+
       $this->cache[ $cacheKey ] = null;
       return null;
     }

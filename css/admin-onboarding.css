@@ -834,6 +834,7 @@ h2.mepr-wizard-finished {
 .mepr-wizard-button-group {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 .mepr-wizard-mfp.mfp-bg {
   z-index: 100005;
@@ -1097,10 +1098,12 @@ h2.mepr-wizard-finished {
   line-height: 15px;
   color: #091D2E;
 }
-.mepr-wizard-license-notice {
+.mepr-wizard-license-notice,
+.mepr-wizard-success-notice {
   background: #E9FAFA;
   border-radius: 6px;
   padding: 13px;
+  font-size: 15px;
   text-align: center;
   display: flex;
   align-items: center;
@@ -1108,7 +1111,8 @@ h2.mepr-wizard-finished {
   gap: 5px;
   margin-bottom: 30px;
 }
-.mepr-wizard-license-notice img {
+.mepr-wizard-license-notice img,
+.mepr-wizard-success-notice img {
   width: 21px;
   height: 21px;
 }

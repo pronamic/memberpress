@@ -614,4 +614,100 @@ class MeprAppHelper {
     return has_block($block_name) || self::block_template_has_block($block_name);
   }
 
+  public static function wp_kses( $content, $allowed_tags = array() ) {
+    if( ! is_array($allowed_tags) || empty($allowed_tags) ) {
+      $allowed_tags = array(
+        'a' => array(
+          'class' => array(),
+          'href' => array(),
+          'rel' => array(),
+          'title' => array(),
+        ),
+        'abbr' => array(
+          'title' => array(),
+        ),
+        'b' => array(),
+        'blockquote' => array(
+          'cite' => array(),
+        ),
+        'cite' => array(
+          'title' => array(),
+        ),
+        'code' => array(),
+        'del' => array(
+          'datetime' => array(),
+          'title' => array(),
+        ),
+        'dd' => array(),
+        'div' => array(
+          'class' => array(),
+          'title' => array(),
+          'style' => array(),
+        ),
+        'dl' => array(),
+        'dt' => array(),
+        'em' => array(),
+        'h1' => array(),
+        'h2' => array(),
+        'h3' => array(),
+        'h4' => array(),
+        'h5' => array(),
+        'h6' => array(),
+        'i' => array(),
+        'img' => array(
+          'alt' => array(),
+          'class' => array(),
+          'height' => array(),
+          'src' => array(),
+          'width' => array(),
+        ),
+        'li' => array(
+          'class' => array(),
+        ),
+        'ol' => array(
+          'class' => array(),
+        ),
+        'p' => array(
+          'class' => array(),
+        ),
+        'q' => array(
+          'cite' => array(),
+          'title' => array(),
+        ),
+        'span' => array(
+          'class' => array(),
+          'title' => array(),
+          'style' => array(),
+        ),
+        'strike' => array(),
+        'strong' => array(),
+        'ul' => array(
+          'class' => array(),
+        ),
+        'input' => array(
+          'type' => array(),
+          'name' => array(),
+          'value' => array(),
+          'class' => array(),
+          'id' => array(),
+          'placeholder' => array(),
+          'readonly' => array(),
+          'disabled' => array(),
+          'checked' => array(),
+        ),
+        'button' => array(
+          'type' => array(),
+          'data-toggle' => array(),
+          'value' => array(),
+          'class' => array(),
+          'id' => array(),
+          'aria-label' => array(),
+          'readonly' => array(),
+          'disabled' => array(),
+        )
+      );
+    }
+    return wp_kses( $content, $allowed_tags );
+  }
+
 } //End class

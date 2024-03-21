@@ -23,6 +23,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
     add_action('admin_notices', 'MeprAppCtrl::php_min_version_check');
     add_action('admin_notices', 'MeprAppCtrl::maybe_show_get_started_notice');
     add_action('wp_ajax_mepr_dismiss_notice', 'MeprAppCtrl::dismiss_notice');
+    add_action('wp_ajax_mepr_dismiss_global_notice', 'MeprAppCtrl::dismiss_global_notice');
     add_action('wp_ajax_mepr_dismiss_daily_notice', 'MeprAppCtrl::dismiss_daily_notice');
     add_action('wp_ajax_mepr_dismiss_weekly_notice', 'MeprAppCtrl::dismiss_weekly_notice');
     add_action('wp_ajax_mepr_todays_date', 'MeprAppCtrl::todays_date');
@@ -295,6 +296,15 @@ class MeprAppCtrl extends MeprBaseCtrl {
     if(check_ajax_referer('mepr_dismiss_notice', false, false) && isset($_POST['notice']) && is_string($_POST['notice'])) {
       $notice = sanitize_key($_POST['notice']);
       update_user_meta(get_current_user_id(), "mepr_dismiss_notice_{$notice}", true);
+    }
+
+    wp_send_json_success();
+  }
+
+  public static function dismiss_global_notice() {
+    if(check_ajax_referer('mepr_dismiss_notice', false, false) && isset($_POST['notice']) && is_string($_POST['notice'])) {
+      $notice = sanitize_key($_POST['notice']);
+      update_option("mepr_dismiss_notice_{$notice}", true);
     }
 
     wp_send_json_success();

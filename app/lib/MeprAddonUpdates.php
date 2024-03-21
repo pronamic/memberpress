@@ -127,6 +127,7 @@ class MeprAddonUpdates {
                                            $domain='https://mothership.caseproof.com',
                                            $blocking=true ) {
     $mepr_options = MeprOptions::fetch();
+    $domain = defined('MEPR_MOTHERSHIP_DOMAIN') ? MEPR_MOTHERSHIP_DOMAIN : $domain;
     $uri = $domain.$endpoint;
 
     $arg_array = array(

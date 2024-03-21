@@ -216,7 +216,7 @@ class MeprAccountCtrl extends MeprBaseCtrl {
     $delim = MeprAppCtrl::get_param_delimiter_char($account_url);
     $errors = array();
     $saved = false;
-    $welcome_message = wpautop(stripslashes($mepr_options->custom_message));
+    $welcome_message = do_shortcode(wp_kses_post(wpautop(stripslashes($mepr_options->custom_message))));
 
     if( MeprUtils::is_post_request() &&
         isset($_POST['mepr-process-account']) && $_POST['mepr-process-account'] == 'Y' ) {
@@ -264,8 +264,6 @@ class MeprAccountCtrl extends MeprBaseCtrl {
       $delim        = MeprAppCtrl::get_param_delimiter_char( $account_url );
 
       $mepr_current_user = MeprUtils::get_currentuserinfo();
-
-      $welcome_message = do_shortcode ( wp_kses_post( wpautop( $mepr_options->custom_message ) ) );
 
       $address_fields = MeprUsersHelper::get_address_fields( $mepr_current_user );
       $address_values = array();

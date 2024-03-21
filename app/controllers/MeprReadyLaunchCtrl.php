@@ -597,7 +597,12 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
   */
   public function cant_purchase_message( $str ){
     $errors[] = $str;
-    $str = MeprView::get_string('/readylaunch/shared/errors', get_defined_vars());
+
+    // Is ReadyLaunch™️ checkout template is enabled?
+    if( self::template_enabled('checkout') ) {
+      $str = MeprView::get_string('/readylaunch/shared/errors', get_defined_vars());
+    }
+
     return '<div class="flex-centered">' . $str . '</div>';
   }
 

@@ -341,8 +341,14 @@ class MeprTransactionsHelper {
 
     if($sub) {
       $prd = $sub->product();
-      if($prd->register_price_action == 'custom' && $mepr_options->design_show_checkout_price_terms) {
+      if($prd->register_price_action == 'default' ||
+        ($prd->register_price_action == 'custom' && MeprReadyLaunchCtrl::template_enabled('checkout') && $mepr_options->design_show_checkout_price_terms)
+      ) {
         $sub_price_str = MeprSubscriptionsHelper::format_currency($sub);
+      }
+
+      if($prd->register_price_action == 'custom' && !MeprReadyLaunchCtrl::template_enabled('checkout') && !empty($prd->register_price) && !$txn->coupon_id && !$txn->prorated) {
+        $sub_price_str = stripslashes($prd->register_price);
       }
 
       //If the coupon amount is HIGHER than the membership renewal price, then HIDE the coupon line in the invoice.
@@ -642,8 +648,14 @@ class MeprTransactionsHelper {
 
     if($sub) {
       $prd = $sub->product();
-      if($prd->register_price_action == 'custom' && $mepr_options->design_show_checkout_price_terms) {
+      if($prd->register_price_action == 'default' ||
+        ($prd->register_price_action == 'custom' && MeprReadyLaunchCtrl::template_enabled('checkout') && $mepr_options->design_show_checkout_price_terms)
+      ) {
         $sub_price_str = MeprSubscriptionsHelper::format_currency($sub);
+      }
+
+      if($prd->register_price_action == 'custom' && !MeprReadyLaunchCtrl::template_enabled('checkout') && !empty($prd->register_price) && !$txn->coupon_id && !$txn->prorated) {
+        $sub_price_str = stripslashes($prd->register_price);
       }
 
       //If the coupon amount is HIGHER than the membership renewal price, then HIDE the coupon line in the invoice.

@@ -592,8 +592,8 @@ class MeprUtils {
       $old_per_day_amount = $old_amount / $old_period;
       $new_per_day_amount = $new_amount / $new_period;
 
-      $old_outstanding_amount = $old_per_day_amount * $old_days_left;
-      $new_outstanding_amount = $new_per_day_amount * $new_days_left;
+      $old_outstanding_amount = $old_per_day_amount * (int) $old_days_left;
+      $new_outstanding_amount = $new_per_day_amount * (int) $new_days_left;
 
       $proration = $new_outstanding_amount - $old_outstanding_amount;
 
@@ -2507,5 +2507,46 @@ class MeprUtils {
     }
 
     return in_array($product_slug, ['memberpress-elite'], true);
+  }
+
+  /**
+   * Validate a JSON request
+   *
+   * @param string $nonce_action The nonce action to verify
+   */
+  public static function validate_json_request($nonce_action) {
+    if(!self::is_post_request()) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    if(!self::is_logged_in_and_an_admin()) {
+      wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
+    }
+
+    if(!check_ajax_referer($nonce_action, false, false)) {
+      wp_send_json_error(__('Security check failed.', 'memberpress'));
+    }
+  }
+
+  /**
+   * Get the request data from a JSON request
+   *
+   * @param  string $nonce_action The nonce action to verify
+   * @return array
+   */
+  public static function get_json_request_data($nonce_action) {
+    self::validate_json_request($nonce_action);
+
+    if(!isset($_POST['data']) || !is_string($_POST['data'])) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    $data = json_decode(wp_unslash($_POST['data']), true);
+
+    if(!is_array($data)) {
+      wp_send_json_error(__('Bad request.', 'memberpress'));
+    }
+
+    return $data;
   }
 } // End class

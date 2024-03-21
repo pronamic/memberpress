@@ -369,6 +369,20 @@ var MeprOnboarding = (function($) {
       .done(function (response) {
         if(response && typeof response.success === 'boolean') {
           if(response.success) {
+            var $ld_migrator = $('#mepr-wizard-ld-migrator');
+
+            if(
+              $ld_migrator.length &&
+              response.data &&
+              Array.isArray(response.data.features) &&
+              Array.isArray(response.data.addons_not_installed) &&
+              response.data.features.indexOf('memberpress-courses') !== -1 &&
+              response.data.addons_not_installed.indexOf('memberpress-courses') === -1
+            ) {
+              $('#mepr-wizard-create-select-content').hide();
+              $ld_migrator.show();
+            }
+
             onboarding.go_to_step(3);
           }
           else {

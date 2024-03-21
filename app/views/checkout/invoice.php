@@ -1,9 +1,9 @@
 <?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
 <div class="mp_wrapper mp_invoice">
   <?php
-    if (isset($_POST['errors']) && $_GET['action'] === 'checkout') {
+    if (isset($_POST['errors']) && isset($_GET['action']) && $_GET['action'] === 'checkout') {
       $errors = array_map('sanitize_text_field', $_POST['errors']);
-        MeprView::render('/shared/errors', get_defined_vars());
+      MeprView::render('/shared/errors', get_defined_vars());
     }
   ?>
   <?php if( isset( $sub_price_str ) ): ?>

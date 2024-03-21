@@ -877,3 +877,60 @@ input[type=submit].btn-link {
   /* height: 100vh; */
   display: flex;
 }
+/*--------------------------------------------------------------
+# RTL
+--------------------------------------------------------------*/
+/* Login Form */
+.rtl .mp_wrapper form {
+  text-align: right;
+}
+.rtl #mepr-template-login .mepro-form button.mp-hide-pw {
+  right: auto;
+  left: 0;
+}
+.rtl #mepr-template-login .mepro-form .mepr_remember_me > * + * {
+  margin-right: 0.5rem;
+  margin-left: 0;
+}
+
+/* Account Page */
+.rtl #mepr-account-nav .mepr-nav-item a {
+  justify-content: right;
+}
+.rtl #mepr-account-nav .mepr-nav-item a::before {
+  margin-right: 0;
+  margin-left: 10px;
+}
+.rtl .site-header .profile-menu__dropdown {
+  right: auto;
+  left: 0;
+  text-align: right;
+}
+.rtl .site-header .profile-menu__text {
+  text-align: right;
+}
+
+.rtl .button.mp-hide-pw {
+  right: auto;
+  left: 0;
+}
+@media (min-width: 840px) {
+  .rtl #mepr-account-content {
+    padding-right: 0;
+    padding-left: 2em;
+  }
+}
+@media (min-width: 1024px) {
+  .rtl .mepr-checkout-container .form-wrapper {
+    padding-right: 3rem;
+    padding-left: 0;
+    border-right: 1px solid #ccc;
+    border-left: none;
+  }
+
+  .rtl .mepr-checkout-container .invoice-wrapper {
+    padding-left: 3rem !important;
+    padding-right: 0;
+  }
+}
+

@@ -300,7 +300,12 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
 
     if ( $authorizenet_customer ) {
       $is_new_user = false;
-      $client->createCustomerPaymentProfile( $user, $authorizenet_customer, $dataValue, $dataDescriptor );
+      $newPaymentProfile = $client->createCustomerPaymentProfile( $user, $authorizenet_customer, $dataValue,
+        $dataDescriptor );
+
+      if ( $newPaymentProfile ) {
+        $authorizenet_customer['newCustomerPaymentProfileId'] = $newPaymentProfile;
+      }
     } else {
       $is_new_user = true;
       $client->createCustomerProfile( $user, $dataValue, $dataDescriptor );

@@ -152,6 +152,18 @@ jQuery(document).ready(function($) {
     })
   });
 
+  $('body').on('click', '.mepr-global-notice-dismiss-permanently button.notice-dismiss', function () {
+    $.ajax({
+      url: MeprAdminShared.ajax_url,
+      method: 'POST',
+      data: {
+        action: 'mepr_dismiss_global_notice',
+        _ajax_nonce: MeprAdminShared.dismiss_notice_nonce,
+        notice: $(this).closest('.notice').data('notice')
+      }
+    })
+  });
+
   $('body').on('click', '.mepr-notice-dismiss-daily button.notice-dismiss', function () {
     $.ajax({
       url: MeprAdminShared.ajax_url,
@@ -174,6 +186,11 @@ jQuery(document).ready(function($) {
         notice: $(this).closest('.notice').data('notice')
       }
     })
+  });
+
+  $('body').on('click', '.notice.is-dismissible .mepr-dismiss-this-notice', function (e) {
+    e.preventDefault();
+    $(this).closest('.notice').find('button.notice-dismiss').trigger('click');
   });
 
   $('#mepAdminHeaderNotifications').on('click', function(e) {

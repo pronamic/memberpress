@@ -94,36 +94,7 @@
               <input type="text" id="<?php echo $mepr_options->product_pages_slug_str; ?>" name="<?php echo $mepr_options->product_pages_slug_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->product_pages_slug); ?>" />
             </td>
           </tr>
-
-          <?php
-            if ( class_exists( 'memberpress\courses\helpers\Options' ) ) {
-            $courses_options = get_option( 'mpcs-options' );
-          ?>
-          <tr valign="top">
-            <td>
-              <label for="<?php echo $mepr_options->product_pages_slug_str; ?>"><?php _e("Classroom Slug:", 'memberpress'); ?>
-              <?php MeprAppHelper::info_tooltip('mepr-courses-slug',
-                __('Classroom Slug', 'memberpress'),
-                __('Use this field to change the permalink base of your courses to something other than /courses/', 'memberpress'));
-              ?>
-            </td>
-            <td>
-              <input type="text" id="mpcs_options_courses_slug" name="mpcs-options[courses-slug]>" placeholder="<?php esc_attr_e('courses', 'memberpress-courses', 'memberpress'); ?>" class="regular-text" value="<?php echo memberpress\courses\helpers\Options::val($courses_options, 'courses-slug'); ?>" />
-            </td>
-          </tr>
-          <tr valign="top">
-            <td>
-              <label for="<?php echo $mepr_options->product_pages_slug_str; ?>"><?php _e("Lesson Slug:", 'memberpress'); ?>
-              <?php MeprAppHelper::info_tooltip('mepr-lessons-slug',
-                __('Lesson Slug', 'memberpress'),
-                __('Use this field to change the permalink base of your lessons to something other than /lessons/', 'memberpress'));
-              ?>
-            </td>
-            <td>
-              <input type="text" id="mpcs_options_lessons_slug" name="mpcs-options[lessons-slug]>" placeholder="<?php esc_attr_e('lessons', 'memberpress-courses', 'memberpress'); ?>" class="regular-text" value="<?php echo memberpress\courses\helpers\Options::val($courses_options, 'lessons-slug'); ?>" />
-            </td>
-          </tr>
-          <?php } ?>
+          <?php MeprHooks::do_action('mepr_display_pages_slugs_options'); ?>
         </tbody>
       </table>
 

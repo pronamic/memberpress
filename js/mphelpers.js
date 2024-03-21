@@ -26,7 +26,7 @@ jQuery(document).ready(function($) {
   //mepr_set_todays_date('a.mepr-today-button');
 
   // Get todays date
-  $('a.mepr-today-button').click(function(e) {
+  $('a.mepr-today-button').on('click', function(e) {
     e.preventDefault();
     mepr_set_todays_date(this);
   });
@@ -61,13 +61,13 @@ jQuery(document).ready(function($) {
   //mepr_set_default_expiration($('a.mepr-default-expiration-button').parent(), true);
 
   // Get default expiration date
-  $('a.mepr-default-expiration-button').click(function(e) {
+  $('a.mepr-default-expiration-button').on('click', function(e) {
     e.preventDefault();
     mepr_set_default_expiration($(this).parent(), false);
   });
 
   // Get default expiration date
-  $('select.mepr-membership-dropdown').change(function(e) {
+  $('select.mepr-membership-dropdown').on('change', function(e) {
     e.preventDefault();
     var expires_at_field_id = $(this).data('expires_at_field_id');
 
@@ -77,7 +77,7 @@ jQuery(document).ready(function($) {
   });
 
   // Get lifetime expiration
-  $('a.mepr-lifetime-expiration-button').click(function(e) {
+  $('a.mepr-lifetime-expiration-button').on('click', function(e) {
     e.preventDefault();
     $(this).parent().find('input.mepr-expires-at').val('');
   });

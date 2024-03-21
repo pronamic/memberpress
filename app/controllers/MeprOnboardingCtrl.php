@@ -190,41 +190,11 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   public static function is_onboarding_page() {
     $id = MeprUtils::get_current_screen_id();
 
-     return !empty($id) && is_string($id) && preg_match('/_page_memberpress-onboarding$/', $id);
-  }
-
-  private static function validate_request($nonce_action) {
-    if(!MeprUtils::is_post_request()) {
-      wp_send_json_error(__('Bad request.', 'memberpress'));
-    }
-
-    if(!MeprUtils::is_logged_in_and_an_admin()) {
-      wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
-    }
-
-    if(!check_ajax_referer($nonce_action, false, false)) {
-      wp_send_json_error(__('Security check failed.', 'memberpress'));
-    }
-  }
-
-  private static function get_request_data($nonce_action) {
-    self::validate_request($nonce_action);
-
-    if(!isset($_POST['data']) || !is_string($_POST['data'])) {
-      wp_send_json_error(__('Bad request.', 'memberpress'));
-    }
-
-    $data = json_decode(wp_unslash($_POST['data']), true);
-
-    if(!is_array($data)) {
-      wp_send_json_error(__('Bad request.', 'memberpress'));
-    }
-
-    return $data;
+    return !empty($id) && is_string($id) && preg_match('/_page_memberpress-onboarding$/', $id);
   }
 
   public static function save_features() {
-    $data = self::get_request_data('mepr_onboarding_save_features');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_save_features');
 
     $valid_features = self::get_features();
     $features = [];
@@ -384,7 +354,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function save_new_content() {
-    $data = self::get_request_data('mepr_onboarding_save_new_content');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_save_new_content');
 
     if(empty($data['type']) || empty($data['title']) || !in_array($data['type'], ['course', 'page'], true)) {
       wp_send_json_error(esc_html__('Bad request.', 'memberpress'));
@@ -466,7 +436,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function search_content() {
-    $data = self::get_request_data('mepr_onboarding_search_content');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_search_content');
 
     if(!isset($data['search']) || !is_string($data['search'])) {
       wp_send_json_error(__('Bad request.', 'memberpress'));
@@ -666,7 +636,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function set_content() {
-    $data = self::get_request_data('mepr_onboarding_set_content');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_set_content');
 
     if(!current_user_can('publish_posts')) {
       wp_send_json_error(esc_html__('Sorry, you don\'t have permission to do this.', 'memberpress'));
@@ -697,34 +667,34 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function unset_content() {
-    $data = self::get_request_data('mepr_onboarding_unset_content');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_unset_content');
     MeprOnboardingHelper::set_content_post_id(0);
     MeprOnboardingHelper::set_rule_post_id(0);
   }
 
   public static function unset_rule() {
-    $data = self::get_request_data('mepr_onboarding_unset_rule');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_unset_rule');
     MeprOnboardingHelper::set_rule_post_id(0);
   }
 
   public static function unset_membership() {
-    $data = self::get_request_data('mepr_onboarding_unset_membership');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_unset_membership');
     MeprOnboardingHelper::set_membership_post_id(0);
   }
 
   public static function mark_content_steps_skipped() {
-    $data = self::get_request_data('mepr_onboarding_mark_content_steps_skipped');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_mark_content_steps_skipped');
     MeprOnboardingHelper::mark_content_steps_skipped();
     MeprOnboardingHelper::maybe_set_steps_completed(5);
   }
 
   public static function mark_steps_complete() {
-    $data = self::get_request_data('mepr_onboarding_mark_steps_complete');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_mark_steps_complete');
     MeprOnboardingHelper::maybe_set_steps_completed($data['step']);
   }
 
   public static function save_new_membership() {
-    $data = self::get_request_data('mepr_onboarding_save_new_membership');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_save_new_membership');
 
     if(empty($data['type']) || empty($data['title']) || !in_array($data['type'], ['onetime', 'months','years'], true)) {
       wp_send_json_error(esc_html__('Bad request.', 'memberpress'));
@@ -783,7 +753,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function get_membership() {
-    $data = self::get_request_data('mepr_onboarding_get_membership');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_get_membership');
 
     if(empty($data['membership_id'])) {
       wp_send_json_error(esc_html__('Bad request.', 'memberpress'));
@@ -805,7 +775,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function add_stripe_payment_method() {
-    self::validate_request('mepr_add_payment_method');
+    MeprUtils::validate_json_request('mepr_add_payment_method');
 
     $mepr_options = MeprOptions::fetch();
     $gateway = new MeprStripeGateway();
@@ -862,7 +832,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function add_paypal_payment_method() {
-    $data = self::get_request_data('mepr_add_payment_method');
+    $data = MeprUtils::get_json_request_data('mepr_add_payment_method');
 
     $sandbox = isset($data['sandbox']) && $data['sandbox'];
     $auth_code = isset($data['auth_code']) ? sanitize_text_field($data['auth_code']) : '';
@@ -889,7 +859,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function add_authorize_payment_method() {
-    $data = self::get_request_data('mepr_add_payment_method');
+    $data = MeprUtils::get_json_request_data('mepr_add_payment_method');
 
     $mepr_options = MeprOptions::fetch();
     $gateway = new MeprAuthorizeGateway();
@@ -935,7 +905,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function add_offline_payment_method() {
-    self::validate_request('mepr_add_payment_method');
+    MeprUtils::validate_json_request('mepr_add_payment_method');
 
     $mepr_options = MeprOptions::fetch();
 
@@ -971,7 +941,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function remove_payment_method() {
-    $data = self::get_request_data('mepr_remove_payment_method');
+    $data = MeprUtils::get_json_request_data('mepr_remove_payment_method');
 
     $saved_gateway_id = get_option('mepr_onboarding_payment_gateway');
     $gateway_id = isset($data['gateway_id']) ? sanitize_text_field($data['gateway_id']) : '';
@@ -1047,7 +1017,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function save_authorize_config() {
-    $data = self::get_request_data('mepr_save_authorize_config');
+    $data = MeprUtils::get_json_request_data('mepr_save_authorize_config');
 
     $gateway_id = isset($data['gateway_id']) ? sanitize_text_field($data['gateway_id']) : '';
 
@@ -1096,7 +1066,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function save_new_rule() {
-    $data = self::get_request_data('mepr_onboarding_save_new_rule');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_save_new_rule');
 
     if(empty($data['content']) || empty($data['membershipname'])) {
       wp_send_json_error(esc_html__('Bad request.', 'memberpress'));
@@ -1160,7 +1130,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function get_rule() {
-    $data = self::get_request_data('mepr_onboarding_get_rule');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_get_rule');
 
     if(empty($data['membership_rule_id'])) {
       wp_send_json_error(esc_html__('Bad request.', 'memberpress'));
@@ -1181,7 +1151,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function install_correct_edition() {
-    self::validate_request('mepr_onboarding_install_correct_edition');
+    MeprUtils::validate_json_request('mepr_onboarding_install_correct_edition');
     $li = get_site_transient('mepr_license_info');
 
     if(!empty($li) && is_array($li) && !empty($li['url']) && MeprUtils::is_url($li['url'])) {
@@ -1216,7 +1186,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function install_addons() {
-    $data = self::get_request_data('mepr_onboarding_install_addons');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_install_addons');
 
     if(empty($data['addon_slug'])) {
       wp_send_json_error(__('Bad request.', 'memberpress'));
@@ -1266,19 +1236,19 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function load_complete_step() {
-    $data = self::get_request_data('mepr_onboarding_load_complete_step');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_load_complete_step');
 
     wp_send_json_success(['html' => MeprOnboardingHelper::get_completed_step_urls_html()]);
   }
 
   public static function load_create_new_content() {
-    $data = self::get_request_data('mepr_onboarding_load_create_new_content');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_load_create_new_content');
 
     wp_send_json_success(['html' =>  MeprView::get_string('/admin/onboarding/parts/content_popup', get_defined_vars())]);
   }
 
   public static function enable_stripe_tax() {
-    $data = self::get_request_data('mepr_enable_stripe_tax');
+    $data = MeprUtils::get_json_request_data('mepr_enable_stripe_tax');
 
     if(!isset($data['gateway_id']) || !is_string($data['gateway_id'])) {
       wp_send_json_error(__('Bad request.', 'memberpress'));
@@ -1317,12 +1287,12 @@ class MeprOnboardingCtrl extends MeprBaseCtrl {
   }
 
   public static function load_finish_step() {
-    $data = self::get_request_data('mepr_onboarding_load_finish_step');
+    $data = MeprUtils::get_json_request_data('mepr_onboarding_load_finish_step');
     wp_send_json_success(['html' =>  MeprView::get_string('/admin/onboarding/parts/finish', get_defined_vars())]);
   }
 
   public static function finish() {
-    self::validate_request('mepr_onboarding_finish');
+    MeprUtils::validate_json_request('mepr_onboarding_finish');
 
     update_option('mepr_onboarding_complete', '1');
 

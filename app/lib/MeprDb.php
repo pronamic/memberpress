@@ -19,8 +19,6 @@ class MeprDb {
   }
 
   public function __construct() {
-    global $wpdb;
-
     // MemberPress tables
     $this->tables = MeprHooks::apply_filters(
       'mepr_db_tables',

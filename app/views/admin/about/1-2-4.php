@@ -1,6 +1,6 @@
 <?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
 
-<h3><?php _e('Welcome to MemberPress 1.2.4', 'memberpress'); ?></h3>
+<h3><?php _e('Welcome to MemberPress vs 1.2.4', 'memberpress'); ?></h3>
 <p><?php _e('This release includes the following awesome features and fixes:', 'memberpress'); ?></p>
 <p>
 &nbsp;&bullet;&nbsp;<?php _e('Autoresponder integrations have been moved into Add-ons ...', 'memberpress'); ?><br/>
