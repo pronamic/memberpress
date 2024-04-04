@@ -328,6 +328,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway {
         $txn->save();
 
         MeprUtils::send_signup_notices($txn);
+        MeprUtils::send_transaction_receipt_notices($txn);
 
         add_filter( 'mepr-signup-checkout-url', function ( $uri, $txn ) {
           $mepr_options    = MeprOptions::fetch();

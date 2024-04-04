@@ -356,6 +356,7 @@ class MeprLoginCtrl extends MeprBaseCtrl {
       }
     }
     else {
+      $mepr_options = MeprOptions::fetch();
       if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
         MeprView::render('/readylaunch/shared/unauthorized', get_defined_vars());
       } else {

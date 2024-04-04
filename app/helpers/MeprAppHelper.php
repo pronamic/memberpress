@@ -230,6 +230,11 @@ class MeprAppHelper {
       $product = false;
     }
 
+    $proration_single_cycle = false;
+    if( $obj instanceof MeprSubscription && $obj->prorated_trial && $obj->trial && $obj->limit_cycles && 1 == $obj->limit_cycles_num ) {
+      $proration_single_cycle = true;
+    }
+
     $tax_str = '';
 
     if(!empty($obj->tax_rate) && $obj->tax_rate > 0.00) {
@@ -327,7 +332,14 @@ class MeprAppHelper {
           list($conv_trial_type, $conv_trial_count) = MeprUtils::period_type_from_days($obj->trial_days);
 
           $conv_trial_type_str = MeprUtils::period_type_name($conv_trial_type, $conv_trial_count);
-          $sub_str = __( '%1$s %2$s for %3$s%4$s then ', 'memberpress' );
+
+          // If proration and max number of payments is 1.
+          if( $proration_single_cycle ) {
+            $sub_str = __( '%1$s %2$s for %3$s%4$s ', 'memberpress' );
+          } else {
+            $sub_str = __( '%1$s %2$s for %3$s%4$s then ', 'memberpress' );
+          }
+
           $price_str = sprintf( $sub_str, $conv_trial_count, $conv_trial_type_str, $trial_str, $upgrade_str );
         }
         else {
@@ -340,9 +352,11 @@ class MeprAppHelper {
       }
 
       if( $obj->limit_cycles and $obj->limit_cycles_num==1 ) {
-        $price_str .= $fprice;
-        if( $obj->limit_cycles_action=='expire' ) {
-          $price_str .= sprintf( __( ' for %1$d %2$s', 'memberpress' ), $period, $period_type_str );
+        if( ! $proration_single_cycle ) {
+          $price_str .= $fprice;
+          if( $obj->limit_cycles_action=='expire' ) {
+            $price_str .= sprintf( __( ' for %1$d %2$s', 'memberpress' ), $period, $period_type_str );
+          }
         }
       }
       elseif( $obj->limit_cycles ) { // Prefix with payments count

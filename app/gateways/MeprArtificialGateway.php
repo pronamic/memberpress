@@ -84,6 +84,12 @@ class MeprArtificialGateway extends MeprBaseRealGateway {
       MeprEvent::record('offline-payment-'.$txn->status, $txn);
 
       if($txn->status == MeprTransaction::$complete_str) {
+
+        $sub = $txn->subscription();
+        if( $sub && $sub instanceof MeprSubscription ) {
+          $sub->limit_payment_cycles();
+        }
+
         self::maybe_cancel_old_sub($txn, $gateway);
         MeprUtils::send_transaction_receipt_notices($txn);
       }

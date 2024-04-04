@@ -9,7 +9,7 @@ class MeprReports {
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andday = ($day)?" AND DAY(created_at) = {$day}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
 
     $q = "SELECT COUNT(*)
             FROM {$mepr_db->transactions}
@@ -30,7 +30,7 @@ class MeprReports {
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andday = ($day)?" AND DAY(created_at) = {$day}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
 
     $q = "SELECT SUM(amount)
             FROM {$mepr_db->transactions}
@@ -51,7 +51,7 @@ class MeprReports {
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andday = ($day)?" AND DAY(created_at) = {$day}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
 
     $q = "SELECT (SUM(amount)+SUM(tax_amount))
             FROM {$mepr_db->transactions}
@@ -72,7 +72,7 @@ class MeprReports {
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andday = ($day)?" AND DAY(created_at) = {$day}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
 
     $q = "SELECT (SUM(amount)+SUM(tax_amount))
             FROM {$mepr_db->transactions}
@@ -93,7 +93,7 @@ class MeprReports {
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andday = ($day)?" AND DAY(created_at) = {$day}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
 
     $q = "SELECT SUM(tax_amount)
             FROM {$mepr_db->transactions}
@@ -184,7 +184,7 @@ class MeprReports {
 
     $results = array();
     $days_in_month = gmdate('t', mktime(0, 0, 0, $month, 1, $year));
-    $andproduct = ($product == "all")?"":" AND product_id = {$product}";
+    $andproduct = ($product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
     $where = MeprUtils::build_where_clause($q);
 
     $selecttype = ($type == 'amounts')?"SUM(amount)":"COUNT(*)";
@@ -260,7 +260,7 @@ class MeprReports {
     $mepr_db = new MeprDb();
 
     $results = array();
-    $andproduct = ($product == "all")?"":" AND product_id = {$product}";
+    $andproduct = ($product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
     $where = MeprUtils::build_where_clause($q);
 
     $selecttype = ($type == "amounts")?"SUM(amount)":"COUNT(*)";
@@ -820,7 +820,7 @@ class MeprReports {
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andday = ($day)?" AND DAY(created_at) = {$day}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
 
     $q = "SELECT SUM(amount)
             FROM {$mepr_db->transactions}
@@ -856,7 +856,7 @@ class MeprReports {
     global $wpdb;
     $mepr_db = new MeprDb();
 
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
 
     $q = "SELECT COUNT(*) as total_count, status
             FROM {$mepr_db->transactions}
@@ -887,7 +887,7 @@ class MeprReports {
     global $wpdb;
     $mepr_db = new MeprDb();
 
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
 
     $q = "SELECT SUM(amount)
             FROM {$mepr_db->transactions}
@@ -904,7 +904,7 @@ class MeprReports {
     global $wpdb;
     $mepr_db = new MeprDb();
 
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
 
     $q = "SELECT (SUM(amount)+SUM(tax_amount))
             FROM {$mepr_db->transactions}
@@ -923,7 +923,7 @@ class MeprReports {
 
     $results = array();
     $days_in_month = gmdate('t', mktime(0, 0, 0, $month, 1, $year));
-    $andproduct = ($product == "all")?"":" AND product_id = {$product}";
+    $andproduct = ($product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
     $where = MeprUtils::build_where_clause($q);
 
     $selecttype = ($type == 'amounts')?"SUM(amount)":"COUNT(*)";
@@ -980,7 +980,6 @@ class MeprReports {
         FROM {$mepr_db->transactions}
         WHERE YEAR(created_at) = {$year}
           AND MONTH(created_at) = {$month}
-          AND DAY(created_at) = %d
           AND txn_type = '".MeprTransaction::$payment_str."'
           AND status IN ('".MeprTransaction::$complete_str."', '".MeprTransaction::$refunded_str."')
           {$andproduct}{$where}
@@ -998,7 +997,7 @@ class MeprReports {
         $results[$i]->$type = 0;
       }
 
-      $resultset = $wpdb->get_results( $wpdb->prepare($sql) );
+      $resultset = $wpdb->get_results( $sql );
 
       if( ! empty($resultset) ) {
         foreach( $resultset as $row ) {
@@ -1019,7 +1018,7 @@ class MeprReports {
           $ds[$row->mepr_day] = $row->mepr_value;
         }
 
-        if( isset($row->mepr_month) && isset($row->mepr_month) ) {
+        if( isset($row->mepr_month) && isset($row->mepr_value) ) {
           $ds[$row->mepr_month] = $row->mepr_value;
         }
       }
@@ -1034,7 +1033,7 @@ class MeprReports {
 
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
     $groupby = !empty($andmonth) ? "GROUP BY DAY(created_at)" : "GROUP BY MONTH(created_at)";
     $mepr_col = !empty($andmonth) ? "DAY(created_at) as mepr_day" : "MONTH(created_at) as mepr_month";
 
@@ -1058,7 +1057,7 @@ class MeprReports {
 
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
     $groupby = !empty($andmonth) ? "GROUP BY DAY(created_at)" : "GROUP BY MONTH(created_at)";
     $mepr_col = !empty($andmonth) ? "DAY(created_at) as mepr_day" : "MONTH(created_at) as mepr_month";
 
@@ -1082,7 +1081,7 @@ class MeprReports {
 
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
     $groupby = !empty($andmonth) ? "GROUP BY DAY(created_at)" : "GROUP BY MONTH(created_at)";
     $mepr_col = !empty($andmonth) ? "DAY(created_at) as mepr_day" : "MONTH(created_at) as mepr_month";
 
@@ -1106,7 +1105,7 @@ class MeprReports {
 
     $andmonth = ($month)?" AND MONTH(created_at) = {$month}":"";
     $andyear = ($year)?" AND YEAR(created_at) = {$year}":"";
-    $andproduct = (!isset($product) || $product == "all")?"":" AND product_id = {$product}";
+    $andproduct = (!isset($product) || $product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
     $groupby = !empty($andmonth) ? "GROUP BY DAY(created_at)" : "GROUP BY MONTH(created_at)";
     $mepr_col = !empty($andmonth) ? "DAY(created_at) as mepr_day" : "MONTH(created_at) as mepr_month";
 
@@ -1120,7 +1119,7 @@ class MeprReports {
               {$groupby}";
 
     return self::format_mepr_dataset(
-      $wpdb->get_var($wpdb->get_results($q, MeprTransaction::$complete_str, MeprTransaction::$refunded_str, MeprTransaction::$payment_str))
+      $wpdb->get_results($wpdb->prepare($q, MeprTransaction::$complete_str, MeprTransaction::$refunded_str, MeprTransaction::$payment_str))
     );
   }
 
@@ -1129,7 +1128,7 @@ class MeprReports {
     $mepr_db = new MeprDb();
 
     $results = array();
-    $andproduct = ($product == "all")?"":" AND product_id = {$product}";
+    $andproduct = ($product == "all")?"":$wpdb->prepare(" AND product_id = %d", $product);
     $where = MeprUtils::build_where_clause($q);
 
     $selecttype = ($type == "amounts")?"SUM(amount)":"COUNT(*)";
@@ -1198,7 +1197,7 @@ class MeprReports {
         $results[$i]->$type = 0;
       }
 
-      $resultset = $wpdb->get_results( $wpdb->prepare($sql) );
+      $resultset = $wpdb->get_results( $sql );
 
       if( ! empty($resultset) ) {
         foreach( $resultset as $row ) {

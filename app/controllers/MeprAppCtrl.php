@@ -56,7 +56,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
 
     if(MeprUtils::is_memberpress_admin_page()) {
       $option = get_option( 'mepr_notifications' );
-      $notifications = ! empty($option) ? $option['feed'] : array();
+      $notifications = (is_array($option) && ! empty($option)) ? $option['feed'] : array();
       if ( MeprNotifications::has_access() && ! empty( $notifications ) && count( $notifications ) > 0 ) {
         foreach( $notifications as $key => $notification ) {
           if (

@@ -906,6 +906,9 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
     if($pm === false) { return; } //What else to do here?
 
     $trial_offset = (($this->trial && $this->trial_amount > 0.00)?1:0);
+    if( 1 === $trial_offset && $this->prorated_trial && $this->trial && $this->limit_cycles ) {
+      $trial_offset = 0;
+    }
 
     //Cancel this subscription if the payment cycles are limited and have been reached
     if($this->status == MeprSubscription::$active_str && ($this->txn_count - $trial_offset) >= $this->limit_cycles_num) {
@@ -913,7 +916,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
       $_REQUEST['expire'] = true; // pass the expire
       $_REQUEST['silent'] = true; // Don't want to send cancellation notices
       try {
-        file_put_contents( WP_CONTENT_DIR . '/paypal-connect.log', 'Canceling sub', FILE_APPEND );
+        //file_put_contents( WP_CONTENT_DIR . '/paypal-connect.log', 'Canceling sub', FILE_APPEND );
         $pm->process_cancel_subscription($this->id);
       }
       catch(Exception $e) {

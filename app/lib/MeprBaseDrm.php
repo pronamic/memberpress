@@ -112,7 +112,7 @@ abstract class MeprBaseDrm {
       $this->create_inplugin_notification( $drm_status );
 
       // mark event complete.
-      $event_data[ $drm_event_key ] = MeprUtils::mysql_now();
+      $event_data[ $drm_event_key ] = MeprUtils::db_now();
 
       $this->update_event( $event, $event_data );
     }
