@@ -12,6 +12,7 @@
 
 .mepr-config-email-row {
   display: none;
+  margin: 1em 0;
 }
 
 #mepr-reminder-emails {

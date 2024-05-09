@@ -675,6 +675,13 @@ class MeprAppHelper {
           'src' => array(),
           'width' => array(),
         ),
+        'form' => array(
+          'id' => array(),
+          'class' => array(),
+          'name' => array(),
+          'action' => array(),
+          'method' => array(),
+        ),
         'li' => array(
           'class' => array(),
         ),

@@ -7,7 +7,7 @@
 
 <form name="mepr_signup_form" id="mepr_signup_form" class="mepr-signup-form mepr-form alignwide" method="post"
       action="<?php echo $_SERVER['REQUEST_URI'] . '#mepr_jump'; ?>" enctype="multipart/form-data" novalidate>
-  <div class="mepr-checkout-container mp_wrapper">
+  <div class="mepr-checkout-container mp_wrapper <?php echo $is_rl_widget ? 'mepr-is-footer-widget' : ''; ?>">
 
 
   <div class="form-wrapper">

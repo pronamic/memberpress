@@ -2,20 +2,20 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.11.28\n"
+"Project-Id-Version: MemberPress 1.11.29\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-04-03T21:41:25-06:00\n"
+"POT-Creation-Date: 2024-05-08T22:25:59-06:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: memberpress\n"
 
 #. Plugin Name of the plugin
-#: app/controllers/MeprAppCtrl.php:1181
+#: app/controllers/MeprAppCtrl.php:1224
 #: app/integrations/stripe-tax/Integration.php:438
 msgid "MemberPress"
 msgstr ""
@@ -355,57 +355,57 @@ msgstr ""
 msgid "UNAUTHORIZED: %s"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:74
-#: app/controllers/MeprAppCtrl.php:1193
+#: app/controllers/MeprAppCtrl.php:75
+#: app/controllers/MeprAppCtrl.php:1236
 #: app/views/admin/support/view.php:6
 msgid "Support"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:114
+#: app/controllers/MeprAppCtrl.php:115
 msgid "MemberPress Unauthorized Access on the Group Pricing Page"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:119
+#: app/controllers/MeprAppCtrl.php:120
 msgid "This Group Pricing Page is Protected"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:126
+#: app/controllers/MeprAppCtrl.php:127
 msgid "MemberPress Unauthorized Access"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:132
-#: app/controllers/MeprAppCtrl.php:147
+#: app/controllers/MeprAppCtrl.php:133
+#: app/controllers/MeprAppCtrl.php:148
 msgid "This %s is Protected"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:141
+#: app/controllers/MeprAppCtrl.php:142
 msgid "MemberPress Unauthorized Access to this %s"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:161
+#: app/controllers/MeprAppCtrl.php:162
 msgid "Public"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:221
+#: app/controllers/MeprAppCtrl.php:222
 #: app/controllers/MeprRulesCtrl.php:103
 msgid "Access"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:250
+#: app/controllers/MeprAppCtrl.php:251
 msgid "This Content is Protected by %s MemberPress Access Rule"
 msgid_plural "This Content is Protected by %s MemberPress Access Rules"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/controllers/MeprAppCtrl.php:254
+#: app/controllers/MeprAppCtrl.php:255
 msgid "Click here to view"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:264
+#: app/controllers/MeprAppCtrl.php:265
 msgid "<strong>MemberPress: Your PHP version (%s) is out of date!</strong> This version has reached official End Of Life and as such may expose your site to security vulnerabilities. Please contact your web hosting provider to update to %s or newer"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:518
+#: app/controllers/MeprAppCtrl.php:519
 #: app/controllers/MeprMembersCtrl.php:126
 #: app/controllers/MeprProductsCtrl.php:48
 #: app/controllers/MeprRemindersCtrl.php:94
@@ -413,60 +413,96 @@ msgstr ""
 msgid "Memberships"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:520
+#: app/controllers/MeprAppCtrl.php:521
 #: app/controllers/MeprGroupsCtrl.php:35
 msgid "Groups"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:522
+#: app/controllers/MeprAppCtrl.php:523
 #: app/controllers/MeprRulesCtrl.php:60
 msgid "Rules"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:524
+#: app/controllers/MeprAppCtrl.php:525
 #: app/controllers/MeprCouponsCtrl.php:29
 msgid "Coupons"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:526
-#: app/controllers/MeprAppCtrl.php:1188
+#: app/controllers/MeprAppCtrl.php:527
+#: app/controllers/MeprAppCtrl.php:1231
 #: app/controllers/MeprCoursesCtrl.php:35
 msgid "Courses"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:579
+#: app/controllers/MeprAppCtrl.php:542
+msgctxt "ui"
+msgid "ReadyLaunch™️ General Footer"
+msgstr ""
+
+#: app/controllers/MeprAppCtrl.php:543
+msgid "Widgets in this area will be shown at the bottom of all ReadyLaunch pages."
+msgstr ""
+
+#: app/controllers/MeprAppCtrl.php:552
+msgctxt "ui"
+msgid "ReadyLaunch™️ Account Footer"
+msgstr ""
+
+#: app/controllers/MeprAppCtrl.php:553
+msgid "Widgets in this area will be shown at the bottom of ReadyLaunch Account page."
+msgstr ""
+
+#: app/controllers/MeprAppCtrl.php:562
+msgctxt "ui"
+msgid "ReadyLaunch™️ Login Footer"
+msgstr ""
+
+#: app/controllers/MeprAppCtrl.php:563
+msgid "Widgets in this area will be shown at the bottom of ReadyLaunch Login page."
+msgstr ""
+
+#: app/controllers/MeprAppCtrl.php:572
+msgctxt "ui"
+msgid "ReadyLaunch™️ Registration Footer"
+msgstr ""
+
+#: app/controllers/MeprAppCtrl.php:573
+msgid "Widgets in this area will be shown at the bottom of ReadyLaunch Registration pages."
+msgstr ""
+
+#: app/controllers/MeprAppCtrl.php:622
 msgid "We can't display your account form right now. Please come back soon and try again."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:609
+#: app/controllers/MeprAppCtrl.php:652
 msgid "the requested resource."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:621
+#: app/controllers/MeprAppCtrl.php:664
 msgid "Unauthorized for"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:638
+#: app/controllers/MeprAppCtrl.php:681
 msgid "There was a problem with our system. Please come back soon and try again."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:729
+#: app/controllers/MeprAppCtrl.php:772
 msgid "-- Select State --"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:745
+#: app/controllers/MeprAppCtrl.php:788
 msgid "There are no payment methods available that can purchase this product, please contact the site administrator or purchase it separately."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:746
+#: app/controllers/MeprAppCtrl.php:789
 msgid "It looks like your purchase requires %s. No problem! Just click below to switch."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:747
+#: app/controllers/MeprAppCtrl.php:790
 msgid "Switch to %s"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:748
+#: app/controllers/MeprAppCtrl.php:791
 #: app/helpers/MeprAccountHelper.php:54
 #: app/lib/MeprBaseGateway.php:380
 #: app/lib/MeprBaseGateway.php:432
@@ -479,117 +515,117 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:771
+#: app/controllers/MeprAppCtrl.php:814
 msgctxt "ui"
 msgid "Done"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:772
+#: app/controllers/MeprAppCtrl.php:815
 msgctxt "ui"
 msgid "Today"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:773
+#: app/controllers/MeprAppCtrl.php:816
 msgctxt "ui"
 msgid "Jan"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:773
+#: app/controllers/MeprAppCtrl.php:816
 msgctxt "ui"
 msgid "Feb"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:773
+#: app/controllers/MeprAppCtrl.php:816
 msgctxt "ui"
 msgid "Mar"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:773
+#: app/controllers/MeprAppCtrl.php:816
 msgctxt "ui"
 msgid "Apr"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:773
+#: app/controllers/MeprAppCtrl.php:816
 msgctxt "ui"
 msgid "May"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:773
+#: app/controllers/MeprAppCtrl.php:816
 msgctxt "ui"
 msgid "Jun"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:774
+#: app/controllers/MeprAppCtrl.php:817
 msgctxt "ui"
 msgid "Jul"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:774
+#: app/controllers/MeprAppCtrl.php:817
 msgctxt "ui"
 msgid "Aug"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:774
+#: app/controllers/MeprAppCtrl.php:817
 msgctxt "ui"
 msgid "Sep"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:774
+#: app/controllers/MeprAppCtrl.php:817
 msgctxt "ui"
 msgid "Oct"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:774
+#: app/controllers/MeprAppCtrl.php:817
 msgctxt "ui"
 msgid "Nov"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:774
+#: app/controllers/MeprAppCtrl.php:817
 msgctxt "ui"
 msgid "Dec"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:775
+#: app/controllers/MeprAppCtrl.php:818
 msgctxt "ui"
 msgid "Su"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:775
+#: app/controllers/MeprAppCtrl.php:818
 msgctxt "ui"
 msgid "Mo"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:775
+#: app/controllers/MeprAppCtrl.php:818
 msgctxt "ui"
 msgid "Tu"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:775
+#: app/controllers/MeprAppCtrl.php:818
 msgctxt "ui"
 msgid "We"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:775
+#: app/controllers/MeprAppCtrl.php:818
 msgctxt "ui"
 msgid "Th"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:775
+#: app/controllers/MeprAppCtrl.php:818
 msgctxt "ui"
 msgid "Fr"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:775
+#: app/controllers/MeprAppCtrl.php:818
 msgctxt "ui"
 msgid "Sa"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:905
+#: app/controllers/MeprAppCtrl.php:948
 msgid "There was a problem with our system: %s. Please come back soon and try again."
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1165
-#: app/controllers/MeprAppCtrl.php:1207
+#: app/controllers/MeprAppCtrl.php:1208
+#: app/controllers/MeprAppCtrl.php:1250
 #: app/controllers/MeprDbCtrl.php:226
 #: app/controllers/MeprMembersCtrl.php:235
 #: app/helpers/MeprProductsHelper.php:115
@@ -597,13 +633,13 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1169
-#: app/controllers/MeprAppCtrl.php:1172
+#: app/controllers/MeprAppCtrl.php:1212
+#: app/controllers/MeprAppCtrl.php:1215
 msgid "Affiliates"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1176
-#: app/controllers/MeprAppCtrl.php:1178
+#: app/controllers/MeprAppCtrl.php:1219
+#: app/controllers/MeprAppCtrl.php:1221
 #: app/controllers/MeprDbCtrl.php:227
 #: app/controllers/MeprMembersCtrl.php:115
 #: app/controllers/MeprSubscriptionsCtrl.php:552
@@ -613,7 +649,7 @@ msgstr ""
 msgid "Subscriptions"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1179
+#: app/controllers/MeprAppCtrl.php:1222
 #: app/controllers/MeprMembersCtrl.php:116
 #: app/controllers/MeprReportsCtrl.php:126
 #: app/controllers/MeprTransactionsCtrl.php:627
@@ -623,31 +659,31 @@ msgstr ""
 msgid "Transactions"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1180
+#: app/controllers/MeprAppCtrl.php:1223
 #: app/views/admin/reports/main.php:4
 msgid "Reports"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1182
+#: app/controllers/MeprAppCtrl.php:1225
 #: app/views/admin/options/form.php:4
 #: app/views/admin/options/form.php:518
 msgid "Settings"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1183
+#: app/controllers/MeprAppCtrl.php:1226
 msgid "Onboarding"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1184
+#: app/controllers/MeprAppCtrl.php:1227
 #: app/views/admin/options/account_login.php:6
 msgid "Account Login"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1185
+#: app/controllers/MeprAppCtrl.php:1228
 msgid "Add-ons"
 msgstr ""
 
-#: app/controllers/MeprAppCtrl.php:1190
+#: app/controllers/MeprAppCtrl.php:1233
 #: app/views/admin/support/view.php:124
 msgid "MemberPress Courses"
 msgstr ""
@@ -674,47 +710,47 @@ msgstr ""
 msgid "Notice: %s purchase failed. Click <a href=\"%s\" target=\"_blank\">here</a> to purchase it separately."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:368
+#: app/controllers/MeprCheckoutCtrl.php:370
 msgid "Sorry, we were unable to find the transaction."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:375
+#: app/controllers/MeprCheckoutCtrl.php:377
 msgid "Sorry, we were unable to find the user."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:438
-#: app/controllers/MeprCheckoutCtrl.php:439
+#: app/controllers/MeprCheckoutCtrl.php:440
+#: app/controllers/MeprCheckoutCtrl.php:441
 #: app/controllers/MeprStripeCtrl.php:164
 msgid "The user was unable to be saved."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:453
-#: app/controllers/MeprCheckoutCtrl.php:454
+#: app/controllers/MeprCheckoutCtrl.php:455
+#: app/controllers/MeprCheckoutCtrl.php:456
 msgid "Sorry, we were unable to find the membership."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:560
+#: app/controllers/MeprCheckoutCtrl.php:562
 msgid "Invalid payment method"
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:571
-#: app/controllers/MeprCheckoutCtrl.php:903
+#: app/controllers/MeprCheckoutCtrl.php:573
+#: app/controllers/MeprCheckoutCtrl.php:905
 msgid "Sorry, we were unable to create a transaction."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:671
+#: app/controllers/MeprCheckoutCtrl.php:673
 msgid "ERROR: Invalid Transaction ID. Use your browser back button and try registering again."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:762
+#: app/controllers/MeprCheckoutCtrl.php:764
 msgid "Sorry, an unknown error occurred."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:889
+#: app/controllers/MeprCheckoutCtrl.php:891
 msgid "Sorry, we were unable to create a subscription."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:926
+#: app/controllers/MeprCheckoutCtrl.php:928
 #: app/controllers/MeprPayPalConnectCtrl.php:700
 #: app/controllers/MeprPayPalConnectCtrl.php:711
 #: app/controllers/MeprStripeCtrl.php:95
@@ -727,11 +763,11 @@ msgstr ""
 msgid "Product not found"
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:934
+#: app/controllers/MeprCheckoutCtrl.php:936
 msgid "You don't have access to purchase %s."
 msgstr ""
 
-#: app/controllers/MeprCheckoutCtrl.php:940
+#: app/controllers/MeprCheckoutCtrl.php:942
 msgid "The product %s cannot be purchased at this time."
 msgstr ""
 
@@ -6317,7 +6353,7 @@ msgstr ""
 #: app/views/account/home.php:27
 #: app/views/checkout/form.php:43
 #: app/views/checkout/spc_form.php:44
-#: app/views/readylaunch/account/home.php:128
+#: app/views/readylaunch/account/home.php:130
 #: app/views/readylaunch/checkout/form.php:70
 msgctxt "ui"
 msgid "First Name:"
@@ -6326,7 +6362,7 @@ msgstr ""
 #: app/views/account/home.php:28
 #: app/views/checkout/form.php:44
 #: app/views/checkout/spc_form.php:45
-#: app/views/readylaunch/account/home.php:132
+#: app/views/readylaunch/account/home.php:134
 #: app/views/readylaunch/checkout/form.php:74
 msgctxt "ui"
 msgid "First Name Required"
@@ -6335,7 +6371,7 @@ msgstr ""
 #: app/views/account/home.php:34
 #: app/views/checkout/form.php:50
 #: app/views/checkout/spc_form.php:51
-#: app/views/readylaunch/account/home.php:140
+#: app/views/readylaunch/account/home.php:142
 #: app/views/readylaunch/checkout/form.php:82
 msgctxt "ui"
 msgid "Last Name:"
@@ -6344,7 +6380,7 @@ msgstr ""
 #: app/views/account/home.php:35
 #: app/views/checkout/form.php:51
 #: app/views/checkout/spc_form.php:52
-#: app/views/readylaunch/account/home.php:144
+#: app/views/readylaunch/account/home.php:146
 #: app/views/readylaunch/checkout/form.php:86
 msgctxt "ui"
 msgid "Last Name Required"
@@ -6353,7 +6389,7 @@ msgstr ""
 #: app/views/account/home.php:45
 #: app/views/checkout/form.php:86
 #: app/views/checkout/spc_form.php:87
-#: app/views/readylaunch/account/home.php:154
+#: app/views/readylaunch/account/home.php:156
 #: app/views/readylaunch/checkout/form.php:135
 msgctxt "ui"
 msgid "Email:*"
@@ -6362,7 +6398,7 @@ msgstr ""
 #: app/views/account/home.php:46
 #: app/views/checkout/form.php:87
 #: app/views/checkout/spc_form.php:88
-#: app/views/readylaunch/account/home.php:155
+#: app/views/readylaunch/account/home.php:157
 #: app/views/readylaunch/checkout/form.php:136
 msgctxt "ui"
 msgid "Invalid Email"
@@ -6374,7 +6410,7 @@ msgid "Save Profile"
 msgstr ""
 
 #: app/views/account/home.php:65
-#: app/views/readylaunch/account/home.php:60
+#: app/views/readylaunch/account/home.php:62
 #: app/views/readylaunch/layout/app.php:64
 msgctxt "ui"
 msgid "Change Password"
@@ -6398,7 +6434,7 @@ msgstr ""
 
 #: app/views/account/logged_out_template.php:4
 #: app/views/account/logged_out_widget.php:4
-#: app/views/readylaunch/login/form.php:83
+#: app/views/readylaunch/login/form.php:84
 #: app/views/readylaunch/shared/unauthorized.php:4
 #: app/views/readylaunch/shared/unauthorized_message.php:55
 #: app/views/shared/unauthorized.php:4
@@ -6430,14 +6466,14 @@ msgstr ""
 #: app/views/checkout/form.php:115
 #: app/views/checkout/spc_form.php:104
 #: app/views/checkout/spc_form.php:116
-#: app/views/login/form.php:40
+#: app/views/login/form.php:41
 #: app/views/login/reset_password.php:12
 #: app/views/login/reset_password.php:23
 #: app/views/readylaunch/account/password.php:18
 #: app/views/readylaunch/account/password.php:27
 #: app/views/readylaunch/checkout/form.php:158
 #: app/views/readylaunch/checkout/form.php:175
-#: app/views/readylaunch/login/form.php:102
+#: app/views/readylaunch/login/form.php:103
 #: app/views/readylaunch/login/reset_password.php:17
 #: app/views/readylaunch/login/reset_password.php:28
 msgid "Show password"
@@ -11287,7 +11323,7 @@ msgstr ""
 #: app/views/emails/admin_sub_renews_reminder.php:14
 #: app/views/emails/admin_suspended_sub.php:9
 #: app/views/emails/admin_upgraded_sub.php:9
-#: app/views/readylaunch/account/home.php:111
+#: app/views/readylaunch/account/home.php:113
 #: app/views/readylaunch/checkout/form.php:47
 msgctxt "ui"
 msgid "Name:"
@@ -12098,40 +12134,40 @@ msgctxt "ui"
 msgid "If a matching account is found, you'll receive a password reset email soon. Click the link found in that email to reset your password."
 msgstr ""
 
-#: app/views/login/form.php:27
-#: app/views/readylaunch/login/form.php:89
+#: app/views/login/form.php:28
+#: app/views/readylaunch/login/form.php:90
 msgctxt "ui"
 msgid "Username or E-mail"
 msgstr ""
 
-#: app/views/login/form.php:28
-#: app/views/readylaunch/login/form.php:90
+#: app/views/login/form.php:29
+#: app/views/readylaunch/login/form.php:91
 msgctxt "ui"
 msgid "Username"
 msgstr ""
 
-#: app/views/login/form.php:36
+#: app/views/login/form.php:37
 #: app/views/login/reset_password.php:9
-#: app/views/readylaunch/login/form.php:98
-#: app/views/readylaunch/login/form.php:101
+#: app/views/readylaunch/login/form.php:99
+#: app/views/readylaunch/login/form.php:102
 #: app/views/readylaunch/login/reset_password.php:14
 msgctxt "ui"
 msgid "Password"
 msgstr ""
 
-#: app/views/login/form.php:48
-#: app/views/readylaunch/login/form.php:111
+#: app/views/login/form.php:49
+#: app/views/readylaunch/login/form.php:112
 msgctxt "ui"
 msgid "Remember Me"
 msgstr ""
 
-#: app/views/login/form.php:52
-#: app/views/readylaunch/login/form.php:116
+#: app/views/login/form.php:53
+#: app/views/readylaunch/login/form.php:117
 msgctxt "ui"
 msgid "Log In"
 msgstr ""
 
-#: app/views/login/form.php:60
+#: app/views/login/form.php:61
 msgctxt "ui"
 msgid "Forgot Password"
 msgstr ""
@@ -12158,52 +12194,52 @@ msgctxt "ui"
 msgid "Profile"
 msgstr ""
 
-#: app/views/readylaunch/account/home.php:23
+#: app/views/readylaunch/account/home.php:25
 msgctxt "ui"
 msgid "Name"
 msgstr ""
 
-#: app/views/readylaunch/account/home.php:32
+#: app/views/readylaunch/account/home.php:34
 #: app/views/readylaunch/account/payments.php:20
 #: app/views/readylaunch/account/payments.php:61
 msgctxt "ui"
 msgid "Email"
 msgstr ""
 
-#: app/views/readylaunch/account/home.php:42
+#: app/views/readylaunch/account/home.php:44
 msgctxt "ui"
 msgid "Billing Address"
 msgstr ""
 
-#: app/views/readylaunch/account/home.php:58
+#: app/views/readylaunch/account/home.php:60
 msgctxt "ui"
 msgid "View Payments"
 msgstr ""
 
-#: app/views/readylaunch/account/home.php:59
+#: app/views/readylaunch/account/home.php:61
 msgctxt "ui"
 msgid "View Subscriptions"
 msgstr ""
 
-#: app/views/readylaunch/account/home.php:117
+#: app/views/readylaunch/account/home.php:119
 #: app/views/readylaunch/checkout/form.php:54
 msgctxt "ui"
 msgid "First Name"
 msgstr ""
 
-#: app/views/readylaunch/account/home.php:120
+#: app/views/readylaunch/account/home.php:122
 #: app/views/readylaunch/checkout/form.php:60
 msgctxt "ui"
 msgid "Last Name"
 msgstr ""
 
-#: app/views/readylaunch/account/home.php:161
-#: app/views/readylaunch/account/home.php:167
+#: app/views/readylaunch/account/home.php:163
+#: app/views/readylaunch/account/home.php:169
 msgctxt "ui"
 msgid "Change your billing address:*"
 msgstr ""
 
-#: app/views/readylaunch/account/home.php:180
+#: app/views/readylaunch/account/home.php:182
 msgctxt "ui"
 msgid "Save Changes"
 msgstr ""
@@ -12240,17 +12276,17 @@ msgstr ""
 msgid "with-sidebar"
 msgstr ""
 
-#: app/views/readylaunch/login/form.php:94
+#: app/views/readylaunch/login/form.php:95
 msgctxt "ui"
 msgid "Username (email)"
 msgstr ""
 
-#: app/views/readylaunch/login/form.php:124
+#: app/views/readylaunch/login/form.php:125
 msgctxt "ui"
 msgid "Forgot Password?"
 msgstr ""
 
-#: app/views/readylaunch/login/form.php:124
+#: app/views/readylaunch/login/form.php:125
 msgctxt "ui"
 msgid "Click here"
 msgstr ""

@@ -341,14 +341,15 @@ class MeprLoginCtrl extends MeprBaseCtrl {
     $user = new MeprUser();
     $user->load_user_data_by_login($mepr_screenname);
 
-    if($user->ID && $user->reset_form_key_is_valid($mepr_key)) {
+    $is_key_valid = $user->reset_form_key_is_valid($mepr_key);
+    if($user->ID && $is_key_valid) {
       if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
         MeprView::render('/readylaunch/login/reset_password', get_defined_vars());
       } else {
         MeprView::render('/login/reset_password', get_defined_vars());
       }
     }
-    elseif($user->ID && $user->reset_form_key_has_expired($mepr_key)) {
+    elseif($user->ID && ($user->reset_form_key_has_expired($mepr_key) || ! $is_key_valid)) {
       if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
         MeprView::render('/readylaunch/shared/expired_password_reset', get_defined_vars());
       } else {

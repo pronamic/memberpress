@@ -49,7 +49,7 @@ class MeprDrmAppFee {
     $methods = array();
 
     foreach( $pmt_methods as $key => $method ) {
-      if( $method instanceof MeprStripeGateway && MeprStripeGateway::is_stripe_connect( $method ) ) {
+      if( $method instanceof MeprStripeGateway && MeprStripeGateway::is_stripe_connect( $key ) ) {
         $methods[] = $key;
       }
     }

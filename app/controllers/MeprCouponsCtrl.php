@@ -250,7 +250,7 @@ class MeprCouponsCtrl extends MeprCptCtrl {
       $coupon->valid_products = isset($_POST[MeprCoupon::$valid_products_str])?$_POST[MeprCoupon::$valid_products_str]:array();
       $coupon->discount_mode = sanitize_text_field($_POST[MeprCoupon::$discount_mode_str]);
       $coupon->trial_days = isset($_POST[MeprCoupon::$trial_days_str])?(int)sanitize_text_field($_POST[MeprCoupon::$trial_days_str]):0;
-      $coupon->trial_amount = isset($_POST[MeprCoupon::$trial_amount_str]) ? MeprUtils::format_float( $_POST[MeprCoupon::$trial_amount_str] ) : 0.00;
+      $coupon->trial_amount = isset($_POST[MeprCoupon::$trial_amount_str]) ? (float) sanitize_text_field( $_POST[MeprCoupon::$trial_amount_str] ) : 0.00;
       $coupon->store_meta();
 
       MeprHooks::do_action('mepr-coupon-save-meta', $coupon);

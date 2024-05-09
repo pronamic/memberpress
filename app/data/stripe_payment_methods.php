@@ -165,6 +165,12 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
     'capabilities' => ['payment_intents'],
   ],
   [
+    'key' => 'mobilepay',
+    'name' => 'MobilePay',
+    'currencies' => ['DKK', 'EUR', 'NOK', 'SEK'],
+    'capabilities' => ['payment_intents'],
+  ],
+  [
     'key' => 'wechat_pay',
     'name' => 'WeChat Pay',
     'currencies' => ['CNY', 'AUD', 'CAD', 'EUR', 'GBP', 'HKD', 'JPY', 'SGD', 'USD', 'DKK', 'NOK', 'SEK', 'CHF'],

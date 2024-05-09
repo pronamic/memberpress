@@ -900,6 +900,29 @@ button.mepr-pro-account-table__badge:hover {
   border: 1px solid #c5c51c;
   color: #3e3e30;
 }
+#mepr-account-content {
+  display: flex;
+  flex-direction: column;
+}
+#mepr-account-content .mepr-rl-footer-widgets {
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid #ccc;
+}
+#mepr-account-content .mepr-rl-footer-widgets ul {
+  margin-left: 0;
+}
+.mepr-app-layout .mepr-rl-footer-widgets {
+  margin: 0 auto;
+  padding: 0 32px 32px;
+}
+.mepr-app-layout #mepr-rl-registration-footer-widget,
+.mepr-app-layout #mepr-rl-global-footer-widget {
+  margin-top: 32px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 36px;
+  border-radius: 10px;
+}
 @media (min-width: 840px) {
   .mepr-account-message {
     width: 60%;
@@ -914,6 +937,9 @@ button.mepr-pro-account-table__badge:hover {
   }
   #mepr-account-content {
     padding: 2em 2em 2em 0;
+  }
+  .mepr-app-layout .mepr-rl-footer-widgets {
+    max-width: 40rem;
   }
 }
 
@@ -954,4 +980,3 @@ button.mepr-pro-account-table__badge:hover {
   color: #555;
   font-size: 14px;
 }
-

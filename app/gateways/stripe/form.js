@@ -522,20 +522,9 @@
       var stripe = Stripe(result.public_key);
       return stripe.redirectToCheckout({ sessionId: result.id });
     })
-    .fail(function (jqXHR, textStatus, errorThrown) {
-      if (jqXHR.status === 0) {
-        // Don't send a debug email for errors with status 0
-        self.handlePaymentError(MeprStripeGateway.error_please_try_again);
-      } else {
-        self.handlePaymentError(MeprStripeGateway.ajax_error);
-        self.debugCheckoutError({
-          status: jqXHR.status,
-          status_text: jqXHR.statusText,
-          response_text: jqXHR.responseText,
-          text_status: textStatus,
-          error_thrown: '' + errorThrown
-        });
-      }
+    .fail(function () {
+      self.allowResubmission();
+      self.$form.find('.mepr-stripe-checkout-errors').html(MeprStripeGateway.error_please_try_again);
     });
   };
 

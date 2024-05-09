@@ -203,3 +203,8 @@
 .mepr-price-box-foot{
   padding-top: 10px;
 }
+
+.mepr-rl-footer-widgets {
+  max-width: 90%;
+  margin: 0 auto;
+}

@@ -161,7 +161,7 @@ class MeprCoupon extends MeprCptModel {
       }
     }
 
-    return apply_filters('mepr_coupon_is_valid', true); // If we made it here, the coupon is good
+    return apply_filters('mepr_coupon_is_valid', true, $this, $product_id); // If we made it here, the coupon is good
   }
 
   //Hmmm...maybe this method should be moved to the Coupon Ctrl instead

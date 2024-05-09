@@ -59,6 +59,13 @@
   flex-grow: 1;
   width: 100%;
 }
+.mepro-login-widget {
+  max-width: 90%;
+  margin: 48px auto 0;
+}
+.mepro-login-widget .mepro-login-widget-box {
+  display: block;
+}
 @media screen and (min-width: 840px) {
   #mepro-login-hero.with-sidebar {
     max-width: 80rem;
@@ -74,6 +81,16 @@
     padding-left: 2rem;
     padding-right: calc(2rem + 36px);
     width: 55%;
+  }
+
+  .mepro-login-widget {
+    max-width: 40rem;
+  }
+
+  .mepro-login-widget-box {
+    display: block !important;
+    max-width: 90%;
+    margin: 0 auto;
   }
 }
 @media screen and (min-width: 1024px) {

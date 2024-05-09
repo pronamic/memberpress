@@ -28,6 +28,26 @@
     <main id="primary" class="site-main">
       <?php // echo $content ?>
       <?php the_content() ?>
+
+      <?php if( $mepr_options->login_page_id ) { ?>
+        <div class="mepro-login-widget">
+          <div class="mepro-login-widget-box mepro-boxed">
+
+            <?php if ( is_active_sidebar( 'mepr_rl_login_footer' ) ) : ?>
+              <div id="mepr-rl-login-footer-widget" class="mepr-rl-login-footer-widget widget-area" role="complementary">
+                <?php dynamic_sidebar( 'mepr_rl_login_footer' ); ?>
+              </div>
+            <?php endif; ?>
+
+            <?php if ( is_active_sidebar( 'mepr_rl_global_footer' ) ) : ?>
+              <div id="mepr-rl-global-footer-widget" class="mepr-rl-global-footer-widget widget-area" role="complementary">
+                <?php dynamic_sidebar( 'mepr_rl_global_footer' ); ?>
+              </div>
+            <?php endif; ?>
+
+          </div>
+        </div>
+      <?php } ?>
     </main>
 
 

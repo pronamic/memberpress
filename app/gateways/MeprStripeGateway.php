@@ -749,7 +749,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     $types = MeprHooks::apply_filters('mepr_stripe_setup_intent_payment_method_types', $types);
 
-    return $this->filter_incompatible_payment_method_types($types);
+    return $this->filter_incompatible_payment_method_types(array_unique($types));
   }
 
   /**
@@ -778,7 +778,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     $types = MeprHooks::apply_filters('mepr_stripe_payment_intent_payment_method_types', $types);
 
-    return $this->filter_incompatible_payment_method_types($types, $amount);
+    return $this->filter_incompatible_payment_method_types(array_unique($types), $amount);
   }
 
   /**
@@ -800,7 +800,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     $types = MeprHooks::apply_filters('mepr_stripe_subscription_payment_method_types', $types);
 
-    return $this->filter_incompatible_payment_method_types($types);
+    return $this->filter_incompatible_payment_method_types(array_unique($types));
   }
 
   /**
@@ -822,7 +822,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
 
     $types = MeprHooks::apply_filters('mepr_stripe_update_setup_intent_payment_method_types', $types);
 
-    return $this->filter_incompatible_payment_method_types($types);
+    return $this->filter_incompatible_payment_method_types(array_unique($types));
   }
 
   /**
@@ -1041,7 +1041,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     * Silent Post from Authorize.net.
     */
   public function record_sub_payment(MeprSubscription $sub, $amount, $trans_num, $payment_method = null, $txn_expires_at_override = null, $order_id = 0) {
-    if(strpos($trans_num, 'ch_') === 0 && MeprTransaction::txn_exists($trans_num)) {
+    if(self::is_charge_object_id($trans_num) && MeprTransaction::txn_exists($trans_num)) {
       return;
     }
 
@@ -1090,7 +1090,7 @@ class MeprStripeGateway extends MeprBaseRealGateway {
     // just cancel the subscr when limit_cycles_num is hit
     $sub->limit_payment_cycles();
 
-    if(strpos($trans_num, 'ch_') === 0) {
+    if(self::is_charge_object_id($trans_num)) {
       // Update Stripe Metadata Asynchronously
       $job = new MeprUpdateStripeMetadataJob();
       $job->gateway_settings = $this->settings;
@@ -4875,5 +4875,17 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       $sub->cc_exp_month = $payment_method->card['exp_month'];
       $sub->cc_exp_year = $payment_method->card['exp_year'];
     }
+  }
+
+  /**
+   * Is the given ID a Charge object ID?
+   *
+   * A Charge object ID starts with either ch_ or py_.
+   *
+   * @param  string $id The ID to check.
+   * @return bool
+   */
+  private static function is_charge_object_id($id) {
+    return strpos($id, 'ch_') === 0 || strpos($id, 'py_') === 0;
   }
 }

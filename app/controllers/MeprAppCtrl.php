@@ -14,6 +14,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
     add_filter('custom_menu_order', '__return_true');
     add_filter('menu_order', 'MeprAppCtrl::admin_menu_order');
     add_filter('menu_order', 'MeprAppCtrl::admin_submenu_order');
+    add_action('widgets_init', 'MeprAppCtrl::register_global_widget_area');
     add_action('widgets_init', 'MeprAccountLinksWidget::register_widget');
     add_action('widgets_init', 'MeprLoginWidget::register_widget');
     add_action('widgets_init', 'MeprSubscriptionsWidget::register_widget');
@@ -534,6 +535,48 @@ class MeprAppCtrl extends MeprBaseCtrl {
     $submenu['memberpress'] = $new_order;
 
     return $menu_order;
+  }
+
+  public static function register_global_widget_area() {
+    register_sidebar( array(
+      'name'          => _x('ReadyLaunch™️ General Footer', 'ui', 'memberpress'),
+      'description'   => __( 'Widgets in this area will be shown at the bottom of all ReadyLaunch pages.', 'memberpress' ),
+      'id'            => 'mepr_rl_global_footer',
+      'before_widget' => '<div>',
+      'after_widget'  => '</div>',
+      'before_title'  => '<h2>',
+      'after_title'   => '</h2>',
+    ) );
+
+    register_sidebar( array(
+      'name'          => _x('ReadyLaunch™️ Account Footer', 'ui', 'memberpress'),
+      'description'   => __( 'Widgets in this area will be shown at the bottom of ReadyLaunch Account page.', 'memberpress' ),
+      'id'            => 'mepr_rl_account_footer',
+      'before_widget' => '<div>',
+      'after_widget'  => '</div>',
+      'before_title'  => '<h2>',
+      'after_title'   => '</h2>',
+    ) );
+
+    register_sidebar( array(
+      'name'          => _x('ReadyLaunch™️ Login Footer', 'ui', 'memberpress'),
+      'description'   => __( 'Widgets in this area will be shown at the bottom of ReadyLaunch Login page.', 'memberpress' ),
+      'id'            => 'mepr_rl_login_footer',
+      'before_widget' => '<div>',
+      'after_widget'  => '</div>',
+      'before_title'  => '<h2>',
+      'after_title'   => '</h2>',
+    ) );
+
+    register_sidebar( array(
+      'name'          => _x('ReadyLaunch™️ Registration Footer', 'ui', 'memberpress'),
+      'description'   => __( 'Widgets in this area will be shown at the bottom of ReadyLaunch Registration pages.', 'memberpress' ),
+      'id'            => 'mepr_rl_registration_footer',
+      'before_widget' => '<div>',
+      'after_widget'  => '</div>',
+      'before_title'  => '<h2>',
+      'after_title'   => '</h2>',
+    ) );
   }
 
   // Routes for wordpress pages -- we're just replacing content here folks.

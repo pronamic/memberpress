@@ -7,7 +7,9 @@ $user_message = MeprHooks::apply_filters( 'mepr-user-message', wpautop( do_short
 
 <h1 class="mepr_page_header"><?php echo esc_html_x( 'Profile', 'ui', 'memberpress' ); ?></h1>
 
-<div class="mepr-account-message mepr-account-welcome-message <?php echo $welcome_image ? 'has-welcome-image'  : ''  ?>"><?php echo $welcome_message ?></div>
+<?php if ( !empty($welcome_message) ) : ?>
+  <div class="mepr-account-message mepr-account-welcome-message <?php echo $welcome_image ? 'has-welcome-image'  : ''  ?>"><?php echo $welcome_message ?></div>
+<?php endif; ?>
 
 <?php if(!empty($user_message)): ?>
   <div class="mepr-account-message mepr-account-user-message">

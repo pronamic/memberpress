@@ -26,10 +26,17 @@ body {
   max-width: 70rem;
   margin: 0 auto;
 }
+.mepr-rl-footer-widgets {
+  padding-right: 3rem;
+  padding-left: 3rem;
+}
 @media (min-width: 1024px) {
   .mepr-checkout-container {
     flex-direction: row-reverse;
     min-height: 100vh;
+  }
+  .mepr-checkout-container.mepr-is-footer-widget {
+    min-height: 0;
   }
 
   .mepr-checkout-container .invoice-wrapper {
@@ -42,6 +49,9 @@ body {
   .mepr-checkout-container .form-wrapper {
     padding-right: 0;
     border-left: 1px solid #ccc;
+  }
+  .mepr-rl-footer-widgets {
+    padding: 3rem 0 0;
   }
 }
 @media (max-width: 1024px) {
