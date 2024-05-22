@@ -230,28 +230,6 @@ use memberpress\courses\helpers as helpers; ?>
                 </td>
               </tr>
 
-              <tr>
-                <td colspan="2">
-                  <label class="mepr-modal-options-pane-label" for="mpcs-options[classroom-wp-footer]">
-                    <span>
-                      <?php _e('WP Footer Hook', 'memberpress-courses', 'memberpress'); ?>
-                    </span>
-                    <?php MeprAppHelper::info_tooltip(
-                      'mpcs-complete-link-css',
-                      __('WP Footer Hook', 'memberpress-courses', 'memberpress'),
-                      __('Use this field to enable/disable the WP Footer hook. In classroom mode, \'wp_footer\' hook is disabled by default.', 'memberpress-courses', 'memberpress')
-                    );
-                    ?>
-                  </label>
-                  <select id="mpcs-options[classroom-wp-footer]" name="mpcs-options[classroom-wp-footer]">
-                    <option value="disabled" <?php selected(helpers\Options::val($courses_options, 'classroom-wp-footer'), 'disabled'); ?>>
-                      <?php esc_html_e('Disabled', 'memberpress-courses', 'memberpress'); ?></option>
-                    <option value="enabled" <?php selected(helpers\Options::val($courses_options, 'classroom-wp-footer'), 'enabled'); ?>>
-                      <?php esc_html_e('Enabled', 'memberpress-courses', 'memberpress'); ?></option>
-                  </select>
-                </td>
-              </tr>
-
               <?php do_action('mpc_admin_general_options'); ?>
 
             </tbody>

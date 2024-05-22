@@ -49,6 +49,26 @@
         <input type="text" name="<?php echo esc_attr($mepr_options->design_primary_color_str); ?>" value="<?php echo esc_html($mepr_options->design_primary_color); ?>" class="color-field" data-default-color="#06429E" />
       </div>
     </div>
+    <div class="mp-row">
+      <div class="mepr-flex-row" style="width: 50%;">
+        <p>
+          <strong>
+            <?php esc_html_e('Footer Settings', 'memberpress'); ?>
+          </strong>
+        </p>
+      </div>
+      <div class="mp-col-2">
+        <?php esc_html_e('WP Footer Hook', 'memberpress'); ?>
+      </div>
+      <div class="mp-col-3">
+        <select id="<?php echo esc_attr($mepr_options->rl_enable_wp_footer_str); ?>" name="<?php echo esc_attr($mepr_options->rl_enable_wp_footer_str); ?>">
+          <option value="enabled" <?php selected($mepr_options->rl_enable_wp_footer, 'enabled'); ?>>
+            <?php esc_html_e('Enabled', 'memberpress'); ?></option>
+          <option value="disabled" <?php selected($mepr_options->rl_enable_wp_footer, 'disabled'); ?>>
+            <?php esc_html_e('Disabled', 'memberpress'); ?></option>
+        </select>
+      </div>
+    </div>
     <h3>
       <?php esc_html_e('Pro Mode Templates', 'memberpress'); ?>
     </h3>

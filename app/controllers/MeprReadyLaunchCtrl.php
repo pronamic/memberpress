@@ -173,6 +173,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     $logo                 = esc_url( wp_get_attachment_url( $mepr_options->design_logo_img ) );
     $user                 = MeprUtils::get_currentuserinfo();
     $wrapper_classes      = '';
+    $enable_rl_wp_footer  = MeprHooks::apply_filters('mepr-rl-enable-wp-footer', isset($mepr_options->rl_enable_wp_footer) && 'enabled' === $mepr_options->rl_enable_wp_footer, $post, $user);
 
     if ( self::template_enabled( 'pricing' ) ) {
       $user              = MeprUtils::get_currentuserinfo();

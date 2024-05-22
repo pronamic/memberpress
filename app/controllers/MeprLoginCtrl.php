@@ -17,24 +17,17 @@ class MeprLoginCtrl extends MeprBaseCtrl {
     $current_post = MeprUtils::get_current_post();
     $mepr_options = MeprOptions::fetch();
     $permalink = !empty($current_post->ID) ? MeprUtils::get_permalink($current_post->ID) : '';
-    $arglist = '';
-
-    if(isset($atts) && !empty($atts)) {
-      foreach($atts as $att_key => $att_val) {
-        $arglist .= " {$att_key}=\"{$att_val}\"";
-      }
-    }
 
     ob_start();
 
     if(MeprUtils::is_user_logged_in()) {
       ?>
-      <a href="<?php echo MeprHooks::apply_filters('mepr-logout-url', wp_logout_url($mepr_options->login_page_url("redirect_to=".urlencode($permalink)))); ?>"<?php echo $arglist; ?>><?php _e('Logout', 'memberpress'); ?></a>
+      <a href="<?php echo esc_url(MeprHooks::apply_filters('mepr-logout-url', wp_logout_url($mepr_options->login_page_url("redirect_to=".urlencode($permalink))))); ?>"><?php _e('Logout', 'memberpress'); ?></a>
       <?php
     }
     else {
       ?>
-      <a href="<?php echo $mepr_options->login_page_url("redirect_to=".urlencode($permalink)); ?>"<?php echo $arglist; ?>><?php _e('Login', 'memberpress'); ?></a>
+      <a href="<?php echo esc_url($mepr_options->login_page_url("redirect_to=".urlencode($permalink))); ?>"><?php _e('Login', 'memberpress'); ?></a>
       <?php
     }
 

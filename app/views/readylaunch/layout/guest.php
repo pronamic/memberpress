@@ -51,7 +51,11 @@
     </main>
 
 
-    <?php wp_footer(); ?>
+    <?php
+    if($enable_rl_wp_footer) {
+      wp_footer();
+    }
+    ?>
   </body>
 
 </html>

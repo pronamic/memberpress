@@ -465,6 +465,10 @@ class MeprOptions {
     if(!isset( $this->rl_enable_coaching_template ) ){
       $this->rl_enable_coaching_template = true;
     }
+
+    if(!isset( $this->rl_enable_wp_footer) ) {
+      $this->rl_enable_wp_footer = 'enabled';
+    }
   }
 
   public function set_strings() {
@@ -579,6 +583,7 @@ class MeprOptions {
     $this->design_pricing_subheadline_str           = 'mepr-design-pricing-subheadline';
     $this->rl_enable_coaching_template_str          = 'mepr-rl-enable-coaching-template';
     $this->design_show_checkout_price_terms_str     = 'mepr-design-show-checkout-price-terms';
+    $this->rl_enable_wp_footer_str                  = 'mepr-rl-enable-wp-footer';
   }
 
   public function validate($params, $errors = array()) {
@@ -806,6 +811,7 @@ class MeprOptions {
     $this->design_pricing_subheadline         = wp_kses_post(stripslashes($params[$this->design_pricing_subheadline_str]));
     $this->rl_enable_coaching_template        = isset($params[$this->rl_enable_coaching_template_str]);
     $this->design_show_checkout_price_terms   = isset($params[$this->design_show_checkout_price_terms_str]);
+    $this->rl_enable_wp_footer                = sanitize_text_field($params[$this->rl_enable_wp_footer_str]);
   }
 
   public function update_address_fields_required() {
