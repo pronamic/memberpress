@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.11.30\n"
+"Project-Id-Version: MemberPress 1.11.31\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-05-21T16:33:27+00:00\n"
+"POT-Creation-Date: 2024-05-22T15:20:24+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: memberpress\n"
@@ -1847,7 +1847,7 @@ msgid "You do not have sufficient permission to perform this operation"
 msgstr ""
 
 #: app/controllers/MeprPayPalConnectCtrl.php:683
-#: app/controllers/MeprReadyLaunchCtrl.php:297
+#: app/controllers/MeprReadyLaunchCtrl.php:296
 #: app/controllers/MeprStripeCtrl.php:83
 msgid "Transaction not found"
 msgstr ""
@@ -2116,26 +2116,26 @@ msgstr ""
 msgid "No membership found"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:387
+#: app/controllers/MeprReadyLaunchCtrl.php:386
 msgid "ReadyLaunch™"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:475
+#: app/controllers/MeprReadyLaunchCtrl.php:474
 msgid "Welcome Image should be uploaded if Show Welcome Image button is checked"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:685
+#: app/controllers/MeprReadyLaunchCtrl.php:684
 #: app/models/MeprUser.php:817
 #: app/models/MeprUser.php:893
 msgid "You must enter both your First and Last name"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:691
+#: app/controllers/MeprReadyLaunchCtrl.php:690
 #: app/models/MeprUser.php:821
 msgid "You must enter a valid email address"
 msgstr ""
 
-#: app/controllers/MeprReadyLaunchCtrl.php:697
+#: app/controllers/MeprReadyLaunchCtrl.php:696
 #: app/models/MeprUser.php:827
 msgid "This email is already in use by another member"
 msgstr ""
