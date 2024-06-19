@@ -19,7 +19,7 @@
 
   <?php else: ?>
     <?php echo $message; ?>
-    <?php MeprHooks::do_action('mepr-before-login-form'); ?>
+    <?php MeprHooks::do_action('mepr-before-login-form', $atts ?? array()); ?>
     <!-- mp-login-form-start --> <?php //DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING ?>
     <form name="mepr_loginform" id="mepr_loginform" class="mepr-form" action="<?php echo esc_url($login_url); ?>" method="post">
       <?php /* nonce not necessary on this form seeing as the user isn't logged in yet */ ?>
@@ -61,7 +61,7 @@
       <a href="<?php echo esc_url($forgot_password_url); ?>"><?php _ex('Forgot Password', 'ui', 'memberpress'); ?></a>
     </div>
 
-    <?php MeprHooks::do_action('mepr-login-form-after-submit'); ?>
+    <?php MeprHooks::do_action('mepr-login-form-after-submit', $atts ?? array()); ?>
 
     <!-- mp-login-form-end --> <?php //DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING ?>
 

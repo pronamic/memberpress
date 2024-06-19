@@ -286,38 +286,41 @@ class MeprUsersCtrl extends MeprBaseCtrl {
           }
         }
         else {
-          if($line->field_type === 'checkbox') {
+          if($line->field_type == 'file') {
+            if(isset($_FILES[$line->field_key]['error']) && $_FILES[$line->field_key]['error'] != UPLOAD_ERR_NO_FILE) {
+              $file = $_FILES[$line->field_key];
+
+              if(!empty($file['name']) && !empty($file['size']) && !empty($file['tmp_name']) && is_uploaded_file($file['tmp_name'])) {
+                add_filter('upload_dir', 'MeprUsersHelper::get_upload_dir');
+                add_filter('upload_mimes', 'MeprUsersHelper::get_allowed_mime_types');
+
+                $pathinfo = pathinfo($file['name']);
+                $filename = sanitize_file_name($pathinfo['filename'] . '_' . uniqid() . '.' . $pathinfo['extension']);
+                $contents = @file_get_contents($file['tmp_name']);
+
+                if($contents !== false) {
+                  $file = wp_upload_bits($filename, null, $contents);
+
+                  if(isset($file['url'])) {
+                    update_user_meta($user_id, $line->field_key, esc_url_raw($file['url']));
+                  }
+                }
+
+                remove_filter('upload_mimes', 'MeprUsersHelper::get_allowed_mime_types');
+                remove_filter('upload_dir', 'MeprUsersHelper::get_upload_dir');
+              }
+            }
+          }
+          elseif($line->field_type == 'checkbox') {
             update_user_meta($user_id, $line->field_key, false);
           }
           elseif(in_array($line->field_type, array('checkboxes', 'multiselect'))) {
             update_user_meta($user_id, $line->field_key, array());
           }
-          elseif($line->field_type === 'file' && empty($_FILES[$line->field_key]['tmp_name'])) {
-            continue;
-          }
           else {
             update_user_meta($user_id, $line->field_key, '');
           }
         }
-
-        if ( isset($_FILES[$line->field_key]) && array_key_exists($line->field_key, $_FILES) && !empty($_FILES[$line->field_key]['tmp_name']) ){
-          add_filter( 'upload_dir', 'MeprUsersHelper::get_upload_dir' );
-          add_filter( 'upload_mimes', 'MeprUsersHelper::get_allowed_mime_types' );
-
-          $file = $_FILES[$line->field_key];
-          $pathinfo = pathinfo($file['name']);
-          $filename = sanitize_file_name( $pathinfo['filename'] .'_'. uniqid() .'.'. $pathinfo['extension'] );
-          $file = wp_upload_bits( $filename, null, @file_get_contents( $file['tmp_name'] ) );
-
-          if(isset($file['url'])){
-            update_user_meta($user_id, $line->field_key, esc_url($file['url']));
-          }
-
-          remove_filter( 'upload_mimes', 'MeprUsersHelper::get_allowed_mime_types' );
-          remove_filter( 'upload_dir', 'MeprUsersHelper::get_upload_dir' );
-        }
-
-
       }
 
       if(!$is_signup) {
@@ -394,12 +397,40 @@ class MeprUsersCtrl extends MeprBaseCtrl {
         }
       }
 
-      if( 'file' == $line->field_type && ( !isset($_FILES[$line->field_key]) || empty($_FILES[$line->field_key]['tmp_name']) ) ){
-        // If file is required and file does not exist
-        $file = get_user_meta(get_current_user_id(), $line->field_key, true);
-        $file_headers = $file ? @get_headers($file) : [];
-        if($line->required && false == strpos($file_headers[0], '200 OK')){
-          $errs[$line->field_key] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
+      if('file' == $line->field_type) {
+        $file_provided = isset($_FILES[$line->field_key]['error']) && $_FILES[$line->field_key]['error'] != UPLOAD_ERR_NO_FILE;
+
+        if($file_provided) {
+          // Validate new file upload
+          $file = $_FILES[$line->field_key];
+
+          if(empty($file['tmp_name']) || empty($file['name']) || empty($file['size'])) {
+            if($line->required) {
+              $errs[$line->field_key] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
+            }
+          }
+          elseif($file['error'] == UPLOAD_ERR_OK) {
+            add_filter('upload_mimes', 'MeprUsersHelper::get_allowed_mime_types');
+            $wp_filetype = wp_check_filetype($file['name']);
+            remove_filter('upload_mimes', 'MeprUsersHelper::get_allowed_mime_types');
+
+            if(!$wp_filetype['ext'] && !current_user_can('unfiltered_upload')) {
+              $errs[$line->field_key] = sprintf(__('%s file type not allowed.', 'memberpress'), stripslashes($line->field_name));
+            }
+          }
+          else {
+            $errs[$line->field_key] = sprintf(__('%s could not be uploaded.', 'memberpress'), stripslashes($line->field_name));
+          }
+        }
+        else {
+          // Validate existing file
+          if($line->required) {
+            $file = get_user_meta(get_current_user_id(), $line->field_key, true);
+
+            if(empty($file)) {
+              $errs[$line->field_key] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
+            }
+          }
         }
       }
 
@@ -612,7 +643,7 @@ class MeprUsersCtrl extends MeprBaseCtrl {
         $expires_at   = _x('Unknown', 'ui', 'memberpress');
 
         if($expiring_txn instanceof MeprTransaction) {
-          $renewal_link = $user->renewal_link($expiring_txn->id);
+          $renewal_link = MeprHooks::apply_filters( 'mepr_list_subscriptions_renewal_link', $user->renewal_link($expiring_txn->id), $expiring_txn );
           $expires_at = MeprAppHelper::format_date($expiring_txn->expires_at, _x('Never', 'ui', 'memberpress'));
         }
 
@@ -689,18 +720,27 @@ class MeprUsersCtrl extends MeprBaseCtrl {
    * @return mixed
    */
   public static function show_user_file($atts, $content = ''){
-    $key = (isset($atts['slug'])) ? $atts['slug'] : '';
-    $userid = (isset($atts['userid'])) ? $atts['userid'] : get_current_user_id();
+    $key = (isset($atts['slug'])) ? sanitize_text_field($atts['slug']) : '';
+    $userid = (isset($atts['userid'])) ? intval($atts['userid']) : get_current_user_id();
+
+    $mepr_options = MeprOptions::fetch();
+    $custom_fields = (array) $mepr_options->custom_fields;
+
+    $field = array_filter($custom_fields, function($field) use ($key) {
+      return $field->field_key === $key && $field->field_type === 'file';
+    });
+
+    if(empty($field)) { return; }
+
     $download = get_user_meta($userid, $key, true);
 
-    if(empty($download)) { return; }
-
-    $file_headers = @get_headers($download);
-    if(strpos($file_headers[0], '200 OK')){
-      ob_start();
-      MeprView::render('/shortcodes/user_files', get_defined_vars());
-      return ob_get_clean();
+    if( false === MeprUsersHelper::uploaded_file_exists($download) ){
+        return;
     }
+
+    ob_start();
+    MeprView::render('/shortcodes/user_files', get_defined_vars());
+    return ob_get_clean();
   }
 
   public static function get_user_active_membership_titles($atts, $content = '') {

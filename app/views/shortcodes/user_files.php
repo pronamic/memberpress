@@ -2,5 +2,5 @@
 <?php
 ?>
 <div class="mp_wrapper mp_users_files">
-  <a target="_blank" href="<?php echo esc_url($download) ?>"><?php echo !empty($content) ? $content : $key  ?></a>
+  <a target="_blank" href="<?php echo esc_url($download) ?>"><?php echo !empty($content) ? esc_html($content) : esc_html($key)  ?></a>
 </div>

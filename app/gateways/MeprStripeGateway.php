@@ -1305,6 +1305,10 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         }
 
         if($sub instanceof MeprSubscription && $sub->id > 0 && $sub->txn_count > 1) {
+          if($sub->gateway != $this->id) {
+            return;
+          }
+
           $usr = $sub->user();
 
           if($usr->ID > 0) {
@@ -1541,6 +1545,10 @@ class MeprStripeGateway extends MeprBaseRealGateway {
         }
 
         if($sub instanceof MeprSubscription) {
+          if($sub->gateway != $this->id) {
+            return false;
+          }
+
           $first_txn = $sub->first_txn();
 
           if($first_txn == false || !($first_txn instanceof MeprTransaction)) {
@@ -1577,7 +1585,6 @@ class MeprStripeGateway extends MeprBaseRealGateway {
             $sub->status = MeprSubscription::$cancelled_str;
           }
 
-          $sub->gateway = $this->id;
           $sub->expire_txns(); //Expire associated transactions for the old subscription
           $sub->store();
         }

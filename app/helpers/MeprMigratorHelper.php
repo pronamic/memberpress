@@ -10,7 +10,7 @@ class MeprMigratorHelper {
     $id = MeprUtils::get_current_screen_id();
 
     if(!empty($id) && is_string($id)) {
-      return preg_match('/_page_memberpress-(onboarding|options)/', $id);
+      return preg_match('/_page_memberpress-(onboarding|courses-options)/', $id);
     }
 
     return false;

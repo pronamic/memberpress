@@ -167,6 +167,10 @@ table.mepr-settings-table tr.mepr-mobile-nav {
   display: none;
 }
 
+.mepr_coupons_timezone{
+  margin: 5px 0px;
+}
+
 @media screen and (max-width: 782px) {
   table.mepr-settings-table td.mepr-settings-table-nav {
     display: none;

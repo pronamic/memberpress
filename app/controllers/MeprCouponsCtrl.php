@@ -188,28 +188,26 @@ class MeprCouponsCtrl extends MeprCptCtrl {
         $month = isset($_POST[MeprCoupon::$starts_on_month_str])?$_POST[MeprCoupon::$starts_on_month_str]:1;
         $day = isset($_POST[MeprCoupon::$starts_on_day_str])?$_POST[MeprCoupon::$starts_on_day_str]:1;
         $year = isset($_POST[MeprCoupon::$starts_on_year_str])?$_POST[MeprCoupon::$starts_on_year_str]:1970;
-        $coupon->starts_on = MeprUtils::make_ts_date($month, $day, $year);
+        $coupon->start_timezone = isset($_POST[MeprCoupon::$start_on_timezone_str])?$_POST[MeprCoupon::$start_on_timezone_str]:0;
+        $coupon->starts_on = MeprUtils::make_ts_date($month, $day, $year, true);
+
+        if(!empty($coupon->starts_on)) {
+           $minimum_start_date = new DateTime();
+
+           // get datetime object of coupon starts_on : DateTime
+           $coupon_start_date = new DateTime();
+           $coupon_start_ts = MeprCouponsHelper::convert_timestamp_to_tz($coupon->starts_on,$coupon->start_timezone); // Convert UTC timestamp to selected timezone timestamp.
+           $coupon_start_date->setTimestamp($coupon_start_ts);
+
+           if($minimum_start_date > $coupon_start_date){
+             $coupon->should_start = false;
+             $coupon->starts_on = 0;
+           }
+        }
       }
       else {
         $coupon->should_start = false;
         $coupon->starts_on = 0;
-      }
-
-      if(isset($_POST[MeprCoupon::$should_start_str]) && !empty($coupon->starts_on)) {
-
-        // get current time + 24 hours : DateTime
-        $minimum_start_date = new DateTime();
-        $minimum_start_date->add(new DateInterval('P1D'));
-
-        // get datetime object of coupon starts_on : DateTime
-        $coupon_start_date = new DateTime();
-        $coupon_start_date->setTimestamp($coupon->starts_on);
-
-        // if coupon start date is less than now+24hrs, disable the start date feature
-        if( $minimum_start_date > $coupon_start_date ){
-          $coupon->should_start = false;
-          $coupon->starts_on = 0;
-        }
       }
 
       if(isset($_POST[MeprCoupon::$should_expire_str])) {
@@ -217,6 +215,7 @@ class MeprCouponsCtrl extends MeprCptCtrl {
         $month = isset($_POST[MeprCoupon::$expires_on_month_str])?$_POST[MeprCoupon::$expires_on_month_str]:1;
         $day = isset($_POST[MeprCoupon::$expires_on_day_str])?$_POST[MeprCoupon::$expires_on_day_str]:1;
         $year = isset($_POST[MeprCoupon::$expires_on_year_str])?$_POST[MeprCoupon::$expires_on_year_str]:1970;
+        $coupon->expire_timezone = isset($_POST[MeprCoupon::$expires_on_timezone_str])?$_POST[MeprCoupon::$expires_on_timezone_str]:0;
         $coupon->expires_on = MeprUtils::make_ts_date($month, $day, $year); //23:59:59 of the chosen day
       }
       else {
@@ -251,6 +250,13 @@ class MeprCouponsCtrl extends MeprCptCtrl {
       $coupon->discount_mode = sanitize_text_field($_POST[MeprCoupon::$discount_mode_str]);
       $coupon->trial_days = isset($_POST[MeprCoupon::$trial_days_str])?(int)sanitize_text_field($_POST[MeprCoupon::$trial_days_str]):0;
       $coupon->trial_amount = isset($_POST[MeprCoupon::$trial_amount_str]) ? (float) sanitize_text_field( $_POST[MeprCoupon::$trial_amount_str] ) : 0.00;
+
+      if(isset($_POST[MeprCoupon::$usage_per_user_count_str]) and is_numeric($_POST[MeprCoupon::$usage_per_user_count_str])){
+        $coupon->usage_per_user_count = $coupon->usage_amount <= 0 || $_POST[MeprCoupon::$usage_per_user_count_str] <= $coupon->usage_amount ? sanitize_text_field( $_POST[MeprCoupon::$usage_per_user_count_str] ) : $coupon->usage_amount;
+      } else {
+        $coupon->usage_per_user_count = 0;
+      }
+      $coupon->usage_per_user_count_timeframe = isset($_POST[MeprCoupon::$usage_per_user_count_timeframe_str])?sanitize_text_field($_POST[MeprCoupon::$usage_per_user_count_timeframe_str]):'lifetime';
       $coupon->store_meta();
 
       MeprHooks::do_action('mepr-coupon-save-meta', $coupon);

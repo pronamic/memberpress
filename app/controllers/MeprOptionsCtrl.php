@@ -491,8 +491,9 @@ class MeprOptionsCtrl extends MeprBaseCtrl {
 
     try {
       if($payment_method_type == 'apple_pay') {
+        $root_dir = isset($_SERVER['DOCUMENT_ROOT']) ? wp_unslash($_SERVER['DOCUMENT_ROOT']) : ABSPATH;
         $domain_association_file_name = 'apple-developer-merchantid-domain-association';
-        $well_known_dir = untrailingslashit(ABSPATH) . '/.well-known';
+        $well_known_dir = untrailingslashit($root_dir) . '/.well-known';
         $full_path = "$well_known_dir/$domain_association_file_name";
 
         if(!file_exists($full_path)) {

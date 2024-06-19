@@ -361,11 +361,14 @@ class MeprLoginCtrl extends MeprBaseCtrl {
 
   public function display_reset_password_form_errors($errors) {
     if(!empty($errors)) {
-      extract($_POST, EXTR_SKIP);
-      if(MeprReadyLaunchCtrl::template_enabled( 'login' )){
+      $mepr_screenname = isset($_POST['mepr_screenname']) ? sanitize_user(wp_unslash($_POST['mepr_screenname'])) : '';
+      $mepr_key = isset($_POST['mepr_key']) ? wp_unslash($_POST['mepr_key']) : '';
+
+      if(MeprReadyLaunchCtrl::template_enabled('login')) {
         MeprView::render('/readylaunch/shared/errors', get_defined_vars());
         MeprView::render('/readylaunch/login/reset_password', get_defined_vars());
-      } else {
+      }
+      else {
         MeprView::render('/shared/errors', get_defined_vars());
         MeprView::render('/login/reset_password', get_defined_vars());
       }
@@ -393,7 +396,10 @@ class MeprLoginCtrl extends MeprBaseCtrl {
       }
 
       if(empty($errors)) {
-        extract($_POST, EXTR_SKIP);
+        $mepr_screenname = isset($_POST['mepr_screenname']) ? sanitize_user(wp_unslash($_POST['mepr_screenname'])) : '';
+        $mepr_user_password = isset($_POST['mepr_user_password']) ? $_POST['mepr_user_password'] : '';
+        $mepr_key = isset($_POST['mepr_key']) ? wp_unslash($_POST['mepr_key']) : '';
+
         $user = new MeprUser();
         $user->load_user_data_by_login($mepr_screenname);
 
@@ -427,7 +433,7 @@ class MeprLoginCtrl extends MeprBaseCtrl {
           }
         }
         else {
-          $_POST['errors'] = array(__('An Unknown Error Occurred', 'ui', 'memberpress'));
+          $_POST['errors'] = array(__('An Unknown Error Occurred', 'memberpress'));
         }
       }
       else {

@@ -384,7 +384,7 @@ class MeprUsersHelper {
   /**
    * Gets custom fields
    *
-   * @param Mepr_Product $product MemberPress Product Object
+   * @param MeprProduct $product MemberPress Product Object
    * @return array
    */
   public static function get_custom_fields($product = null){
@@ -472,7 +472,7 @@ class MeprUsersHelper {
   /**
    * Allowed upload file type
    *
-   * @return void
+   * @return array
    */
   public static function get_allowed_mime_types(){
     $mimes = array(
@@ -483,7 +483,7 @@ class MeprUsersHelper {
       "txt|asc|c|cc|h|srt"  => "text/plain",
       "csv" => "text/csv",
       "rtx" => "text/richtext",
-      "zip" => "applicat /ion/zip",
+      "zip" => "application/zip",
       "doc" => "application/msword",
       "pot|pps|ppt" => "application/vnd.ms-powerpoint",
       "xla|xls|xlt|xlw" => "application/vnd.ms-excel",
@@ -492,6 +492,7 @@ class MeprUsersHelper {
       "odt" => "application/vnd.oasis.opendocument.text",
       "odp" => "application/vnd.oasis.opendocument.presentation",
       "ods" => "application/vnd.oasis.opendocument.spreadsheet",
+      "pdf" => "application/pdf",
     );
 
     return MeprHooks::apply_filters('mepr_upload_mimes', $mimes);
@@ -517,13 +518,18 @@ class MeprUsersHelper {
    * @return bool
    */
   public static function uploaded_file_exists($url){
-    if(empty(trim($url))) { return false; }
+    if (empty(trim($url)) || false === wp_http_validate_url($url)) {
+      return false;
+    }
+
+    $path = parse_url($url, PHP_URL_PATH);
+    $filename = pathinfo($path, PATHINFO_FILENAME);
+    $extension = pathinfo($path, PATHINFO_EXTENSION);
+
     $upload_dir = wp_get_upload_dir();
-    $filename = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_FILENAME);
-    $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
-    $path = $upload_dir['basedir'] . '/mepr/userfiles/';
-    $file = $path . $filename .'.'. $extension;
-    return file_exists($file);
+    $file_path = $upload_dir['basedir'] . '/mepr/userfiles/' . $filename . '.' . $extension;
+
+    return file_exists($file_path) && is_file($file_path);
   }
 
 

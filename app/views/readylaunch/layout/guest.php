@@ -29,7 +29,11 @@
       <?php // echo $content ?>
       <?php the_content() ?>
 
-      <?php if( $mepr_options->login_page_id ) { ?>
+      <?php
+      if(
+        $mepr_options->login_page_id &&
+        ( is_active_sidebar( 'mepr_rl_login_footer' ) || is_active_sidebar( 'mepr_rl_global_footer' ) )
+      ) { ?>
         <div class="mepro-login-widget">
           <div class="mepro-login-widget-box mepro-boxed">
 

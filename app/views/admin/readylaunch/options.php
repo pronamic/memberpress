@@ -156,42 +156,9 @@
             <a href="#0"></a>
           </td>
         </tr>
-        <?php if (class_exists('memberpress\courses\models\Course')) { ?>
-          <tr>
-
-            <td>
-              <label class="switch">
-                <input x-model="courses.enableTemplate" type="checkbox" id="mpcs_options_classroom_mode" name="mpcs-options[classroom-mode]" value="1" class="mepr-template-enablers">
-                <span class="slider round"></span>
-              </label>
-            </td>
-
-            <td>
-              <label for="mpcs_options_classroom_mode"><?php esc_html_e('Courses / Lessons', 'memberpress'); ?></label>
-            </td>
-            <td x-show="courses.enableTemplate">
-              <button x-on:click="courses.openModal = true" class="link" type="button">
-                <?php esc_html_e('Customize', 'memberpress'); ?>
-              </button>
-              <a href="#0"></a>
-            </td>
-          </tr>
-        <?php } ?>
-        <?php if( MeprAppHelper::is_coaching_enabled() ) { ?>
-          <tr>
-            <td>
-              <label class="switch">
-              <input x-model="coaching.enableTemplate" type="checkbox" id="<?php echo esc_attr($mepr_options->rl_enable_coaching_template_str); ?>" name="<?php echo esc_attr($mepr_options->rl_enable_coaching_template_str); ?>" value="1" class="mepr-template-enablers">
-                <span class="slider round"></span>
-              </label>
-            </td>
-
-            <td>
-              <label for="<?php echo esc_attr($mepr_options->rl_enable_coaching_template_str); ?>"><?php esc_html_e('Coaching', 'memberpress'); ?></label>
-            </td>
-            <td x-show="coaching.enableTemplate"></td>
-          </tr>
-        <?php } ?>
+        <?php
+        MeprHooks::do_action('mepr-after-readylaunch-options');
+        ?>
       </tbody>
     </table>
 
@@ -201,9 +168,7 @@
     <?php MeprView::render('/admin/readylaunch/thankyou', get_defined_vars()); ?>
     <?php MeprView::render('/admin/readylaunch/checkout', get_defined_vars()); ?>
     <?php
-    if (class_exists('memberpress\courses\models\Course')) {
-      MeprView::render('/admin/readylaunch/courses', get_defined_vars());
-    }
+    MeprHooks::do_action('mepr-after-readylaunch-options-table');
     ?>
   </div>
 </div>

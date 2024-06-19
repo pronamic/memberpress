@@ -400,9 +400,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
    * filter_var('yes', FILTER_VALIDATE_BOOLEAN); // true
    */
   public static function display_option_fields() {
-    $mepr_options    = MeprOptions::fetch();
-    $courses_options = \get_option( 'mpcs-options' );
-
+    $mepr_options = MeprOptions::fetch();
     $groups                = MeprCptModel::all( 'MeprGroup' );
     $pricing_columns_limit = false;
 
@@ -442,15 +440,17 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
         'welcomeImageId'   => isset( $mepr_options->design_account_welcome_img ) ? absint( $mepr_options->design_account_welcome_img ) : '',
       ),
       'courses'  => array(
-        'enableTemplate'        => isset( $courses_options['classroom-mode'] ) ? filter_var( $courses_options['classroom-mode'], FILTER_VALIDATE_BOOLEAN ) : '',
-        'showProtectedCourses' => isset( $courses_options['show-protected-courses'] ) ? filter_var( $courses_options['show-protected-courses'], FILTER_VALIDATE_BOOLEAN ) : '',
-        'removeInstructorLink' => isset( $courses_options['remove-instructor-link'] ) ? filter_var( $courses_options['remove-instructor-link'], FILTER_VALIDATE_BOOLEAN ) : '',
-        'logoId'               => isset( $courses_options['classroom-logo'] ) ? absint( $courses_options['classroom-logo'] ) : '',
+        'enableTemplate'       => '',
+        'showProtectedCourses' => '',
+        'removeInstructorLink' => '',
+        'logoId'               => '',
       ),
       'coaching'  => array(
         'enableTemplate'        =>  isset( $mepr_options->rl_enable_coaching_template ) ? filter_var( $mepr_options->rl_enable_coaching_template, FILTER_VALIDATE_BOOLEAN ) : '',
       ),
     );
+
+    $data = MeprHooks::apply_filters( 'mepr-readylaunch-options-data', $data );
 
     MeprView::render( '/admin/readylaunch/options', get_defined_vars() );
   }

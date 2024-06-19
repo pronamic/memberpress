@@ -905,31 +905,6 @@ class MeprUser extends MeprBaseModel {
       $errors[] = __('You must agree to the Privacy Policy', 'memberpress');
     }
 
-    // Validate File Uploads
-    if (! empty($_FILES) && is_array($_FILES) ){
-      add_filter( 'upload_dir', 'MeprUsersHelper::get_upload_dir' );
-      add_filter( 'upload_mimes', 'MeprUsersHelper::get_allowed_mime_types' );
-      foreach($_FILES as $name => $file) {
-        // If name or size of the file is empty, just skip trying to process it.
-        if(empty($file['name']) || empty($file['size'])) {
-          continue;
-        }
-
-        $pathinfo = pathinfo($file['name']);
-        $filename = sanitize_file_name( $pathinfo['filename'] .'_'. uniqid() .'.'. $pathinfo['extension'] );
-        $file = wp_upload_bits( $filename, null, @file_get_contents( $file['tmp_name'] ) );
-
-        $_POST[$name] = '';
-
-        if ( FALSE === $file['error'] ) {
-          $_POST[$name] = $file['url'];
-        }
-
-      }
-      remove_filter( 'upload_mimes', 'MeprUsersHelper::get_allowed_mime_types' );
-      remove_filter( 'upload_dir', 'MeprUsersHelper::get_upload_dir' );
-    }
-
     $product = new MeprProduct($mepr_product_id);
     $product_coupon_code = isset($mepr_coupon_code) ? $mepr_coupon_code : null;
     $product_price = $product->adjusted_price($product_coupon_code);
@@ -1025,20 +1000,25 @@ class MeprUser extends MeprBaseModel {
 
   public static function validate_reset_password($params, $errors) {
     $mepr_options = MeprOptions::fetch();
-    extract($params);
 
-    if($mepr_options->enforce_strong_password && isset($_POST['mp-pass-strength']) && (int)$_POST['mp-pass-strength'] < MeprZxcvbnCtrl::get_required_int()) {
+    if($mepr_options->enforce_strong_password && isset($params['mp-pass-strength']) && (int) $params['mp-pass-strength'] < MeprZxcvbnCtrl::get_required_int()) {
       $errors[] = __('Your password must meet the minimum strength requirement.', 'memberpress');
     }
 
-    if(empty($mepr_user_password))
+    $password = isset($params['mepr_user_password']) ? $params['mepr_user_password'] : '';
+    $password_confirm = isset($params['mepr_user_password_confirm']) ? $params['mepr_user_password_confirm'] : '';
+
+    if(empty($password)) {
       $errors[] = __('You must enter a Password.', 'memberpress');
+    }
 
-    if(empty($mepr_user_password_confirm))
+    if(empty($password_confirm)) {
       $errors[] = __('You must enter a Password Confirmation.', 'memberpress');
+    }
 
-    if($mepr_user_password != $mepr_user_password_confirm)
+    if($password != $password_confirm) {
       $errors[] = __("Your Password and Password Confirmation don't match.", 'memberpress');
+    }
 
     return $errors;
   }

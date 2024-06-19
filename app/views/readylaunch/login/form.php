@@ -78,7 +78,7 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
             // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING
             ?>
           <?php endif ?>
-          <?php MeprHooks::do_action('mepr-before-login-form'); ?>
+          <?php MeprHooks::do_action('mepr-before-login-form', $atts ?? array()); ?>
           <form name="mepr_loginform" id="mepr_loginform" class="mepro-form" action="<?php echo $login_url; ?>" method="post">
 
             <h1><?php echo _x('Login', 'ui', 'memberpress') ?></h1>
@@ -124,7 +124,7 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
           <div class="mepr-login-actions">
             <?php _ex('Forgot Password?', 'ui', 'memberpress'); ?> <a href="<?php echo $forgot_password_url; ?>"><?php _ex('Click here', 'ui', 'memberpress'); ?></a>
           </div>
-          <?php MeprHooks::do_action('mepr-login-form-after-submit'); ?>
+          <?php MeprHooks::do_action('mepr-login-form-after-submit', $atts ?? array()); ?>
           <!-- mp-login-form-end -->
           <?php
           // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING

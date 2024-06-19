@@ -2,7 +2,10 @@
 if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
 $products = MeprCptModel::all('MeprProduct');
-
+$wp_selected_timezone = MeprCouponsHelper::get_wp_selected_timezone_setting();
+$coupon_expire_selected_timezone = empty($c->expires_on_timezone) ? $wp_selected_timezone : $c->expires_on_timezone;
+$coupon_start_selected_timezone = empty($c->start_on_timezone) ? $wp_selected_timezone : $c->start_on_timezone;
+$time_frames = MeprCouponsHelper::get_available_time_frame();
 if(!empty($products)):
 ?>
 <div class="mepr-coupons-form">
@@ -116,6 +119,42 @@ if(!empty($products)):
           <input type="text" maxlength="4" size="4" name="<?php  echo MeprCoupon::$usage_amount_str; ?>" value="<?php echo $usage_amount; ?>" />
         </td>
       </tr>
+      <tr valign="top">
+        <th scope="row">
+          <label><?php esc_html_e('Usage limit per user:', 'memberpress'); ?></label>
+          <?php
+            MeprAppHelper::info_tooltip( 'mepr-coupon-per-user-usage-count',
+            esc_html__('Usage limit per user', 'memberpress'),
+            esc_html__('How many times this coupon can be used by an individual user. Set "0" to remove the limit.', 'memberpress')
+            );
+          ?>
+        </th>
+        <td>
+          <?php $usage_per_user_count = (intval($c->usage_per_user_count) <= 0) ? '∞' : $c->usage_per_user_count; ?>
+          <input type="text" maxlength="4" size="4" name="<?php echo esc_attr( MeprCoupon::$usage_per_user_count_str ); ?>" value="<?php echo esc_html( $usage_per_user_count ); ?>" />
+        </td>
+      </tr>
+      <?php if ( ! empty($time_frames) && is_array($time_frames) ) : ?>
+        <tr valign="top">
+          <th scope="row">
+            <label><?php esc_html_e('Usage limit per user in Timeframe:', 'memberpress'); ?></label>
+            <?php
+              MeprAppHelper::info_tooltip( 'mepr-coupon-per-user-usage-timeframe',
+                esc_html__('Usage limit per user in Timeframe', 'memberpress'),
+                esc_html__('This determines the number of times this coupon can be used by each user in selected timeframe.', 'memberpress')
+              );
+            ?>
+          </th>
+          <td>
+
+              <select name="<?php echo esc_attr( MeprCoupon::$usage_per_user_count_timeframe_str ); ?>" class="mepr-toggle-select" >
+                <?php foreach ( $time_frames as $value => $time_frame ) : ?>
+                  <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $c->usage_per_user_count_timeframe, $value ); ?>><?php echo esc_html( $time_frame ); ?></option>
+                <?php endforeach; ?>
+              </select>
+          </td>
+        </tr>
+        <?php endif; ?>
     </tbody>
   </table>
   <table class="form-table">
@@ -151,6 +190,13 @@ if(!empty($products)):
                     <input type="text" size="2" maxlength="2" name="<?php echo MeprCoupon::$starts_on_day_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->starts_on, 'j'); ?>" />
                     <span class="description"><small><?php echo MeprUtils::period_type_name('years'); ?></small></span>
                     <input type="text" size="4" maxlength="4" name="<?php echo MeprCoupon::$starts_on_year_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->starts_on, 'Y'); ?>" />
+                    <br>
+                    <div class="description mepr_coupons_timezone"><small><?php esc_html_e('Timezone', 'memberpress'); ?></small></div>
+                    <select name="<?php echo esc_attr( MeprCoupon::$start_on_timezone_str ); ?>" class="mepr_coupons_timezone">
+                      <?php echo wp_timezone_choice($coupon_start_selected_timezone); ?>
+                    </select>
+                    <br>
+                    <?php echo wp_kses( sprintf( __('Coupon Starts at <strong>00:00:01 AM on selected date</strong>.', 'memberpress') ), array( 'strong' => array() ) );  ?>
                   </td>
                 </tr>
               </tbody>
@@ -181,7 +227,13 @@ if(!empty($products)):
                     <input type="text" size="2" maxlength="2" name="<?php echo MeprCoupon::$expires_on_day_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->expires_on, 'j'); ?>" />
                     <span class="description"><small><?php echo MeprUtils::period_type_name('years'); ?></small></span>
                     <input type="text" size="4" maxlength="4" name="<?php echo MeprCoupon::$expires_on_year_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->expires_on, 'Y'); ?>" />
-                    Coupon Expires at <strong>11:59:59 PM UTC</strong>.
+                    <br>
+                    <div class="description mepr_coupons_timezone"><small><?php esc_html_e('Timezone', 'memberpress'); ?></small></div>
+                    <select name="<?php echo MeprCoupon::$expires_on_timezone_str; ?>" class="mepr_coupons_timezone">
+                      <?php echo wp_timezone_choice($coupon_expire_selected_timezone); ?>
+                    </select>
+                    <br>
+                    <?php echo wp_kses( sprintf( __('Coupon Expires at <strong>11:59:59 PM on selected date</strong>.', 'memberpress') ), array( 'strong' => array() ) );  ?>
                   </td>
                 </tr>
               </tbody>

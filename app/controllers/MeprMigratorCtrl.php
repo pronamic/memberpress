@@ -108,7 +108,7 @@ class MeprMigratorCtrl extends MeprBaseCtrl {
           <p class="mepr-learndash-migrator-notice-heading"><?php esc_html_e('Migrate from LearnDash to MemberPress Courses?', 'memberpress'); ?></p>
           <p><?php esc_html_e('We noticed that you have some LearnDash courses that could be migrated to MemberPress Courses automatically. Click the button below to get started.', 'memberpress'); ?></p>
           <p class="mepr-learndash-migrator-notice-button-row">
-            <a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-options&courses-tab=migrator#mepr-courses')); ?>" class="button button-primary"><?php esc_html_e('Let\'s Do It', 'memberpress'); ?></a>
+            <a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-courses-options&courses-tab=migrator')); ?>" class="button button-primary"><?php esc_html_e('Let\'s Do It', 'memberpress'); ?></a>
             <a href="#" class="mepr-dismiss-this-notice"><?php esc_html_e('Dismiss', 'memberpress'); ?></a>
           </p>
         </div>

@@ -23,16 +23,22 @@ class MeprCoupon extends MeprCptModel {
   public static $expires_on_month_str = 'mepr_coupons_ex_month';
   public static $expires_on_day_str   = 'mepr_coupons_ex_day';
   public static $expires_on_year_str  = 'mepr_coupons_ex_year';
+  public static $expires_on_timezone_str  = '_mepr_coupons_expire_timezone';
+  public static $start_on_timezone_str  = '_mepr_coupons_start_timezone';
   public static $first_payment_discount_type_str    = '_mepr_coupons_first_payment_discount_type';
   public static $first_payment_discount_amount_str  = '_mepr_coupons_first_payment_discount_amount';
+  public static $usage_per_user_count_str  = '_mepr_coupons_usage_per_user_count';
+  public static $usage_per_user_count_timeframe_str  = '_mepr_coupons_usage_per_user_count_timeframe';
 
   public static $cpt = 'memberpresscoupon';
 
   public $discount_types;
+  public $timeframe_types;
 
   /*** Instance Methods ***/
   public function __construct($obj = null) {
     $this->discount_types = array('percent', 'dollar');
+    $this->timeframe_types = MeprCouponsHelper::get_available_time_frame();
     $this->load_cpt(
       $obj,
       self::$cpt,
@@ -51,7 +57,11 @@ class MeprCoupon extends MeprCptModel {
         'valid_products' => array(),
         'discount_mode' => 'standard',
         'trial_days' => 0,
-        'trial_amount' => 0.00
+        'trial_amount' => 0.00,
+        'expires_on_timezone' => 0,
+        'start_on_timezone' => 0,
+        'usage_per_user_count' => 0,
+        'usage_per_user_count_timeframe' => 'lifetime'
       )
     );
   }
@@ -72,6 +82,9 @@ class MeprCoupon extends MeprCptModel {
       $this->validate_is_numeric($this->trial_days, 0, null, 'trial_days');
       $this->validate_is_currency($this->trial_amount, 0, null, 'trial_amount');
     }
+    $this->validate_is_numeric($this->usage_per_user_count, 0, null, 'usage_per_user_count');
+    $this->validate_is_in_array($this->usage_per_user_count_timeframe, $this->timeframe_types, 'usage_per_user_count_timeframe');
+
   }
 
   public function get_formatted_products() {
@@ -130,21 +143,34 @@ class MeprCoupon extends MeprCptModel {
     return (bool) $this->use_on_upgrades;
   }
 
-  public function is_valid($product_id) {
+  public function is_valid($product_id, $user_id = 0) {
     //Coupon has reached its usage limit (remember 0 = unlimited)
     if($this->usage_amount > 0 and $this->usage_count >= $this->usage_amount) {
       return false;
     }
 
+    // Check if per user coupon usage is enabled.
+    if ( MeprUtils::is_user_logged_in() && $this->is_usage_per_user_enabled() ) {
+      $user_id    = 0 >= (int) $user_id ? get_current_user_id() : $user_id;
+      $user_usage = $this->get_user_coupon_usage( $user_id );
+      if( false === $user_usage || $user_usage >= $this->usage_per_user_count ) {
+        return false;
+      }
+    }
+
+    $expire_timestamp = MeprCouponsHelper::convert_timestamp_to_tz( $this->expires_on, $this->expires_on_timezone ); // Converted expiry UTC timestamp to selected timezone stamp.
+
     //Coupon has expired
     //This doesn't really need to be here but will be more accurate
     //than waiting every 12 hours for the expiring cron to run
-    if($this->should_expire and $this->expires_on <= time()) {
+    if($this->should_expire and $expire_timestamp <= time()) {
       return false;
     }
 
+    $start_timestamp = MeprCouponsHelper::convert_timestamp_to_tz( $this->starts_on, $this->start_on_timezone ); // Converted start UTC timestamp to selected timezone stamp.
+
     //Coupon hasn't started
-    if($this->should_start and $this->starts_on > time()) {
+    if($this->should_start and $start_timestamp > time()) {
       return false;
     }
 
@@ -263,7 +289,8 @@ class MeprCoupon extends MeprCptModel {
 
       if(!empty($coupons)) {
         foreach($coupons as $coupon) {
-          if($coupon->should_expire && $date > $coupon->expires_on) {
+          $expire_on = MeprCouponsHelper::convert_timestamp_to_tz( $coupon->expires_on, $coupon->expires_on_timezone );
+          if($coupon->should_expire && $date > $expire_on) {
             $coupon->mark_as_expired();
           }
         }
@@ -349,6 +376,10 @@ class MeprCoupon extends MeprCptModel {
     update_post_meta($this->ID, self::$trial_amount_str, $this->trial_amount);
     update_post_meta($this->ID, self::$first_payment_discount_type_str, $this->first_payment_discount_type);
     update_post_meta($this->ID, self::$first_payment_discount_amount_str, $this->first_payment_discount_amount);
+    update_post_meta($this->ID, self::$expires_on_timezone_str, $this->expire_timezone);
+    update_post_meta($this->ID, self::$start_on_timezone_str, $this->start_timezone);
+    update_post_meta($this->ID, self::$usage_per_user_count_str, $this->usage_per_user_count);
+    update_post_meta($this->ID, self::$usage_per_user_count_timeframe_str, $this->usage_per_user_count_timeframe);
   }
 
   /**
@@ -436,5 +467,65 @@ class MeprCoupon extends MeprCptModel {
         delete_metadata_by_mid('post', $meta_id);
       }
     }
+  }
+  /**
+   * Check if user coupon usage is active.
+   *
+   * @return bool.
+   */
+  public function is_usage_per_user_enabled() {
+    return MeprHooks::apply_filters( 'mepr_coupon_usage_per_user_enabled', (bool) $this->usage_per_user_count > 0, $this );
+  }
+  /**
+   * Get the user usage count.
+   *
+   * @param int $user_id User ID.
+   * @param int $coupon_id Coupon ID.
+   * @param string $time_frame Time frame.
+   *
+   * @return int User coupon usage.
+   */
+  public function get_user_coupon_usage( $user_id ) {
+    if ( 0 >= $user_id ) {
+      return false;
+    }
+    global $wpdb;
+    $mepr_db = new MeprDb();
+    $total_count = 0;
+    $date_query = '';
+    if ( 'lifetime' !== $this->usage_per_user_count_timeframe ) {
+      $date_query = MeprCouponsHelper::get_date_query_from_time_frame($this->usage_per_user_count_timeframe);
+    }
+
+    $subscription_query = "
+      SELECT COUNT(DISTINCT subscription_id)
+        FROM {$mepr_db->transactions}
+       WHERE coupon_id = %d
+         AND subscription_id > 0
+         AND txn_type IN (%s,%s)
+         AND status <> %s
+         AND user_id = %d
+         $date_query;
+    ";
+
+    $subscription_query = $wpdb->prepare($subscription_query, $this->ID, MeprTransaction::$payment_str, MeprTransaction::$subscription_confirmation_str, MeprSubscription::$pending_str, $user_id);
+    if($subscription_query_count = $wpdb->get_var($subscription_query)) { $total_count += $subscription_query_count; }
+
+    //Query one-time payments next
+    $lifetime_query = "
+      SELECT COUNT(*)
+        FROM {$mepr_db->transactions}
+       WHERE coupon_id = %d
+         AND (subscription_id <= 0 OR subscription_id IS NULL)
+         AND txn_type = %s
+         AND status <> %s
+         AND user_id = %d
+         $date_query;
+    ";
+
+    $lifetime_query = $wpdb->prepare($lifetime_query, $this->ID, MeprTransaction::$payment_str, MeprTransaction::$pending_str, $user_id);
+
+    if($lifetime_query_count = $wpdb->get_var($lifetime_query)) { $total_count += $lifetime_query_count; }
+    return MeprHooks::apply_filters( 'mepr_coupon_usage_per_user_count', $total_count, $user_id, $this );
   }
 } //End class

@@ -254,7 +254,10 @@ class MeprUtils {
   }
 
   //Coupons rely on this be careful changing it
-  public static function make_ts_date($month, $day, $year) {
+  public static function make_ts_date($month, $day, $year, $begin = false) {
+    if(true === $begin) {
+      return mktime(00, 00, 01, $month, $day, $year);
+    }
     return mktime(23, 59, 59, $month, $day, $year);
   }
 
@@ -1034,7 +1037,15 @@ class MeprUtils {
     $row = 1;
 
     if (($handle = fopen($filepath, 'r')) !== false) {
-      while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+      $delimiter = self::get_file_delimiter($filepath);
+      // Check for BOM - Byte Order Mark
+      $bom = "\xef\xbb\xbf";
+      // Move pointer to the 4th byte to check if we have a BOM
+      if (fgets($handle, 4) !== $bom) {
+        // BOM not found - rewind pointer to start of file.
+        rewind($handle);
+      }
+      while (($data = fgetcsv($handle, 1000, $delimiter)) !== false) {
         if($row === 1) {
           foreach($data as $i => $header) {
             if(!empty($header)) {
@@ -1073,6 +1084,42 @@ class MeprUtils {
     }
 
     return $assoc;
+  }
+
+  /**
+   * Retrieves the file delimiter based on the first line of the provided CSV file.
+   *
+   * @param string $filepath The path to the CSV file.
+   * @return string The detected delimiter character.
+   */
+  private static function get_file_delimiter($filepath) {
+    $delimiters = apply_filters(
+      'mepr-csv-tax-rate-delimiters',
+      array(
+        ';' => 0,
+        ',' => 0,
+        "\t" => 0,
+        "|" => 0
+      ),
+      $filepath
+    );
+
+    $handle = fopen($filepath, "r");
+
+    if($handle) {
+      $first_line = fgets($handle);
+      fclose($handle);
+
+      foreach ($delimiters as $delimiter => &$count) {
+        $count = count(str_getcsv($first_line, $delimiter));
+      }
+
+      if(max($delimiters) > 0) {
+        return array_search(max($delimiters), $delimiters);
+      }
+    }
+
+    return ','; // Default to comma
   }
 
   private static function csv_row_is_blank( $row ) {
