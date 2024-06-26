@@ -147,7 +147,6 @@
                                                              );
           ?>
         </div>
-
         <div>&nbsp;</div>
         <div id="mepr-unauthorized-show-login">
           <input type="checkbox" name="<?php echo $mepr_options->unauth_show_login_str; ?>" id="<?php echo $mepr_options->unauth_show_login_str; ?>" <?php checked($mepr_options->unauth_show_login); ?> />

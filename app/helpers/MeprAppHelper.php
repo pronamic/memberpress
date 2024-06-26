@@ -628,6 +628,40 @@ class MeprAppHelper {
     return has_block($block_name) || self::block_template_has_block($block_name);
   }
 
+
+  /**
+   * Check if the current page is a memberpress page.
+   *
+   * @param object $post Post object
+   *
+   * @return boolean
+   */
+  public static function is_memberpress_page( $post_object = '' ) {
+    if ( ! $post_object instanceof WP_Post ){
+      global $post;
+      $post_object = $post;
+    }
+    $is_memberpress_page = MeprUser::is_account_page( $post_object ) ||
+    MeprUser::is_login_page( $post_object ) ||
+    MeprProduct::is_product_page( $post_object ) ||
+    MeprGroup::is_group_page( $post_object ) ||
+    self::is_thankyou_page( $post_object );
+
+    $check_mp_course_pages = MeprHooks::apply_filters( 'mepr_check_mp_course_pages', true, $is_memberpress_page, $post_object );
+    if ( class_exists( 'memberpress\courses\helpers\Courses' ) && $check_mp_course_pages && ! $is_memberpress_page ) {
+      $is_memberpress_page = memberpress\courses\helpers\Courses::is_a_course( $post_object ) ||
+      memberpress\courses\helpers\Lessons::is_a_lesson( $post_object );
+    }
+
+    return MeprHooks::apply_filters( 'mepr_is_memberpress_page', $is_memberpress_page, $post_object );
+  }
+
+  public static function is_thankyou_page( $post ) {
+    $mepr_options     = MeprOptions::fetch();
+    $is_thankyou_page = $post instanceof WP_Post && $post->ID == $mepr_options->thankyou_page_id;
+    return MeprHooks::apply_filters( 'mepr_is_thankyou_page', $is_thankyou_page, $post );
+  }
+
   public static function wp_kses( $content, $allowed_tags = array() ) {
     if( ! is_array($allowed_tags) || empty($allowed_tags) ) {
       $allowed_tags = array(
@@ -730,5 +764,4 @@ class MeprAppHelper {
     }
     return wp_kses( $content, $allowed_tags );
   }
-
 } //End class

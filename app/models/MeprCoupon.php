@@ -82,8 +82,9 @@ class MeprCoupon extends MeprCptModel {
       $this->validate_is_numeric($this->trial_days, 0, null, 'trial_days');
       $this->validate_is_currency($this->trial_amount, 0, null, 'trial_amount');
     }
+
     $this->validate_is_numeric($this->usage_per_user_count, 0, null, 'usage_per_user_count');
-    $this->validate_is_in_array($this->usage_per_user_count_timeframe, $this->timeframe_types, 'usage_per_user_count_timeframe');
+    $this->validate_is_in_array($this->usage_per_user_count_timeframe, array_keys($this->timeframe_types), 'usage_per_user_count_timeframe');
 
   }
 

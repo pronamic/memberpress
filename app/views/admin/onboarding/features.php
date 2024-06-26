@@ -44,7 +44,7 @@ $addons_selectable = MeprOnboardingHelper::features_addons_selectable_list();
   <div class="mepr-wizard-feature">
     <div>
       <h3><?php esc_html_e('CoachKit™', 'memberpress'); ?></h3>
-      <p><?php esc_html_e('Seamlessly integrates with your existing Members, Memberships and Courses to provide a dynamic platform to sell an Unlimited number of coaching programs. Available with MemberPress Elite.', 'memberpress'); ?></p>
+      <p><?php esc_html_e('Seamlessly integrates with your existing Members, Memberships and Courses to provide a dynamic platform to sell an Unlimited number of coaching programs.', 'memberpress'); ?></p>
     </div>
     <div class="mepr-wizard-feature-right">
     <?php if($addons_selectable['memberpress-coachkit']): ?>

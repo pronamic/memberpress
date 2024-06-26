@@ -347,7 +347,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
       }
     }
     else {
-      if(MeprReadyLaunchCtrl::template_enabled( 'checkout' )){
+      if(MeprReadyLaunchCtrl::template_enabled( 'checkout' ) || MeprAppHelper::has_block( 'memberpress/checkout' )){
         $is_rl_widget = ( is_active_sidebar( 'mepr_rl_registration_footer' ) || is_active_sidebar( 'mepr_rl_global_footer' ) );
         MeprView::render('/readylaunch/checkout/form', get_defined_vars());
       } else {

@@ -3,7 +3,7 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: http://www.memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.11.32
+Version: 1.11.33
 Requires PHP: 7.4
 Author: Caseproof, LLC
 Author URI: http://caseproof.com/

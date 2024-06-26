@@ -259,40 +259,52 @@ class MeprVatTaxCtrl extends MeprBaseCtrl {
     );
   }
 
-  // http://ec.europa.eu/taxation_customs/vies/technicalInformation.html
+  // https://ec.europa.eu/taxation_customs/vies/#/technical-information
   private function vies_says_vat_is_valid($vat_number, $country) {
     if(get_option('mepr_vat_disable_vies_service')) {
-        return true;
+      return true;
     }
 
-    if(extension_loaded('soap')) {
-      static $result = array();
+    // If the vat number is prefixed by the country code, cut it out
+    $vat_number = preg_replace('/^'.preg_quote($country).'/i', '', $vat_number);
 
-      if(isset($result[$vat_number])) {
-        return $result[$vat_number];
-      }
+    static $result = [];
 
-      $client = new SoapClient(
-        'http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl'
-      );
+    if(isset($result[$vat_number])) {
+      return $result[$vat_number];
+    }
 
-      $args = array(
-        'countryCode' => $country,
-        // if the vat number is prefixed by the country code cut it out
-        'vatNumber'   => preg_replace('/^'.preg_quote($country).'/i', '', $vat_number)
-      );
+    $response = wp_remote_post('https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number', [
+      'headers' => [
+        'Content-Type' => 'application/json',
+      ],
+      'body' => wp_json_encode(
+        [
+          'countryCode' => $country,
+          'vatNumber' => $vat_number
+        ]
+      )
+    ]);
 
-      try {
-        $resp = $client->checkVat($args);
-        $result[$vat_number] = isset($resp->valid) && $resp->valid;
-        return $result[$vat_number];
-      }
-      catch(Exception $e) {
-        // If the VIES service is unavailable just fail silently
+    // Default to true (so we can proceed if the VIES service is down etc.)
+    $result[$vat_number] = MeprHooks::apply_filters('mepr_vat_vies_default_result', true, $vat_number, $country);
+
+    if(wp_remote_retrieve_response_code($response) == 200) {
+      $body = json_decode(wp_remote_retrieve_body($response), true);
+
+      if(isset($body['valid']) && is_bool($body['valid'])) {
+        $result[$vat_number] = $body['valid'];
       }
     }
 
-    return true; // Silently fail for now?
+    $result[$vat_number] = MeprHooks::apply_filters(
+      'mepr_vat_vies_result',
+      $result[$vat_number],
+      $vat_number,
+      $country
+    );
+
+    return $result[$vat_number];
   }
 
   public static function get_customer_type($usr=null) {

@@ -445,9 +445,9 @@ class MeprOnboardingHelper {
     }
 
     // Check if license type is not elite and CoachKit is selected.
-    if( ! MeprUtils::is_elite_edition($license_type) && ! empty($addons_not_installed) && in_array( 'memberpress-coachkit', $addons_not_installed, true )  ){
-      return 'memberpress-elite'; // upgrade to elite required.
-    }
+    //if( ! MeprUtils::is_elite_edition($license_type) && ! empty($addons_not_installed) && in_array( 'memberpress-coachkit', $addons_not_installed, true )  ){
+      //return 'memberpress-elite'; // upgrade to elite required.
+    //}
 
     // Check if license type is not pro or developer and Auth.net payment gateway selected.
     if( ! (MeprUtils::is_pro_edition($license_type) || $license_type == 'developer') && $payment_gateway == 'MeprAuthorizeGateway' ){
@@ -520,12 +520,12 @@ class MeprOnboardingHelper {
           'label' => esc_html__('Upgrade to Plus','memberpress'),
           'heading' => esc_html__('To unlock selected features, upgrade to Plus.', 'memberpress')
       ),
-      'memberpress-elite' => array(
+      /*'memberpress-elite' => array(
           'token' => esc_html__('Elite','memberpress'),
           'url' => 'https://memberpress.com/ipob/upgrade-elite/',
           'label' => esc_html__('Upgrade to Elite','memberpress'),
           'heading' => esc_html__('To unlock selected features, upgrade to Elite.', 'memberpress')
-      )
+      )*/
     );
 
     $data = apply_filters('mepr_onboarding_cta_data', $data);

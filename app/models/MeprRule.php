@@ -24,6 +24,7 @@ class MeprRule extends MeprCptModel {
 
   public static $mepr_nonce_str               = 'mepr_rules_nonce';
   public static $last_run_str                 = 'mepr_rules_db_cleanup_last_run';
+  public static $unauth_modern_paywall_str    = '_mepr_rules_unath_modern_paywall';
 
   public $drip_expire_units, $drip_expire_afters, $unauth_excerpt_types, $unauth_message_types, $unauth_login_types;
 
@@ -84,6 +85,7 @@ class MeprRule extends MeprCptModel {
         'unauth_message_type' => 'default',
         'unauth_message' => '',
         'unauth_login' => 'default',
+        'unauth_modern_paywall' => false,
         'auto_gen_title' => true
       )
     );
@@ -129,6 +131,7 @@ class MeprRule extends MeprCptModel {
     $this->validate_is_in_array($this->unauth_login, $this->unauth_login_types, 'unauth_login');
 
     $this->validate_is_bool($this->auto_gen_title, 'auto_gen_title');
+    $this->validate_is_bool($this->unauth_modern_paywall, 'unauth_modern_paywall');
   }
 
   public static function get_types() {
@@ -1043,6 +1046,7 @@ class MeprRule extends MeprCptModel {
     update_post_meta($this->ID, self::$unauth_message_type_str, $this->unauth_message_type);
     update_post_meta($this->ID, self::$unauth_message_str, $this->unauth_message);
     update_post_meta($this->ID, self::$unauth_login_str, $this->unauth_login);
+    update_post_meta($this->ID, self::$unauth_modern_paywall_str, $this->unauth_modern_paywall);
     update_post_meta($this->ID, self::$auto_gen_title_str, $this->auto_gen_title);
   }
 
@@ -1139,13 +1143,14 @@ class MeprRule extends MeprCptModel {
     $mepr_options = MeprOptions::fetch();
 
     return (object)array(
-      'excerpt_type'  => ($mepr_options->unauth_show_excerpts?$mepr_options->unauth_excerpt_type:'hide'),
-      'excerpt_size'  => $mepr_options->unauth_excerpt_size,
-      'excerpt'       => '',
-      'message_type'  => 'custom',
-      'message'       => $mepr_options->unauthorized_message,
-      'unauth_login'  => $mepr_options->unauth_show_login,
-      'show_login'    => ($mepr_options->unauth_show_login == 'show')
+      'excerpt_type'   => ($mepr_options->unauth_show_excerpts?$mepr_options->unauth_excerpt_type:'hide'),
+      'excerpt_size'   => $mepr_options->unauth_excerpt_size,
+      'excerpt'        => '',
+      'message_type'   => 'custom',
+      'message'        => $mepr_options->unauthorized_message,
+      'unauth_login'   => $mepr_options->unauth_show_login,
+      'show_login'     => ($mepr_options->unauth_show_login == 'show'),
+      'modern_paywall' => false
     );
   }
 
@@ -1291,9 +1296,10 @@ class MeprRule extends MeprCptModel {
     else
       $unauth->show_login = ($global_settings->unauth_login == 'show');
 
-    $unauth->excerpt    = MeprHooks::apply_filters('mepr-unauthorized-excerpt', $unauth->excerpt, $post, $unauth);
-    $unauth->message    = MeprHooks::apply_filters('mepr-unauthorized-message', $unauth->message, $post, $unauth);
-    $unauth->show_login = MeprHooks::apply_filters('mepr-unauthorized-show-login', $unauth->show_login, $post, $unauth);
+    $unauth->excerpt        = MeprHooks::apply_filters('mepr-unauthorized-excerpt', $unauth->excerpt, $post, $unauth);
+    $unauth->message        = MeprHooks::apply_filters('mepr-unauthorized-message', $unauth->message, $post, $unauth);
+    $unauth->show_login     = MeprHooks::apply_filters('mepr-unauthorized-show-login', $unauth->show_login, $post, $unauth);
+    $unauth->modern_paywall = MeprHooks::apply_filters('mepr-unauthorized-modern-paywall', (bool) $rule->unauth_modern_paywall, $post, $unauth, $rule);
 
     return $unauth;
   }

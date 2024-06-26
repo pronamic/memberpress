@@ -153,7 +153,7 @@ class MeprDrmAppFee {
     foreach( $subscriptions as $subscription ) {
       try {
         $pm = $mepr_options->payment_method($subscription->gateway);
-        $json_response = $pm->send_stripe_request('subscriptions/'.$sub->subscr_id, array(
+        $json_response = $pm->send_stripe_request('subscriptions/'.$subscription->subscr_id, array(
           'application_fee_percent' => $current_percentage
         ), 'post');
 

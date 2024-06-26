@@ -1106,6 +1106,12 @@ button.mepr_modal__close:hover {
   position: relative;
   top: -1px;
 }
+
+#mepr_unauth_modern_paywall {
+  padding-bottom: 0px;
+  padding-top: 10px;
+}
+
 /* Form Slider */
 .mepr-form label.switch{
   position: relative;

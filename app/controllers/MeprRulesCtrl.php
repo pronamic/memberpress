@@ -52,6 +52,7 @@ class MeprRulesCtrl extends MeprCptCtrl {
       add_filter('woocommerce_variation_is_visible', 'MeprRulesCtrl::override_wc_is_visible',        11, 4);
       add_filter('mepr-pre-run-rule-content',        'MeprRulesCtrl::dont_hide_wc_product_content',  11, 3);
     }
+    add_action( 'wp_enqueue_scripts', 'MeprRulesCtrl::enqueue_scripts_paywall');
   }
 
   public function register_post_type() {
@@ -388,10 +389,14 @@ class MeprRulesCtrl extends MeprCptCtrl {
     }
 
     ob_start();
-    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || MeprAppHelper::has_block('memberpress/pro-account-tabs' ) ){
+    if(MeprReadyLaunchCtrl::template_enabled( 'account' ) || MeprAppHelper::has_block('memberpress/pro-account-tabs')){
       MeprView::render('/readylaunch/shared/unauthorized_message', get_defined_vars());
     } else {
-      MeprView::render('/shared/unauthorized_message', get_defined_vars());
+      if ( isset($unauth->modern_paywall) && true === $unauth->modern_paywall && ! MeprAppHelper::is_memberpress_page( $post ) ) {
+        MeprView::render('/shared/unauthorized_message_modern_paywall', get_defined_vars());
+      } else {
+        MeprView::render('/shared/unauthorized_message', get_defined_vars());
+      }
     }
 
     $content = ob_get_clean();
@@ -421,22 +426,23 @@ class MeprRulesCtrl extends MeprCptCtrl {
       $rule = new MeprRule($post_id);
       $rule->mepr_type           = sanitize_text_field($_POST[MeprRule::$mepr_type_str]);
       $rule->mepr_content        = (('partial' != $_POST[MeprRule::$mepr_type_str] && isset($_POST[MeprRule::$mepr_content_str])) ? sanitize_text_field($_POST[MeprRule::$mepr_content_str]) : '');
-      $rule->drip_enabled        = isset($_POST[MeprRule::$drip_enabled_str]);
-      $rule->drip_amount         = sanitize_text_field($_POST[MeprRule::$drip_amount_str]);
-      $rule->drip_unit           = sanitize_text_field($_POST[MeprRule::$drip_unit_str]);
-      $rule->drip_after          = sanitize_text_field($_POST[MeprRule::$drip_after_str]);
-      $rule->drip_after_fixed    = sanitize_text_field($_POST[MeprRule::$drip_after_fixed_str]);
-      $rule->expires_enabled     = isset($_POST[MeprRule::$expires_enabled_str]);
-      $rule->expires_amount      = sanitize_text_field($_POST[MeprRule::$expires_amount_str]);
-      $rule->expires_unit        = sanitize_text_field($_POST[MeprRule::$expires_unit_str]);
-      $rule->expires_after       = sanitize_text_field($_POST[MeprRule::$expires_after_str]);
-      $rule->expires_after_fixed = sanitize_text_field($_POST[MeprRule::$expires_after_fixed_str]);
-      $rule->unauth_excerpt_type = sanitize_text_field($_POST[MeprRule::$unauth_excerpt_type_str]);
-      $rule->unauth_excerpt_size = sanitize_text_field($_POST[MeprRule::$unauth_excerpt_size_str]);
-      $rule->unauth_message_type = sanitize_text_field($_POST[MeprRule::$unauth_message_type_str]);
-      $rule->unauth_message      = wp_kses_post(wp_unslash($_POST[MeprRule::$unauth_message_str]));
-      $rule->unauth_login        = sanitize_text_field($_POST[MeprRule::$unauth_login_str]);
-      $rule->auto_gen_title      = ($_POST[MeprRule::$auto_gen_title_str] == 'true');
+      $rule->drip_enabled          = isset($_POST[MeprRule::$drip_enabled_str]);
+      $rule->drip_amount           = sanitize_text_field($_POST[MeprRule::$drip_amount_str]);
+      $rule->drip_unit             = sanitize_text_field($_POST[MeprRule::$drip_unit_str]);
+      $rule->drip_after            = sanitize_text_field($_POST[MeprRule::$drip_after_str]);
+      $rule->drip_after_fixed      = sanitize_text_field($_POST[MeprRule::$drip_after_fixed_str]);
+      $rule->expires_enabled       = isset($_POST[MeprRule::$expires_enabled_str]);
+      $rule->expires_amount        = sanitize_text_field($_POST[MeprRule::$expires_amount_str]);
+      $rule->expires_unit          = sanitize_text_field($_POST[MeprRule::$expires_unit_str]);
+      $rule->expires_after         = sanitize_text_field($_POST[MeprRule::$expires_after_str]);
+      $rule->expires_after_fixed   = sanitize_text_field($_POST[MeprRule::$expires_after_fixed_str]);
+      $rule->unauth_excerpt_type   = sanitize_text_field($_POST[MeprRule::$unauth_excerpt_type_str]);
+      $rule->unauth_excerpt_size   = sanitize_text_field($_POST[MeprRule::$unauth_excerpt_size_str]);
+      $rule->unauth_message_type   = sanitize_text_field($_POST[MeprRule::$unauth_message_type_str]);
+      $rule->unauth_message        = wp_kses_post(wp_unslash($_POST[MeprRule::$unauth_message_str]));
+      $rule->unauth_login          = sanitize_text_field($_POST[MeprRule::$unauth_login_str]);
+      $rule->auto_gen_title        = ($_POST[MeprRule::$auto_gen_title_str] == 'true');
+      $rule->unauth_modern_paywall = isset($_POST[MeprRule::$unauth_modern_paywall_str]);
 
       $rule->is_mepr_content_regexp = isset($_POST[MeprRule::$is_mepr_content_regexp_str]);
 
@@ -564,6 +570,7 @@ class MeprRulesCtrl extends MeprCptCtrl {
         'mepr_no_products_message' => __('Please select at least one Membership before saving.', 'memberpress'),
         'types' => MeprRule::get_types(),
         'content_dropdown_nonce' => wp_create_nonce('content_dropdown'),
+        'content_search_nonce' => wp_create_nonce('content_search'),
         'remove_access_condition_nonce' => wp_create_nonce('remove_access_condition'),
         'access_row' => array(
           'role' => array(
@@ -900,8 +907,12 @@ class MeprRulesCtrl extends MeprCptCtrl {
 
   public static function ajax_content_search() {
     //Array( [action] => mepr_rule_content_search [type] => single_post [term] => you)
+    check_ajax_referer('content_search', 'content_search_nonce');
 
-    $data = MeprRule::search_content( $_REQUEST['type'], $_REQUEST['term'] );
+    $type = sanitize_text_field($_REQUEST['type']);
+    $term = sanitize_text_field($_REQUEST['term']);
+
+    $data = MeprRule::search_content($type, $term);
     die(json_encode($data));
   }
 
@@ -973,6 +984,20 @@ class MeprRulesCtrl extends MeprCptCtrl {
       // Hook it again.
       add_action('save_post', 'MeprRulesCtrl::save_postdata');
       MeprUtils::debug_log("Rule (#{$post_id}) content can't be empty. Post status forced to 'draft'");
+    }
+  }
+
+  /**
+   * Enqueue Scripts for modern paywall.
+   */
+  public static function enqueue_scripts_paywall() {
+    $current_post = MeprUtils::get_current_post();
+    if ( false === $current_post ) {
+      return;
+    }
+    $unauth = MeprRule::get_unauth_settings_for($current_post);
+    if ( MeprRule::is_locked($current_post) && isset($unauth->modern_paywall) && true === $unauth->modern_paywall && ! MeprAppHelper::is_memberpress_page( $current_post ) ) {
+      wp_enqueue_script( 'modern-paywall', MEPR_JS_URL . '/modern_paywall.js', array('jquery'), MEPR_VERSION, true );
     }
   }
 } //End class
