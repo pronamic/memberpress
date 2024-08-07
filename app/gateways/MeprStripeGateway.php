@@ -900,6 +900,13 @@ class MeprStripeGateway extends MeprBaseRealGateway {
       }
     }
 
+    if(($key = array_search('twint', $types)) !== false) {
+      if(!is_null($amount) && $amount > 5000) {
+        // TWINT does not support a payment amount greater than 5000 CHF
+        array_splice($types, $key, 1);
+      }
+    }
+
     return $types;
   }
 

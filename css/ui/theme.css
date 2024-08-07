@@ -300,8 +300,7 @@ li.mp_users_subscriptions_list_alt {
   height: auto;
   background-color: #fff;
   border-radius: 2px;
-  padding: 20px 15em;
-  padding-bottom: 3em;
+  padding: 20px 15em 3em;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   position: absolute;
   top: 50%;
@@ -316,4 +315,11 @@ li.mp_users_subscriptions_list_alt {
 
 body:has(.mepr-paywall-overlay) {
   overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .mepr-paywall-container {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
 }

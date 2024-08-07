@@ -6,7 +6,7 @@
 </div>
 
 <form name="mepr_signup_form" id="mepr_signup_form" class="mepr-signup-form mepr-form alignwide" method="post"
-      action="<?php echo $_SERVER['REQUEST_URI'] . '#mepr_jump'; ?>" enctype="multipart/form-data" novalidate>
+      action="<?php echo esc_url(wp_unslash($_SERVER['REQUEST_URI']) . '#mepr_jump'); ?>" enctype="multipart/form-data" novalidate>
   <div class="mepr-checkout-container mp_wrapper <?php echo $is_rl_widget ? 'mepr-is-footer-widget' : ''; ?>">
 
 

@@ -3,7 +3,7 @@
 <?php do_action('mepr-above-checkout-form', $product->ID); ?>
 
 <div class="mp_wrapper">
-  <form name="mepr_signup_form" id="mepr_signup_form" class="mepr-signup-form mepr-form" method="post" action="<?php echo esc_url($_SERVER['REQUEST_URI']).'#mepr_jump'; ?>" enctype="multipart/form-data" novalidate>
+  <form name="mepr_signup_form" id="mepr_signup_form" class="mepr-signup-form mepr-form" method="post" action="<?php echo esc_url(wp_unslash($_SERVER['REQUEST_URI']) . '#mepr_jump'); ?>" enctype="multipart/form-data" novalidate>
     <input type="hidden" name="mepr_process_signup_form" value="Y" />
     <input type="hidden" name="mepr_product_id" value="<?php echo $product->ID; ?>" />
 
@@ -147,9 +147,7 @@
         <input type="hidden" id="mepr_coupon_code-<?php echo $product->ID; ?>" name="mepr_coupon_code" value="<?php echo (isset($mepr_coupon_code))?esc_attr(stripslashes($mepr_coupon_code)):''; ?>" />
       <?php endif; ?>
       <div class="mepr-payment-methods-wrapper">
-        <?php $active_pms = $product->payment_methods(); ?>
-        <?php $pms = $product->payment_methods(); ?>
-        <?php echo MeprOptionsHelper::payment_methods_dropdown('mepr_payment_method', $active_pms, $product); ?>
+        <?php echo MeprOptionsHelper::payment_methods_dropdown('mepr_payment_method', $product->payment_methods(), $product); ?>
       </div>
     <?php else: ?>
       <input type="hidden" name="mepr_coupon_code" value="<?php echo (isset($mepr_coupon_code))?esc_attr(stripslashes($mepr_coupon_code)):''; ?>" />

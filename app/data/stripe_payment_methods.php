@@ -91,6 +91,12 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
     'capabilities' => ['payment_intents'],
     'async' => true,
   ],
+  [
+    'key' => 'twint',
+    'name' => 'TWINT',
+    'currencies' => ['CHF'],
+    'capabilities' => ['payment_intents'],
+  ],
   // Buy now, pay later
   [
     'key' => 'affirm',

@@ -348,7 +348,7 @@ class MeprOptionsHelper {
   public static function payment_methods_dropdown($field_name, $pms = false, $product = null) {
     $mepr_options = MeprOptions::fetch();
     $pms = $pms ? $pms : array_keys($mepr_options->integrations);
-    $pms = MeprHooks::apply_filters('mepr_options_helper_payment_methods',$pms,$field_name);
+    $pms = MeprHooks::apply_filters('mepr_options_helper_payment_methods', $pms, $field_name, $product);
 
     if(count($pms) == 0):
       return false;

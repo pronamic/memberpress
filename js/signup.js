@@ -64,6 +64,8 @@
             data.mepr_order_bumps = order_bumps;
           }
 
+          $form.trigger('meprCheckoutStateRequestData', [data]);
+
           return data;
         };
 

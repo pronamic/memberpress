@@ -969,14 +969,3 @@ button.mepr-pro-account-table__badge:hover {
   text-align: left;
   white-space: nowrap;
 }
-.flex-navigation {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 2rem;
-}
-
-.flex-navigation .page-count {
-  color: #555;
-  font-size: 14px;
-}

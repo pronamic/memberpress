@@ -97,7 +97,9 @@ class MeprGroupsHelper {
 
     ?>
     <div id="mepr-price-box-<?php echo $product->ID; ?>" class="mepr-price-box <?php echo $group_classes_str; ?>">
-      <div class="mepr-most-popular"><?php _e('Most Popular', 'memberpress'); ?></div>
+      <?php if ($product->is_highlighted) : ?>
+        <div class="mepr-most-popular"><?php _e('Most Popular', 'memberpress'); ?></div>
+      <?php endif; ?>
       <div class="mepr-price-box-head">
         <div class="mepr-price-box-title"><?php echo $product->pricing_title; ?></div>
         <?php if($preview): ?>

@@ -76,6 +76,10 @@ jQuery(document).ready(function($) {
     }
   });
 
+  if( $('select.mepr-membership-dropdown').val() > 0 ) {
+    $('select.mepr-membership-dropdown').trigger('change');
+  }
+
   // Get lifetime expiration
   $('a.mepr-lifetime-expiration-button').on('click', function(e) {
     e.preventDefault();

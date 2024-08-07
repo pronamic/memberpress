@@ -1196,15 +1196,15 @@ class MeprRule extends MeprCptModel {
     // - Excerpts
     if($post_settings->unauth_excerpt_type != 'default') {
       $unauth->excerpt_type = $post_settings->unauth_excerpt_type;
-      $unauth->excerpt_size = $post_settings->unauth_excerpt_size;
+      $unauth->excerpt_size = (int) $post_settings->unauth_excerpt_size;
     }
     elseif($rule->unauth_excerpt_type != 'default') {
       $unauth->excerpt_type = $rule->unauth_excerpt_type;
-      $unauth->excerpt_size = $rule->unauth_excerpt_size;
+      $unauth->excerpt_size = (int) $rule->unauth_excerpt_size;
     }
     else {
       $unauth->excerpt_type = $global_settings->excerpt_type;
-      $unauth->excerpt_size = $global_settings->excerpt_size;
+      $unauth->excerpt_size = (int) $global_settings->excerpt_size;
     }
 
     // Set the actual Excerpt based on the type & size
@@ -1217,8 +1217,7 @@ class MeprRule extends MeprCptModel {
         $content = $post->post_content;
       }
 
-      $unauth->excerpt = do_shortcode($content);
-      $unauth->excerpt = do_blocks($content);
+      $unauth->excerpt = MeprUtils::format_content($content);
 
       if($unauth->excerpt_size) { //if set to 0, return the whole post -- though why protect it all in this case?
         $unauth->excerpt = strip_tags($unauth->excerpt);
@@ -1229,8 +1228,6 @@ class MeprRule extends MeprCptModel {
       }
     }
     elseif($unauth->excerpt_type == 'more') { //Show till the more tag
-      $post->post_content = do_shortcode($post->post_content);
-      $post->post_content = do_blocks($post->post_content);
       $pos = (extension_loaded('mbstring'))?mb_strpos($post->post_content, '<!--more'):strpos($post->post_content, '<!--more');
 
       if($pos !== false) {
@@ -1242,12 +1239,10 @@ class MeprRule extends MeprCptModel {
           $unauth->excerpt = force_balance_tags(substr($post->post_content, 0, $pos));
         }
 
-        $unauth->excerpt = wpautop($unauth->excerpt);
+        $unauth->excerpt = MeprUtils::format_content($unauth->excerpt);
       }
       else { //No more tag?
-        $unauth->excerpt = do_shortcode($post->post_excerpt);
-        $unauth->excerpt = do_blocks($post->post_excerpt);
-        $unauth->excerpt = wpautop($post->post_excerpt);
+        $unauth->excerpt = MeprUtils::format_content($post->post_excerpt);
       }
     }
     elseif($unauth->excerpt_type == 'excerpt') {

@@ -937,6 +937,7 @@ class MeprAppCtrl extends MeprBaseCtrl {
         if( $obj && ( $obj instanceof MeprBaseRealGateway ) ) {
           $notifiers = $obj->notifiers();
           if( isset($notifiers[$action]) ) {
+            nocache_headers();
             call_user_func(array($obj,$notifiers[$action]));
             exit;
           }

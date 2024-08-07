@@ -649,6 +649,8 @@ class MeprReports {
 
     $stats = $wpdb->get_row($q, ARRAY_A);
 
+    $wpdb->query("SET SQL_BIG_SELECTS=1");
+
     $q = $wpdb->prepare("
       SELECT COUNT(*) AS active,
              IFNULL(SUM(IF(s.status=%s,1,0)), 0) AS active_and_enabled

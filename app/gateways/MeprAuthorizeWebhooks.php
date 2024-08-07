@@ -33,7 +33,7 @@ class MeprAuthorizeWebhooks {
           MeprUtils::debug_log('Authorize.net auth_transaction: ' . MeprUtils::object_to_string($auth_transaction));
           switch($request_json->eventType) {
             case 'net.authorize.payment.authcapture.created':
-            case 'net.authorize.paymrecord_subscription_paymentent.capture.created':
+            case 'net.authorize.payment.capture.created':
             case 'net.authorize.payment.fraud.approved':
               if($request_json->payload->responseCode > 1) {
                 return $this->record_payment_failure($auth_transaction->transaction);
@@ -41,10 +41,10 @@ class MeprAuthorizeWebhooks {
               else {
                 return $this->record_subscription_payment($auth_transaction->transaction);
               }
-              break;
             case 'net.authorize.payment.refund.created':
               return $this->record_refund($auth_transaction->transaction);
-              break;
+            case 'net.authorize.payment.fraud.declined':
+              return $this->record_payment_failure($auth_transaction->transaction);
             default:
               MeprUtils::debug_log('Authorize.net Webhook not processed: ' . $request_json->eventType);
           }
@@ -53,7 +53,16 @@ class MeprAuthorizeWebhooks {
           // Transaction details are null
           throw new MeprGatewayException(__('MeprAuthorizeAPI Error: Unable to retrieve transaction details. Check your logs for errors.', 'memberpress'));
         }
-      } // We are only listening for payment webhooks
+      }
+      elseif($request_json && $request_json->eventType == 'net.authorize.customer.subscription.failed') {
+        MeprUtils::debug_log('Received net.authorize.customer.subscription.failed eventType');
+        $auth_transaction = $this->authorize_api->get_transaction_details($request_json->payload->transactionDetails->transId);
+
+        if(is_object($auth_transaction)) {
+          MeprUtils::debug_log('Authorize.net auth_transaction: ' . MeprUtils::object_to_string($auth_transaction));
+          return $this->record_payment_failure($auth_transaction->transaction);
+        }
+      }
     }
     else {
       throw new MeprGatewayException(__('This is not a valid Webhook! Check your settings.', 'memberpress'));
@@ -86,10 +95,12 @@ class MeprAuthorizeWebhooks {
   * net.authorize.payment.authcapture.created
   * net.authorize.payment.capture.created
   * net.authorize.payment.fraud.approved
+  *
   * @param object $auth_transaction JSON transaction object
+  * @param boolean $setup_job Set to true to enqueue a job to retry if subscription data is not yet available.
   * @return object|false MeprTransaction or false
   */
-  private function record_payment_failure($auth_transaction) {
+  public function record_payment_failure($auth_transaction, $setup_job = true) {
     if(isset($auth_transaction->transId) and !empty($auth_transaction->transId)) {
       $txn_res = MeprTransaction::get_one_by_trans_num($auth_transaction->transId);
 
@@ -97,6 +108,14 @@ class MeprAuthorizeWebhooks {
         $txn = new MeprTransaction($txn_res->id);
         $txn->status = MeprTransaction::$failed_str;
         $txn->store();
+      }
+      else if(!isset($auth_transaction->subscription->id) && $setup_job) {
+        $job = new MeprAuthorizeRetryJob();
+        $job->gateway_settings = $this->gateway_settings;
+        $job->transaction_data = json_encode($auth_transaction);
+        $job->payment_failed = true;
+        $job->enqueue_in('10m'); // Try again in 10 minutes, then it will retry every 30 minutes after.
+        return false;
       }
       else if(isset($auth_transaction->subscription->id) && $sub = MeprSubscription::get_one_by_subscr_id($auth_transaction->subscription->id) ) {
         $txn = $this->insert_transaction($sub, $auth_transaction, MeprTransaction::$failed_str);
@@ -143,6 +162,7 @@ class MeprAuthorizeWebhooks {
       $job                    = new MeprAuthorizeRetryJob();
       $job->gateway_settings  = $this->gateway_settings;
       $job->transaction_data  = json_encode($auth_transaction);
+      $job->payment_failed    = false;
       $job->enqueue_in('10m'); //Try again in 10 minutes. Then it will retry every 30 minutes after
       return false;
     }

@@ -328,7 +328,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl {
     if(empty($payment_methods)) {
       $payment_methods = array_keys($mepr_options->integrations);
     }
-    $payment_methods = MeprHooks::apply_filters('mepr_options_helper_payment_methods', $payment_methods, 'mepr_payment_method');
+    $payment_methods = MeprHooks::apply_filters('mepr_options_helper_payment_methods', $payment_methods, 'mepr_payment_method', $product);
     $payment_methods = array_map(function($pm_id) use($mepr_options) {
       return $mepr_options->payment_method($pm_id);
     }, $payment_methods);

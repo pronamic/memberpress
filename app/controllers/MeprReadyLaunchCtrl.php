@@ -375,6 +375,16 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
       static::remove_styles( $handles );
       static::add_template_scripts( 'checkout' );
     }
+
+    if(
+      function_exists('bp_is_current_action') &&
+      bp_is_current_action('mp-subscriptions'))
+    {
+      wp_enqueue_style( 'mp-rl-buddyboss', MEPR_CSS_URL . '/readylaunch/compatibility.css', array(), MEPR_VERSION );
+      wp_enqueue_script( 'alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', array(), MEPR_VERSION, true );
+      wp_enqueue_script( 'mepr-accountjs', MEPR_JS_URL . '/readylaunch/account.js', array( 'jquery' ), MEPR_VERSION, true );
+    }
+
   }
 
   /**
@@ -620,7 +630,6 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
     $page_name      = $template . '_page_id';
     $attribute_name = 'design_enable_' . $template . '_template';
     $options        = MeprOptions::fetch();
-    $courses_options = \get_option( 'mpcs-options' );
 
     if ( 'pricing' === $template ) {
       return isset( $post ) &&
@@ -634,13 +643,6 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl {
       return isset( $options->$attribute_name ) &&
         filter_var( $options->$attribute_name, FILTER_VALIDATE_BOOLEAN ) &&
         ( isset( $post ) && is_a( $post, 'WP_Post' ) && is_singular( MeprProduct::$cpt ) );
-    }
-
-    if ( 'courses' === $template && is_array($courses_options) ) {
-      return isset($courses_options['classroom-mode']) &&
-        filter_var( $courses_options['classroom-mode'], FILTER_VALIDATE_BOOLEAN ) &&
-        MeprUser::is_account_page($post) &&
-        isset($_GET['action']) && $_GET['action'] == 'courses';
     }
 
     return isset( $wp_query ) &&
