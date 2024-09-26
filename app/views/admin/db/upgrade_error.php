@@ -1,16 +1,18 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php echo get_option( 'blog_charset' ); ?>" />
+  <meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php echo get_option('blog_charset'); ?>" />
   <meta name="robots" content="noindex,nofollow" />
   <title><?php _e('MemberPress database upgrade error', 'memberpress'); ?></title>
   <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
   <?php
-  //wp_admin_css( 'install', true );
-  //wp_admin_css( 'ie', true );
-  ?>
+    // wp_admin_css( 'install', true );
+    // wp_admin_css( 'ie', true );
+    ?>
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <!-- Optional theme -->
@@ -37,7 +39,7 @@
             <h3><?php _e('Oops, your MemberPress database upgrade triggered an error...', 'memberpress'); ?></h3>
             <p><?php _e('If this is a production website rollback MemberPress to a previous version and contact our support team.', 'memberpress'); ?></p>
             <p>&nbsp;</p>
-            <?php if(!empty($error)): ?>
+            <?php if (!empty($error)) : ?>
               <div class="alert alert-danger" role="alert"><?php echo $error; ?></div>
               <p>&nbsp;</p>
             <?php endif; ?>

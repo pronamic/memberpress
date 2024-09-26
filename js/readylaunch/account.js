@@ -151,6 +151,8 @@ jQuery(document).ready(function ($) {
           closeBtnInside: false
         });
 
+        createPopperInstances();
+
         $spinner.hide();
       });
   }
@@ -169,6 +171,7 @@ jQuery(document).ready(function ($) {
     _fetch(formData)
       .done(function (response) {
         $('#mepr-account-content').html(response.data);
+        createPopperInstances();
         $spinner.hide();
       });
   }
@@ -196,23 +199,7 @@ jQuery(document).ready(function ($) {
   // Tooltip
   var popperInstances = [];
 
-  $('.mepr-tooltip-trigger').each(function () {
-    var $trigger = $(this);
-    var $content = $(this).parent().find('.mepr-tooltip-content');
-    var PopperInstance = Popper.createPopper($trigger.get(0), $content.get(0), {
-      modifiers: [
-        {
-          name: 'offset',
-          options: {
-            offset: [0, 8],
-          },
-        },
-      ],
-    });
-
-    popperInstances.push(PopperInstance)
-  });
-
+  createPopperInstances();
 
   $(document).on('click', function (e) {
     var $trigger = $('.mepr-tooltip-trigger');
@@ -244,6 +231,32 @@ jQuery(document).ready(function ($) {
 
   });
 
+  function createPopperInstances() {
+    destroyPopperInstances();
+    $('.mepr-tooltip-trigger').each(function (index) {
+      var $trigger = $(this);
+      var $content = $(this).parent().find('.mepr-tooltip-content');
+      var PopperInstance = Popper.createPopper($trigger.get(0), $content.get(0), {
+        modifiers: [
+          {
+            name: 'offset',
+            options: {
+              offset: [0, 8],
+            },
+          },
+        ],
+      });
+
+      popperInstances.push(PopperInstance);
+    });
+  }
+
+  function destroyPopperInstances() {
+    popperInstances.forEach(function (instance) {
+      instance.destroy();
+    });
+    popperInstances = [];
+  }
 
   function togglePopper(instance, tooltip) {
     if (tooltip.hasAttribute("data-show")) {

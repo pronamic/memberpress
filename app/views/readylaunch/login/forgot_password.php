@@ -1,5 +1,5 @@
 <?php if (!defined('ABSPATH')) {
-  die('You are not allowed to call this page directly.');
+    die('You are not allowed to call this page directly.');
 } ?>
 
 <div id="mepro-login-hero">

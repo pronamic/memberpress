@@ -13,7 +13,7 @@
               <tr>
                 <td>
                   <label class="switch">
-                    <input x-model="checkout.showPriceTerms" id="<?php echo esc_attr($mepr_options->design_show_checkout_price_terms_str); ?>" name="<?php echo esc_attr($mepr_options->design_show_checkout_price_terms_str); ?>" class="mepr-template-enablers" type="checkbox" checked="<?php checked( 1, (!isset( $mepr_options->design_show_checkout_price_terms ) || (isset($mepr_options->design_show_checkout_price_terms) && $mepr_options->design_show_checkout_price_terms) )) ?>">
+                    <input x-model="checkout.showPriceTerms" id="<?php echo esc_attr($mepr_options->design_show_checkout_price_terms_str); ?>" name="<?php echo esc_attr($mepr_options->design_show_checkout_price_terms_str); ?>" class="mepr-template-enablers" type="checkbox" checked="<?php checked(1, (!isset($mepr_options->design_show_checkout_price_terms) || (isset($mepr_options->design_show_checkout_price_terms) && $mepr_options->design_show_checkout_price_terms) )) ?>">
                     <span class="slider round"></span>
                   </label>
                 </td>
@@ -24,7 +24,7 @@
             </tbody>
           </table>
         </div>
-        <button class="mepr_modal__button button button-primary"><?php echo esc_html_x( 'Update', 'ui', 'memberpress' ); ?></button>
+        <button class="mepr_modal__button button button-primary"><?php echo esc_html_x('Update', 'ui', 'memberpress'); ?></button>
       </div>
     </div>
   </div>

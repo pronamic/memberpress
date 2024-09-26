@@ -1,62 +1,73 @@
 <?php
-if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
-abstract class MeprBasePayPalGateway extends MeprBaseRealGateway {
-  public function validate_ipn() {
-    // Set the command that is used to validate the message
-    $_POST['cmd'] = "_notify-validate";
+if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+}
 
-    // We need to send the message back to PayPal just as we received it
-    $params = array(
-      'method'      => 'POST',
-      'body'        => stripslashes_deep($_POST),
-      'headers'     => array('connection' => 'close'),
-      'httpversion' => 1.1,
-      'sslverify'   => true,
-      'user-agent'  => 'MemberPress/'.MEPR_VERSION,
-      'timeout'     => 30
-    );
+abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
+{
+    public function validate_ipn()
+    {
+        // Set the command that is used to validate the message
+        $_POST['cmd'] = '_notify-validate';
 
-    $this->email_status("POST ARRAY SENDING TO PAYPAL\n" . MeprUtils::object_to_string($params, true) . "\n", $this->settings->debug);
+        // We need to send the message back to PayPal just as we received it
+        $params = [
+            'method'      => 'POST',
+            'body'        => stripslashes_deep($_POST),
+            'headers'     => ['connection' => 'close'],
+            'httpversion' => 1.1,
+            'sslverify'   => true,
+            'user-agent'  => 'MemberPress/' . MEPR_VERSION,
+            'timeout'     => 30,
+        ];
 
-    if(!function_exists('wp_remote_post')) {
-      require_once(ABSPATH . WPINC . '/http.php');
-    }
+        $this->email_status("POST ARRAY SENDING TO PAYPAL\n" . MeprUtils::object_to_string($params, true) . "\n", $this->settings->debug);
 
-    $resp = wp_remote_post( $this->settings->url, $params );
+        if (!function_exists('wp_remote_post')) {
+            require_once(ABSPATH . WPINC . '/http.php');
+        }
 
-    // Put the $_POST data back to how it was so we can pass it to the action
-    unset($_POST['cmd']);
+        $resp = wp_remote_post($this->settings->url, $params);
 
-    // If the response was valid, check to see if the request was valid
-    if(!is_wp_error($resp) &&
-        $resp['response']['code'] >= 200 &&
-        $resp['response']['code'] < 300 &&
-        (strcmp( $resp['body'], "VERIFIED") == 0)) {
-      return true;
-    }
+        // Put the $_POST data back to how it was so we can pass it to the action
+        unset($_POST['cmd']);
 
-    $this->email_status("IPN Verification Just failed:\nIPN:\n" .
+        // If the response was valid, check to see if the request was valid
+        if (
+            !is_wp_error($resp) &&
+            $resp['response']['code'] >= 200 &&
+            $resp['response']['code'] < 300 &&
+            (strcmp($resp['body'], 'VERIFIED') == 0)
+        ) {
+            return true;
+        }
+
+        $this->email_status(
+            "IPN Verification Just failed:\nIPN:\n" .
                         MeprUtils::object_to_string($_POST, true) .
                         "PayPal Response:\n" .
                         MeprUtils::object_to_string($resp),
-                        $this->settings->debug);
-    return false;
-  }
-
-  //Special method for formatting zero decimal currencies for PayPal (only used in PayPal Standard currently)
-  public function format_currency($amount) {
-    if(MeprUtils::is_zero_decimal_currency()) {
-      $amount = MeprAppHelper::format_currency($amount, false, false);
-      return str_replace(array(',','.'), array('',''), $amount); //Strip out all formatting
+            $this->settings->debug
+        );
+        return false;
     }
 
-    return MeprUtils::format_float($amount);
-  }
+    // Special method for formatting zero decimal currencies for PayPal (only used in PayPal Standard currently)
+    public function format_currency($amount)
+    {
+        if (MeprUtils::is_zero_decimal_currency()) {
+            $amount = MeprAppHelper::format_currency($amount, false, false);
+            return str_replace([',','.'], ['',''], $amount); // Strip out all formatting
+        }
 
-  protected function do_thankyou_url( $query_params, $txn ) {
-    $mepr_options = MeprOptions::fetch();
-    $query_params['transaction_id'] = $txn->id;
-    return $mepr_options->thankyou_page_url( build_query($query_params) );
-  }
+        return MeprUtils::format_float($amount);
+    }
+
+    protected function do_thankyou_url($query_params, $txn)
+    {
+        $mepr_options = MeprOptions::fetch();
+        $query_params['transaction_id'] = $txn->id;
+        return $mepr_options->thankyou_page_url(build_query($query_params));
+    }
 }

@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <div id="header" style="width: 680px; padding: 0px; margin: 0 auto; text-align: left;">
   <h1 style="font-size: 30px; margin-bottom:4px;"><?php _ex('Welcome {$user_first_name}!', 'ui', 'memberpress'); ?></h1>
 </div>

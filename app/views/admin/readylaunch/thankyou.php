@@ -96,26 +96,26 @@
                     </span>
                     <?php
                     MeprAppHelper::info_tooltip(
-                      'pricing-text-title',
-                      __('Thank You Message', 'memberpress'),
-                      __('Add custom message that will be displayed after a successful purchase.', 'memberpress')
+                        'pricing-text-title',
+                        __('Thank You Message', 'memberpress'),
+                        __('Add custom message that will be displayed after a successful purchase.', 'memberpress')
                     );
                     ?>
                   </label>
                   <?php
-                  $editor_config = array(
-                    'teeny'         => true,
-                    'quicktags'     => false,
-                    'textarea_rows' => 20,
-                  );
-                  wp_editor($mepr_options->design_thankyou_invoice_message, $mepr_options->design_thankyou_invoice_message_str, $editor_config);
-                  ?>
+                    $editor_config = [
+                        'teeny'         => true,
+                        'quicktags'     => false,
+                        'textarea_rows' => 20,
+                    ];
+                    wp_editor($mepr_options->design_thankyou_invoice_message, $mepr_options->design_thankyou_invoice_message_str, $editor_config);
+                    ?>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <button class="mepr_modal__button button button-primary"><?php echo esc_html_x( 'Update', 'ui', 'memberpress' ); ?></button>
+        <button class="mepr_modal__button button button-primary"><?php echo esc_html_x('Update', 'ui', 'memberpress'); ?></button>
       </div>
     </div>
   </div>

@@ -1,9 +1,11 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <div class="wrap">
   <h2><?php _e('Edit Subscription', 'memberpress'); ?></h2>
 
-  <?php MeprView::render("/admin/errors", get_defined_vars()); ?>
+  <?php MeprView::render('/admin/errors', get_defined_vars()); ?>
 
   <div class="form-wrap">
     <form action="" method="post">
@@ -17,7 +19,7 @@
         <tbody>
           <tr valign="top"><th scope="row"><label><?php _e('Subscription ID:', 'memberpress'); ?></label></th><td><?php echo $sub->id; ?></td></tr>
           <?php MeprHooks::do_action('mepr_edit_subscription_table_before', $sub); ?>
-          <?php MeprView::render("/admin/subscriptions/form", get_defined_vars()); ?>
+          <?php MeprView::render('/admin/subscriptions/form', get_defined_vars()); ?>
           <?php MeprHooks::do_action('mepr_edit_subscription_table_after', $sub); ?>
         </tbody>
       </table>

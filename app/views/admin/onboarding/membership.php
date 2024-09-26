@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <div id="mepr-wizard-create-select-membership">
   <h2 class="mepr-wizard-step-title"><?php esc_html_e('Time to make your first membership', 'memberpress'); ?></h2>
   <p class="mepr-wizard-step-description"><?php esc_html_e("Now that you've got some content to protect, you'll want to show people how they can access it. That's what a \"membership\" is.", 'memberpress'); ?></p>
@@ -13,17 +15,17 @@
   <h2 class="mepr-wizard-step-title"><?php esc_html_e('Your membership', 'memberpress'); ?></h2>
   <div class="mepr-wizard-selected-content mepr-wizard-selected-content-full-scape">
     <div class="mepr-wizard-selected-content-column">
-      <div class="mepr-wizard-selected-content-heading"><?php esc_html_e('Membership','memberpress'); ?></div>
+      <div class="mepr-wizard-selected-content-heading"><?php esc_html_e('Membership', 'memberpress'); ?></div>
       <div class="mepr-wizard-selected-content-name" id="mepr-selected-membership-name"></div>
     </div>
     <hr>
     <div class="mepr-wizard-selected-content-column">
-      <div class="mepr-wizard-selected-content-heading"><?php esc_html_e('Billing','memberpress'); ?></div>
+      <div class="mepr-wizard-selected-content-heading"><?php esc_html_e('Billing', 'memberpress'); ?></div>
       <div class="mepr-wizard-selected-content-name"  id="mepr-selected-membership-billing"></div>
     </div>
     <hr>
     <div class="mepr-wizard-selected-content-column">
-      <div class="mepr-wizard-selected-content-heading"><?php esc_html_e('Price','memberpress'); ?></div>
+      <div class="mepr-wizard-selected-content-heading"><?php esc_html_e('Price', 'memberpress'); ?></div>
       <div class="mepr-wizard-selected-content-name"  id="mepr-selected-membership-price"></div>
     </div>
       <div class="mepr-wizard-selected-content-expand-menu" data-id="mepr-wizard-selected-membership-menu">
@@ -87,11 +89,11 @@
         <?php
           printf(
             /* translators: %1$s: open underline tag, %2$s: close underline tag */
-            esc_html__('More advanced options are available in %1$sMemberPress > Memberships%2$s', 'memberpress'),
-            '<u>',
-            '</u>'
+              esc_html__('More advanced options are available in %1$sMemberPress > Memberships%2$s', 'memberpress'),
+              '<u>',
+              '</u>'
           );
-        ?>
+            ?>
       </a>
     </div>
   </form>

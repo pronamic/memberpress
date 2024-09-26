@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <table class="widefat" style="margin-top:25px;">
   <thead>
@@ -17,7 +19,7 @@
   <tbody>
       <tr class="mepr-table-loading-row">
         <td colspan="9">
-          <?php echo MeprView::get_string("/admin/reports/svg_loader"); ?>
+          <?php echo MeprView::get_string('/admin/reports/svg_loader'); ?>
         </td>
       </tr>
     </tbody>

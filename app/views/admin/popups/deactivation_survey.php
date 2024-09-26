@@ -18,7 +18,7 @@
                 <?php echo esc_html($option['label']); ?>
               </label>
             </div>
-            <?php if(!empty($option['details'])) : ?>
+            <?php if (!empty($option['details'])) : ?>
               <input type="text" class="mepr-deactivation-survey-option-details" placeholder="<?php echo esc_attr($option['details']); ?>">
             <?php endif; ?>
           </div>

@@ -1,6 +1,6 @@
 <?php
 if (!defined('ABSPATH')) {
-  die('You are not allowed to call this page directly.');
+    die('You are not allowed to call this page directly.');
 }
 $show_welcome_image     = isset($atts['show_welcome_image']) ? $atts['show_welcome_image'] : $mepr_options->design_show_login_welcome_image;
 $welcome_image     = isset($atts['welcome_image']) ? $atts['welcome_image'] : wp_get_attachment_url($mepr_options->design_login_welcome_img);
@@ -13,13 +13,13 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
 
 
       <?php
-      if(!empty($_REQUEST['mepr_process_login_form']) && !empty($_REQUEST['errors'])) {
-        $errors = array_map( 'wp_kses_post', $_REQUEST['errors'] );
-        MeprView::render('/readylaunch/shared/errors', get_defined_vars());
-      }
+        if (!empty($_REQUEST['mepr_process_login_form']) && !empty($_REQUEST['errors'])) {
+            $errors = array_map('wp_kses_post', $_REQUEST['errors']);
+            MeprView::render('/readylaunch/shared/errors', get_defined_vars());
+        }
 
 
-      if (isset($unauth->excerpt) && !empty($unauth->excerpt)) : ?>
+        if (isset($unauth->excerpt) && !empty($unauth->excerpt)) : ?>
         <div class="mepr-unauthorized-excerpt">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -27,9 +27,9 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
 
-          <?php echo $unauth->excerpt; ?>
+            <?php echo $unauth->excerpt; ?>
         </div>
-      <?php endif; ?>
+        <?php endif; ?>
       <?php if (isset($unauth->message) && !empty($unauth->message)) : ?>
         <div class="mepr-unauthorized-message">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -38,29 +38,28 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
 
-          <?php echo $unauth->message; ?>
+            <?php echo $unauth->message; ?>
         </div>
       <?php endif; ?>
 
       <div id="mepr-template-login" class="mp_wrapper mp_login_form">
         <?php if (MeprUtils::is_user_logged_in() && ! $admin_view) : ?>
-
-          <?php if (!isset($_GET['mepr-unauth-page']) && (!isset($_GET['action']) || $_GET['action'] != 'mepr_unauthorized')) : ?>
-            <?php if (is_page($login_page_id) && isset($redirect_to) && !empty($redirect_to)) : ?>
+            <?php if (!isset($_GET['mepr-unauth-page']) && (!isset($_GET['action']) || $_GET['action'] != 'mepr_unauthorized')) : ?>
+                <?php if (is_page($login_page_id) && isset($redirect_to) && !empty($redirect_to)) : ?>
               <script type="text/javascript">
                 window.location.href = "<?php echo urldecode($redirect_to); ?>";
               </script>
-            <?php else : ?>
+                <?php else : ?>
               <div class="mepr-already-logged-in">
-                <?php printf(_x('You\'re already logged in. %1$sLogout.%2$s', 'ui', 'memberpress'), '<a href="' . wp_logout_url(urldecode($redirect_to)) . '">', '</a>'); ?>
+                    <?php printf(_x('You\'re already logged in. %1$sLogout.%2$s', 'ui', 'memberpress'), '<a href="' . wp_logout_url(urldecode($redirect_to)) . '">', '</a>'); ?>
               </div>
+                <?php endif; ?>
+            <?php else : ?>
+                <?php echo $message; ?>
             <?php endif; ?>
-          <?php else : ?>
-            <?php echo $message; ?>
-          <?php endif; ?>
 
         <?php else : ?>
-          <?php if (isset($_GET['action']) && $_GET['action'] == 'mepr_unauthorized') : ?>
+            <?php if (isset($_GET['action']) && $_GET['action'] == 'mepr_unauthorized') : ?>
             <div class="mepr-unauthorized-message">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -71,14 +70,14 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
                 <?php echo $message; ?>
               </div>
             </div>
-          <?php else : ?>
-            <?php echo $message; ?>
+            <?php else : ?>
+                <?php echo $message; ?>
             <!-- mp-login-form-start -->
-            <?php
-            // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING
-            ?>
-          <?php endif ?>
-          <?php MeprHooks::do_action('mepr-before-login-form', $atts ?? array()); ?>
+                <?php
+                // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING
+                ?>
+            <?php endif ?>
+            <?php MeprHooks::do_action('mepr-before-login-form', $atts ?? []); ?>
           <form name="mepr_loginform" id="mepr_loginform" class="mepro-form" action="<?php echo $login_url; ?>" method="post">
 
             <h1><?php echo _x('Login', 'ui', 'memberpress') ?></h1>
@@ -124,11 +123,11 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
           <div class="mepr-login-actions">
             <?php _ex('Forgot Password?', 'ui', 'memberpress'); ?> <a href="<?php echo $forgot_password_url; ?>"><?php _ex('Click here', 'ui', 'memberpress'); ?></a>
           </div>
-          <?php MeprHooks::do_action('mepr-login-form-after-submit', $atts ?? array()); ?>
+            <?php MeprHooks::do_action('mepr-login-form-after-submit', $atts ?? []); ?>
           <!-- mp-login-form-end -->
-          <?php
-          // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING
-          ?>
+            <?php
+            // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING
+            ?>
 
         <?php endif; ?>
       </div>

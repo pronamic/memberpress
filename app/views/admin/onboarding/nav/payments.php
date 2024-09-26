@@ -1,17 +1,17 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <?php
   $mepr_options = MeprOptions::fetch();
   $saved_gateway_id = get_option('mepr_onboarding_payment_gateway');
 
-  if(!empty($mepr_options->integrations) && empty($saved_gateway_id)) {
+if (!empty($mepr_options->integrations) && empty($saved_gateway_id)) {
     $state = 1; // skip without confirmation
-  }
-  elseif(!empty($saved_gateway_id)) {
+} elseif (!empty($saved_gateway_id)) {
     $state = 2; // continue
-  }
-  else {
+} else {
     $state = 3; // skip with confirmation
-  }
+}
 ?>
 <div id="mepr-wizard-payments-skip"<?php echo $state == 2 || $state == 3  ? ' class="mepr-hidden"' : ''; ?>>
   <button type="button" class="mepr-wizard-button-link mepr-wizard-go-to-step" data-step="7" data-context="skip"><span><?php esc_html_e('Skip', 'memberpress'); ?></span></button>

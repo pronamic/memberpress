@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <div id="mepr-wizard-create-rule">
   <h2 class="mepr-wizard-step-title"><?php esc_html_e("Let's create a Rule to protect your content", 'memberpress'); ?></h2>
   <p class="mepr-wizard-step-description"><?php esc_html_e('Rules are the magic behind MemberPress – giving you super specialized paywalling power with the click of a button.', 'memberpress'); ?></p>
@@ -13,12 +15,12 @@
   <h2 class="mepr-wizard-step-title"><?php esc_html_e('Your rules', 'memberpress'); ?></h2>
   <div class="mepr-wizard-selected-content mepr-wizard-selected-content-full-scape">
     <div class="mepr-wizard-selected-content-column">
-      <div class="mepr-wizard-selected-content-heading" id="mepr-wizard-selected-content-heading"><?php esc_html_e('Course / Page','memberpress'); ?></div>
+      <div class="mepr-wizard-selected-content-heading" id="mepr-wizard-selected-content-heading"><?php esc_html_e('Course / Page', 'memberpress'); ?></div>
       <div class="mepr-wizard-selected-content-name" id="mepr-selected-rule-content-name"></div>
     </div>
     <hr>
     <div class="mepr-wizard-selected-content-column">
-      <div class="mepr-wizard-selected-content-heading"><?php esc_html_e('Membership Name','memberpress'); ?></div>
+      <div class="mepr-wizard-selected-content-heading"><?php esc_html_e('Membership Name', 'memberpress'); ?></div>
       <div class="mepr-wizard-selected-content-name"  id="mepr-selected-rule-membership-name"></div>
     </div>
     <div class="mepr-wizard-selected-content-expand-menu" data-id="mepr-wizard-selected-rule-menu">
@@ -33,8 +35,8 @@
 <div id="mepr-wizard-create-new-rule-popup" class="mepr-wizard-popup mfp-hide">
   <h2><?php esc_html_e('Create Rule', 'memberpress'); ?></h2>
   <?php
-  $rules_data = MeprOnboardingHelper::get_rules_step_data();
-  ?>
+    $rules_data = MeprOnboardingHelper::get_rules_step_data();
+    ?>
   <div class="mepr-wizard-popup-field">
     <label for="mepr-wizard-create-rule-content"><?php echo esc_attr($rules_data['content_type']); ?></label>
     <input type="text" id="mepr-wizard-create-rule-content" value="<?php echo esc_attr($rules_data['content_title']); ?>" readonly />
@@ -51,11 +53,11 @@
       <?php
         printf(
           /* translators: %1$s: open underline tag, %2$s: close underline tag */
-          esc_html__('More advanced options are available in %1$sMemberPress > Rules%2$s', 'memberpress'),
-          '<u>',
-          '</u>'
+            esc_html__('More advanced options are available in %1$sMemberPress > Rules%2$s', 'memberpress'),
+            '<u>',
+            '</u>'
         );
-      ?>
+        ?>
     </a>
   </div>
 </div>

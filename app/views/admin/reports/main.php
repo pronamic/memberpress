@@ -1,10 +1,12 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <div class="wrap">
   <h2><?php _e('Reports', 'memberpress'); ?></h2>
 
   <div id="overall_info_blocks">
-      <?php MeprView::render("/admin/reports/skeleton_info_blocks", array('count' => 7)); ?>
+      <?php MeprView::render('/admin/reports/skeleton_info_blocks', ['count' => 7]); ?>
   </div>
 
   <h2 class="nav-tab-wrapper">
@@ -19,14 +21,14 @@
       <?php MeprReportsHelper::get_monthly_dropdowns_form(); ?>
     </div>
 
-    <?php if($curr_product == 'all'): ?>
+    <?php if ($curr_product == 'all') : ?>
       <div id="monthly-pie-chart-area" class="pie_chart_area">
-        <?php MeprView::render("/admin/reports/skeleton_pie"); ?>
+        <?php MeprView::render('/admin/reports/skeleton_pie'); ?>
       </div>
     <?php endif; ?>
 
     <div id="monthly-info-blocks" class="info_blocks_area">
-      <?php MeprView::render("/admin/reports/skeleton_info_blocks", array('count' => 8)); ?>
+      <?php MeprView::render('/admin/reports/skeleton_info_blocks', ['count' => 8]); ?>
     </div>
 
     <div class="float_block_separator"></div>
@@ -38,16 +40,16 @@
       </h2>
 
       <div id="monthly-amounts-area-graph" class="mamounts monthly_graph_area mepr-loading">
-        <?php MeprView::render("/admin/reports/svg_loader"); ?>
+        <?php MeprView::render('/admin/reports/svg_loader'); ?>
       </div>
 
       <div id="monthly-transactions-area-graph" class="mtransactions monthly_graph_area mepr-loading">
-        <?php MeprView::render("/admin/reports/svg_loader"); ?>
+        <?php MeprView::render('/admin/reports/svg_loader'); ?>
       </div>
     </div>
 
     <div id="monthly-data-table">
-      <?php MeprView::render("/admin/reports/skeleton_table"); ?>
+      <?php MeprView::render('/admin/reports/skeleton_table'); ?>
     </div>
   </div>
 
@@ -57,14 +59,14 @@
       <?php MeprReportsHelper::get_yearly_dropdowns_form(); ?>
     </div>
 
-    <?php if($curr_product == 'all'): ?>
+    <?php if ($curr_product == 'all') : ?>
       <div id="yearly-pie-chart-area" class="pie_chart_area">
-        <?php MeprView::render("/admin/reports/skeleton_pie"); ?>
+        <?php MeprView::render('/admin/reports/skeleton_pie'); ?>
       </div>
     <?php endif; ?>
 
     <div id="yearly-info-blocks" class="info_blocks_area">
-      <?php MeprView::render("/admin/reports/skeleton_info_blocks", array('count' => 8)); ?>
+      <?php MeprView::render('/admin/reports/skeleton_info_blocks', ['count' => 8]); ?>
     </div>
 
     <div class="float_block_separator"></div>
@@ -76,16 +78,16 @@
       </h2>
 
       <div id="yearly-amounts-area-graph" class="yamounts yearly_graph_area mepr-loading">
-        <?php MeprView::render("/admin/reports/svg_loader"); ?>
+        <?php MeprView::render('/admin/reports/svg_loader'); ?>
       </div>
 
       <div id="yearly-transactions-area-graph" class="ytransactions yearly_graph_area mepr-loading">
-        <?php MeprView::render("/admin/reports/svg_loader"); ?>
+        <?php MeprView::render('/admin/reports/svg_loader'); ?>
       </div>
     </div>
 
     <div id="yearly-data-table">
-      <?php MeprView::render("/admin/reports/skeleton_table"); ?>
+      <?php MeprView::render('/admin/reports/skeleton_table'); ?>
     </div>
   </div>
 
@@ -95,14 +97,14 @@
       <?php MeprReportsHelper::get_all_time_dropdowns_form(); ?>
     </div>
 
-    <?php if($curr_product == 'all'): ?>
+    <?php if ($curr_product == 'all') : ?>
       <div id="all-time-pie-chart-area" class="pie_chart_area">
-        <?php MeprView::render("/admin/reports/skeleton_pie"); ?>
+        <?php MeprView::render('/admin/reports/skeleton_pie'); ?>
       </div>
     <?php endif; ?>
 
     <div id="all-time-info-blocks" class="info_blocks_area">
-      <?php MeprView::render("/admin/reports/skeleton_info_blocks", array('count' => 8)); ?>
+      <?php MeprView::render('/admin/reports/skeleton_info_blocks', ['count' => 8]); ?>
     </div>
 
     <div class="float_block_separator"></div>
@@ -110,7 +112,7 @@
 
 <!-- HIDDEN STUFF FOR JS HERE -->
   <div id="mepr-reports-hidden-stuff">
-    <div id="mepr-reports-main-view" data-value="<?php echo (isset($_GET['main-view']) && !empty($_GET['main-view']))?$_GET['main-view']:'monthly'; ?>"></div>
+    <div id="mepr-reports-main-view" data-value="<?php echo (isset($_GET['main-view']) && !empty($_GET['main-view'])) ? $_GET['main-view'] : 'monthly'; ?>"></div>
     <div id="mepr-reports-current-data"
       data-current-product="<?php echo esc_attr($curr_product); ?>"
       data-current-month="<?php echo esc_attr($curr_month); ?>"

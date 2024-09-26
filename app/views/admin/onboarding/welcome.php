@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <div class="mepr-onboarding">
   <div class="mepr-onboarding-logo">
     <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/memberpress-logo.svg'); ?>" alt="">
@@ -104,36 +106,36 @@
       </div>
     </div>
   </div>
-  <?php if(!MeprUtils::is_elite_edition(MEPR_EDITION)) : ?>
+  <?php if (!MeprUtils::is_elite_edition(MEPR_EDITION)) : ?>
     <div class="mepr-onboarding-pricing">
       <h2>The Most Powerful WordPress Membership Plugin ... <span class="mepr-onb-underline">Without the Hidden Costs</span></h2>
       <p>Join thousands of professionals who have together sold <strong>over $1 billion in memberships</strong>.</p>
     </div>
     <div class="mepr-onboarding-pricing-table">
-      <?php /*
-      <div class="mepr-onboarding-pricing-pro">
-        <div class="mepr-onboarding-pricing-content">
-          <div class="mepr-onboarding-price-title">Elite</div>
-          <div class="mepr-onboarding-price-normally">normally $999</div>
-          <div class="mepr-onboarding-price-cost">
-            <span class="mepr-onb-price-currency">$</span>
-            <span class="mepr-onb-price-amount">499.50</span>
-            <span class="mepr-onb-price-term">/ year</span>
-          </div>
-          <div class="mepr-onboarding-price-savings">$499.50 savings*</div>
-          <p class="mepr-onboarding-price-desc">Critical for serious 7-Figure Creators to accelerate growth and revenue.</p>
-          <a href="https://memberpress.com/ipob/pricing-box/elite" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
-          <div class="mepr-onboarding-price-features">
-            <div class="mepr-onboarding-price-feature">Everything in Pro, and:</div>
-            <div class="mepr-onboarding-price-feature">Use on up to 5 Sites</div>
-            <div class="mepr-onboarding-price-feature">Sell Coaching Programs with CoachKit™</div>
-            <div class="mepr-onboarding-price-feature">Exclusive Elite Add-Ons*</div>
-            <div class="mepr-onboarding-price-feature"><a href="https://memberpress.com/ipob/pricing-box/features">See all features...</a></div>
-          </div>
-        </div>
-      </div>*/ ?>
+        <?php /*
+                  <div class="mepr-onboarding-pricing-pro">
+                  <div class="mepr-onboarding-pricing-content">
+                  <div class="mepr-onboarding-price-title">Elite</div>
+                  <div class="mepr-onboarding-price-normally">normally $999</div>
+                  <div class="mepr-onboarding-price-cost">
+                  <span class="mepr-onb-price-currency">$</span>
+                  <span class="mepr-onb-price-amount">499.50</span>
+                  <span class="mepr-onb-price-term">/ year</span>
+                  </div>
+                  <div class="mepr-onboarding-price-savings">$499.50 savings*</div>
+                  <p class="mepr-onboarding-price-desc">Critical for serious 7-Figure Creators to accelerate growth and revenue.</p>
+                  <a href="https://memberpress.com/ipob/pricing-box/elite" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
+                  <div class="mepr-onboarding-price-features">
+                  <div class="mepr-onboarding-price-feature">Everything in Pro, and:</div>
+                  <div class="mepr-onboarding-price-feature">Use on up to 5 Sites</div>
+                  <div class="mepr-onboarding-price-feature">Sell Coaching Programs with CoachKit™</div>
+                  <div class="mepr-onboarding-price-feature">Exclusive Elite Add-Ons*</div>
+                  <div class="mepr-onboarding-price-feature"><a href="https://memberpress.com/ipob/pricing-box/features">See all features...</a></div>
+                  </div>
+                  </div>
+        </div>*/ ?>
 
-      <?php if(!MeprUtils::is_pro_edition(MEPR_EDITION) && !in_array(MEPR_EDITION, array('developer', 'memberpress-plus-2', 'memberpress-plus'))) : ?>
+        <?php if (!MeprUtils::is_pro_edition(MEPR_EDITION) && !in_array(MEPR_EDITION, ['developer', 'memberpress-plus-2', 'memberpress-plus'])) : ?>
         <div class="mepr-onboarding-pricing-plus">
           <div class="mepr-onboarding-price-popular">Most Popular</div>
           <div class="mepr-onboarding-pricing-content">
@@ -157,9 +159,9 @@
             </div>
           </div>
         </div>
-      <?php endif; ?>
+        <?php endif; ?>
 
-      <?php if(!MeprUtils::is_pro_edition(MEPR_EDITION)) : ?>
+        <?php if (!MeprUtils::is_pro_edition(MEPR_EDITION)) : ?>
         <div class="mepr-onboarding-pricing-pro">
           <div class="mepr-onboarding-pricing-content">
             <div class="mepr-onboarding-price-title">Pro</div>
@@ -181,7 +183,7 @@
             </div>
           </div>
         </div>
-      <?php endif; ?>
+        <?php endif; ?>
     </div>
   <?php endif; ?>
   <div class="mepr-onboarding-endorsements-section">

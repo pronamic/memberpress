@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <!-- <img src="<?php echo MEPR_IMAGES_URL; ?>/memberpress-logo.svg" id="mepr-widget-logo" /> -->
 
@@ -45,20 +47,20 @@
 <div style="clear:both;height:10px;"></div>
 
 <div id="mepr-widget-report">
-  <?php MeprView::render("/admin/reports/svg_loader"); ?>
+  <?php MeprView::render('/admin/reports/svg_loader'); ?>
 </div>
 
 <div class="alignright">
   <a href="<?php
           echo MeprUtils::admin_url(
-            'admin-ajax.php',
-            array('export_report','mepr_reports_nonce'),
-            array(
-              'action' => 'mepr_export_report',
-              'export' => 'widget'
-            )
+              'admin-ajax.php',
+              ['export_report','mepr_reports_nonce'],
+              [
+                  'action' => 'mepr_export_report',
+                  'export' => 'widget',
+              ]
           );
-        ?>"><?php _e('Export as CSV', 'memberpress'); ?></a>
+            ?>"><?php _e('Export as CSV', 'memberpress'); ?></a>
 </div>
 
 <div>

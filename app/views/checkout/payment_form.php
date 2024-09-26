@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <div class="mepr-checkout-form spc">
   <?php MeprView::render("/checkout/{$payment_method->settings->gateway}/payment_gateway_fields", get_defined_vars()); ?>
   <div class="mp-form-row">

@@ -1,105 +1,115 @@
 <?php
-if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
 
-class MeprExportCtrl extends MeprBaseCtrl {
-  public function load_hooks() {
-    add_action('init', 'MeprExportCtrl::export_users_csv');
-    add_action('init', 'MeprExportCtrl::export_inactive_users_csv');
-    add_filter('wp_privacy_personal_data_exporters', array($this, 'register_pii_exporter'), 10);
-  }
+if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+}
 
-  /**
-  * Registers callback for PII exporter
-  * @param array $exporters
-  * @return array $exporters
-  */
-  public static function register_pii_exporter($exporters) {
-    $exporters[MEPR_PLUGIN_SLUG] = array(
-      'exporter_friendly_name' => MEPR_PLUGIN_NAME,
-      'callback' => array('MeprExportCtrl', 'export_pii'),
-    );
-
-    return $exporters;
-  }
-
-  /**
-  * Gathers PII data stored by MemberPress for export
-  * @param string $email Email address of requested user to export
-  * @return array ['data' => array, 'done' => bool]
-  */
-  public static function export_pii($email, $page = 1) {
-    $user = get_user_by('email', $email);
-    $mepr_user = new MeprUser($user->ID);
-    $mepr_data = array();
-
-    // Export address fields
-    if($mepr_user->address_is_set()) {
-      $address = $mepr_user->formatted_address();
-      $mepr_data[] = array(
-        'group_id' => MEPR_PLUGIN_NAME,
-        'group_label' => __('Membership Data', 'memberpress'),
-        'item_id' => 'mepr-user-data',
-        'data' => array(
-          array(
-            'name' => __('Address', 'memberpress'),
-            'value' => $address,
-          ),
-        ),
-      );
+class MeprExportCtrl extends MeprBaseCtrl
+{
+    public function load_hooks()
+    {
+        add_action('init', 'MeprExportCtrl::export_users_csv');
+        add_action('init', 'MeprExportCtrl::export_inactive_users_csv');
+        add_filter('wp_privacy_personal_data_exporters', [$this, 'register_pii_exporter'], 10);
     }
 
-    // Export VAT data
-    $vat_number = get_user_meta($user->ID, 'mepr_vat_number', true);
-    if(!empty($vat_number)) {
-      $mepr_data[] = array(
-        'group_id' => MEPR_PLUGIN_NAME,
-        'group_label' => __('Membership Data', 'memberpress'),
-        'item_id' => 'mepr-user-data',
-        'data' => array(
-          array(
-            'name' => __('VAT Number', 'memberpress'),
-            'value' => $vat_number,
-          ),
-        ),
-      );
+    /**
+     * Registers callback for PII exporter
+     *
+     * @param  array $exporters
+     * @return array $exporters
+     */
+    public static function register_pii_exporter($exporters)
+    {
+        $exporters[MEPR_PLUGIN_SLUG] = [
+            'exporter_friendly_name' => MEPR_PLUGIN_NAME,
+            'callback' => ['MeprExportCtrl', 'export_pii'],
+        ];
+
+        return $exporters;
     }
 
-    // Export Geo located country
-    $geo_country = get_user_meta($user->ID, 'mepr-geo-country', true);
-    if(!empty($geo_country)) {
-      $mepr_data[] = array(
-        'group_id' => MEPR_PLUGIN_NAME,
-        'group_label' => __('Membership Data', 'memberpress'),
-        'item_id' => 'mepr-user-data',
-        'data' => array(
-          array(
-            'name' => __('Geo Location Country', 'memberpress'),
-            'value' => $geo_country,
-          ),
-        ),
-      );
+    /**
+     * Gathers PII data stored by MemberPress for export
+     *
+     * @param  string $email Email address of requested user to export
+     * @return array ['data' => array, 'done' => bool]
+     */
+    public static function export_pii($email, $page = 1)
+    {
+        $user = get_user_by('email', $email);
+        $mepr_user = new MeprUser($user->ID);
+        $mepr_data = [];
+
+        // Export address fields
+        if ($mepr_user->address_is_set()) {
+            $address = $mepr_user->formatted_address();
+            $mepr_data[] = [
+                'group_id' => MEPR_PLUGIN_NAME,
+                'group_label' => __('Membership Data', 'memberpress'),
+                'item_id' => 'mepr-user-data',
+                'data' => [
+                    [
+                        'name' => __('Address', 'memberpress'),
+                        'value' => $address,
+                    ],
+                ],
+            ];
+        }
+
+        // Export VAT data
+        $vat_number = get_user_meta($user->ID, 'mepr_vat_number', true);
+        if (!empty($vat_number)) {
+            $mepr_data[] = [
+                'group_id' => MEPR_PLUGIN_NAME,
+                'group_label' => __('Membership Data', 'memberpress'),
+                'item_id' => 'mepr-user-data',
+                'data' => [
+                    [
+                        'name' => __('VAT Number', 'memberpress'),
+                        'value' => $vat_number,
+                    ],
+                ],
+            ];
+        }
+
+        // Export Geo located country
+        $geo_country = get_user_meta($user->ID, 'mepr-geo-country', true);
+        if (!empty($geo_country)) {
+            $mepr_data[] = [
+                'group_id' => MEPR_PLUGIN_NAME,
+                'group_label' => __('Membership Data', 'memberpress'),
+                'item_id' => 'mepr-user-data',
+                'data' => [
+                    [
+                        'name' => __('Geo Location Country', 'memberpress'),
+                        'value' => $geo_country,
+                    ],
+                ],
+            ];
+        }
+
+        return [
+            'data' => $mepr_data,
+            'done' => true,
+        ];
     }
 
-    return array(
-      'data' => $mepr_data,
-      'done' => true,
-    );
-  }
+    // This will need a major overhaul eventually, but we needed a quick fix for some clients
+    // So this is the quick fix. It can only be accessed via
+    // /wp-admin/admin.php?page=memberpress-options&mepr-export-users-csv currently.
+    // If we change this, we definitely need to let the folks at theballstonjournal.com know
+    public static function export_users_csv()
+    {
+        global $wpdb;
+        $mepr_db = new MeprDb();
 
-  // This will need a major overhaul eventually, but we needed a quick fix for some clients
-  // So this is the quick fix. It can only be accessed via
-  // /wp-admin/admin.php?page=memberpress-options&mepr-export-users-csv currently.
-  // If we change this, we definitely need to let the folks at theballstonjournal.com know
-  public static function export_users_csv() {
-    global $wpdb;
-    $mepr_db = new MeprDb();
+        if (!MeprUtils::is_mepr_admin()) { // Make sure we're an admin
+            return;
+        }
 
-    if(!MeprUtils::is_mepr_admin()) { //Make sure we're an admin
-      return;
-    }
-
-    if(isset($_GET['page']) && $_GET['page'] == 'memberpress-options' && isset($_GET['mepr-export-users-csv'])) {
-      $q = "SELECT u.ID AS user_ID, u.user_login AS username, u.user_email AS email, f.meta_value AS first_name, l.meta_value AS last_name, a1.meta_value AS address1, a2.meta_value AS address2, c.meta_value AS city, s.meta_value AS state, z.meta_value AS zip, u.user_registered AS start_date, t.expires_at AS end_date, p.post_title AS membership, t.gateway, cp.post_title AS coupon
+        if (isset($_GET['page']) && $_GET['page'] == 'memberpress-options' && isset($_GET['mepr-export-users-csv'])) {
+            $q = "SELECT u.ID AS user_ID, u.user_login AS username, u.user_email AS email, f.meta_value AS first_name, l.meta_value AS last_name, a1.meta_value AS address1, a2.meta_value AS address2, c.meta_value AS city, s.meta_value AS state, z.meta_value AS zip, u.user_registered AS start_date, t.expires_at AS end_date, p.post_title AS membership, t.gateway, cp.post_title AS coupon
               FROM {$wpdb->users} AS u
                 LEFT JOIN {$wpdb->usermeta} AS f
                   ON u.ID = f.user_id AND f.meta_key = 'first_name'
@@ -116,67 +126,70 @@ class MeprExportCtrl extends MeprBaseCtrl {
                 LEFT JOIN {$wpdb->usermeta} AS z
                   ON u.ID = z.user_id AND z.meta_key = 'mepr-address-zip'
                 INNER JOIN {$mepr_db->transactions} AS t
-                  ON u.ID = t.user_id AND (t.status = 'complete' OR t.status = 'confirmed') AND (t.expires_at IS NULL OR t.expires_at = 0 OR t.expires_at >= '".date('c')."')
+                  ON u.ID = t.user_id AND (t.status = 'complete' OR t.status = 'confirmed') AND (t.expires_at IS NULL OR t.expires_at = 0 OR t.expires_at >= '" . date('c') . "')
                 LEFT JOIN {$wpdb->posts} AS p
                   ON t.product_id = p.ID
                 LEFT JOIN {$wpdb->posts} AS cp
                   ON t.coupon_id = cp.ID";
 
-      // output headers so that the file is downloaded rather than displayed
-      header('Content-Type: text/csv; charset=utf-8');
-      header('Content-Disposition: attachment; filename=active_customers.csv');
+            // output headers so that the file is downloaded rather than displayed
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename=active_customers.csv');
 
-      // create a file pointer connected to the output stream
-      $output = fopen('php://output', 'w');
+            // create a file pointer connected to the output stream
+            $output = fopen('php://output', 'w');
 
-      // output the column headings
-      fputcsv($output, array( 'User_ID',
-                              'Username',
-                              'Email',
-                              'First Name',
-                              'Last Name',
-                              'Address 1',
-                              'Address 2',
-                              'City',
-                              'State',
-                              'Zip',
-                              'Start Date',
-                              'End Date',
-                              'Subscription',
-                              'Gateway',
-                              'Coupon' ));
+            // output the column headings
+            fputcsv($output, [
+                'User_ID',
+                'Username',
+                'Email',
+                'First Name',
+                'Last Name',
+                'Address 1',
+                'Address 2',
+                'City',
+                'State',
+                'Zip',
+                'Start Date',
+                'End Date',
+                'Subscription',
+                'Gateway',
+                'Coupon',
+            ]);
 
-      // fetch the data
-      $wpdb->query("SET SQL_BIG_SELECTS=1");
-      $rows = $wpdb->get_results($q, ARRAY_A);
+            // fetch the data
+            $wpdb->query('SET SQL_BIG_SELECTS=1');
+            $rows = $wpdb->get_results($q, ARRAY_A);
 
-      // loop over the rows, outputting them
-      foreach($rows as $row) {
-        fputcsv($output, $row);
-      }
+            // loop over the rows, outputting them
+            foreach ($rows as $row) {
+                fputcsv($output, $row);
+            }
 
-      // close the file and exit
-      fclose($output);
-      exit;
-    }
-  }
-
-  // This will need a major overhaul eventually, but we needed a quick fix for some clients
-  // So this is the quick fix. It can only be accessed via
-  // /wp-admin/admin.php?page=memberpress-options&mepr-export-inactive-users-csv currently.
-  // If we change this, we definitely need to let the folks at theballstonjournal.com know
-  public static function export_inactive_users_csv() {
-    global $wpdb;
-    $mepr_db = new MeprDb();
-
-    if(!MeprUtils::is_mepr_admin()) { //Make sure we're an admin
-      return;
+            // close the file and exit
+            fclose($output);
+            exit;
+        }
     }
 
-    if(isset($_GET['page']) && $_GET['page'] == 'memberpress-options' && isset($_GET['mepr-export-inactive-users-csv'])) {
-      $db_now = $wpdb->prepare('%s',MeprUtils::db_now());
-      $db_lifetime = $wpdb->prepare('%s',MeprUtils::db_lifetime());
-      $q = "SELECT u.ID AS user_ID, u.user_login AS username, u.user_email AS email, f.meta_value AS first_name, l.meta_value AS last_name, a1.meta_value AS address1, a2.meta_value AS address2, c.meta_value AS city, s.meta_value AS state, z.meta_value AS zip, u.user_registered AS start_date, t.expires_at AS end_date, p.post_title AS membership, t.gateway, cp.post_title AS coupon
+    // This will need a major overhaul eventually, but we needed a quick fix for some clients
+    // So this is the quick fix. It can only be accessed via
+    // /wp-admin/admin.php?page=memberpress-options&mepr-export-inactive-users-csv currently.
+    // If we change this, we definitely need to let the folks at theballstonjournal.com know
+    public static function export_inactive_users_csv()
+    {
+        global $wpdb;
+        $mepr_db = new MeprDb();
+
+        if (!MeprUtils::is_mepr_admin()) { // Make sure we're an admin
+            return;
+        }
+
+        if (isset($_GET['page']) && $_GET['page'] == 'memberpress-options' && isset($_GET['mepr-export-inactive-users-csv'])) {
+            $db_now = $wpdb->prepare('%s', MeprUtils::db_now());
+            $db_lifetime = $wpdb->prepare('%s', MeprUtils::db_lifetime());
+            $q = "SELECT u.ID AS user_ID, u.user_login AS username, u.user_email AS email, f.meta_value AS first_name, l.meta_value AS last_name, a1.meta_value AS address1, a2.meta_value AS address2, c.meta_value AS city, s.meta_value AS state, z.meta_value AS zip, u.user_registered AS start_date, t.expires_at AS end_date, p.post_title AS membership, t.gateway, cp.post_title AS coupon
               FROM {$wpdb->users} AS u
                 LEFT JOIN {$wpdb->usermeta} AS f
                   ON u.ID = f.user_id AND f.meta_key = 'first_name'
@@ -208,41 +221,44 @@ class MeprExportCtrl extends MeprBaseCtrl {
                   ON t.coupon_id = cp.ID
             GROUP BY u.ID";
 
-      // output headers so that the file is downloaded rather than displayed
-      header('Content-Type: text/csv; charset=utf-8');
-      header('Content-Disposition: attachment; filename=inactive_customers.csv');
+            // output headers so that the file is downloaded rather than displayed
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename=inactive_customers.csv');
 
-      // create a file pointer connected to the output stream
-      $output = fopen('php://output', 'w');
+            // create a file pointer connected to the output stream
+            $output = fopen('php://output', 'w');
 
-      // output the column headings
-      fputcsv($output, array( 'User_ID',
-                              'Username',
-                              'Email',
-                              'First Name',
-                              'Last Name',
-                              'Address 1',
-                              'Address 2',
-                              'City',
-                              'State',
-                              'Zip',
-                              'Start Date',
-                              'End Date',
-                              'Subscription',
-                              'Gateway',
-                              'Coupon' ) );
+            // output the column headings
+            fputcsv($output, [
+                'User_ID',
+                'Username',
+                'Email',
+                'First Name',
+                'Last Name',
+                'Address 1',
+                'Address 2',
+                'City',
+                'State',
+                'Zip',
+                'Start Date',
+                'End Date',
+                'Subscription',
+                'Gateway',
+                'Coupon',
+            ]);
 
-      // fetch the data
-      $wpdb->query("SET SQL_BIG_SELECTS=1");
-      $rows = $wpdb->get_results($q, ARRAY_A);
+            // fetch the data
+            $wpdb->query('SET SQL_BIG_SELECTS=1');
+            $rows = $wpdb->get_results($q, ARRAY_A);
 
-      // loop over the rows, outputting them
-      foreach($rows as $row)
-        fputcsv($output, $row);
+            // loop over the rows, outputting them
+            foreach ($rows as $row) {
+                fputcsv($output, $row);
+            }
 
-      // close the file and exit
-      fclose($output);
-      exit;
+            // close the file and exit
+            fclose($output);
+            exit;
+        }
     }
-  }
 } //End class

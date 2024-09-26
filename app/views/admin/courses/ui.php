@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <div class="wrap">
 
@@ -37,14 +39,14 @@
     <div class="mepr-sister-plugin-step mepr-sister-plugin-step-no-number mepr-sister-plugin-step-current mepr-clearfix">
       <div class="mepr-sister-plugin-step-detail">
         <div class="mepr-sister-plugin-step-title">
-          <?php if( ! empty( $plugins['memberpress-courses/main.php'] ) ) : // Installed but not active ?>
-            <?php esc_html_e('Enable Courses', 'memberpress'); ?>
+          <?php if (! empty($plugins['memberpress-courses/main.php'])) : // Installed but not active ?>
+                <?php esc_html_e('Enable Courses', 'memberpress'); ?>
           <?php else : // Not installed ?>
-            <?php esc_html_e('Install and Activate MemberPress Courses', 'memberpress'); ?>
+              <?php esc_html_e('Install and Activate MemberPress Courses', 'memberpress'); ?>
           <?php endif; ?>
         </div>
         <div class="mepr-sister-plugin-step-button">
-          <?php if( ! empty( $plugins['memberpress-courses/main.php'] ) ) : // Installed but not active ?>
+          <?php if (! empty($plugins['memberpress-courses/main.php'])) : // Installed but not active ?>
             <button type="button" class="mepr-courses-action button button-primary button-hero" data-action="activate"><?php esc_html_e('Activate Courses Add-On', 'memberpress'); ?></button>
           <?php else : // Not installed ?>
             <button type="button" class="mepr-courses-action button button-primary button-hero" data-action="install-activate"><?php esc_html_e('Install & Activate MemberPress Courses Add-On', 'memberpress'); ?></button>
@@ -69,7 +71,7 @@
         type: 'POST',
         data: {
           action: 'mepr_courses_action',
-          nonce: "<?php echo wp_create_nonce( 'mepr_courses_action' ); ?>",
+          nonce: "<?php echo wp_create_nonce('mepr_courses_action'); ?>",
           type: $this.data('action')
         },
       })

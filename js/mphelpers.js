@@ -76,9 +76,18 @@ jQuery(document).ready(function($) {
     }
   });
 
-  if( $('select.mepr-membership-dropdown').val() > 0 ) {
-    $('select.mepr-membership-dropdown').trigger('change');
-  }
+  if ($('select.mepr-membership-dropdown').val() > 0) {
+    var expires_at_field_id = $('select.mepr-membership-dropdown').data('expires_at_field_id');
+
+    if (expires_at_field_id != undefined && expires_at_field_id && $('#' + expires_at_field_id).find('input.mepr-expires-at').length) {
+        var expiry_field = $('#' + expires_at_field_id).find('input.mepr-expires-at');
+        var initial_raw_value = expiry_field.data('initial_raw_value');
+
+        if (initial_raw_value !== '0000-00-00 00:00:00' && expiry_field.val().length === 0) {
+            $('select.mepr-membership-dropdown').trigger('change');
+        }
+    }
+}
 
   // Get lifetime expiration
   $('a.mepr-lifetime-expiration-button').on('click', function(e) {

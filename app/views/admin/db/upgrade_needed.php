@@ -1,10 +1,12 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php echo get_option( 'blog_charset' ); ?>" />
+  <meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php echo get_option('blog_charset'); ?>" />
   <meta name="robots" content="noindex,nofollow" />
   <title><?php _e('Memberpress needs to upgrade your database', 'memberpress'); ?></title>
   <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
@@ -25,18 +27,18 @@
       var upgrade_db_success = function() {
         window.location.href = '<?php
           echo MeprUtils::admin_url(
-            'admin-ajax.php',
-            array('db_upgrade_success', 'mepr_db_upgrade_nonce'),
-            array('action' => 'mepr_db_upgrade_success')
+              'admin-ajax.php',
+              ['db_upgrade_success', 'mepr_db_upgrade_nonce'],
+              ['action' => 'mepr_db_upgrade_success']
           ); ?>';
       };
 
       var upgrade_db_not_needed = function() {
         window.location.href = '<?php
           echo MeprUtils::admin_url(
-            'admin-ajax.php',
-            array('db_upgrade_not_needed', 'mepr_db_upgrade_nonce'),
-            array('action' => 'mepr_db_upgrade_not_needed')
+              'admin-ajax.php',
+              ['db_upgrade_not_needed', 'mepr_db_upgrade_nonce'],
+              ['action' => 'mepr_db_upgrade_not_needed']
           ); ?>';
       };
 
@@ -48,9 +50,9 @@
         if(error_count >= retries) {
           window.location.href = '<?php
             echo MeprUtils::admin_url(
-              'admin-ajax.php',
-              array('db_upgrade_error', 'mepr_db_upgrade_nonce'),
-              array('action' => 'mepr_db_upgrade_error')
+                'admin-ajax.php',
+                ['db_upgrade_error', 'mepr_db_upgrade_nonce'],
+                ['action' => 'mepr_db_upgrade_error']
             ); ?>';
         }
         else {
@@ -177,11 +179,11 @@
             ?>
             <!-- <p><a class="btn btn-primary" href="<?php
               echo MeprUtils::admin_url(
-                'admin-ajax.php',
-                array('db_upgrade', 'mepr_db_upgrade_nonce'),
-                array('action' => 'mepr_db_upgrade')
+                  'admin-ajax.php',
+                  ['db_upgrade', 'mepr_db_upgrade_nonce'],
+                  ['action' => 'mepr_db_upgrade']
               );
-            ?>"><?php _e('Upgrade', 'memberpress'); ?></a></p> -->
+                ?>"><?php _e('Upgrade', 'memberpress'); ?></a></p> -->
             <!-- Button trigger modal -->
             <p>
               <button type="button" class="btn btn-primary btn-lg" id="upgrade_db_trigger"><?php _e('Upgrade', 'memberpress'); ?></button> or

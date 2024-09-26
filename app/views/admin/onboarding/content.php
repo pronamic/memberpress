@@ -1,9 +1,11 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <?php
   $ld_migration_possible = MeprMigratorLearnDash::is_migration_possible();
   $courses_active = MeprOnboardingHelper::is_courses_addon_applicable();
 ?>
-<?php if($ld_migration_possible) : ?>
+<?php if ($ld_migration_possible) : ?>
   <div id="mepr-wizard-ld-migrator-success" class="mepr-hidden">
     <div class="mepr-wizard-success-notice">
       <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/green-check.svg'); ?>" alt="">
@@ -11,7 +13,7 @@
     </div>
   </div>
   <div id="mepr-wizard-ld-migrator" class="mepr-migrator<?php echo !$courses_active ? ' mepr-hidden' : ''; ?>">
-    <h2 class="mepr-wizard-step-title"><?php esc_html_e("Migrate from LearnDash?", 'memberpress'); ?></h2>
+    <h2 class="mepr-wizard-step-title"><?php esc_html_e('Migrate from LearnDash?', 'memberpress'); ?></h2>
     <p class="mepr-wizard-step-description"><?php esc_html_e("We'd usually ask you to select some content here, but we noticed that you have some LearnDash Courses that could be migrated to MemberPress Courses automatically. Would you like to migrate your existing course content to MemberPress Courses?", 'memberpress'); ?></p>
     <p class="mepr-migrator-settings mepr-form">
       <label class="switch">

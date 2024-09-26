@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <div id="mepr-license-container" class="mepr-wizard-license-container">
   <div class="mepr-wizard-license">
     <div class="mepr-wizard-license-notice">
@@ -6,22 +8,21 @@
       <?php
         $expires_at = null;
 
-        if(isset($li['license_key']['expires_at'])) {
-          $expires_at = date_create($li['license_key']['expires_at']);
+        if (isset($li['license_key']['expires_at'])) {
+            $expires_at = date_create($li['license_key']['expires_at']);
         }
 
-        if($expires_at instanceof DateTime) {
-          echo esc_html(
-            sprintf(
-              __('License activated until %s', 'memberpress'),
-              MeprUtils::date('F j, Y', $expires_at)
-            )
-          );
+        if ($expires_at instanceof DateTime) {
+            echo esc_html(
+                sprintf(
+                    __('License activated until %s', 'memberpress'),
+                    MeprUtils::date('F j, Y', $expires_at)
+                )
+            );
+        } else {
+            esc_html_e('License activated', 'memberpress');
         }
-        else {
-          esc_html_e('License activated', 'memberpress');
-        }
-      ?>
+        ?>
     </div>
     <div class="mepr-wizard-license-details">
       <div>
@@ -48,13 +49,13 @@
           <?php
             printf(
               // translators: %1$s: open b tag, %2$d: activation count, %3$s: max activations, %4$s close b tag
-              esc_html__('%1$s%2$d of %3$s%4$s sites have been activated with this license key', 'memberpress'),
-              '<b>',
-              esc_html($li['activation_count']),
-              esc_html(ucwords($li['max_activations'])),
-              '</b>'
+                esc_html__('%1$s%2$d of %3$s%4$s sites have been activated with this license key', 'memberpress'),
+                '<b>',
+                esc_html($li['activation_count']),
+                esc_html(ucwords($li['max_activations'])),
+                '</b>'
             );
-          ?>
+            ?>
         </div>
       </div>
     </div>

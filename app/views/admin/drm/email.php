@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
@@ -18,7 +20,7 @@
                 <div style="padding:0 0 30px 0; font-family:Helvetica,Arial,sans-serif;line-height:1.5;">
                   <?php echo $drm_info['message']; ?>
                   <p><?php echo $drm_info['help_message']; ?></p>
-                  <?php if( isset($drm_info['additional_instructions']) && ! empty($drm_info['additional_instructions']) ) : ?>
+                  <?php if (isset($drm_info['additional_instructions']) && ! empty($drm_info['additional_instructions'])) : ?>
                     <p><?php echo $drm_info['additional_instructions']; ?></p>
                   <?php endif; ?>
                 </div>

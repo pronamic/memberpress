@@ -1,9 +1,10 @@
 <?php
+
 /*
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: http://www.memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.11.34
+Version: 1.11.35
 Requires PHP: 7.4
 Author: Caseproof, LLC
 Author URI: http://caseproof.com/
@@ -26,43 +27,45 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 Also add information on how to contact you by electronic and paper mail.
 */
 
-if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
+if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+}
 
-require_once "vendor-prefixed/autoload.php";
+require_once 'vendor-prefixed/autoload.php';
 
-define('MEPR_PLUGIN_SLUG','memberpress/memberpress.php');
-define('MEPR_PLUGIN_NAME','memberpress');
-define('MEPR_PATH',dirname(dirname(__FILE__)).'/'.MEPR_PLUGIN_NAME);
-define('MEPR_IMAGES_PATH',MEPR_PATH.'/images');
-define('MEPR_CSS_PATH',MEPR_PATH.'/css');
-define('MEPR_JS_PATH',MEPR_PATH.'/js');
-define('MEPR_I18N_PATH',MEPR_PATH.'/i18n');
-define('MEPR_LIB_PATH',MEPR_PATH.'/app/lib');
-define('MEPR_INTEGRATIONS_PATH',MEPR_PATH.'/app/integrations');
-define('MEPR_INTERFACES_PATH',MEPR_PATH.'/app/lib/interfaces');
-define('MEPR_DATA_PATH',MEPR_PATH.'/app/data');
-define('MEPR_VENDOR_LIB_PATH',MEPR_PATH.'/vendor/lib');
-define('MEPR_APIS_PATH',MEPR_PATH.'/app/apis');
-define('MEPR_MODELS_PATH',MEPR_PATH.'/app/models');
-define('MEPR_CTRLS_PATH',MEPR_PATH.'/app/controllers');
-define('MEPR_GATEWAYS_PATH',MEPR_PATH.'/app/gateways');
-define('MEPR_EMAILS_PATH',MEPR_PATH.'/app/emails');
-define('MEPR_JOBS_PATH',MEPR_PATH.'/app/jobs');
-define('MEPR_VIEWS_PATH',MEPR_PATH.'/app/views');
-define('MEPR_WIDGETS_PATH',MEPR_PATH.'/app/widgets');
-define('MEPR_HELPERS_PATH',MEPR_PATH.'/app/helpers');
+define('MEPR_PLUGIN_SLUG', 'memberpress/memberpress.php');
+define('MEPR_PLUGIN_NAME', 'memberpress');
+define('MEPR_PATH', dirname(dirname(__FILE__)) . '/' . MEPR_PLUGIN_NAME);
+define('MEPR_IMAGES_PATH', MEPR_PATH . '/images');
+define('MEPR_CSS_PATH', MEPR_PATH . '/css');
+define('MEPR_JS_PATH', MEPR_PATH . '/js');
+define('MEPR_I18N_PATH', MEPR_PATH . '/i18n');
+define('MEPR_LIB_PATH', MEPR_PATH . '/app/lib');
+define('MEPR_INTEGRATIONS_PATH', MEPR_PATH . '/app/integrations');
+define('MEPR_INTERFACES_PATH', MEPR_PATH . '/app/lib/interfaces');
+define('MEPR_DATA_PATH', MEPR_PATH . '/app/data');
+define('MEPR_VENDOR_LIB_PATH', MEPR_PATH . '/vendor/lib');
+define('MEPR_APIS_PATH', MEPR_PATH . '/app/apis');
+define('MEPR_MODELS_PATH', MEPR_PATH . '/app/models');
+define('MEPR_CTRLS_PATH', MEPR_PATH . '/app/controllers');
+define('MEPR_GATEWAYS_PATH', MEPR_PATH . '/app/gateways');
+define('MEPR_EMAILS_PATH', MEPR_PATH . '/app/emails');
+define('MEPR_JOBS_PATH', MEPR_PATH . '/app/jobs');
+define('MEPR_VIEWS_PATH', MEPR_PATH . '/app/views');
+define('MEPR_WIDGETS_PATH', MEPR_PATH . '/app/widgets');
+define('MEPR_HELPERS_PATH', MEPR_PATH . '/app/helpers');
 
 // Make all of our URLS protocol agnostic
-$mepr_url_protocol = (is_ssl())?'https':'http'; //Can't use MeprUtils::is_ssl() here
-define('MEPR_URL',preg_replace('/^https?:/', "{$mepr_url_protocol}:", plugins_url('/'.MEPR_PLUGIN_NAME)));
+$mepr_url_protocol = (is_ssl()) ? 'https' : 'http'; // Can't use MeprUtils::is_ssl() here
+define('MEPR_URL', preg_replace('/^https?:/', "{$mepr_url_protocol}:", plugins_url('/' . MEPR_PLUGIN_NAME)));
 
-define('MEPR_VIEWS_URL',MEPR_URL.'/app/views');
-define('MEPR_IMAGES_URL',MEPR_URL.'/images');
-define('MEPR_CSS_URL',MEPR_URL.'/css');
-define('MEPR_JS_URL',MEPR_URL.'/js');
-define('MEPR_GATEWAYS_URL',MEPR_URL.'/app/gateways');
-define('MEPR_VENDOR_LIB_URL',MEPR_URL.'/vendor/lib');
-define('MEPR_SCRIPT_URL',site_url('/index.php?plugin=mepr'));
+define('MEPR_VIEWS_URL', MEPR_URL . '/app/views');
+define('MEPR_IMAGES_URL', MEPR_URL . '/images');
+define('MEPR_CSS_URL', MEPR_URL . '/css');
+define('MEPR_JS_URL', MEPR_URL . '/js');
+define('MEPR_GATEWAYS_URL', MEPR_URL . '/app/gateways');
+define('MEPR_VENDOR_LIB_URL', MEPR_URL . '/vendor/lib');
+define('MEPR_SCRIPT_URL', site_url('/index.php?plugin=mepr'));
 define('MEPR_OPTIONS_SLUG', 'mepr_options');
 define('MEPR_EDITION', 'memberpress-pro');
 
@@ -73,23 +76,24 @@ define('MEPR_MIN_PHP_VERSION', '5.6.20');
  *
  * @return string Plugin version
  */
-function mepr_plugin_info($field) {
-  static $curr_plugins;
+function mepr_plugin_info($field)
+{
+    static $curr_plugins;
 
-  if( !isset($curr_plugins) ) {
-    if( !function_exists( 'get_plugins' ) ) {
-      require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+    if (!isset($curr_plugins)) {
+        if (!function_exists('get_plugins')) {
+            require_once(ABSPATH . '/wp-admin/includes/plugin.php');
+        }
+
+        $curr_plugins = get_plugins();
+        wp_cache_delete('plugins', 'plugins');
     }
 
-    $curr_plugins = get_plugins();
-    wp_cache_delete('plugins', 'plugins');
-  }
+    if (isset($curr_plugins[MEPR_PLUGIN_SLUG][$field])) {
+        return $curr_plugins[MEPR_PLUGIN_SLUG][$field];
+    }
 
-  if(isset($curr_plugins[MEPR_PLUGIN_SLUG][$field])) {
-    return $curr_plugins[MEPR_PLUGIN_SLUG][$field];
-  }
-
-  return '';
+    return '';
 }
 
 // Plugin Information from the plugin header declaration
@@ -102,73 +106,75 @@ define('MEPR_DESCRIPTION', mepr_plugin_info('Description'));
 // Autoload all the requisite classes
 function mepr_autoloader($class_name)
 {
-  // Only load MemberPress classes here
-  if(preg_match('/^Mepr.+$/', $class_name))
-  {
-    if(preg_match('/^.+Interface$/', $class_name)) // Load interfaces first
-      $filepath = MEPR_INTERFACES_PATH."/{$class_name}.php";
-    else if(preg_match('/^Mepr(Base|Cpt).+$/', $class_name)) // Base classes are in lib
-      $filepath = MEPR_LIB_PATH."/{$class_name}.php";
-    else if(preg_match('/^.+Ctrl$/', $class_name))
-      $filepath = MEPR_CTRLS_PATH."/{$class_name}.php";
-    else if(preg_match('/^.+Helper$/', $class_name))
-      $filepath = MEPR_HELPERS_PATH."/{$class_name}.php";
-    else if(preg_match('/^.+Exception$/', $class_name))
-      $filepath = MEPR_LIB_PATH."/MeprExceptions.php";
-    else if(preg_match('/^.+Jobs$/', $class_name))
-      $filepath = MEPR_LIB_PATH."/MeprJobs.php";
-    else if(preg_match('/^MeprMigrator.+$/', $class_name))
-      $filepath = MEPR_LIB_PATH."/migrators/{$class_name}.php";
-    else if(preg_match('/^.+Gateway$/', $class_name)) {
-      foreach( MeprGatewayFactory::paths() as $path ) {
-        $filepath = $path."/{$class_name}.php";
-        if( file_exists($filepath) ) {
-          require_once($filepath); return;
-        }
-      }
-      return;
-    }
-    else if(preg_match('/^.+Email$/', $class_name)) {
-      foreach( MeprEmailFactory::paths() as $path ) {
-        $filepath = $path."/{$class_name}.php";
-        if( file_exists($filepath) ) {
-          require_once($filepath); return;
-        }
-      }
-      return;
-    }
-    else if(preg_match('/^.+Job$/', $class_name)) {
-      foreach( MeprJobFactory::paths() as $path ) {
-        $filepath = $path."/{$class_name}.php";
-        if( file_exists($filepath) ) {
-          require_once($filepath); return;
-        }
-      }
-      return;
-    }
-    else {
-      $filepath = MEPR_MODELS_PATH."/{$class_name}.php";
+    // Only load MemberPress classes here
+    if (preg_match('/^Mepr.+$/', $class_name)) {
+        if (preg_match('/^.+Interface$/', $class_name)) { // Load interfaces first
+            $filepath = MEPR_INTERFACES_PATH . "/{$class_name}.php";
+        } elseif (preg_match('/^Mepr(Base|Cpt).+$/', $class_name)) { // Base classes are in lib
+            $filepath = MEPR_LIB_PATH . "/{$class_name}.php";
+        } elseif (preg_match('/^.+Ctrl$/', $class_name)) {
+            $filepath = MEPR_CTRLS_PATH . "/{$class_name}.php";
+        } elseif (preg_match('/^.+Helper$/', $class_name)) {
+            $filepath = MEPR_HELPERS_PATH . "/{$class_name}.php";
+        } elseif (preg_match('/^.+Exception$/', $class_name)) {
+            $filepath = MEPR_LIB_PATH . '/MeprExceptions.php';
+        } elseif (preg_match('/^.+Jobs$/', $class_name)) {
+            $filepath = MEPR_LIB_PATH . '/MeprJobs.php';
+        } elseif (preg_match('/^MeprMigrator.+$/', $class_name)) {
+            $filepath = MEPR_LIB_PATH . "/migrators/{$class_name}.php";
+        } elseif (preg_match('/^.+Gateway$/', $class_name)) {
+            foreach (MeprGatewayFactory::paths() as $path) {
+                $filepath = $path . "/{$class_name}.php";
+                if (file_exists($filepath)) {
+                    require_once($filepath);
+                    return;
+                }
+            }
+            return;
+        } elseif (preg_match('/^.+Email$/', $class_name)) {
+            foreach (MeprEmailFactory::paths() as $path) {
+                $filepath = $path . "/{$class_name}.php";
+                if (file_exists($filepath)) {
+                    require_once($filepath);
+                    return;
+                }
+            }
+            return;
+        } elseif (preg_match('/^.+Job$/', $class_name)) {
+            foreach (MeprJobFactory::paths() as $path) {
+                $filepath = $path . "/{$class_name}.php";
+                if (file_exists($filepath)) {
+                    require_once($filepath);
+                    return;
+                }
+            }
+            return;
+        } else {
+            $filepath = MEPR_MODELS_PATH . "/{$class_name}.php";
 
-      // Now let's try the lib dir if its not a model
-      if(!file_exists($filepath))
-        $filepath = MEPR_LIB_PATH."/{$class_name}.php";
-    }
+            // Now let's try the lib dir if its not a model
+            if (!file_exists($filepath)) {
+                $filepath = MEPR_LIB_PATH . "/{$class_name}.php";
+            }
+        }
 
-    if(file_exists($filepath))
-      require_once($filepath);
-  }
+        if (file_exists($filepath)) {
+            require_once($filepath);
+        }
+    }
 }
 
 // if __autoload is active, put it on the spl_autoload stack
-if(is_array(spl_autoload_functions()) and in_array('__autoload', spl_autoload_functions()))
-  spl_autoload_register('__autoload');
+if (is_array(spl_autoload_functions()) and in_array('__autoload', spl_autoload_functions())) {
+    spl_autoload_register('__autoload');
+}
 
 // Add the autoloader
 spl_autoload_register('mepr_autoloader');
 
 // Load integration files
-foreach ( (array) glob( MEPR_INTEGRATIONS_PATH . '/*/Integration.php' ) as $file ) {
-  include_once $file;
+foreach ((array) glob(MEPR_INTEGRATIONS_PATH . '/*/Integration.php') as $file) {
+    include_once $file;
 }
 
 // Load our controllers
@@ -181,15 +187,19 @@ MeprAppCtrl::setup_menus();
 new MeprJobs();
 
 // Template Tags
-function mepr_account_link() {
-  try {
-    $account_ctrl = MeprCtrlFactory::fetch('account');
-    echo $account_ctrl->get_account_links();
-  }
-  catch(Exception $e) {
-    // Silently fail ... not much we can do if the account controller isn't present
-  }
+function mepr_account_link()
+{
+    try {
+        $account_ctrl = MeprCtrlFactory::fetch('account');
+        echo $account_ctrl->get_account_links();
+    } catch (Exception $e) {
+        // Silently fail ... not much we can do if the account controller isn't present
+    }
 }
 
-register_activation_hook( MEPR_PLUGIN_SLUG, function() { require_once( MEPR_LIB_PATH . "/activation.php"); });
-register_deactivation_hook( MEPR_PLUGIN_SLUG, function() { require_once( MEPR_LIB_PATH . "/deactivation.php"); });
+register_activation_hook(MEPR_PLUGIN_SLUG, function () {
+    require_once(MEPR_LIB_PATH . '/activation.php');
+});
+register_deactivation_hook(MEPR_PLUGIN_SLUG, function () {
+    require_once(MEPR_LIB_PATH . '/deactivation.php');
+});

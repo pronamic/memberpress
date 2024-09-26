@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <div id="mepr-wizard-finish-skip">
   <button type="button" class="mepr-wizard-button-link mepr-wizard-go-to-step" data-step="8" data-context="skip"><span><?php esc_html_e('Skip', 'memberpress'); ?></span></button>
 </div>

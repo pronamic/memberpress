@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <div class="mp_wrapper">
   <h3><?php _ex('Enter your new password', 'ui', 'memberpress'); ?></h3>
@@ -9,7 +11,7 @@
         <label for="mepr_user_password"><?php _ex('Password', 'ui', 'memberpress'); ?>:</label>
         <div class="mp-hide-pw">
           <input type="password" name="mepr_user_password" id="mepr_user_password" class="mepr-form-input mepr-forgot-password" tabindex="700" />
-          <button type="button" class="button button-secondary mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password', 'memberpress' ); ?>">
+          <button type="button" class="button button-secondary mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password', 'memberpress'); ?>">
             <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
           </button>
         </div>
@@ -20,7 +22,7 @@
         <label for="mepr_user_password_confirm"><?php _ex('Password Confirmation', 'ui', 'memberpress'); ?>:</label>
         <div class="mp-hide-pw">
         <input type="password" name="mepr_user_password_confirm" id="mepr_user_password_confirm" class="mepr-form-input mepr-forgot-password-confirm" tabindex="710"/>
-          <button type="button" class="button button-secondary mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password', 'memberpress' ); ?>">
+          <button type="button" class="button button-secondary mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password', 'memberpress'); ?>">
             <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
           </button>
         </div>

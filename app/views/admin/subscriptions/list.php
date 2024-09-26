@@ -1,6 +1,8 @@
 <?php
-if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
-$member_login = (isset($_GET['member']))?__('for', 'memberpress').' '.urldecode($_GET['member']):'';
+if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+}
+$member_login = (isset($_GET['member'])) ? __('for', 'memberpress') . ' ' . urldecode($_GET['member']) : '';
 ?>
 
 <div class="wrap">

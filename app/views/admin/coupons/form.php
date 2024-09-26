@@ -1,13 +1,15 @@
 <?php
-if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
+if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+}
 
 $products = MeprCptModel::all('MeprProduct');
 $wp_selected_timezone = MeprCouponsHelper::get_wp_selected_timezone_setting();
 $coupon_expire_selected_timezone = empty($c->expires_on_timezone) ? $wp_selected_timezone : $c->expires_on_timezone;
 $coupon_start_selected_timezone = empty($c->start_on_timezone) ? $wp_selected_timezone : $c->start_on_timezone;
 $time_frames = MeprCouponsHelper::get_available_time_frame();
-if(!empty($products)):
-?>
+if (!empty($products)) :
+    ?>
 <div class="mepr-coupons-form">
   <table class="form-table">
     <tbody>
@@ -15,16 +17,18 @@ if(!empty($products)):
         <th scope="row">
           <label><?php _e('Discount:', 'memberpress'); ?></label>
           <?php
-            MeprAppHelper::info_tooltip( 'mepr-coupon-discount',
-              __('Coupon Discount', 'memberpress'),
-              __('<b>Recurring Memberships</b>: This discount will not apply to paid trials but will apply to all recurring transactions associated with the subscription. That means that 100% discount will give the member lifetime access for free.<br/><br/><b>Lifetime Memberships</b>: This discount will apply directly to the lifetime membership\'s one-time payment.', 'memberpress'));
-          ?>
+            MeprAppHelper::info_tooltip(
+                'mepr-coupon-discount',
+                __('Coupon Discount', 'memberpress'),
+                __('<b>Recurring Memberships</b>: This discount will not apply to paid trials but will apply to all recurring transactions associated with the subscription. That means that 100% discount will give the member lifetime access for free.<br/><br/><b>Lifetime Memberships</b>: This discount will apply directly to the lifetime membership\'s one-time payment.', 'memberpress')
+            );
+            ?>
         </th>
         <td>
           <input type="text" size="5" name="<?php echo MeprCoupon::$discount_amount_str; ?>" value="<?php echo $c->discount_amount; ?>" />
           <select name="<?php echo MeprCoupon::$discount_type_str; ?>">
-            <option value="percent" <?php echo ($c->discount_type == 'percent')?'selected="selected"':''; ?>><?php _e('%', 'memberpress'); ?></option>
-            <option value="dollar" <?php echo ($c->discount_type == 'dollar')?'selected="selected"':''; ?>><?php echo $mepr_options->currency_code; ?></option>
+            <option value="percent" <?php echo ($c->discount_type == 'percent') ? 'selected="selected"' : ''; ?>><?php _e('%', 'memberpress'); ?></option>
+            <option value="dollar" <?php echo ($c->discount_type == 'dollar') ? 'selected="selected"' : ''; ?>><?php echo $mepr_options->currency_code; ?></option>
           </select>
         </td>
       </tr>
@@ -33,10 +37,11 @@ if(!empty($products)):
           <label><?php _e('Discount Mode:', 'memberpress'); ?></label>
           <?php
             MeprAppHelper::info_tooltip(
-              'mepr-coupon-discount-mode',
-              __('Discount Mode', 'memberpress'),
-              __("<b>Standard:</b> This simply applies the discount to the amount of the charge or subscription.<br/><br/><b>First Payment:</b> This will allow you to set a different discount on the first transaction than the rebill transactions in a recurring subscription. If this value is set for a non-recurring payment then the First Payment discount will take precedence over the coupon's main discount.<br/><br/><b>Trial Override:</b> This will create a custom trial period based on the number of days & trial cost here. This option only works on recurring payments and will prevent any trials associated with the membership from working. The discount set above will still apply to the subscription’s recurring amount.", 'memberpress') );
-          ?>
+                'mepr-coupon-discount-mode',
+                __('Discount Mode', 'memberpress'),
+                __("<b>Standard:</b> This simply applies the discount to the amount of the charge or subscription.<br/><br/><b>First Payment:</b> This will allow you to set a different discount on the first transaction than the rebill transactions in a recurring subscription. If this value is set for a non-recurring payment then the First Payment discount will take precedence over the coupon's main discount.<br/><br/><b>Trial Override:</b> This will create a custom trial period based on the number of days & trial cost here. This option only works on recurring payments and will prevent any trials associated with the membership from working. The discount set above will still apply to the subscription’s recurring amount.", 'memberpress')
+            );
+            ?>
         </th>
         <td>
           <select name="<?php echo MeprCoupon::$discount_mode_str; ?>" class="mepr-toggle-select" data-first-payment-box="mepr_first_payment_box" data-trial-override-box="mepr_trial_override_box">
@@ -57,9 +62,10 @@ if(!empty($products)):
             <label><?php _e('# of Days:', 'memberpress'); ?></label>
             <?php
               MeprAppHelper::info_tooltip(
-                'mepr-coupon-trial-days',
-                __('Trial Days Price Text', 'memberpress'),
-                __('Values here that are multiples of 365 will show as years, multiples of 30 will show as months, multiples of 7 will show as weeks ... otherwise the trial will show up as days.', 'memberpress') );
+                  'mepr-coupon-trial-days',
+                  __('Trial Days Price Text', 'memberpress'),
+                  __('Values here that are multiples of 365 will show as years, multiples of 30 will show as months, multiples of 7 will show as weeks ... otherwise the trial will show up as days.', 'memberpress')
+              );
             ?>
           </th>
           <td>
@@ -86,16 +92,17 @@ if(!empty($products)):
             <label><?php _e('First Payment Discount:', 'memberpress'); ?></label>
             <?php
               MeprAppHelper::info_tooltip(
-                'mepr-first-payment-discount',
-                __('First Payment Discount', 'memberpress'),
-                __("This is the discount that will be applied to the first payment. All additional payments will happen at the standard discount above.", 'memberpress') );
+                  'mepr-first-payment-discount',
+                  __('First Payment Discount', 'memberpress'),
+                  __('This is the discount that will be applied to the first payment. All additional payments will happen at the standard discount above.', 'memberpress')
+              );
             ?>
           </th>
           <td>
             <input type="text" size="5" name="<?php echo MeprCoupon::$first_payment_discount_amount_str; ?>" value="<?php echo esc_attr($c->first_payment_discount_amount); ?>" />
             <select name="<?php echo MeprCoupon::$first_payment_discount_type_str; ?>">
-              <option value="percent" <?php selected($c->first_payment_discount_type,'percent'); ?>><?php _e('%', 'memberpress'); ?></option>
-              <option value="dollar" <?php selected($c->first_payment_discount_type,'dollar'); ?>><?php echo $mepr_options->currency_code; ?></option>
+              <option value="percent" <?php selected($c->first_payment_discount_type, 'percent'); ?>><?php _e('%', 'memberpress'); ?></option>
+              <option value="dollar" <?php selected($c->first_payment_discount_type, 'dollar'); ?>><?php echo $mepr_options->currency_code; ?></option>
             </select>
           </td>
         </tr>
@@ -108,11 +115,12 @@ if(!empty($products)):
         <th scope="row">
           <label><?php _e('Usage Count:', 'memberpress'); ?></label>
           <?php
-            MeprAppHelper::info_tooltip( 'mepr-coupon-usage-amount',
-              __('Number of Coupon Uses', 'memberpress'),
-              __('This determines the number of times this coupon can be used.<br/><br/>Set to "0" to remove the limit.', 'memberpress')
+            MeprAppHelper::info_tooltip(
+                'mepr-coupon-usage-amount',
+                __('Number of Coupon Uses', 'memberpress'),
+                __('This determines the number of times this coupon can be used.<br/><br/>Set to "0" to remove the limit.', 'memberpress')
             );
-          ?>
+            ?>
         </th>
         <td>
           <?php $usage_amount = (intval($c->usage_amount) <= 0) ? '∞' : $c->usage_amount; ?>
@@ -123,38 +131,40 @@ if(!empty($products)):
         <th scope="row">
           <label><?php esc_html_e('Usage limit per user:', 'memberpress'); ?></label>
           <?php
-            MeprAppHelper::info_tooltip( 'mepr-coupon-per-user-usage-count',
-            esc_html__('Usage limit per user', 'memberpress'),
-            esc_html__('How many times this coupon can be used by an individual user. Set "0" to remove the limit.', 'memberpress')
+            MeprAppHelper::info_tooltip(
+                'mepr-coupon-per-user-usage-count',
+                esc_html__('Usage limit per user', 'memberpress'),
+                esc_html__('How many times this coupon can be used by an individual user. Set "0" to remove the limit.', 'memberpress')
             );
-          ?>
+            ?>
         </th>
         <td>
           <?php $usage_per_user_count = (intval($c->usage_per_user_count) <= 0) ? '∞' : $c->usage_per_user_count; ?>
-          <input type="text" maxlength="4" size="4" name="<?php echo esc_attr( MeprCoupon::$usage_per_user_count_str ); ?>" value="<?php echo esc_html( $usage_per_user_count ); ?>" />
+          <input type="text" maxlength="4" size="4" name="<?php echo esc_attr(MeprCoupon::$usage_per_user_count_str); ?>" value="<?php echo esc_html($usage_per_user_count); ?>" />
         </td>
       </tr>
-      <?php if ( ! empty($time_frames) && is_array($time_frames) ) : ?>
+      <?php if (! empty($time_frames) && is_array($time_frames)) : ?>
         <tr valign="top">
           <th scope="row">
             <label><?php esc_html_e('Usage limit per user in Timeframe:', 'memberpress'); ?></label>
             <?php
-              MeprAppHelper::info_tooltip( 'mepr-coupon-per-user-usage-timeframe',
-                esc_html__('Usage limit per user in Timeframe', 'memberpress'),
-                esc_html__('This determines the number of times this coupon can be used by each user in selected timeframe.', 'memberpress')
+              MeprAppHelper::info_tooltip(
+                  'mepr-coupon-per-user-usage-timeframe',
+                  esc_html__('Usage limit per user in Timeframe', 'memberpress'),
+                  esc_html__('This determines the number of times this coupon can be used by each user in selected timeframe.', 'memberpress')
               );
             ?>
           </th>
           <td>
 
-              <select name="<?php echo esc_attr( MeprCoupon::$usage_per_user_count_timeframe_str ); ?>" class="mepr-toggle-select" >
-                <?php foreach ( $time_frames as $value => $time_frame ) : ?>
-                  <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $c->usage_per_user_count_timeframe, $value ); ?>><?php echo esc_html( $time_frame ); ?></option>
+              <select name="<?php echo esc_attr(MeprCoupon::$usage_per_user_count_timeframe_str); ?>" class="mepr-toggle-select" >
+                <?php foreach ($time_frames as $value => $time_frame) : ?>
+                  <option value="<?php echo esc_attr($value); ?>" <?php selected($c->usage_per_user_count_timeframe, $value); ?>><?php echo esc_html($time_frame); ?></option>
                 <?php endforeach; ?>
               </select>
           </td>
         </tr>
-        <?php endif; ?>
+      <?php endif; ?>
     </tbody>
   </table>
   <table class="form-table">
@@ -192,11 +202,11 @@ if(!empty($products)):
                     <input type="text" size="4" maxlength="4" name="<?php echo MeprCoupon::$starts_on_year_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->starts_on, 'Y'); ?>" />
                     <br>
                     <div class="description mepr_coupons_timezone"><small><?php esc_html_e('Timezone', 'memberpress'); ?></small></div>
-                    <select name="<?php echo esc_attr( MeprCoupon::$start_on_timezone_str ); ?>" class="mepr_coupons_timezone">
+                    <select name="<?php echo esc_attr(MeprCoupon::$start_on_timezone_str); ?>" class="mepr_coupons_timezone">
                       <?php echo wp_timezone_choice($coupon_start_selected_timezone); ?>
                     </select>
                     <br>
-                    <?php echo wp_kses( sprintf( __('Coupon Starts at <strong>00:00:01 AM on selected date</strong>.', 'memberpress') ), array( 'strong' => array() ) );  ?>
+                    <?php echo wp_kses(sprintf(__('Coupon Starts at <strong>00:00:01 AM on selected date</strong>.', 'memberpress')), ['strong' => []]);  ?>
                   </td>
                 </tr>
               </tbody>
@@ -233,7 +243,7 @@ if(!empty($products)):
                       <?php echo wp_timezone_choice($coupon_expire_selected_timezone); ?>
                     </select>
                     <br>
-                    <?php echo wp_kses( sprintf( __('Coupon Expires at <strong>11:59:59 PM on selected date</strong>.', 'memberpress') ), array( 'strong' => array() ) );  ?>
+                    <?php echo wp_kses(sprintf(__('Coupon Expires at <strong>11:59:59 PM on selected date</strong>.', 'memberpress')), ['strong' => []]);  ?>
                   </td>
                 </tr>
               </tbody>
@@ -256,19 +266,19 @@ if(!empty($products)):
     </tbody>
   </table>
   <!-- The NONCE below prevents post meta from being blanked on move to trash -->
-  <input type="hidden" name="<?php echo MeprCoupon::$nonce_str; ?>" value="<?php echo wp_create_nonce(MeprCoupon::$nonce_str.wp_salt()); ?>" />
+  <input type="hidden" name="<?php echo MeprCoupon::$nonce_str; ?>" value="<?php echo wp_create_nonce(MeprCoupon::$nonce_str . wp_salt()); ?>" />
   <!-- jQuery i18n data -->
   <div id="save-coupon-helper" style="display:none;" data-value="<?php _e('Save Coupon', 'memberpress'); ?>"></div>
   <div id="coupon-message-helper" style="display:none;" data-value="<?php _e('Coupon Saved', 'memberpress'); ?>"></div>
 </div>
-<?php
-else:
-?>
+    <?php
+else :
+    ?>
   <div id="mepr-coupons-form">
     <strong><?php _e('You cannot create coupons until you have added at least 1 Membership.', 'memberpress'); ?></strong>
     <!-- jQuery i18n data -->
     <div id="save-coupon-helper" style="display:none;" data-value="<?php _e('Save Coupon', 'memberpress'); ?>"></div>
     <div id="coupon-message-helper" style="display:none;" data-value="<?php _e('Coupon Saved', 'memberpress'); ?>"></div>
   </div>
-<?php
+    <?php
 endif;

@@ -1,15 +1,17 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <div class="mp_wrapper">
-  <?php if(!empty($welcome_message)): ?>
+  <?php if (!empty($welcome_message)) : ?>
     <div id="mepr-account-welcome-message">
-      <?php echo MeprHooks::apply_filters('mepr-account-welcome-message', do_shortcode($welcome_message), $mepr_current_user); ?>
+        <?php echo MeprHooks::apply_filters('mepr-account-welcome-message', do_shortcode($welcome_message), $mepr_current_user); ?>
     </div>
   <?php endif; ?>
 
-  <?php if( !empty($mepr_current_user->user_message) ): ?>
+  <?php if (!empty($mepr_current_user->user_message)) : ?>
     <div id="mepr-account-user-message">
-      <?php echo MeprHooks::apply_filters('mepr-user-message', wpautop(do_shortcode($mepr_current_user->user_message)), $mepr_current_user); ?>
+        <?php echo MeprHooks::apply_filters('mepr-user-message', wpautop(do_shortcode($mepr_current_user->user_message)), $mepr_current_user); ?>
     </div>
   <?php endif; ?>
 
@@ -17,26 +19,28 @@
 
   <form class="mepr-account-form mepr-form" id="mepr_account_form" action="" method="post" enctype="multipart/form-data" novalidate>
     <input type="hidden" name="mepr-process-account" value="Y" />
-    <?php wp_nonce_field( 'update_account', 'mepr_account_nonce' ); ?>
+    <?php wp_nonce_field('update_account', 'mepr_account_nonce'); ?>
 
     <?php MeprHooks::do_action('mepr-account-home-before-name', $mepr_current_user); ?>
 
-    <?php if($mepr_options->show_fname_lname): ?>
+    <?php if ($mepr_options->show_fname_lname) : ?>
       <div class="mp-form-row mepr_first_name<?php echo ($mepr_options->require_fname_lname) ? ' mepr-field-required' : ''; ?>">
         <div class="mp-form-label">
-          <label for="user_first_name"><?php _ex('First Name:', 'ui', 'memberpress'); echo ($mepr_options->require_fname_lname)?'*':''; ?></label>
+          <label for="user_first_name"><?php _ex('First Name:', 'ui', 'memberpress');
+            echo ($mepr_options->require_fname_lname) ? '*' : ''; ?></label>
           <span class="cc-error"><?php _ex('First Name Required', 'ui', 'memberpress'); ?></span>
         </div>
-        <input type="text" name="user_first_name" id="user_first_name" class="mepr-form-input" value="<?php echo esc_attr($mepr_current_user->first_name); ?>" <?php echo ($mepr_options->require_fname_lname)?'required':''; ?> />
+        <input type="text" name="user_first_name" id="user_first_name" class="mepr-form-input" value="<?php echo esc_attr($mepr_current_user->first_name); ?>" <?php echo ($mepr_options->require_fname_lname) ? 'required' : ''; ?> />
       </div>
       <div class="mp-form-row mepr_last_name<?php echo ($mepr_options->require_fname_lname) ? ' mepr-field-required' : ''; ?>">
         <div class="mp-form-label">
-          <label for="user_last_name"><?php _ex('Last Name:', 'ui', 'memberpress'); echo ($mepr_options->require_fname_lname)?'*':''; ?></label>
+          <label for="user_last_name"><?php _ex('Last Name:', 'ui', 'memberpress');
+            echo ($mepr_options->require_fname_lname) ? '*' : ''; ?></label>
           <span class="cc-error"><?php _ex('Last Name Required', 'ui', 'memberpress'); ?></span>
         </div>
-        <input type="text" id="user_last_name" name="user_last_name" class="mepr-form-input" value="<?php echo esc_attr($mepr_current_user->last_name); ?>" <?php echo ($mepr_options->require_fname_lname)?'required':''; ?> />
+        <input type="text" id="user_last_name" name="user_last_name" class="mepr-form-input" value="<?php echo esc_attr($mepr_current_user->last_name); ?>" <?php echo ($mepr_options->require_fname_lname) ? 'required' : ''; ?> />
       </div>
-    <?php else: ?>
+    <?php else : ?>
       <input type="hidden" name="user_first_name" value="<?php echo esc_attr($mepr_current_user->first_name); ?>" />
       <input type="hidden" name="user_last_name" value="<?php echo esc_attr($mepr_current_user->last_name); ?>" />
     <?php endif; ?>
@@ -62,7 +66,7 @@
   <div class="mepr_spacer">&nbsp;</div>
 
   <span class="mepr-account-change-password">
-    <a href="<?php echo esc_url($account_url.$delim.'action=newpassword'); ?>"><?php _ex('Change Password', 'ui', 'memberpress'); ?></a>
+    <a href="<?php echo esc_url($account_url . $delim . 'action=newpassword'); ?>"><?php _ex('Change Password', 'ui', 'memberpress'); ?></a>
   </span>
 
   <?php MeprHooks::do_action('mepr_account_home', $mepr_current_user); ?>

@@ -1,9 +1,11 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <?php
-MeprView::render('/admin/onboarding/video', array(
-  'youtube_video_id' => 'H7gjIpm9byw',
-  'step' => '5',
-));
+MeprView::render('/admin/onboarding/video', [
+    'youtube_video_id' => 'H7gjIpm9byw',
+    'step' => '5',
+]);
 ?>
 <div id="mepr-wizard-rule-nav-skip">
   <button type="button" class="mepr-wizard-button-link mepr-wizard-go-to-step" data-step="6" data-context="skip"><span><?php esc_html_e('Skip', 'memberpress'); ?></span></button>

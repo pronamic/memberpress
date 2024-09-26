@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <div id="mepr-price-box-configuration" data-value="<?php echo $product->ID; ?>">
   <div id="preview-pane">
@@ -11,10 +13,12 @@
       <input type="checkbox" name="<?php echo MeprProduct::$is_highlighted_str; ?>" id="<?php echo MeprProduct::$is_highlighted_str; ?>" <?php   checked($product->is_highlighted); ?> />
       <label for="<?php echo MeprProduct::$is_highlighted_str; ?>"><?php _e('Highlighted', 'memberpress'); ?></label>
       <?php
-        MeprAppHelper::info_tooltip('mepr-pricing-page-highlight',
-                                    __('Highlight', 'memberpress'),
-                                    __('<strong>Highlighted:</strong> Make this a Highlighted option on the Group Pricing Page. This makes it stand-out from the other listed memberships.', 'memberpress'));
-      ?>
+        MeprAppHelper::info_tooltip(
+            'mepr-pricing-page-highlight',
+            __('Highlight', 'memberpress'),
+            __('<strong>Highlighted:</strong> Make this a Highlighted option on the Group Pricing Page. This makes it stand-out from the other listed memberships.', 'memberpress')
+        );
+        ?>
     </div>
     <br/>
     <div>
@@ -26,15 +30,15 @@
       <label for="mepr-pricing-display"><?php _e('Pricing Display', 'memberpress'); ?></label>
       <?php
         MeprAppHelper::info_tooltip(
-          'mepr-pricing-display',
-          __('Pricing Display', 'memberpress'),
-          __('This determines how the price will be displayed on the pricing table. If \'Auto\' is selected then MemberPress will automatically generate the price for you, if \'Custom\' is selected then you\'ll be able to enter your own custom pricing terms and if you select \'None\' then no price will be visible.', 'memberpress')
+            'mepr-pricing-display',
+            __('Pricing Display', 'memberpress'),
+            __('This determines how the price will be displayed on the pricing table. If \'Auto\' is selected then MemberPress will automatically generate the price for you, if \'Custom\' is selected then you\'ll be able to enter your own custom pricing terms and if you select \'None\' then no price will be visible.', 'memberpress')
         );
-      ?>
+        ?>
       <select id="mepr-pricing-display" name="<?php echo MeprProduct::$pricing_display_str; ?>">
-        <option value="auto" <?php selected($product->pricing_display,'auto'); ?>><?php _e('Auto', 'memberpress'); ?></option>
-        <option value="custom" <?php selected($product->pricing_display,'custom'); ?>><?php _e('Custom', 'memberpress'); ?></option>
-        <option value="none" <?php selected($product->pricing_display,'none'); ?>><?php _e('None', 'memberpress'); ?></option>
+        <option value="auto" <?php selected($product->pricing_display, 'auto'); ?>><?php _e('Auto', 'memberpress'); ?></option>
+        <option value="custom" <?php selected($product->pricing_display, 'custom'); ?>><?php _e('Custom', 'memberpress'); ?></option>
+        <option value="none" <?php selected($product->pricing_display, 'none'); ?>><?php _e('None', 'memberpress'); ?></option>
       </select>
     </div>
     <div id="mepr-custom-pricing-display">
@@ -66,22 +70,21 @@
     <br/>
     <div>
       <label><?php _e('Button Text:', 'memberpress'); ?></label><br/>
-      <input type="text" name="<?php echo MeprProduct::$pricing_button_txt_str; ?>" id="<?php echo MeprProduct::$pricing_button_txt_str; ?>" value="<?php echo (!empty($product->pricing_button_txt))?htmlspecialchars($product->pricing_button_txt, ENT_QUOTES):__('Sign Up', 'memberpress'); ?>" />
+      <input type="text" name="<?php echo MeprProduct::$pricing_button_txt_str; ?>" id="<?php echo MeprProduct::$pricing_button_txt_str; ?>" value="<?php echo (!empty($product->pricing_button_txt)) ? htmlspecialchars($product->pricing_button_txt, ENT_QUOTES) : __('Sign Up', 'memberpress'); ?>" />
     </div>
     <br/>
     <div>
       <label for="mepr-pricing-button-position"><?php _e('Button Position', 'memberpress'); ?></label>
-      <?php if(isset( $mepr_options->design_enable_pricing_template ) && $mepr_options->design_enable_pricing_template ) { ?>
-
+      <?php if (isset($mepr_options->design_enable_pricing_template) && $mepr_options->design_enable_pricing_template) { ?>
         <select disabled id="mepr-pricing-button-position" name="<?php echo MeprProduct::$pricing_button_position_str; ?>">
-          <option value="header" <?php selected($product->pricing_button_position,'header'); ?>><?php _e('Header', 'memberpress'); ?></option>
+          <option value="header" <?php selected($product->pricing_button_position, 'header'); ?>><?php _e('Header', 'memberpress'); ?></option>
         </select>
 
       <?php } else { ?>
         <select id="mepr-pricing-button-position" name="<?php echo MeprProduct::$pricing_button_position_str; ?>">
-          <option value="footer" <?php selected($product->pricing_button_position,'footer'); ?>><?php _e('Footer', 'memberpress'); ?></option>
-          <option value="header" <?php selected($product->pricing_button_position,'header'); ?>><?php _e('Header', 'memberpress'); ?></option>
-          <option value="both" <?php selected($product->pricing_button_position,'both'); ?>><?php _e('Both', 'memberpress'); ?></option>
+          <option value="footer" <?php selected($product->pricing_button_position, 'footer'); ?>><?php _e('Footer', 'memberpress'); ?></option>
+          <option value="header" <?php selected($product->pricing_button_position, 'header'); ?>><?php _e('Header', 'memberpress'); ?></option>
+          <option value="both" <?php selected($product->pricing_button_position, 'both'); ?>><?php _e('Both', 'memberpress'); ?></option>
         </select>
       <?php } ?>
     </div>

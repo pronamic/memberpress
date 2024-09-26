@@ -1,7 +1,9 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <input type="hidden" name="action" value="<?php echo esc_attr($_REQUEST['action']); ?>" />
-<?php wp_nonce_field( 'mepr_create_or_update_subscription', 'mepr_subscriptions_nonce' ); ?>
+<?php wp_nonce_field('mepr_create_or_update_subscription', 'mepr_subscriptions_nonce'); ?>
 
 <tr valign="top">
   <th scope="row"><label for="subscr_id"><?php _e('Subscription Number*:', 'memberpress'); ?></label></th>
@@ -22,10 +24,13 @@
 <tr valign="top">
   <th scope="row"><label for="product_id"><?php _e('Membership*:', 'memberpress'); ?></label></th>
   <td>
-    <?php $products = MeprCptModel::all('MeprProduct', false, array('orderby' => 'title', 'order' => 'ASC')); ?>
+    <?php $products = MeprCptModel::all('MeprProduct', false, [
+    'orderby' => 'title',
+    'order' => 'ASC',
+]); ?>
     <select name="product_id" id="product_id" class="mepr-membership-dropdown" data-expires_at_field_id="expires_at">
-      <?php foreach($products as $product): ?>
-        <option value="<?php echo $product->ID; ?>" <?php selected( $sub->product_id, $product->ID ); ?>><?php echo $product->post_title; ?></option>
+      <?php foreach ($products as $product) : ?>
+        <option value="<?php echo $product->ID; ?>" <?php selected($sub->product_id, $product->ID); ?>><?php echo $product->post_title; ?></option>
       <?php endforeach; ?>
     </select>
     <p class="description"><?php _e('The membership that was purchased', 'memberpress'); ?></p>
@@ -55,7 +60,7 @@
   <td>
     <input type="text" name="tax_rate" id="tax_rate" value="<?php echo MeprUtils::format_currency_float($sub->tax_rate, 3); ?>" class="regular-text" style="width:95px !important;"/>
     <span><?php echo '%'; ?></span>
-    <p class="description"><?php printf(__('The tax rate in percentage. (Ex: %s for 10%%)', 'memberpress'), MeprUtils::format_currency_float(10.000) ) ; ?></p>
+    <p class="description"><?php printf(__('The tax rate in percentage. (Ex: %s for 10%%)', 'memberpress'), MeprUtils::format_currency_float(10.000)) ; ?></p>
   </td>
 </tr>
 
@@ -63,10 +68,10 @@
   <th scope="row"><label for="status"><?php _e('Status*:', 'memberpress'); ?></label></th>
   <td>
     <select name="status" id="status">
-      <option value="<?php echo MeprSubscription::$active_str; ?>" <?php echo selected( $sub->status, MeprSubscription::$active_str ); ?>><?php _e('Enabled', 'memberpress'); ?></option>
-      <option value="<?php echo MeprSubscription::$pending_str; ?>" <?php echo selected( $sub->status, MeprSubscription::$pending_str ); ?>><?php _e('Pending', 'memberpress'); ?></option>
-      <option value="<?php echo MeprSubscription::$suspended_str; ?>" <?php echo selected( $sub->status, MeprSubscription::$suspended_str ); ?>><?php _e('Paused', 'memberpress'); ?></option>
-      <option value="<?php echo MeprSubscription::$cancelled_str; ?>" <?php echo selected( $sub->status, MeprSubscription::$cancelled_str ); ?>><?php _e('Stopped', 'memberpress'); ?></option>
+      <option value="<?php echo MeprSubscription::$active_str; ?>" <?php echo selected($sub->status, MeprSubscription::$active_str); ?>><?php _e('Enabled', 'memberpress'); ?></option>
+      <option value="<?php echo MeprSubscription::$pending_str; ?>" <?php echo selected($sub->status, MeprSubscription::$pending_str); ?>><?php _e('Pending', 'memberpress'); ?></option>
+      <option value="<?php echo MeprSubscription::$suspended_str; ?>" <?php echo selected($sub->status, MeprSubscription::$suspended_str); ?>><?php _e('Paused', 'memberpress'); ?></option>
+      <option value="<?php echo MeprSubscription::$cancelled_str; ?>" <?php echo selected($sub->status, MeprSubscription::$cancelled_str); ?>><?php _e('Stopped', 'memberpress'); ?></option>
     </select>
     <p class="description"><?php _e('The current status of the subscription', 'memberpress'); ?></p>
   </td>
@@ -83,7 +88,7 @@
 <tr valign="top">
   <th scope="row"><label><?php _e('Created (UTC/GMT):', 'memberpress'); ?></label></th>
   <td>
-    <?php MeprTransactionsHelper::transaction_created_at_field( 'created_at', $sub->created_at ); ?>
+    <?php MeprTransactionsHelper::transaction_created_at_field('created_at', $sub->created_at); ?>
     <p class="description"><?php _e('The date that this subscription was created on. This field is displayed in UTC/GMT.', 'memberpress'); ?></p>
   </td>
 </tr>

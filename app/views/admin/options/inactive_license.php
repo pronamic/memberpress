@@ -1,14 +1,16 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <p class="description">
   <?php
     printf(
       // translators: %1$s: link to memberpress.com, %2$s: link to memberpress.com/login
-      esc_html__('You must have a License Key to enable automatic updates for MemberPress, access the admin areas of MemberPress, and receive support. If you don\'t have a License please go to %1$s to get one. If you do have a license you can login at %2$s to manage your licenses and site activations.', 'memberpress'),
-      '<a href="https://memberpress.com">MemberPress.com</a>',
-      '<a href="https://memberpress.com/login">MemberPress.com/login</a>'
+        esc_html__('You must have a License Key to enable automatic updates for MemberPress, access the admin areas of MemberPress, and receive support. If you don\'t have a License please go to %1$s to get one. If you do have a license you can login at %2$s to manage your licenses and site activations.', 'memberpress'),
+        '<a href="https://memberpress.com">MemberPress.com</a>',
+        '<a href="https://memberpress.com/login">MemberPress.com/login</a>'
     );
-  ?>
+    ?>
 </p>
 
 <table class="form-table">

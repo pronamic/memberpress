@@ -36,10 +36,10 @@ $courses_plugin_active = is_plugin_active('memberpress-courses/main.php');
       <?php
         printf(
           /* translators: %1$s: open underline tag, %2$s: close underline tag */
-          esc_html__('More advanced options are available in %1$sMemberPress > Courses%2$s', 'memberpress'),
-          '<u>',
-          '</u>'
+            esc_html__('More advanced options are available in %1$sMemberPress > Courses%2$s', 'memberpress'),
+            '<u>',
+            '</u>'
         );
-      ?>
+        ?>
     </a>
   </div>

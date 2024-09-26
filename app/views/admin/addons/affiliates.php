@@ -1,5 +1,7 @@
 <?php
-if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');}
+if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+}
 $check_mark_svg = file_get_contents(MEPR_IMAGES_PATH . '/Check_Mark.svg');
 ?>
 
@@ -61,11 +63,11 @@ $check_mark_svg = file_get_contents(MEPR_IMAGES_PATH . '/Check_Mark.svg');
           <?php esc_html_e('Install Easy Affiliate from EasyAffiliate.com', 'memberpress'); ?>
         </div>
         <div class="mepr-sister-plugin-step-button">
-          <?php if($plugin['active']) : ?>
+          <?php if ($plugin['active']) : ?>
             <button type="button" class="button button-secondary button-hero" disabled><?php esc_html_e('Installed & Active', 'memberpress'); ?></button>
-          <?php elseif($plugin['installed']) : ?>
+          <?php elseif ($plugin['installed']) : ?>
             <button type="button" class="button button-primary button-hero"><?php esc_html_e('Activate Easy Affiliate', 'memberpress'); ?></button>
-          <?php elseif(!empty($plugin['url'])) : ?>
+          <?php elseif (!empty($plugin['url'])) : ?>
             <button type="button" class="button button-primary button-hero mepr-sister-plugin-auto-installer"><?php esc_html_e('Install & Activate', 'memberpress'); ?></button>
           <?php else : ?>
             <a href="<?php echo esc_url($installer_url); ?>" class="button button-primary button-hero"><?php esc_html_e('Install & Activate', 'memberpress'); ?></a>
@@ -84,7 +86,7 @@ $check_mark_svg = file_get_contents(MEPR_IMAGES_PATH . '/Check_Mark.svg');
           <?php esc_html_e('Easy Affiliate has an intuitive setup wizard to guide you through the setup process.', 'memberpress'); ?>
         </div>
         <div class="mepr-sister-plugin-step-button">
-          <?php if($plugin['active']) : ?>
+          <?php if ($plugin['active']) : ?>
             <a href="<?php echo esc_url(admin_url('admin.php?page=easy-affiliate-onboarding')); ?>" class="button button-primary button-hero"><?php esc_html_e('Run Setup Wizard', 'memberpress'); ?></a>
           <?php else : ?>
             <button type="button" class="button button-secondary button-hero" disabled><?php esc_html_e('Run Setup Wizard', 'memberpress'); ?></button>

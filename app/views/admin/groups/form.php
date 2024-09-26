@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <div id="mepr-groups-form">
   <table class="form-table">
@@ -8,11 +10,11 @@
           <label for="<?php echo MeprGroup::$is_upgrade_path_str; ?>"><?php _e('Upgrade Path', 'memberpress'); ?></label>
           <?php
             MeprAppHelper::info_tooltip(
-              'mepr-group-page-upgrade-path',
-              __('This group is a membership upgrade path', 'memberpress'),
-              __('Enabling this will mean that users can only be subscribed to one of these memberships at a time. If un-checked, users may be subscribed to each of these memberships simultaneously.', 'memberpress')
+                'mepr-group-page-upgrade-path',
+                __('This group is a membership upgrade path', 'memberpress'),
+                __('Enabling this will mean that users can only be subscribed to one of these memberships at a time. If un-checked, users may be subscribed to each of these memberships simultaneously.', 'memberpress')
             );
-          ?>
+            ?>
         </th>
         <td>
           <input type="checkbox" id="<?php echo MeprGroup::$is_upgrade_path_str; ?>" name="<?php echo MeprGroup::$is_upgrade_path_str; ?>" class="mepr-toggle-checkbox" data-box="mepr_is_upgrade_path_box" <?php checked($group->is_upgrade_path); ?> />
@@ -30,11 +32,11 @@
             <label for="<?php echo MeprGroup::$upgrade_path_reset_period_str; ?>"><?php _e('Reset billing period', 'memberpress'); ?></label>
             <?php
               MeprAppHelper::info_tooltip(
-                'mepr-group-upgrade-path-reset-period',
-                __('Reset billing period when upgrading', 'memberpress'),
-                __('If this is checked, the billing period will be reset when a recurring membership is upgraded.', 'memberpress')
+                  'mepr-group-upgrade-path-reset-period',
+                  __('Reset billing period when upgrading', 'memberpress'),
+                  __('If this is checked, the billing period will be reset when a recurring membership is upgraded.', 'memberpress')
               );
-            ?>
+                ?>
           </th>
           <td>
             <input type="checkbox" id="<?php echo MeprGroup::$upgrade_path_reset_period_str; ?>" name="<?php echo MeprGroup::$upgrade_path_reset_period_str; ?>" <?php checked($group->upgrade_path_reset_period); ?> />
@@ -47,18 +49,20 @@
   <h4><strong><?php _e('Downgrade Path', 'memberpress'); ?></strong>
   <?php
     MeprAppHelper::info_tooltip(
-      'mepr-group-page-downgrade-path',
-      __('Fallback group when membership expires or is cancelled', 'memberpress'),
-      __('Select which membership in the group to fall back to when the paid subscription expires or is cancelled. If you are unsure, leave the default.', 'memberpress')
+        'mepr-group-page-downgrade-path',
+        __('Fallback group when membership expires or is cancelled', 'memberpress'),
+        __('Select which membership in the group to fall back to when the paid subscription expires or is cancelled. If you are unsure, leave the default.', 'memberpress')
     );
-  ?>
+    ?>
   <?php MeprGroupsHelper::get_product_fallback_dropdown($group); ?>
   <h4><strong><?php _e('Memberships:', 'memberpress'); ?></strong>
   <?php
-    MeprAppHelper::info_tooltip('mepr-group-products-list',
-                              __('Memberships', 'memberpress'),
-                              sprintf(__('Here you can add/remove memberships from this group pricing page.%1$s%1$sThe order of the memberships is important here. Order the memberships so that the lowest tier membership is at the top of the list and the highest tier membership is at the bottom, with the other memberships in order in between.', 'memberpress'), '<br />'));
-  ?>
+    MeprAppHelper::info_tooltip(
+        'mepr-group-products-list',
+        __('Memberships', 'memberpress'),
+        sprintf(__('Here you can add/remove memberships from this group pricing page.%1$s%1$sThe order of the memberships is important here. Order the memberships so that the lowest tier membership is at the top of the list and the highest tier membership is at the bottom, with the other memberships in order in between.', 'memberpress'), '<br />')
+    );
+    ?>
   </h4>
 
   <div class=" notice-warning is-dismissible" id="readylaunch-group-limit" style="padding: 10px;"><?php esc_html_e('ReadyLaunch is enabled for Groups in your MemberPress > Settings > ReadyLaunch tab. ReadyLaunch can currently only show 5 Membership plans per Group.', 'memberpress'); ?></div>
@@ -81,20 +85,24 @@
   <input type="checkbox" id="<?php echo MeprGroup::$disable_change_plan_popup_str; ?>" name="<?php echo MeprGroup::$disable_change_plan_popup_str; ?>" <?php checked($group->disable_change_plan_popup); ?> />
   <label for="<?php echo MeprGroup::$disable_change_plan_popup_str; ?>"><?php _e('Disable Change Plan Pop-Up', 'memberpress'); ?></label>
   <?php
-    MeprAppHelper::info_tooltip('mepr-disable-change-plan-pop-up',
-                                __('Disable Change Plan Pop-Up', 'memberpress'),
-                                __('This will take the user to the Group pricing page when they click on Change Plan instead of showing them the quick selection pop-up.', 'memberpress'));
-  ?>
+    MeprAppHelper::info_tooltip(
+        'mepr-disable-change-plan-pop-up',
+        __('Disable Change Plan Pop-Up', 'memberpress'),
+        __('This will take the user to the Group pricing page when they click on Change Plan instead of showing them the quick selection pop-up.', 'memberpress')
+    );
+    ?>
   <br/><br/>
   <input type="checkbox" id="<?php echo MeprGroup::$pricing_page_disabled_str; ?>" name="<?php echo MeprGroup::$pricing_page_disabled_str; ?>" <?php checked($group->pricing_page_disabled); ?> />
   <label for="<?php echo MeprGroup::$pricing_page_disabled_str; ?>"><?php _e('Disable Pricing Page', 'memberpress'); ?></label>
   <?php
-    MeprAppHelper::info_tooltip('mepr-group-disable-pricing-page',
-                                __('Disable Pricing Page', 'memberpress'),
-                                __('This will disable the pricing page from being accessed on the front end of your site. It will return a 404 (not found) page if a user attempts to access it.<br/><br/>You can optionally provide an alternate URL to take the member to if they try to visit this page.', 'memberpress'));
-  ?>
+    MeprAppHelper::info_tooltip(
+        'mepr-group-disable-pricing-page',
+        __('Disable Pricing Page', 'memberpress'),
+        __('This will disable the pricing page from being accessed on the front end of your site. It will return a 404 (not found) page if a user attempts to access it.<br/><br/>You can optionally provide an alternate URL to take the member to if they try to visit this page.', 'memberpress')
+    );
+    ?>
   <br/>
-  <div class="<?php echo isset( $mepr_options->design_enable_pricing_template ) && $mepr_options->design_enable_pricing_template ? 'mepr_hidden' : '' ?>">
+  <div class="<?php echo isset($mepr_options->design_enable_pricing_template) && $mepr_options->design_enable_pricing_template ? 'mepr_hidden' : '' ?>">
     <div id="mepr_hidden_pricing_page_theme">
       <label for="<?php echo MeprGroup::$group_theme_str; ?>">
         <?php _e('Pricing Page Theme:', 'memberpress') . ' ' . $group->group_theme; ?>
@@ -123,10 +131,12 @@
   <div id="mepr-manually-place-group-boxes">
     <a href="#" data-target="#mepr-group-price-box-shortcodes" class="mepr-slide-toggle"><?php _e('Group Price Boxes Shortcodes', 'memberpress'); ?></a>
     <?php
-      MeprAppHelper::info_tooltip('mepr-group-manual-place-pricing-boxes',
-                                  __('Manually place group price boxes', 'memberpress'),
-                                  __('By default MemberPress will append the pricing boxes to the end of the Group page.<br/><br/>If you\'d like to show them in a different place on the group page or some other page on this site just copy and paste a shortcode where you\'d like the price boxes for this group to appear.', 'memberpress'));
-    ?>
+      MeprAppHelper::info_tooltip(
+          'mepr-group-manual-place-pricing-boxes',
+          __('Manually place group price boxes', 'memberpress'),
+          __('By default MemberPress will append the pricing boxes to the end of the Group page.<br/><br/>If you\'d like to show them in a different place on the group page or some other page on this site just copy and paste a shortcode where you\'d like the price boxes for this group to appear.', 'memberpress')
+      );
+        ?>
     <div id="mepr-group-price-box-shortcodes" class="mepr-radius-border">
       <p class="description"><?php _e('Shortcode to be used on this group page.', 'memberpress'); ?></p>
       [mepr-group-price-boxes]<br/><br/>
@@ -136,5 +146,5 @@
   </div>
 
   <!-- The NONCE below prevents post meta from being blanked on move to trash -->
-  <input type="hidden" name="<?php echo MeprGroup::$nonce_str; ?>" value="<?php echo wp_create_nonce(MeprGroup::$nonce_str.wp_salt()); ?>" />
+  <input type="hidden" name="<?php echo MeprGroup::$nonce_str; ?>" value="<?php echo wp_create_nonce(MeprGroup::$nonce_str . wp_salt()); ?>" />
 </div>

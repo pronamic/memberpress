@@ -1,7 +1,9 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
-<?php if(count($posts)) : ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
+<?php if (count($posts)) : ?>
   <div id="mepr-wizard-choose-content-posts">
-    <?php foreach($posts as $post) : ?>
+    <?php foreach ($posts as $post) : ?>
       <div class="mepr-wizard-choose-content-post" data-post="<?php echo esc_attr(wp_json_encode($post)); ?>">
         <input type="radio" id="mepr_wizard_choose_content_post-<?php echo esc_attr($post->ID); ?>" name="mepr_wizard_choose_content_post" value="<?php echo esc_attr($post->ID); ?>">
         <label for="mepr_wizard_choose_content_post-<?php echo esc_attr($post->ID); ?>">

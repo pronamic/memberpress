@@ -1,15 +1,19 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <div id="config-<?php echo $email->dashed_name(); ?>" class="mepr-config-email-row">
   <label for="<?php echo $email->field_name('enabled', true); ?>">
     <input type="checkbox"
            name="<?php echo $email->field_name('enabled'); ?>"
            id="<?php echo $email->field_name('enabled', true); ?>"<?php checked($email->enabled()); ?>/>
-    <?php printf(__('Send %s','memberpress'), $email->title); ?>
+    <?php printf(__('Send %s', 'memberpress'), $email->title); ?>
   </label>
-  <?php MeprAppHelper::info_tooltip( $email->dashed_name(),
-                                     $email->title,
-                                     $email->description ); ?>
+  <?php MeprAppHelper::info_tooltip(
+      $email->dashed_name(),
+      $email->title,
+      $email->description
+  ); ?>
   <a href="#"
      class="mepr-edit-email-toggle button"
      data-id="edit-<?php echo $email->dashed_name(); ?>"
@@ -39,14 +43,15 @@
       </li>
       <li>
         <span class="mepr-field-label"><?php _e('Body', 'memberpress'); ?></span><br/>
-        <?php wp_editor( $email->body(),
-                         $email->field_name('body', true),
-                         array( 'textarea_name' => $email->field_name('body') )
-                       ); ?>
+        <?php wp_editor(
+            $email->body(),
+            $email->field_name('body', true),
+            ['textarea_name' => $email->field_name('body')]
+        ); ?>
       </li>
       <li>
         <select id="var-<?php echo $email->dashed_name(); ?>">
-          <?php foreach( $email->variables as $var ): ?>
+          <?php foreach ($email->variables as $var) : ?>
             <option value="{$<?php echo $var; ?>}">{$<?php echo $var; ?>}</option>
           <?php endforeach; ?>
         </select>
@@ -61,9 +66,11 @@
                id="<?php echo $email->field_name('use_template', true); ?>"<?php checked($email->use_template()); ?>/>
         <span class="mepr-field-label">
           <?php _e('Use default template', 'memberpress'); ?>
-          <?php MeprAppHelper::info_tooltip( $email->dashed_name() . '-template',
-                                             __('Default Email Template', 'memberpress'),
-                                             __('When this is checked the body of this email will be wrapped in the default email template.', 'memberpress') ); ?>
+          <?php MeprAppHelper::info_tooltip(
+              $email->dashed_name() . '-template',
+              __('Default Email Template', 'memberpress'),
+              __('When this is checked the body of this email will be wrapped in the default email template.', 'memberpress')
+          ); ?>
         </span>
       </li>
     </ul>

@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
@@ -21,15 +23,15 @@
                     <?php
                       printf(
                         // translators: %1$s: the site title, %2$s: the week date range
-                        esc_html__('Here\'s the summary report for %1$s for the week of %2$s. Enjoy!', 'memberpress'),
-                        esc_html($site),
-                        sprintf(
-                          '<b>%s - %s</b>',
-                          esc_html(MeprUtils::date('l, F j', $last_week_start, $utc)),
-                          esc_html(MeprUtils::date('l, F j', $last_week_end, $utc))
-                        )
+                          esc_html__('Here\'s the summary report for %1$s for the week of %2$s. Enjoy!', 'memberpress'),
+                          esc_html($site),
+                          sprintf(
+                              '<b>%s - %s</b>',
+                              esc_html(MeprUtils::date('l, F j', $last_week_start, $utc)),
+                              esc_html(MeprUtils::date('l, F j', $last_week_end, $utc))
+                          )
                       );
-                    ?>
+                        ?>
                   </p>
                 </div>
                 <div style="padding:0 0 30px 0;">
@@ -122,7 +124,7 @@
                     </tr>
                   </table>
                 </div>
-                <?php if($ad) : ?>
+                <?php if ($ad) : ?>
                   <div style="padding:0 0 30px 0;">
                     <table border="0" cellspacing="0" cellpadding="0" width="100%">
                       <tr>
@@ -138,11 +140,11 @@
                     <?php
                       // translators: %1$s: open link tag, %2$s: close link tag
                       printf(
-                        esc_html__('P.S. Want to unsubscribe from these emails? %sClick here to access the MemberPress settings%s where you can disable the Weekly Summary Email.', 'memberpress'),
-                        sprintf('<a href="%s" target="_blank">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-general'))),
-                        '</a>'
+                          esc_html__('P.S. Want to unsubscribe from these emails? %1$sClick here to access the MemberPress settings%2$s where you can disable the Weekly Summary Email.', 'memberpress'),
+                          sprintf('<a href="%s" target="_blank">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-general'))),
+                          '</a>'
                       );
-                    ?>
+                        ?>
                   </p>
                 </div>
               </td>

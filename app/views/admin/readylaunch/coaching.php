@@ -76,7 +76,7 @@
             </tbody>
           </table>
         </div>
-        <button class="mepr_modal__button button button-primary"><?php echo esc_html_x( 'Update', 'ui', 'memberpress' ); ?></button>
+        <button class="mepr_modal__button button button-primary"><?php echo esc_html_x('Update', 'ui', 'memberpress'); ?></button>
       </div>
     </div>
   </div>

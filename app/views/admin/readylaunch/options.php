@@ -1,5 +1,5 @@
 <?php if (!defined('ABSPATH')) {
-  die('You are not allowed to call this page directly.');
+    die('You are not allowed to call this page directly.');
 }
 ?>
 
@@ -70,7 +70,7 @@
       </div>
     </div>
     <h3>
-      <?php esc_html_e('Pro Mode Templates', 'memberpress'); ?>
+      <?php esc_html_e('ReadyLaunch™ Templates', 'memberpress'); ?>
     </h3>
 
     <table class="mepr-options-pane">

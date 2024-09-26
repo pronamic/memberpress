@@ -1,4 +1,6 @@
-<?php if(!defined('ABSPATH')) {die('You are not allowed to call this page directly.');} ?>
+<?php if (!defined('ABSPATH')) {
+    die('You are not allowed to call this page directly.');
+} ?>
 
 <div class="mp_wrapper">
   <?php MeprView::render('/shared/errors', get_defined_vars()); ?>
@@ -6,13 +8,13 @@
   <form action="<?php echo parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH); ?>" class="mepr-newpassword-form mepr-form" method="post" novalidate>
     <input type="hidden" name="plugin" value="mepr" />
     <input type="hidden" name="action" value="updatepassword" />
-    <?php wp_nonce_field( 'update_password', 'mepr_account_nonce' ); ?>
+    <?php wp_nonce_field('update_password', 'mepr_account_nonce'); ?>
 
     <div class="mp-form-row mepr_new_password">
       <label for="mepr-new-password"><?php _ex('New Password', 'ui', 'memberpress'); ?></label>
       <div class="mp-hide-pw">
         <input type="password" name="mepr-new-password" id="mepr-new-password" class="mepr-form-input mepr-new-password" required />
-        <button type="button" class="button mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password', 'memberpress' ); ?>">
+        <button type="button" class="button mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password', 'memberpress'); ?>">
           <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
         </button>
       </div>
@@ -21,7 +23,7 @@
       <label for="mepr-confirm-password"><?php _ex('Confirm New Password', 'ui', 'memberpress'); ?></label>
       <div class="mp-hide-pw">
         <input type="password" name="mepr-confirm-password" id="mepr-confirm-password" class="mepr-form-input mepr-new-password-confirm" required />
-        <button type="button" class="button mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password', 'memberpress' ); ?>">
+        <button type="button" class="button mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password', 'memberpress'); ?>">
           <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
         </button>
       </div>

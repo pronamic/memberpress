@@ -6,13 +6,13 @@
       <p class="description"><?php _e('These rules protect the current content.', 'memberpress'); ?></p>
       <table>
         <?php
-        foreach( $rules as $rule ):
-        ?>
+        foreach ($rules as $rule) :
+            ?>
           <tr>
             <td><strong><?php echo $rule->post_title; ?></strong></td>
-            <td><a href="<?php echo admin_url("post.php?post={$rule->ID}&action=edit"); ?>" class="button"><?php _e("Edit", 'memberpress'); ?></a></td>
+            <td><a href="<?php echo admin_url("post.php?post={$rule->ID}&action=edit"); ?>" class="button"><?php _e('Edit', 'memberpress'); ?></a></td>
           </tr>
-        <?php
+            <?php
         endforeach;
         ?>
       </table>
@@ -22,14 +22,14 @@
       <p class="description"><?php _e('Members who are active on any of these memberships will be able to access this content. This list is calculated from the Rules that protect this content.', 'memberpress'); ?></p>
       <table>
         <?php
-        foreach( $product_ids as $product_id ):
-          $product = new MeprProduct($product_id);
-          ?>
+        foreach ($product_ids as $product_id) :
+            $product = new MeprProduct($product_id);
+            ?>
             <tr>
               <td><strong><?php echo $product->post_title; ?></strong></td>
-              <td>&nbsp;&nbsp;<a href="<?php echo admin_url("post.php?post={$product->ID}&action=edit"); ?>" class="button"><?php _e("Edit", 'memberpress'); ?></a></td>
+              <td>&nbsp;&nbsp;<a href="<?php echo admin_url("post.php?post={$product->ID}&action=edit"); ?>" class="button"><?php _e('Edit', 'memberpress'); ?></a></td>
             </tr>
-          <?php
+            <?php
         endforeach;
         ?>
       </table>
@@ -39,13 +39,13 @@
       <p class="description"><?php _e('Members below will be able to access this content. This list is calculated from the Rules that protect this content.', 'memberpress'); ?></p>
       <table>
         <?php
-        foreach( $members as $member ):
-          ?>
+        foreach ($members as $member) :
+            ?>
             <tr>
               <td><strong><?php echo $member; ?></strong></td>
-              <td><a href="<?php echo admin_url("post.php?post={$rule->ID}&action=edit"); ?>" class="button"><?php _e("Edit", 'memberpress'); ?></a></td>
+              <td><a href="<?php echo admin_url("post.php?post={$rule->ID}&action=edit"); ?>" class="button"><?php _e('Edit', 'memberpress'); ?></a></td>
             </tr>
-          <?php
+            <?php
         endforeach;
         ?>
       </table>
