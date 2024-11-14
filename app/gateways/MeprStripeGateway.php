@@ -4340,9 +4340,11 @@ class MeprStripeGateway extends MeprBaseRealGateway
 
         $args = $this->add_application_fee_percentage($args);
 
+        $subs = MeprHooks::apply_filters( 'mepr_stripe_endpoint_modify', 'subscriptions', $prd->ID ); 
+
         $this->email_status("create_subscription: \n" . MeprUtils::object_to_string($txn) . "\n", $this->settings->debug);
 
-        $subscription = (object) $this->send_stripe_request('subscriptions', $args, 'post');
+        $subscription = (object) $this->send_stripe_request($subs, $args, 'post');
 
         $this->maybe_record_sub_application_fee_meta($args, $sub);
 
