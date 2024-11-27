@@ -46,7 +46,7 @@ class MeprReportsCtrl extends MeprBaseCtrl
         $local_data = [
             'report_nonce' => wp_create_nonce('mepr_reports'),
         ];
-        if ($hook == 'dashboard_page_memberpress-reports') {
+        if ($hook == 'memberpress_page_memberpress-reports') {
             wp_enqueue_script('mepr-google-jsapi', 'https://www.gstatic.com/charts/loader.js', [], MEPR_VERSION);
             wp_enqueue_script('mepr-reports-js', MEPR_JS_URL . '/admin_reports.js', ['jquery', 'mepr-google-jsapi'], MEPR_VERSION, true);
             wp_enqueue_style('mepr-reports-css', MEPR_CSS_URL . '/admin-reports.css', [], MEPR_VERSION);

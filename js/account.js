@@ -1,14 +1,16 @@
 jQuery(document).ready(function ($) {
+  const body = $('body');
+
   $('.mepr-open-resume-confirm, .mepr-open-cancel-confirm').magnificPopup({
     type: 'inline',
     closeBtnInside: false
   });
 
-  $('.mepr-confirm-no').on('click', function(e) {
+  body.on('click', '.mepr-confirm-no', function() {
     $.magnificPopup.close();
   });
 
-  $('.mepr-confirm-yes').on('click', function(e){
+  body.on('click', '.mepr-confirm-yes', function(){
     location.href = $(this).data('url');
   });
 
@@ -17,18 +19,17 @@ jQuery(document).ready(function ($) {
     closeBtnInside: false
   });
 
-  $('.mepr-upgrade-cancel').on('click', function(e) {
+  body.on('click', '.mepr-upgrade-cancel', function() {
     $.magnificPopup.close();
   });
 
-  $('.mepr-upgrade-buy-now').on('click', function(e){
+  body.on('click', '.mepr-upgrade-buy-now', function(){
     var id = $(this).data('id');
     var selector = 'select#mepr-upgrade-dropdown-' + id;
-    var url = $(selector).val();
-    location.href = url;
+    location.href = $(selector).val();
   });
 
-  $('body').on('click', '.mepr-account-form .mepr-submit', function (e) {
+  body.on('click', '.mepr-account-form .mepr-submit', function (e) {
     e.preventDefault();
     var form = $(this).closest('.mepr-account-form');
     var submittedTelInputs = document.querySelectorAll(".mepr-tel-input");

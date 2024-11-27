@@ -6,9 +6,8 @@ class MeprPopupCtrl extends MeprBaseCtrl
 
     public function __construct()
     {
-        $cdn_base = 'https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0';
-        $this->popup_css = "{$cdn_base}/magnific-popup.min.css";
-        $this->popup_js  = "{$cdn_base}/jquery.magnific-popup.min.js";
+        $this->popup_css = MEPR_CSS_URL . '/vendor/magnific-popup.min.css';
+        $this->popup_js  = MEPR_JS_URL . '/vendor/jquery.magnific-popup.min.js';
 
         /**
          * This is an array of the currently defined popups, used to validate that the popup specified actually exists.

@@ -1,7 +1,5 @@
 <?php
 
-use memberpress\courses\lib\Utils;
-
 class MeprBatchMigrator
 {
     /**
@@ -142,7 +140,7 @@ class MeprBatchMigrator
                 $time_per_item = $elapsed_time / $this->processed;
 
                 if ($time_per_item > 0) {
-                    $this->limit = Utils::clamp(intval(4 / $time_per_item), 1, 500);
+                    $this->limit = MeprUtils::clamp(intval(4 / $time_per_item), 1, 500);
                 }
             }
         }

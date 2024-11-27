@@ -3,7 +3,7 @@
 } ?>
 <div class="mepr-onboarding">
   <div class="mepr-onboarding-logo">
-    <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/memberpress-logo.svg'); ?>" alt="">
+    <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/logo.svg'); ?>" alt="">
   </div>
   <h1><?php esc_html_e('Welcome and thank you for choosing us!', 'memberpress'); ?></h1>
   <p class="mepr-onboarding-intro">
@@ -13,7 +13,7 @@
     <a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-onboarding&step=1')); ?>"><?php esc_html_e('Get Started', 'memberpress'); ?><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
   </div>
   <div class="mepr-onboarding-hero">
-    <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/hero.jpg'); ?>" alt="">
+    <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/onboarding-hero.jpg'); ?>" alt="">
   </div>
   <div class="mepr-onboarding-customers-heart">
     Customers <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/heart-outline.svg'); ?>" alt=""> MemberPress

@@ -217,7 +217,7 @@ class MeprStripeGateway extends MeprBaseRealGateway
         }
 
         $customer_id = $this->get_customer_id($usr);
-        $base_price = MeprHooks::apply_filters('mepr_stripe_product_base_price', $product->adjusted_price(), $product, $usr);
+        $base_price = MeprHooks::apply_filters('mepr_stripe_product_base_price', $product->adjusted_price(), $product, $usr, $sub);
         $base_price = MeprUtils::maybe_round_to_minimum_amount($base_price);
         $price_id = $this->get_stripe_price_id($sub, $product, $base_price);
         $stripe_product_id = $this->get_product_id($product);
@@ -265,7 +265,7 @@ class MeprStripeGateway extends MeprBaseRealGateway
                     $tmp_coupon->discount_amount = $coupon->get_discount_amount($product);
                     $tmp_coupon->discount_type = $coupon->discount_type;
                     $price = $tmp_coupon->apply_discount($product->price, false, $product);
-                    $price = MeprHooks::apply_filters('mepr_stripe_product_base_price', $price, $product, $usr);
+                    $price = MeprHooks::apply_filters('mepr_stripe_product_base_price', $price, $product, $usr, $sub);
                     $price = MeprUtils::maybe_round_to_minimum_amount($price);
                     $price_id = $this->get_stripe_price_id($sub, $product, $price);
                 }
@@ -356,6 +356,10 @@ class MeprStripeGateway extends MeprBaseRealGateway
                 $checkout_session['payment_intent_data']['description'] = $product->post_title;
             }
 
+            if (MeprHooks::apply_filters('mepr_stripe_payment_intent_store_payment_method', false, $txn, $product)) {
+                $checkout_session['payment_intent_data']['setup_future_usage'] = 'off_session';
+            }
+
             if (($index = array_search('afterpay_clearpay', $payment_method_types)) !== false) {
                 $full_name = $usr->get_full_name();
 
@@ -398,7 +402,7 @@ class MeprStripeGateway extends MeprBaseRealGateway
                 $tmp_coupon->discount_amount = $coupon->get_discount_amount($product);
                 $tmp_coupon->discount_type = $coupon->discount_type;
                 $price = $tmp_coupon->apply_discount($product->price, false, $product);
-                $price = MeprHooks::apply_filters('mepr_stripe_product_base_price', $price, $product, $usr);
+                $price = MeprHooks::apply_filters('mepr_stripe_product_base_price', $price, $product, $usr, $sub);
                 $price = MeprUtils::maybe_round_to_minimum_amount($price);
                 $checkout_session['line_items'][0]['price'] = $this->get_stripe_price_id($sub, $product, $price);
             }
@@ -568,7 +572,8 @@ class MeprStripeGateway extends MeprBaseRealGateway
 
         if ($prd->is_one_time_payment() || !$prd->is_payment_required($coupon_code)) {
             if ($total > 0.00) {
-                $setup_future_usage = $has_subscription ? 'off_session' : null;
+                $store_payment_method = MeprHooks::apply_filters('mepr_stripe_payment_intent_store_payment_method', $has_subscription, $txn, $prd);
+                $setup_future_usage = $store_payment_method ? 'off_session' : null;
                 $payment_method_types = $this->get_payment_intent_payment_method_types($setup_future_usage, $total);
                 $payment_method_options = [];
 
@@ -591,7 +596,7 @@ class MeprStripeGateway extends MeprBaseRealGateway
                     ],
                 ];
 
-                if ($has_subscription) {
+                if ($store_payment_method) {
                     $args['payment_intent_data']['setup_future_usage'] = 'off_session';
                 }
 
@@ -675,18 +680,6 @@ class MeprStripeGateway extends MeprBaseRealGateway
                 array_unshift($line_items, $line_item);
 
                 $args['subscription_data']['trial_period_days'] = $sub->trial_days;
-            } elseif (count($line_items) > 1) {
-                // If there is no trial period and there is an order bump, set the trial days to cover one payment cycle and
-                // add the first subscription payment to the trial amount
-                $now = new DateTimeImmutable('now');
-                $end = $now->modify(sprintf('+%d %s', $sub->period, $sub->period_type));
-                $amount = $calculate_taxes && !$tax_inclusive && $txn->tax_rate > 0 ? (float) $sub->price : (float) $sub->total;
-
-                $line_item = $this->build_line_item($this->get_one_time_price_id($prd, $amount), $txn, $prd);
-
-                array_unshift($line_items, $line_item);
-
-                $args['subscription_data']['trial_period_days'] = $end->diff($now)->format('%a');
             }
 
             $args = array_merge($args, [
@@ -1594,7 +1587,7 @@ class MeprStripeGateway extends MeprBaseRealGateway
                     // Reload the subscription in case it was modified while storing the transaction
                     $sub = new MeprSubscription($sub->id);
 
-                    // If first payment fails, Stripe will not set up the subscription, so we need to mark it as cancelled in MP
+                    // If first payment fails, Stripe will not set up the subscription, so we need to mark it as cancelled.
                     if ($sub->txn_count == 0 && !($sub->trial && $sub->trial_amount == 0.00)) {
                         $sub->status = MeprSubscription::$cancelled_str;
                     }
@@ -3693,7 +3686,7 @@ class MeprStripeGateway extends MeprBaseRealGateway
     }
 
     /**
-     * Fetches the credentials from MP-Stripe-Connect and updates them in the payment method.
+     * Fetches the credentials from the Stripe Connect service and updates them in the payment method.
      */
     public function update_connect_credentials()
     {
@@ -4265,7 +4258,7 @@ class MeprStripeGateway extends MeprBaseRealGateway
     {
         $mepr_options = MeprOptions::fetch();
 
-        $price = MeprHooks::apply_filters('mepr_stripe_product_base_price', $prd->price, $prd, $txn->user());
+        $price = MeprHooks::apply_filters('mepr_stripe_product_base_price', $prd->price, $prd, $txn->user(), $sub);
         $price = MeprUtils::maybe_round_to_minimum_amount($price);
 
         $coupon = $sub->coupon();
@@ -4799,11 +4792,14 @@ class MeprStripeGateway extends MeprBaseRealGateway
             }
 
             if ($amount > 0.00) {
+                $store_payment_method = MeprHooks::apply_filters('mepr_stripe_payment_intent_store_payment_method', $has_subscription, $txn, $prd);
+                $setup_future_usage = $store_payment_method ? 'off_session' : null;
+
                 $options = [
                     'mode' => 'payment',
                     'amount' => (int) $this->to_zero_decimal_amount($amount),
-                    'paymentMethodTypes' => $this->get_payment_intent_payment_method_types($has_subscription ? 'off_session' : null, $amount),
-                    'setupFutureUsage' => $has_subscription ? 'off_session' : null,
+                    'paymentMethodTypes' => $this->get_payment_intent_payment_method_types($setup_future_usage, $amount),
+                    'setupFutureUsage' => $setup_future_usage,
                 ];
             } else {
                 $options = [

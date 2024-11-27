@@ -236,7 +236,7 @@ abstract class MeprBaseDrm
                 'segment' => '',
                 'saved'   => time(),
                 'end'     => '',
-                'icon'    => 'https://memberpress.com/wp-content/uploads/notifications/icons/Alert-Icon-150x150.png',
+                'icon'    => MEPR_IMAGES_URL . '/alert-icon.png',
                 'buttons' => [
                     'main' => [
                         'text'   => 'Contact Us',

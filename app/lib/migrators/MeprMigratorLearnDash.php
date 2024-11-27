@@ -922,7 +922,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                 ksort($sections);
 
                 if (key($sections) !== 0) {
-                    // LD can have lessons outside (before) a section, but this isn't possible in MP. So we force the
+                    // LD can have lessons outside (before) a section, but this isn't possible in Courses. So we force the
                     // first section to start from index 0 to ensure that all lessons and quizzes are inside a section.
                     foreach ($sections as $key => $section) {
                         $sections[0] = $section;
@@ -1127,7 +1127,7 @@ class MeprMigratorLearnDash extends MeprMigrator
     }
 
     /**
-     * Convert the given Assessment answer to options and settings for MP's Likert Scale question.
+     * Convert the given Assessment answer to options and settings for the Likert Scale question in Courses.
      *
      * @param  string $answer
      * @return array

@@ -17,8 +17,6 @@
   <exclude>
     <directory>vendor</directory>
     <directory>tests</directory>
-    <directory>test_legacy</directory>
     <directory>script</directory>
-    <directory>phpunit_legacy</directory>
   </exclude>
 </bundle>

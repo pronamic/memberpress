@@ -47,6 +47,10 @@ class MeprUtils
 
         $file_meta = @getimagesize($filename); // @ suppress errors if $filename is not an image
 
+        if (!is_array($file_meta)) {
+            return false;
+        }
+
         $image_mimes = ['image/gif', 'image/jpeg', 'image/png'];
 
         return in_array($file_meta['mime'], $image_mimes);
@@ -1415,7 +1419,13 @@ class MeprUtils
         if (!is_string($str)) {
             return false;
         }
+
+        if ('d/m/Y' === get_option('date_format')) {
+            $str = preg_replace('/([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})/', '$2/$1/$3', $str);
+        }
+
         $d = strtotime($str);
+
         return ($d !== false);
     }
 
@@ -1683,7 +1693,7 @@ class MeprUtils
         MeprEvent::record('subscription-upgraded', $obj);
 
         if ($event_txn instanceof MeprTransaction) {
-            MeprEvent::record('subscription-changed', $event_txn, $obj->first_txn_id); // first_txn_id works best here for MPCA
+            MeprEvent::record('subscription-changed', $event_txn, $obj->first_txn_id); // first_txn_id works best here for Corporate Accounts
         }
 
         if ($obj instanceof MeprTransaction) {
@@ -1712,7 +1722,7 @@ class MeprUtils
         MeprEvent::record('subscription-downgraded', $obj);
 
         if ($event_txn instanceof MeprTransaction) {
-            MeprEvent::record('subscription-changed', $event_txn, $obj->first_txn_id); // first_txn_id works best here for MPCA
+            MeprEvent::record('subscription-changed', $event_txn, $obj->first_txn_id); // first_txn_id works best here for Corporate Accounts
         }
 
         if ($obj instanceof MeprTransaction) {
@@ -2031,7 +2041,7 @@ class MeprUtils
         return get_user_by($field, $value);
     }
 
-    // Just sends to the emails configured in MP
+    // Just sends to the emails configured in the plugin settings
     public static function wp_mail_to_admin($subject, $message, $headers = '')
     {
         $mepr_options = MeprOptions::fetch();
@@ -2860,4 +2870,31 @@ class MeprUtils
     {
         return do_shortcode(shortcode_unautop(wpautop(do_blocks($content))));
     }
-} // End class
+
+    /**
+     * Sanitize the given name field value.
+     *
+     * @param  string $value
+     * @return string
+     */
+    public static function sanitize_name_field($value): string
+    {
+        $value = sanitize_text_field($value);
+        $value = preg_replace('/https?:\/\/\S+/', '', $value);
+
+        return trim($value);
+    }
+
+    /**
+     * Ensure the given number $x is between $min and $max inclusive.
+     *
+     * @param  mixed $x
+     * @param  mixed $min
+     * @param  mixed $max
+     * @return mixed
+     */
+    public static function clamp($x, $min, $max)
+    {
+        return min(max($x, $min), $max);
+    }
+}

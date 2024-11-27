@@ -2,14 +2,14 @@
 
 /*
 Plugin Name: MemberPress Pro 30 (Legacy)
-Plugin URI: http://www.memberpress.com/
+Plugin URI: https://memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.11.35
+Version: 1.11.36
 Requires PHP: 7.4
 Author: Caseproof, LLC
 Author URI: http://caseproof.com/
 Text Domain: memberpress
-Copyright: 2004-2021, Caseproof, LLC
+Copyright: 2004-2024, Caseproof, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -35,8 +35,10 @@ require_once 'vendor-prefixed/autoload.php';
 
 define('MEPR_PLUGIN_SLUG', 'memberpress/memberpress.php');
 define('MEPR_PLUGIN_NAME', 'memberpress');
-define('MEPR_PATH', dirname(dirname(__FILE__)) . '/' . MEPR_PLUGIN_NAME);
+define('MEPR_PATH', dirname(__DIR__) . '/' . MEPR_PLUGIN_NAME);
 define('MEPR_IMAGES_PATH', MEPR_PATH . '/images');
+define('MEPR_BRAND_PATH', MEPR_PATH . '/brand');
+define('MEPR_BRAND_CTRLS_PATH', MEPR_BRAND_PATH . '/controllers');
 define('MEPR_CSS_PATH', MEPR_PATH . '/css');
 define('MEPR_JS_PATH', MEPR_PATH . '/js');
 define('MEPR_I18N_PATH', MEPR_PATH . '/i18n');
@@ -44,7 +46,7 @@ define('MEPR_LIB_PATH', MEPR_PATH . '/app/lib');
 define('MEPR_INTEGRATIONS_PATH', MEPR_PATH . '/app/integrations');
 define('MEPR_INTERFACES_PATH', MEPR_PATH . '/app/lib/interfaces');
 define('MEPR_DATA_PATH', MEPR_PATH . '/app/data');
-define('MEPR_VENDOR_LIB_PATH', MEPR_PATH . '/vendor/lib');
+define('MEPR_FONTS_PATH', MEPR_PATH . '/fonts');
 define('MEPR_APIS_PATH', MEPR_PATH . '/app/apis');
 define('MEPR_MODELS_PATH', MEPR_PATH . '/app/models');
 define('MEPR_CTRLS_PATH', MEPR_PATH . '/app/controllers');
@@ -52,19 +54,17 @@ define('MEPR_GATEWAYS_PATH', MEPR_PATH . '/app/gateways');
 define('MEPR_EMAILS_PATH', MEPR_PATH . '/app/emails');
 define('MEPR_JOBS_PATH', MEPR_PATH . '/app/jobs');
 define('MEPR_VIEWS_PATH', MEPR_PATH . '/app/views');
+define('MEPR_BRAND_VIEWS_PATH', MEPR_BRAND_PATH . '/views');
 define('MEPR_WIDGETS_PATH', MEPR_PATH . '/app/widgets');
 define('MEPR_HELPERS_PATH', MEPR_PATH . '/app/helpers');
-
-// Make all of our URLS protocol agnostic
-$mepr_url_protocol = (is_ssl()) ? 'https' : 'http'; // Can't use MeprUtils::is_ssl() here
-define('MEPR_URL', preg_replace('/^https?:/', "{$mepr_url_protocol}:", plugins_url('/' . MEPR_PLUGIN_NAME)));
-
+define('MEPR_URL', plugins_url('/' . MEPR_PLUGIN_NAME));
 define('MEPR_VIEWS_URL', MEPR_URL . '/app/views');
 define('MEPR_IMAGES_URL', MEPR_URL . '/images');
+define('MEPR_BRAND_URL', MEPR_URL . '/brand');
 define('MEPR_CSS_URL', MEPR_URL . '/css');
 define('MEPR_JS_URL', MEPR_URL . '/js');
 define('MEPR_GATEWAYS_URL', MEPR_URL . '/app/gateways');
-define('MEPR_VENDOR_LIB_URL', MEPR_URL . '/vendor/lib');
+define('MEPR_FONTS_URL', MEPR_URL . '/fonts');
 define('MEPR_SCRIPT_URL', site_url('/index.php?plugin=mepr'));
 define('MEPR_OPTIONS_SLUG', 'mepr_options');
 define('MEPR_EDITION', 'memberpress-pro');
@@ -106,12 +106,14 @@ define('MEPR_DESCRIPTION', mepr_plugin_info('Description'));
 // Autoload all the requisite classes
 function mepr_autoloader($class_name)
 {
-    // Only load MemberPress classes here
+    // Only load classes belonging to this plugin.
     if (preg_match('/^Mepr.+$/', $class_name)) {
         if (preg_match('/^.+Interface$/', $class_name)) { // Load interfaces first
             $filepath = MEPR_INTERFACES_PATH . "/{$class_name}.php";
         } elseif (preg_match('/^Mepr(Base|Cpt).+$/', $class_name)) { // Base classes are in lib
             $filepath = MEPR_LIB_PATH . "/{$class_name}.php";
+        } elseif (preg_match('/^.+BrandCtrl$/', $class_name)) {
+            $filepath = MEPR_BRAND_CTRLS_PATH . "/{$class_name}.php";
         } elseif (preg_match('/^.+Ctrl$/', $class_name)) {
             $filepath = MEPR_CTRLS_PATH . "/{$class_name}.php";
         } elseif (preg_match('/^.+Helper$/', $class_name)) {

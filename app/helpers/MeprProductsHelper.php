@@ -193,6 +193,10 @@ class MeprProductsHelper
             $tmp_txn->load_product_vars($product, $coupon_code, true);
             $tmp_txn = MeprHooks::apply_filters('mepr_display_invoice_txn', $tmp_txn);
             $tmp_txn->expires_at = date(get_option('date_format'), $product->get_expires_at(time()));
+            $tmp_txn->expire_type = $product->expire_type;
+            $tmp_txn->expire_unit = $product->expire_unit;
+            $tmp_txn->expire_after = $product->expire_after;
+            $tmp_txn->expire_fixed = $product->expire_fixed;
 
             if (empty($coupon_code)) { // We've already validated the coupon before including signup_form.php
                 if ($product->register_price_action == 'custom') {

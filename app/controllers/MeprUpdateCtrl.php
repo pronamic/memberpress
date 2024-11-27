@@ -71,48 +71,10 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         }
 
         // Default
-        $link = 'https://memberpress.com/dc2022/dc-alert';
+        $link = '';
         $heading = 'Monetize & Save!';
         $message = 'Ready, Set, CONNECT💥Add a Forum to MemberPress 👉 Monetize Your Discord 👉 GROW Your Business w/ This New FREE Add-On';
         $button_text = '👉 LEARN MORE 👈';
-
-        /*
-            if ( ! empty( $li['license_key']['expires_at'] ) && strtotime( $li['license_key']['expires_at'] ) < time() ) {
-            // Expired
-            $heading = 'It’s Time To Renew!';
-            $message = "Renew Your License NOW & You'll 👉 Save Up To  $250 👈 It’s Summer Savings Time 🌼 Use Code SUMMER22 Thru 7/18";
-            $button_text = '👉 RENEW NOW 👈';
-            $link = 'https://memberpress.com/su2022/su-alert/lic-exp';
-            } elseif ( ! empty( $li['product_slug'] ) ) {
-            // Active
-            switch ( $li['product_slug'] ) {
-            case 'memberpress-basic':
-            $heading = 'Upgrade Now & Save!';
-            $message = "UPGRADE to Plus or Pro NOW & You'll 👉 Save Up To  $250 👈 It’s Summer Savings Time 🌼 Use Code SUMMER22 Thru 7/18";
-            $button_text = '👉 UPGRADE NOW 👈';
-            $link = 'https://memberpress.com/su2022/su-alert/lic-basic';
-            break;
-
-            case 'memberpress-plus-2':
-            $heading = 'Upgrade Now & Save!';
-            $message = "UPGRADE to Pro NOW & You'll 👉 Save Up To  $250 👈 It’s Summer Savings Time 🌼 Use Code SUMMER22 Thru 7/18";
-            $button_text = '👉 UPGRADE NOW 👈';
-            $link = 'https://memberpress.com/su2022/su-alert/lic-plus';
-            break;
-
-            case 'memberpress-pro':
-            case 'memberpress-pro-5':
-            case 'business':
-            case 'memberpress-plus':
-            case 'developer':
-            $link = '';
-            break;
-
-            default:
-            break;
-            }
-            }
-        */
 
         if (empty($link)) {
             return;

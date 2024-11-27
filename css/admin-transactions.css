@@ -12,21 +12,6 @@ div.status_initial a{
   text-decoration:underline;
 }
 
-.icon32 {
-  float: right;
-  display: inline-block;
-  background:url('../images/memberpress-logo.svg') !important;
-  width: 200px !important;
-  height: 32px !important;
-}
-
-@media all and (-webkit-min-device-pixel-ratio: 1.5) {
-  .icon32 {
-    background-image: url('../images/memberpress-logo.svg') !important;
-    background-size: 200px 32px !important;
-  }
-}
-
 .column-col_delete_txn {
   width:18px;
 }

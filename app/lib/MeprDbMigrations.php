@@ -1,5 +1,7 @@
 <?php
 
+use MemberPress\GroundLevel\InProductNotifications\Services\Store;
+
 if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
@@ -11,7 +13,7 @@ class MeprDbMigrations
     {
         global $wpdb;
 
-        $mig = new MeprDbMigrations();
+        $mig                = new MeprDbMigrations();
         $migration_versions = $mig->get_migration_versions($from_version, $to_version);
 
         if (empty($migration_versions)) {
@@ -32,7 +34,7 @@ class MeprDbMigrations
 
     public static function show_upgrade_ui($from_version, $to_version)
     {
-        $mig = new MeprDbMigrations();
+        $mig                = new MeprDbMigrations();
         $migration_versions = $mig->get_migration_versions($from_version, $to_version);
 
         if (empty($migration_versions)) {
@@ -57,8 +59,8 @@ class MeprDbMigrations
     {
         // ensure migration versions are sequential when adding new migration callbacks
         $this->migrations = [
-            '1.3.0' => [
-                'show_ui' => 'show_ui_001_002',
+            '1.3.0'    => [
+                'show_ui'    => 'show_ui_001_002',
                 'migrations' => [
                     [
                         'migration' => 'create_and_migrate_subscriptions_table_001',
@@ -72,8 +74,8 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.3.9' => [
-                'show_ui' => false,
+            '1.3.9'    => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'add_trial_txn_count_column_to_members_table_003',
@@ -87,8 +89,8 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.3.11' => [
-                'show_ui' => false,
+            '1.3.11'   => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'fix_all_the_expires_006',
@@ -97,8 +99,8 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.3.19' => [
-                'show_ui' => false,
+            '1.3.19'   => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'migrate_access_rules_007',
@@ -107,8 +109,8 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.3.33' => [
-                'show_ui' => false,
+            '1.3.33'   => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'fix_txn_counts_for_sub_accounts_008',
@@ -117,8 +119,8 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.3.36' => [
-                'show_ui' => false,
+            '1.3.36'   => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'remove_ip_addr_gdpr_009',
@@ -128,7 +130,7 @@ class MeprDbMigrations
                 ],
             ],
             '1.3.43b5' => [
-                'show_ui' => false,
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'refactor_coupon_trial_010',
@@ -137,8 +139,8 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.4.6a3' => [
-                'show_ui' => false,
+            '1.4.6a3'  => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'refactor_coupon_first_payment_011',
@@ -147,8 +149,8 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.4.6a5' => [
-                'show_ui' => false,
+            '1.4.6a5'  => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'usage_reset_012',
@@ -157,8 +159,8 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.8.0' => [
-                'show_ui' => false,
+            '1.8.0'    => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'existing_coupons_enable_use_on_upgrades_013',
@@ -167,8 +169,8 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.8.9' => [
-                'show_ui' => false,
+            '1.8.9'    => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'leap_year_extra_day_014',
@@ -177,11 +179,21 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.11.6' => [
-                'show_ui' => false,
+            '1.11.6'   => [
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'move_vat_reversal_negative_tax_016',
+                        'check'     => false,
+                        'message'   => false,
+                    ],
+                ],
+            ],
+            '1.11.36'   => [
+                'show_ui'    => false,
+                'migrations' => [
+                    [
+                        'migration' => 'migrate_notification_data_017',
                         'check'     => false,
                         'message'   => false,
                     ],
@@ -268,10 +280,10 @@ class MeprDbMigrations
         global $wpdb;
         $mepr_db = MeprDb::fetch();
 
-        $q = $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type=%s", 'mepr-subscriptions');
+        $q     = $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type=%s", 'mepr-subscriptions');
         $total = $wpdb->get_var($q); // Need to account for 0's below
 
-        $q = "SELECT COUNT(*) FROM {$mepr_db->subscriptions}";
+        $q         = "SELECT COUNT(*) FROM {$mepr_db->subscriptions}";
         $completed = $wpdb->get_var($q);
 
         $progress = 100;
@@ -288,10 +300,10 @@ class MeprDbMigrations
         global $wpdb;
         $mepr_db = MeprDb::fetch();
 
-        $q = "SELECT COUNT(*) FROM {$wpdb->users}";
+        $q     = "SELECT COUNT(*) FROM {$wpdb->users}";
         $total = $wpdb->get_var($q); // Should never get a 0 here
 
-        $q = "SELECT COUNT(*) FROM {$mepr_db->members}";
+        $q         = "SELECT COUNT(*) FROM {$mepr_db->members}";
         $completed = $wpdb->get_var($q);
 
         $progress = (int)(($completed / $total) * 100);
@@ -384,12 +396,12 @@ class MeprDbMigrations
 
         $transactions = $wpdb->get_results($query);
         foreach ($transactions as $transaction_id) {
-            $transaction = new MeprTransaction($transaction_id->id);
+            $transaction  = new MeprTransaction($transaction_id->id);
             $subscription = $transaction->subscription();
             // Get the expiratoin with the bug fix
-            $txn_created_at = strtotime($transaction->created_at);
+            $txn_created_at      = strtotime($transaction->created_at);
             $expected_expiration = $subscription->get_expires_at($txn_created_at);
-            $expires_at = MeprUtils::ts_to_mysql_date($expected_expiration);
+            $expires_at          = MeprUtils::ts_to_mysql_date($expected_expiration);
             // Do we actually need to fix anything?
             if ($expires_at != $transaction->expires_at) {
                 // We're just going to do this via SQL to skip hooks
@@ -406,9 +418,9 @@ class MeprDbMigrations
 
         $post_rules = get_posts(
             [
-                'post_type' => 'memberpressrule',
+                'post_type'      => 'memberpressrule',
                 'posts_per_page' => -1,
-                'post_status' => ['publish', 'trash'],
+                'post_status'    => ['publish', 'trash'],
             ]
         );
 
@@ -428,10 +440,10 @@ class MeprDbMigrations
 
                 foreach ($ids as $id) {
                     MeprUtils::debug_log("Adding Rule Access POST:{$post->ID} => MEMBERSHIP:{$id}");
-                    $rule_access_condition = new MeprRuleAccessCondition();
-                    $rule_access_condition->rule_id = $post->ID;
-                    $rule_access_condition->access_type = 'membership';
-                    $rule_access_condition->access_operator = 'is';
+                    $rule_access_condition                   = new MeprRuleAccessCondition();
+                    $rule_access_condition->rule_id          = $post->ID;
+                    $rule_access_condition->access_type      = 'membership';
+                    $rule_access_condition->access_operator  = 'is';
                     $rule_access_condition->access_condition = $id;
                     $rule_access_condition->store();
                 }
@@ -444,10 +456,10 @@ class MeprDbMigrations
     public function fix_txn_counts_for_sub_accounts_008()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
+        $mepr_db        = new MeprDb();
         $update_columns = ['txn_count', 'active_txn_count', 'expired_txn_count'];
 
-        $query = $wpdb->prepare(
+        $query   = $wpdb->prepare(
             "SELECT DISTINCT(m.user_id) FROM {$mepr_db->members} m
          JOIN {$mepr_db->transactions} t
            ON t.user_id = m.user_id
@@ -455,7 +467,7 @@ class MeprDbMigrations
             MeprTransaction::$sub_account_str
         );
         $results = $wpdb->get_col($query);
-        $count = sizeOf($results);
+        $count   = sizeOf($results);
         MeprUtils::debug_log("Found {$count} members to update");
 
         foreach ($results as $user_id) {
@@ -518,7 +530,7 @@ class MeprDbMigrations
 
         $posts = get_posts([
             'numberposts' => -1,
-            'post_type' => MeprCoupon::$cpt,
+            'post_type'   => MeprCoupon::$cpt,
             'post_status' => ['publish', 'trash'],
         ]);
 
@@ -534,9 +546,9 @@ class MeprDbMigrations
                 MeprUtils::debug_log('Migrating Coupon (first-payment): ' . $c->post_title);
                 if ($c->discount_amount > 0 && empty($c->first_payment_discount_amount)) { // Prevent duplicate runs
                     $c->first_payment_discount_amount = $c->discount_amount;
-                    $c->first_payment_discount_type = $c->discount_type;
-                    $c->discount_amount = 0;
-                    $c->discount_type = 'percent';
+                    $c->first_payment_discount_type   = $c->discount_type;
+                    $c->discount_amount               = 0;
+                    $c->discount_type                 = 'percent';
                     $c->store();
                 }
             }
@@ -573,7 +585,7 @@ class MeprDbMigrations
         $coupons = get_posts(
             [
                 'numberposts' => -1,
-                'post_type' => MeprCoupon::$cpt,
+                'post_type'   => MeprCoupon::$cpt,
                 'post_status' => ['publish', 'trash'],
             ]
         );
@@ -721,5 +733,46 @@ class MeprDbMigrations
        WHERE trial_tax_amount < 0 AND tax_class = 'vat'
     "
         );
+    }
+
+    /**
+     * Migrates notification data from the mepr_notifications option to use
+     * {@see \MemberPress\GroundLevel\InProductNotifications\Services\Store}.
+     */
+    public function migrate_notification_data_017()
+    {
+        $scheduled_event = 'mepr_admin_notifications_update';
+        $ts              = wp_next_scheduled($scheduled_event);
+        if ($ts) {
+            wp_unschedule_event($ts, $scheduled_event);
+        }
+
+        $option     = get_option('mepr_notifications', []);
+        $to_migrate = array_merge(
+            $option['events'] ?? [],
+            $option['feed'] ?? []
+        );
+        $dismissed  = $option['dismissed'] ?? [];
+
+        try {
+            MeprGrdLvlCtrl::init(true);
+
+            /** @var \MemberPress\GroundLevel\InProductNotifications\Services\Store $store */ // phpcs:ignore
+            $store = MeprGrdLvlCtrl::getContainer()->get(Store::class)->fetch();
+
+            foreach ($to_migrate as $notification) {
+                if (empty($notification['id'])) {
+                    continue;
+                }
+                (new MeprNotifications())->add($notification);
+                if (in_array($notification['id'], $dismissed, true)) {
+                    continue;
+                }
+                $store->markRead($notification['id']);
+            }
+            $store->persist();
+        } catch (Exception $e) {
+        }
+        delete_option('mepr_notifications');
     }
 }

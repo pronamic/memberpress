@@ -4,7 +4,7 @@
 <div class="mepr-wizard">
   <div class="mepr-wizard-inner">
     <div class="mepr-onboarding-logo">
-      <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/memberpress-logo.svg'); ?>" alt="">
+      <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/logo.svg'); ?>" alt="">
     </div>
     <div class="mepr-wizard-steps">
       <?php

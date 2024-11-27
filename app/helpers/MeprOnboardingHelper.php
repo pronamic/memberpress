@@ -116,6 +116,23 @@ class MeprOnboardingHelper
         ];
     }
 
+    public static function features_addons_purchase_links()
+    {
+        return [
+            'easy-affiliate' => 'https://memberpress.com/sign-in/?redirect_to=/register/easy-affiliate-pro/',
+            'memberpress-coachkit' => 'https://memberpress.com/sign-in/?redirect_to=/register/coachkit-add-on/',
+        ];
+    }
+
+    public static function prepare_purchase_message($purchase_link)
+    {
+        return sprintf(
+            esc_html__('Unable to install. You can %spurchase it here%s, afterwards you can install it from the add-ons page.', 'memberpress'),
+            '<a href="'.esc_url($purchase_link).'">',
+            '</a>'
+        );
+    }
+
     public static function set_content_post_id($id)
     {
         update_option('mepr_onboarding_content_post_id', $id, false);

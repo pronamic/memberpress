@@ -133,7 +133,12 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
 
             $addons_installation_message       = '';
             $addons_installation_message_class = '';
+
+            $purchase_links = MeprOnboardingHelper::features_addons_purchase_links();
             if (in_array($addon_slug, $addons_upgrade_failed, true)) {
+                $addons_installation_message       =  MeprOnboardingHelper::prepare_purchase_message($purchase_links[$addon_slug]);
+                $addons_installation_message_class = 'error';
+            } else {
                 $addons_installation_message       = esc_html__('Unable to install. Please download and install manually.', 'memberpress');
                 $addons_installation_message_class = 'error';
             }
@@ -141,7 +146,7 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
         <div class="mepr-wizard-feature no-border no-padding">
           <div class="<?php echo esc_attr($mepr_active_class); ?>">
             <h3><span class="step-complete"></span> <?php echo esc_html($features_list[ $addon_slug ]); ?></h3>
-            <p class="<?php echo esc_attr($addons_installation_message_class); ?>"><?php echo esc_html($addons_installation_message); ?></p>
+            <p class="<?php echo esc_attr($addons_installation_message_class); ?>"><?php echo wp_kses_post($addons_installation_message); ?></p>
           </div>
           <div class="mepr-wizard-feature-right"></div>
         </div>

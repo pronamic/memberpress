@@ -1,0 +1,33 @@
+#toplevel_page_memberpress div.wp-menu-image:before,
+#toplevel_page_memberpress-drm div.wp-menu-image::before {
+  content: "\e839";
+  font-family: "memberpress";
+}
+#wpadminbar svg.admin-bar-mp-logo {
+  position: relative;
+  top: 5px;
+  margin-right: 5px;
+}
+#wpadminbar #wp-admin-bar-mepr_admin_bar > a:before {
+  content: "\e839";
+  font-family: "memberpress" !important;
+  top: 3px;
+  color: #fff;
+}
+#wpadminbar #wp-admin-bar-mepr_admin_bar:hover > a:before {
+  color: #72aee6;
+}
+#wpadminbar #wp-admin-bar-mepr_admin_bar_messages a > span {
+  line-height: 26px;
+}
+#wpadminbar .mepr-admin-bar-notifications-count {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: #eb5757;
+  border-radius: 50%;
+  margin-left: 5px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}

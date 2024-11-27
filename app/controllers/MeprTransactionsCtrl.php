@@ -363,17 +363,17 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             ];
 
             wp_register_style('mepr-jquery-ui-smoothness', $url);
-            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
-            wp_register_style('mepr-clipboardtip', MEPR_CSS_URL . '/tooltipster.bundle.min.css', [], MEPR_VERSION);
-            wp_register_style('mepr-clipboardtip-borderless', MEPR_CSS_URL . '/tooltipster-sideTip-borderless.min.css', ['mepr-clipboardtip'], MEPR_VERSION);
+            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
+            wp_register_style('mepr-clipboardtip', MEPR_CSS_URL . '/vendor/tooltipster.bundle.min.css', [], MEPR_VERSION);
+            wp_register_style('mepr-clipboardtip-borderless', MEPR_CSS_URL . '/vendor/tooltipster-sideTip-borderless.min.css', ['mepr-clipboardtip'], MEPR_VERSION);
             wp_enqueue_style('mepr-transactions-css', MEPR_CSS_URL . '/admin-transactions.css', ['jquery-ui-timepicker-addon', 'mepr-clipboardtip', 'mepr-clipboardtip-borderless'], MEPR_VERSION);
 
             wp_register_script('mepr-table-controls-js', MEPR_JS_URL . '/table_controls.js', ['jquery'], MEPR_VERSION);
-            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
+            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
             wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
             wp_register_script('mphelpers', MEPR_JS_URL . '/mphelpers.js', ['suggest'], MEPR_VERSION);
-            wp_register_script('mepr-clipboard-js', MEPR_JS_URL . '/clipboard.min.js', [], MEPR_VERSION);
-            wp_register_script('mepr-tooltipster', MEPR_JS_URL . '/tooltipster.bundle.min.js', ['jquery'], MEPR_VERSION);
+            wp_register_script('mepr-clipboard-js', MEPR_JS_URL . '/vendor/clipboard.min.js', [], MEPR_VERSION);
+            wp_register_script('mepr-tooltipster', MEPR_JS_URL . '/vendor/tooltipster.bundle.min.js', ['jquery'], MEPR_VERSION);
 
             wp_enqueue_script(
                 'mepr-transactions-js',

@@ -1,7 +1,5 @@
 <?php
 
-use memberpress\courses\lib\Utils;
-
 abstract class MeprMigrator implements MeprMigratorInterface
 {
     /**
@@ -136,7 +134,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
      */
     protected function get_request_limit_offset(array $data, int $default_limit): array
     {
-        $limit = isset($data['limit']) && is_numeric($data['limit']) && $data['limit'] > 0 ? Utils::clamp((int) $data['limit'], 1, 500) : $default_limit;
+        $limit = isset($data['limit']) && is_numeric($data['limit']) && $data['limit'] > 0 ? MeprUtils::clamp((int) $data['limit'], 1, 500) : $default_limit;
         $offset = isset($data['offset']) && is_numeric($data['offset']) && $data['offset'] > 0 ? (int) $data['offset'] : 0;
 
         return [$limit, $offset];

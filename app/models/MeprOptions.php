@@ -1132,25 +1132,26 @@ class MeprOptions
                     }
                 }
             }
+        }
 
-            if ($include_builtin_gateways) {
-                $pmt_methods[MeprTransaction::$free_gateway_str] =
+        $all_pmt_methods = $pmt_methods;
+        if ($include_builtin_gateways) {
+            $all_pmt_methods[MeprTransaction::$free_gateway_str] =
                 new MeprBaseStaticGateway(
                     MeprTransaction::$free_gateway_str,
                     __('Free', 'memberpress'),
                     __('Free', 'memberpress')
                 );
 
-                $pmt_methods[MeprTransaction::$manual_gateway_str] =
+            $all_pmt_methods[MeprTransaction::$manual_gateway_str] =
                 new MeprBaseStaticGateway(
                     MeprTransaction::$manual_gateway_str,
                     __('Manual', 'memberpress'),
                     __('Manual', 'memberpress')
                 );
-            }
         }
 
-        return $pmt_methods;
+        return $all_pmt_methods;
     }
 
     public function pm_count()

@@ -1,7 +1,7 @@
 (function($) {
   $(document).ready(function() {
     //Email edit togglers
-    $('a.mepr-edit-email-toggle').click(function(e) {
+    $('a.mepr-edit-email-toggle').on('click', function() {
       var email_editor_id = $(this).data('id');
       var edit_text = $(this).data('edit-text');
       var cancel_text = $(this).data('cancel-text');
@@ -17,7 +17,7 @@
       return false;
     });
 
-    $('a.mepr-insert-email-var').click( function(e) {
+    $('a.mepr-insert-email-var').on('click', function(e) {
       e.preventDefault();
 
       var varid = $(this).data('variable-id');
@@ -82,7 +82,7 @@
       );
     }
 
-    $('a.mepr-send-test-email').click(function(e) {
+    $('a.mepr-send-test-email').on('click', function(e) {
       e.preventDefault();
 
       var obj_name = $(this).data('obj-name');
@@ -158,7 +158,7 @@
       }, 'json');
     }
 
-    $('a.mepr-reset-email').click(function(e) {
+    $('a.mepr-reset-email').on('click', function(e) {
       e.preventDefault();
 
       var subject_id = $(this).data('subject-id');

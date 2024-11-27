@@ -59,6 +59,6 @@ class MeprCtrlFactory
 
     public static function paths()
     {
-        return MeprHooks::apply_filters('mepr-ctrls-paths', [MEPR_CTRLS_PATH]);
+        return MeprHooks::apply_filters('mepr-ctrls-paths', [MEPR_CTRLS_PATH, MEPR_BRAND_CTRLS_PATH]);
     }
 }

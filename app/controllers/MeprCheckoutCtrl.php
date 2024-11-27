@@ -236,13 +236,13 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
 
             // Check if there's a phone field
             if ($has_phone) {
-                wp_enqueue_style('mepr-phone-css', MEPR_CSS_URL . '/intlTelInput.min.css', '', '16.0.0');
+                wp_enqueue_style('mepr-phone-css', MEPR_CSS_URL . '/vendor/intlTelInput.min.css', '', '16.0.0');
                 wp_enqueue_style('mepr-tel-config-css', MEPR_CSS_URL . '/tel_input.css', '', MEPR_VERSION);
-                wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/intlTelInput.js', '', '16.0.0', true);
+                wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/vendor/intlTelInput.js', '', '16.0.0', true);
                 wp_enqueue_script('mepr-tel-config-js', MEPR_JS_URL . '/tel_input.js', ['mepr-phone-js', 'mp-signup'], MEPR_VERSION, true);
                 wp_localize_script('mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters('mepr-phone-input-config', [
                     'defaultCountry' => strtolower(get_option('mepr_biz_country')),
-                    'utilsUrl' => MEPR_JS_URL . '/intlTelInputUtils.js',
+                    'utilsUrl' => MEPR_JS_URL . '/vendor/intlTelInputUtils.js',
                     'onlyCountries' => '',
                 ]));
             }
@@ -417,8 +417,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 $usr = new MeprUser();
                 $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email($_POST['user_email']) : sanitize_user($_POST['user_login']);
                 $usr->user_email = sanitize_email($_POST['user_email']);
-                $usr->first_name = isset($_POST['user_first_name']) && !empty($_POST['user_first_name']) ? sanitize_text_field(wp_unslash($_POST['user_first_name'])) : '';
-                $usr->last_name = isset($_POST['user_last_name']) && !empty($_POST['user_last_name']) ? sanitize_text_field(wp_unslash($_POST['user_last_name'])) : '';
+                $usr->first_name = !empty($_POST['user_first_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
+                $usr->last_name = !empty($_POST['user_last_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
 
                 $password = ($mepr_options->disable_checkout_password_fields === true) ? wp_generate_password() : $_POST['mepr_user_password'];
                 // Have to use rec here because we unset user_pass on __construct

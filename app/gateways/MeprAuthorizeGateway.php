@@ -1135,8 +1135,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
     {
         // We're just here to update the user's name if they changed it
         $user = $txn->user();
-        $first_name = sanitize_text_field(wp_unslash(($_POST['mepr_first_name'])));
-        $last_name = sanitize_text_field(wp_unslash(($_POST['mepr_last_name'])));
+        $first_name = MeprUtils::sanitize_name_field(wp_unslash($_POST['mepr_first_name']));
+        $last_name = MeprUtils::sanitize_name_field(wp_unslash($_POST['mepr_last_name']));
 
         if (empty($user->first_name)) {
             update_user_meta($user->ID, 'first_name', $first_name);

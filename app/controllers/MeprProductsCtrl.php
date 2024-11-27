@@ -508,6 +508,11 @@ class MeprProductsCtrl extends MeprCptCtrl
             return $content;
         }
 
+        // Stop rendering registration form on Admin side
+        if (is_admin()) {
+            return $content;
+        }
+
         // WARNING the_content CAN be run more than once per page load
         // so this static var prevents stuff from happening twice
         // like cancelling a subscr or resuming etc...
@@ -650,14 +655,14 @@ class MeprProductsCtrl extends MeprCptCtrl
             $url = "//ajax.googleapis.com/ajax/libs/jqueryui/{$ui->ver}/themes/smoothness/jquery-ui.css";
 
             wp_register_style('mepr-jquery-ui-smoothness', $url);
-            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
+            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
             wp_enqueue_style('mepr-transactions-css', MEPR_CSS_URL . '/admin-transactions.css', ['jquery-ui-timepicker-addon'], MEPR_VERSION);
             wp_enqueue_style('mepr-emails-css', MEPR_CSS_URL . '/admin-emails.css', [], MEPR_VERSION);
             wp_enqueue_style('mepr-products-css', MEPR_CSS_URL . '/admin-products.css', ['mepr-emails-css','mepr-settings-table-css','jquery-ui-timepicker-addon'], MEPR_VERSION);
 
             wp_dequeue_script('autosave'); // Disable auto-saving
 
-            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
+            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
             wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
             wp_enqueue_script('mepr-products-js', MEPR_JS_URL . '/admin_products.js', ['jquery-ui-spinner','mepr-date-picker-js','jquery-ui-sortable','mepr-settings-table-js','mepr-admin-shared-js'], MEPR_VERSION);
             $email_locals = [

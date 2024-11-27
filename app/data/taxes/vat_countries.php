@@ -13,7 +13,7 @@ return MeprHooks::apply_filters('mepr-vat-countries', [
         'name' => __('Belgium', 'memberpress'),
         'rate' => 21,
         'reduced_rate' => 6,
-        'fmt' => '(BE)?0[0-9]{9}',
+        'fmt' => '(BE)?[0-1][0-9]{9}',
     ],
     'BG' => [
         'name' => __('Bulgaria', 'memberpress'),

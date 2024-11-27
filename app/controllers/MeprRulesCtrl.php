@@ -8,10 +8,9 @@ class MeprRulesCtrl extends MeprCptCtrl
 {
     public function load_hooks()
     {
-        $mepr_options = MeprOptions::fetch();
-
-        // Protection stuff
-        add_action("{$mepr_options->redirect_method}", 'MeprRulesCtrl::rule_redirection', 3);
+        add_action('after_setup_theme', function () {
+            add_action(MeprOptions::fetch()->redirect_method, 'MeprRulesCtrl::rule_redirection', 3);
+        }, 20);
 
         // add_filter('the_content_feed', 'MeprRulesCtrl::rule_content', 999999, 1); //I think the_content is called before the_content_feed, so this is redundant
         add_filter('the_content', 'MeprRulesCtrl::rule_content', 999999, 1);
@@ -646,10 +645,10 @@ class MeprRulesCtrl extends MeprCptCtrl
             ];
 
             wp_register_style('mepr-jquery-ui-smoothness', $url);
-            wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
-            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
+            wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
+            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
             wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
-            wp_register_script('rule-form-validator', '//cdnjs.cloudflare.com/ajax/libs/jquery-form-validator/2.3.26/jquery.form-validator.min.js', ['jquery'], '2.3.26');
+            wp_register_script('rule-form-validator', MEPR_JS_URL . '/vendor/jquery.form-validator.min.js', ['jquery'], '2.3.26');
             wp_dequeue_script('autosave'); // Disable auto-saving
             // Need mepr-rules-js to load in the footer since this script doesn't fully use document.ready()
             wp_enqueue_script('mepr-rules-js', MEPR_JS_URL . '/admin_rules.js', ['jquery','jquery-ui-autocomplete','mepr-date-picker-js','rule-form-validator'], MEPR_VERSION, true);

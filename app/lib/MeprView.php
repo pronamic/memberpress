@@ -88,6 +88,7 @@ class MeprView
         }
 
         $paths[] = "{$template_path}/memberpress";
+        $paths[] = MEPR_BRAND_VIEWS_PATH;
         $paths[] = MEPR_VIEWS_PATH;
 
         return MeprHooks::apply_filters('mepr_view_paths', $paths);

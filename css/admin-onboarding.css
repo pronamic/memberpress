@@ -3,35 +3,35 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("../vendor/lib/minion-pro/MinionPro-Regular.otf") format("opentype");
+  src: url("../fonts/minion-pro/MinionPro-Regular.otf") format("opentype");
 }
 @font-face {
   font-family: "Minion Pro";
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url("../vendor/lib/minion-pro/MinionPro-Semibold.otf") format("opentype");
+  src: url("../fonts/minion-pro/MinionPro-Semibold.otf") format("opentype");
 }
 @font-face {
   font-family: "Sofia Pro";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("../vendor/lib/sofia-pro/Sofia-Pro-Regular-Az.otf") format("opentype");
+  src: url("../fonts/sofia-pro/Sofia-Pro-Regular-Az.otf") format("opentype");
 }
 @font-face {
   font-family: "Sofia Pro";
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url("../vendor/lib/sofia-pro/Sofia-Pro-Semi-Bold-Az.otf") format("opentype");
+  src: url("../fonts/sofia-pro/Sofia-Pro-Semi-Bold-Az.otf") format("opentype");
 }
 @font-face {
   font-family: "Sofia Pro";
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("../vendor/lib/sofia-pro/Sofia-Pro-Bold-Az.otf") format("opentype");
+  src: url("../fonts/sofia-pro/Sofia-Pro-Bold-Az.otf") format("opentype");
 }
 body[class*="_page_memberpress-onboarding"] {
   background-color: #f8f9fc;
@@ -42,14 +42,14 @@ body[class*="_page_memberpress-onboarding"] {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
-#mp-admin-header,
-#wpfooter {
+.memberpress_page_memberpress-onboarding #mp-admin-header,
+.memberpress_page_memberpress-onboarding #wpfooter {
   display: none;
 }
-#wpcontent {
+.memberpress_page_memberpress-onboarding #wpcontent {
   padding-left: 0;
 }
-#wpbody-content {
+.memberpress_page_memberpress-onboarding #wpbody-content {
   padding-bottom: 0;
 }
 .mepr-onboarding {
@@ -558,7 +558,7 @@ body[class*="_page_memberpress-onboarding"] {
   align-items: center;
 }
 @media screen and (max-width: 782px) {
-  .auto-fold #wpcontent {
+  .memberpress_page_memberpress-onboarding.auto-fold #wpcontent {
     padding-left: 0;
   }
   .mepr-onboarding-testimonials {

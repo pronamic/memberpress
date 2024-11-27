@@ -168,7 +168,10 @@ class MeprEvent extends MeprBaseModel
 
     public function get_args()
     {
-        return json_decode($this->args);
+        if (!empty($this->args) && is_string($this->args)) {
+            return json_decode($this->args);
+        }
+        return $this->args;
     }
 
     public static function record($event, MeprBaseModel $obj, $args = '')

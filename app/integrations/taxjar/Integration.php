@@ -88,18 +88,26 @@ class MeprTaxJarIntegration
     public function edit_business_state_notice()
     {
         ?>
-
-    <div class="notice notice-warning" style="padding: 10px;">
-        <?php printf(__('You must use a valid 2-character state code as your %1$sBusiness Address%2$s state field for TaxJar to work properly.', 'memberpress'), '<a href="' . admin_url('admin.php?page=memberpress-options#mepr-info') . '" onclick="mpActivateInfoTab()">', '</a>'); ?>
+    <div class="notice notice-warning">
+      <p>
+        <?php
+          printf(
+            /* translators: %1$s: open link tag, %2$s: close link tag */
+              esc_html__('You must use a valid 2-character state code as your %1$sBusiness Address%2$s state field for TaxJar to work properly.', 'memberpress'),
+              '<a id="mp-taxjar-update-state" href="' . esc_url(admin_url('admin.php?page=memberpress-options#mepr-info')) . '">',
+              '</a>'
+          );
+        ?>
+      </p>
     </div>
     <script>
-      function mpActivateInfoTab() {
-        var navLink = document.getElementById('info');
-        var bizStateInput = document.querySelector('input[name=mepr_biz_state]');
-        navLink.click();
-        bizStateInput.select();
-        bizStateInput.scrollIntoView();
-      }
+      jQuery(function ($) {
+        $('#mp-taxjar-update-state').on('click', function (e) {
+          e.preventDefault();
+          $('#info').trigger('click');
+          $('input[name="mepr_biz_state"]').trigger('select').get(0).scrollIntoView();
+        });
+      });
     </script>
 
         <?php

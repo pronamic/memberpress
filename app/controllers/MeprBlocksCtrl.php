@@ -38,6 +38,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         register_block_type(
             'memberpress/membership-signup',
             [
+                'api_version' => 2,
                 'attributes'      => [
                     'membership' => [
                         'type' => 'string',

@@ -1,5 +1,5 @@
 import { getCategories, setCategories } from "@wordpress/blocks";
-import MemberPressIcon from "./components/mp-icon";
+import BrandIcon from "../../../brand/components/BrandIcon";
 import "./editor.scss";
 
 setCategories([
@@ -7,6 +7,6 @@ setCategories([
   {
     slug: "memberpress",
     title: "MemberPress",
-    icon: <MemberPressIcon />
+    icon: <BrandIcon />
   }
 ]);

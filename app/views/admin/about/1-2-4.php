@@ -14,8 +14,8 @@
 </p>
 <p><?php printf(
     __('For a full list of features you can visit our %1$schangelog%2$s or %3$sread the blog post about 1.2.4%2$s.', 'memberpress'),
-    '<a href="http://www.memberpress.com/change-log/">',
+    '<a href="https://memberpress.com/change-log/">',
     '</a>',
-    '<a href="http://www.memberpress.com/1.2.4">'
+    '<a href="https://memberpress.com/1.2.4">'
 ); ?></p>
 

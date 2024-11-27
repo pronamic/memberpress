@@ -25,7 +25,7 @@ $account_link = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general'
 
      </div>
     </div>
-    <img src="<?php echo MEPR_IMAGES_URL; ?>/mepr-notice-modal-image-2x.png" class="mepr-notice-modal-banner" />
+     <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/notice-modal-image.png'); ?>" class="mepr-notice-modal-banner" alt="" />
    </div>
 </div>
 <script>

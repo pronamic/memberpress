@@ -22,12 +22,11 @@ class MeprStripeCtrl extends MeprBaseCtrl
     }
 
     /**
-     * Update email of stripe user object when customer change email
-     * on Memberpress account page
+     * Update the email address of the Stripe Customer when the customer changes email address on the Account page.
      *
-     * @param MeprUser $mepr_current_user
+     * @param MeprUser $user
      */
-    public function update_user_email($mepr_current_user)
+    public function update_user_email($user)
     {
         $mepr_options = MeprOptions::fetch();
 
@@ -35,18 +34,18 @@ class MeprStripeCtrl extends MeprBaseCtrl
             if ($integration['gateway'] == 'MeprStripeGateway') {
                 $payment_method = new MeprStripeGateway();
                 $payment_method->load($integration);
-                $stripe_customer_id = $mepr_current_user->get_stripe_customer_id($payment_method->get_meta_gateway_id());
+                $stripe_customer_id = $user->get_stripe_customer_id($payment_method->get_meta_gateway_id());
 
                 if (empty($stripe_customer_id)) {
                     // Continue on other instances of MeprStripeGateway
                     continue;
                 }
 
-                $args = ['email' => $mepr_current_user->user_email];
+                $args = ['email' => $user->user_email];
 
                 try {
                     $payment_method->send_stripe_request('customers/' . $stripe_customer_id, $args, 'post');
-                } catch (\Exception $exception) {
+                } catch (Exception $exception) {
                 }
             }
         }
@@ -138,8 +137,8 @@ class MeprStripeCtrl extends MeprBaseCtrl
                 $usr = new MeprUser();
                 $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email($_POST['user_email']) : sanitize_user($_POST['user_login']);
                 $usr->user_email = sanitize_email($_POST['user_email']);
-                $usr->first_name = isset($_POST['user_first_name']) && !empty($_POST['user_first_name']) ? sanitize_text_field(wp_unslash($_POST['user_first_name'])) : '';
-                $usr->last_name = isset($_POST['user_last_name']) && !empty($_POST['user_last_name']) ? sanitize_text_field(wp_unslash($_POST['user_last_name'])) : '';
+                $usr->first_name = !empty($_POST['user_first_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
+                $usr->last_name = !empty($_POST['user_last_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
 
                 $password = ($disable_checkout_password_fields === true) ? wp_generate_password() : $_POST['mepr_user_password'];
                 // Have to use rec here because we unset user_pass on __construct
@@ -315,7 +314,8 @@ class MeprStripeCtrl extends MeprBaseCtrl
                 $total += $order_bump_total;
 
                 if ($total > 0.00) {
-                    $setup_future_usage = $has_subscription_order_bump ? 'off_session' : null;
+                    $store_payment_method = MeprHooks::apply_filters('mepr_stripe_payment_intent_store_payment_method', $has_subscription_order_bump, $txn, $prd);
+                    $setup_future_usage = $store_payment_method ? 'off_session' : null;
                     $payment_intent = $pm->create_payment_intent($total, $customer_id, $txn, $prd, $setup_future_usage);
 
                     $client_secret = $payment_intent->client_secret;

@@ -66,7 +66,7 @@ jQuery(document).ready(function($) {
     });
   }
 
-  $('a.nav-tab').click(function() {
+  $('a.nav-tab').on('click', function() {
     var chosen = $(this).attr('id');
 
     show_chosen_tab(chosen);
@@ -90,7 +90,7 @@ jQuery(document).ready(function($) {
     $.post(ajaxurl, data, function(response) {
       if( response.error === undefined ) {
         $(response.form).hide().appendTo('#integrations-list').slideDown('fast');
-        $("select.mepr-gateways-dropdown").val("MeprStripeGateway").change();
+        $("select.mepr-gateways-dropdown").val("MeprStripeGateway").trigger('change');
         mepr_setup_clipboard();
       }
       else {
@@ -236,7 +236,7 @@ jQuery(document).ready(function($) {
             </li>';
   }
 
-  $('a#mepr-add-new-custom-field').click(function() {
+  $('a#mepr-add-new-custom-field').on('click', function() {
     $(this).before(get_new_line());
     return false;
   });
@@ -305,7 +305,7 @@ jQuery(document).ready(function($) {
   } else {
     $('div#mepr_tos_hidden').hide();
   }
-  $('#mepr-require-tos').click(function() {
+  $('#mepr-require-tos').on('click', function() {
     $('div#mepr_tos_hidden').slideToggle('fast');
   });
 
@@ -315,7 +315,7 @@ jQuery(document).ready(function($) {
   } else {
     $('div#mepr_privacy_hidden').hide();
   }
-  $('#mepr-require-privacy-policy').click(function() {
+  $('#mepr-require-privacy-policy').on('click', function() {
     $('div#mepr_privacy_hidden').slideToggle('fast');
   });
 
@@ -326,7 +326,7 @@ jQuery(document).ready(function($) {
     $('#mepr-unauthorized-redirect').slideUp();
   }
 
-  $('#mepr-redirect-on-unauthorized').click(function() {
+  $('#mepr-redirect-on-unauthorized').on('click', function() {
     if($('#mepr-redirect-on-unauthorized').is(':checked')) {
       $('#mepr-unauthorized-redirect').slideDown();
     } else {
@@ -343,7 +343,7 @@ jQuery(document).ready(function($) {
     }
   };
   toggle_excerpt_type();
-  $('#mepr-unauth-show-excerpts').click(toggle_excerpt_type);
+  $('#mepr-unauth-show-excerpts').on('click', toggle_excerpt_type);
 
   //Unauthorized excerpt size
   var toggle_excerpt_size = function() {
@@ -355,10 +355,10 @@ jQuery(document).ready(function($) {
   };
 
   toggle_excerpt_size();
-  $('#mepr-unauth-excerpt-type').change(toggle_excerpt_size);
+  $('#mepr-unauth-excerpt-type').on('change', toggle_excerpt_size);
 
   //Unauthorized message toggle
-  $('.mp-toggle-unauthorized-message').click( function(e) {
+  $('.mp-toggle-unauthorized-message').on('click', function(e) {
     e.preventDefault();
     $('.mp-unauthorized-message').slideToggle();
   });
@@ -376,7 +376,7 @@ jQuery(document).ready(function($) {
   } else {
     $('div#mepr-seo-noindex-area').show();
   }
-  $('#mepr-authorize-seo-views').click(function() {
+  $('#mepr-authorize-seo-views').on('click', function() {
     $('div#mepr-seo-noindex-area').slideToggle('fast');
   });
 
@@ -386,7 +386,7 @@ jQuery(document).ready(function($) {
   } else {
     $('div#mepr-paywall-options-area').hide();
   }
-  $('#mepr-paywall-enabled').click(function() {
+  $('#mepr-paywall-enabled').on('click', function() {
     $('div#mepr-paywall-options-area').slideToggle('fast');
   });
 
@@ -698,8 +698,8 @@ jQuery(document).ready(function($) {
 
   show_charge_business_customer_option();
 
-  $('select[name=mepr_tax_calc_type]').change(show_charge_business_customer_option);
-  $('input[name=mepr_vat_tax_businesses]').change(show_charge_business_customer_option);
+  $('select[name=mepr_tax_calc_type]').on('change', show_charge_business_customer_option);
+  $('input[name=mepr_vat_tax_businesses]').on('change', show_charge_business_customer_option);
 
   var $detected_ip_address = $('#mepr-detected-ip-address');
 
@@ -767,7 +767,7 @@ jQuery(document).ready(function($) {
     }, 250);
   });
 
-  $('input[name=mepr_charge_business_customer_net_price]').change(function(){
+  $('input[name=mepr_charge_business_customer_net_price]').on('change', function(){
     var oThis = $(this);
     if( oThis.prop('checked') ){
       $('#mepr_show_negative_tax_on_invoice_section').show();

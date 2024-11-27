@@ -17,8 +17,7 @@ class MeprAddonUpdates
         $this->desc = $desc;
         $this->path = WP_PLUGIN_DIR . '/' . $slug;
 
-        $this->load_language();
-
+        add_action('after_setup_theme', [$this, 'load_language']);
         add_filter('pre_set_site_transient_update_plugins', [$this, 'queue_update']);
         add_action("in_plugin_update_message-$main_file", [$this, 'check_incorrect_edition']);
         add_action('mepr_plugin_edition_changed', [$this, 'clear_update_transient']);
@@ -185,27 +184,16 @@ class MeprAddonUpdates
         return false;
     }
 
+    /**
+     * Load the add-on's translated strings.
+     *
+     * For backwards-compatibility only. It is recommended to add the .mo file into the /wp-content/languages/plugins
+     * directory instead.
+     */
     public function load_language()
     {
-        $paths = [];
-        $paths[] = str_replace(WP_PLUGIN_DIR, '', $this->path . '/i18n');
-
-        // Have to use WP_PLUGIN_DIR because load_plugin_textdomain doesn't accept abs paths
-        if (!file_exists(WP_PLUGIN_DIR . '/' . 'mepr-i18n')) {
-            @mkdir(WP_PLUGIN_DIR . '/' . 'mepr-i18n');
-
-            if (file_exists(WP_PLUGIN_DIR . '/' . 'mepr-i18n')) {
-                $paths[] = '/mepr-i18n';
-            }
-        } else {
-            $paths[] = '/mepr-i18n';
-        }
-
-        // MeprHooks isn't going to always be defined here so just use the normal apply_filters
-        $paths = apply_filters("mepr_{$this->slug}_textdomain_paths", $paths);
-
-        foreach ($paths as $path) {
-            load_plugin_textdomain($this->slug, false, $path);
+        if (is_dir(WP_PLUGIN_DIR . '/mepr-i18n')) {
+            load_plugin_textdomain($this->slug, false, 'mepr-i18n');
         }
     }
 

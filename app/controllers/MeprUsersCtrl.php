@@ -78,13 +78,13 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         // Check if there's a phone field
         if ($has_phone) {
-            wp_enqueue_style('mepr-phone-css', MEPR_CSS_URL . '/intlTelInput.min.css', '', '16.0.0');
+            wp_enqueue_style('mepr-phone-css', MEPR_CSS_URL . '/vendor/intlTelInput.min.css', '', '16.0.0');
             wp_enqueue_style('mepr-tel-config-css', MEPR_CSS_URL . '/tel_input.css', '', MEPR_VERSION);
-            wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/intlTelInput.js', '', '16.0.0', true);
+            wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/vendor/intlTelInput.js', '', '16.0.0', true);
             wp_enqueue_script('mepr-tel-config-js', MEPR_JS_URL . '/tel_input.js', ['mepr-phone-js'], MEPR_VERSION, true);
             wp_localize_script('mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters('mepr-phone-input-config', [
                 'defaultCountry' => strtolower(get_option('mepr_biz_country')),
-                'utilsUrl' => MEPR_JS_URL . '/intlTelInputUtils.js',
+                'utilsUrl' => MEPR_JS_URL . '/vendor/intlTelInputUtils.js',
                 'onlyCountries' => '',
             ]));
         }
@@ -200,9 +200,9 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         if ($hook == 'user-edit.php' || $hook == 'profile.php') {
             wp_enqueue_style('mepr-jquery-ui-smoothness', $url);
-            wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
+            wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
 
-            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
+            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
             wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
             wp_enqueue_script('mp-i18n', MEPR_JS_URL . '/i18n.js', ['jquery']);
             wp_localize_script('mp-i18n', 'MeprI18n', ['states' => MeprUtils::states()]);
@@ -243,11 +243,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         // Since we use user_* for these, we need to artifically set the $_POST keys correctly for this to work
         if (!isset($_POST['first_name']) || empty($_POST['first_name'])) {
-            $_POST['first_name'] = (isset($_POST['user_first_name'])) ? sanitize_text_field(wp_unslash($_POST['user_first_name'])) : '';
+            $_POST['first_name'] = (isset($_POST['user_first_name'])) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
         }
 
         if (!isset($_POST['last_name']) || empty($_POST['last_name'])) {
-            $_POST['last_name'] = (isset($_POST['user_last_name'])) ? sanitize_text_field(wp_unslash($_POST['user_last_name'])) : '';
+            $_POST['last_name'] = (isset($_POST['user_last_name'])) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
         }
 
         $custom_fields[] = (object)[

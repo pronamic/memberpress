@@ -30,8 +30,8 @@ class MeprAddonsCtrl extends MeprBaseCtrl
     {
         if (preg_match('/_page_memberpress-addons$/', $hook)) {
             wp_enqueue_style('mepr-addons-css', MEPR_CSS_URL . '/admin-addons.css', [], MEPR_VERSION);
-            wp_enqueue_script('list-js', MEPR_JS_URL . '/list.min.js', [], '1.5.0');
-            wp_enqueue_script('jquery-match-height', MEPR_JS_URL . '/jquery.matchHeight-min.js', [], '0.7.2');
+            wp_enqueue_script('list-js', MEPR_JS_URL . '/vendor/list.min.js', [], '1.5.0');
+            wp_enqueue_script('jquery-match-height', MEPR_JS_URL . '/vendor/jquery.matchHeight-min.js', [], '0.7.2');
             wp_enqueue_script('mepr-addons-js', MEPR_JS_URL . '/admin_addons.js', ['list-js', 'jquery-match-height'], MEPR_VERSION);
 
             wp_localize_script('mepr-addons-js', 'MeprAddons', [

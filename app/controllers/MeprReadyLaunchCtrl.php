@@ -642,29 +642,40 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         global $post;
         global $wp_query;
 
-        $page_name      = $template . '_page_id';
-        $attribute_name = 'design_enable_' . $template . '_template';
-        $options        = MeprOptions::fetch();
+        $page_name = $template . '_page_id';
+        $options   = MeprOptions::fetch();
 
         if ('pricing' === $template) {
             return isset($post) &&
             is_a($post, 'WP_Post') &&
             $post->post_type == MeprGroup::$cpt &&
-            isset($options->$attribute_name) &&
-            filter_var($options->$attribute_name, FILTER_VALIDATE_BOOLEAN);
+            self::template_active('pricing');
         }
 
         if ('checkout' === $template) {
-            return isset($options->$attribute_name) &&
-            filter_var($options->$attribute_name, FILTER_VALIDATE_BOOLEAN) &&
+            return self::template_active('checkout') &&
             ( isset($post) && is_a($post, 'WP_Post') && is_singular(MeprProduct::$cpt) );
         }
 
         return isset($wp_query) &&
         isset($options->$page_name) &&
         is_page($options->$page_name) &&
-        isset($options->$attribute_name) &&
-        filter_var($options->$attribute_name, FILTER_VALIDATE_BOOLEAN);
+        self::template_active($template);
+    }
+
+    /**
+     * Determines if the given template is active.
+     *
+     * @param string $template the template name (e.g. 'pricing', 'checkout', etc.)
+     *
+     * @return boolean
+     */
+    public static function template_active($template)
+    {
+        $options = MeprOptions::fetch();
+        $attribute_name = 'design_enable_' . $template . '_template';
+
+        return isset($options->$attribute_name) && filter_var($options->$attribute_name, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**

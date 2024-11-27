@@ -6,24 +6,15 @@ if (!defined('ABSPATH')) {
 
 /**
  * This is just a front-end Controller adapter for MeprNotifications.
+ *
+ * @deprecated 1.11.36
  */
 class MeprNotificationsCtrl extends MeprBaseCtrl
 {
+    /**
+     * @deprecated 1.11.36
+     */
     public function load_hooks()
     {
-        $notifications = new MeprNotifications();
-        $notifications->init(); // loads hooks
-
-        add_action('admin_enqueue_scripts', function () {
-            if (MeprUtils::is_memberpress_admin_page()) {
-                do_action('mepr_overview_enqueue');
-            }
-        });
-
-        // add_action('admin_notices', function() {
-        // if(MeprUtils::is_memberpress_admin_page()) {
-        // do_action('mepr_admin_overview_before_table');
-        // }
-        // });
     }
 }

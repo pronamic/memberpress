@@ -161,6 +161,12 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
         'capabilities' => ['payment_intents'],
     ],
     [
+        'key' => 'amazon_pay',
+        'name' => 'Amazon Pay',
+        'currencies' => ['USD'],
+        'capabilities' => ['payment_intents', 'setup_future_usage', 'setup_intents', 'subscriptions'],
+    ],
+    [
         'key' => 'cashapp',
         'name' => 'Cash App Pay',
         'currencies' => ['USD'],

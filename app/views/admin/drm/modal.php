@@ -41,7 +41,7 @@ $has_stripe_connect = MeprStripeGateway::has_method_with_connect_status();
 
      </div>
     </div>
-    <img src="<?php echo MEPR_IMAGES_URL; ?>/mepr-notice-modal-image-2x.png" class="mepr-notice-modal-banner" />
+    <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/notice-modal-image.png'); ?>" class="mepr-notice-modal-banner" alt="" />
    </div>
 </div>
 <script>

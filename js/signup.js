@@ -202,11 +202,14 @@
             mpToggleFieldValidation($(obj), (res.toString() == 'true'));
 
             if(res.toString() == 'true') {
-              if($(obj).data('submit-when-valid')) {
-                form.one('meprAfterPriceStringUpdated', function () {
+              form.one('meprAfterPriceStringUpdated', function () {
+                $(obj).removeData('validating');
+
+                if($(obj).data('submit-when-valid')) {
+                  $(obj).removeData('submit-when-valid');
                   form.find('.mepr-submit').trigger('click');
-                });
-              }
+                }
+              });
 
               // Let's update price string and invoice
               updateCheckoutState(form);
@@ -216,11 +219,14 @@
               form.find('input[name="mepr_payment_methods_hidden"]').remove();
               price_string.text(price_string.data('default-price-string'));
 
+              $(obj).removeData('validating');
+              $(obj).removeData('submit-when-valid');
+
               // Invalid Coupon - update SPC Invoice
               updateCheckoutState(form);
             }
           })
-          .always(function () {
+          .fail(function () {
             $(obj).removeData('validating');
             $(obj).removeData('submit-when-valid');
           });

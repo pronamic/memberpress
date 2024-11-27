@@ -1,7 +1,7 @@
 (function($) {
   __ = wp.i18n.__;
 
-  function mpResetToggle( $button, show ) {
+  function resetToggle( $button, show ) {
     $button
       .attr({
         'aria-label': show ? __( 'Show password' ) : __( 'Hide password' )
@@ -21,10 +21,10 @@
 
       if ( 'password' === $pass.attr( 'type' ) ) {
         $pass.attr( 'type', 'text' );
-        mpResetToggle( $button, false );
+        resetToggle( $button, false );
       } else {
         $pass.attr( 'type', 'password' );
-        mpResetToggle( $button, true );
+        resetToggle( $button, true );
       }
     });
 

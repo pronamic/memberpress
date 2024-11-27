@@ -327,8 +327,8 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
 
             // Pass User Info
             'EMAIL' => $usr->user_email,
-            'FIRSTNAME' => sanitize_text_field(wp_unslash($_REQUEST['mepr_first_name'])),
-            'LASTNAME' => sanitize_text_field(wp_unslash($_REQUEST['mepr_last_name'])),
+            'FIRSTNAME' => MeprUtils::sanitize_name_field(wp_unslash($_REQUEST['mepr_first_name'])),
+            'LASTNAME' => MeprUtils::sanitize_name_field(wp_unslash($_REQUEST['mepr_last_name'])),
             'STREET' => sanitize_text_field(wp_unslash($_REQUEST['mepr-address-one'])) . ' ' . sanitize_text_field(wp_unslash($_REQUEST['mepr-address-two'])),
             'CITY' => sanitize_text_field(wp_unslash($_REQUEST['mepr-address-city'])),
             'STATE' => sanitize_text_field(wp_unslash($_REQUEST['mepr-address-state'])),
@@ -339,8 +339,8 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
         ], $txn);
 
         if (empty($usr->first_name) || empty($usr->last_name)) {
-            $usr->first_name = sanitize_text_field(wp_unslash($_REQUEST['mepr_first_name']));
-            $usr->last_name = sanitize_text_field(wp_unslash($_REQUEST['mepr_last_name']));
+            $usr->first_name = MeprUtils::sanitize_name_field(wp_unslash($_REQUEST['mepr_first_name']));
+            $usr->last_name = MeprUtils::sanitize_name_field(wp_unslash($_REQUEST['mepr_last_name']));
             update_user_meta($usr->ID, 'first_name', $usr->first_name);
             update_user_meta($usr->ID, 'last_name', $usr->last_name);
         }
@@ -1008,8 +1008,8 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
     {
         // We're just here to update the user's name if they changed it
         $user = $txn->user();
-        $first_name = sanitize_text_field(wp_unslash($_POST['mepr_first_name']));
-        $last_name = sanitize_text_field(wp_unslash($_POST['mepr_last_name']));
+        $first_name = MeprUtils::sanitize_name_field(wp_unslash($_POST['mepr_first_name']));
+        $last_name = MeprUtils::sanitize_name_field(wp_unslash($_POST['mepr_last_name']));
 
         if ($user->first_name != $first_name) {
             update_user_meta($user->ID, 'first_name', $first_name);
@@ -1420,7 +1420,7 @@ Follow these instructions to enable Digital Goods:
 2) Visit https://www.paypal.com/us/webapps/mpp/digital in your browser
 3) Follow the steps PayPal provides here to add Digital Goods to your account
 
-If you still have issues getting this to work, please contact customer support at http://memberpress.com/support.
+If you still have issues getting this to work, please contact customer support at https://memberpress.com/support/.
 
 Thanks,
 

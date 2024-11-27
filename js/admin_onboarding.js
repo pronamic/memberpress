@@ -4,6 +4,7 @@ var MeprOnboarding = (function($) {
   var selected_content = null;
   var ea_install_started;
   var upgrade_wait_started;
+  var ea_attempt_counter = 0;
 
   onboarding = {
     init: function () {
@@ -1042,48 +1043,46 @@ var MeprOnboarding = (function($) {
             var o_div = jQuery('#mepr-finish-step-addon-' + _addon_slug);
             var o_spinner = jQuery('#mepr-wizard-finish-step-' + _addon_slug);
 
-            if(o_div.length && 1 === status) {
+            var next_addon = response.data.next_addon;
+
+            if(o_div.length && '1' == status) {
               o_div.find('.mepr-wizard-feature-activatedx').addClass('mepr-wizard-feature-activated');
               o_spinner.hide();
             }
 
-            if(0 === status) {
-              if(_addon_slug === 'easy-affiliate') {
-                var timeout;
-
+            if(o_div.length && _addon_slug === 'easy-affiliate') {
+              var ea_div_info = o_div.find('.mepr-wizard-addon-text');
+              if( '1' == status ) {
+                ea_div_info.removeClass('ea-running').removeClass('error').html('');
+              } else if( '0' == status ) {
                 if(!ea_install_started) {
                   ea_install_started = Date.now();
-                  timeout = 60000;
-                  o_div.find('.mepr-wizard-addon-text').text(MeprOnboardingL10n.may_take_couple_minutes);
-                }
-                else {
-                  timeout = 15000;
+                  ea_div_info.text(MeprOnboardingL10n.may_take_couple_minutes);
+                  ea_div_info.addClass('ea-running');
                 }
 
-                if(Date.now() - ea_install_started > 300000) {
-                  o_spinner.hide();
-                  o_div.find('.mepr-wizard-addon-text').addClass('error').html(message);
-                }
-                else {
-                  setTimeout(function () {
+                // lets try total 10 times and see if we can install EA.
+                if( ea_attempt_counter < 9 ) {
+                  setTimeout(function(){
                     onboarding.install_addons(_addon_slug);
-                  }, timeout);
-
+                    ea_attempt_counter++;
+                  }, 30000); // 30 seconds
+                  // Bailout - make sure not to run execute other addons if EA attempt is still running.
                   return;
+                } else {
+                  o_spinner.hide();
+                  ea_div_info.addClass('error').html(message);
                 }
-              }
-              else {
-                o_spinner.hide();
-                o_div.find('.mepr-wizard-addon-text').addClass('error').html(message);
               }
             }
 
-            if(_addon_slug === 'easy-affiliate' && !o_div.find('.mepr-wizard-addon-text').hasClass('error')) {
-              o_div.find('.mepr-wizard-addon-text').html('');
+            // Immediately set the error message for other addons
+            if('0' == status) {
+              o_spinner.hide();
+              o_div.find('.mepr-wizard-addon-text').addClass('error').html(message);
             }
 
             var next_addon = response.data.next_addon;
-
             if(next_addon !== '') {
               onboarding.install_addons(next_addon);
             }
@@ -1093,10 +1092,15 @@ var MeprOnboarding = (function($) {
               $('#mepr-wizard-finish-continue').show();
             }
             else {
-              setTimeout(function(){
-                onboarding.mark_steps_complete(7);
-                onboarding.go_to_step(8);
-              }, 1500);
+              if( ! $('.mepr-wizard-addon-text.error').length ) {
+                setTimeout(function(){
+                  onboarding.mark_steps_complete(7);
+                  onboarding.go_to_step(8);
+                }, 1500);
+              } else {
+                o_spinner.hide();
+                $('#mepr-wizard-finish-step-container .mepr-wizard-step-description').html('');
+              }
             }
           }
           else {

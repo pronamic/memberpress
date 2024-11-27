@@ -241,7 +241,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
     {
         $return_value = -1;
 
-        if (isset($license_addons->$addon_slug)) {
+        if ( ! empty($license_addons) && isset($license_addons->$addon_slug)) {
             $addon_info = $license_addons->$addon_slug;
 
             $plugin_url = $addon_info->url;
@@ -1246,6 +1246,8 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                               $features_data['addons_installed'][] = $addon_slug;
                               $features_data['addons_installed'] = array_unique($features_data['addons_installed']);
 
+                              unset($features_data['addons_not_installed'][$i]);
+
                               MeprOnboardingHelper::set_selected_features($features_data);
                               wp_send_json_success([
                                   'addon_slug' => $addon_slug,
@@ -1254,13 +1256,23 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                                   'next_addon' => $next_addon,
                               ]);
                         } else {
-                            $features_data['addons_upgrade_failed'][] = $addon_slug;
-                            $features_data['addons_upgrade_failed'] = array_unique($features_data['addons_upgrade_failed']);
+                            $message = esc_html__('Unable to install. Please download and install manually.', 'memberpress');
+                            if (-1 === (int) $response) {
+
+                                $purchase_links = MeprOnboardingHelper::features_addons_purchase_links();
+
+                                $features_data['addons_upgrade_failed'][] = $addon_slug;
+                                $features_data['addons_upgrade_failed'] = array_unique($features_data['addons_upgrade_failed']);
+
+                                if( isset($purchase_links[$addon_slug])) {
+                                    $message = MeprOnboardingHelper::prepare_purchase_message($purchase_links[$addon_slug]);
+                                }
+                            }
 
                             MeprOnboardingHelper::set_selected_features($features_data);
                             wp_send_json_success([
                                 'addon_slug' => $addon_slug,
-                                'message' => esc_html__('Unable to install. Please download and install manually.', 'memberpress'),
+                                'message' => $message,
                                 'status' => 0,
                                 'next_addon' => $next_addon,
                             ]);

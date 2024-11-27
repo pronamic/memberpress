@@ -870,6 +870,10 @@ class MeprPayPalGateway extends MeprBasePayPalGateway
      */
     public function record_cancel_subscription()
     {
+        if (!isset($_REQUEST['recurring_payment_id'])) {
+            return false;
+        }
+
         $subscr_id = $_REQUEST['recurring_payment_id'];
         $sub = MeprSubscription::get_one_by_subscr_id($subscr_id);
 
@@ -1276,11 +1280,11 @@ class MeprPayPalGateway extends MeprBasePayPalGateway
 
 PayPal is no longer accepting new signups for Digital Goods (via Express Checkout).
 
-If your PayPal account is not newly opened, you may be able to contact PayPal\'s 2nd or 3rd tier support engineers and get Digital Goods enabled for Express Checkout. A little persistance here is sometimes what it takes to make it happen.
+If your PayPal account is not newly opened, you may be able to contact PayPal\'s 2nd or 3rd tier support engineers and get Digital Goods enabled for Express Checkout. A little persistence here is sometimes what it takes to make it happen.
 
 If their support cannot, or will not activate Digital Goods for you, then you will need to switch MemberPress to use the PayPal Standard gateway integration instead.
 
-<a href="https://www.memberpress.com/user-manual/paypal-standard/">MemberPress - PayPal Standard Gateway Integration Instructions</a>
+<a href="https://memberpress.com/docs/paypal-standard/">MemberPress - PayPal Standard Gateway Integration Instructions</a>
 
 Thanks,
 

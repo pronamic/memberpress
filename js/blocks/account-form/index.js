@@ -1,24 +1,23 @@
 const { registerBlockType } = wp.blocks;
 const { __ } = wp.i18n;
 
-import MPPlaceholder from "../_global/components/mp-placeholder";
+import Placeholder from "../_global/components/placeholder";
 
 registerBlockType("memberpress/account-form", {
   title: __("Account Form", "memberpress"),
   icon: "excerpt-view", // https://developer.wordpress.org/resource/dashicons/
   category: "memberpress",
   description: __("Display the MemberPress Account form.", "memberpress"),
-  keywords: [__("membership acount form", "memberpress")],
+  keywords: [__("membership account form", "memberpress")],
   attributes: {},
   supports: {
     customClassName: false, // Removes "Custom CSS Class" from "Advanced" tab of block
     html: false // User cannot edit block as HTML
   },
   edit: function({ className }) {
-    // return __("MemberPress Account Form", "memberpress");
-    return [
+    return (
       <div className={className}>
-        <MPPlaceholder
+        <Placeholder
           icon="excerpt-view"
           label={__("MemberPress Account Form", "memberpress")}
           instructions={__(
@@ -27,7 +26,7 @@ registerBlockType("memberpress/account-form", {
           )}
         />
       </div>
-    ];
+    );
   },
   save: function() {
     return null; // Null because we're rendering the output serverside

@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php echo get_option('blog_charset'); ?>" />
   <meta name="robots" content="noindex,nofollow" />
-  <title><?php _e('Memberpress needs to upgrade your database', 'memberpress'); ?></title>
+  <title><?php _e('MemberPress needs to upgrade your database', 'memberpress'); ?></title>
   <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -168,7 +168,7 @@
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
         <div class="panel panel-primary">
-          <div class="panel-heading"><h2><?php _e('Memberpress needs to upgrade your database', 'memberpress'); ?></h2></div>
+          <div class="panel-heading"><h2><?php _e('MemberPress needs to upgrade your database', 'memberpress'); ?></h2></div>
           <div class="panel-body">
             <p>&nbsp;</p>
             <p><?php _e('Before starting the upgrade process <strong>make sure your <em>database is backed up</em></strong>.', 'memberpress'); ?></p>
@@ -187,7 +187,7 @@
             <!-- Button trigger modal -->
             <p>
               <button type="button" class="btn btn-primary btn-lg" id="upgrade_db_trigger"><?php _e('Upgrade', 'memberpress'); ?></button> or
-              <a href="<?php echo $update_ctrl->rollback_url(); ?>" onclick="return confirm('<?php _e('Are you sure? This will cancel the upgrade and roll Memberpress back to the previous version.', 'memberpress'); ?>');" target="_blank"><?php _e('Cancel', 'memberpress'); ?></a>
+              <a href="<?php echo $update_ctrl->rollback_url(); ?>" onclick="return confirm('<?php _e('Are you sure? This will cancel the upgrade and roll MemberPress back to the previous version.', 'memberpress'); ?>');" target="_blank"><?php _e('Cancel', 'memberpress'); ?></a>
             </p>
           </div>
         </div>
@@ -206,7 +206,7 @@
             </div>
             <p class="progress-bar-status"> </p>
             <br/><br/>
-            <a href="<?php echo $update_ctrl->rollback_url(); ?>" onclick="return confirm('<?php _e('Are you sure? This will abort the upgrade and roll Memberpress back to the previous version.', 'memberpress'); ?>');" target="_blank"><?php _e('Cancel', 'memberpress'); ?></a>
+            <a href="<?php echo $update_ctrl->rollback_url(); ?>" onclick="return confirm('<?php _e('Are you sure? This will abort the upgrade and roll MemberPress back to the previous version.', 'memberpress'); ?>');" target="_blank"><?php _e('Cancel', 'memberpress'); ?></a>
           </div>
         </div>
       </div>

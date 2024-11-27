@@ -2,8 +2,7 @@
 /**
  * @license GPL-3.0
  *
- * Modified by caseproof on 22-January-2024 using Strauss.
- * @see https://github.com/BrianHenryIE/strauss
+ * Modified by Team Caseproof using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace MemberPress\Caseproof\GrowthTools\Helper;

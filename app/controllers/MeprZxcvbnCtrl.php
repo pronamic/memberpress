@@ -8,16 +8,16 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
 {
     public function load_hooks()
     {
-        $mepr_options = MeprOptions::fetch();
-
-        if ($mepr_options->enforce_strong_password) {
-            add_filter('mepr-signup-scripts', 'MeprZxcvbnCtrl::load_scripts', 10, 3);
-            add_action('wp_enqueue_scripts', 'MeprZxcvbnCtrl::load_reset_password_scripts');
-            add_action('mepr-after-password-fields', 'MeprZxcvbnCtrl::display_meter');
-            add_action('mepr-account-after-password-fields', 'MeprZxcvbnCtrl::display_meter');
-            add_action('mepr-reset-password-after-password-fields', 'MeprZxcvbnCtrl::display_meter');
-            add_filter('mepr-validate-signup', 'MeprZxcvbnCtrl::validate_signup');
-        }
+        add_action('after_setup_theme', function () {
+            if (MeprOptions::fetch()->enforce_strong_password) {
+                add_filter('mepr-signup-scripts', 'MeprZxcvbnCtrl::load_scripts', 10, 3);
+                add_action('wp_enqueue_scripts', 'MeprZxcvbnCtrl::load_reset_password_scripts');
+                add_action('mepr-after-password-fields', 'MeprZxcvbnCtrl::display_meter');
+                add_action('mepr-account-after-password-fields', 'MeprZxcvbnCtrl::display_meter');
+                add_action('mepr-reset-password-after-password-fields', 'MeprZxcvbnCtrl::display_meter');
+                add_filter('mepr-validate-signup', 'MeprZxcvbnCtrl::validate_signup');
+            }
+        }, 20);
     }
 
     public static function validate_signup($errors)
@@ -33,7 +33,7 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
     {
         // Weak is actually still relatively strong, so we're going to alter the mapping a bit
         return  [
-            'script_url'  => MEPR_JS_URL . '/zxcvbn.js',
+            'script_url'  => MEPR_JS_URL . '/vendor/zxcvbn.js',
             'very_weak'   => __('Weak', 'memberpress'),
             'weak'        => __('Medium', 'memberpress'),
             'medium'      => __('Strong', 'memberpress'),
@@ -129,4 +129,3 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         }
     }
 } //End class
-

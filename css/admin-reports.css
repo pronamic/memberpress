@@ -1,19 +1,4 @@
 /* Reports CSS */
-.icon32 {
-  float: right;
-  display: inline-block;
-  background:url('../images/memberpress-logo.svg') !important;
-  width: 200px !important;
-  height: 32px !important;
-}
-
-@media all and (-webkit-min-device-pixel-ratio: 1.5) {
-  .icon32 {
-    background-image: url('../images/memberpress-logo.svg') !important;
-    background-size: 200px 32px !important;
-  }
-}
-
 div.mepr_reports_area {
   display:none;
   padding:25px;

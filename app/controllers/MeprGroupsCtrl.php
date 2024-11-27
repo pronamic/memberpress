@@ -75,6 +75,11 @@ class MeprGroupsCtrl extends MeprCptCtrl
             return $content;
         }
 
+        // Stop rendering pricing box on Admin side
+        if (is_admin()) {
+            return $content;
+        }
+
         // WARNING the_content CAN be run more than once per page load
         // so this static var prevents stuff from happening twice
         // like cancelling a subscr or resuming etc...

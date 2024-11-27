@@ -16,7 +16,7 @@
             <tr>
               <td valign="top">
                 <div style="text-align:center;padding:60px 0;">
-                  <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/memberpress-logo.png'); ?>" alt="MemberPress logo" width="350" />
+                  <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/logo.png'); ?>" alt="MemberPress logo" width="350" />
                 </div>
                 <div style="padding:0 0 30px 0;">
                   <p style="font-family:Helvetica,Arial,sans-serif;line-height:1.5;">

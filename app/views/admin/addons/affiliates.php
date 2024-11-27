@@ -9,7 +9,7 @@ $check_mark_svg = file_get_contents(MEPR_IMAGES_PATH . '/Check_Mark.svg');
   <div class="mepr-sister-plugin mepr-sister-plugin-easy-affiliate" data-config="<?php echo esc_attr(wp_json_encode($plugin)); ?>">
 
     <div class="mepr-sister-plugin-image">
-      <?php echo file_get_contents(MEPR_IMAGES_PATH . '/memberpress-easy-affiliate.svg'); ?>
+      <?php echo file_get_contents(MEPR_BRAND_PATH . '/images/logo-heart-easy-affiliate.svg'); ?>
     </div>
 
     <div class="mepr-sister-plugin-title">
@@ -23,7 +23,7 @@ $check_mark_svg = file_get_contents(MEPR_IMAGES_PATH . '/Check_Mark.svg');
     <div class="mepr-sister-plugin-info mepr-clearfix">
       <div class="mepr-sister-plugin-info-image">
         <div>
-          <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/easy-affiliate-screens.png'); ?>" alt="">
+          <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/easy-affiliate-screens.png'); ?>" alt="">
         </div>
       </div>
       <div class="mepr-sister-plugin-info-features">

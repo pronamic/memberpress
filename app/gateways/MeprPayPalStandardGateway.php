@@ -305,7 +305,8 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                     $this->record_create_subscription(); // Is it even possible to get here?
                 }
 
-                // Record recurring payment on existing sub (this bypasses is_ipn_for_me which is needed in case subscriptions were imported from non-MP services)
+                // Record recurring payment on existing sub (this bypasses is_ipn_for_me which is needed in case
+                // subscriptions were imported from 3rd party services)
                 $this->record_subscription_payment();
             }
         } elseif (isset($_POST['parent_txn_id']) && !isset($_POST['txn_type'])) {
@@ -329,7 +330,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
     public function is_ipn_for_me()
     {
         // Note: Sometimes PayPal doesn't send the custom field, or it is cutoff and doesn't include the gateway_id
-        // This prevents transactions from being created in MP. Since the fix is dependent on PayPal, this filter
+        // This prevents transactions from being recorded. Since the fix is dependent on PayPal, this filter
         // is to override the IPN is for me check so customers sites can still operate.
         // CAUTION: Should ony be used for customers with this specific issue and that only have 1 PayPal payment gateway setup.
         // The same filter is in MeprPayPalCommerceGateway as well.

@@ -2,10 +2,8 @@
     die('You are not allowed to call this page directly.');
 } ?>
 
-<!-- <img src="<?php echo MEPR_IMAGES_URL; ?>/memberpress-logo.svg" id="mepr-widget-logo" /> -->
-
 <div id="widget-info-blocks">
-  <img src="<?php echo MEPR_URL; ?>/images/memberpress-logo.svg" id="mepr-stats-logo" />
+  <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/logo.svg'); ?>" id="mepr-stats-logo" />
   <p><?php _e('Your 7-Day membership activity:', 'memberpress'); ?></span></p>
 
   <div class="widget_info_block">

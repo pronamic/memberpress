@@ -2243,7 +2243,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
         }
     }
 
-    // SPECIFICALLY TO USE IN MEPRDB TO MIGRATE SUBSCRIPTIONS TO IT'S NEW TABLE
+    // SPECIFICALLY USED TO MIGRATE SUBSCRIPTIONS TO ITS NEW TABLE
     public static function upgrade_attrs()
     {
         return [
@@ -2297,7 +2297,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
         return $col;
     }
 
-    // SPECIFICALLY TO USE IN MEPRDB TO MIGRATE SUBSCRIPTIONS TO IT'S NEW TABLE
+    // SPECIFICALLY USED TO MIGRATE SUBSCRIPTIONS TO ITS NEW TABLE
     public static function upgrade_query($subscription_id = null, $exclude_already_upgraded = false, $limit = '')
     {
         global $wpdb;

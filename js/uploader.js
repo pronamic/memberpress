@@ -33,8 +33,8 @@
         if (up.features.dragdrop) {
           element.addClass('drag-drop');
           element.find('.drag-drop-area')
-            .bind('dragover.wp-uploader', function () { element.addClass('drag-over'); })
-            .bind('dragleave.wp-uploader, drop.wp-uploader', function () { element.removeClass('drag-over'); });
+            .on('dragover.wp-uploader', function () { element.addClass('drag-over'); })
+            .on('dragleave.wp-uploader, drop.wp-uploader', function () { element.removeClass('drag-over'); });
         } else {
           element.removeClass('drag-drop');
           element.find('.drag-drop-area').unbind('.wp-uploader');
@@ -79,7 +79,7 @@
       var $this = this;
 
       this.uploader.bind('FileUploaded', function (up, file, response) {
-        let r = $.parseJSON(response.response);
+        let r = JSON.parse(response.response);
 
         // Store attachment ID inside hidden input
         $hiddenInput.val(r.data.id);

@@ -146,13 +146,13 @@ class MeprAccountCtrl extends MeprBaseCtrl
 
             // Check if there's a phone field
             if ($has_phone) {
-                wp_enqueue_style('mepr-phone-css', MEPR_CSS_URL . '/intlTelInput.min.css', '', '16.0.0');
+                wp_enqueue_style('mepr-phone-css', MEPR_CSS_URL . '/vendor/intlTelInput.min.css', '', '16.0.0');
                 wp_enqueue_style('mepr-tel-config-css', MEPR_CSS_URL . '/tel_input.css', '', MEPR_VERSION);
-                wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/intlTelInput.js', '', '16.0.0', true);
+                wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/vendor/intlTelInput.js', '', '16.0.0', true);
                 wp_enqueue_script('mepr-tel-config-js', MEPR_JS_URL . '/tel_input.js', ['mepr-phone-js', 'mp-account'], MEPR_VERSION, true);
                 wp_localize_script('mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters('mepr-phone-input-config', [
                     'defaultCountry' => strtolower(get_option('mepr_biz_country')),
-                    'utilsUrl' => MEPR_JS_URL . '/intlTelInputUtils.js',
+                    'utilsUrl' => MEPR_JS_URL . '/vendor/intlTelInputUtils.js',
                     'onlyCountries' => '',
                 ]));
             }
@@ -724,12 +724,12 @@ class MeprAccountCtrl extends MeprBaseCtrl
 
         // Since we use user_* for these, we need to artifically set the $_POST keys correctly for this to work
         if (isset($_POST['user_first_name']) && ( !isset($_POST['first_name']) || empty($_POST['first_name']))) {
-            $_POST['first_name'] = (!empty($_POST['user_first_name'])) ? sanitize_text_field(wp_unslash($_POST['user_first_name'])) : '';
+            $_POST['first_name'] = (!empty($_POST['user_first_name'])) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
             unset($_POST['user_first_name']);
         }
 
         if (isset($_POST['user_last_name']) && (!isset($_POST['last_name']) || empty($_POST['last_name']))) {
-            $_POST['last_name'] = (!empty($_POST['user_last_name'])) ? sanitize_text_field(wp_unslash($_POST['user_last_name'])) : '';
+            $_POST['last_name'] = (!empty($_POST['user_last_name'])) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
             unset($_POST['user_last_name']);
         }
 
@@ -750,6 +750,9 @@ class MeprAccountCtrl extends MeprBaseCtrl
             }
 
             MeprUsersCtrl::save_extra_profile_fields($current_user->ID, true, false, false, $field_key);
+
+            MeprHooks::do_action('mepr-save-account', $current_user);
+
             wp_send_json_success();
         } else {
             wp_send_json_error($errors);

@@ -11,10 +11,10 @@ if (!defined('ABSPATH')) {
 
 <h2>Source: MemberPress</h2>
 
-<h2>Who we are<h2>
+<h2>Who we are</h2>
 <p>
   Our website address: <a href="https://memberpress.com/" target="_blank">MemberPress</a><br />
-  Contact us at: <a href="https://memberpress.com/customer-support/" target="_blank">https://memberpress.com/customer-support/</a><br />
+  Contact us at: <a href="https://memberpress.com/support/" target="_blank">https://memberpress.com/support/</a><br />
   Our Privacy Policy: <a href="https://docs.memberpress.com/article/235-what-personal-data-does-memberpress-collect" target="_blank">Privacy Policy</a><br />
 </p>
 

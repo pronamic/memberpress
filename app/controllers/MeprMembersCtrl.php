@@ -81,7 +81,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
 
         if ($hook == 'memberpress_page_memberpress-members' || $hook == 'memberpress_page_memberpress-new-member') {
             wp_register_script('mepr-table-controls-js', MEPR_JS_URL . '/table_controls.js', ['jquery'], MEPR_VERSION);
-            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
+            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
             wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
             wp_register_script('mphelpers', MEPR_JS_URL . '/mphelpers.js', ['suggest'], MEPR_VERSION);
             wp_enqueue_script(
@@ -92,7 +92,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
             );
 
             wp_register_style('mepr-jquery-ui-smoothness', $url);
-            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
+            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
             wp_enqueue_style('mepr-members-css', MEPR_CSS_URL . '/admin-members.css', ['mepr-settings-table-css','jquery-ui-timepicker-addon'], MEPR_VERSION);
         }
     }

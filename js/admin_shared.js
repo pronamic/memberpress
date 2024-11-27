@@ -140,6 +140,14 @@ jQuery(document).ready(function($) {
     Cookies.set('mepr_paypal_connect_upgrade_dismissed', '1', { expires: 1, path: '/' });
   });
 
+  // Show notifications on page load for query show=notifications
+  if (window.meprIpnInbox) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('show') && 'notifications' === urlParams.get('show')) {
+      window.meprIpnInbox.open();
+    }
+  }
+
   $('body').on('click', '.mepr-notice-dismiss-permanently button.notice-dismiss', function () {
     $.ajax({
       url: MeprAdminShared.ajax_url,
@@ -191,15 +199,6 @@ jQuery(document).ready(function($) {
   $('body').on('click', '.notice.is-dismissible .mepr-dismiss-this-notice', function (e) {
     e.preventDefault();
     $(this).closest('.notice').find('button.notice-dismiss').trigger('click');
-  });
-
-  $('#mepAdminHeaderNotifications').on('click', function(e) {
-    e.preventDefault();
-    $('#mepr-notifications').toggleClass('visible');
-  });
-  $('#meprNotificationsClose').on('click', function(e) {
-    e.preventDefault();
-    $('#mepr-notifications').removeClass('visible');
   });
 
   $('body').on('click', '.mepr-notice-dismiss-24hour button.notice-dismiss', function (e) {

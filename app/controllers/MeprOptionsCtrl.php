@@ -130,8 +130,8 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         if ($hook == 'memberpress_page_memberpress-options') {
             $mepr_options = MeprOptions::fetch();
 
-            wp_register_style('mepr-clipboardtip', MEPR_CSS_URL . '/tooltipster.bundle.min.css', [], MEPR_VERSION);
-            wp_register_style('mepr-clipboardtip-borderless', MEPR_CSS_URL . '/tooltipster-sideTip-borderless.min.css', ['mepr-clipboardtip'], MEPR_VERSION);
+            wp_register_style('mepr-clipboardtip', MEPR_CSS_URL . '/vendor/tooltipster.bundle.min.css', [], MEPR_VERSION);
+            wp_register_style('mepr-clipboardtip-borderless', MEPR_CSS_URL . '/vendor/tooltipster-sideTip-borderless.min.css', ['mepr-clipboardtip'], MEPR_VERSION);
             wp_enqueue_style('mp-options', MEPR_CSS_URL . '/admin-options.css', ['mepr-settings-table-css','mepr-clipboardtip','mepr-clipboardtip-borderless'], MEPR_VERSION);
             wp_enqueue_style('mp-emails', MEPR_CSS_URL . '/admin-emails.css', ['mp-options'], MEPR_VERSION);
 
@@ -184,8 +184,8 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             wp_enqueue_script('alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', [], MEPR_VERSION, true);
             wp_localize_script('memberpress-i18n', 'MeprI18n', ['states' => MeprUtils::states()]);
 
-            wp_register_script('mepr-clipboard-js', MEPR_JS_URL . '/clipboard.min.js', [], MEPR_VERSION);
-            wp_register_script('mepr-tooltipster', MEPR_JS_URL . '/tooltipster.bundle.min.js', ['jquery'], MEPR_VERSION);
+            wp_register_script('mepr-clipboard-js', MEPR_JS_URL . '/vendor/clipboard.min.js', [], MEPR_VERSION);
+            wp_register_script('mepr-tooltipster', MEPR_JS_URL . '/vendor/tooltipster.bundle.min.js', ['jquery'], MEPR_VERSION);
             wp_register_script('mepr-copy-to-clipboard', MEPR_JS_URL . '/copy_to_clipboard.js', ['mepr-clipboard-js','mepr-tooltipster'], MEPR_VERSION);
             wp_localize_script('mepr-copy-to-clipboard', 'MeprClipboard', [
                 'copy_text' => __('Copy to Clipboard', 'memberpress'),

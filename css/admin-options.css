@@ -2,58 +2,9 @@
   display: none;
 }
 
-.icon32 {
-  float: right;
-  display: inline-block;
-  background:url('../images/memberpress-logo.svg') !important;
-  width: 200px !important;
-  height: 32px !important;
-}
-
-@media all and (-webkit-min-device-pixel-ratio: 1.5) {
-  .icon32 {
-    background-image: url('../images/memberpress-logo.svg') !important;
-    background-size: 200px 32px !important;
-  }
-}
-
 div#license {
   display:block;
 }
-
-/*
-a.nav-tab {
-  font-size:13px;
-  font-weight:bold;
-  margin-right:0;
-  padding:4px 8px 6px;
-}
-
-h2.nav-tab-wrapper {
-  padding-left:6px;
-}
-
-h2 .nav-tab {
-  color:#21759B;
-}
-
-h2 .nav-tab:hover {
-  color:#D54E21;
-}
-
-h2 .nav-tab-active {
-  text-shadow:1px 1px 1px white;
-  font-weight:bold;
-  color:#464646;
-}
-
-#mepr_options_form h2 .nav-tab {
-  padding:4px 10px 6px;
-  margin:0 -2px -1px 0;
-  font-size:18px;
-  vertical-align:top;
-}
-*/
 
 hr {
   border:none;

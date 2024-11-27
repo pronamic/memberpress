@@ -45,7 +45,7 @@
             <?php endif; ?>
             <p>
               <a class="btn btn-primary" href="<?php echo $update_ctrl->rollback_url(); ?>" target="_blank"><?php _e('Rollback MemberPress', 'memberpress'); ?></a>
-              <a class="btn btn-primary" href="https://www.memberpress.com/support/" target="_blank"><?php _e('Contact Support', 'memberpress'); ?></a>
+              <a class="btn btn-primary" href="https://memberpress.com/support/" target="_blank"><?php _e('Contact Support', 'memberpress'); ?></a>
             </p>
             <p>&nbsp;</p>
           </div>

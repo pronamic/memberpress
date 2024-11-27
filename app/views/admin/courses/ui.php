@@ -7,7 +7,7 @@
   <div class="mepr-sister-plugin mepr-sister-plugin-wp-mail-smtp">
 
     <div class="mepr-sister-plugin-image mp-courses-image">
-      <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/courses-logo.svg'); ?>" width="800" height="216" alt="">
+      <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/courses-logo.svg'); ?>" width="800" height="216" alt="">
     </div>
 
     <div class="mepr-sister-plugin-title">
@@ -21,7 +21,7 @@
     <div class="mepr-sister-plugin-info mepr-clearfix">
       <div class="mepr-sister-plugin-info-image">
         <div>
-          <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/memberpress-courses.png'); ?>" alt="<?php esc_attr_e('MemberPress Courses curriculum builder', 'memberpress'); ?>">
+          <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/courses-screenshot.png'); ?>" alt="<?php esc_attr_e('MemberPress Courses curriculum builder', 'memberpress'); ?>">
         </div>
       </div>
       <div class="mepr-sister-plugin-info-features">
@@ -61,7 +61,7 @@
 
 <script>
   jQuery(document).ready(function($) {
-    $('.mepr-courses-action').click(function(event) {
+    $('.mepr-courses-action').on('click', function(event) {
       event.preventDefault();
       var $this = $(this);
       $this.prop('disabled', 'disabled');

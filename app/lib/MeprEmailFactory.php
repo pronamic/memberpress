@@ -53,19 +53,16 @@ class MeprEmailFactory
             }
 
             // order based on the ui_order
-            uasort($objs[$etype], 'MeprEmailFactory::cmp_uasort');
+            uasort($objs[$etype], function ($a, $b) {
+                if ($a->ui_order == $b->ui_order) {
+                    return 0;
+                }
+
+                return ($a->ui_order < $b->ui_order) ? -1 : 1;
+            });
         }
 
         return $objs[$etype];
-    }
-
-    // Purely used for sorting based on the ui_order
-    public static function cmp_uasort($a, $b)
-    {
-        if ($a->ui_order == $b->ui_order) {
-            return 0;
-        }
-        return ($a->ui_order < $b->ui_order) ? -1 : 1;
     }
 
     public static function paths()

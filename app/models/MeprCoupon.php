@@ -197,7 +197,7 @@ class MeprCoupon extends MeprCptModel
         // Can't be used on upgrades, so make sure we're not trying to apply to an upgrade
         if (MeprUtils::is_user_logged_in() && ! $this->can_use_on_upgrades()) {
             $prd = new MeprProduct($product_id);
-            if ($prd->is_upgrade_or_downgrade_for(get_current_user_id(), 'upgrade')) {
+            if ($prd->is_upgrade_or_downgrade_for(get_current_user_id())) {
                 return false;
             }
         }
