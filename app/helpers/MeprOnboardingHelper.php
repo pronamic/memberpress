@@ -127,8 +127,8 @@ class MeprOnboardingHelper
     public static function prepare_purchase_message($purchase_link)
     {
         return sprintf(
-            esc_html__('Unable to install. You can %spurchase it here%s, afterwards you can install it from the add-ons page.', 'memberpress'),
-            '<a href="'.esc_url($purchase_link).'">',
+            esc_html__('Unable to install. You can %1$spurchase it here%2$s, afterwards you can install it from the add-ons page.', 'memberpress'),
+            '<a href="' . esc_url($purchase_link) . '">',
             '</a>'
         );
     }

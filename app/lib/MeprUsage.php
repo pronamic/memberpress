@@ -370,6 +370,7 @@ class MeprUsage
             'paywall_enabled' => $mepr_options->paywall_enabled,
             'paywall_num_free_views' => $mepr_options->paywall_num_free_views,
             'disable_mod_rewrite' => $mepr_options->disable_mod_rewrite,
+            'hide_admin_bar_menu' => $mepr_options->hide_admin_bar_menu,
             'asynchronous_emails' => (bool) get_option('mp-bkg-email-jobs-enabled'),
             'calculate_taxes' => (bool) get_option('mepr_calculate_taxes'),
             'tax_calc_type' => (string) get_option('mepr_tax_calc_type'),

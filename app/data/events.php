@@ -1,6 +1,6 @@
 <?php
 
-return [
+return MeprHooks::apply_filters('mepr_events', [
     /**
      * Events for Members
      */
@@ -160,4 +160,4 @@ return [
     'mpca-quiz-attempt-completed' => (object) [
         'unique' => false,
     ],
-];
+]);

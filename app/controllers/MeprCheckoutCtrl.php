@@ -944,6 +944,16 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
     public static function get_order_bump_products($product_id, array $order_bump_product_ids)
     {
         $order_bump_products = [];
+        $base_product = new MeprProduct($product_id);
+        $required_order_bumps = $base_product->get_required_order_bumps();
+
+        // Track if all required order bumps are found
+        if (!empty($required_order_bumps) && !empty($order_bump_product_ids)) {
+            $missing_required_order_bumps = array_diff($required_order_bumps, $order_bump_product_ids);
+            if (!empty($missing_required_order_bumps)) {
+                throw new Exception(__('One of the required products is missing.', 'memberpress'));
+            }
+        }
 
         foreach ($order_bump_product_ids as $order_bump_product_id) {
             $product = new MeprProduct($order_bump_product_id);
@@ -1021,6 +1031,30 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         ob_start();
         MeprProductsHelper::display_invoice($prd, $coupon_code);
         $price_string = ob_get_clean();
+
+        // By default hide required order bumps pricing terms on SPC and ReadyLaunch™ Templates.
+        $disable_ob_required_terms = $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template;
+        if (! $mepr_options->enable_spc_invoice) {
+            $disable_ob_required_terms = false;
+        }
+
+        if (! MeprHooks::apply_filters('mepr_signup_disable_order_bumps_required_terms', $disable_ob_required_terms, $prd)) {
+            $required_order_bumps = $prd->get_required_order_bumps();
+            if (! empty($required_order_bumps)) {
+                ob_start();
+                foreach ($required_order_bumps as $required_order_bump_id) {
+                    if (! MeprHooks::apply_filters('mepr_signup_skip_order_bump_required_terms', false, $required_order_bump_id, $prd)) {
+                        echo'<br />';
+                        MeprProductsHelper::display_invoice(new MeprProduct($required_order_bump_id), false, true);
+                    }
+                }
+
+                $required_order_bumps_terms = ob_get_clean();
+                if (! empty($required_order_bumps_terms)) {
+                    $price_string .= wp_kses_post($required_order_bumps_terms);
+                }
+            }
+        }
 
         ob_start();
         MeprProductsHelper::display_spc_invoice($prd, $coupon_code, $order_bump_products);

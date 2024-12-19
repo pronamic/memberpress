@@ -90,7 +90,7 @@
 
       const onComplete = function () {
         if (MeprSignup.spc_enabled === '1' && MeprSignup.spc_invoice === '1') {
-          $form.find('.mepr-invoice-loader').hide();
+          $form.find('.mepr-invoice-loader').stop().hide();
         }
 
         updatingCheckoutState = false;
@@ -391,6 +391,19 @@
         }
       });
 
+      if ( $(this).hasClass('mepr_order_bumps_init') ) {
+        return;
+      }
+
+      var is_ob_required = $order_bump.hasClass('mepr-order-bump-required');
+
+      if (is_ob_required) {
+        $(this).addClass('mepr_order_bumps_init');
+      }
+
+      $form.find('.mepr-order-bumps-notice').removeClass('mepr_error').addClass('mepr-hidden');
+      $form.removeClass('mepr-order-bumps-required-error');
+
       $form.find('div[class^=mepr-payment-method] input.mepr-form-radio, input[type="hidden"][name="mepr_payment_method"]').each(function () {
         var $pm = $(this);
 
@@ -429,9 +442,19 @@
         }
       });
 
+      if($incompatible_pm && is_ob_required) {
+        $to_hide = $to_hide.add($incompatible_pm);
+        $to_hide.closest('.mepr_payment_method, .mepr-payment-option-label').hide()
+      }
+
       if(!$to_show.length) {
-        alert(MeprSignup.no_compatible_pms);
-        return false;
+        if( is_ob_required ) {
+          $form.find('.mepr-order-bumps-notice').text(MeprSignup.no_compatible_pms_ob_required).addClass('mepr_error').removeClass('mepr-hidden');
+          $form.addClass('mepr-order-bumps-required-error');
+        } else {
+          alert(MeprSignup.no_compatible_pms);
+          return false;
+        }
       }
 
       if($incompatible_pm) {
@@ -456,20 +479,31 @@
               $('<div class="mepr-switch-pm-popup-buttons">').append($switch_button, $cancel_button)
             );
 
-            $.magnificPopup.open({
-              mainClass: 'mepr-switch-pm-mfp',
-              items: {
-                src: $popup_content,
-                type: 'inline'
-              }
-            });
+            if( ! is_ob_required ) {
+              $.magnificPopup.open({
+                mainClass: 'mepr-switch-pm-mfp',
+                items: {
+                  src: $popup_content,
+                  type: 'inline'
+                }
+              });
+            } else {
+              $compatible_pm.trigger('click');
+              $input.trigger('click');
+            }
+
           } else if(confirm(prompt)) {
             $compatible_pm.trigger('click');
             $input.trigger('click');
             return;
           }
         } else {
-          alert(MeprSignup.no_compatible_pms);
+          if( is_ob_required ) {
+            $form.find('.mepr-order-bumps-notice').text(MeprSignup.no_compatible_pms_ob_required).addClass('mepr_error').removeClass('mepr-hidden');
+            $form.addClass('mepr-order-bumps-required-error');
+          } else {
+            alert(MeprSignup.no_compatible_pms);
+          }
         }
 
         return false;
@@ -482,6 +516,23 @@
     };
 
     $('body').on('click', '.mepr-signup-form input[name="mepr_order_bumps[]"]', handleOrderBumpToggle);
+
+    if( $('.mepr-order-bump-required').length ) {
+
+      $('input[name="mepr_order_bumps[]"]:checked').each(function () {
+        handleOrderBumpToggle.call(this);
+      });
+
+      if( $('.mepr-signup-form.mepr-order-bumps-required-error').length ) {
+        $('.mepr-signup-form').find('.mepr-submit').hide();
+        $('.mepr-signup-form').find('.mepr-submit').attr('disabled','disabled');
+      } else {
+        $('.mepr-signup-form').find('.mepr-submit').show();
+        $('.mepr-signup-form').find('.mepr-submit').removeAttr('disabled');
+      }
+
+      updateCheckoutState($('.mepr-signup-form'));
+    }
 
     // Hide subscription order bumps if no payment method supports multiple subscriptions
     $('.mepr-signup-form').each(function () {

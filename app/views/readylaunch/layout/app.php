@@ -30,7 +30,7 @@
       <?php if ($user) : ?>
       <div x-data="{open: false}" class="ml-3 profile-menu">
         <div class="profile-menu__button-group">
-          <button @click="open = !open" type="button" class="profile-menu__button --is-desktop" id="user-menu-button"
+          <button @click="open = !open" type="button" class="profile-menu__button --is-tablet" id="user-menu-button"
             @click="onButtonClick()" aria-expanded="false" aria-haspopup="true">
             <img class="profile-menu__avatar h-8 w-8 rounded-full"
               src="<?php echo esc_url_raw(get_avatar_url($user->ID, ['size' => '51'])) ?>"

@@ -140,6 +140,10 @@ class MeprOptions
             $this->disable_mod_rewrite = true;
         }
 
+        if (!isset($this->hide_admin_bar_menu)) {
+            $this->hide_admin_bar_menu = false;
+        }
+
         if (!isset($this->anti_card_testing_enabled)) {
             $this->anti_card_testing_enabled = true;
         }
@@ -580,6 +584,7 @@ class MeprOptions
         $this->logout_redirect_url_str                  = 'mepr-logout-redirect-url';
         $this->account_css_width_str                    = 'mepr-account-css-width';
         $this->disable_mod_rewrite_str                  = 'mepr-disable-mod-rewrite';
+        $this->hide_admin_bar_menu_str                  = 'mepr-hide-admin-bar-menu';
         $this->anti_card_testing_enabled_str            = 'mepr-anti-card-testing-enabled';
         $this->anti_card_testing_ip_method_str          = 'mepr-anti-card-testing-ip-method';
         $this->anti_card_testing_blocked_str            = 'mepr-anti-card-testing-blocked';
@@ -813,6 +818,7 @@ class MeprOptions
         }
 
         $this->disable_mod_rewrite           = isset($params[$this->disable_mod_rewrite_str]);
+        $this->hide_admin_bar_menu           = isset($params[$this->hide_admin_bar_menu_str]);
         $this->anti_card_testing_enabled     = isset($params[$this->anti_card_testing_enabled_str]);
         $this->anti_card_testing_ip_method   = isset($params[$this->anti_card_testing_ip_method_str]) ? sanitize_text_field(wp_unslash($params[$this->anti_card_testing_ip_method_str])) : '';
         $this->anti_card_testing_blocked     = isset($params[$this->anti_card_testing_blocked_str]) && is_string($params[$this->anti_card_testing_blocked_str]) ? array_unique(array_filter(array_map('trim', explode("\n", $params[$this->anti_card_testing_blocked_str])))) : [];

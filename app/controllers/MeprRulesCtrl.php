@@ -56,7 +56,6 @@ class MeprRulesCtrl extends MeprCptCtrl
             add_filter('woocommerce_variation_is_visible', 'MeprRulesCtrl::override_wc_is_visible', 11, 4);
             add_filter('mepr-pre-run-rule-content', 'MeprRulesCtrl::dont_hide_wc_product_content', 11, 3);
         }
-        add_action('wp_enqueue_scripts', 'MeprRulesCtrl::enqueue_scripts_paywall');
     }
 
     public function register_post_type()
@@ -418,6 +417,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             MeprView::render('/readylaunch/shared/unauthorized_message', get_defined_vars());
         } else {
             if (isset($unauth->modern_paywall) && true === $unauth->modern_paywall && ! MeprAppHelper::is_memberpress_page($post)) {
+                wp_enqueue_script('mepr-modern-paywall', MEPR_JS_URL . '/modern_paywall.js', ['jquery'], MEPR_VERSION, true);
                 MeprView::render('/shared/unauthorized_message_modern_paywall', get_defined_vars());
             } else {
                 MeprView::render('/shared/unauthorized_message', get_defined_vars());
@@ -1050,19 +1050,4 @@ class MeprRulesCtrl extends MeprCptCtrl
             MeprUtils::debug_log("Rule (#{$post_id}) content can't be empty. Post status forced to 'draft'");
         }
     }
-
-    /**
-     * Enqueue Scripts for modern paywall.
-     */
-    public static function enqueue_scripts_paywall()
-    {
-        $current_post = MeprUtils::get_current_post();
-        if (false === $current_post) {
-            return;
-        }
-        $unauth = MeprRule::get_unauth_settings_for($current_post);
-        if (MeprRule::is_locked($current_post) && isset($unauth->modern_paywall) && true === $unauth->modern_paywall && ! MeprAppHelper::is_memberpress_page($current_post)) {
-            wp_enqueue_script('modern-paywall', MEPR_JS_URL . '/modern_paywall.js', ['jquery'], MEPR_VERSION, true);
-        }
-    }
-} //End class
+}

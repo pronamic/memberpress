@@ -632,10 +632,20 @@ table.mepr-addons-table tr th {
   min-height: 36px;
   border-bottom: 2px solid #00cee6;
 }
+@media screen and (max-width: 600px) {
+  #wpcontent #mp-admin-header {
+    position: relative;
+    top: 46px;
+  }
+}
 #wpcontent #mp-admin-header img.mp-logo {
   height: 36px;
 }
-
+@media screen and (max-width: 390px) {
+  #wpcontent #mp-admin-header img.mp-logo {
+    height: 30px;
+  }
+}
 #wpcontent #mp-admin-header .mp-admin-header-actions {
   align-items: center;
   display: flex;

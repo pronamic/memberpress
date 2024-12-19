@@ -698,7 +698,7 @@ class MeprUtils
             $proration = max($new_amount - $old_outstanding_amount, 0.00);
             $days = 0; // we just do this thing
         } elseif ($old_period == 'lifetime' && is_numeric($new_period) && $old_amount > 0) {
-            // lifetime to recurring{
+            // lifetime to recurring
             $proration = max($new_amount - $old_amount, 0.00);
             $days = $new_period; // (is_numeric($old_days_left) && !$reset_period)?$old_days_left:$new_period;
         } elseif ($old_period == 'lifetime' && $new_period == 'lifetime' && $old_amount > 0) {
@@ -1420,13 +1420,54 @@ class MeprUtils
             return false;
         }
 
-        if ('d/m/Y' === get_option('date_format')) {
-            $str = preg_replace('/([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})/', '$2/$1/$3', $str);
+        // Validate date formats: YYYY-MM-DD HH:MM:SS or YYYY-MM-DD
+        if (preg_match('/\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?/', $str)) {
+            return strtotime($str) !== false;
         }
 
-        $d = strtotime($str);
+        $date_format = get_option('date_format');
+
+        // Replace d/m/Y with m/d/Y and validate
+        if ('d/m/Y' === $date_format) {
+            $str = preg_replace('/(\d{1,2})\/(\d{1,2})\/(\d{4})/', '$2/$1/$3', $str);
+
+            return strtotime($str) !== false;
+        }
+
+        $locale = get_locale();
+        $locale_date_map = require MEPR_I18N_PATH . '/locale_date_map.php';
+
+        // Validate date formats for non-US locales
+        if (array_key_exists($locale, $locale_date_map)) {
+            return MeprUtils::validate_international_date($str, $date_format, $locale_date_map);
+        }
+
+        $d = MeprHooks::apply_filters('mepr_is_date', strtotime($str), $str);
 
         return ($d !== false);
+    }
+
+    private static function validate_international_date($date_str, $format, $locale_map)
+    {
+        $date_str = strtolower($date_str);
+
+        // Try to detect the locale based on month/day names
+        foreach ($locale_map as $locale => $terms) {
+            foreach ($terms['months'] as $non_english => $english) {
+                if (stripos($date_str, $non_english) !== false) {
+                    $date_str = str_ireplace($non_english, $english, $date_str);
+                }
+            }
+            foreach ($terms['days'] as $non_english => $english) {
+                if (stripos($date_str, $non_english) !== false) {
+                    $date_str = str_ireplace($non_english, $english, $date_str);
+                }
+            }
+        }
+
+        $date = DateTime::createFromFormat($format, $date_str);
+
+        return $date && $date->format($format) === $date_str;
     }
 
     public static function is_url($str)
@@ -1732,18 +1773,19 @@ class MeprUtils
         }
     }
 
-    public static function send_refunded_txn_notices($txn)
+    public static function send_refunded_txn_notices($txn, $args = '')
     {
         self::send_notices(
             $txn,
             'MeprUserRefundedTxnEmail',
             'MeprAdminRefundedTxnEmail'
         );
-        MeprEvent::record('transaction-refunded', $txn);
+
+        MeprEvent::record('transaction-refunded', $txn, $args);
 
         // This is a recurring payment
         if (($sub = $txn->subscription()) && $sub->txn_count > 0) {
-            MeprEvent::record('recurring-transaction-refunded', $txn);
+            MeprEvent::record('recurring-transaction-refunded', $txn, $args);
         }
     }
 

@@ -363,7 +363,7 @@ class MeprUsersHelper
         ?>
 
       <dt>
-        <?php echo esc_html($field->field_name) ?>
+        <?php echo esc_html(stripslashes($field->field_name)); ?>
       <button data-name="<?php echo esc_attr($field->field_key) ?>" class="btn btn-link mepr-profile-details__button">
         <svg width="15" height="16" viewBox="0 0 15 16" fill="none"
           xmlns="http://www.w3.org/2000/svg">

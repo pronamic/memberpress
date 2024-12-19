@@ -627,7 +627,10 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
             $txn->store();
 
-            MeprUtils::send_refunded_txn_notices($txn);
+            MeprUtils::send_refunded_txn_notices(
+                $txn,
+                MeprHooks::apply_filters('mepr_paypal_std_transaction_refunded_event_args', '', $txn)
+            );
 
             return $txn;
         }
@@ -1383,6 +1386,19 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
     }
 
     /**
+     * Determine if the current request is a redirect from PayPal
+     *
+     * @return boolean
+     */
+    private function is_paypal_referrer()
+    {
+        $referrer = isset($_SERVER['HTTP_REFERER']) ? wp_unslash($_SERVER['HTTP_REFERER']) : '';
+        $is_paypal_referrer = (strpos($referrer, 'paypal.com') !== false);
+
+        return MeprHooks::apply_filters('mepr_paypal_standard_is_paypal_referrer', $is_paypal_referrer);
+    }
+
+    /**
      * Find the transaction from a PayPal return
      *
      * @return MeprTransaction|null
@@ -1424,13 +1440,16 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
     public function return_handler()
     {
-        $this->email_status("Paypal Return \$_REQUEST:\n" . MeprUtils::object_to_string($_REQUEST, true) . "\n", $this->settings->debug);
-
         $mepr_options = MeprOptions::fetch();
+
+        if (! $this->is_paypal_referrer()) {
+            wp_die(_x('Something unexpected has occurred. Please contact us for assistance.', 'ui', 'memberpress') . ' <br/><a href="' . $mepr_options->account_page_url('action=subscriptions') . '">View my Subscriptions</a>');
+        }
+
+        $this->email_status("Paypal Return \$_REQUEST:\n" . MeprUtils::object_to_string($_REQUEST, true) . "\n", $this->settings->debug);
 
         // Let's find the transaction from the PayPal return URL vars
         $txn = $this->get_paypal_return_txn();
-
 
         if (isset($txn->id) && $txn->id) {
             $product  = new MeprProduct($txn->product_id);
@@ -1498,33 +1517,33 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
             // If $sub let's set this up as a confirmation txn until the IPN comes in later so the user can have access now
             if ($sub) {
-                $sub->status      = MeprSubscription::$active_str;
-                $sub->created_at  = $txn->created_at; // Set the created at too
+                $sub->status     = MeprSubscription::$active_str;
+                $sub->created_at = $txn->created_at; // Set the created at too
                 $sub->store();
 
                 if (!$mepr_options->disable_grace_init_days && $mepr_options->grace_init_days > 0) {
-                    $expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($mepr_options->grace_init_days), 'Y-m-d 23:59:59');
+                    $expires_at  = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($mepr_options->grace_init_days), 'Y-m-d 23:59:59');
                 } else {
-                    $expires_at = $txn->created_at; // Expire immediately
+                    $expires_at  = $txn->created_at; // Expire immediately
                 }
 
-                $txn->trans_num   = uniqid();
-                $txn->txn_type    = MeprTransaction::$subscription_confirmation_str;
-                $txn->status      = MeprTransaction::$confirmed_str;
-                $txn->expires_at  = $expires_at;
+                $txn->trans_num  = uniqid();
+                $txn->txn_type   = MeprTransaction::$subscription_confirmation_str;
+                $txn->status     = MeprTransaction::$confirmed_str;
+                $txn->expires_at = $expires_at;
                 $txn->store(true);
             } else {
                 // The amount can be fudged in the URL with PayPal Standard - so let's make sure no fudgyness is goin' on
                 if (isset($_GET['amt']) && (float)$_GET['amt'] < (float)$txn->total) {
-                    $txn->status    = MeprTransaction::$pending_str;
-                    $txn->txn_type  = MeprTransaction::$payment_str;
+                    $txn->status     = MeprTransaction::$pending_str;
+                    $txn->txn_type   = MeprTransaction::$payment_str;
                     $txn->store();
                     wp_die(_x('Your payment amount was lower than expected. Please contact us for assistance if necessary.', 'ui', 'memberpress') . ' <br/><a href="' . $mepr_options->account_page_url('action=subscriptions') . '">View my Subscriptions</a>');
                 }
 
                 // Don't set a trans_num here - it will get updated when the IPN comes in
-                $txn->txn_type    = MeprTransaction::$payment_str;
-                $txn->status      = MeprTransaction::$complete_str;
+                $txn->txn_type   = MeprTransaction::$payment_str;
+                $txn->status     = MeprTransaction::$complete_str;
                 $txn->store();
             }
 

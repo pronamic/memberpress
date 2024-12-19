@@ -1018,6 +1018,23 @@ class MeprUser extends MeprBaseModel
 
         $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_filter(array_map('intval', $_POST['mepr_order_bumps'])) : [];
 
+        // Make sure this isn't the logged in purchases form
+        if (!isset($logged_in_purchase)) {
+            $product_required_order_bumps = $product->get_required_order_bumps();
+
+            // If the membership requires order bumps and they are not found in the POST request, enqueue a validation error.
+            if (empty($order_bump_product_ids) && ! empty($product_required_order_bumps)) {
+                $errors[] = __('Required add-on(s) cannot be removed from this sale.', 'memberpress');
+            } else if (! empty($product_required_order_bumps) && ! empty($order_bump_product_ids)) {
+                foreach ($product_required_order_bumps as $required_order_bump_id) {
+                    if (! in_array($required_order_bump_id, $order_bump_product_ids, true)) {
+                         $errors[] = __('One of the required add-ons cannot be removed from this sale.', 'memberpress');
+                         break;
+                    }
+                }
+            }
+        }
+
         if (!empty($order_bump_product_ids)) {
             try {
                 MeprCheckoutCtrl::get_order_bump_products($mepr_product_id, $order_bump_product_ids);

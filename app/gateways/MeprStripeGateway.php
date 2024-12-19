@@ -1652,7 +1652,10 @@ class MeprStripeGateway extends MeprBaseRealGateway
                 $txn->status = MeprTransaction::$refunded_str;
                 $txn->store();
 
-                MeprUtils::send_refunded_txn_notices($txn);
+                MeprUtils::send_refunded_txn_notices(
+                    $txn,
+                    MeprHooks::apply_filters('mepr_stripe_transaction_refunded_event_args', '', $txn, $charge)
+                );
 
                 return $txn->id;
             }

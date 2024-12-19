@@ -14,18 +14,18 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
             add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
             add_action('wp_ajax_mepr_coachkit_action', [$this, 'ajax_coachkit_action']);
         } else {
-            add_action( 'admin_notices', array( $this, 'activated_admin_notice' ) );
+            add_action('admin_notices', [$this, 'activated_admin_notice']);
         }
     }
 
     public function activated_admin_notice()
     {
-        if ( isset( $_GET['coachkit_activated'] ) && ! empty( $_GET['coachkit_activated'] ) && 'true' === $_GET['coachkit_activated'] ) : ?>
+        if (isset($_GET['coachkit_activated']) && ! empty($_GET['coachkit_activated']) && 'true' === $_GET['coachkit_activated']) : ?>
           <div class="notice notice-success is-dismissible">
-            <p><?php esc_html_e( 'MemberPress CoachKit™ has been activated successfully!', 'memberpress' ) ?></p>
+            <p><?php esc_html_e('MemberPress CoachKit™ has been activated successfully!', 'memberpress') ?></p>
           </div>
         <?php endif;
-      }
+    }
 
     public static function route()
     {
@@ -44,7 +44,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
     public function enqueue_scripts($hook)
     {
         if (preg_match('/_page_memberpress-(coachkit|options)$/', $hook)) {
-            remove_all_actions( 'admin_notices' );
+            remove_all_actions('admin_notices');
             wp_enqueue_style('mepr-sister-plugin-css', MEPR_CSS_URL . '/admin-sister-plugin.css', [], MEPR_VERSION);
         }
     }

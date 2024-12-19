@@ -181,7 +181,7 @@ class MeprProductsHelper
         return ob_get_clean();
     }
 
-    public static function display_invoice($product, $coupon_code = false)
+    public static function display_invoice($product, $coupon_code = false, $display_title = false)
     {
         $current_user = MeprUtils::get_currentuserinfo();
         MeprUtils::get_currentuserinfo();
@@ -197,6 +197,10 @@ class MeprProductsHelper
             $tmp_txn->expire_unit = $product->expire_unit;
             $tmp_txn->expire_after = $product->expire_after;
             $tmp_txn->expire_fixed = $product->expire_fixed;
+
+            if ($display_title) {
+                echo esc_html($product->post_title) . ': ';
+            }
 
             if (empty($coupon_code)) { // We've already validated the coupon before including signup_form.php
                 if ($product->register_price_action == 'custom') {
@@ -222,6 +226,10 @@ class MeprProductsHelper
             $tmp_sub->expires_at = date(get_option('date_format'), $product->get_expires_at(time()));
 
             $tmp_sub = MeprHooks::apply_filters('mepr_display_invoice_sub', $tmp_sub);
+
+            if ($display_title) {
+                echo esc_html($product->post_title) . ': ';
+            }
 
             if ($product->register_price_action == 'custom' && empty($coupon_code) && !$tmp_sub->prorated_trial) {
                 printf('<span class="mepr-custom-price">%s</span>', stripslashes($product->register_price));

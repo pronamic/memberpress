@@ -274,7 +274,8 @@ class MeprProductsCtrl extends MeprCptCtrl
             $product->customize_payment_methods = isset($_mepr_customize_payment_methods);
             $product->customize_profile_fields = isset($_mepr_customize_profile_fields);
             $product->custom_profile_fields = []; // We'll populate it below if we need to
-            $product->custom_payment_methods = json_decode(sanitize_text_field(wp_unslash($_POST['mepr-product-payment-methods-json'])));
+            $custom_payment_methods = json_decode(sanitize_text_field(wp_unslash($_POST['mepr-product-payment-methods-json'])));
+            $product->custom_payment_methods = is_array($custom_payment_methods) ? $custom_payment_methods : [];
             $product->custom_login_urls_enabled = isset($_mepr_custom_login_urls_enabled);
             $product->expire_type = isset(${MeprProduct::$expire_type_str}) ? sanitize_text_field($_POST[MeprProduct::$expire_type_str]) : $product->attrs['expire_type'];
             $product->expire_after = isset(${MeprProduct::$expire_after_str}) ? sanitize_text_field($_POST[MeprProduct::$expire_after_str]) : $product->attrs['expire_after'];
@@ -451,7 +452,7 @@ class MeprProductsCtrl extends MeprCptCtrl
         }
 
         // Make sure there's at least one payment method selected when customizing payment methods.
-        if ($product->customize_payment_methods && count($product->custom_payment_methods) <= 0) {
+        if ($product->customize_payment_methods && (empty($product->custom_payment_methods) || ! is_array($product->custom_payment_methods))) {
             $product->customize_payment_methods = false;
         }
 

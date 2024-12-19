@@ -1419,7 +1419,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
             // One-time payment upgrade?
             if ($old_lifetime !== false) {
                 $old_amount = $old_lifetime->amount;
-                $new_amount = $this->price;
+                $new_amount = ($this->trial) ? $this->trial_amount : $this->price;
                 $old_period = $old_lifetime->days_in_this_period();
                 $new_period = $this->days_in_this_period(true);
                 $days_left = $old_lifetime->days_till_expiration();

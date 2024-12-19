@@ -241,7 +241,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
     {
         $return_value = -1;
 
-        if ( ! empty($license_addons) && isset($license_addons->$addon_slug)) {
+        if (! empty($license_addons) && isset($license_addons->$addon_slug)) {
             $addon_info = $license_addons->$addon_slug;
 
             $plugin_url = $addon_info->url;
@@ -1258,13 +1258,12 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                         } else {
                             $message = esc_html__('Unable to install. Please download and install manually.', 'memberpress');
                             if (-1 === (int) $response) {
-
                                 $purchase_links = MeprOnboardingHelper::features_addons_purchase_links();
 
                                 $features_data['addons_upgrade_failed'][] = $addon_slug;
                                 $features_data['addons_upgrade_failed'] = array_unique($features_data['addons_upgrade_failed']);
 
-                                if( isset($purchase_links[$addon_slug])) {
+                                if (isset($purchase_links[$addon_slug])) {
                                     $message = MeprOnboardingHelper::prepare_purchase_message($purchase_links[$addon_slug]);
                                 }
                             }

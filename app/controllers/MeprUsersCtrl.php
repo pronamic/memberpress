@@ -372,7 +372,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         // Prevent checking when adding a new user via WP's New User system
         // or if an admin is editing the profile in the dashboard
-        if ($update === false || ($update !== false && MeprUtils::is_mepr_admin())) {
+        if ($update === false || ($update !== false && MeprUtils::is_mepr_admin() && is_admin())) {
             return $errs;
         }
 

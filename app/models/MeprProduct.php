@@ -1159,4 +1159,27 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
 
         return $order_bumps;
     }
+
+    /**
+     * Get the array of order bumps chosen for this product marked as required.
+     *
+     * @return int[]
+     */
+    public function get_required_order_bumps()
+    {
+        $product_ids = get_post_meta($this->ID, '_mepr_order_bumps_required', true);
+        $order_bumps = [];
+        if (!is_array($product_ids)) {
+            return $order_bumps;
+        }
+
+        foreach ($product_ids as $product_id) {
+            $product = new MeprProduct((int) $product_id);
+            if ($product->ID > 0) {
+                $order_bumps[] = $product->ID;
+            }
+        }
+
+        return $order_bumps;
+    }
 } //End class

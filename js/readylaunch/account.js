@@ -91,6 +91,20 @@ jQuery(document).ready(function ($) {
       }
     }
 
+    // Loop through each field and validate if it's required.
+    $.each($form.find('.mepr-form-input:visible'), function(i,obj) {
+      if ($(obj).attr('required') !== undefined) {
+        $(obj).removeClass('invalid');
+        var notBlank = mpValidateFieldNotBlank($(obj));
+        mpToggleFieldValidation($(obj), notBlank);
+      }
+    });
+
+    // Validation failed? Bailout.
+    if (0 < $form.find('.invalid').length) {
+      return;
+    }
+
     _fetch(formData).done(function (response) {
       $form.find('.mepr_pro_error ul').empty()
 

@@ -362,14 +362,20 @@ class MeprTransactionsHelper
             }
 
             // If the coupon amount is HIGHER than the membership renewal price, then HIDE the coupon line in the invoice.
+            // If the coupon amount is higher than the membership renewal price.
+            // or if the trial amount is greater than 0 and less than the product price,
+            // hide the coupon line in the invoice by unsetting the coupon and updating the item amount.
             if (
                 isset($invoice['coupon']) && $cpn_id > 0
-                && $coupon && $coupon->discount_mode == 'trial-override'
+                && $coupon
                 && $sub instanceof MeprSubscription && $sub->trial
-                && $coupon->trial_amount > $prd->price
+                && (
+                    ($coupon->discount_mode == 'trial-override' && $coupon->trial_amount > $prd->price)
+                    || ($sub->trial_amount > 0 && $sub->trial_amount < $prd->price)
+                )
             ) {
                 $invoice['items'][0]['amount'] = $txn->amount;
-                $invoice['coupon']['amount']   = '0';
+                unset($invoice['coupon']);
             }
         }
 
@@ -682,14 +688,20 @@ class MeprTransactionsHelper
             }
 
             // If the coupon amount is HIGHER than the membership renewal price, then HIDE the coupon line in the invoice.
+            // If the coupon amount is higher than the membership renewal price
+            // or if the trial amount is greater than 0 and less than the product price,
+            // hide the coupon line in the invoice by unsetting the coupon and updating the item amount.
             if (
-                isset($invoice['coupon'])
-                && $cpn_id > 0 && $coupon && $coupon->discount_mode == 'trial-override'
+                isset($invoice['coupon']) && $cpn_id > 0
+                && $coupon
                 && $sub instanceof MeprSubscription && $sub->trial
-                && $coupon->trial_amount > $prd->price
+                && (
+                    ($coupon->discount_mode == 'trial-override' && $coupon->trial_amount > $prd->price)
+                    || ($sub->trial_amount > 0 && $sub->trial_amount < $prd->price)
+                )
             ) {
                 $invoice['items'][0]['amount'] = $txn->amount;
-                $invoice['coupon']['amount']   = '0';
+                unset($invoice['coupon']);
             }
         }
 

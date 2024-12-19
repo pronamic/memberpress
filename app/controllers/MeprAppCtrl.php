@@ -460,7 +460,13 @@ class MeprAppCtrl extends MeprBaseCtrl
 
     public static function admin_bar_menu($wp_admin_bar)
     {
+        $mepr_options = MeprOptions::fetch();
+
         if (! MeprUtils::is_mepr_admin()) {
+            return;
+        }
+
+        if ($mepr_options->hide_admin_bar_menu) {
             return;
         }
 
@@ -934,10 +940,11 @@ class MeprAppCtrl extends MeprBaseCtrl
                 'spc_enabled'       => ( $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template ),
                 'spc_invoice'       => ( $mepr_options->enable_spc_invoice || $mepr_options->design_enable_checkout_template ),
                 'no_compatible_pms' => __('There are no payment methods available that can purchase this product, please contact the site administrator or purchase it separately.', 'memberpress'),
-                'switch_pm_prompt'  => __('It looks like your purchase requires %s. No problem! Just click below to switch.', 'memberpress'),
-                'switch_pm'         => __('Switch to %s', 'memberpress'),
-                'cancel'            => __('Cancel', 'memberpress'),
-                'warning_icon_url'  => MEPR_IMAGES_URL . '/notice-icon-error.png',
+                'switch_pm_prompt' => __('It looks like your purchase requires %s. No problem! Just click below to switch.', 'memberpress'),
+                'switch_pm' => __('Switch to %s', 'memberpress'),
+                'cancel' => __('Cancel', 'memberpress'),
+                'no_compatible_pms_ob_required' => __('Payment Gateway(s) do not support required order configuration.', 'memberpress'),
+                'warning_icon_url' => MEPR_IMAGES_URL . '/notice-icon-error.png',
             ];
 
             wp_localize_script('mp-signup', 'MeprSignup', $local_data);

@@ -322,3 +322,8 @@ body:has(.mepr-paywall-overlay) {
     padding-right: 40px;
   }
 }
+
+.mepr-order-bump-required input[name="mepr_order_bumps[]"] {
+  pointer-events: none !important;
+  opacity: 0.4 !important;
+}

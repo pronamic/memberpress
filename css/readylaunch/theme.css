@@ -811,13 +811,13 @@ input[type=submit].btn-link {
   text-decoration: none;
   background-color: #f8f9fa;
 }
-@media (max-width: 768px) {
+@media (max-width: 839px) {
   .site-header .profile-menu__button.--is-mobile {
     display: block;
   }
 }
-@media (min-width: 768px) {
-  .site-header .profile-menu__button.--is-desktop {
+@media (min-width: 840px) {
+  .site-header .profile-menu__button.--is-tablet {
     display: flex;
     align-items: center;
   }

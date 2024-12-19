@@ -836,6 +836,27 @@
         </tbody>
       </table>
 
+      <br/>
+      <h3><?php esc_html_e('Misc', 'memberpress'); ?></h3>
+      <table class="form-table">
+        <tbody>
+        <tr valign="top">
+          <th scope="row">
+            <label for="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>"><?php esc_html_e('Hide MemberPress Menu in Admin Bar', 'memberpress'); ?></label>
+            <?php MeprAppHelper::info_tooltip(
+                'mepr-hide-mp-top-menu',
+                esc_html__('Hide MemberPress Menu in Admin Bar', 'memberpress'),
+                esc_html__('Enabling this option will hide the MemberPress menu with MemberPress sections in the admin bar', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
+            ); ?>
+          </th>
+          <td>
+            <input type="checkbox" name="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" id="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" <?php checked($mepr_options->hide_admin_bar_menu); ?> />
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <br/>
+
       <?php MeprHooks::do_action('mepr_display_general_options'); ?>
     </div>
 
