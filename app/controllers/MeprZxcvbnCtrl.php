@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprZxcvbnCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load hooks for enforcing strong passwords.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('after_setup_theme', function () {
@@ -20,6 +25,12 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         }, 20);
     }
 
+    /**
+     * Validate the signup form for password strength.
+     *
+     * @param  array $errors The existing errors.
+     * @return array
+     */
     public static function validate_signup($errors)
     {
         if (isset($_POST['mp-pass-strength']) && (int)$_POST['mp-pass-strength'] < self::get_required_int()) {
@@ -29,6 +40,11 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         return $errors;
     }
 
+    /**
+     * Get the internationalization array for password strength.
+     *
+     * @return array
+     */
     public static function get_i18n_array()
     {
         // Weak is actually still relatively strong, so we're going to alter the mapping a bit
@@ -44,6 +60,14 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         ];
     }
 
+    /**
+     * Load scripts for password strength meter.
+     *
+     * @param  array   $reqs         The existing script requirements.
+     * @param  boolean $is_prod_page Whether the current page is a product page.
+     * @param  boolean $is_acct_page Whether the current page is an account page.
+     * @return array
+     */
     public static function load_scripts($reqs, $is_prod_page, $is_acct_page)
     {
         $mepr_options = MeprOptions::fetch();
@@ -61,6 +85,11 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         return $reqs;
     }
 
+    /**
+     * Load scripts for the reset password page.
+     *
+     * @return void
+     */
     public static function load_reset_password_scripts()
     {
         $mepr_options = MeprOptions::fetch();
@@ -75,6 +104,12 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Display the password strength meter.
+     *
+     * @param  WP_User|null $user The user object.
+     * @return void
+     */
     public static function display_meter($user = null)
     {
         $required_str = self::get_required_str();
@@ -92,6 +127,11 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         <?php
     }
 
+    /**
+     * Get the required password strength as a string.
+     *
+     * @return string
+     */
     public static function get_required_str()
     {
         $mepr_options = MeprOptions::fetch();
@@ -112,6 +152,11 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         return MeprHooks::apply_filters('mepr-password-meter-text', $txt, $mepr_options->enforce_strong_password);
     }
 
+    /**
+     * Get the required password strength as an integer.
+     *
+     * @return integer
+     */
     public static function get_required_int()
     {
         $mepr_options = MeprOptions::fetch();
@@ -128,4 +173,4 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
                 return 0; // Not required
         }
     }
-} //End class
+}

@@ -4,101 +4,101 @@ return MeprHooks::apply_filters('mepr_events', [
     /**
      * Events for Members
      */
-    'member-added' => (object) [
+    'member-added'                         => (object) [
         'unique' => true,
     ],
-    'member-signup-completed' => (object) [
+    'member-signup-completed'              => (object) [
         'unique' => true,
     ],
-    'member-account-updated' => (object) [
+    'member-account-updated'               => (object) [
         'unique' => false,
     ],
-    'member-deleted' => (object) [
+    'member-deleted'                       => (object) [
         'unique' => true,
     ],
-    'login' => (object) [
+    'login'                                => (object) [
         'unique' => false,
     ],
 
     /**
      * Events for Subscriptions
      */
-    'subscription-created' => (object) [
+    'subscription-created'                 => (object) [
         'unique' => true,
     ],
-    'subscription-paused' => (object) [
+    'subscription-paused'                  => (object) [
         'unique' => false,
     ],
-    'subscription-resumed' => (object) [
+    'subscription-resumed'                 => (object) [
         'unique' => false,
     ],
-    'subscription-stopped' => (object) [
+    'subscription-stopped'                 => (object) [
         'unique' => true,
     ],
-    'subscription-upgraded' => (object) [
+    'subscription-upgraded'                => (object) [
         'unique' => true,
     ],
-    'subscription-downgraded' => (object) [
+    'subscription-downgraded'              => (object) [
         'unique' => true,
     ],
-    'subscription-upgraded-to-one-time' => (object) [
+    'subscription-upgraded-to-one-time'    => (object) [
         'unique' => true,
     ],
-    'subscription-upgraded-to-recurring' => (object) [
+    'subscription-upgraded-to-recurring'   => (object) [
         'unique' => true,
     ],
-    'subscription-downgraded-to-one-time' => (object) [
+    'subscription-downgraded-to-one-time'  => (object) [
         'unique' => true,
     ],
     'subscription-downgraded-to-recurring' => (object) [
         'unique' => true,
     ],
-    'subscription-expired' => (object) [
+    'subscription-expired'                 => (object) [
         'unique' => false,
     ],
 
     /**
      * Events for Transactions
      */
-    'transaction-completed' => (object) [
+    'transaction-completed'                => (object) [
         'unique' => true,
     ],
-    'transaction-refunded' => (object) [
+    'transaction-refunded'                 => (object) [
         'unique' => true,
     ],
-    'transaction-failed' => (object) [
+    'transaction-failed'                   => (object) [
         'unique' => true,
     ],
-    'transaction-expired' => (object) [
+    'transaction-expired'                  => (object) [
         'unique' => true,
     ],
-    'offline-payment-pending' => (object) [
+    'offline-payment-pending'              => (object) [
         'unique' => true,
     ],
-    'offline-payment-complete' => (object) [
+    'offline-payment-complete'             => (object) [
         'unique' => true,
     ],
-    'offline-payment-refunded' => (object) [
+    'offline-payment-refunded'             => (object) [
         'unique' => true,
     ],
     // Recurring Transactions
-    'recurring-transaction-completed' => (object) [
+    'recurring-transaction-completed'      => (object) [
         'unique' => true,
     ],
-    'renewal-transaction-completed' => (object) [
+    'renewal-transaction-completed'        => (object) [
         'unique' => true,
     ],
-    'recurring-transaction-failed' => (object) [
+    'recurring-transaction-failed'         => (object) [
         'unique' => true,
     ],
-    'recurring-transaction-expired' => (object) [
+    'recurring-transaction-expired'        => (object) [
         'unique' => true,
     ],
     // Non-Recurring Transactions
-    'non-recurring-transaction-completed' => (object) [
+    'non-recurring-transaction-completed'  => (object) [
         'unique' => true,
     ],
-    'non-recurring-transaction-expired' => (object) [
+    'non-recurring-transaction-expired'    => (object) [
         'unique' => true,
     ],
 
@@ -107,57 +107,57 @@ return MeprHooks::apply_filters('mepr_events', [
      */
     // Note, uniqueness of Reminders is handled by the reminders routines
     // So all reminders should be classified as non-unique here.
-    'after-member-signup-reminder' => (object) [
+    'after-member-signup-reminder'         => (object) [
         'unique' => false,
     ],
-    'after-signup-abandoned-reminder' => (object) [
+    'after-signup-abandoned-reminder'      => (object) [
         'unique' => false,
     ],
-    'before-sub-expires-reminder' => (object) [
+    'before-sub-expires-reminder'          => (object) [
         'unique' => false,
     ],
-    'after-sub-expires-reminder' => (object) [
+    'after-sub-expires-reminder'           => (object) [
         'unique' => false,
     ],
-    'before-sub-renews-reminder' => (object) [
+    'before-sub-renews-reminder'           => (object) [
         'unique' => false,
     ],
-    'after-cc-expires-reminder' => (object) [
+    'after-cc-expires-reminder'            => (object) [
         'unique' => false,
     ],
-    'before-cc-expires-reminder' => (object) [
+    'before-cc-expires-reminder'           => (object) [
         'unique' => false,
     ],
-    'before-sub-trial-ends' => (object) [
+    'before-sub-trial-ends'                => (object) [
         'unique' => false,
     ],
 
     /**
      * Events for Corporate Accounts
      */
-    'sub-account-added' => (object) [
+    'sub-account-added'                    => (object) [
         'unique' => false,
     ],
-    'sub-account-removed' => (object) [
+    'sub-account-removed'                  => (object) [
         'unique' => false,
     ],
 
     /**
      * Events for Courses
      */
-    'mpca-course-started' => (object) [
+    'mpca-course-started'                  => (object) [
         'unique' => false,
     ],
-    'mpca-course-completed' => (object) [
+    'mpca-course-completed'                => (object) [
         'unique' => false,
     ],
-    'mpca-lesson-started' => (object) [
+    'mpca-lesson-started'                  => (object) [
         'unique' => false,
     ],
-    'mpca-lesson-completed' => (object) [
+    'mpca-lesson-completed'                => (object) [
         'unique' => false,
     ],
-    'mpca-quiz-attempt-completed' => (object) [
+    'mpca-quiz-attempt-completed'          => (object) [
         'unique' => false,
     ],
 ]);

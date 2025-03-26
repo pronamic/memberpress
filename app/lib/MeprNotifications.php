@@ -28,6 +28,8 @@ class MeprNotifications
      */
     const SOURCE_URL = 'https://mbr.press/UttZvA';
     /**
+     * Source URL arguments.
+     *
      * @deprecated 1.11.36
      */
     const SOURCE_URL_ARGS = [];
@@ -84,7 +86,7 @@ class MeprNotifications
      *
      * @param boolean $cache Reference property cache if available.
      *
-     * @return array
+     * @return void
      */
     public function get_option($cache = true)
     {
@@ -126,7 +128,7 @@ class MeprNotifications
      *
      * @param array $notifications Array of notifications items to verify.
      *
-     * @return array
+     * @return void
      */
     public function verify($notifications)
     {
@@ -140,7 +142,7 @@ class MeprNotifications
      *
      * @param array $notifications Array of notifications items to verify.
      *
-     * @return array
+     * @return void
      */
     public function verify_active($notifications)
     {
@@ -152,7 +154,7 @@ class MeprNotifications
      *
      * @deprecated 1.11.36
      *
-     * @return array
+     * @return void
      */
     public function get()
     {
@@ -167,7 +169,7 @@ class MeprNotifications
      *
      * @param array $notifications The notifications to be parsed.
      *
-     * @return mixed
+     * @return void
      */
     public function get_notifications_with_formatted_content($notifications)
     {
@@ -179,7 +181,8 @@ class MeprNotifications
      *
      * @deprecated 1.11.36 With not replacement
      *
-     * @return array $notifications
+     * @param  array $notifications The notifications.
+     * @return void
      */
     public function get_notifications_with_human_readeable_start_time($notifications)
     {

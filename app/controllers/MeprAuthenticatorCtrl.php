@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprAuthenticatorCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load the hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         if (!defined('MEPR_AUTH_SERVICE_DOMAIN')) {
@@ -18,6 +23,11 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         add_action('init', [$this, 'process_disconnect']);
     }
 
+    /**
+     * Clear the connection data.
+     *
+     * @return void
+     */
     public function clear_connection_data()
     {
         if (isset($_GET['mp-clear-connection-data'])) {
@@ -59,10 +69,10 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         // GET request to obtain token
         $response = wp_remote_get(MEPR_AUTH_SERVICE_URL . "/api/tokens/{$site_uuid}", [
             'sslverify' => false,
-            'headers' => [
+            'headers'   => [
                 'accept' => 'application/json',
             ],
-            'body' => [
+            'body'      => [
                 'auth_code' => $auth_code,
             ],
         ]);
@@ -130,13 +140,13 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         }
 
         $site_email = get_option('mepr_authenticator_account_email');
-        $site_uuid = get_option('mepr_authenticator_site_uuid');
+        $site_uuid  = get_option('mepr_authenticator_site_uuid');
 
         MeprHooks::do_action('mepr_memberpress_com_pre_disconnect', $site_uuid, $site_email);
 
         // Create token payload
         $payload = [
-            'email' => $site_email,
+            'email'     => $site_email,
             'site_uuid' => $site_uuid,
         ];
 
@@ -145,9 +155,9 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
 
         // DELETE request to obtain token
         $response = wp_remote_request(MEPR_AUTH_SERVICE_URL . '/api/disconnect/memberpress', [
-            'method' => 'DELETE',
+            'method'    => 'DELETE',
             'sslverify' => false,
-            'headers' => MeprUtils::jwt_header($jwt, MEPR_AUTH_SERVICE_DOMAIN),
+            'headers'   => MeprUtils::jwt_header($jwt, MEPR_AUTH_SERVICE_DOMAIN),
         ]);
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
@@ -202,7 +212,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
     /**
      * Ensure that the Base64 string is passed within URLs without any URL encoding
      *
-     * @param string $value
+     * @param string $value The value to encode.
      *
      * @return string
      */
@@ -215,8 +225,9 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
      * Assembles a URL for connecting to our Authentication service
      *
      * @param boolean     $stripe_connect    Will add a query string that is used to redirect to Stripe Connect after returning from Auth service
-     * @param array       $additional_params
-     * @param string|null $return_url
+     * @param string|null $payment_method_id The payment method ID.
+     * @param array       $additional_params Additional parameters to add to the URL.
+     * @param string|null $return_url        The return URL.
      *
      * @return string
      */
@@ -226,7 +237,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
 
         $connect_params = [
             'return_url' => urlencode(add_query_arg('mepr-connect', 'true', $return_url)),
-            'nonce' => wp_create_nonce('mepr-connect'),
+            'nonce'      => wp_create_nonce('mepr-connect'),
         ];
 
         $site_uuid = get_option('mepr_authenticator_site_uuid');
@@ -237,7 +248,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
 
         if (true === $stripe_connect && ! empty($payment_method_id)) {
             $connect_params['stripe_connect'] = 'true';
-            $connect_params['method_id'] = $payment_method_id;
+            $connect_params['method_id']      = $payment_method_id;
         }
 
         if (! empty($additional_params)) {

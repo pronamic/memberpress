@@ -10,6 +10,11 @@ if (!defined('ABSPATH')) {
  */
 class MeprEventsCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load hooks for event handling.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('user_register', [$this, 'user_register']);
@@ -18,6 +23,13 @@ class MeprEventsCtrl extends MeprBaseCtrl
         add_filter('mepr_create_subscription', [$this, 'sub_created']);
     }
 
+    /**
+     * Record an event when a user registers.
+     *
+     * @param integer $user_id The ID of the registered user.
+     *
+     * @return void
+     */
     public function user_register($user_id)
     {
         if (!empty($user_id)) {
@@ -25,6 +37,13 @@ class MeprEventsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Record an event when a user is deleted.
+     *
+     * @param integer $user_id The ID of the user to be deleted.
+     *
+     * @return void
+     */
     public function delete_user($user_id)
     {
         if (!empty($user_id)) {
@@ -35,7 +54,13 @@ class MeprEventsCtrl extends MeprBaseCtrl
     }
 
     /**
+     * Handle the transaction expired event and send appropriate events.
      * Let's figure some stuff out from the txn-expired hook yo ... and send some proper events
+     *
+     * @param MeprTransaction $txn        The transaction object.
+     * @param boolean         $sub_status The subscription status.
+     *
+     * @return void
      */
     public function txn_expired($txn, $sub_status)
     {
@@ -44,19 +69,26 @@ class MeprEventsCtrl extends MeprBaseCtrl
         if (
             !empty($txn) &&
             $txn instanceof MeprTransaction &&
-            (int)$txn->subscription_id > 0 &&
-            ($sub = $txn->subscription()) &&
-            $sub->status == MeprSubscription::$cancelled_str &&
-            $sub->is_expired()
+            (int)$txn->subscription_id > 0
         ) {
-            MeprEvent::record('subscription-expired', $sub, $txn);
+            $sub = $txn->subscription();
+            if ($sub && $sub->status == MeprSubscription::$cancelled_str && $sub->is_expired()) {
+                MeprEvent::record('subscription-expired', $sub, $txn);
+            }
         }
     }
 
+    /**
+     * Record an event when a subscription is created.
+     *
+     * @param integer $sub_id The ID of the created subscription.
+     *
+     * @return integer The subscription ID.
+     */
     public function sub_created($sub_id)
     {
         $sub = new MeprSubscription($sub_id);
         MeprEvent::record('subscription-created', $sub);
         return $sub_id;
     }
-} //End class
+}

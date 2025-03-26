@@ -25,7 +25,7 @@
 
         $disconnect_url = add_query_arg([
             'mepr-disconnect' => 'true',
-            'nonce' => wp_create_nonce('mepr-disconnect'),
+            'nonce'           => wp_create_nonce('mepr-disconnect'),
         ]);
 
         ?>

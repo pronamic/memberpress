@@ -9,6 +9,15 @@ if (!defined('ABSPATH')) {
 class MeprDbMigrations
 {
     private $migrations;
+
+    /**
+     * Runs the database migrations.
+     *
+     * @param string $from_version The starting version number
+     * @param string $to_version   The ending version number
+     *
+     * @return void
+     */
     public static function run($from_version, $to_version)
     {
         global $wpdb;
@@ -32,6 +41,14 @@ class MeprDbMigrations
         }
     }
 
+    /**
+     * Displays the upgrade UI for database migrations.
+     *
+     * @param string $from_version The starting version number
+     * @param string $to_version   The ending version number
+     *
+     * @return boolean|void True if the UI is displayed, false otherwise
+     */
     public static function show_upgrade_ui($from_version, $to_version)
     {
         $mig                = new MeprDbMigrations();
@@ -55,33 +72,26 @@ class MeprDbMigrations
         return false;
     }
 
+    /**
+     * Constructor for the MeprDbMigrations class.
+     */
     public function __construct()
     {
         // ensure migration versions are sequential when adding new migration callbacks
         $this->migrations = [
             '1.3.0'    => [
-                'show_ui'    => 'show_ui_001_002',
+                'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'create_and_migrate_subscriptions_table_001',
-                        'check'     => 'check_create_and_migrate_subscriptions_table_001',
-                        'message'   => __('Updating Subscriptions', 'memberpress'),
-                    ],
-                    [
-                        'migration' => 'create_and_migrate_members_table_002',
-                        'check'     => 'check_create_and_migrate_members_table_002',
-                        'message'   => __('Optimizing Member Data', 'memberpress'),
+                        'check'     => false,
+                        'message'   => false,
                     ],
                 ],
             ],
             '1.3.9'    => [
                 'show_ui'    => false,
                 'migrations' => [
-                    [
-                        'migration' => 'add_trial_txn_count_column_to_members_table_003',
-                        'check'     => false,
-                        'message'   => false,
-                    ],
                     [
                         'migration' => 'sub_post_meta_to_table_token_004',
                         'check'     => false,
@@ -189,7 +199,7 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.11.36'   => [
+            '1.11.36'  => [
                 'show_ui'    => false,
                 'migrations' => [
                     [
@@ -202,6 +212,14 @@ class MeprDbMigrations
         ];
     }
 
+    /**
+     * Gets an array of all available migration versions.
+     *
+     * @param string $from_version The starting version number
+     * @param string $to_version   The ending version number
+     *
+     * @return array Array of migration versions
+     */
     public function get_migration_versions($from_version, $to_version)
     {
         $mig_versions = array_keys($this->migrations);
@@ -217,104 +235,23 @@ class MeprDbMigrations
         return $versions;
     }
 
+    /**
+     * Gets a specific migration by version number.
+     *
+     * @param  string $version The version number of the migration
+     * @return array|false Migration details or false if not found
+     */
     public function get_migration($version)
     {
         return $this->migrations[$version];
     }
 
     /**
-     * SHOW UI
-     **/
-    public function show_ui_001_002()
-    {
-        global $wpdb;
-        $mepr_db = new MeprDb();
-
-        $q = "
-      SELECT COUNT(*)
-        FROM {$wpdb->posts}
-       WHERE post_type='mepr-subscriptions'
-    ";
-
-        if ($mepr_db->table_exists($mepr_db->subscriptions)) {
-            $q .= "
-        AND ID NOT IN (
-          SELECT id
-            FROM {$mepr_db->subscriptions}
-        )
-      ";
-        }
-
-        $subs_left = $wpdb->get_var($q);
-
-        $q = "
-      SELECT COUNT(*)
-        FROM {$wpdb->users}
-    ";
-
-        if ($mepr_db->table_exists($mepr_db->members)) {
-            $q .= "
-        WHERE ID NOT IN (
-         SELECT user_id
-           FROM {$mepr_db->members}
-        )
-      ";
-        }
-
-        $members_left = $wpdb->get_var($q);
-
-        $already_migrating = get_transient('mepr_migrating');
-
-        return (
-        !empty($already_migrating) ||
-        ($subs_left >= 100) ||
-        ($members_left >= 100)
-        );
-    }
-
-    /**
-     * CHECKS
-     **/
-    public function check_create_and_migrate_subscriptions_table_001()
-    {
-        global $wpdb;
-        $mepr_db = MeprDb::fetch();
-
-        $q     = $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type=%s", 'mepr-subscriptions');
-        $total = $wpdb->get_var($q); // Need to account for 0's below
-
-        $q         = "SELECT COUNT(*) FROM {$mepr_db->subscriptions}";
-        $completed = $wpdb->get_var($q);
-
-        $progress = 100;
-        if ($total > 0) {
-            $progress = (int)(($completed / $total) * 100);
-            $progress = min($progress, 100);
-        }
-
-        return compact('completed', 'total', 'progress');
-    }
-
-    public function check_create_and_migrate_members_table_002()
-    {
-        global $wpdb;
-        $mepr_db = MeprDb::fetch();
-
-        $q     = "SELECT COUNT(*) FROM {$wpdb->users}";
-        $total = $wpdb->get_var($q); // Should never get a 0 here
-
-        $q         = "SELECT COUNT(*) FROM {$mepr_db->members}";
-        $completed = $wpdb->get_var($q);
-
-        $progress = (int)(($completed / $total) * 100);
-        $progress = min($progress, 100);
-
-        return compact('completed', 'total', 'progress');
-    }
-
-    /**
      * MIGRATIONS
      **/
+    /**
+     * Migration 001: Creates and migrates subscriptions table.
+     */
     public function create_and_migrate_subscriptions_table_001()
     {
         global $wpdb;
@@ -330,16 +267,9 @@ class MeprDbMigrations
         }
     }
 
-    public function create_and_migrate_members_table_002()
-    {
-        MeprUser::update_all_member_data(true);
-    }
-
-    public function add_trial_txn_count_column_to_members_table_003()
-    {
-        MeprUser::update_all_member_data(false, '', ['txn_count', 'active_txn_count', 'expired_txn_count', 'trial_txn_count']);
-    }
-
+    /**
+     * Migration 004: Migrates subscription post meta to the tables token.
+     */
     public function sub_post_meta_to_table_token_004()
     {
         global $wpdb;
@@ -375,6 +305,9 @@ class MeprDbMigrations
         }
     }
 
+    /**
+     * Migration 006: Fixes all the expiration dates.
+     */
     public function fix_all_the_expires_006()
     {
         global $wpdb;
@@ -411,6 +344,9 @@ class MeprDbMigrations
         }
     }
 
+    /**
+     * Migration 007: Migrates access rules to new format.
+     */
     public function migrate_access_rules_007()
     {
         global $wpdb;
@@ -453,6 +389,9 @@ class MeprDbMigrations
         MeprUtils::debug_log('All done migrating access rules');
     }
 
+    /**
+     * Migration 008: Fixes transaction counts for subscription accounts.
+     */
     public function fix_txn_counts_for_sub_accounts_008()
     {
         global $wpdb;
@@ -476,6 +415,9 @@ class MeprDbMigrations
         }
     }
 
+    /**
+     * Migration 009: Removes IP addresses for GDPR compliance.
+     */
     public function remove_ip_addr_gdpr_009()
     {
         global $wpdb;
@@ -494,7 +436,9 @@ class MeprDbMigrations
         $wpdb->delete($wpdb->prefix . 'usermeta', ['meta_key' => 'user_ip']);
     }
 
-
+    /**
+     * Migration 010: Refactors coupon trial functionality.
+     */
     public function refactor_coupon_trial_010()
     {
         $coupons = MeprCoupon::get_all_active_coupons();
@@ -517,6 +461,9 @@ class MeprDbMigrations
         }
     }
 
+    /**
+     * Migration 011: Refactors coupon first payment functionality.
+     */
     public function refactor_coupon_first_payment_011()
     {
         MeprUtils::debug_log('Migrating First Payment Discount details');
@@ -557,6 +504,9 @@ class MeprDbMigrations
         update_option('mepr_db_migration_011_ran', time());
     }
 
+    /**
+     * Migration 012: Resets usage data.
+     */
     public function usage_reset_012()
     {
         delete_option('mepr_disable_senddata');

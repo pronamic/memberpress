@@ -35,35 +35,40 @@ class MeprGroup extends MeprCptModel
 
     public $default_style_options;
 
+    /**
+     * Constructor for the MeprGroup class.
+     *
+     * @param mixed $obj Optional. The object to initialize the group with.
+     */
     public function __construct($obj = null)
     {
         $this->default_style_options = [
-            'layout'        => 'mepr-vertical',
-            'style'         => 'mepr-gray',
-            'button_size'   => 'mepr-medium',
-            'bullet_style'  => 'mepr-circles',
-            'font_style'    => 'custom',
-            'font_size'     => 'custom',
-            'button_color'  => 'mepr-button-gray',
+            'layout'       => 'mepr-vertical',
+            'style'        => 'mepr-gray',
+            'button_size'  => 'mepr-medium',
+            'bullet_style' => 'mepr-circles',
+            'font_style'   => 'custom',
+            'font_size'    => 'custom',
+            'button_color' => 'mepr-button-gray',
         ];
 
         $this->load_cpt(
             $obj,
             self::$cpt,
             [
-                'pricing_page_disabled' => false,
-                'disable_change_plan_popup' => false,
-                'is_upgrade_path' => false,
-                'upgrade_path_reset_period' => false,
-                'group_theme' => 'minimal_gray_horizontal.css',
-                'fallback_membership' => '',
-                'page_button_class' => '',
+                'pricing_page_disabled'         => false,
+                'disable_change_plan_popup'     => false,
+                'is_upgrade_path'               => false,
+                'upgrade_path_reset_period'     => false,
+                'group_theme'                   => 'minimal_gray_horizontal.css',
+                'fallback_membership'           => '',
+                'page_button_class'             => '',
                 'page_button_highlighted_class' => '',
-                'page_button_disabled_class' => '',
-                'alternate_group_url' => '',
-                'group_page_style_options' => $this->default_style_options,
-                'use_custom_template' => false,
-                'custom_template' => '',
+                'page_button_disabled_class'    => '',
+                'alternate_group_url'           => '',
+                'group_page_style_options'      => $this->default_style_options,
+                'use_custom_template'           => false,
+                'custom_template'               => '',
             ]
         );
 
@@ -74,6 +79,11 @@ class MeprGroup extends MeprCptModel
         );
     }
 
+    /**
+     * Validate the group's properties.
+     *
+     * @return void
+     */
     public function validate()
     {
         $this->validate_is_bool($this->pricing_page_disabled, 'pricing_page_disabled');
@@ -106,6 +116,11 @@ class MeprGroup extends MeprCptModel
         // 'page_button_disabled_class' => '',
     }
 
+    /**
+     * Store the group's metadata in the database.
+     *
+     * @return void
+     */
     public function store_meta()
     {
         $id = $this->ID;
@@ -139,8 +154,10 @@ class MeprGroup extends MeprCptModel
     // $return_type should be a string containing 'objects', 'ids', or 'titles'
 
     /**
-     * @param  string $return_type
-     * @return MeprProduct[]
+     * Retrieves the products associated with the group.
+     *
+     * @param  string $return_type The type of return value ('objects', 'ids', or 'titles').
+     * @return MeprProduct[] The products associated with the group.
      */
     public function products($return_type = 'objects')
     {
@@ -227,7 +244,7 @@ class MeprGroup extends MeprCptModel
     // For use during upgrades from lifetime to subscriptions
     public function get_old_lifetime_txn($new_prd_id, $user_id)
     {
-        $txn_id = false;
+        $txn_id   = false;
         $grp_prds = $this->products('ids');
         $usr_txns = MeprTransaction::get_all_by_user_id($user_id, '', '', true);
 
@@ -246,25 +263,30 @@ class MeprGroup extends MeprCptModel
         }
     }
 
+    /**
+     * Clean up the database by removing auto-draft posts and their metadata.
+     *
+     * @return void
+     */
     public static function cleanup_db()
     {
         global $wpdb;
-        $date = time();
+        $date     = time();
         $last_run = get_option(self::$last_run_str, 0); // Prevents all this code from executing on every page load
 
         if (($date - $last_run) > 86400) { // Runs at most once a day
             update_option(self::$last_run_str, $date);
-            $sq1 = "SELECT ID
+            $sq1     = "SELECT ID
                 FROM {$wpdb->posts}
                 WHERE post_type = '" . self::$cpt . "' AND
                       post_status = 'auto-draft'";
             $sq1_res = $wpdb->get_col($sq1);
             if (!empty($sq1_res)) {
                 $post_ids = implode(',', $sq1_res);
-                $q1 = "DELETE
+                $q1       = "DELETE
                   FROM {$wpdb->postmeta}
                   WHERE post_id IN ({$post_ids})";
-                $q2 = "DELETE
+                $q2       = "DELETE
                   FROM {$wpdb->posts}
                   WHERE post_type = '" . self::$cpt . "' AND
                         post_status = 'auto-draft'";
@@ -275,6 +297,11 @@ class MeprGroup extends MeprCptModel
         }
     }
 
+    /**
+     * Get the page template for the group.
+     *
+     * @return string|null The path to the custom template or null if not used.
+     */
     public function get_page_template()
     {
         if ($this->use_custom_template) {
@@ -285,65 +312,90 @@ class MeprGroup extends MeprCptModel
     }
 
     /*
+     * Defines the template hierarchy search path for member core groups.
+     * Currently unused method that would specify template file lookup order.
+     *
         public static function template_search_path() {
-        return array(
-        'page_memberpressgroup.php',
-        'single-memberpressgroup.php',
-        'page.php',
-        'custom_template.php',
-        'index.php'
-        );
+            return array(
+                'page_memberpressgroup.php',
+                'single-memberpressgroup.php',
+                'page.php',
+                'custom_template.php',
+                'index.php'
+            );
         }
-    */
-
+     */
     public function manual_append_price_boxes()
     {
         return preg_match('~\[mepr-group-price-boxes~', $this->post_content);
     }
 
+    /**
+     * Determine if a post is a group page.
+     *
+     * @param WP_Post $post The post object to check.
+     *
+     * @return MeprGroup|false The group object if the post is a group page, false otherwise.
+     */
     public static function is_group_page($post)
     {
-        if (
-            is_object($post) &&
-            ( ( property_exists($post, 'post_type') &&
-            $post->post_type == MeprGroup::$cpt &&
-            $grp = new MeprGroup($post->ID) ) ||
-            ( preg_match(
-                '~\[mepr-group-price-boxes\s+group_id=[\"\\\'](\d+)[\"\\\']~',
-                $post->post_content,
-                $m
-            ) &&
-            isset($m[1]) &&
-            $grp = new MeprGroup($m[1]) ) )
-        ) {
-            return $grp;
+        if (is_object($post)) {
+            if (property_exists($post, 'post_type') && $post->post_type == MeprGroup::$cpt) {
+                $grp = new MeprGroup($post->ID);
+                return $grp;
+            }
+
+            if (preg_match('~\[mepr-group-price-boxes\s+group_id=[\"\\\'](\d+)[\"\\\']~', $post->post_content, $m) && isset($m[1])) {
+                $grp = new MeprGroup($m[1]);
+                return $grp;
+            }
         }
 
         return false;
     }
 
+    /**
+     * Get the template for the group.
+     *
+     * @return string The template string for the group.
+     */
     public function group_template()
     {
         if (
-            $this->group_theme != 'custom' &&
-            false !== ($filename = self::find_group_theme($this->group_theme))
+            $this->group_theme != 'custom'
         ) {
-            $template_str = file_get_contents($filename);
-            preg_match('~MP PLAN TEMPLATE:\s+(\S+)~', $template_str, $m);
+            $filename = self::find_group_theme($this->group_theme);
+            if (false !== $filename) {
+                $template_str = file_get_contents($filename);
+                preg_match('~MP PLAN TEMPLATE:\s+(\S+)~', $template_str, $m);
 
-            if (isset($m[1])) {
-                return $m[1];
+                if (isset($m[1])) {
+                    return $m[1];
+                }
             }
         }
+
 
         return '';
     }
 
+    /**
+     * Get the paths to the group theme templates.
+     *
+     * @return array The paths to the group theme templates.
+     */
     public static function group_theme_templates_paths()
     {
         return MeprHooks::apply_filters('mepr_group_theme_templates_paths', [MEPR_CSS_PATH . '/plan_templates']);
     }
 
+    /**
+     * Get the available group theme templates.
+     *
+     * @param boolean $full_paths Optional. Whether to return full paths. Default false.
+     *
+     * @return array The available group theme templates.
+     */
     public static function group_theme_templates($full_paths = false)
     {
         $paths = self::group_theme_templates_paths();
@@ -364,11 +416,23 @@ class MeprGroup extends MeprCptModel
         return $templates;
     }
 
+    /**
+     * Get the paths to the group themes.
+     *
+     * @return array The paths to the group themes.
+     */
     public static function group_themes_paths()
     {
         return MeprHooks::apply_filters('mepr_group_themes_paths', [MEPR_CSS_PATH . '/plans']);
     }
 
+    /**
+     * Find the path to a specific group theme.
+     *
+     * @param string $theme The name of the theme to find.
+     *
+     * @return string|false The path to the theme or false if not found.
+     */
     public static function find_group_theme($theme)
     {
         $paths = self::group_themes_paths();
@@ -381,6 +445,14 @@ class MeprGroup extends MeprCptModel
         return false;
     }
 
+    /**
+     * Get the available group themes.
+     *
+     * @param boolean $full_paths     Optional. Whether to return full paths. Default false.
+     * @param boolean $include_custom Optional. Whether to include custom themes. Default false.
+     *
+     * @return array The available group themes.
+     */
     public static function group_themes($full_paths = false, $include_custom = false)
     {
         $paths = self::group_themes_paths();
@@ -404,4 +476,4 @@ class MeprGroup extends MeprCptModel
 
         return $themes;
     }
-} //End class
+}

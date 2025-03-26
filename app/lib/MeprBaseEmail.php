@@ -4,22 +4,28 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
-class MeprEmailToException extends Exception
-{
-}
-class MeprEmailFromException extends Exception
-{
-}
-
 abstract class MeprBaseEmail
 {
     // It's a requirement for base classes to define these
-    public $title, $description, $defaults, $variables, $to, $headers, $show_form, $ui_order, $test_vars;
+    public $title;
+    public $description;
+    public $defaults;
+    public $variables;
+    public $to;
+    public $headers;
+    public $show_form;
+    public $ui_order;
+    public $test_vars;
 
+    /**
+     * Constructor for the MeprBaseEmail class.
+     *
+     * @param array $args Optional arguments to initialize the email.
+     */
     public function __construct($args = [])
     {
-        $this->headers = [];
-        $this->defaults = [];
+        $this->headers   = [];
+        $this->defaults  = [];
         $this->variables = [];
         $this->test_vars = [];
 
@@ -27,45 +33,92 @@ abstract class MeprBaseEmail
     }
 
     /**
-     * Set the default enabled, title, subject, body & other variables
+     * Set the default enabled, title, subject, body & other variables.
+     *
+     * @param array $args Optional arguments to set defaults.
+     *
+     * @return void
      */
     abstract public function set_defaults($args = []);
 
+    /**
+     * Checks if the email is enabled.
+     *
+     * @return boolean True if enabled, false otherwise.
+     */
     public function enabled()
     {
         return ($this->get_stored_field('enabled') != false);
     }
 
+    /**
+     * Checks if the email uses a template.
+     *
+     * @return boolean True if using a template, false otherwise.
+     */
     public function use_template()
     {
         return ($this->get_stored_field('use_template') != false);
     }
 
+    /**
+     * Retrieves the email headers.
+     *
+     * @return array The email headers.
+     */
     public function headers()
     {
         return $this->headers;
     }
 
+    /**
+     * Retrieves the email subject.
+     *
+     * @return string The email subject.
+     */
     public function subject()
     {
         return $this->get_stored_field('subject');
     }
 
+    /**
+     * Retrieves the email body.
+     *
+     * @return string The email body.
+     */
     public function body()
     {
         return $this->get_stored_field('body');
     }
 
+    /**
+     * Retrieves the default email subject.
+     *
+     * @return string The default email subject.
+     */
     public function default_subject()
     {
         return $this->defaults['subject'];
     }
 
+    /**
+     * Retrieves the default email body.
+     *
+     * @return string The default email body.
+     */
     public function default_body()
     {
         return $this->defaults['body'];
     }
 
+    /**
+     * Formats the email subject with given values.
+     *
+     * @param array  $values  The values to replace in the subject.
+     * @param string $subject Optional subject to format.
+     *
+     * @return string The formatted subject.
+     */
     public function formatted_subject($values = [], $subject = false)
     {
         if ($subject) {
@@ -75,6 +128,16 @@ abstract class MeprBaseEmail
         }
     }
 
+    /**
+     * Formats the email body with given values.
+     *
+     * @param array   $values       The values to replace in the body.
+     * @param string  $type         The content type (e.g., 'html').
+     * @param string  $body         Optional body to format.
+     * @param boolean $use_template Whether to use a template.
+     *
+     * @return string The formatted body.
+     */
     public function formatted_body($values = [], $type = 'html', $body = false, $use_template = null)
     {
         if ($body) {
@@ -100,12 +163,23 @@ abstract class MeprBaseEmail
         return MeprUtils::convert_to_plain_text($body);
     }
 
+    /**
+     * Sends the email with the given parameters.
+     *
+     * @param array   $values       The values to replace in the email.
+     * @param string  $subject      Optional subject for the email.
+     * @param string  $body         Optional body for the email.
+     * @param boolean $use_template Whether to use a template.
+     * @param string  $content_type The content type (e.g., 'html').
+     *
+     * @return void
+     */
     public function send($values = [], $subject = false, $body = false, $use_template = null, $content_type = 'html')
     {
         // Used to filter parameters to be searched and replaced in the email subject & body
-        $values  = MeprHooks::apply_filters('mepr_email_send_params', $values, $this, $subject, $body);
-        $body    = MeprHooks::apply_filters('mepr_email_send_body', $body, $this, $subject, $values);
-        $subject = MeprHooks::apply_filters('mepr_email_send_subject', $subject, $this, $body, $values);
+        $values      = MeprHooks::apply_filters('mepr_email_send_params', $values, $this, $subject, $body);
+        $body        = MeprHooks::apply_filters('mepr_email_send_body', $body, $this, $subject, $values);
+        $subject     = MeprHooks::apply_filters('mepr_email_send_subject', $subject, $this, $body, $values);
         $attachments = MeprHooks::apply_filters('mepr_email_send_attachments', [], $this, $body, $values);
 
         $bkg_enabled =  MeprHooks::apply_filters('mepr_bkg_email_jobs_enabled', get_option('mp-bkg-email-jobs-enabled'));
@@ -136,19 +210,26 @@ abstract class MeprBaseEmail
             remove_action('phpmailer_init', [$this, 'mailer_init']);
             do_action('mepr_email_sent', $this, $values, $attachments);
         } else {
-            $job = new MeprEmailJob();
-            $job->values  = $values;
-            $job->subject = $subject;
-            $job->body    = $body;
-            $job->class   = get_class($this);
-            $job->to      = $this->to;
-            $job->headers = $this->headers;
+            $job               = new MeprEmailJob();
+            $job->values       = $values;
+            $job->subject      = $subject;
+            $job->body         = $body;
+            $job->class        = get_class($this);
+            $job->to           = $this->to;
+            $job->headers      = $this->headers;
             $job->use_template = $use_template;
             $job->content_type = $content_type;
             $job->enqueue();
         }
     }
 
+    /**
+     * Sets the HTML content type for the email.
+     *
+     * @param string $content_type The content type (default: 'text/html').
+     *
+     * @return string The content type.
+     */
     public function set_html_content_type($content_type = 'text/html')
     {
         // return 'text/html;charset="UTF-8"'; //UTF-8 is breaking internal WP checks
@@ -173,6 +254,14 @@ abstract class MeprBaseEmail
         }
     }
 
+    /**
+     * Sends the email if it is enabled.
+     *
+     * @param array  $values       The values to replace in the email.
+     * @param string $content_type The content type (e.g., 'html').
+     *
+     * @return void
+     */
     public function send_if_enabled($values = [], $content_type = 'html')
     {
         if ($this->enabled()) {
@@ -180,27 +269,50 @@ abstract class MeprBaseEmail
         }
     }
 
+    /**
+     * Displays the email form.
+     *
+     * @return void
+     */
     public function display_form()
     {
         $email = $this;
         MeprView::render('/admin/emails/options', get_defined_vars());
     }
 
+    /**
+     * Retrieves the dashed name of the email class.
+     *
+     * @return string The dashed name.
+     */
     public function dashed_name()
     {
         $classname = get_class($this);
-        $tag = preg_replace('/\B([A-Z])/', '-$1', $classname);
+        $tag       = preg_replace('/\B([A-Z])/', '-$1', $classname);
         return strtolower($tag);
     }
 
+    /**
+     * Retrieves the view name of the email class.
+     *
+     * @return string The view name.
+     */
     public function view_name()
     {
         $classname = get_class($this);
-        $view = preg_replace('/^Mepr(.*)Email$/', '$1', $classname);
-        $view = preg_replace('/\B([A-Z])/', '_$1', $view);
+        $view      = preg_replace('/^Mepr(.*)Email$/', '$1', $classname);
+        $view      = preg_replace('/\B([A-Z])/', '_$1', $view);
         return strtolower($view);
     }
 
+    /**
+     * Replaces variables in the given text with values.
+     *
+     * @param string $text   The text to replace variables in.
+     * @param array  $values The values to replace.
+     *
+     * @return string The text with replaced variables.
+     */
     public function replace_variables($text, $values)
     {
         return MeprUtils::replace_vals($text, $values);
@@ -212,9 +324,14 @@ abstract class MeprBaseEmail
         return MeprView::get_string('/emails/' . $this->view_name(), $vars);
     }
 
+    /**
+     * Retrieves the footer content for the email.
+     *
+     * @return string The footer content.
+     */
     private function footer()
     {
-        $links = $this->footer_links();
+        $links     = $this->footer_links();
         $links_str = join('&#124;', $links);
         ob_start();
         ?>
@@ -226,10 +343,15 @@ abstract class MeprBaseEmail
         return ob_get_clean();
     }
 
+    /**
+     * Retrieves the footer links for the email.
+     *
+     * @return array The footer links.
+     */
     private function footer_links()
     {
         $mepr_options = MeprOptions::fetch();
-        $links = [];
+        $links        = [];
 
         if ($mepr_options->include_email_privacy_link) {
             $privacy_policy_page_link = MeprAppHelper::privacy_policy_page_link();
@@ -241,9 +363,22 @@ abstract class MeprBaseEmail
         return $links;
     }
 
+    /**
+     * Retrieves the field name for the email.
+     *
+     * @param string  $field The field name (default: 'enabled').
+     * @param boolean $id    Optional ID for the field.
+     *
+     * @return string The field name.
+     */
     abstract public function field_name($field = 'enabled', $id = false);
 
-    // This will vary based on what part of the
-    // code is sending out the email
+    /**
+     * Retrieves the stored field value for the email.
+     *
+     * @param string $fieldname The field name.
+     *
+     * @return mixed The stored field value.
+     */
     abstract public function get_stored_field($fieldname);
 }

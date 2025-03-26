@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprUsersCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load the necessary hooks for user management.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         // Admin User Profile login meta box
@@ -78,18 +83,24 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         // Check if there's a phone field
         if ($has_phone) {
-            wp_enqueue_style('mepr-phone-css', MEPR_CSS_URL . '/vendor/intlTelInput.min.css', '', '16.0.0');
-            wp_enqueue_style('mepr-tel-config-css', MEPR_CSS_URL . '/tel_input.css', '', MEPR_VERSION);
-            wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/vendor/intlTelInput.js', '', '16.0.0', true);
+            wp_enqueue_style('mepr-phone-css', MEPR_CSS_URL . '/vendor/intlTelInput.min.css', [], '16.0.0');
+            wp_enqueue_style('mepr-tel-config-css', MEPR_CSS_URL . '/tel_input.css', [], MEPR_VERSION);
+            wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/vendor/intlTelInput.js', [], '16.0.0', true);
+            wp_enqueue_script('mepr-phone-utils-js', MEPR_JS_URL . '/vendor/intlTelInputUtils.js', ['mepr-phone-js'], '16.0.0', true);
             wp_enqueue_script('mepr-tel-config-js', MEPR_JS_URL . '/tel_input.js', ['mepr-phone-js'], MEPR_VERSION, true);
             wp_localize_script('mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters('mepr-phone-input-config', [
                 'defaultCountry' => strtolower(get_option('mepr_biz_country')),
-                'utilsUrl' => MEPR_JS_URL . '/vendor/intlTelInputUtils.js',
-                'onlyCountries' => '',
+                'onlyCountries'  => '',
             ]));
         }
     }
 
+    /**
+     * Register the data eraser for MemberPress.
+     *
+     * @param  array $erasers The existing data erasers.
+     * @return array The modified data erasers.
+     */
     public static function register_mepr_data_eraser($erasers)
     {
         $erasers[MEPR_PLUGIN_NAME] = [
@@ -100,6 +111,13 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return $erasers;
     }
 
+    /**
+     * Erase personally identifiable information (PII) for a user.
+     *
+     * @param  string  $email The user's email address.
+     * @param  integer $page  The page number for pagination.
+     * @return array|void The result of the erasure process.
+     */
     public static function erase_pii($email, $page = 1)
     {
         $user = get_user_by('email', $email);
@@ -117,13 +135,18 @@ class MeprUsersCtrl extends MeprBaseCtrl
         delete_user_meta($user->ID, 'mepr-address-country');
 
         return [
-            'items_removed' => true,
+            'items_removed'  => true,
             'items_retained' => false,
-            'messages' => [],
-            'done' => true,
+            'messages'       => [],
+            'done'           => true,
         ];
     }
 
+    /**
+     * Display the unauthorized page.
+     *
+     * @return void
+     */
     public static function display_unauthorized_page()
     {
         if (MeprUtils::is_user_logged_in()) {
@@ -133,9 +156,14 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Resend the welcome email to a user.
+     *
+     * @return void
+     */
     public static function resend_welcome_email_callback()
     {
-        $ajax_nonce = $_REQUEST['nonce'];
+        $ajax_nonce   = $_REQUEST['nonce'];
         $mepr_options = MeprOptions::fetch();
 
         if (wp_verify_nonce($ajax_nonce, 'mepr_resend_welcome_email')) {
@@ -145,23 +173,23 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 // Get the most recent transaction
                 $txns = MeprTransaction::get_all_complete_by_user_id(
                     $usr->ID,
-                    'created_at DESC', /* $order_by='' */
-                    '1', /* $limit='' */
-                    false, /* $count=false */
-                    false, /* $exclude_expired=false */
-                    true /* $include_confirmations=false */
+                    'created_at DESC', // $order_by=''
+                    '1', // $limit=''
+                    false, // $count=false
+                    false, // $exclude_expired=false
+                    true // $include_confirmations=false
                 );
 
                 if (count($txns) <= 0) {
                     die(__('This user hasn\'t purchased any memberships - so no email will be sent.', 'memberpress'));
                 }
 
-                $txn = new MeprTransaction($txns[0]->id);
+                $txn    = new MeprTransaction($txns[0]->id);
                 $params = MeprTransactionsHelper::get_email_params($txn);
-                $usr = $txn->user();
+                $usr    = $txn->user();
 
                 try {
-                    $uemail = MeprEmailFactory::fetch('MeprUserWelcomeEmail');
+                    $uemail     = MeprEmailFactory::fetch('MeprUserWelcomeEmail');
                     $uemail->to = $usr->formatted_email();
                     $uemail->send($params);
                     die(__('Message Sent', 'memberpress'));
@@ -174,6 +202,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
         die(__('Cannot resend message', 'memberpress'));
     }
 
+    /**
+     * Nullify records associated with a user upon deletion.
+     *
+     * @param  integer $id The user ID.
+     * @return integer The user ID.
+     */
     public static function nullify_records_on_delete($id)
     {
         MeprTransaction::nullify_user_id_on_delete($id);
@@ -182,6 +216,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return $id;
     }
 
+    /**
+     * Email users with expiring transactions.
+     *
+     * @return boolean|void
+     */
     public static function email_users_with_expiring_transactions()
     {
         return MeprUser::email_users_with_expiring_transactions();
@@ -192,37 +231,56 @@ class MeprUsersCtrl extends MeprBaseCtrl
     // if($t = wp_next_scheduled('mepr_schedule_renew_emails'))
     // wp_unschedule_event($t, 'mepr_schedule_renew_emails');
     // }
+
+    /**
+     * Enqueue scripts for the user profile page.
+     *
+     * @param  string $hook The current page hook.
+     * @return void
+     */
     public static function enqueue_scripts($hook)
     {
-        $wp_scripts = new WP_Scripts();
-        $ui = $wp_scripts->query('jquery-ui-core');
-        $url = "//ajax.googleapis.com/ajax/libs/jqueryui/{$ui->ver}/themes/smoothness/jquery-ui.css";
-
         if ($hook == 'user-edit.php' || $hook == 'profile.php') {
-            wp_enqueue_style('mepr-jquery-ui-smoothness', $url);
-            wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
+            wp_enqueue_style('mepr-jquery-ui-smoothness', MEPR_CSS_URL . '/vendor/jquery-ui/smoothness.min.css', [], '1.13.3');
+            wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness'], MEPR_VERSION);
 
-            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
-            wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
-            wp_enqueue_script('mp-i18n', MEPR_JS_URL . '/i18n.js', ['jquery']);
+            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker'], MEPR_VERSION);
+            wp_enqueue_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
+            wp_enqueue_script('mp-i18n', MEPR_JS_URL . '/i18n.js', ['jquery'], MEPR_VERSION);
             wp_localize_script('mp-i18n', 'MeprI18n', ['states' => MeprUtils::states()]);
             wp_enqueue_script('mp-edit-user', MEPR_JS_URL . '/admin_profile.js', ['jquery', 'suggest', 'mp-i18n'], MEPR_VERSION);
         }
     }
 
+    /**
+     * Display extra profile fields on the user profile page.
+     *
+     * @param  WP_User $wpuser The WordPress user object.
+     * @return void
+     */
     public static function extra_profile_fields($wpuser)
     {
         $mepr_options = MeprOptions::fetch();
-        $user = new MeprUser($wpuser->ID);
+        $user         = new MeprUser($wpuser->ID);
 
         MeprView::render('/admin/users/extra_profile_fields', get_defined_vars());
     }
 
+    /**
+     * Save extra profile fields for a user.
+     *
+     * @param  integer $user_id   The user ID.
+     * @param  boolean $validated Whether the fields have been validated.
+     * @param  boolean $product   The product object.
+     * @param  boolean $is_signup Whether this is during signup.
+     * @param  array   $selected  The selected fields to save.
+     * @return boolean
+     */
     public static function save_extra_profile_fields($user_id, $validated = false, $product = false, $is_signup = false, $selected = [])
     {
         $mepr_options = MeprOptions::fetch();
-        $errors = [];
-        $user = new MeprUser($user_id);
+        $errors       = [];
+        $user         = new MeprUser($user_id);
 
         if (isset($_POST[MeprUser::$user_message_str])) {
             update_user_meta($user_id, MeprUser::$user_message_str, (string)wp_kses_post($_POST[MeprUser::$user_message_str]));
@@ -251,11 +309,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
 
         $custom_fields[] = (object)[
-            'field_key' => 'first_name',
+            'field_key'  => 'first_name',
             'field_type' => 'text',
         ];
         $custom_fields[] = (object)[
-            'field_key' => 'last_name',
+            'field_key'  => 'last_name',
             'field_type' => 'text',
         ];
 
@@ -368,7 +426,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
         $selected = []
     ) {
         $mepr_options = MeprOptions::fetch();
-        $errs = [];
+        $errs         = [];
 
         // Prevent checking when adding a new user via WP's New User system
         // or if an admin is editing the profile in the dashboard
@@ -384,7 +442,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 $custom_fields = $mepr_options->custom_fields;
             }
         } elseif (!is_null($user)) {
-            $mepr_user = new MeprUser($user->ID);
+            $mepr_user     = new MeprUser($user->ID);
             $custom_fields = $mepr_user->custom_profile_fields();
         } else {
             $custom_fields = $mepr_options->custom_fields;
@@ -475,6 +533,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return $errs;
     }
 
+    /**
+     * Search for users via AJAX.
+     *
+     * @return void
+     */
     public static function user_search()
     {
         if (!MeprUtils::is_mepr_admin()) {
@@ -498,7 +561,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
     // Add extra columns to the Users list table
     public static function add_extra_user_columns($columns)
     {
-        $columns['mepr_products'] = __('Active Memberships', 'memberpress');
+        $columns['mepr_products']   = __('Active Memberships', 'memberpress');
         $columns['mepr_registered'] = __('Registered', 'memberpress');
         $columns['mepr_last_login'] = __('Last Login', 'memberpress');
         $columns['mepr_num_logins'] = __('# Logins', 'memberpress');
@@ -520,7 +583,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
     public static function extra_user_columns_query_override($query)
     {
         global $wpdb;
-        $vars = $query->query_vars;
+        $vars    = $query->query_vars;
         $mepr_db = new MeprDb();
 
         if (isset($vars['orderby']) && $vars['orderby'] == 'last_login') {
@@ -571,6 +634,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return $value;
     }
 
+    /**
+     * Redirect members from the admin area if necessary.
+     *
+     * @return void
+     */
     public static function maybe_redirect_member_from_admin()
     {
         $mepr_options = MeprOptions::fetch();
@@ -594,6 +662,14 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Disable the WordPress registration form if necessary.
+     *
+     * @param  string   $login  The login name.
+     * @param  string   $email  The email address.
+     * @param  WP_Error $errors The WP_Error object.
+     * @return void
+     */
     public static function maybe_disable_wp_registration_form($login, $email, $errors)
     {
         $mepr_options = MeprOptions::fetch();
@@ -604,6 +680,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Disable the WordPress admin bar if necessary.
+     *
+     * @return void
+     */
     public static function maybe_disable_admin_bar()
     {
         $mepr_options = MeprOptions::fetch();
@@ -613,6 +694,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Add a meta box to the login page.
+     *
+     * @return void
+     */
     public static function login_page_meta_box()
     {
         global $post;
@@ -624,6 +710,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Show the login page meta box.
+     *
+     * @return void
+     */
     public static function show_login_page_meta_box()
     {
         global $post;
@@ -637,9 +728,15 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Save post data for the login page.
+     *
+     * @param  integer $post_id The post ID.
+     * @return integer|void
+     */
     public static function save_postdata($post_id)
     {
-        $post = get_post($post_id);
+        $post         = get_post($post_id);
         $mepr_options = MeprOptions::fetch();
 
         if (!wp_verify_nonce((isset($_POST[MeprUser::$nonce_str])) ? $_POST[MeprUser::$nonce_str] : '', MeprUser::$nonce_str . wp_salt())) {
@@ -660,12 +757,19 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * List a user's subscriptions.
+     *
+     * @param  array  $atts    The shortcode attributes.
+     * @param  string $content The content of the shortcode.
+     * @return string
+     */
     public static function list_users_subscriptions($atts, $content = '')
     {
-        $user = MeprUtils::get_currentuserinfo();
-        $active_rows = [];
+        $user          = MeprUtils::get_currentuserinfo();
+        $active_rows   = [];
         $inactive_rows = [];
-        $alt_row = 'mp_users_subscriptions_list_alt';
+        $alt_row       = 'mp_users_subscriptions_list_alt';
 
         if (!$user) {
             return '';
@@ -677,7 +781,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
         $active_ids = $user->active_product_subscriptions('ids');
 
         foreach ($all_ids as $id) {
-            $prd = new MeprProduct($id);
+            $prd        = new MeprProduct($id);
             $created_at = MeprUser::get_user_product_signup_date($user->ID, $id);
 
             if (in_array($id, $active_ids) && $status !== 'expired') {
@@ -687,21 +791,21 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
                 if ($expiring_txn instanceof MeprTransaction) {
                     $renewal_link = MeprHooks::apply_filters('mepr_list_subscriptions_renewal_link', $user->renewal_link($expiring_txn->id), $expiring_txn);
-                    $expires_at = MeprAppHelper::format_date($expiring_txn->expires_at, _x('Never', 'ui', 'memberpress'));
+                    $expires_at   = MeprAppHelper::format_date($expiring_txn->expires_at, _x('Never', 'ui', 'memberpress'));
                 }
 
                 $active_rows[] = (object)[
-                    'membership' => $prd->post_title,
-                    'expires' => $expires_at,
+                    'membership'   => $prd->post_title,
+                    'expires'      => $expires_at,
                     'renewal_link' => $renewal_link,
-                    'access_url' => $prd->access_url,
-                    'created_at' => $created_at,
+                    'access_url'   => $prd->access_url,
+                    'created_at'   => $created_at,
                 ];
             } elseif (!in_array($id, $active_ids) && in_array($status, ['expired', 'all'])) {
                 $inactive_rows[] = (object)[
-                    'membership' => $prd->post_title,
+                    'membership'    => $prd->post_title,
                     'purchase_link' => $prd->url(),
-                    'created_at' => $created_at,
+                    'created_at'    => $created_at,
                 ];
             }
         }
@@ -763,20 +867,19 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return ob_get_clean();
     }
 
-
     /**
      * Adds shortcode for displaying user files
      *
-     * @param  mixed $atts
-     * @param  mixed $content
+     * @param  mixed $atts    The shortcode attributes.
+     * @param  mixed $content The content of the shortcode.
      * @return mixed
      */
     public static function show_user_file($atts, $content = '')
     {
-        $key = (isset($atts['slug'])) ? sanitize_text_field($atts['slug']) : '';
+        $key    = (isset($atts['slug'])) ? sanitize_text_field($atts['slug']) : '';
         $userid = (isset($atts['userid'])) ? intval($atts['userid']) : get_current_user_id();
 
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options  = MeprOptions::fetch();
         $custom_fields = (array) $mepr_options->custom_fields;
 
         $field = array_filter($custom_fields, function ($field) use ($key) {
@@ -798,6 +901,13 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return ob_get_clean();
     }
 
+    /**
+     * Get the active membership titles for a user.
+     *
+     * @param  array  $atts    The shortcode attributes.
+     * @param  string $content The content of the shortcode.
+     * @return string|void
+     */
     public static function get_user_active_membership_titles($atts, $content = '')
     {
         $userid = (isset($atts['userid']) && !empty($atts['userid'])) ? (int)trim($atts['userid']) : get_current_user_id();
@@ -806,10 +916,10 @@ class MeprUsersCtrl extends MeprBaseCtrl
             return;
         }
 
-        $user = new MeprUser($userid);
+        $user    = new MeprUser($userid);
         $message = (isset($atts['message']) && !empty($atts['message'])) ? wp_kses_post($atts['message']) : '';
-        $titles = esc_attr(trim($user->get_active_subscription_titles()));
+        $titles  = esc_attr(trim($user->get_active_subscription_titles()));
 
         return ('' != $titles) ? $titles : $message;
     }
-} //End class
+}

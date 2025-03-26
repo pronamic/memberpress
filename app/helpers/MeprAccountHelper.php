@@ -6,9 +6,16 @@ if (!defined('ABSPATH')) {
 
 class MeprAccountHelper
 {
+    /**
+     * Active nav.
+     *
+     * @param  string $tab          The tab.
+     * @param  string $active_class The active class.
+     * @return void
+     */
     public static function active_nav($tab = 'home', $active_class = 'mepr-active-nav-tab')
     {
-        $class = 'mepr-' . $tab;
+        $class  = 'mepr-' . $tab;
         $action = '';
 
         if (isset($_REQUEST['action'])) {
@@ -24,6 +31,13 @@ class MeprAccountHelper
         echo MeprHooks::apply_filters('mepr-active-nav-tab', $class, $tab, $active_class);
     }
 
+    /**
+     * Purchase link.
+     *
+     * @param  MeprProduct $product The product.
+     * @param  string      $name    The name.
+     * @return void
+     */
     public static function purchase_link($product, $name = null)
     {
         $name = is_null($name) ? _x('Subscribe', 'ui', 'memberpress') : $name;
@@ -33,12 +47,20 @@ class MeprAccountHelper
         <?php
     }
 
+    /**
+     * Group link.
+     *
+     * @param  MeprTransaction $txn The transaction.
+     * @return void
+     */
     public static function group_link($txn)
     {
-        $product  = $txn->product();
-        $user     = $txn->user();
+        $product = $txn->product();
+        $user    = $txn->user();
         ?>
-        <?php if (($grp = $product->group()) && $grp->is_upgrade_path && count($grp->products('ids')) > 1 && count($grp->buyable_products()) >= 1) : // Can't upgrade to no other options ?>
+        <?php
+        $grp = $product->group();
+        if ($grp && $grp->is_upgrade_path && count($grp->products('ids')) > 1 && count($grp->buyable_products()) >= 1) : // Can't upgrade to no other options ?>
         <div id="mepr-upgrade-txn-<?php echo $txn->id; ?>" class="mepr-white-popup mfp-hide">
           <center>
             <div class="mepr-upgrade-txn-text">
@@ -73,4 +95,4 @@ class MeprAccountHelper
         <?php endif; ?>
         <?php
     }
-} //End class
+}

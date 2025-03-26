@@ -3,11 +3,17 @@
 if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
-/*
-    Integration of bbPress into MemberPress
-*/
+
+/**
+ * Integration of bbPress into MemberPress
+ */
 class MeprBbPressIntegration
 {
+    /**
+     * Constructor.
+     *
+     * @return void
+     */
     public function __construct()
     {
         // Used to hide forums & topics
@@ -30,6 +36,13 @@ class MeprBbPressIntegration
         add_filter('bbp_get_reply_content', 'MeprBbPressIntegration::bbpress_rule_content', 999999, 2);
     }
 
+    /**
+     * BBPress rule content.
+     *
+     * @param  string  $content The content.
+     * @param  integer $id      The id.
+     * @return string
+     */
     public static function bbpress_rule_content($content, $id)
     {
         // We only allow restriction on a per-forum basis currently
@@ -49,6 +62,12 @@ class MeprBbPressIntegration
         return apply_filters('mepr-bbpress-unauthorized-message', MeprRulesCtrl::unauthorized_message($post));
     }
 
+    /**
+     * Don't redirect on shortcode.
+     *
+     * @param  boolean $bool The bool.
+     * @return boolean
+     */
     public static function dont_redirect_on_shortcode($bool)
     {
         global $wp_query;
@@ -64,6 +83,14 @@ class MeprBbPressIntegration
         return $bool;
     }
 
+    /**
+     * Don't block the content.
+     *
+     * @param  boolean $block        The block.
+     * @param  integer $current_post The current post.
+     * @param  string  $uri          The uri.
+     * @return boolean
+     */
     public static function dont_block_the_content($block, $current_post, $uri)
     {
         if (function_exists('is_bbpress') && is_bbpress()) {
@@ -72,6 +99,12 @@ class MeprBbPressIntegration
         return $block;
     }
 
+    /**
+     * Mepr account page links.
+     *
+     * @param  object $user The user.
+     * @return void
+     */
     public static function mepr_account_page_links($user)
     {
         if (!class_exists('bbPress')) {
@@ -85,6 +118,12 @@ class MeprBbPressIntegration
         <?php
     }
 
+    /**
+     * Hide threads.
+     *
+     * @param  array $ids The ids.
+     * @return array
+     */
     public static function hide_threads($ids)
     {
         global $wpdb;
@@ -116,17 +155,38 @@ class MeprBbPressIntegration
         return $ids;
     }
 
+    /**
+     * In sidebar.
+     *
+     * @param  integer $index The index.
+     * @param  boolean $bool  The bool.
+     * @return void
+     */
     public static function in_sidebar($index, $bool)
     {
         $_REQUEST['mepr_bbpress_in_sidebar'] = true;
     }
 
+    /**
+     * Out sidebar.
+     *
+     * @param  integer $index The index.
+     * @param  boolean $bool  The bool.
+     * @return void
+     */
     public static function out_sidebar($index, $bool)
     {
         $_REQUEST['mepr_bbpress_in_sidebar'] = false;
     }
 
-    // Used mostly for redirecting to the login or unauthorized page if the current forum is locked
+    /**
+     * Hide forums.
+     * Used mostly for redirecting to the login or unauthorized page if the current forum is locked
+     *
+     * @param  string  $status   The status.
+     * @param  integer $forum_id The forum id.
+     * @return string
+     */
     public static function hide_forums($status, $forum_id)
     {
         if (isset($_REQUEST['mepr_is_bbp_shortcode'])) {
@@ -147,7 +207,7 @@ class MeprBbPressIntegration
         $uri          = urlencode(esc_url($_SERVER['REQUEST_URI']));
 
         $actual_forum_id = bbp_get_forum_id();
-        $forum = get_post($actual_forum_id);
+        $forum           = get_post($actual_forum_id);
 
         // Not a singular view, then let's bail
         if (!is_singular()) {
@@ -166,7 +226,7 @@ class MeprBbPressIntegration
         if (MeprRule::is_locked($forum)) {
             if (!headers_sent()) {
                 if ($mepr_options->redirect_on_unauthorized) {
-                    $delim = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
+                    $delim       = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
                     $redirect_to = "{$mepr_options->unauthorized_redirect_url}{$delim}mepr-unauth-page={$forum->ID}&redirect_to={$uri}";
                 } else {
                     $redirect_to = $mepr_options->login_page_url("action=mepr_unauthorized&mepr-unauth-page={$forum->ID}&redirect_to=" . $uri);
@@ -183,6 +243,12 @@ class MeprBbPressIntegration
         return $status;
     }
 
+    /**
+     * Filter rules cpts.
+     *
+     * @param  array $cpts The cpts.
+     * @return array
+     */
     public static function filter_rules_cpts($cpts)
     {
         unset($cpts['reply']);
@@ -190,6 +256,6 @@ class MeprBbPressIntegration
 
         return $cpts;
     }
-} //End class
+}
 
 new MeprBbPressIntegration();

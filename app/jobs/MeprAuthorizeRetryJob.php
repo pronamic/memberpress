@@ -8,6 +8,8 @@ require_once(__DIR__ . '/../gateways/MeprAuthorizeAPI.php');
 require_once(__DIR__ . '/../gateways/MeprAuthorizeWebhooks.php');
 
 /**
+ * Job to retry Authorize.net transactions.
+ *
  * @property string $transaction_data JSON-encoded Authorize.net transaction data.
  * @property object $gateway_settings Gateway settings object.
  * @property boolean $payment_failed Whether this job is for a failed payment (true), or a successful one (false).
@@ -17,7 +19,7 @@ class MeprAuthorizeRetryJob extends MeprBaseJob
     /**
      * Perform this job.
      *
-     * @throws Exception
+     * @throws Exception When subscription data is missing or Authorize.net API request fails
      */
     public function perform()
     {

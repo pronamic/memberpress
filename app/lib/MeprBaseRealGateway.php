@@ -11,9 +11,10 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
      *
      * Also sets up the grace period confirmation transaction (if enabled).
      *
-     * @param MeprTransaction  $txn           The MemberPress transaction
-     * @param MeprSubscription $sub           The MemberPress subscription
-     * @param boolean          $set_trans_num Whether to set the txn trans_num to the sub subscr_id
+     * @param MeprTransaction  $txn            The MemberPress transaction
+     * @param MeprSubscription $sub            The MemberPress subscription
+     * @param boolean          $set_trans_num  Whether to set the txn trans_num to the sub subscr_id
+     * @param boolean          $set_created_at Whether to set the created_at timestamp
      */
     public function activate_subscription(MeprTransaction $txn, MeprSubscription $sub, $set_trans_num = true, $set_created_at = true)
     {
@@ -46,8 +47,8 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
             $txn->trans_num = $sub->subscr_id;
         }
 
-        $txn->status = MeprTransaction::$confirmed_str;
-        $txn->txn_type = MeprTransaction::$subscription_confirmation_str;
+        $txn->status     = MeprTransaction::$confirmed_str;
+        $txn->txn_type   = MeprTransaction::$subscription_confirmation_str;
         $txn->expires_at = $expires_at;
         $txn->set_subtotal(0.00); // Just a confirmation txn
 
@@ -56,29 +57,29 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
     }
 
     /**
-     * Processes an order
+     * Process an order
      *
      * If there is an order bump, an order will be created and a transaction created for each order bump.
      * If no payment is due, it will redirect to the thank-you page.
      *
      * @param  MeprTransaction $txn                 The transaction for the main product being purchased
      * @param  MeprProduct[]   $order_bump_products The array of order bump products
-     * @return MeprTransaction[]                      The array of order bump transactions
-     * @throws Exception
+     * @return MeprTransaction[]                    The array of order bump transactions
+     * @throws Exception When order processing fails or validation errors occur with any transaction
      */
     public function process_order(MeprTransaction $txn, array $order_bump_products = [])
     {
-        $prd = $txn->product();
-        $cpn = $txn->coupon();
+        $prd              = $txn->product();
+        $cpn              = $txn->coupon();
         $payment_required = $prd->is_payment_required($cpn instanceof MeprCoupon ? $cpn->post_title : null);
-        $order_bumps = [];
-        $order = $txn->order();
+        $order_bumps      = [];
+        $order            = $txn->order();
 
         if (count($order_bump_products)) {
-            $order = new MeprOrder();
-            $order->user_id = $txn->user_id;
+            $order                         = new MeprOrder();
+            $order->user_id                = $txn->user_id;
             $order->primary_transaction_id = $txn->id;
-            $order->gateway = $this->id;
+            $order->gateway                = $this->id;
             $order->store();
 
             $txn->order_id = $order->id;
@@ -115,16 +116,16 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
             }
 
             if ($order instanceof MeprOrder) {
-                $order->status = 'complete';
+                $order->status  = 'complete';
                 $order->gateway = MeprTransaction::$free_gateway_str;
                 $order->store();
             }
 
-            $mepr_options = MeprOptions::fetch();
+            $mepr_options    = MeprOptions::fetch();
             $sanitized_title = sanitize_title($prd->post_title);
-            $query_params = [
-                'membership' => $sanitized_title,
-                'trans_num' => $txn->trans_num,
+            $query_params    = [
+                'membership'    => $sanitized_title,
+                'trans_num'     => $txn->trans_num,
                 'membership_id' => $prd->ID,
             ];
 

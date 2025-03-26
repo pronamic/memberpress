@@ -44,7 +44,8 @@
       </th>
       <td>
         <?php
-        if ($geo_country = get_user_meta($user->ID, 'mepr-geo-country', true)) {
+        $geo_country = get_user_meta($user->ID, 'mepr-geo-country', true);
+        if ($geo_country) {
             $countries = MeprUtils::countries(false);
             printf($countries[$geo_country]);
         } else {

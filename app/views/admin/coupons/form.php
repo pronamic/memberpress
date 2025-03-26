@@ -3,11 +3,11 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
-$products = MeprCptModel::all('MeprProduct');
-$wp_selected_timezone = MeprCouponsHelper::get_wp_selected_timezone_setting();
+$products                        = MeprCptModel::all('MeprProduct');
+$wp_selected_timezone            = MeprCouponsHelper::get_wp_selected_timezone_setting();
 $coupon_expire_selected_timezone = empty($c->expires_on_timezone) ? $wp_selected_timezone : $c->expires_on_timezone;
-$coupon_start_selected_timezone = empty($c->start_on_timezone) ? $wp_selected_timezone : $c->start_on_timezone;
-$time_frames = MeprCouponsHelper::get_available_time_frame();
+$coupon_start_selected_timezone  = empty($c->start_on_timezone) ? $wp_selected_timezone : $c->start_on_timezone;
+$time_frames                     = MeprCouponsHelper::get_available_time_frame();
 if (!empty($products)) :
     ?>
 <div class="mepr-coupons-form">

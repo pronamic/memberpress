@@ -2,6 +2,9 @@
 
 class MeprStripeTaxIntegration
 {
+    /**
+     * Constructor for the MeprStripeTaxIntegration class.
+     */
     public function __construct()
     {
         add_action('mepr_tax_rate_options', [$this, 'options']);
@@ -12,7 +15,7 @@ class MeprStripeTaxIntegration
         add_action('wp_ajax_mepr_enable_stripe_tax', [$this, 'enable_stripe_tax']);
         add_action('wp_ajax_mepr_validate_stripe_tax', [$this, 'validate_stripe_tax']);
 
-        $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
+        $calculate_taxes    = (bool) get_option('mepr_calculate_taxes');
         $tax_stripe_enabled = (bool) get_option('mepr_tax_stripe_enabled');
 
         if ($calculate_taxes && $tax_stripe_enabled) {
@@ -26,12 +29,15 @@ class MeprStripeTaxIntegration
         }
     }
 
+    /**
+     * Render the options for Stripe Tax on the settings page.
+     */
     public function options()
     {
-        $mepr_options = MeprOptions::fetch();
-        $tax_stripe_enabled = isset($_POST['mepr_tax_stripe_enabled']) || get_option('mepr_tax_stripe_enabled');
+        $mepr_options            = MeprOptions::fetch();
+        $tax_stripe_enabled      = isset($_POST['mepr_tax_stripe_enabled']) || get_option('mepr_tax_stripe_enabled');
         $selected_payment_method = (string) get_option('mepr_tax_stripe_payment_method', '');
-        $stripe_payment_methods = [];
+        $stripe_payment_methods  = [];
 
         foreach ($mepr_options->payment_methods(false) as $payment_method) {
             if ($payment_method instanceof MeprStripeGateway && $payment_method->is_connected()) {
@@ -42,6 +48,9 @@ class MeprStripeTaxIntegration
         MeprView::render('/admin/taxes/stripe_tax_options', get_defined_vars());
     }
 
+    /**
+     * Save the Stripe Tax settings to the database.
+     */
     public function store_options()
     {
         update_option('mepr_tax_stripe_enabled', isset($_POST['mepr_tax_stripe_enabled']));
@@ -49,6 +58,19 @@ class MeprStripeTaxIntegration
         delete_option('mepr_tax_stripe_deactivated');
     }
 
+    /**
+     * Determine the tax rate for the customer.
+     *
+     * @param  object       $tax_rate The current tax rate object.
+     * @param  string       $country  The customer's country.
+     * @param  string       $state    The customer's state.
+     * @param  string       $postcode The customer's postal code.
+     * @param  string       $city     The customer's city.
+     * @param  string       $street   The customer's street address.
+     * @param  object|null  $user     The user object.
+     * @param  integer|null $prd_id   The product ID.
+     * @return object
+     */
     public function find_rate($tax_rate, $country, $state, $postcode, $city, $street, $user = null, $prd_id = null)
     {
         if (empty($country) || !preg_match('/^[A-Z][A-Z]$/', $country)) {
@@ -56,41 +78,41 @@ class MeprStripeTaxIntegration
         }
 
         $address = [
-            'line1' => $street,
-            'line2' => '',
+            'line1'       => $street,
+            'line2'       => '',
             'postal_code' => $postcode,
-            'city' => $city,
-            'state' => $this->get_state($state, $country),
-            'country' => $country,
+            'city'        => $city,
+            'state'       => $this->get_state($state, $country),
+            'country'     => $country,
         ];
 
         $minimum_amount = MeprUtils::get_minimum_amount();
-        $amount = $minimum_amount ? 20 * $minimum_amount : 25;
-        $reference = is_null($prd_id) ? 'L1' : (string) $prd_id;
-        $tax_code = is_null($prd_id) ? '' : $this->get_product_tax_code($prd_id);
-        $tax_ids = $this->get_tax_ids($user);
+        $amount         = $minimum_amount ? 20 * $minimum_amount : 25;
+        $reference      = is_null($prd_id) ? 'L1' : (string) $prd_id;
+        $tax_code       = is_null($prd_id) ? '' : $this->get_product_tax_code($prd_id);
+        $tax_ids        = $this->get_tax_ids($user);
 
         $tax_calculation = $this->tax_calculation($address, $amount, $reference, $tax_code, $tax_ids);
 
         if ($tax_calculation && isset($tax_calculation->tax_breakdown) && is_array($tax_calculation->tax_breakdown)) {
-            $percentage = 0;
+            $percentage  = 0;
             $description = [];
             $tax_classes = [];
 
             foreach ($tax_calculation->tax_breakdown as $rate) {
-                $amount = isset($rate['amount']) ? $rate['amount'] : 0;
+                $amount             = isset($rate['amount']) ? $rate['amount'] : 0;
                 $percentage_decimal = isset($rate['tax_rate_details']['percentage_decimal']) ? $rate['tax_rate_details']['percentage_decimal'] : '0.0';
-                $tax_type = isset($rate['tax_rate_details']['tax_type']) ? $rate['tax_rate_details']['tax_type'] : '';
+                $tax_type           = isset($rate['tax_rate_details']['tax_type']) ? $rate['tax_rate_details']['tax_type'] : '';
 
                 if ($amount > 0 && $percentage_decimal > 0) {
-                    $percentage += $rate['tax_rate_details']['percentage_decimal'];
+                    $percentage   += $rate['tax_rate_details']['percentage_decimal'];
                     $description[] = $this->get_tax_description($tax_type);
                     $tax_classes[] = empty($tax_type) ? 'standard' : $tax_type;
                 }
             }
 
-            $tax_rate->tax_rate = $percentage;
-            $tax_rate->tax_desc = join(' + ', array_unique($description));
+            $tax_rate->tax_rate  = $percentage;
+            $tax_rate->tax_desc  = join(' + ', array_unique($description));
             $tax_rate->tax_class = empty($tax_classes) ? 'standard' : join(',', array_unique($tax_classes));
         }
 
@@ -101,8 +123,8 @@ class MeprStripeTaxIntegration
      * Returns the given state if it is a valid ISO 3166-2 subdivision code for the given country, otherwise return an empty string
      *
      * @see    https://en.wikipedia.org/wiki/ISO_3166-2
-     * @param  string $state
-     * @param  string $country
+     * @param  string $state   The state code.
+     * @param  string $country The country code.
      * @return string
      */
     private function get_state($state, $country)
@@ -126,10 +148,10 @@ class MeprStripeTaxIntegration
     }
 
     /**
-     * Convert the given state to ISO 3166-2 format for some selected countries
+     * Convert the given state to ISO 3166-2 format for some selected countries.
      *
-     * @param  string $state
-     * @param  string $country
+     * @param  string $state   The state code.
+     * @param  string $country The country code.
      * @return string
      */
     private function convert_state_to_iso_3166_2($state, $country)
@@ -149,9 +171,9 @@ class MeprStripeTaxIntegration
     }
 
     /**
-     * Get the tax code for the given product
+     * Get the tax code for the given product.
      *
-     * @param  integer $product_id
+     * @param  integer $product_id The product ID.
      * @return string
      */
     private function get_product_tax_code($product_id)
@@ -162,7 +184,7 @@ class MeprStripeTaxIntegration
             return 'txcd_00000000';
         }
 
-        $tax_code = get_post_meta($product_id, '_mepr_tax_stripe_tax_code', true);
+        $tax_code        = get_post_meta($product_id, '_mepr_tax_stripe_tax_code', true);
         $tax_code_custom = get_post_meta($product_id, '_mepr_tax_stripe_tax_code_custom', true);
 
         if ($tax_code) {
@@ -173,9 +195,9 @@ class MeprStripeTaxIntegration
     }
 
     /**
-     * Get the description for the given tax type
+     * Get the description for the given tax type.
      *
-     * @param  string $tax_type
+     * @param  string $tax_type The tax type.
      * @return string
      */
     private function get_tax_description($tax_type)
@@ -206,24 +228,24 @@ class MeprStripeTaxIntegration
     }
 
     /**
-     * Create a tax calculation
+     * Create a tax calculation.
      *
-     * @param  array         $address   The address array in the format expected by Stripe
-     * @param  integer|float $amount    The subtotal amount
-     * @param  string        $reference Unique reference number for the line-item
-     * @param  string|null   $tax_code  Optional Stripe tax code, or null to use the Stripe account default
-     * @param  array|null    $tax_ids   Optional tax IDs array in the format expected by Stripe
-     * @return stdClass
+     * @param  array         $address   The address array in the format expected by Stripe.
+     * @param  integer|float $amount    The subtotal amount.
+     * @param  string        $reference Unique reference number for the line-item.
+     * @param  string|null   $tax_code  Optional Stripe tax code, or null to use the Stripe account default.
+     * @param  array|null    $tax_ids   Optional tax IDs array in the format expected by Stripe.
+     * @return stdClass|null
      */
     private function tax_calculation(array $address, $amount, $reference, $tax_code = null, $tax_ids = null)
     {
         $mepr_options = MeprOptions::fetch();
-        $pm = $this->get_payment_method();
+        $pm           = $this->get_payment_method();
 
         if ($pm instanceof MeprStripeGateway) {
             try {
                 $customer_details = [
-                    'address' => $address,
+                    'address'        => $address,
                     'address_source' => 'billing',
                 ];
 
@@ -232,8 +254,8 @@ class MeprStripeTaxIntegration
                 }
 
                 $line_item = [
-                    'amount' => $pm->to_zero_decimal_amount($amount),
-                    'reference' => $reference,
+                    'amount'       => $pm->to_zero_decimal_amount($amount),
+                    'reference'    => $reference,
                     'tax_behavior' => $mepr_options->attr('tax_calc_type'),
                 ];
 
@@ -242,12 +264,12 @@ class MeprStripeTaxIntegration
                 }
 
                 $args = [
-                    'currency' => strtolower($mepr_options->currency_code),
+                    'currency'         => strtolower($mepr_options->currency_code),
                     'customer_details' => $customer_details,
-                    'line_items' => [$line_item],
+                    'line_items'       => [$line_item],
                 ];
 
-                $transient_key = sprintf('mepr_stripe_tax_calc_%s', md5(serialize($args)));
+                $transient_key   = sprintf('mepr_stripe_tax_calc_%s', md5(serialize($args)));
                 $tax_calculation = get_transient($transient_key);
 
                 if ($tax_calculation instanceof stdClass) {
@@ -274,13 +296,13 @@ class MeprStripeTaxIntegration
     }
 
     /**
-     * Get the Stripe payment method to use for Stripe Tax
+     * Get the Stripe payment method to use for Stripe Tax.
      *
      * @return MeprStripeGateway|null
      */
     private function get_payment_method()
     {
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options      = MeprOptions::fetch();
         $payment_method_id = (string) get_option('mepr_tax_stripe_payment_method', '');
 
         if (!empty($payment_method_id)) {
@@ -295,7 +317,7 @@ class MeprStripeTaxIntegration
     }
 
     /**
-     * Get the ID of the first Stripe payment method that is connected to Stripe
+     * Get the ID of the first Stripe payment method that is connected to Stripe.
      *
      * @return string|null
      */
@@ -313,9 +335,9 @@ class MeprStripeTaxIntegration
     }
 
     /**
-     * Create a tax transaction
+     * Create a tax transaction.
      *
-     * @param MeprEvent $event
+     * @param MeprEvent $event The event object containing transaction data.
      */
     public function create_tax_transaction($event)
     {
@@ -331,11 +353,11 @@ class MeprStripeTaxIntegration
             return;
         }
 
-        $one = get_user_meta($txn->user_id, 'mepr-address-one', true);
-        $two = get_user_meta($txn->user_id, 'mepr-address-two', true);
-        $city = get_user_meta($txn->user_id, 'mepr-address-city', true);
-        $state = get_user_meta($txn->user_id, 'mepr-address-state', true);
-        $country = get_user_meta($txn->user_id, 'mepr-address-country', true);
+        $one      = get_user_meta($txn->user_id, 'mepr-address-one', true);
+        $two      = get_user_meta($txn->user_id, 'mepr-address-two', true);
+        $city     = get_user_meta($txn->user_id, 'mepr-address-city', true);
+        $state    = get_user_meta($txn->user_id, 'mepr-address-state', true);
+        $country  = get_user_meta($txn->user_id, 'mepr-address-country', true);
         $postcode = get_user_meta($txn->user_id, 'mepr-address-zip', true);
 
         if (empty($one) || empty($city) || empty($state) || empty($country) || empty($postcode)) {
@@ -343,12 +365,12 @@ class MeprStripeTaxIntegration
         }
 
         $address = [
-            'line1' => $one,
-            'line2' => $two,
+            'line1'       => $one,
+            'line2'       => $two,
             'postal_code' => $postcode,
-            'city' => $city,
-            'state' => $this->get_state($state, $country),
-            'country' => $country,
+            'city'        => $city,
+            'state'       => $this->get_state($state, $country),
+            'country'     => $country,
         ];
 
         $tax_calculation = $this->tax_calculation(
@@ -363,7 +385,7 @@ class MeprStripeTaxIntegration
             try {
                 $tax_transaction = (object) $pm->send_stripe_request('tax/transactions/create_from_calculation', [
                     'calculation' => $tax_calculation->id,
-                    'reference' => $txn->trans_num,
+                    'reference'   => $txn->trans_num,
                 ]);
 
                 $txn->update_meta('stripe_tax_transaction_id', $tax_transaction->id);
@@ -373,6 +395,11 @@ class MeprStripeTaxIntegration
         }
     }
 
+    /**
+     * Refund a tax transaction.
+     *
+     * @param MeprEvent $event The event object containing transaction data.
+     */
     public function refund_tax_transaction($event)
     {
         $pm = $this->get_payment_method();
@@ -395,9 +422,9 @@ class MeprStripeTaxIntegration
 
         try {
             $pm->send_stripe_request('tax/transactions/create_reversal', [
-                'mode' => 'full',
+                'mode'                 => 'full',
                 'original_transaction' => $tax_transaction_id,
-                'reference' => $txn->trans_num . '-refund',
+                'reference'            => $txn->trans_num . '-refund',
             ]);
         } catch (Exception $e) {
             MeprUtils::debug_log($e->getMessage());
@@ -405,51 +432,59 @@ class MeprStripeTaxIntegration
     }
 
     /**
-     * Add options to set a tax code on the Advanced tab of the Membership options
+     * Add options to set a tax code on the Advanced tab of the Membership options.
      *
-     * @param MeprProduct $product
+     * @param MeprProduct $product The product object.
      */
     public function display_membership_options($product)
     {
-        $tax_code = get_post_meta($product->ID, '_mepr_tax_stripe_tax_code', true);
+        $tax_code        = get_post_meta($product->ID, '_mepr_tax_stripe_tax_code', true);
         $tax_code_custom = get_post_meta($product->ID, '_mepr_tax_stripe_tax_code_custom', true);
 
         MeprView::render('/admin/products/stripe_tax', get_defined_vars());
     }
 
     /**
-     * Save the per-membership tax code options
+     * Save the per-membership tax code options.
      *
-     * @param MeprProduct $product
+     * @param MeprProduct $product The product object.
      */
     public function save_membership_options($product)
     {
-        $tax_code = isset($_POST['_mepr_tax_stripe_tax_code']) ? sanitize_text_field(wp_unslash($_POST['_mepr_tax_stripe_tax_code'])) : '';
+        $tax_code        = isset($_POST['_mepr_tax_stripe_tax_code']) ? sanitize_text_field(wp_unslash($_POST['_mepr_tax_stripe_tax_code'])) : '';
         $tax_code_custom = isset($_POST['_mepr_tax_stripe_tax_code_custom']) ? sanitize_text_field(wp_unslash($_POST['_mepr_tax_stripe_tax_code_custom'])) : '';
 
         update_post_meta($product->ID, '_mepr_tax_stripe_tax_code', $tax_code);
         update_post_meta($product->ID, '_mepr_tax_stripe_tax_code_custom', $tax_code_custom);
     }
 
+    /**
+     * Add a site health test for Stripe Tax.
+     *
+     * @param  array $tests The array of site health tests.
+     * @return array
+     */
     public function add_site_health_test($tests)
     {
         $tests['direct']['mepr_stripe_tax_test'] = [
             'label' => __('MemberPress - Stripe Tax Payment Method', 'memberpress'),
-            'test' => [$this, 'run_site_health_test'],
+            'test'  => [$this, 'run_site_health_test'],
         ];
 
         return $tests;
     }
 
     /**
-     * Run the check to make sure that the Stripe tax payment method is set properly
+     * Run the check to make sure that the Stripe tax payment method is set properly.
+     *
+     * @return array
      */
     public function run_site_health_test()
     {
         $result = [
-            'label' => __('MemberPress is correctly configured to use Stripe Tax', 'memberpress'),
-            'status' => 'good',
-            'badge' => [
+            'label'       => __('MemberPress is correctly configured to use Stripe Tax', 'memberpress'),
+            'status'      => 'good',
+            'badge'       => [
                 'label' => __('MemberPress', 'memberpress'),
                 'color' => 'blue',
             ],
@@ -457,15 +492,15 @@ class MeprStripeTaxIntegration
                 '<p>%s</p>',
                 __('The connection between MemberPress and Stripe Tax is correctly configured.', 'memberpress')
             ),
-            'test' => 'mepr_stripe_tax_test',
-            'actions' => '',
+            'test'        => 'mepr_stripe_tax_test',
+            'actions'     => '',
         ];
 
         $pm = $this->get_payment_method();
 
         if (!$pm instanceof MeprStripeGateway) {
-            $result['label'] = __('MemberPress is not correctly configured to use Stripe Tax', 'memberpress');
-            $result['status'] = 'critical';
+            $result['label']          = __('MemberPress is not correctly configured to use Stripe Tax', 'memberpress');
+            $result['status']         = 'critical';
             $result['badge']['color'] = 'orange';
 
             $result['description'] = sprintf(
@@ -483,6 +518,9 @@ class MeprStripeTaxIntegration
         return $result;
     }
 
+    /**
+     * Display an admin notice if the Stripe Tax connection is not configured correctly.
+     */
     public function admin_notice()
     {
         if (!MeprUtils::is_memberpress_admin_page() || !MeprUtils::is_logged_in_and_an_admin() || !empty($_POST['mepr_tax_stripe_payment_method'])) {
@@ -500,7 +538,7 @@ class MeprStripeTaxIntegration
       <p>
         <?php
           printf(
-            /* translators: %1$s open link tag, %2$s: close link tag */
+            // translators: %1$s open link tag, %2$s: close link tag
               esc_html__('The connection between MemberPress and Stripe Tax is not correctly configured. To fix this issue, %1$sclick here%2$s to visit the MemberPress Tax settings, where you can select a Stripe payment method to use for Stripe Tax.', 'memberpress'),
               '<a href="' . esc_url(admin_url('admin.php?page=memberpress-options#mepr-taxes')) . '">',
               '</a>'
@@ -512,9 +550,9 @@ class MeprStripeTaxIntegration
     }
 
     /**
-     * Get the tax IDs array the given user
+     * Get the tax IDs array for the given user.
      *
-     * @param  MeprUser $user
+     * @param  MeprUser $user The user object.
      * @return array|null
      */
     private function get_tax_ids($user)
@@ -536,7 +574,7 @@ class MeprStripeTaxIntegration
 
                     $tax_ids = [
                         [
-                            'type' => $type,
+                            'type'  => $type,
                             'value' => $vat_number,
                         ],
                     ];
@@ -547,6 +585,9 @@ class MeprStripeTaxIntegration
         return $tax_ids;
     }
 
+    /**
+     * Display a new feature admin notice for Stripe Tax.
+     */
     public function new_feature_admin_notice()
     {
         if (
@@ -576,7 +617,7 @@ class MeprStripeTaxIntegration
           <p class="mepr-stripe-tax-fine-print">
             <?php
               printf(
-                /* translators: %1$s: open link tag, %2$s: close link tag */
+                // translators: %1$s: open link tag, %2$s: close link tag
                   esc_html__('Stripe Tax API pricing starts at 0.50 USD for each transaction calculated within your registered tax location (includes 10 calculation API calls per transaction; 0.05 USD per additional call). To learn more visit the %1$sStripe Tax pricing page%2$s.', 'memberpress'),
                   '<a href="https://stripe.com/tax#pricing" target="_blank">',
                   '</a>'
@@ -598,7 +639,7 @@ class MeprStripeTaxIntegration
       <p class="mepr-text-align-center">
           <?php
             printf(
-            /* translators: %1$s: open link tag, %2$s: close link tag */
+            // translators: %1$s: open link tag, %2$s: close link tag
                 esc_html__('In the Stripe dashboard, please ensure that a %1$sRegistration is added%2$s for each location where tax should be collected.', 'memberpress'),
                 '<a href="https://dashboard.stripe.com/tax/registrations" target="_blank">',
                 '</a>'
@@ -611,7 +652,7 @@ class MeprStripeTaxIntegration
       <p class="mepr-text-align-center">
         <?php
           printf(
-            /* translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag */
+            // translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag
               esc_html__('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
               '<a href="https://dashboard.stripe.com/tax" target="_blank">',
               '</a>',
@@ -626,6 +667,10 @@ class MeprStripeTaxIntegration
     </div>
         <?php
     }
+
+    /**
+     * Display an admin notice if Stripe Tax was deactivated.
+     */
     public function deactivated_admin_notice()
     {
         if (
@@ -642,7 +687,7 @@ class MeprStripeTaxIntegration
       <p>
         <?php
           printf(
-            /* translators: %1$s open link tag, %2$s: close link tag, %3$s open link tag, %4$s: close link tag */
+            // translators: %1$s open link tag, %2$s: close link tag, %3$s open link tag, %4$s: close link tag
               esc_html__('Stripe Tax was deactivated because it is not enabled in the Stripe dashboard. Please ensure that %1$sStripe Tax is enabled%2$s at Stripe, then go to %3$sMemberPress &rarr; Settings &rarr; Taxes%4$s to reactivate Stripe Tax.', 'memberpress'),
               '<a href="https://dashboard.stripe.com/tax" target="_blank">',
               '</a>',
@@ -655,6 +700,9 @@ class MeprStripeTaxIntegration
         <?php
     }
 
+    /**
+     * Dismiss the Stripe Tax notice.
+     */
     public function dismiss_stripe_tax_notice()
     {
         if (
@@ -669,6 +717,9 @@ class MeprStripeTaxIntegration
         wp_send_json_success();
     }
 
+    /**
+     * Enable Stripe Tax.
+     */
     public function enable_stripe_tax()
     {
         if (
@@ -716,6 +767,9 @@ class MeprStripeTaxIntegration
         }
     }
 
+    /**
+     * Validate the Stripe Tax settings.
+     */
     public function validate_stripe_tax()
     {
         if (

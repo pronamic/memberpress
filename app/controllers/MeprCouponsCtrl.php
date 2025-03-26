@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprCouponsCtrl extends MeprCptCtrl
 {
+    /**
+     * Load hooks for the coupons management.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_filter('bulk_actions-edit-memberpresscoupon', 'MeprCouponsCtrl::disable_bulk');
@@ -28,55 +33,73 @@ class MeprCouponsCtrl extends MeprCptCtrl
         add_action('wp_ajax_nopriv_mepr_validate_coupon', 'MeprCouponsCtrl::validate_coupon_ajax');
     }
 
+    /**
+     * Register the custom post type for coupons.
+     *
+     * @return void
+     */
     public function register_post_type()
     {
         register_post_type(MeprCoupon::$cpt, [
-            'labels' => [
-                'name' => __('Coupons', 'memberpress'),
-                'singular_name' => __('Coupon', 'memberpress'),
-                'add_new' => __('Add New', 'memberpress'),
-                'add_new_item' => __('Add New Coupon', 'memberpress'),
-                'edit_item' => __('Edit Coupon', 'memberpress'),
-                'new_item' => __('New Coupon', 'memberpress'),
-                'view_item' => __('View Coupon', 'memberpress'),
-                'search_items' => __('Search Coupons', 'memberpress'),
-                'not_found' => __('No Coupons found', 'memberpress'),
+            'labels'               => [
+                'name'               => __('Coupons', 'memberpress'),
+                'singular_name'      => __('Coupon', 'memberpress'),
+                'add_new'            => __('Add New', 'memberpress'),
+                'add_new_item'       => __('Add New Coupon', 'memberpress'),
+                'edit_item'          => __('Edit Coupon', 'memberpress'),
+                'new_item'           => __('New Coupon', 'memberpress'),
+                'view_item'          => __('View Coupon', 'memberpress'),
+                'search_items'       => __('Search Coupons', 'memberpress'),
+                'not_found'          => __('No Coupons found', 'memberpress'),
                 'not_found_in_trash' => __('No Coupons found in Trash', 'memberpress'),
-                'parent_item_colon' => __('Parent Coupon:', 'memberpress'),
+                'parent_item_colon'  => __('Parent Coupon:', 'memberpress'),
             ],
-            'public' => false,
-            'show_ui' => true, // MeprUpdateCtrl::is_activated(),
-            'show_in_menu' => 'memberpress',
-            'capability_type' => 'page',
-            'hierarchical' => false,
+            'public'               => false,
+            'show_ui'              => true, // MeprUpdateCtrl::is_activated(),
+            'show_in_menu'         => 'memberpress',
+            'capability_type'      => 'page',
+            'hierarchical'         => false,
             'register_meta_box_cb' => 'MeprCouponsCtrl::add_meta_boxes',
-            'rewrite' => false,
-            'supports' => ['title'],
+            'rewrite'              => false,
+            'supports'             => ['title'],
         ]);
     }
 
+    /**
+     * Define the columns for the coupon list table.
+     *
+     * @param  array $columns The existing columns.
+     * @return array
+     */
     public static function columns($columns)
     {
         $columns = [
-            'cb' => '<input type="checkbox" />',
-            'title' => __('Code', 'memberpress'),
+            'cb'                 => '<input type="checkbox" />',
+            'title'              => __('Code', 'memberpress'),
             'coupon-description' => __('Description', 'memberpress'),
-            'date' => __('Created', 'memberpress'),
-            'coupon-discount' => __('Discount', 'memberpress'),
-            'coupon-dm' => __('Mode', 'memberpress'),
-            'coupon-starts' => __('Starts', 'memberpress'),
-            'coupon-expires' => __('Expires', 'memberpress'),
-            'coupon-count' => __('Usage Count', 'memberpress'),
-            'coupon-products' => __('Applies To', 'memberpress'),
+            'date'               => __('Created', 'memberpress'),
+            'coupon-discount'    => __('Discount', 'memberpress'),
+            'coupon-dm'          => __('Mode', 'memberpress'),
+            'coupon-starts'      => __('Starts', 'memberpress'),
+            'coupon-expires'     => __('Expires', 'memberpress'),
+            'coupon-count'       => __('Usage Count', 'memberpress'),
+            'coupon-products'    => __('Applies To', 'memberpress'),
         ];
 
         return $columns;
     }
 
+    /**
+     * Render custom columns in the coupon list table.
+     *
+     * @param  string  $column    The name of the column.
+     * @param  integer $coupon_id The ID of the coupon.
+     * @return void
+     */
     public static function custom_columns($column, $coupon_id)
     {
         $mepr_options = MeprOptions::fetch();
-        $coupon = new MeprCoupon($coupon_id);
+        $coupon       = new MeprCoupon($coupon_id);
 
         if ($coupon->ID !== null) {
             switch ($column) {
@@ -141,6 +164,11 @@ class MeprCouponsCtrl extends MeprCptCtrl
         }
     }
 
+    /**
+     * Add meta boxes for the coupon edit screen.
+     *
+     * @return void
+     */
     public static function add_meta_boxes()
     {
         global $post_id;
@@ -152,15 +180,25 @@ class MeprCouponsCtrl extends MeprCptCtrl
         MeprHooks::do_action('mepr-coupon-meta-boxes', $c);
     }
 
+    /**
+     * Display the coupon meta box.
+     *
+     * @return void
+     */
     public static function coupon_meta_box()
     {
         global $post_id;
         $mepr_options = MeprOptions::fetch();
-        $c = new MeprCoupon($post_id);
+        $c            = new MeprCoupon($post_id);
 
         MeprView::render('/admin/coupons/form', get_defined_vars());
     }
 
+    /**
+     * Display the coupon description box.
+     *
+     * @return void
+     */
     public static function coupon_description_box()
     {
         global $post_id;
@@ -171,6 +209,12 @@ class MeprCouponsCtrl extends MeprCptCtrl
         <?php
     }
 
+    /**
+     * Save the coupon's metadata when the post is saved.
+     *
+     * @param  integer $post_id The ID of the post being saved.
+     * @return mixed
+     */
     public static function save_postdata($post_id)
     {
         $post = get_post($post_id);
@@ -191,41 +235,41 @@ class MeprCouponsCtrl extends MeprCptCtrl
             $coupon = new MeprCoupon($post_id);
 
             if (isset($_POST[MeprCoupon::$should_start_str])) {
-                $coupon->should_start = true;
-                $month = isset($_POST[MeprCoupon::$starts_on_month_str]) ? $_POST[MeprCoupon::$starts_on_month_str] : 1;
-                $day = isset($_POST[MeprCoupon::$starts_on_day_str]) ? $_POST[MeprCoupon::$starts_on_day_str] : 1;
-                $year = isset($_POST[MeprCoupon::$starts_on_year_str]) ? $_POST[MeprCoupon::$starts_on_year_str] : 1970;
+                $coupon->should_start   = true;
+                $month                  = isset($_POST[MeprCoupon::$starts_on_month_str]) ? $_POST[MeprCoupon::$starts_on_month_str] : 1;
+                $day                    = isset($_POST[MeprCoupon::$starts_on_day_str]) ? $_POST[MeprCoupon::$starts_on_day_str] : 1;
+                $year                   = isset($_POST[MeprCoupon::$starts_on_year_str]) ? $_POST[MeprCoupon::$starts_on_year_str] : 1970;
                 $coupon->start_timezone = isset($_POST[MeprCoupon::$start_on_timezone_str]) ? $_POST[MeprCoupon::$start_on_timezone_str] : 0;
-                $coupon->starts_on = MeprUtils::make_ts_date($month, $day, $year, true);
+                $coupon->starts_on      = MeprUtils::make_ts_date($month, $day, $year, true);
 
                 if (!empty($coupon->starts_on)) {
                      $minimum_start_date = new DateTime();
 
                      // get datetime object of coupon starts_on : DateTime
                      $coupon_start_date = new DateTime();
-                     $coupon_start_ts = MeprCouponsHelper::convert_timestamp_to_tz($coupon->starts_on, $coupon->start_timezone); // Convert UTC timestamp to selected timezone timestamp.
+                     $coupon_start_ts   = MeprCouponsHelper::convert_timestamp_to_tz($coupon->starts_on, $coupon->start_timezone); // Convert UTC timestamp to selected timezone timestamp.
                      $coupon_start_date->setTimestamp($coupon_start_ts);
 
                     if ($minimum_start_date > $coupon_start_date) {
                         $coupon->should_start = false;
-                        $coupon->starts_on = 0;
+                        $coupon->starts_on    = 0;
                     }
                 }
             } else {
                 $coupon->should_start = false;
-                $coupon->starts_on = 0;
+                $coupon->starts_on    = 0;
             }
 
             if (isset($_POST[MeprCoupon::$should_expire_str])) {
-                $coupon->should_expire = true;
-                $month = isset($_POST[MeprCoupon::$expires_on_month_str]) ? $_POST[MeprCoupon::$expires_on_month_str] : 1;
-                $day = isset($_POST[MeprCoupon::$expires_on_day_str]) ? $_POST[MeprCoupon::$expires_on_day_str] : 1;
-                $year = isset($_POST[MeprCoupon::$expires_on_year_str]) ? $_POST[MeprCoupon::$expires_on_year_str] : 1970;
+                $coupon->should_expire   = true;
+                $month                   = isset($_POST[MeprCoupon::$expires_on_month_str]) ? $_POST[MeprCoupon::$expires_on_month_str] : 1;
+                $day                     = isset($_POST[MeprCoupon::$expires_on_day_str]) ? $_POST[MeprCoupon::$expires_on_day_str] : 1;
+                $year                    = isset($_POST[MeprCoupon::$expires_on_year_str]) ? $_POST[MeprCoupon::$expires_on_year_str] : 1970;
                 $coupon->expire_timezone = isset($_POST[MeprCoupon::$expires_on_timezone_str]) ? $_POST[MeprCoupon::$expires_on_timezone_str] : 0;
-                $coupon->expires_on = MeprUtils::make_ts_date($month, $day, $year); // 23:59:59 of the chosen day
+                $coupon->expires_on      = MeprUtils::make_ts_date($month, $day, $year); // 23:59:59 of the chosen day
             } else {
                 $coupon->should_expire = false;
-                $coupon->expires_on = 0;
+                $coupon->expires_on    = 0;
             }
 
             if (isset($_POST[MeprCoupon::$usage_amount_str]) and is_numeric($_POST[MeprCoupon::$usage_amount_str])) {
@@ -234,14 +278,14 @@ class MeprCouponsCtrl extends MeprCptCtrl
                 $coupon->usage_amount = 0;
             }
 
-            $coupon->discount_type = isset($_POST[MeprCoupon::$discount_type_str]) ? sanitize_text_field($_POST[MeprCoupon::$discount_type_str]) : 'percent';
+            $coupon->discount_type   = isset($_POST[MeprCoupon::$discount_type_str]) ? sanitize_text_field($_POST[MeprCoupon::$discount_type_str]) : 'percent';
             $coupon->discount_amount = isset($_POST[MeprCoupon::$discount_amount_str]) ? (float)sanitize_text_field($_POST[MeprCoupon::$discount_amount_str]) : 0;
 
             if ($coupon->discount_type == 'percent' && $coupon->discount_amount > 100) {
                 $coupon->discount_amount = 100; // Make sure percent is never > 100
             }
 
-            $coupon->first_payment_discount_type = isset($_POST[MeprCoupon::$first_payment_discount_type_str]) ? sanitize_text_field($_POST[MeprCoupon::$first_payment_discount_type_str]) : 'percent';
+            $coupon->first_payment_discount_type   = isset($_POST[MeprCoupon::$first_payment_discount_type_str]) ? sanitize_text_field($_POST[MeprCoupon::$first_payment_discount_type_str]) : 'percent';
             $coupon->first_payment_discount_amount = isset($_POST[MeprCoupon::$first_payment_discount_amount_str]) ? (float)sanitize_text_field($_POST[MeprCoupon::$first_payment_discount_amount_str]) : 0;
 
             if ($coupon->first_payment_discount_type == 'percent' && $coupon->first_payment_discount_amount > 100) {
@@ -251,9 +295,9 @@ class MeprCouponsCtrl extends MeprCptCtrl
             $coupon->use_on_upgrades = isset($_POST[MeprCoupon::$use_on_upgrades_str]);
 
             $coupon->valid_products = isset($_POST[MeprCoupon::$valid_products_str]) ? $_POST[MeprCoupon::$valid_products_str] : [];
-            $coupon->discount_mode = sanitize_text_field($_POST[MeprCoupon::$discount_mode_str]);
-            $coupon->trial_days = isset($_POST[MeprCoupon::$trial_days_str]) ? (int)sanitize_text_field($_POST[MeprCoupon::$trial_days_str]) : 0;
-            $coupon->trial_amount = isset($_POST[MeprCoupon::$trial_amount_str]) ? (float) sanitize_text_field($_POST[MeprCoupon::$trial_amount_str]) : 0.00;
+            $coupon->discount_mode  = sanitize_text_field($_POST[MeprCoupon::$discount_mode_str]);
+            $coupon->trial_days     = isset($_POST[MeprCoupon::$trial_days_str]) ? (int)sanitize_text_field($_POST[MeprCoupon::$trial_days_str]) : 0;
+            $coupon->trial_amount   = isset($_POST[MeprCoupon::$trial_amount_str]) ? (float) sanitize_text_field($_POST[MeprCoupon::$trial_amount_str]) : 0.00;
 
             if (isset($_POST[MeprCoupon::$usage_per_user_count_str]) and is_numeric($_POST[MeprCoupon::$usage_per_user_count_str])) {
                 $coupon->usage_per_user_count = $coupon->usage_amount <= 0 || $_POST[MeprCoupon::$usage_per_user_count_str] <= $coupon->usage_amount ? sanitize_text_field($_POST[MeprCoupon::$usage_per_user_count_str]) : $coupon->usage_amount;
@@ -267,6 +311,13 @@ class MeprCouponsCtrl extends MeprCptCtrl
         }
     }
 
+    /**
+     * Sanitize the coupon title before saving.
+     *
+     * @param  array $data    The post data.
+     * @param  array $postarr The post array.
+     * @return array
+     */
     public static function sanitize_coupon_title($data, $postarr)
     {
         global $wpdb;
@@ -276,12 +327,12 @@ class MeprCouponsCtrl extends MeprCptCtrl
             $data['post_title'] = preg_replace(['/ +/', '/[^A-Za-z0-9_-]/'], ['-', ''], $data['post_title']);
 
             // Begin duplicate titles handling
-            $q1 = "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type = %s AND ID <> %d LIMIT 1";
-            $q2 = $wpdb->prepare($q1, $data['post_title'], MeprCoupon::$cpt, $postarr['ID']);
+            $q1    = "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type = %s AND ID <> %d LIMIT 1";
+            $q2    = $wpdb->prepare($q1, $data['post_title'], MeprCoupon::$cpt, $postarr['ID']);
             $count = 0;
 
             if (is_admin()) {
-                while (($id = $wpdb->get_var($q2))) {
+                while ($wpdb->get_var($q2)) {
                     ++$count; // Want to increment before running the query, so when we exit the loop $data['post_title'] . "-{$count}" is stil valid
                     $q2 = $wpdb->prepare($q1, $data['post_title'] . "-{$count}", MeprCoupon::$cpt, $postarr['ID']);
                 }
@@ -296,6 +347,13 @@ class MeprCouponsCtrl extends MeprCptCtrl
         return $data;
     }
 
+    /**
+     * Disable certain row actions for the coupon list table.
+     *
+     * @param  array   $actions The existing actions.
+     * @param  WP_Post $post    The current post object.
+     * @return array
+     */
     public static function disable_row($actions, $post)
     {
         global $current_screen;
@@ -310,6 +368,12 @@ class MeprCouponsCtrl extends MeprCptCtrl
         return $actions;
     }
 
+    /**
+     * Disable certain bulk actions for the coupon list table.
+     *
+     * @param  array $actions The existing actions.
+     * @return array
+     */
     public static function disable_bulk($actions)
     {
         unset($actions['delete']); // disables permanent delete bulk action
@@ -318,6 +382,12 @@ class MeprCouponsCtrl extends MeprCptCtrl
         return $actions;
     }
 
+    /**
+     * Enqueue scripts and styles for the coupon admin page.
+     *
+     * @param  string $hook The current admin page hook.
+     * @return void
+     */
     public static function admin_enqueue_scripts($hook)
     {
         global $current_screen;
@@ -337,6 +407,12 @@ class MeprCouponsCtrl extends MeprCptCtrl
         }
     }
 
+    /**
+     * Generate a random title code for the coupon page.
+     *
+     * @param  string $title The current title.
+     * @return string
+     */
     public static function get_page_title_code($title)
     {
         global $current_screen;
@@ -348,6 +424,13 @@ class MeprCouponsCtrl extends MeprCptCtrl
         }
     }
 
+    /**
+     * Validate the coupon via AJAX.
+     *
+     * @param  string|null  $code       The coupon code.
+     * @param  integer|null $product_id The product ID.
+     * @return void
+     */
     public static function validate_coupon_ajax($code = null, $product_id = null)
     {
         check_ajax_referer('mepr_coupons', 'coupon_nonce');
@@ -357,13 +440,13 @@ class MeprCouponsCtrl extends MeprCptCtrl
                 echo 'false';
                 die();
             } else {
-                $code = wp_unslash($_POST['code']);
+                $code       = wp_unslash($_POST['code']);
                 $product_id = wp_unslash($_POST['prd_id']);
             }
         }
 
         $is_valid = MeprCoupon::is_valid_coupon_code($code, $product_id);
-        $output = apply_filters('mepr-validate-coupon', $is_valid, $code, $product_id);
+        $output   = apply_filters('mepr-validate-coupon', $is_valid, $code, $product_id);
 
         if ($output) {
             echo 'true';
@@ -374,6 +457,12 @@ class MeprCouponsCtrl extends MeprCptCtrl
         die();
     }
 
+    /**
+     * Update the usage count of a coupon.
+     *
+     * @param  object $object The object containing the coupon ID.
+     * @return void
+     */
     public static function update_coupon_usage_count($object)
     {
         if (!isset($object->coupon_id) || empty($object->coupon_id)) {
@@ -386,4 +475,4 @@ class MeprCouponsCtrl extends MeprCptCtrl
             $coupon->update_usage_count();
         }
     }
-} //End class
+}

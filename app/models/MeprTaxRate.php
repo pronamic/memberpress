@@ -10,28 +10,33 @@ class MeprTaxRate extends MeprBaseModel
 
     public $reversal = false;
 
+    /**
+     * Constructor for the MeprTaxRate class.
+     *
+     * @param mixed $obj Optional object or ID to initialize the tax rate.
+     */
     public function __construct($obj = null)
     {
         $this->initialize(
             [
-                'id' => 0,
-                'tax_country' => '',
-                'tax_state' => '',
-                'tax_rate' => 0.00,
-                'tax_desc' => '',
+                'id'           => 0,
+                'tax_country'  => '',
+                'tax_state'    => '',
+                'tax_rate'     => 0.00,
+                'tax_desc'     => '',
                 'tax_priority' => 0,
                 'tax_compound' => 0,
                 'tax_shipping' => 1,
-                'tax_order' => 0,
-                'tax_class' => 'standard',
-                'cities' => [],
-                'postcodes' => [],
+                'tax_order'    => 0,
+                'tax_class'    => 'standard',
+                'cities'       => [],
+                'postcodes'    => [],
             ],
             $obj
         );
 
         if (is_integer($obj) && $obj > 0) {
-            $this->rec->cities = [];
+            $this->rec->cities    = [];
             $this->rec->postcodes = [];
 
             $locations = self::get_locations_by_tax_rate($this->id);
@@ -48,20 +53,44 @@ class MeprTaxRate extends MeprBaseModel
         }
     }
 
+    /**
+     * Retrieves a single tax rate by ID.
+     *
+     * @param integer $id          The ID of the tax rate.
+     * @param string  $return_type The return type (default: OBJECT).
+     *
+     * @return mixed The tax rate object or array.
+     */
     public static function get_one($id, $return_type = OBJECT)
     {
         $mepr_db = new MeprDb();
-        $args = compact('id');
+        $args    = compact('id');
         return $mepr_db->get_one_record($mepr_db->tax_rates, $args, $return_type);
     }
 
+    /**
+     * Retrieves locations associated with a tax rate.
+     *
+     * @param integer $tax_rate_id The ID of the tax rate.
+     * @param string  $return_type The return type (default: OBJECT).
+     *
+     * @return mixed The locations associated with the tax rate.
+     */
     public static function get_locations_by_tax_rate($tax_rate_id, $return_type = OBJECT)
     {
         $mepr_db = new MeprDb();
-        $args = compact('tax_rate_id');
+        $args    = compact('tax_rate_id');
         return $mepr_db->get_records($mepr_db->tax_rate_locations, $args, '', '', $return_type);
     }
 
+    /**
+     * Finds a tax rate based on provided arguments.
+     *
+     * @param array  $args        The arguments for finding the tax rate.
+     * @param string $return_type The return type (default: OBJECT).
+     *
+     * @return MeprTaxRate The found tax rate.
+     */
     public static function find_rate($args, $return_type = OBJECT)
     {
         global $wpdb;
@@ -101,11 +130,11 @@ class MeprTaxRate extends MeprBaseModel
         }
 
         // Handle postcodes
-        $valid_postcodes  = ['*', strtoupper(MeprUtils::clean($postcode))];
+        $valid_postcodes = ['*', strtoupper(MeprUtils::clean($postcode))];
 
         // Work out possible valid wildcard postcodes
-        $postcode_length    = strlen($postcode);
-        $wildcard_postcode  = strtoupper(MeprUtils::clean($postcode));
+        $postcode_length   = strlen($postcode);
+        $wildcard_postcode = strtoupper(MeprUtils::clean($postcode));
 
         for ($i = 0; $i < $postcode_length; $i++) {
             $wildcard_postcode = substr($wildcard_postcode, 0, -1);
@@ -114,7 +143,7 @@ class MeprTaxRate extends MeprBaseModel
 
         // Attempt to cache the rate for a day using transients
         $rate_transient_key = 'mepr_tax_rate_id_' . md5(sprintf('%s+%s+%s+%s+%s', $country, $state, $city, implode(',', $valid_postcodes), $tax_class));
-        $tax_rate = get_transient($rate_transient_key);
+        $tax_rate           = get_transient($rate_transient_key);
 
         if (!$tax_rate instanceof MeprTaxRate) {
             $q = "
@@ -175,12 +204,25 @@ class MeprTaxRate extends MeprBaseModel
         return MeprHooks::apply_filters('mepr_find_tax_rate', $tax_rate, $country, $state, $postcode, $city, $street, $user, $prd_id);
     }
 
+    /**
+     * Retrieves the count of tax rates.
+     *
+     * @return integer The count of tax rates.
+     */
     public static function get_count()
     {
         $mepr_db = new MeprDb();
         return $mepr_db->get_count($mepr_db->tax_rates);
     }
 
+    /**
+     * Retrieves all tax rates.
+     *
+     * @param string $separator   The separator for concatenating location codes.
+     * @param string $return_type The return type (default: OBJECT).
+     *
+     * @return mixed The list of all tax rates.
+     */
     public static function get_all($separator = ',', $return_type = OBJECT)
     {
         global $wpdb;
@@ -215,6 +257,11 @@ class MeprTaxRate extends MeprBaseModel
         return $wpdb->get_results($q, $return_type);
     }
 
+    /**
+     * Destroys all tax rates and clears related transients.
+     *
+     * @return void
+     */
     public static function destroy_all()
     {
         global $wpdb;
@@ -229,11 +276,16 @@ class MeprTaxRate extends MeprBaseModel
         $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '%_mepr_tax_rate_id_%'");
     }
 
+    /**
+     * Stores the tax rate in the database.
+     *
+     * @return mixed The ID of the stored tax rate.
+     */
     public function store()
     {
         $this->prepare_fields();
 
-        $mepr_db = new MeprDb();
+        $mepr_db            = new MeprDb();
         $create_update_vals = $vals = (array)$this->rec;
 
         if (isset($create_update_vals['cities'])) {
@@ -253,7 +305,7 @@ class MeprTaxRate extends MeprBaseModel
         }
 
         $locations = [
-            'cities' => 'city',
+            'cities'    => 'city',
             'postcodes' => 'postcode',
         ];
         foreach ($locations as $col => $location) {
@@ -287,7 +339,7 @@ class MeprTaxRate extends MeprBaseModel
             'tax_compound' => isset($row['tax_compound']) ? $row['tax_compound'] : '',
             'tax_shipping' => isset($row['tax_shipping']) ? $row['tax_shipping'] : '',
             // 'tax_order' => 0,
-            'tax_class' => ((isset($row['tax_class']) && !empty($row['tax_class'])) ? $row['tax_class'] : 'standard'),
+            'tax_class'    => ((isset($row['tax_class']) && !empty($row['tax_class'])) ? $row['tax_class'] : 'standard'),
         ];
 
         $locations = ['cities', 'postcodes'];
@@ -307,15 +359,29 @@ class MeprTaxRate extends MeprBaseModel
         $tax_rate->store();
     }
 
+    /**
+     * Destroys the tax rate and its associated locations.
+     *
+     * @return mixed The result of the destruction process.
+     */
     public function destroy()
     {
         $mepr_db = new MeprDb();
-        $id = $this->id;
-        $args = compact('id');
+        $id      = $this->id;
+        $args    = compact('id');
         $this->destroy_locations_by_tax_rate();
         return MeprHooks::apply_filters('mepr-tax-rate-destroy', $mepr_db->delete_records($mepr_db->tax_rates, $args), $args);
     }
 
+    /**
+     * Imports locations for a tax rate.
+     *
+     * @param integer $tax_rate_id The ID of the tax rate.
+     * @param string  $type        The type of location (e.g., 'city', 'postcode').
+     * @param array   $locations   The locations to import.
+     *
+     * @return void
+     */
     public static function import_locations($tax_rate_id, $type, $locations)
     {
         $mepr_db = new MeprDb();
@@ -323,20 +389,30 @@ class MeprTaxRate extends MeprBaseModel
             $vals = [
                 'location_code' => $location,
                 'location_type' => $type,
-                'tax_rate_id' => $tax_rate_id,
+                'tax_rate_id'   => $tax_rate_id,
             ];
             MeprHooks::apply_filters('mepr-tax-rate-location-create', $mepr_db->create_record($mepr_db->tax_rate_locations, $vals, false), $vals);
         }
     }
 
+    /**
+     * Destroys locations associated with a tax rate.
+     *
+     * @return mixed The result of the destruction process.
+     */
     public function destroy_locations_by_tax_rate()
     {
-        $mepr_db = new MeprDb();
+        $mepr_db     = new MeprDb();
         $tax_rate_id = $this->id;
-        $args = compact('tax_rate_id');
+        $args        = compact('tax_rate_id');
         return MeprHooks::apply_filters('mepr-tax-rate-locations-destroy', $mepr_db->delete_records($mepr_db->tax_rate_locations, $args), $args);
     }
 
+    /**
+     * Prepares fields for storing the tax rate.
+     *
+     * @return void
+     */
     private function prepare_fields()
     {
         $this->tax_country = MeprUtils::clean(strtoupper($this->tax_country));
@@ -359,4 +435,4 @@ class MeprTaxRate extends MeprBaseModel
             }
         }
     }
-} //End class
+}

@@ -12,6 +12,11 @@ class MeprOptions
 {
     public $dynamic_attrs;
 
+    /**
+     * Constructor for the MeprOptions class.
+     *
+     * @param array $options Optional. The options to initialize with.
+     */
     public function __construct($options = [])
     {
         $this->set_strings();
@@ -52,6 +57,11 @@ class MeprOptions
         return MeprHooks::apply_filters('mepr_fetch_options', $mepr_options);
     }
 
+    /**
+     * Convert custom fields to objects for WPML compatibility.
+     *
+     * @return array The custom fields.
+     */
     public function wpml_custom_fields()
     {
         if (!empty($this->custom_fields)) {
@@ -77,6 +87,11 @@ class MeprOptions
         return $this->custom_fields;
     }
 
+    /**
+     * Reset the options by deleting them from the database.
+     *
+     * @return void
+     */
     public static function reset()
     {
         delete_option(MEPR_OPTIONS_SLUG);
@@ -91,14 +106,24 @@ class MeprOptions
         }
     }
 
+    /**
+     * Set dynamic attributes from a JSON file.
+     *
+     * @return void
+     */
     public function set_dynamic_attrs()
     {
         // TODO: We will want to migrate everything to using these dynamic type variables as we continue
-        $json = file_get_contents(MEPR_DATA_PATH . '/options/dynamic_attrs.json');
-        $attrs = json_decode($json, true);
+        $json                = file_get_contents(MEPR_DATA_PATH . '/options/dynamic_attrs.json');
+        $attrs               = json_decode($json, true);
         $this->dynamic_attrs = MeprHooks::apply_filters('mepr-options-dynamic-attrs', $attrs);
     }
 
+    /**
+     * Set default values for options.
+     *
+     * @return void
+     */
     public function set_defaults()
     {
         $mepr_blogname = MeprUtils::blogname();
@@ -387,7 +412,7 @@ class MeprOptions
                 is_numeric($this->unauthorized_page_id) and
                 (int)$this->unauthorized_page_id > 0
             ) {
-                $this->redirect_on_unauthorized  = true;
+                $this->redirect_on_unauthorized = true;
                 $this->populate_rewrite();
                 $this->unauthorized_redirect_url = MeprUtils::get_permalink($this->unauthorized_page_id);
             } else {
@@ -573,6 +598,11 @@ class MeprOptions
         }
     }
 
+    /**
+     * Set string representations for various options.
+     *
+     * @return void
+     */
     public function set_strings()
     {
         $this->account_page_id_str                      = 'mepr-account-page-id';
@@ -608,94 +638,102 @@ class MeprOptions
         $this->new_drip_available_body_str              = 'mepr-new-drip-available-body';
         $this->custom_message_str                       = 'mepr-custom-message';
 
-        $this->currency_code_str                        = 'mepr-currency-code';
-        $this->currency_symbol_str                      = 'mepr-currency-symbol';
-        $this->currency_symbol_after_str                = 'mepr-currency-symbol-after';
-        $this->language_code_str                        = 'mepr-language-symbol';
-        $this->integrations_str                         = 'mepr-integrations';
+        $this->currency_code_str         = 'mepr-currency-code';
+        $this->currency_symbol_str       = 'mepr-currency-symbol';
+        $this->currency_symbol_after_str = 'mepr-currency-symbol-after';
+        $this->language_code_str         = 'mepr-language-symbol';
+        $this->integrations_str          = 'mepr-integrations';
 
-        $this->lock_wp_admin_str                        = 'mepr-lock-wp-admin';
-        $this->enforce_strong_password_str              = 'mepr-enforce-strong-password';
-        $this->disable_wp_registration_form_str         = 'mepr-disable-wp-registration-form';
-        $this->disable_wp_admin_bar_str                 = 'mepr-disable-wp-admin-bar';
-        $this->pro_rated_upgrades_str                   = 'mepr-pro-rated-upgrades';
-        $this->disable_checkout_password_fields_str     = 'mepr-disable-checkout-password-fields';
-        $this->enable_spc_str                           = 'mepr-enable-spc';
-        $this->enable_spc_invoice_str                   = 'mepr-enable-spc-invoice';
-        $this->coupon_field_enabled_str                 = 'mepr-coupon-field-enabled';
-        $this->require_tos_str                          = 'mepr-require-tos';
-        $this->tos_url_str                              = 'mepr-tos-url';
-        $this->tos_title_str                            = 'mepr-tos-title';
-        $this->mail_send_from_name_str                  = 'mepr-mail-send-from-name';
-        $this->mail_send_from_email_str                 = 'mepr-mail-send-from-email';
-        $this->username_is_email_str                    = 'mepr-username-is-email';
-        $this->require_fname_lname_str                  = 'mepr-require-fname-lname';
-        $this->show_fname_lname_str                     = 'mepr-show-fname-lname';
-        $this->show_address_fields_str                  = 'mepr-show-address-fields';
-        $this->require_address_fields_str               = 'mepr-require-address-fields';
-        $this->show_fields_logged_in_purchases_str      = 'mepr-show-fields-logged-in-purchases';
-        $this->custom_fields_str                        = 'mepr-custom-fields';
-        $this->mothership_license_str                   = 'mepr-mothership-license';
-        $this->edge_updates_str                         = 'mepr-edge-updates';
-        $this->auto_updates_str                         = 'mepr-auto-updates';
-        $this->product_pages_slug_str                   = 'mepr-product-pages-slug';
-        $this->group_pages_slug_str                     = 'mepr-group-pages-slug';
-        $this->admin_email_addresses_str                = 'mepr-admin-email-addresses';
-        $this->unauthorized_message_str                 = 'mepr-unauthorized-message';
-        $this->unauth_show_excerpts_str                 = 'mepr-unauth-show-excerpts';
-        $this->unauth_excerpt_size_str                  = 'mepr-unauth-excerpt-size';
-        $this->unauth_excerpt_type_str                  = 'mepr-unauth-excerpt-type';
-        $this->unauth_show_login_str                    = 'mepr-unauth-show-login';
-        $this->disable_grace_init_days_str              = 'mepr-disable-grace-init-days';
-        $this->authorize_seo_views_str                  = 'mepr-authorize-seo-views';
-        $this->paywall_enabled_str                      = 'mepr-paywall-enabled';
-        $this->paywall_num_free_views_str               = 'mepr-paywall-num-free-views';
-        $this->disable_summary_email_str                = 'mepr-disable-summary-email';
-        $this->seo_unauthorized_noindex_str             = 'mepr-seo-unauthorized-noindex';
-        $this->emails_str                               = 'mepr-emails';
-        $this->redirect_on_unauthorized_str             = 'mepr-redirect-on-unauthorized';
-        $this->unauthorized_redirect_url_str            = 'mepr-unauthorized-redirect-url';
-        $this->redirect_non_singular_str                = 'mepr-redirect-non-singular';
-        $this->redirect_method_str                      = 'mepr-redirect-method';
-        $this->allow_cancel_subs_str                    = 'mepr-allow-cancel-subs';
-        $this->allow_suspend_subs_str                   = 'mepr-allow-suspend-subs';
-        $this->disable_global_autoresponder_list_str    = 'mepr-disable-global-autoresponder-list';
-        $this->opt_in_checked_by_default_str            = 'mepr-opt-in-checked-by-default';
-        $this->global_styles_str                        = 'mepr-global-styles';
-        $this->include_email_privacy_link_str           = 'mepr-email-privacy-link';
-        $this->require_privacy_policy_str               = 'mepr-require-privacy-policy';
-        $this->privacy_policy_title_str                 = 'mepr-privacy-policy-title';
+        $this->lock_wp_admin_str                     = 'mepr-lock-wp-admin';
+        $this->enforce_strong_password_str           = 'mepr-enforce-strong-password';
+        $this->disable_wp_registration_form_str      = 'mepr-disable-wp-registration-form';
+        $this->disable_wp_admin_bar_str              = 'mepr-disable-wp-admin-bar';
+        $this->pro_rated_upgrades_str                = 'mepr-pro-rated-upgrades';
+        $this->disable_checkout_password_fields_str  = 'mepr-disable-checkout-password-fields';
+        $this->enable_spc_str                        = 'mepr-enable-spc';
+        $this->enable_spc_invoice_str                = 'mepr-enable-spc-invoice';
+        $this->coupon_field_enabled_str              = 'mepr-coupon-field-enabled';
+        $this->require_tos_str                       = 'mepr-require-tos';
+        $this->tos_url_str                           = 'mepr-tos-url';
+        $this->tos_title_str                         = 'mepr-tos-title';
+        $this->mail_send_from_name_str               = 'mepr-mail-send-from-name';
+        $this->mail_send_from_email_str              = 'mepr-mail-send-from-email';
+        $this->username_is_email_str                 = 'mepr-username-is-email';
+        $this->require_fname_lname_str               = 'mepr-require-fname-lname';
+        $this->show_fname_lname_str                  = 'mepr-show-fname-lname';
+        $this->show_address_fields_str               = 'mepr-show-address-fields';
+        $this->require_address_fields_str            = 'mepr-require-address-fields';
+        $this->show_fields_logged_in_purchases_str   = 'mepr-show-fields-logged-in-purchases';
+        $this->custom_fields_str                     = 'mepr-custom-fields';
+        $this->mothership_license_str                = 'mepr-mothership-license';
+        $this->edge_updates_str                      = 'mepr-edge-updates';
+        $this->auto_updates_str                      = 'mepr-auto-updates';
+        $this->product_pages_slug_str                = 'mepr-product-pages-slug';
+        $this->group_pages_slug_str                  = 'mepr-group-pages-slug';
+        $this->admin_email_addresses_str             = 'mepr-admin-email-addresses';
+        $this->unauthorized_message_str              = 'mepr-unauthorized-message';
+        $this->unauth_show_excerpts_str              = 'mepr-unauth-show-excerpts';
+        $this->unauth_excerpt_size_str               = 'mepr-unauth-excerpt-size';
+        $this->unauth_excerpt_type_str               = 'mepr-unauth-excerpt-type';
+        $this->unauth_show_login_str                 = 'mepr-unauth-show-login';
+        $this->disable_grace_init_days_str           = 'mepr-disable-grace-init-days';
+        $this->authorize_seo_views_str               = 'mepr-authorize-seo-views';
+        $this->paywall_enabled_str                   = 'mepr-paywall-enabled';
+        $this->paywall_num_free_views_str            = 'mepr-paywall-num-free-views';
+        $this->disable_summary_email_str             = 'mepr-disable-summary-email';
+        $this->seo_unauthorized_noindex_str          = 'mepr-seo-unauthorized-noindex';
+        $this->emails_str                            = 'mepr-emails';
+        $this->redirect_on_unauthorized_str          = 'mepr-redirect-on-unauthorized';
+        $this->unauthorized_redirect_url_str         = 'mepr-unauthorized-redirect-url';
+        $this->redirect_non_singular_str             = 'mepr-redirect-non-singular';
+        $this->redirect_method_str                   = 'mepr-redirect-method';
+        $this->allow_cancel_subs_str                 = 'mepr-allow-cancel-subs';
+        $this->allow_suspend_subs_str                = 'mepr-allow-suspend-subs';
+        $this->disable_global_autoresponder_list_str = 'mepr-disable-global-autoresponder-list';
+        $this->opt_in_checked_by_default_str         = 'mepr-opt-in-checked-by-default';
+        $this->global_styles_str                     = 'mepr-global-styles';
+        $this->include_email_privacy_link_str        = 'mepr-email-privacy-link';
+        $this->require_privacy_policy_str            = 'mepr-require-privacy-policy';
+        $this->privacy_policy_title_str              = 'mepr-privacy-policy-title';
 
-        $this->design_logo_img_str                      = 'mepr-design-logo-img';
-        $this->design_primary_color_str                 = 'mepr-design-primary-color';
-        $this->design_enable_login_template_str         = 'mepr-design-enable-login-template';
-        $this->design_show_login_welcome_image_str      = 'mepr-design-show-login-welcome-image';
-        $this->design_login_welcome_img_str             = 'mepr-design-login-welcome-img';
-        $this->design_enable_checkout_template_str      = 'mepr-design-enable-checkout-template';
-        $this->design_enable_account_template_str       = 'mepr-design-enable-account-template';
-        $this->design_show_account_welcome_image_str    = 'mepr-design-show-account-welcome-image';
-        $this->design_account_welcome_img_str           = 'mepr-design-account-welcome-img';
-        $this->design_enable_courses_template_str       = 'mepr-design-enable-courses-template';
-        $this->design_enable_thankyou_template_str      = 'mepr-design-enable-thankyou-template';
-        $this->design_show_thankyou_welcome_image_str   = 'mepr-design-show-thankyou-welcome-image';
-        $this->design_thankyou_welcome_img_str          = 'mepr-design-thankyou-welcome-img';
-        $this->design_thankyou_hide_invoice_str         = 'mepr-design-thankyou-hide-invoice';
-        $this->design_thankyou_invoice_message_str      = 'mepr-design-thankyou-message';
-        $this->design_enable_pricing_template_str       = 'mepr-design-enable-pricing-template';
-        $this->design_pricing_title_str                 = 'mepr-design-pricing-title';
-        $this->design_pricing_cta_color_str             = 'mepr-design-pricing-cta-color';
-        $this->design_pricing_subheadline_str           = 'mepr-design-pricing-subheadline';
-        $this->rl_enable_coaching_template_str          = 'mepr-rl-enable-coaching-template';
-        $this->design_show_checkout_price_terms_str     = 'mepr-design-show-checkout-price-terms';
-        $this->rl_enable_wp_footer_str                  = 'mepr-rl-enable-wp-footer';
+        $this->design_logo_img_str                    = 'mepr-design-logo-img';
+        $this->design_primary_color_str               = 'mepr-design-primary-color';
+        $this->design_enable_login_template_str       = 'mepr-design-enable-login-template';
+        $this->design_show_login_welcome_image_str    = 'mepr-design-show-login-welcome-image';
+        $this->design_login_welcome_img_str           = 'mepr-design-login-welcome-img';
+        $this->design_enable_checkout_template_str    = 'mepr-design-enable-checkout-template';
+        $this->design_enable_account_template_str     = 'mepr-design-enable-account-template';
+        $this->design_show_account_welcome_image_str  = 'mepr-design-show-account-welcome-image';
+        $this->design_account_welcome_img_str         = 'mepr-design-account-welcome-img';
+        $this->design_enable_courses_template_str     = 'mepr-design-enable-courses-template';
+        $this->design_enable_thankyou_template_str    = 'mepr-design-enable-thankyou-template';
+        $this->design_show_thankyou_welcome_image_str = 'mepr-design-show-thankyou-welcome-image';
+        $this->design_thankyou_welcome_img_str        = 'mepr-design-thankyou-welcome-img';
+        $this->design_thankyou_hide_invoice_str       = 'mepr-design-thankyou-hide-invoice';
+        $this->design_thankyou_invoice_message_str    = 'mepr-design-thankyou-message';
+        $this->design_enable_pricing_template_str     = 'mepr-design-enable-pricing-template';
+        $this->design_pricing_title_str               = 'mepr-design-pricing-title';
+        $this->design_pricing_cta_color_str           = 'mepr-design-pricing-cta-color';
+        $this->design_pricing_subheadline_str         = 'mepr-design-pricing-subheadline';
+        $this->rl_enable_coaching_template_str        = 'mepr-rl-enable-coaching-template';
+        $this->design_show_checkout_price_terms_str   = 'mepr-design-show-checkout-price-terms';
+        $this->rl_enable_wp_footer_str                = 'mepr-rl-enable-wp-footer';
     }
 
+    /**
+     * Validate the provided parameters.
+     *
+     * @param array $params The parameters to validate.
+     * @param array $errors Optional. The existing errors.
+     *
+     * @return array The validation errors.
+     */
     public function validate($params, $errors = [])
     {
         // Validate all of the integrations ...
         if (!empty($params[$this->integrations_str]) and is_array($params[$this->integrations_str])) {
             foreach ($params[$this->integrations_str] as $pmt) {
-                $obj = MeprGatewayFactory::fetch($pmt['gateway'], $pmt);
+                $obj    = MeprGatewayFactory::fetch($pmt['gateway'], $pmt);
                 $errors = $obj->validate_options_form($errors);
             }
         }
@@ -751,6 +789,13 @@ class MeprOptions
         return $errors;
     }
 
+    /**
+     * Update the options with the provided parameters.
+     *
+     * @param array $params The parameters to update.
+     *
+     * @return void
+     */
     public function update($params)
     {
         if (isset($params['mepr_biz_state'])) {
@@ -810,32 +855,32 @@ class MeprOptions
 
         foreach ($params[$this->emails_str] as $email => $vals) {
             $this->emails[$email] = [
-                'enabled'       => isset($params[$this->emails_str][$email]['enabled']),
-                'use_template'  => isset($params[$this->emails_str][$email]['use_template']),
-                'subject'       => trim(stripslashes($params[$this->emails_str][$email]['subject'])),
-                'body'          => MeprUtils::maybe_wpautop(stripslashes($params[$this->emails_str][$email]['body'])),
+                'enabled'      => isset($params[$this->emails_str][$email]['enabled']),
+                'use_template' => isset($params[$this->emails_str][$email]['use_template']),
+                'subject'      => trim(stripslashes($params[$this->emails_str][$email]['subject'])),
+                'body'         => MeprUtils::maybe_wpautop(stripslashes($params[$this->emails_str][$email]['body'])),
             ];
         }
 
-        $this->disable_mod_rewrite           = isset($params[$this->disable_mod_rewrite_str]);
-        $this->hide_admin_bar_menu           = isset($params[$this->hide_admin_bar_menu_str]);
-        $this->anti_card_testing_enabled     = isset($params[$this->anti_card_testing_enabled_str]);
-        $this->anti_card_testing_ip_method   = isset($params[$this->anti_card_testing_ip_method_str]) ? sanitize_text_field(wp_unslash($params[$this->anti_card_testing_ip_method_str])) : '';
-        $this->anti_card_testing_blocked     = isset($params[$this->anti_card_testing_blocked_str]) && is_string($params[$this->anti_card_testing_blocked_str]) ? array_unique(array_filter(array_map('trim', explode("\n", $params[$this->anti_card_testing_blocked_str])))) : [];
+        $this->disable_mod_rewrite         = isset($params[$this->disable_mod_rewrite_str]);
+        $this->hide_admin_bar_menu         = isset($params[$this->hide_admin_bar_menu_str]);
+        $this->anti_card_testing_enabled   = isset($params[$this->anti_card_testing_enabled_str]);
+        $this->anti_card_testing_ip_method = isset($params[$this->anti_card_testing_ip_method_str]) ? sanitize_text_field(wp_unslash($params[$this->anti_card_testing_ip_method_str])) : '';
+        $this->anti_card_testing_blocked   = isset($params[$this->anti_card_testing_blocked_str]) && is_string($params[$this->anti_card_testing_blocked_str]) ? array_unique(array_filter(array_map('trim', explode("\n", $params[$this->anti_card_testing_blocked_str])))) : [];
 
-        $this->custom_message                = wp_kses_post(stripslashes($params[$this->custom_message_str]));
-        $currency_code                       = stripslashes($params[$this->currency_code_str]);
-        $currency_code_changed               = $this->currency_code != $currency_code;
-        $this->currency_code                 = $currency_code;
-        $this->currency_symbol               = stripslashes($params[$this->currency_symbol_str]);
-        $this->currency_symbol_after         = isset($params[$this->currency_symbol_after_str]);
-        $this->language_code                 = stripslashes($params[$this->language_code_str]);
+        $this->custom_message        = wp_kses_post(stripslashes($params[$this->custom_message_str]));
+        $currency_code               = stripslashes($params[$this->currency_code_str]);
+        $currency_code_changed       = $this->currency_code != $currency_code;
+        $this->currency_code         = $currency_code;
+        $this->currency_symbol       = stripslashes($params[$this->currency_symbol_str]);
+        $this->currency_symbol_after = isset($params[$this->currency_symbol_after_str]);
+        $this->language_code         = stripslashes($params[$this->language_code_str]);
 
         if (isset($params[$this->integrations_str])) {
             foreach ($params[$this->integrations_str] as $intg_key => $intg) {
-                $params[$this->integrations_str][$intg_key]['use_icon'] = isset($params[$this->integrations_str][$intg_key]['use_icon']);
+                $params[$this->integrations_str][$intg_key]['use_icon']  = isset($params[$this->integrations_str][$intg_key]['use_icon']);
                 $params[$this->integrations_str][$intg_key]['use_label'] = isset($params[$this->integrations_str][$intg_key]['use_label']);
-                $params[$this->integrations_str][$intg_key]['use_desc'] = isset($params[$this->integrations_str][$intg_key]['use_desc']);
+                $params[$this->integrations_str][$intg_key]['use_desc']  = isset($params[$this->integrations_str][$intg_key]['use_desc']);
 
                 if (isset($intg['gateway']) && $intg['gateway'] == 'MeprStripeGateway') {
                     if ($currency_code_changed || empty($params[$this->integrations_str][$intg_key]['payment_methods'])) {
@@ -870,44 +915,44 @@ class MeprOptions
 
         // This happens on the activate screen't do this here
         // $this->mothership_license                 = stripslashes($params[$this->mothership_license_str]);
-        $this->product_pages_slug                 = sanitize_title(stripslashes($params[$this->product_pages_slug_str]), 'register');
-        $this->group_pages_slug                   = sanitize_title(stripslashes($params[$this->group_pages_slug_str]), 'plans');
-        $this->admin_email_addresses              = $params[$this->admin_email_addresses_str];
-        $this->unauthorized_message               = wp_kses_post(stripslashes($params[$this->unauthorized_message_str]));
-        $this->unauth_show_excerpts               = isset($params[$this->unauth_show_excerpts_str]);
-        $this->unauth_excerpt_type                = $params[$this->unauth_excerpt_type_str];
-        $this->unauth_excerpt_size                = $params[$this->unauth_excerpt_size_str];
-        $this->unauth_show_login                  = isset($params[$this->unauth_show_login_str]);
-        $this->disable_grace_init_days            = isset($params[$this->disable_grace_init_days_str]);
-        $this->authorize_seo_views                = isset($params[$this->authorize_seo_views_str]);
-        $this->seo_unauthorized_noindex           = isset($params[$this->seo_unauthorized_noindex_str]);
-        $this->paywall_enabled                    = isset($params[$this->paywall_enabled_str]);
-        $this->paywall_num_free_views             = (isset($params[$this->paywall_num_free_views_str])) ? (int)$params[$this->paywall_num_free_views_str] : 1;
-        $this->disable_summary_email              = isset($params[$this->disable_summary_email_str]);
-        $this->redirect_on_unauthorized           = isset($params[$this->redirect_on_unauthorized_str]);
-        $this->unauthorized_redirect_url          = trim(stripslashes($params[$this->unauthorized_redirect_url_str]));
-        $this->redirect_non_singular              = isset($params[$this->redirect_non_singular_str]);
-        $this->redirect_method                    = $params[$this->redirect_method_str];
-        $this->allow_cancel_subs                  = isset($params[$this->allow_cancel_subs_str]);
-        $this->allow_suspend_subs                 = isset($params[$this->allow_suspend_subs_str]);
-        $this->disable_global_autoresponder_list  = isset($params[$this->disable_global_autoresponder_list_str]);
-        $this->opt_in_checked_by_default          = isset($params[$this->opt_in_checked_by_default_str]);
-        $this->global_styles                      = isset($params[$this->global_styles_str]);
-        $this->include_email_privacy_link         = isset($params[$this->include_email_privacy_link_str]);
+        $this->product_pages_slug                = sanitize_title(stripslashes($params[$this->product_pages_slug_str]), 'register');
+        $this->group_pages_slug                  = sanitize_title(stripslashes($params[$this->group_pages_slug_str]), 'plans');
+        $this->admin_email_addresses             = $params[$this->admin_email_addresses_str];
+        $this->unauthorized_message              = wp_kses_post(stripslashes($params[$this->unauthorized_message_str]));
+        $this->unauth_show_excerpts              = isset($params[$this->unauth_show_excerpts_str]);
+        $this->unauth_excerpt_type               = $params[$this->unauth_excerpt_type_str];
+        $this->unauth_excerpt_size               = $params[$this->unauth_excerpt_size_str];
+        $this->unauth_show_login                 = isset($params[$this->unauth_show_login_str]);
+        $this->disable_grace_init_days           = isset($params[$this->disable_grace_init_days_str]);
+        $this->authorize_seo_views               = isset($params[$this->authorize_seo_views_str]);
+        $this->seo_unauthorized_noindex          = isset($params[$this->seo_unauthorized_noindex_str]);
+        $this->paywall_enabled                   = isset($params[$this->paywall_enabled_str]);
+        $this->paywall_num_free_views            = (isset($params[$this->paywall_num_free_views_str])) ? (int)$params[$this->paywall_num_free_views_str] : 1;
+        $this->disable_summary_email             = isset($params[$this->disable_summary_email_str]);
+        $this->redirect_on_unauthorized          = isset($params[$this->redirect_on_unauthorized_str]);
+        $this->unauthorized_redirect_url         = trim(stripslashes($params[$this->unauthorized_redirect_url_str]));
+        $this->redirect_non_singular             = isset($params[$this->redirect_non_singular_str]);
+        $this->redirect_method                   = $params[$this->redirect_method_str];
+        $this->allow_cancel_subs                 = isset($params[$this->allow_cancel_subs_str]);
+        $this->allow_suspend_subs                = isset($params[$this->allow_suspend_subs_str]);
+        $this->disable_global_autoresponder_list = isset($params[$this->disable_global_autoresponder_list_str]);
+        $this->opt_in_checked_by_default         = isset($params[$this->opt_in_checked_by_default_str]);
+        $this->global_styles                     = isset($params[$this->global_styles_str]);
+        $this->include_email_privacy_link        = isset($params[$this->include_email_privacy_link_str]);
 
         // Signup fields stuff
-        $this->username_is_email                  = isset($params[$this->username_is_email_str]);
-        $this->require_fname_lname                = isset($params[$this->require_fname_lname_str]);
-        $this->show_fname_lname                   = (isset($params[$this->show_fname_lname_str]) || isset($params[$this->require_fname_lname_str]));
-        $this->show_fields_logged_in_purchases    = isset($params[$this->show_fields_logged_in_purchases_str]);
+        $this->username_is_email               = isset($params[$this->username_is_email_str]);
+        $this->require_fname_lname             = isset($params[$this->require_fname_lname_str]);
+        $this->show_fname_lname                = (isset($params[$this->show_fname_lname_str]) || isset($params[$this->require_fname_lname_str]));
+        $this->show_fields_logged_in_purchases = isset($params[$this->show_fields_logged_in_purchases_str]);
 
         // Always show and require address fields when tax calculations are enabled
-        $this->show_address_fields                = (isset($params[$this->show_address_fields_str]) || isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
-        $this->require_address_fields             = (isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
+        $this->show_address_fields    = (isset($params[$this->show_address_fields_str]) || isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
+        $this->require_address_fields = (isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
 
         // We now support address being required -- handle that here
-        $this->address_fields                     = $this->update_address_fields_required();
-        $this->custom_fields                      = $this->update_custom_fields($params);
+        $this->address_fields = $this->update_address_fields_required();
+        $this->custom_fields  = $this->update_custom_fields($params);
 
         // design
         $this->design_logo_img                    = absint($params[$this->design_logo_img_str]);
@@ -934,6 +979,11 @@ class MeprOptions
         $this->rl_enable_wp_footer                = sanitize_text_field($params[$this->rl_enable_wp_footer_str]);
     }
 
+    /**
+     * Update the required status of address fields.
+     *
+     * @return array The updated address fields.
+     */
     public function update_address_fields_required()
     {
         $new_address_fields = [];
@@ -949,6 +999,11 @@ class MeprOptions
         return $new_address_fields;
     }
 
+    /**
+     * Get the slugs of custom fields.
+     *
+     * @return array The custom field slugs.
+     */
     public function get_custom_field_slugs()
     {
         $slugs = [];
@@ -964,6 +1019,13 @@ class MeprOptions
         return $slugs;
     }
 
+    /**
+     * Get a custom field by its key.
+     *
+     * @param string $field_key The key of the custom field.
+     *
+     * @return object|null The custom field object or null if not found.
+     */
     public function get_custom_field($field_key)
     {
         $custom_field = null;
@@ -977,6 +1039,13 @@ class MeprOptions
         return $custom_field;
     }
 
+    /**
+     * Update custom fields with the provided parameters.
+     *
+     * @param array $params The parameters to update.
+     *
+     * @return array The updated custom fields.
+     */
     public function update_custom_fields($params)
     {
         $fields = [];
@@ -997,10 +1066,10 @@ class MeprOptions
                         if (is_array($slug_parts)) { // We may have a number appended already
                             $number = array_pop($slug_parts);
                             if (is_numeric($number)) { // Increment the existing number
-                                  $append = (int) $number + 1;
-                                  $last_index = count($slug_parts) - 1;
+                                  $append                   = (int) $number + 1;
+                                  $last_index               = count($slug_parts) - 1;
                                   $slug_parts[$last_index] .= "-{$append}";
-                                  $slug = implode('-', $slug_parts);
+                                  $slug                     = implode('-', $slug_parts);
                             } else { // Append 1
                                 $slug .= '-1';
                             }
@@ -1011,16 +1080,16 @@ class MeprOptions
                 }
                 $used[] = $slug;
 
-                $type = $params[$this->custom_fields_str][$i]['type'];
-                $default = isset($params[$this->custom_fields_str][$i]['default']) ? $params[$this->custom_fields_str][$i]['default'] : '';
-                $signup = (isset($params[$this->custom_fields_str][$i]['signup']) || isset($params[$this->custom_fields_str][$i]['required']));
+                $type            = $params[$this->custom_fields_str][$i]['type'];
+                $default         = isset($params[$this->custom_fields_str][$i]['default']) ? $params[$this->custom_fields_str][$i]['default'] : '';
+                $signup          = (isset($params[$this->custom_fields_str][$i]['signup']) || isset($params[$this->custom_fields_str][$i]['required']));
                 $show_in_account = isset($params[$this->custom_fields_str][$i]['show_in_account']);
-                $required = isset($params[$this->custom_fields_str][$i]['required']);
-                $dropdown_ops = [];
+                $required        = isset($params[$this->custom_fields_str][$i]['required']);
+                $dropdown_ops    = [];
 
                 if (in_array($type, ['dropdown','multiselect','radios','checkboxes'])) {
                     $options = $params[$this->custom_fields_str][$i]['option'];
-                    $values = $params[$this->custom_fields_str][$i]['value'];
+                    $values  = $params[$this->custom_fields_str][$i]['value'];
 
                     foreach ($options as $key => $value) {
                         if (!empty($value)) {
@@ -1029,7 +1098,7 @@ class MeprOptions
                                 $option_value = MeprHooks::apply_filters('mepr-custom-field-option-value', $option_value, $values[$key], $options[$key]);
 
                                 $dropdown_ops[] = [
-                                    'option_name' => $options[$key],
+                                    'option_name'  => $options[$key],
                                     'option_value' => $option_value,
                                 ];
                         }
@@ -1043,14 +1112,14 @@ class MeprOptions
                 if ($name != '') { // If no name was left let's not save this line
                     // Due to WPML compat - we're no longer storing these as forced (object)'s - see $this->wpml_custom_fields()
                     $fields[] = [
-                        'field_key' => $slug,
-                        'field_name' => $name,
-                        'field_type' => $type,
-                        'default_value' => $default,
-                        'show_on_signup' => $signup,
+                        'field_key'       => $slug,
+                        'field_name'      => $name,
+                        'field_type'      => $type,
+                        'default_value'   => $default,
+                        'show_on_signup'  => $signup,
                         'show_in_account' => $show_in_account,
-                        'required' => $required,
-                        'options' => $dropdown_ops,
+                        'required'        => $required,
+                        'options'         => $dropdown_ops,
                     ];
                 }
             }
@@ -1059,6 +1128,14 @@ class MeprOptions
         return $fields;
     }
 
+    /**
+     * Set options from an array.
+     *
+     * @param array   $options    The options to set.
+     * @param boolean $post_array Whether the options are from a POST array.
+     *
+     * @return void
+     */
     public function set_from_array($options = [], $post_array = false)
     {
         if ($post_array) {
@@ -1070,6 +1147,13 @@ class MeprOptions
         }
     }
 
+    /**
+     * Store the options in the database.
+     *
+     * @param boolean $validate Whether to validate the options before storing.
+     *
+     * @return array|void The validation errors or void if successful.
+     */
     public function store($validate = true)
     {
         $options = (array)$this;
@@ -1092,9 +1176,14 @@ class MeprOptions
         update_option(MEPR_OPTIONS_SLUG, $options);
     }
 
+    /**
+     * Check if the business address is set.
+     *
+     * @return boolean True if the business address is set, false otherwise.
+     */
     public function biz_address_is_set()
     {
-        $one      = $this->attr('biz_address1');
+        $one = $this->attr('biz_address1');
         // $two      = $this->attr('biz_address2');
         $city     = $this->attr('biz_city');
         $state    = $this->attr('biz_state');
@@ -1104,6 +1193,15 @@ class MeprOptions
         return (!empty($country) && !empty($postcode) && !empty($state) && !empty($city) && !empty($one));
     }
 
+    /**
+     * Get a payment method by its ID.
+     *
+     * @param string  $id                       The ID of the payment method.
+     * @param boolean $include_builtin_gateways Whether to include built-in gateways.
+     * @param boolean $force                    Whether to force a refresh of payment methods.
+     *
+     * @return object|false The payment method object or false if not found.
+     */
     public function payment_method($id = 'default', $include_builtin_gateways = true, $force = false)
     {
         $pmt_methods = $this->payment_methods($include_builtin_gateways, $force);
@@ -1122,6 +1220,14 @@ class MeprOptions
         return false;
     }
 
+    /**
+     * Get all payment methods.
+     *
+     * @param boolean $include_builtin_gateways Whether to include built-in gateways.
+     * @param boolean $force                    Whether to force a refresh of payment methods.
+     *
+     * @return array The payment methods.
+     */
     public function payment_methods($include_builtin_gateways = true, $force = false)
     {
         static $pmt_methods;
@@ -1160,11 +1266,23 @@ class MeprOptions
         return $all_pmt_methods;
     }
 
+    /**
+     * Get the count of payment methods.
+     *
+     * @return integer The count of payment methods.
+     */
     public function pm_count()
     {
         return count($this->integrations);
     }
 
+    /**
+     * Get the URL of the account page.
+     *
+     * @param string $args Optional. Additional query arguments.
+     *
+     * @return string The account page URL.
+     */
     public function account_page_url($args = '')
     {
         $link = home_url();
@@ -1182,6 +1300,13 @@ class MeprOptions
         return $link;
     }
 
+    /**
+     * Get the URL of the login page.
+     *
+     * @param string $args Optional. Additional query arguments.
+     *
+     * @return string The login page URL.
+     */
     public function login_page_url($args = '')
     {
         if (
@@ -1201,11 +1326,18 @@ class MeprOptions
         return home_url(); // default to the home url
     }
 
+    /**
+     * Get the URL of the thank you page.
+     *
+     * @param string $args Optional. Additional query arguments.
+     *
+     * @return string The thank you page URL.
+     */
     public function thankyou_page_url($args = '')
     {
         $thank_you_page_id = 0;
-        $args_array = wp_parse_args($args);
-        $url = home_url();
+        $args_array        = wp_parse_args($args);
+        $url               = home_url();
 
         if (isset($args_array['membership_id'])) {
             $product = new MeprProduct($args_array['membership_id']);
@@ -1227,7 +1359,7 @@ class MeprOptions
             (int)$thank_you_page_id > 0
         ) {
             $thank_you_page_id = (int)$thank_you_page_id;
-            $link = MeprUtils::get_permalink($thank_you_page_id);
+            $link              = MeprUtils::get_permalink($thank_you_page_id);
 
             if (!empty($args)) {
                 if (is_array($args)) {
@@ -1242,6 +1374,11 @@ class MeprOptions
         return MeprHooks::apply_filters('mepr-thankyou-page-url', $url, $args_array);
     }
 
+    /**
+     * Get the URL for the forgot password page.
+     *
+     * @return string The forgot password URL.
+     */
     public function forgot_password_url()
     {
         $mepr_options = MeprOptions::fetch();
@@ -1249,78 +1386,83 @@ class MeprOptions
         $login_page_id = (!empty($mepr_options->login_page_id) && $mepr_options->login_page_id > 0) ? $mepr_options->login_page_id : 0;
 
         if ($login_page_id) {
-            $login_url = $mepr_options->login_page_url();
-            $login_delim = MeprAppCtrl::get_param_delimiter_char($login_url);
+            $login_url           = $mepr_options->login_page_url();
+            $login_delim         = MeprAppCtrl::get_param_delimiter_char($login_url);
             $forgot_password_url = "{$login_url}{$login_delim}action=forgot_password";
         } else {
-            $login_url = home_url('/wp-login.php');
+            $login_url           = home_url('/wp-login.php');
             $forgot_password_url = home_url('/wp-login.php?action=lostpassword');
         }
 
         return $forgot_password_url;
     }
 
+    /**
+     * Set the address fields for the options.
+     *
+     * @return void
+     */
     private function set_address_fields()
     {
         $country_codes = MeprUtils::countries();
-        $state_codes = MeprUtils::states();
-        $coptions = [];
+        $state_codes   = MeprUtils::states();
+        $coptions      = [];
 
         foreach ($country_codes as $copt => $cname) {
             $coptions[] = (object)[
-                'option_name' => $cname,
+                'option_name'  => $cname,
                 'option_value' => $copt,
             ];
         }
 
         $this->address_fields = [
             (object)[
-                'field_key' => 'mepr-address-one',
-                'field_name' => _x('Address Line 1', 'ui', 'memberpress'),
-                'field_type' => 'text',
-                'default_value' => '',
+                'field_key'      => 'mepr-address-one',
+                'field_name'     => _x('Address Line 1', 'ui', 'memberpress'),
+                'field_type'     => 'text',
+                'default_value'  => '',
                 'show_on_signup' => true,
-                'required' => $this->require_address_fields,
+                'required'       => $this->require_address_fields,
             ],
             (object)[
-                'field_key' => 'mepr-address-two',
-                'field_name' => _x('Address Line 2', 'ui', 'memberpress'),
-                'field_type' => 'text',
-                'default_value' => '',
+                'field_key'      => 'mepr-address-two',
+                'field_name'     => _x('Address Line 2', 'ui', 'memberpress'),
+                'field_type'     => 'text',
+                'default_value'  => '',
                 'show_on_signup' => true,
-                'required' => false,
+                'required'       => false,
             ],
             (object)[
-                'field_key' => 'mepr-address-city',
-                'field_name' => _x('City', 'ui', 'memberpress'),
-                'field_type' => 'text',
-                'default_value' => '',
+                'field_key'      => 'mepr-address-city',
+                'field_name'     => _x('City', 'ui', 'memberpress'),
+                'field_type'     => 'text',
+                'default_value'  => '',
                 'show_on_signup' => true,
-                'required' => $this->require_address_fields,
+                'required'       => $this->require_address_fields,
             ],
             (object)[
-                'field_key' => 'mepr-address-country',
-                'field_name' => _x('Country', 'ui', 'memberpress'),
-                'field_type' => 'countries',
-                'default_value' => '',
+                'field_key'      => 'mepr-address-country',
+                'field_name'     => _x('Country', 'ui', 'memberpress'),
+                'field_type'     => 'countries',
+                'default_value'  => '',
                 'show_on_signup' => true,
-                'required' => $this->require_address_fields,
+                'required'       => $this->require_address_fields,
             ],
             (object)[
-                'field_key' => 'mepr-address-state',
-                'field_name' => _x('State/Province', 'ui', 'memberpress'),
-                'field_type' => 'states',
-                'default_value' => '',
+                'field_key'      => 'mepr-address-state',
+                'field_name'     => _x('State/Province', 'ui', 'memberpress'),
+                'field_type'     => 'states',
+                'default_value'  => '',
                 'show_on_signup' => true,
-                'required' => $this->require_address_fields,
+                'required'       => $this->require_address_fields,
             ],
             (object)[
-                'field_key' => 'mepr-address-zip',
-                'field_name' => _x('Zip/Postal Code', 'ui', 'memberpress'),
-                'field_type' => 'text',
-                'default_value' => '',
+                'field_key'      => 'mepr-address-zip',
+                'field_name'     => _x('Zip/Postal Code', 'ui', 'memberpress'),
+                'field_type'     => 'text',
+                'default_value'  => '',
                 'show_on_signup' => true,
-                'required' => $this->require_address_fields,
+                'required'       => $this->require_address_fields,
             ],
         ];
     }
@@ -1329,6 +1471,11 @@ class MeprOptions
      * Migrations ... should probably find a better place to
            put these but the model makes sense for now I suppose
      *****/
+    /**
+     * Migrate to the new unauthorized system.
+     *
+     * @return void
+     */
     public static function migrate_to_new_unauth_system()
     {
         $mepr_options = MeprOptions::fetch();
@@ -1340,7 +1487,7 @@ class MeprOptions
         $page = get_post($mepr_options->unauthorized_page_id);
 
         if (!($page instanceof WP_Post)) {
-            $mepr_options->unauthorized_page_id = 0; // Set the page to 0 so we don't end up here again
+            $mepr_options->unauthorized_page_id     = 0; // Set the page to 0 so we don't end up here again
             $mepr_options->redirect_on_unauthorized = false;
             $mepr_options->store(false);
             return;
@@ -1351,10 +1498,10 @@ class MeprOptions
         // It's either empty or there's something on this page - and it's not the unauth shortcode
         // so let's put the shortcode on this page, and setup the unauth message
         if (empty($content) || (!empty($content) && strstr($content, 'mepr-unauthorized-message') === false)) {
-            $page->post_content = '[mepr-unauthorized-message]';
-            $mepr_options->redirect_on_unauthorized = true;
+            $page->post_content                      = '[mepr-unauthorized-message]';
+            $mepr_options->redirect_on_unauthorized  = true;
             $mepr_options->unauthorized_redirect_url = MeprUtils::get_permalink($page->ID);
-            $mepr_options->unauthorized_page_id = 0; // Set the page to 0 so we don't end up here again
+            $mepr_options->unauthorized_page_id      = 0; // Set the page to 0 so we don't end up here again
 
             if (!empty($content)) { // Only change the unauth message if the user had one on this page already
                 $mepr_options->unauthorized_message = $content;
@@ -1373,11 +1520,25 @@ class MeprOptions
         $mepr_options->store(false);
     }
 
+    /**
+     * Get an attribute value.
+     *
+     * @param string $attr The attribute name.
+     *
+     * @return mixed The attribute value.
+     */
     public function attr($attr)
     {
         return $this->get_attr($attr);
     }
 
+    /**
+     * Get an attribute value.
+     *
+     * @param string $attr The attribute name.
+     *
+     * @return mixed The attribute value.
+     */
     public function get_attr($attr)
     {
         $value = '';
@@ -1402,6 +1563,14 @@ class MeprOptions
         return MeprHooks::apply_filters('mepr-options-get-dynamic-attribute-' . $attr, $value, $this);
     }
 
+    /**
+     * Set an attribute value.
+     *
+     * @param string $attr  The attribute name.
+     * @param mixed  $value The value to set.
+     *
+     * @return void
+     */
     public function set_attr($attr, $value)
     {
         $value = MeprHooks::apply_filters('mepr-options-set-dynamic-attribute-' . $attr, $value, $this);
@@ -1413,6 +1582,13 @@ class MeprOptions
         }
     }
 
+    /**
+     * Set multiple attributes from an array.
+     *
+     * @param array $attrs The attributes to set.
+     *
+     * @return void
+     */
     private function set_attrs($attrs)
     {
         foreach ($attrs as $attr => $value) {
@@ -1422,6 +1598,13 @@ class MeprOptions
         }
     }
 
+    /**
+     * Set attributes from slugs.
+     *
+     * @param array $slugs The slugs to set attributes from.
+     *
+     * @return void
+     */
     private function set_attrs_from_slugs($slugs)
     {
         // Build slug to attr lookup array
@@ -1438,6 +1621,13 @@ class MeprOptions
         }
     }
 
+    /**
+     * Store an attribute in the database.
+     *
+     * @param string $attr The attribute name.
+     *
+     * @return void
+     */
     private function store_attr($attr)
     {
         $a = $this->attr_config($attr);
@@ -1446,6 +1636,11 @@ class MeprOptions
         }
     }
 
+    /**
+     * Store all attributes in the database.
+     *
+     * @return void
+     */
     private function store_attrs()
     {
         foreach ($this->dynamic_attrs as $attr => $config) {
@@ -1453,6 +1648,13 @@ class MeprOptions
         }
     }
 
+    /**
+     * Get the configuration for an attribute.
+     *
+     * @param string $attr The attribute name.
+     *
+     * @return array The attribute configuration.
+     */
     private function attr_config($attr)
     {
         if (array_key_exists($attr, $this->dynamic_attrs)) {
@@ -1461,6 +1663,13 @@ class MeprOptions
         return '';
     }
 
+    /**
+     * Get the slug for an attribute.
+     *
+     * @param string $attr The attribute name.
+     *
+     * @return string The attribute slug.
+     */
     public function attr_slug($attr)
     {
         if (array_key_exists($attr, $this->dynamic_attrs)) {
@@ -1473,6 +1682,13 @@ class MeprOptions
         return '';
     }
 
+    /**
+     * Get the default value for an attribute.
+     *
+     * @param string $attr The attribute name.
+     *
+     * @return mixed The default value.
+     */
     public function attr_default($attr)
     {
         if (array_key_exists($attr, $this->dynamic_attrs)) {
@@ -1481,6 +1697,13 @@ class MeprOptions
         return '';
     }
 
+    /**
+     * Get the validations for an attribute.
+     *
+     * @param string $attr The attribute name.
+     *
+     * @return array The attribute validations.
+     */
     public function attr_validations($attr)
     {
         if (array_key_exists($attr, $this->dynamic_attrs)) {
@@ -1519,6 +1742,8 @@ class MeprOptions
      * We just return a JSON encoding of the
      * attributes in the model when we try
      * to get a string for the options.
+     *
+     * @return string The JSON encoded attributes.
      */
     public function __toString()
     {
@@ -1531,4 +1756,4 @@ class MeprOptions
 
         return json_encode($str_array);
     }
-} //End class
+}

@@ -25,6 +25,14 @@ class MeprSubscriptionsTable extends WP_List_Table
 
     public $totalitems;
 
+    /**
+     * Constructor.
+     *
+     * @param  string  $screen   The screen.
+     * @param  array   $columns  The columns.
+     * @param  boolean $lifetime The lifetime.
+     * @return void
+     */
     public function __construct($screen, $columns, $lifetime = false)
     {
         if (is_string($screen)) {
@@ -47,45 +55,50 @@ class MeprSubscriptionsTable extends WP_List_Table
 
         $this->_recurring_searchable = [
             'subscription' => __('Subscription', 'memberpress'),
-            'username' => __('Username', 'memberpress'),
-            'email' => __('User Email', 'memberpress'),
-            'id' => __('Id', 'memberpress'),
+            'username'     => __('Username', 'memberpress'),
+            'email'        => __('User Email', 'memberpress'),
+            'id'           => __('Id', 'memberpress'),
         ];
 
         $this->_non_recurring_searchable = [
             'subscription' => __('Transaction', 'memberpress'),
-            'username' => __('Username', 'memberpress'),
-            'email' => __('User Email', 'memberpress'),
-            'id' => __('Id', 'memberpress'),
+            'username'     => __('Username', 'memberpress'),
+            'email'        => __('User Email', 'memberpress'),
+            'id'           => __('Id', 'memberpress'),
         ];
 
         $this->recurring_db_search_cols = [
             'subscription' => 'sub.subscr_id',
-            'username' => 'u.user_login',
-            'email' => 'u.user_email',
-            'id' => 'sub.id',
+            'username'     => 'u.user_login',
+            'email'        => 'u.user_email',
+            'id'           => 'sub.id',
         ];
 
         $this->non_recurring_db_search_cols = [
             'subscription' => 'txn.trans_num',
-            'username' => 'u.user_login',
-            'email' => 'u.user_email',
-            'id' => 'txn.id',
+            'username'     => 'u.user_login',
+            'email'        => 'u.user_email',
+            'id'           => 'txn.id',
         ];
 
         parent::__construct(
             [
                 'singular' => $label, // Singular label
-                'plural' => "{$label}s", // plural label, also this well be one of the table css class
-                'ajax'  => true, // false //We won't support Ajax for this table
+                'plural'   => "{$label}s", // plural label, also this well be one of the table css class
+                'ajax'     => true, // false //We won't support Ajax for this table
             ]
         );
     }
 
+    /**
+     * Get the column info.
+     *
+     * @return array
+     */
     public function get_column_info()
     {
         $columns = get_column_headers($this->_screen);
-        $hidden = get_hidden_columns($this->_screen);
+        $hidden  = get_hidden_columns($this->_screen);
 
         // Bypass MeprHooks to call built-in filter
         $sortable = apply_filters("manage_{$this->_screen->id}_sortable_columns", $this->get_sortable_columns());
@@ -94,13 +107,19 @@ class MeprSubscriptionsTable extends WP_List_Table
         return [$columns, $hidden, $sortable, $primary];
     }
 
+    /**
+     * Extra table nav.
+     *
+     * @param  string $which The which.
+     * @return void
+     */
     public function extra_tablenav($which)
     {
         if ($which == 'top') {
-            $member = (isset($_GET['member']) && !empty($_GET['member'])) ? '&member=' . urlencode(stripslashes($_GET['member'])) : '';
-            $search = (isset($_GET['search']) && !empty($_GET['search'])) ? '&search=' . urlencode(stripslashes($_GET['search'])) : '';
+            $member       = (isset($_GET['member']) && !empty($_GET['member'])) ? '&member=' . urlencode(stripslashes($_GET['member'])) : '';
+            $search       = (isset($_GET['search']) && !empty($_GET['search'])) ? '&search=' . urlencode(stripslashes($_GET['search'])) : '';
             $search_field = (isset($_GET['search-field']) && !empty($_GET['search-field'])) ? '&search-field=' . stripslashes($_GET['search-field']) : '';
-            $perpage = (isset($_GET['perpage']) && !empty($_GET['perpage'])) ? '&perpage=' . stripslashes($_GET['perpage']) : '';
+            $perpage      = (isset($_GET['perpage']) && !empty($_GET['perpage'])) ? '&perpage=' . stripslashes($_GET['perpage']) : '';
 
             if ($this->lifetime) {
                 $search_cols = $this->_non_recurring_searchable;
@@ -121,32 +140,42 @@ class MeprSubscriptionsTable extends WP_List_Table
             }
 
             $totalitems = $this->totalitems;
-            $itemcount = count($this->items);
+            $itemcount  = count($this->items);
             MeprView::render('/admin/table_footer', compact('action', 'totalitems', 'itemcount'));
         }
     }
 
+    /**
+     * Get the columns.
+     *
+     * @return array
+     */
     public function get_columns()
     {
         return $this->_columns;
     }
 
+    /**
+     * Get the sortable columns.
+     *
+     * @return array
+     */
     public function get_sortable_columns()
     {
         $prefix = $this->lifetime ? 'col_txn_' : 'col_';
-        $cols = [
+        $cols   = [
             $prefix . 'created_at' => ['created_at', true],
-            $prefix . 'id' => ['ID', true],
-            $prefix . 'member' => ['member', true],
+            $prefix . 'id'         => ['ID', true],
+            $prefix . 'member'     => ['member', true],
             $prefix . 'propername' => ['last_name', true],
-            $prefix . 'product' => ['product_name', true],
-            $prefix . 'gateway' => ['gateway', true],
-            $prefix . 'subscr_id' => ['subscr_id', true],
-            $prefix . 'txn_count' => ['txn_count', true],
+            $prefix . 'product'    => ['product_name', true],
+            $prefix . 'gateway'    => ['gateway', true],
+            $prefix . 'subscr_id'  => ['subscr_id', true],
+            $prefix . 'txn_count'  => ['txn_count', true],
             $prefix . 'expires_at' => ['expires_at', true],
-            $prefix . 'ip_addr' => ['ip_addr', true],
-            $prefix . 'status' => ['status', true],
-            $prefix . 'active' => ['active', true],
+            $prefix . 'ip_addr'    => ['ip_addr', true],
+            $prefix . 'status'     => ['status', true],
+            $prefix . 'active'     => ['active', true],
         ];
 
         if ($this->lifetime) {
@@ -157,10 +186,15 @@ class MeprSubscriptionsTable extends WP_List_Table
         return MeprHooks::apply_filters('mepr-admin-subscriptions-sortable-cols', $cols, $prefix, $this->lifetime);
     }
 
+    /**
+     * Prepare the items.
+     *
+     * @return void
+     */
     public function prepare_items()
     {
         $user_id = get_current_user_id();
-        $screen = get_current_screen();
+        $screen  = get_current_screen();
 
         if (isset($screen) && is_object($screen)) {
             $option = $screen->get_option('per_page', 'option');
@@ -174,13 +208,13 @@ class MeprSubscriptionsTable extends WP_List_Table
             $perpage = !empty($_GET['perpage']) ? esc_sql($_GET['perpage']) : 10;
         }
 
-        $orderby = !empty($_GET['orderby']) ? esc_sql($_GET['orderby']) : 'ID';
-        $order   = !empty($_GET['order'])   ? esc_sql($_GET['order'])   : 'DESC';
-        $paged   = !empty($_GET['paged'])   ? esc_sql($_GET['paged'])   : 1;
-        $search  = !empty($_GET['search'])  ? esc_sql($_GET['search'])  : '';
-        $search_field = !empty($_GET['search-field']) ? esc_sql($_GET['search-field'])  : 'any';
+        $orderby                    = !empty($_GET['orderby']) ? esc_sql($_GET['orderby']) : 'ID';
+        $order                      = !empty($_GET['order'])   ? esc_sql($_GET['order'])   : 'DESC';
+        $paged                      = !empty($_GET['paged'])   ? esc_sql($_GET['paged'])   : 1;
+        $search                     = !empty($_GET['search'])  ? esc_sql($_GET['search'])  : '';
+        $search_field               = !empty($_GET['search-field']) ? esc_sql($_GET['search-field'])  : 'any';
         $non_recurring_search_field = isset($this->non_recurring_db_search_cols[$search_field]) ? $this->non_recurring_db_search_cols[$search_field] : 'any';
-        $recurring_search_field = isset($this->recurring_db_search_cols[$search_field]) ? $this->recurring_db_search_cols[$search_field] : 'any';
+        $recurring_search_field     = isset($this->recurring_db_search_cols[$search_field]) ? $this->recurring_db_search_cols[$search_field] : 'any';
 
         $lifetime_table = MeprSubscription::lifetime_subscr_table($orderby, $order, $paged, $search, $non_recurring_search_field, $perpage, (!$this->lifetime));
         $periodic_table = MeprSubscription::subscr_table($orderby, $order, $paged, $search, $recurring_search_field, $perpage, ($this->lifetime));
@@ -195,14 +229,14 @@ class MeprSubscriptionsTable extends WP_List_Table
         // How many pages do we have in total?
         $totalpages = ceil($totalitems / $perpage);
 
-        /* -- Register the pagination -- */
+        // -- Register the pagination --
         $this->set_pagination_args([
             'total_items' => $totalitems,
             'total_pages' => $totalpages,
-            'per_page' => $perpage,
+            'per_page'    => $perpage,
         ]);
 
-        /* -- Register the Columns -- */
+        // -- Register the Columns --
         if (isset($screen) && is_object($screen)) {
             $this->_column_headers = $this->get_column_info();
         } else {
@@ -216,10 +250,15 @@ class MeprSubscriptionsTable extends WP_List_Table
 
         $this->totalitems = $totalitems;
 
-        /* -- Fetch the items -- */
+        // -- Fetch the items --
         $this->items = $list_table['results'];
     }
 
+    /**
+     * Display the rows.
+     *
+     * @return void
+     */
     public function display_rows()
     {
         $mepr_options = MeprOptions::fetch();
@@ -234,8 +273,13 @@ class MeprSubscriptionsTable extends WP_List_Table
         MeprView::render('/admin/subscriptions/row', get_defined_vars());
     }
 
+    /**
+     * Get the items.
+     *
+     * @return array
+     */
     public function get_items()
     {
         return $this->items;
     }
-} //End class
+}

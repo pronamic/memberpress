@@ -24,16 +24,16 @@ abstract class MeprCptModel extends MeprBaseModel
         }
 
         $r = [
-            'ID'            => null,
-            'post_content'  => '',
-            'post_title'    => null,
-            'post_excerpt'  => '',
-            'post_name'     => null,
-            'post_date'     => null,
-            'post_status'   => 'publish', // We'll assume this is published if not coming through the post editor
-            'post_parent'   => 0,
-            'menu_order'    => 0,
-            'post_type'     => MeprUtils::get_property($whos_calling, 'cpt'),
+            'ID'           => null,
+            'post_content' => '',
+            'post_title'   => null,
+            'post_excerpt' => '',
+            'post_name'    => null,
+            'post_date'    => null,
+            'post_status'  => 'publish', // We'll assume this is published if not coming through the post editor
+            'post_parent'  => 0,
+            'menu_order'   => 0,
+            'post_type'    => MeprUtils::get_property($whos_calling, 'cpt'),
         ];
 
         // Initialize postmeta variables
@@ -54,13 +54,19 @@ abstract class MeprCptModel extends MeprBaseModel
     }
 
     /**
-     * Requires defaults to be set
+     * Requires defaults to be set.
+     *
+     * @param  integer $id    The id.
+     * @param  string  $cpt   The cpt.
+     * @param  array   $attrs The attrs.
+     * @return void
      */
     protected function load_cpt($id, $cpt, $attrs)
     {
         $this->attrs = $attrs;
 
-        if (null === ($this->rec = get_post($id))) {
+        $this->rec = get_post($id);
+        if (null === $this->rec) {
             $this->initialize_new_cpt();
         } elseif ($this->post_type != $cpt) {
             $this->initialize_new_cpt();
@@ -70,7 +76,10 @@ abstract class MeprCptModel extends MeprBaseModel
     }
 
     /**
-     * Requires defaults to be set
+     * Requires defaults to be set.
+     *
+     * @param  integer $id The id.
+     * @return void
      */
     protected function load_meta($id)
     {
@@ -104,6 +113,11 @@ abstract class MeprCptModel extends MeprBaseModel
         $this->rec = (object)array_merge((array)$this->rec, $this->attrs, $rec);
     }
 
+    /**
+     * Stores the model.
+     *
+     * @return integer
+     */
     public function store()
     {
         if (isset($this->ID) and !is_null($this->ID)) {
@@ -123,13 +137,28 @@ abstract class MeprCptModel extends MeprBaseModel
         return $id;
     }
 
+    /**
+     * Stores the meta.
+     *
+     * @return void
+     */
     abstract public function store_meta();
 
+    /**
+     * Saves the meta.
+     *
+     * @return void
+     */
     public function save_meta()
     {
-        return $this->store_meta();
+        $this->store_meta();
     }
 
+    /**
+     * Destroys the model.
+     *
+     * @return boolean
+     */
     public function destroy()
     {
         $res = wp_delete_post($this->ID, true);
@@ -141,14 +170,28 @@ abstract class MeprCptModel extends MeprBaseModel
         return $res;
     }
 
-    // Should probabaly add a delim char check to add before the args
-    // similar to how I did it in MeprOptions
+    /**
+     * Gets the URL.
+     * Should probabaly add a delim char check to add before the args
+     * similar to how I did it in MeprOptions
+     *
+     * @param  string $args The args.
+     * @return string
+     */
     public function url($args = '')
     {
         $link = MeprUtils::get_permalink($this->ID);
         return MeprHooks::apply_filters('mepr_cpt_model_url', "{$link}{$args}", $this);
     }
 
+    /**
+     * Gets all the models.
+     *
+     * @param  string  $class            The class.
+     * @param  boolean $reset_transients The reset transients.
+     * @param  boolean $extra_args       The extra args.
+     * @return array
+     */
     public static function all($class, $reset_transients = false, $extra_args = false)
     {
         if (empty($class)) {
@@ -156,13 +199,13 @@ abstract class MeprCptModel extends MeprBaseModel
         }
 
         // $r = new ReflectionClass(get_called_class()); //Not possible pre PHP 5.3 so we have to pass the class name as an argument gah
-        $r          = new ReflectionClass($class);
-        $cpt        = $r->getStaticPropertyValue('cpt');
-        $models     = [];
-        $transient  = 'mepr_all_models_for_class_' . strtolower($class);
-        $args       = [
+        $r         = new ReflectionClass($class);
+        $cpt       = $r->getStaticPropertyValue('cpt');
+        $models    = [];
+        $transient = 'mepr_all_models_for_class_' . strtolower($class);
+        $args      = [
             'numberposts' => -1,
-            'post_type' => $cpt,
+            'post_type'   => $cpt,
             'post_status' => 'publish',
         ];
 
@@ -201,6 +244,20 @@ abstract class MeprCptModel extends MeprBaseModel
         return $models;
     }
 
+    /**
+     * Gets all the data.
+     *
+     * @param  string  $class   The class.
+     * @param  string  $type    The type.
+     * @param  string  $orderby The orderby.
+     * @param  string  $order   The order.
+     * @param  integer $limit   The limit.
+     * @param  integer $offset  The offset.
+     * @param  array   $selects The selects.
+     * @param  array   $joins   The joins.
+     * @param  array   $wheres  The wheres.
+     * @return array
+     */
     public static function get_all_data(
         $class, // get_class relies on $this so we have to pass the name in
         $type = OBJECT,
@@ -214,7 +271,7 @@ abstract class MeprCptModel extends MeprBaseModel
     ) {
         global $wpdb;
 
-        $rc = new ReflectionClass($class);
+        $rc  = new ReflectionClass($class);
         $obj = $rc->newInstance();
 
         // Account for associative or numeric arrays
@@ -231,7 +288,7 @@ abstract class MeprCptModel extends MeprBaseModel
         );
 
         if (empty($selects)) {
-            $selects = ['p.*'];
+            $selects      = ['p.*'];
             $fill_selects = true;
         } else {
             $fill_selects = false;
@@ -253,8 +310,8 @@ abstract class MeprCptModel extends MeprBaseModel
         }
 
         $selects_str = join(', ', $selects);
-        $joins_str = join(' ', $joins);
-        $wheres_str = join(' AND ', $wheres);
+        $joins_str   = join(' ', $joins);
+        $wheres_str  = join(' AND ', $wheres);
 
         $q = "SELECT {$selects_str} " .
            "FROM {$wpdb->posts} AS p {$joins_str} " .

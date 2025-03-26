@@ -6,6 +6,12 @@ if (!defined('ABSPATH')) {
 
 class MeprRemindersHelper
 {
+    /**
+     * Get email vars.
+     *
+     * @param  MeprReminder $reminder The reminder.
+     * @return array
+     */
     public static function get_email_vars($reminder = null)
     {
         $vars = [
@@ -24,6 +30,12 @@ class MeprRemindersHelper
         return MeprHooks::apply_filters('mepr_reminder_email_vars', $vars, $reminder);
     }
 
+    /**
+     * Get email params.
+     *
+     * @param  MeprReminder $reminder The reminder.
+     * @return array
+     */
     public static function get_email_params($reminder)
     {
         $params = [
@@ -42,6 +54,13 @@ class MeprRemindersHelper
         return MeprHooks::apply_filters('mepr_reminder_email_params', $params, $reminder);
     }
 
+    /**
+     * Get reminder info.
+     *
+     * @param  MeprReminder $reminder The reminder.
+     * @param  string       $field    The field.
+     * @return array
+     */
     public static function get_reminder_info($reminder, $field)
     {
         if (!in_array($field, ['name', 'description'])) {
@@ -49,17 +68,17 @@ class MeprRemindersHelper
         }
 
         $lookup = [
-            'sub-expires' => [
+            'sub-expires'      => [
                 'before' => [
-                    'name' => __('Subscription Expiring', 'memberpress'),
+                    'name'        => __('Subscription Expiring', 'memberpress'),
                     'description' => sprintf(
                         __('Subscription is expiring in %1$d %2$s', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
                     ),
                 ],
-                'after' => [
-                    'name' => __('Subscription Expired', 'memberpress'),
+                'after'  => [
+                    'name'        => __('Subscription Expired', 'memberpress'),
                     'description' => sprintf(
                         __('Subscription expired %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
@@ -67,17 +86,17 @@ class MeprRemindersHelper
                     ),
                 ],
             ],
-            'sub-renews' => [
+            'sub-renews'       => [
                 'before' => [
-                    'name' => __('Subscription Renewing', 'memberpress'),
+                    'name'        => __('Subscription Renewing', 'memberpress'),
                     'description' => sprintf(
                         __('Subscription is renewing in %1$d %2$s', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
                     ),
                 ],
-                'after' => [
-                    'name' => __('Subscription Renewed', 'memberpress'),
+                'after'  => [
+                    'name'        => __('Subscription Renewed', 'memberpress'),
                     'description' => sprintf(
                         __('Subscription renewed %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
@@ -85,17 +104,17 @@ class MeprRemindersHelper
                     ),
                 ],
             ],
-            'cc-expires' => [
+            'cc-expires'       => [
                 'before' => [
-                    'name' => __('Credit Card Expiring', 'memberpress'),
+                    'name'        => __('Credit Card Expiring', 'memberpress'),
                     'description' => sprintf(
                         __('Credit Card is Expiring in %1$d %2$s', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
                     ),
                 ],
-                'after' => [
-                    'name' => __('Credit Card Expired', 'memberpress'),
+                'after'  => [
+                    'name'        => __('Credit Card Expired', 'memberpress'),
                     'description' => sprintf(
                         __('Credit Card Expired %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
@@ -103,13 +122,13 @@ class MeprRemindersHelper
                     ),
                 ],
             ],
-            'member-signup' => [
+            'member-signup'    => [
                 'before' => [
-                    'name' => '',
+                    'name'        => '',
                     'description' => '',
                 ],
-                'after' => [
-                    'name' => __('Member Signed Up', 'memberpress'),
+                'after'  => [
+                    'name'        => __('Member Signed Up', 'memberpress'),
                     'description' => sprintf(
                         __('Member Signed Up %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
@@ -119,11 +138,11 @@ class MeprRemindersHelper
             ],
             'signup-abandoned' => [
                 'before' => [
-                    'name' => '',
+                    'name'        => '',
                     'description' => '',
                 ],
-                'after' => [
-                    'name' => __('Sign Up Abandoned', 'memberpress'),
+                'after'  => [
+                    'name'        => __('Sign Up Abandoned', 'memberpress'),
                     'description' => sprintf(
                         __('Sign Up Abandoned %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
@@ -131,9 +150,9 @@ class MeprRemindersHelper
                     ),
                 ],
             ],
-            'sub-trial-ends' => [
+            'sub-trial-ends'   => [
                 'before' => [
-                    'name' => __('Subscription Trial Period is Ending Soon', 'memberpress'),
+                    'name'        => __('Subscription Trial Period is Ending Soon', 'memberpress'),
                     'description' => sprintf(
                         __('Subscription trial period is ending in %1$d %2$s', 'memberpress'),
                         $reminder->trigger_length,
@@ -148,6 +167,13 @@ class MeprRemindersHelper
         return $lookup[ $reminder->trigger_event][$reminder->trigger_timing][$field];
     }
 
+    /**
+     * Products multiselect.
+     *
+     * @param  string $field_name The field name.
+     * @param  array  $selected   The selected.
+     * @return void
+     */
     public static function products_multiselect($field_name, $selected)
     {
         $formatted = [];
@@ -174,4 +200,4 @@ class MeprRemindersHelper
       </span>
         <?php
     }
-} //End Class
+}

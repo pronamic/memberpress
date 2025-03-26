@@ -6,14 +6,25 @@ if (!defined('ABSPATH')) {
 
 class MeprReports
 {
+    /**
+     * Get the count of transactions based on status and optional date and product filters.
+     *
+     * @param string  $status  The transaction status.
+     * @param boolean $day     The day filter.
+     * @param boolean $month   The month filter.
+     * @param boolean $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return integer The count of transactions.
+     */
     public static function get_transactions_count($status, $day = false, $month = false, $year = false, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andday = ($day) ? " AND DAY(created_at) = {$day}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andday     = ($day) ? " AND DAY(created_at) = {$day}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
 
         $q = "SELECT COUNT(*)
@@ -28,14 +39,24 @@ class MeprReports
         return (int)$wpdb->get_var($wpdb->prepare($q, $status, MeprTransaction::$payment_str));
     }
 
+    /**
+     * Get the total revenue based on optional date and product filters.
+     *
+     * @param boolean $month   The month filter.
+     * @param boolean $day     The day filter.
+     * @param boolean $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return float The total revenue.
+     */
     public static function get_revenue($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andday = ($day) ? " AND DAY(created_at) = {$day}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andday     = ($day) ? " AND DAY(created_at) = {$day}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
 
         $q = "SELECT SUM(amount)
@@ -50,14 +71,24 @@ class MeprReports
         return $wpdb->get_var($wpdb->prepare($q, MeprTransaction::$complete_str, MeprTransaction::$payment_str));
     }
 
+    /**
+     * Get the total collected amount including tax based on optional date and product filters.
+     *
+     * @param boolean $month   The month filter.
+     * @param boolean $day     The day filter.
+     * @param boolean $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return float The total collected amount.
+     */
     public static function get_collected($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andday = ($day) ? " AND DAY(created_at) = {$day}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andday     = ($day) ? " AND DAY(created_at) = {$day}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
 
         $q = "SELECT (SUM(amount)+SUM(tax_amount))
@@ -72,14 +103,24 @@ class MeprReports
         return $wpdb->get_var($wpdb->prepare($q, MeprTransaction::$complete_str, MeprTransaction::$refunded_str, MeprTransaction::$payment_str));
     }
 
+    /**
+     * Get the total refunds including tax based on optional date and product filters.
+     *
+     * @param boolean $month   The month filter.
+     * @param boolean $day     The day filter.
+     * @param boolean $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return float The total refunds.
+     */
     public static function get_refunds($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andday = ($day) ? " AND DAY(created_at) = {$day}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andday     = ($day) ? " AND DAY(created_at) = {$day}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
 
         $q = "SELECT (SUM(amount)+SUM(tax_amount))
@@ -94,14 +135,24 @@ class MeprReports
         return $wpdb->get_var($wpdb->prepare($q, MeprTransaction::$refunded_str, MeprTransaction::$payment_str));
     }
 
+    /**
+     * Get the total taxes based on optional date and product filters.
+     *
+     * @param boolean $month   The month filter.
+     * @param boolean $day     The day filter.
+     * @param boolean $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return float The total taxes.
+     */
     public static function get_taxes($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andday = ($day) ? " AND DAY(created_at) = {$day}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andday     = ($day) ? " AND DAY(created_at) = {$day}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
 
         $q = "SELECT SUM(tax_amount)
@@ -116,13 +167,20 @@ class MeprReports
         return $wpdb->get_var($wpdb->prepare($q, MeprTransaction::$complete_str, MeprTransaction::$payment_str));
     }
 
+    /**
+     * Get widget data for transactions based on type.
+     *
+     * @param string $type The type of data to retrieve ('amounts' or 'counts').
+     *
+     * @return array The widget data.
+     */
     public static function get_widget_data($type = 'amounts')
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
         $results = [];
-        $time = time();
+        $time    = time();
 
         $selecttype = ($type == 'amounts') ? 'SUM(amount)' : 'COUNT(*)';
 
@@ -157,23 +215,31 @@ class MeprReports
               AND status = '" . MeprTransaction::$refunded_str . "') as r";
 
         for ($i = 6; $i >= 0; $i--) {
-            $ts = $time - MeprUtils::days($i);
-            $date = gmdate('M j', $ts);
-            $year = gmdate('Y', $ts);
-            $month = gmdate('n', $ts);
-            $day = gmdate('j', $ts);
+            $ts          = $time - MeprUtils::days($i);
+            $date        = gmdate('M j', $ts);
+            $year        = gmdate('Y', $ts);
+            $month       = gmdate('n', $ts);
+            $day         = gmdate('j', $ts);
             $results[$i] = $wpdb->get_row($wpdb->prepare($q, $date, $year, $month, $day, $year, $month, $day, $year, $month, $day, $year, $month, $day));
         }
 
         return $results;
     }
 
+    /**
+     * Get pie chart data for transactions based on year and month.
+     *
+     * @param boolean $year  The year filter.
+     * @param boolean $month The month filter.
+     *
+     * @return array The pie chart data.
+     */
     public static function get_pie_data($year = false, $month = false)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andyear  = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
 
         $q = "SELECT p.post_title AS product, COUNT(t.id) AS transactions
@@ -189,15 +255,26 @@ class MeprReports
         return $wpdb->get_results($wpdb->prepare($q, MeprTransaction::$complete_str));
     }
 
+    /**
+     * Get monthly data for transactions based on type, month, year, and product.
+     *
+     * @param string  $type    The type of data to retrieve ('amounts' or 'counts').
+     * @param integer $month   The month filter.
+     * @param integer $year    The year filter.
+     * @param mixed   $product The product filter.
+     * @param array   $q       Additional query parameters.
+     *
+     * @return array The monthly data.
+     */
     public static function get_monthly_data($type, $month, $year, $product, $q = [])
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $results = [];
+        $results       = [];
         $days_in_month = gmdate('t', mktime(0, 0, 0, $month, 1, $year));
-        $andproduct = ($product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
-        $where = MeprUtils::build_where_clause($q);
+        $andproduct    = ($product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
+        $where         = MeprUtils::build_where_clause($q);
 
         $selecttype = ($type == 'amounts') ? 'SUM(amount)' : 'COUNT(*)';
 
@@ -266,14 +343,24 @@ class MeprReports
         return $results;
     }
 
+    /**
+     * Get yearly data for transactions based on type, year, and product.
+     *
+     * @param string  $type    The type of data to retrieve ('amounts' or 'counts').
+     * @param integer $year    The year filter.
+     * @param mixed   $product The product filter.
+     * @param array   $q       Additional query parameters.
+     *
+     * @return array The yearly data.
+     */
     public static function get_yearly_data($type, $year, $product, $q = [])
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $results = [];
+        $results    = [];
         $andproduct = ($product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
-        $where = MeprUtils::build_where_clause($q);
+        $where      = MeprUtils::build_where_clause($q);
 
         $selecttype = ($type == 'amounts') ? 'SUM(amount)' : 'COUNT(*)';
 
@@ -337,6 +424,11 @@ class MeprReports
         return $results;
     }
 
+    /**
+     * Get the first year of transactions.
+     *
+     * @return integer The first year of transactions.
+     */
     public static function get_first_year()
     {
         global $wpdb;
@@ -359,6 +451,11 @@ class MeprReports
         return gmdate('Y');
     }
 
+    /**
+     * Get the last year of transactions.
+     *
+     * @return integer The last year of transactions.
+     */
     public static function get_last_year()
     {
         global $wpdb;
@@ -382,6 +479,11 @@ class MeprReports
         return gmdate('Y');
     }
 
+    /**
+     * Get the total count of members with transactions.
+     *
+     * @return integer The total count of members.
+     */
     public static function get_total_members_count()
     {
         global $wpdb;
@@ -398,6 +500,11 @@ class MeprReports
         return $wpdb->get_var($query);
     }
 
+    /**
+     * Get the total count of WordPress users.
+     *
+     * @return integer The total count of WordPress users.
+     */
     public static function get_total_wp_users_count()
     {
         global $wpdb;
@@ -408,6 +515,11 @@ class MeprReports
         return $wpdb->get_var($query);
     }
 
+    /**
+     * Get the count of active members based on transaction status.
+     *
+     * @return integer The count of active members.
+     */
     public static function get_active_members_count()
     {
         global $wpdb;
@@ -433,6 +545,11 @@ class MeprReports
         return $wpdb->get_var($query);
     }
 
+    /**
+     * Get the count of inactive members based on transaction status.
+     *
+     * @return integer The count of inactive members.
+     */
     public static function get_inactive_members_count()
     {
         global $wpdb;
@@ -465,16 +582,33 @@ class MeprReports
         return $wpdb->get_var($query);
     }
 
+    /**
+     * Get the count of free active members.
+     *
+     * @return integer The count of free active members.
+     */
     public static function get_free_active_members_count()
     {
         return self::get_free_or_paid_active_members_count();
     }
 
+    /**
+     * Get the count of paid active members.
+     *
+     * @return integer The count of paid active members.
+     */
     public static function get_paid_active_members_count()
     {
         return self::get_free_or_paid_active_members_count(true);
     }
 
+    /**
+     * Get the count of free or paid active members.
+     *
+     * @param boolean $paid Whether to count paid members.
+     *
+     * @return integer The count of free or paid active members.
+     */
     private static function get_free_or_paid_active_members_count($paid = false)
     {
         global $wpdb;
@@ -506,6 +640,11 @@ class MeprReports
         return $wpdb->get_var($query);
     }
 
+    /**
+     * Get the average lifetime value of members.
+     *
+     * @return float The average lifetime value.
+     */
     public static function get_average_lifetime_value()
     {
         global $wpdb;
@@ -527,6 +666,11 @@ class MeprReports
         return $wpdb->get_var($q);
     }
 
+    /**
+     * Get the average number of payments per member.
+     *
+     * @return float The average number of payments per member.
+     */
     public static function get_average_payments_per_member()
     {
         global $wpdb;
@@ -546,6 +690,11 @@ class MeprReports
         return $wpdb->get_var($q);
     }
 
+    /**
+     * Get the percentage of members who rebill.
+     *
+     * @return float The percentage of members who rebill.
+     */
     public static function get_percentage_members_who_rebill()
     {
         global $wpdb;
@@ -639,6 +788,13 @@ class MeprReports
         return MeprUtils::get_date_from_ts($ts, $format);
     }
 
+    /**
+     * Get subscription statistics based on creation date.
+     *
+     * @param boolean $created_since The creation date filter.
+     *
+     * @return object The subscription statistics.
+     */
     public static function subscription_stats($created_since = false)
     {
         global $wpdb;
@@ -721,6 +877,13 @@ class MeprReports
         return (object)$stats;
     }
 
+    /**
+     * Get transaction statistics based on creation date.
+     *
+     * @param boolean $created_since The creation date filter.
+     *
+     * @return object The transaction statistics.
+     */
     public static function transaction_stats($created_since = false)
     {
         global $wpdb;
@@ -776,27 +939,57 @@ class MeprReports
         return $wpdb->get_row($q);
     }
 
+    /**
+     * Get refund event statistics based on creation date.
+     *
+     * @param boolean $created_since The creation date filter.
+     *
+     * @return object The refund event statistics.
+     */
     public static function refund_event_stats($created_since = false)
     {
         return self::event_stats('transaction-refunded', 'transactions', $created_since);
     }
 
+    /**
+     * Get cancel event statistics based on creation date.
+     *
+     * @param boolean $created_since The creation date filter.
+     *
+     * @return object The cancel event statistics.
+     */
     public static function cancel_event_stats($created_since = false)
     {
         return self::event_stats('subscription-stopped', 'subscriptions', $created_since);
     }
 
+    /**
+     * Get upgrade event statistics based on creation date.
+     *
+     * @param boolean $created_since The creation date filter.
+     *
+     * @return object The upgrade event statistics.
+     */
     public static function upgrade_event_stats($created_since = false)
     {
         return self::event_stats('subscription-upgraded', 'subscriptions', $created_since);
     }
 
     // Cancellation events
+    /**
+     * Get event statistics based on event type and creation date.
+     *
+     * @param string  $event         The event type.
+     * @param string  $event_type    The event type identifier.
+     * @param boolean $created_since The creation date filter.
+     *
+     * @return object The event statistics.
+     */
     public static function event_stats($event, $event_type, $created_since = false)
     {
         global $wpdb;
 
-        $mepr_db = MeprDb::fetch();
+        $mepr_db   = MeprDb::fetch();
         $tablename = MeprEvent::get_tablename($event_type);
 
         if ($event_type == MeprEvent::$users_str) {
@@ -824,6 +1017,13 @@ class MeprReports
         return $wpdb->get_row($q);
     }
 
+    /**
+     * Get revenue statistics for a specific payment gateway.
+     *
+     * @param integer $payment_method_id The payment method ID.
+     *
+     * @return object The revenue statistics.
+     */
     public static function gateway_revenue_stats($payment_method_id)
     {
         global $wpdb;
@@ -870,14 +1070,24 @@ class MeprReports
         return (object)array_merge($rev_stats, $ref_stats);
     }
 
+    /**
+     * Get recurring revenue based on optional date and product filters.
+     *
+     * @param boolean $month   The month filter.
+     * @param boolean $day     The day filter.
+     * @param boolean $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return float The recurring revenue.
+     */
     public static function get_recurring_revenue($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andday = ($day) ? " AND DAY(created_at) = {$day}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andday     = ($day) ? " AND DAY(created_at) = {$day}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
 
         $q = "SELECT SUM(amount)
@@ -910,6 +1120,16 @@ class MeprReports
         return $wpdb->get_var($q);
     }
 
+    /**
+     * Get transaction counts for a date range based on status collection and product.
+     *
+     * @param array              $status_collection The collection of statuses.
+     * @param \DateTimeImmutable $start_date        The start date.
+     * @param \DateTimeImmutable $end_date          The end date.
+     * @param mixed              $product           The product filter.
+     *
+     * @return array The transaction counts.
+     */
     public static function get_date_range_transactions_counts(array $status_collection, \DateTimeImmutable $start_date, \DateTimeImmutable $end_date, $product = null)
     {
         global $wpdb;
@@ -942,6 +1162,15 @@ class MeprReports
         return $data;
     }
 
+    /**
+     * Get revenue for a date range based on product.
+     *
+     * @param \DateTimeImmutable $start_date The start date.
+     * @param \DateTimeImmutable $end_date   The end date.
+     * @param mixed              $product    The product filter.
+     *
+     * @return float The revenue for the date range.
+     */
     public static function get_date_range_revenue(\DateTimeImmutable $start_date, \DateTimeImmutable $end_date, $product = null)
     {
         global $wpdb;
@@ -960,6 +1189,15 @@ class MeprReports
         return $wpdb->get_var($wpdb->prepare($q, MeprTransaction::$complete_str, MeprTransaction::$payment_str, $start_date->format('Y-m-d'), $end_date->format('Y-m-d')));
     }
 
+    /**
+     * Get refunds for a date range based on product.
+     *
+     * @param \DateTimeImmutable $start_date The start date.
+     * @param \DateTimeImmutable $end_date   The end date.
+     * @param mixed              $product    The product filter.
+     *
+     * @return float The refunds for the date range.
+     */
     public static function get_date_range_refunds(\DateTimeImmutable $start_date, \DateTimeImmutable $end_date, $product = null)
     {
         global $wpdb;
@@ -978,15 +1216,26 @@ class MeprReports
         return $wpdb->get_var($wpdb->prepare($q, MeprTransaction::$refunded_str, MeprTransaction::$payment_str, $start_date->format('Y-m-d'), $end_date->format('Y-m-d')));
     }
 
+    /**
+     * Get monthly dataset for transactions based on type, month, year, and product.
+     *
+     * @param string  $type    The type of data to retrieve ('amounts' or 'counts').
+     * @param integer $month   The month filter.
+     * @param integer $year    The year filter.
+     * @param mixed   $product The product filter.
+     * @param array   $q       Additional query parameters.
+     *
+     * @return array The monthly dataset.
+     */
     public static function get_monthly_dataset($type, $month, $year, $product, $q = [])
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $results = [];
+        $results       = [];
         $days_in_month = gmdate('t', mktime(0, 0, 0, $month, 1, $year));
-        $andproduct = ($product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
-        $where = MeprUtils::build_where_clause($q);
+        $andproduct    = ($product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
+        $where         = MeprUtils::build_where_clause($q);
 
         $selecttype = ($type == 'amounts') ? 'SUM(amount)' : 'COUNT(*)';
 
@@ -1051,7 +1300,7 @@ class MeprReports
         foreach ($queries as $type => $sql) {
             for ($i = 1; $i <= $days_in_month; $i++) {
                 if (! isset($results[$i])) {
-                    $results[$i] = new stdClass();
+                    $results[$i]      = new stdClass();
                     $results[$i]->day = $i;
                 }
 
@@ -1070,6 +1319,13 @@ class MeprReports
         return $results;
     }
 
+    /**
+     * Format the dataset for Mepr transactions.
+     *
+     * @param array $results The results to format.
+     *
+     * @return array The formatted dataset.
+     */
     protected static function format_mepr_dataset($results)
     {
         $ds = [];
@@ -1088,16 +1344,25 @@ class MeprReports
         return $ds;
     }
 
+    /**
+     * Get revenue dataset for a specific month and year based on product.
+     *
+     * @param integer $month   The month filter.
+     * @param integer $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return array The revenue dataset.
+     */
     public static function get_revenue_dataset($month, $year, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
-        $groupby = !empty($andmonth) ? 'GROUP BY DAY(created_at)' : 'GROUP BY MONTH(created_at)';
-        $mepr_col = !empty($andmonth) ? 'DAY(created_at) as mepr_day' : 'MONTH(created_at) as mepr_month';
+        $groupby    = !empty($andmonth) ? 'GROUP BY DAY(created_at)' : 'GROUP BY MONTH(created_at)';
+        $mepr_col   = !empty($andmonth) ? 'DAY(created_at) as mepr_day' : 'MONTH(created_at) as mepr_month';
 
         $q = "SELECT SUM(amount) as mepr_value, {$mepr_col}
             FROM {$mepr_db->transactions}
@@ -1113,16 +1378,25 @@ class MeprReports
         );
     }
 
+    /**
+     * Get taxes dataset for a specific month and year based on product.
+     *
+     * @param boolean $month   The month filter.
+     * @param boolean $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return array The taxes dataset.
+     */
     public static function get_taxes_dataset($month = false, $year = false, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
-        $groupby = !empty($andmonth) ? 'GROUP BY DAY(created_at)' : 'GROUP BY MONTH(created_at)';
-        $mepr_col = !empty($andmonth) ? 'DAY(created_at) as mepr_day' : 'MONTH(created_at) as mepr_month';
+        $groupby    = !empty($andmonth) ? 'GROUP BY DAY(created_at)' : 'GROUP BY MONTH(created_at)';
+        $mepr_col   = !empty($andmonth) ? 'DAY(created_at) as mepr_day' : 'MONTH(created_at) as mepr_month';
 
         $q = "SELECT SUM(tax_amount) as mepr_value, {$mepr_col}
             FROM {$mepr_db->transactions}
@@ -1138,16 +1412,25 @@ class MeprReports
         );
     }
 
+    /**
+     * Get refunds dataset for a specific month and year based on product.
+     *
+     * @param boolean $month   The month filter.
+     * @param boolean $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return array The refunds dataset.
+     */
     public static function get_refunds_dataset($month = false, $year = false, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
-        $groupby = !empty($andmonth) ? 'GROUP BY DAY(created_at)' : 'GROUP BY MONTH(created_at)';
-        $mepr_col = !empty($andmonth) ? 'DAY(created_at) as mepr_day' : 'MONTH(created_at) as mepr_month';
+        $groupby    = !empty($andmonth) ? 'GROUP BY DAY(created_at)' : 'GROUP BY MONTH(created_at)';
+        $mepr_col   = !empty($andmonth) ? 'DAY(created_at) as mepr_day' : 'MONTH(created_at) as mepr_month';
 
         $q = "SELECT (SUM(amount)+SUM(tax_amount)) as mepr_value, {$mepr_col}
             FROM {$mepr_db->transactions}
@@ -1163,16 +1446,25 @@ class MeprReports
         );
     }
 
+    /**
+     * Get collected dataset for a specific month and year based on product.
+     *
+     * @param boolean $month   The month filter.
+     * @param boolean $year    The year filter.
+     * @param mixed   $product The product filter.
+     *
+     * @return array The collected dataset.
+     */
     public static function get_collected_dataset($month = false, $year = false, $product = null)
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $andmonth = ($month) ? " AND MONTH(created_at) = {$month}" : '';
-        $andyear = ($year) ? " AND YEAR(created_at) = {$year}" : '';
+        $andmonth   = ($month) ? " AND MONTH(created_at) = {$month}" : '';
+        $andyear    = ($year) ? " AND YEAR(created_at) = {$year}" : '';
         $andproduct = (!isset($product) || $product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
-        $groupby = !empty($andmonth) ? 'GROUP BY DAY(created_at)' : 'GROUP BY MONTH(created_at)';
-        $mepr_col = !empty($andmonth) ? 'DAY(created_at) as mepr_day' : 'MONTH(created_at) as mepr_month';
+        $groupby    = !empty($andmonth) ? 'GROUP BY DAY(created_at)' : 'GROUP BY MONTH(created_at)';
+        $mepr_col   = !empty($andmonth) ? 'DAY(created_at) as mepr_day' : 'MONTH(created_at) as mepr_month';
 
         $q = "SELECT (SUM(amount)+SUM(tax_amount)), {$mepr_col}
             FROM {$mepr_db->transactions}
@@ -1188,18 +1480,28 @@ class MeprReports
         );
     }
 
+    /**
+     * Get yearly dataset for transactions based on type, year, and product.
+     *
+     * @param string  $type    The type of data to retrieve ('amounts' or 'counts').
+     * @param integer $year    The year filter.
+     * @param mixed   $product The product filter.
+     * @param array   $q       Additional query parameters.
+     *
+     * @return array The yearly dataset.
+     */
     public static function get_yearly_dataset($type, $year, $product, $q = [])
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $results = [];
+        $results    = [];
         $andproduct = ($product == 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
-        $where = MeprUtils::build_where_clause($q);
+        $where      = MeprUtils::build_where_clause($q);
 
         $selecttype = ($type == 'amounts') ? 'SUM(amount)' : 'COUNT(*)';
 
-        $queries = [];
+        $queries      = [];
         $queries['p'] = "SELECT {$selecttype} as mepr_value, MONTH(created_at) as mepr_month
           FROM {$mepr_db->transactions}
           WHERE YEAR(created_at) = {$year}
@@ -1254,7 +1556,7 @@ class MeprReports
         foreach ($queries as $type => $sql) {
             for ($i = 1; $i <= 12; $i++) {
                 if (! isset($results[$i])) {
-                    $results[$i] = new stdClass();
+                    $results[$i]        = new stdClass();
                     $results[$i]->month = $i;
                 }
 
@@ -1272,4 +1574,4 @@ class MeprReports
 
         return $results;
     }
-} //End class
+}

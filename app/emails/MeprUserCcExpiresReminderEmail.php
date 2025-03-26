@@ -8,18 +8,21 @@ class MeprUserCcExpiresReminderEmail extends MeprBaseReminderEmail
 {
     /**
      * Set the default enabled, title, subject & body
+     *
+     * @param  array $args Email arguments
+     * @return void
      */
     public function set_defaults($args = [])
     {
-        $this->title = __('Credit Card Expires Reminder Email to User', 'memberpress');
+        $this->title       = __('Credit Card Expires Reminder Email to User', 'memberpress');
         $this->description = __('This email is sent to the user when triggered.', 'memberpress');
-        $this->ui_order = 0;
+        $this->ui_order    = 0;
 
         $enabled = $use_template = $this->show_form = true;
         $subject = sprintf(__('** Your %1$s', 'memberpress'), '{$reminder_description}');
-        $body = $this->body_partial();
+        $body    = $this->body_partial();
 
-        $this->defaults = compact('enabled', 'subject', 'body', 'use_template');
+        $this->defaults  = compact('enabled', 'subject', 'body', 'use_template');
         $this->variables = array_unique(
             array_merge(
                 MeprRemindersHelper::get_email_vars(),

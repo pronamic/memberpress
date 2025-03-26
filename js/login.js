@@ -17,7 +17,7 @@
   $(document).ready( function() {
     $('body').on('click', 'button.mp-hide-pw', function () {
       var $button = $(this),
-        $pass = $button.prev();
+        $pass = $button.siblings('#user_pass');
 
       if ( 'password' === $pass.attr( 'type' ) ) {
         $pass.attr( 'type', 'text' );

@@ -3,7 +3,7 @@ if (! defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
-$success_url = $payment_method->notify_url('return');
+$success_url      = $payment_method->notify_url('return');
 $smart_payment_on = $payment_method->settings->enable_smart_button == 'on';
 
 static $unique_suffix = 0;

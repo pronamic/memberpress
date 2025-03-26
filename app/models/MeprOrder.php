@@ -1,6 +1,8 @@
 <?php
 
 /**
+ * Represents an order in the system.
+ *
  * @property int $id
  * @property int|null $user_id
  * @property int $primary_transaction_id
@@ -11,29 +13,41 @@
  */
 class MeprOrder extends MeprBaseMetaModel
 {
-    public static $pending_str = 'pending';
-    public static $failed_str = 'failed';
+    public static $pending_str  = 'pending';
+    public static $failed_str   = 'failed';
     public static $complete_str = 'complete';
     public static $refunded_str = 'refunded';
 
+    /**
+     * Constructor for the MeprOrder class.
+     *
+     * @param mixed $obj Optional. The object to initialize the order with.
+     */
     public function __construct($obj = null)
     {
         parent::__construct($obj);
 
         $this->initialize(
             [
-                'id' => 0,
-                'user_id' => null,
+                'id'                     => 0,
+                'user_id'                => null,
                 'primary_transaction_id' => 0,
-                'trans_num' => MeprOrder::generate_trans_num(),
-                'status' => self::$pending_str,
-                'gateway' => null,
-                'created_at' => null,
+                'trans_num'              => MeprOrder::generate_trans_num(),
+                'status'                 => self::$pending_str,
+                'gateway'                => null,
+                'created_at'             => null,
             ],
             $obj
         );
     }
 
+    /**
+     * Create a new order record in the database.
+     *
+     * @param MeprOrder $order The order object to create.
+     *
+     * @return integer The ID of the created order.
+     */
     public static function create(MeprOrder $order)
     {
         $mepr_db = new MeprDb();
@@ -47,14 +61,26 @@ class MeprOrder extends MeprBaseMetaModel
         return MeprHooks::apply_filters('mepr_create_order', $mepr_db->create_record($mepr_db->orders, $args, false), $args, $order->user_id);
     }
 
+    /**
+     * Update an existing order record in the database.
+     *
+     * @param MeprOrder $order The order object to update.
+     *
+     * @return integer The ID of the updated order.
+     */
     public static function update(MeprOrder $order)
     {
         $mepr_db = new MeprDb();
-        $args = (array) $order->get_values();
+        $args    = (array) $order->get_values();
 
         return MeprHooks::apply_filters('mepr_update_order', $mepr_db->update_record($mepr_db->orders, $order->id, $args), $args, $order->user_id);
     }
 
+    /**
+     * Store the order in the database, creating or updating as necessary.
+     *
+     * @return integer The ID of the stored order.
+     */
     public function store()
     {
         $old_order = new self($this->id);
@@ -72,11 +98,16 @@ class MeprOrder extends MeprBaseMetaModel
         return $this->id;
     }
 
+    /**
+     * Delete the order from the database.
+     *
+     * @return boolean True if the order was successfully deleted, false otherwise.
+     */
     public function destroy()
     {
         $mepr_db = new MeprDb();
-        $id = $this->id;
-        $args = compact('id');
+        $id      = $this->id;
+        $args    = compact('id');
 
         MeprHooks::do_action('mepr_order_destroy', $this);
         MeprHooks::do_action('mepr_pre_delete_order', $this);
@@ -87,7 +118,9 @@ class MeprOrder extends MeprBaseMetaModel
     }
 
     /**
-     * @return string
+     * Generates a unique transaction number for the order.
+     *
+     * @return string The generated transaction number.
      */
     public static function generate_trans_num()
     {
@@ -106,22 +139,29 @@ class MeprOrder extends MeprBaseMetaModel
     public static function get_one($id, $return_type = OBJECT)
     {
         $mepr_db = new MeprDb();
-        $args = compact('id');
+        $args    = compact('id');
 
         return $mepr_db->get_one_record($mepr_db->orders, $args, $return_type);
     }
 
+    /**
+     * Get all transactions associated with the order.
+     *
+     * @return array An array of transaction records.
+     */
     public function get_transactions()
     {
         global $wpdb;
         $transaction_table = $wpdb->prefix . 'mepr_transactions';
-        $mepr_db = new MeprDb();
+        $mepr_db           = new MeprDb();
 
         return $mepr_db->get_records($transaction_table, ['order_id' => $this->id]);
     }
 
     /**
-     * @return boolean
+     * Checks if the order is complete.
+     *
+     * @return boolean True if the order is complete, false otherwise.
      */
     public function is_complete()
     {
@@ -129,7 +169,9 @@ class MeprOrder extends MeprBaseMetaModel
     }
 
     /**
-     * @return boolean
+     * Checks if the order is processing.
+     *
+     * @return boolean True if the order is processing, false otherwise.
      */
     public function is_processing()
     {

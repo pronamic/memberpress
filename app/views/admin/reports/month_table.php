@@ -18,20 +18,20 @@
   </thead>
   <tbody>
     <?php
-    $records = MeprReports::get_monthly_dataset('transactions', $curr_month, $curr_year, $curr_product);
-    $pTotal = $fTotal = $cTotal = $rTotal = $revTotal = $refTotal = $taxTotal = 0;
+    $records   = MeprReports::get_monthly_dataset('transactions', $curr_month, $curr_year, $curr_product);
+    $pTotal    = $fTotal = $cTotal = $rTotal = $revTotal = $refTotal = $taxTotal = 0;
     $row_index = 0;
 
     $revenue_dataset = MeprReports::get_revenue_dataset($curr_month, $curr_year, $curr_product);
-    $taxes_dataset = MeprReports::get_taxes_dataset($curr_month, $curr_year, $curr_product);
+    $taxes_dataset   = MeprReports::get_taxes_dataset($curr_month, $curr_year, $curr_product);
     $refunds_dataset = MeprReports::get_refunds_dataset($curr_month, $curr_year, $curr_product);
 
     foreach ($records as $r) {
         $revenue = isset($revenue_dataset[$r->day]) ? (float) $revenue_dataset[$r->day] : 0.00;
-        $taxes = isset($taxes_dataset[$r->day]) ? (float) $taxes_dataset[$r->day] : 0.00;
+        $taxes   = isset($taxes_dataset[$r->day]) ? (float) $taxes_dataset[$r->day] : 0.00;
         $refunds = isset($refunds_dataset[$r->day]) ? (float) $refunds_dataset[$r->day] : 0.00;
 
-        $all = (float)($revenue + $refunds + $taxes);
+        $all       = (float)($revenue + $refunds + $taxes);
         $alternate = ( $row_index++ % 2 ? '' : 'alternate' );
         ?>
       <tr class="<?php echo $alternate; ?>">

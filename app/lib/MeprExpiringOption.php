@@ -16,16 +16,23 @@ class MeprExpiringOption
     public static function set($name, $value, $expire_in_seconds)
     {
         list($value_key,$timeout_key) = self::get_keys($name);
-        $timeout = self::calc_timeout($expire_in_seconds);
+        $timeout                      = self::calc_timeout($expire_in_seconds);
 
         update_option($value_key, $value);
         update_option($timeout_key, $timeout);
     }
 
+    /**
+     * Gets an option value with expiration checking.
+     *
+     * @param string $name The name of the option to retrieve
+     *
+     * @return mixed The option value or empty string if expired/not found
+     */
     public static function get($name)
     {
         list($value_key,$timeout_key) = self::get_keys($name);
-        $timeout = get_option($timeout_key);
+        $timeout                      = get_option($timeout_key);
 
         // Auto-cleanup if expired
         if (time() > (int)$timeout) {
@@ -37,16 +44,30 @@ class MeprExpiringOption
         return get_option($value_key);
     }
 
+    /**
+     * Gets the value and timeout keys for an option.
+     *
+     * @param string $name The name of the option
+     *
+     * @return array Array containing value key and timeout key
+     */
     private static function get_keys($name)
     {
-        $value_key = "_mepr_expiring_{$name}";
+        $value_key   = "_mepr_expiring_{$name}";
         $timeout_key = "_mepr_expiring_timeout_{$name}";
 
         return [$value_key,$timeout_key];
     }
 
+    /**
+     * Calculates the timeout timestamp for an option.
+     *
+     * @param integer $expire_in_seconds Number of seconds until expiration
+     *
+     * @return integer Unix timestamp when the option will expire
+     */
     private static function calc_timeout($expire_in_seconds)
     {
         return time() + $expire_in_seconds;
     }
-} // End class
+}

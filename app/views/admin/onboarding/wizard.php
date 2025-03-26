@@ -9,7 +9,7 @@
     <div class="mepr-wizard-steps">
       <?php
         $onboarding_steps_completed = MeprOnboardingHelper::get_steps_completed();
-        $next_applicable_step = $onboarding_steps_completed + 1;
+        $next_applicable_step       = $onboarding_steps_completed + 1;
 
         foreach ($steps as $key => $step) {
             printf('<div class="mepr-wizard-step mepr-wizard-step-%s">', $key + 1);
@@ -19,7 +19,7 @@
                 $link_step = $progress_step['step'];
 
                 $skipped_steps = MeprOnboardingHelper::get_skipped_steps();
-                $css_class = '';
+                $css_class     = '';
 
                 if ($progress_key == $key) {
                     $css_class .= ' mepr-wizard-current-step';

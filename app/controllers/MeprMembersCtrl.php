@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprMembersCtrl extends MeprBaseCtrl
 {
+    /**
+     * Loads hooks for various actions and filters related to members.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         // Screen Options
@@ -44,7 +49,8 @@ class MeprMembersCtrl extends MeprBaseCtrl
         add_filter('cron_schedules', [$this,'intervals']);
         add_action('mepr_member_data_updater_worker', [$this,'updater']);
 
-        if (!($member_data_timestamp = wp_next_scheduled('mepr_member_data_updater_worker'))) {
+        $member_data_timestamp = wp_next_scheduled('mepr_member_data_updater_worker');
+        if (!$member_data_timestamp) {
             wp_schedule_event(time() + MeprUtils::hours(6), 'mepr_member_data_updater_interval', 'mepr_member_data_updater_worker');
         }
         // else {
@@ -52,16 +58,28 @@ class MeprMembersCtrl extends MeprBaseCtrl
         // }
     }
 
+    /**
+     * Adds custom intervals for cron schedules.
+     *
+     * @param array $schedules The existing schedules.
+     *
+     * @return array The modified schedules.
+     */
     public function intervals($schedules)
     {
         $schedules['mepr_member_data_updater_interval'] = [
             'interval' => MeprUtils::hours(6), // Run four times a day
-            'display' => __('MemberPress Member Data Update Interval', 'memberpress'),
+            'display'  => __('MemberPress Member Data Update Interval', 'memberpress'),
         ];
 
         return $schedules;
     }
 
+    /**
+     * Updates member data in the background.
+     *
+     * @return void
+     */
     public function updater()
     {
         MeprUtils::debug_log('Start Updating Missing Members');
@@ -73,12 +91,15 @@ class MeprMembersCtrl extends MeprBaseCtrl
         // MeprUtils::debug_log('End Updating Existing Member Data');
     }
 
+    /**
+     * Enqueues scripts and styles for the members page.
+     *
+     * @param string $hook The current admin page hook.
+     *
+     * @return void
+     */
     public function enqueue_scripts($hook)
     {
-        $wp_scripts = new WP_Scripts();
-        $ui = $wp_scripts->query('jquery-ui-core');
-        $url = "//ajax.googleapis.com/ajax/libs/jqueryui/{$ui->ver}/themes/smoothness/jquery-ui.css";
-
         if ($hook == 'memberpress_page_memberpress-members' || $hook == 'memberpress_page_memberpress-new-member') {
             wp_register_script('mepr-table-controls-js', MEPR_JS_URL . '/table_controls.js', ['jquery'], MEPR_VERSION);
             wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
@@ -91,12 +112,17 @@ class MeprMembersCtrl extends MeprBaseCtrl
                 MEPR_VERSION
             );
 
-            wp_register_style('mepr-jquery-ui-smoothness', $url);
-            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
+            wp_register_style('mepr-jquery-ui-smoothness', MEPR_CSS_URL . '/vendor/jquery-ui/smoothness.min.css', [], '1.13.3');
+            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness'], MEPR_VERSION);
             wp_enqueue_style('mepr-members-css', MEPR_CSS_URL . '/admin-members.css', ['mepr-settings-table-css','jquery-ui-timepicker-addon'], MEPR_VERSION);
         }
     }
 
+    /**
+     * Handles the listing of members, including creating new members.
+     *
+     * @return void
+     */
     public function listing()
     {
         $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? $_REQUEST['action'] : false;
@@ -109,18 +135,22 @@ class MeprMembersCtrl extends MeprBaseCtrl
         }
     }
 
-    /* This is here to use wherever we want. */
+    /**
+     * Retrieves the columns for the members list table.
+     *
+     * @return array The columns for the members list table.
+     */
     public function get_columns()
     {
         $cols = [
-            'col_id' => __('Id', 'memberpress'),
+            'col_id'                   => __('Id', 'memberpress'),
             // 'col_photo' => __('Photo'),
-            'col_username' => __('Username', 'memberpress'),
-            'col_email' => __('Email', 'memberpress'),
-            'col_status' => __('Status', 'memberpress'),
-            'col_name' => __('Name', 'memberpress'),
-            'col_sub_info' => __('Subscriptions', 'memberpress'),
-            'col_txn_info' => __('Transactions', 'memberpress'),
+            'col_username'             => __('Username', 'memberpress'),
+            'col_email'                => __('Email', 'memberpress'),
+            'col_status'               => __('Status', 'memberpress'),
+            'col_name'                 => __('Name', 'memberpress'),
+            'col_sub_info'             => __('Subscriptions', 'memberpress'),
+            'col_txn_info'             => __('Transactions', 'memberpress'),
             // 'col_info' => __('Info', 'memberpress'),
             // 'col_txn_count' => __('Transactions', 'memberpress'),
             // 'col_expired_txn_count' => __('Expired Transactions'),
@@ -130,17 +160,25 @@ class MeprMembersCtrl extends MeprBaseCtrl
             // 'col_active_sub_count' => __('Enabled Subscriptions'),
             // 'col_suspended_sub_count' => __('Paused Subscriptions'),
             // 'col_cancelled_sub_count' => __('Stopped Subscriptions'),
-            'col_memberships' => __('Memberships', 'memberpress'),
+            'col_memberships'          => __('Memberships', 'memberpress'),
             'col_inactive_memberships' => __('Inactive Memberships', 'memberpress'),
-            'col_last_login_date' => __('Last Login', 'memberpress'),
-            'col_login_count' => __('Logins', 'memberpress'),
-            'col_total_spent' => __('Value', 'memberpress'),
-            'col_registered' => __('Registered', 'memberpress'),
+            'col_last_login_date'      => __('Last Login', 'memberpress'),
+            'col_login_count'          => __('Logins', 'memberpress'),
+            'col_total_spent'          => __('Value', 'memberpress'),
+            'col_registered'           => __('Registered', 'memberpress'),
         ];
 
         return MeprHooks::apply_filters('mepr-admin-members-cols', $cols);
     }
 
+    /**
+     * Displays the list of members.
+     *
+     * @param string $message Optional message to display.
+     * @param array  $errors  Optional array of errors to display.
+     *
+     * @return void
+     */
     public function display_list($message = '', $errors = [])
     {
         $screen = get_current_screen();
@@ -151,44 +189,59 @@ class MeprMembersCtrl extends MeprBaseCtrl
         MeprView::render('/admin/members/list', compact('message', 'list_table'));
     }
 
+    /**
+     * Displays the form for creating a new member.
+     *
+     * @param MeprUser        $member      Optional member object.
+     * @param MeprTransaction $transaction Optional transaction object.
+     * @param string          $errors      Optional errors to display.
+     * @param string          $message     Optional message to display.
+     *
+     * @return void
+     */
     public function new_member($member = null, $transaction = null, $errors = '', $message = '')
     {
         $mepr_options = MeprOptions::fetch();
 
         if (empty($member)) {
-            $member = new MeprUser();
+            $member                    = new MeprUser();
             $member->send_notification = true;
-            $member->password = wp_generate_password(24);
+            $member->password          = wp_generate_password(24);
         }
 
         if (empty($transaction)) {
-            $transaction = new MeprTransaction();
-            $transaction->status = MeprTransaction::$complete_str; // Default this to complete in this case
+            $transaction               = new MeprTransaction();
+            $transaction->status       = MeprTransaction::$complete_str; // Default this to complete in this case
             $transaction->send_welcome = true;
         }
 
         MeprView::render('/admin/members/new_member', compact('mepr_options', 'member', 'transaction', 'errors', 'message'));
     }
 
+    /**
+     * Creates a new member based on form input.
+     *
+     * @return mixed
+     */
     public function create_member()
     {
         check_admin_referer('mepr_create_member', 'mepr_members_nonce');
 
         $mepr_options = MeprOptions::fetch();
-        $errors = $this->validate_new_member();
-        $message = '';
+        $errors       = $this->validate_new_member();
+        $message      = '';
 
         $member = new MeprUser();
         $member->load_from_array($_POST['member']);
         $member->send_notification = isset($_POST['member']['send_notification']);
 
         // Just here in case things fail so we can show the same password when the new_member page is re-displayed
-        $member->password = $_POST['member']['user_pass'];
+        $member->password   = $_POST['member']['user_pass'];
         $member->user_email = sanitize_email($_POST['member']['user_email']);
 
         $transaction = new MeprTransaction();
         $transaction->load_from_array($_POST['transaction']);
-        $transaction->send_welcome = isset($_POST['transaction']['send_welcome']);
+        $transaction->send_welcome      = isset($_POST['transaction']['send_welcome']);
         $_POST['transaction']['amount'] = MeprUtils::format_currency_us_float($_POST['transaction']['amount']); // Don't forget this, or the members page and emails will have $0.00 for amounts
         if ($transaction->total <= 0) {
             $transaction->total = $_POST['transaction']['amount']; // Don't forget this, or the members page and emails will have $0.00 for amounts
@@ -234,6 +287,11 @@ class MeprMembersCtrl extends MeprBaseCtrl
         $this->new_member($member, $transaction, $errors, $message);
     }
 
+    /**
+     * Adds screen options for the members page.
+     *
+     * @return void
+     */
     public function add_screen_options()
     {
         add_screen_option('layout_columns');
@@ -241,14 +299,23 @@ class MeprMembersCtrl extends MeprBaseCtrl
         $option = 'per_page';
 
         $args = [
-            'label' => __('Members', 'memberpress'),
+            'label'   => __('Members', 'memberpress'),
             'default' => 10,
-            'option' => 'mp_members_perpage',
+            'option'  => 'mp_members_perpage',
         ];
 
         add_screen_option($option, $args);
     }
 
+    /**
+     * Sets up screen options for the members page.
+     *
+     * @param mixed  $status The current status.
+     * @param string $option The option name.
+     * @param mixed  $value  The option value.
+     *
+     * @return mixed The modified status or value.
+     */
     public function setup_screen_options($status, $option, $value)
     {
         if ('mp_members_perpage' === $option) {
@@ -258,13 +325,28 @@ class MeprMembersCtrl extends MeprBaseCtrl
         return $status;
     }
 
-    // This is purely for performance ... we don't want to do these queries during a listing
+    /**
+     * Updates transaction metadata.
+     * This is purely for performance ... we don't want to do these queries during a listing
+     *
+     * @param MeprTransaction $txn        The transaction object.
+     * @param boolean         $sub_status Optional subscription status.
+     *
+     * @return void
+     */
     public function update_txn_meta($txn, $sub_status = false)
     {
         $u = $txn->user();
         $u->update_member_data();
     }
 
+    /**
+     * Updates event metadata.
+     *
+     * @param MeprEvent $evt The event object.
+     *
+     * @return void
+     */
     public function update_event_meta($evt)
     {
         if ($evt->evt_id_type === MeprEvent::$users_str && $evt->event === MeprEvent::$login_event_str) {
@@ -273,28 +355,54 @@ class MeprMembersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Updates member metadata.
+     *
+     * @param integer $user_id The user ID.
+     *
+     * @return void
+     */
     public function update_member_meta($user_id)
     {
         $u = new MeprUser($user_id);
         $u->update_member_data();
     }
 
+    /**
+     * Updates member data from a subscription.
+     *
+     * @param MeprSubscription $subscription The subscription object.
+     *
+     * @return void
+     */
     public function update_member_data_from_subscription($subscription)
     {
         $member = $subscription->user();
         $member->update_member_data();
     }
 
+    /**
+     * Deletes member metadata.
+     *
+     * @param integer $user_id The user ID.
+     *
+     * @return void
+     */
     public function delete_member_meta($user_id)
     {
         $u = new MeprUser($user_id);
         $u->delete_member_data();
     }
 
+    /**
+     * Validates the input for creating a new member.
+     *
+     * @return array An array of validation errors.
+     */
     public function validate_new_member()
     {
         $errors = [];
-        $usr = new MeprUser();
+        $usr    = new MeprUser();
 
         if (!isset($_POST['member']['user_login']) || empty($_POST['member']['user_login'])) {
             $errors[] = __('The username field can\'t be blank.', 'memberpress');
@@ -336,19 +444,29 @@ class MeprMembersCtrl extends MeprBaseCtrl
         return $errors;
     }
 
+    /**
+     * Renders the search box for the members table.
+     *
+     * @return void
+     */
     public function table_search_box()
     {
         if (isset($_REQUEST['page']) && $_REQUEST['page'] == 'memberpress-members') {
             $membership = (isset($_REQUEST['membership']) ? $_REQUEST['membership'] : false);
-            $status = (isset($_REQUEST['status']) ? $_REQUEST['status'] : 'all');
-            $prds = MeprCptModel::all('MeprProduct', false, [
+            $status     = (isset($_REQUEST['status']) ? $_REQUEST['status'] : 'all');
+            $prds       = MeprCptModel::all('MeprProduct', false, [
                 'orderby' => 'title',
-                'order' => 'ASC',
+                'order'   => 'ASC',
             ]);
             MeprView::render('/admin/members/search_box', compact('membership', 'status', 'prds'));
         }
     }
 
+    /**
+     * Exports members data to a CSV file.
+     *
+     * @return void
+     */
     public function csv()
     {
         check_ajax_referer('export_members', 'mepr_members_nonce');
@@ -359,22 +477,22 @@ class MeprMembersCtrl extends MeprBaseCtrl
         $GLOBALS['hook_suffix'] = false;
 
         $screen = get_current_screen();
-        $tab = new MeprMembersTable($screen, $this->get_columns());
+        $tab    = new MeprMembersTable($screen, $this->get_columns());
 
         if (isset($_REQUEST['all']) && !empty($_REQUEST['all'])) {
-            $search  = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql($_REQUEST['search'])  : '';
+            $search       = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql($_REQUEST['search'])  : '';
             $search_field = isset($_REQUEST['search']) && !empty($_REQUEST['search-field'])  ? esc_sql($_REQUEST['search-field'])  : 'any';
             $search_field = isset($tab->db_search_cols[$search_field]) ? $tab->db_search_cols[$search_field] : 'any';
 
             $all = MeprUser::list_table(
-            /* $order_by */                'user_login',
-                /* $order */          'ASC',
-                /* $paged */          '',
-                /* $search */         $search,
-                /* $search_field */   $search_field,
-                /* $perpage */        '',
-                /* $params */         $_REQUEST,
-                /* $include_fields */ true
+                'user_login',
+                'ASC',
+                '',
+                $search,
+                $search_field,
+                '',
+                $_REQUEST,
+                true
             );
 
             add_filter('mepr_process_csv_cell', [$this,'process_custom_field'], 10, 2);
@@ -385,6 +503,14 @@ class MeprMembersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Processes custom fields for CSV export.
+     *
+     * @param mixed  $field The field value.
+     * @param string $label The field label.
+     *
+     * @return mixed The processed field value.
+     */
     public function process_custom_field($field, $label)
     {
         $mepr_options = MeprOptions::fetch();
@@ -409,6 +535,15 @@ class MeprMembersCtrl extends MeprBaseCtrl
         return $field;
     }
 
+    /**
+     * Adds a footer link for exporting members.
+     *
+     * @param string  $action     The action name.
+     * @param integer $totalitems The total number of items.
+     * @param integer $itemcount  The number of items to export.
+     *
+     * @return void
+     */
     public function export_footer_link($action, $totalitems, $itemcount)
     {
         if ($action == 'mepr_members') {
@@ -418,8 +553,13 @@ class MeprMembersCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Displays the DRM listing.
+     *
+     * @return void
+     */
     public function listing_drm()
     {
         $this->display_list();
     }
-} //End clas
+}

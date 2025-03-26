@@ -12,8 +12,8 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      */
     public function __construct()
     {
-        $this->name = __('Offline Payment', 'memberpress');
-        $this->key = __('offline', 'memberpress');
+        $this->name         = 'Offline Payment';
+        $this->key          = 'offline';
         $this->has_spc_form = true;
         $this->set_defaults();
 
@@ -31,12 +31,24 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         $this->notifiers = [];
     }
 
+    /**
+     * Loads the gateway settings.
+     *
+     * @param array $settings The settings to load.
+     *
+     * @return void
+     */
     public function load($settings)
     {
         $this->settings = (object)$settings;
         $this->set_defaults();
     }
 
+    /**
+     * Sets the default settings for the gateway.
+     *
+     * @return void
+     */
     protected function set_defaults()
     {
         if (!isset($this->settings)) {
@@ -45,31 +57,31 @@ class MeprArtificialGateway extends MeprBaseRealGateway
 
         $this->settings = (object)array_merge(
             [
-                'gateway' => 'MeprArtificialGateway',
-                'id' => $this->generate_id(),
-                'label' => '',
-                'use_label' => true,
-                'icon' => '',
-                'use_icon' => true,
-                'desc' => '',
-                'use_desc' => true,
-                'manually_complete' => false,
-                'always_send_welcome' => false,
+                'gateway'                 => 'MeprArtificialGateway',
+                'id'                      => $this->generate_id(),
+                'label'                   => '',
+                'use_label'               => true,
+                'icon'                    => '',
+                'use_icon'                => true,
+                'desc'                    => '',
+                'use_desc'                => true,
+                'manually_complete'       => false,
+                'always_send_welcome'     => false,
                 'no_cancel_up_down_grade' => false,
-                'email' => '',
-                'sandbox' => false,
-                'debug' => false,
+                'email'                   => '',
+                'sandbox'                 => false,
+                'debug'                   => false,
             ],
             (array)$this->settings
         );
 
-        $this->id = $this->settings->id;
-        $this->label = $this->settings->label;
+        $this->id        = $this->settings->id;
+        $this->label     = $this->settings->label;
         $this->use_label = $this->settings->use_label;
-        $this->icon = $this->settings->icon;
-        $this->use_icon = $this->settings->use_icon;
-        $this->desc = $this->settings->desc;
-        $this->use_desc = $this->settings->use_desc;
+        $this->icon      = $this->settings->icon;
+        $this->use_icon  = $this->settings->use_icon;
+        $this->desc      = $this->settings->desc;
+        $this->use_desc  = $this->settings->use_desc;
         // $this->recurrence_type = $this->settings->recurrence_type;
     }
 
@@ -79,6 +91,11 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         return true;
     }
 
+    /**
+     * Returns the payment fields description for the SPC form.
+     *
+     * @return string The payment fields description.
+     */
     public function spc_payment_fields()
     {
         return $this->settings->desc;
@@ -88,7 +105,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     public static function capture_txn_status_for_events($txn)
     {
         $mepr_options = MeprOptions::fetch();
-        $gateway = $mepr_options->payment_method($txn->gateway);
+        $gateway      = $mepr_options->payment_method($txn->gateway);
 
         if (self::event_exists_already($txn)) {
             return;
@@ -109,6 +126,13 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         }
     }
 
+    /**
+     * Checks if an event already exists for a transaction.
+     *
+     * @param MeprTransaction $txn The transaction to check.
+     *
+     * @return boolean True if the event exists, false otherwise.
+     */
     public static function event_exists_already($txn)
     {
         global $wpdb;
@@ -120,6 +144,10 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     /**
      * Used to send data to a given payment gateway. In gateways which redirect
      * before this step is necessary this method should just be left blank.
+     *
+     * @param MeprTransaction $txn The transaction to process.
+     *
+     * @return MeprTransaction|void The processed transaction.
      */
     public function process_payment($txn)
     {
@@ -130,7 +158,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
             return;
         }
 
-        $upgrade = $txn->is_upgrade();
+        $upgrade   = $txn->is_upgrade();
         $downgrade = $txn->is_downgrade();
 
         $event_txn = $txn->maybe_cancel_old_sub();
@@ -143,7 +171,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
             $this->new_sub($txn);
         }
 
-        $txn->gateway = $this->id;
+        $txn->gateway   = $this->id;
         $txn->trans_num = 't_' . uniqid();
         $txn->store();
 
@@ -174,6 +202,8 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      * should have the ability to record a successful payment or a failure. It is
      * this method that should be used when receiving an IPN from PayPal or a
      * Silent Post from Authorize.net.
+     *
+     * @return void
      */
     public function record_subscription_payment()
     {
@@ -193,6 +223,8 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      * the ability to record a successful payment or a failure. It is this method
      * that should be used when receiving an IPN from PayPal or a Silent Post
      * from Authorize.net.
+     *
+     * @return void
      */
     public function record_payment()
     {
@@ -202,6 +234,10 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     /**
      * This method should be used by the class to record a successful refund from
      * the gateway. This method should also be used by any IPN requests or Silent Posts.
+     *
+     * @param MeprTransaction $txn The transaction to process.
+     *
+     * @return void
      */
     public function process_refund(MeprTransaction $txn)
     {
@@ -211,6 +247,8 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     /**
      * This method should be used by the class to record a successful refund from
      * the gateway. This method should also be used by any IPN requests or Silent Posts.
+     *
+     * @return void
      */
     public function record_refund()
     {
@@ -218,9 +256,24 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     }
 
     // Not needed in the Artificial gateway
+    /**
+     * Processes a trial payment.
+     *
+     * @param MeprTransaction $transaction The transaction to process.
+     *
+     * @return void
+     */
     public function process_trial_payment($transaction)
     {
     }
+
+    /**
+     * Records a trial payment.
+     *
+     * @param MeprTransaction $transaction The transaction to process.
+     *
+     * @return void
+     */
     public function record_trial_payment($transaction)
     {
     }
@@ -229,6 +282,10 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      * Used to send subscription data to a given payment gateway. In gateways
      * which redirect before this step is necessary this method should just be
      * left blank.
+     *
+     * @param MeprTransaction $txn The transaction to process.
+     *
+     * @return void
      */
     public function process_create_subscription($txn)
     {
@@ -243,20 +300,23 @@ class MeprArtificialGateway extends MeprBaseRealGateway
 
         // Not super thrilled about this but there are literally
         // no automated recurring profiles when paying offline
-        $sub->subscr_id = 'ts_' . uniqid();
-        $sub->status = MeprSubscription::$active_str;
+        $sub->subscr_id  = 'ts_' . uniqid();
+        $sub->status     = MeprSubscription::$active_str;
         $sub->created_at = gmdate('c');
-        $sub->gateway = $this->id;
+        $sub->gateway    = $this->id;
 
         // If this subscription has a paid trail, we need to change the price of this transaction to the trial price duh
         if ($sub->trial) {
-            $txn->set_subtotal(MeprUtils::format_float($sub->trial_amount));
-            $expires_ts = time() + MeprUtils::days($sub->trial_days);
+            $mepr_options    = MeprOptions::fetch();
+            $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
+            $tax_inclusive   = $mepr_options->attr('tax_calc_type') == 'inclusive';
+            $txn->set_subtotal($calculate_taxes && $tax_inclusive ? $sub->trial_total : $sub->trial_amount);
+            $expires_ts      = time() + MeprUtils::days($sub->trial_days);
             $txn->expires_at = gmdate('c', $expires_ts);
         }
 
         // This will only work before maybe_cancel_old_sub is run
-        $upgrade = $sub->is_upgrade();
+        $upgrade   = $sub->is_upgrade();
         $downgrade = $sub->is_downgrade();
 
         $event_txn = $sub->maybe_cancel_old_sub();
@@ -271,7 +331,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
 
         $sub->store();
 
-        $txn->gateway = $this->id;
+        $txn->gateway   = $this->id;
         $txn->trans_num = 't_' . uniqid();
         $txn->store();
 
@@ -295,7 +355,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
 
         return [
             'subscription' => $sub,
-            'transaction' => $txn,
+            'transaction'  => $txn,
         ];
     }
 
@@ -304,12 +364,21 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      * the ability to record a successful subscription or a failure. It is this method
      * that should be used when receiving an IPN from PayPal or a Silent Post
      * from Authorize.net.
+     *
+     * @return void
      */
     public function record_create_subscription()
     {
         // No reason to separate this out without webhooks/postbacks/ipns
     }
 
+    /**
+     * Processes the update of a subscription.
+     *
+     * @param integer $sub_id The ID of the subscription to update.
+     *
+     * @return void
+     */
     public function process_update_subscription($sub_id)
     {
         // This happens manually in test mode
@@ -326,7 +395,11 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     }
 
     /**
-     * Used to suspend a subscription by the given gateway.
+     * Processes the suspension of a subscription.
+     *
+     * @param integer $sub_id The ID of the subscription to suspend.
+     *
+     * @return void
      */
     public function process_suspend_subscription($sub_id)
     {
@@ -341,7 +414,11 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     }
 
     /**
-     * Used to suspend a subscription by the given gateway.
+     * Processes the resumption of a subscription.
+     *
+     * @param integer $sub_id The ID of the subscription to resume.
+     *
+     * @return void
      */
     public function process_resume_subscription($sub_id)
     {
@@ -359,10 +436,14 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      * Used to cancel a subscription by the given gateway. This method should be used
      * by the class to record a successful cancellation from the gateway. This method
      * should also be used by any IPN requests or Silent Posts.
+     *
+     * @param integer $sub_id The ID of the subscription to cancel.
+     *
+     * @return void
      */
     public function process_cancel_subscription($sub_id)
     {
-        $sub = new MeprSubscription($sub_id);
+        $sub                = new MeprSubscription($sub_id);
         $_REQUEST['sub_id'] = $sub_id;
         $this->record_cancel_subscription();
     }
@@ -403,6 +484,10 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      * This gets called on the 'init' hook when the signup form is processed ...
      * this is in place so that payment solutions like paypal can redirect
      * before any content is rendered.
+     *
+     * @param MeprTransaction $txn The transaction to process.
+     *
+     * @return void
      */
     public function process_signup_form($txn)
     {
@@ -417,6 +502,13 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         // MeprUtils::wp_redirect($mepr_options->thankyou_page_url("membership={$sanitized_title}&trans_num={$txn->trans_num}"));
     }
 
+    /**
+     * Displays the payment page for a transaction.
+     *
+     * @param MeprTransaction $txn The transaction to display the payment page for.
+     *
+     * @return void
+     */
     public function display_payment_page($txn)
     {
         // Nothing here yet
@@ -432,19 +524,26 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     }
 
     /**
-     * This gets called on the_content and just renders the payment form
+     * Displays the payment form for a transaction.
+     *
+     * @param float   $amount     The amount to display.
+     * @param object  $user       The user object.
+     * @param integer $product_id The product ID.
+     * @param integer $txn_id     The transaction ID.
+     *
+     * @return void
      */
     public function display_payment_form($amount, $user, $product_id, $txn_id)
     {
         $mepr_options = MeprOptions::fetch();
-        $prd = new MeprProduct($product_id);
-        $coupon = false;
+        $prd          = new MeprProduct($product_id);
+        $coupon       = false;
 
         $txn = new MeprTransaction($txn_id);
 
         // Artifically set the price of the $prd in case a coupon was used
         if ($prd->price != $amount) {
-            $coupon = true;
+            $coupon     = true;
             $prd->price = $amount;
         }
 
@@ -476,7 +575,11 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     }
 
     /**
-     * Validates the payment form before a payment is processed
+     * Validates the payment form.
+     *
+     * @param array $errors The errors to validate.
+     *
+     * @return void
      */
     public function validate_payment_form($errors)
     {
@@ -488,10 +591,10 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      */
     public function display_options_form()
     {
-        $mepr_options = MeprOptions::fetch();
-        $manually_complete = ($this->settings->manually_complete == 'on' || $this->settings->manually_complete == true);
+        $mepr_options            = MeprOptions::fetch();
+        $manually_complete       = ($this->settings->manually_complete == 'on' || $this->settings->manually_complete == true);
         $no_cancel_up_down_grade = ($this->settings->no_cancel_up_down_grade == 'on' || $this->settings->no_cancel_up_down_grade == true);
-        $always_send_welcome = ($this->settings->always_send_welcome == 'on' || $this->settings->always_send_welcome == true);
+        $always_send_welcome     = ($this->settings->always_send_welcome == 'on' || $this->settings->always_send_welcome == true);
         ?>
     <table>
       <tr>
@@ -520,7 +623,11 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     }
 
     /**
-     * Validates the form for the given payment gateway on the MemberPress Options page
+     * Validates the options form for the payment gateway.
+     *
+     * @param array $errors The errors to validate.
+     *
+     * @return array The validated errors.
      */
     public function validate_options_form($errors)
     {
@@ -536,8 +643,14 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     }
 
     /**
-     * Displays the update account form on the subscription account page
-     **/
+     * Displays the update account form on the subscription account page.
+     *
+     * @param integer $sub_id  The ID of the subscription.
+     * @param array   $errors  The errors to display.
+     * @param string  $message The message to display.
+     *
+     * @return void
+     */
     public function display_update_account_form($sub_id, $errors = [], $message = '')
     {
         // Handled Manually in test gateway
@@ -547,7 +660,11 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     }
 
     /**
-     * Validates the payment form before a payment is processed
+     * Validates the update account form.
+     *
+     * @param array $errors The errors to validate.
+     *
+     * @return array The validated errors.
      */
     public function validate_update_account_form($errors = [])
     {
@@ -558,6 +675,10 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      * Used to update the credit card information on a subscription by the given gateway.
      * This method should be used by the class to record a successful cancellation from
      * the gateway. This method should also be used by any IPN requests or Silent Posts.
+     *
+     * @param integer $sub_id The ID of the subscription to update.
+     *
+     * @return void
      */
     public function process_update_account_form($sub_id)
     {
@@ -572,22 +693,36 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         return false; // Why bother
     }
 
+    /**
+     * Checks if SSL is forced for the gateway.
+     *
+     * @return boolean True if SSL is forced, false otherwise.
+     */
     public function force_ssl()
     {
         return false; // Why bother
     }
 
+    /**
+     * Cancels an old subscription if necessary.
+     *
+     * @param MeprTransaction $txn     The transaction to check.
+     * @param object          $gateway The gateway object.
+     *
+     * @return void
+     */
     public static function maybe_cancel_old_sub($txn, $gateway)
     {
         // If we are marking the transacton as complete, and the admin must manually complete, and old subscriptions
         // are not canceled when the admin must manually complete, then we need to check to see if the old sub needs to
         // be cancelled here.
         if ($txn->status == MeprTransaction::$complete_str && $gateway->settings->manually_complete && $gateway->settings->no_cancel_up_down_grade) {
-            if ($sub = $txn->subscription()) {
+            $sub = $txn->subscription();
+            if ($sub) {
                 $sub->maybe_cancel_old_sub(true); // pass true here to by pass the artificial gateway check
             } else {
                 $txn->maybe_cancel_old_sub(true); // pass true here to by pass the artificial gateway check
             }
         }
     }
-} //End class
+}

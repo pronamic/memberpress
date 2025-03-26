@@ -65,7 +65,7 @@ $products = MeprCptModel::all('MeprProduct');
         <br/><br/>
         <strong><?php _e('Learn More:', 'memberpress'); ?></strong>
         <ul>
-          <li><a href="https://docs.memberpress.com/article/112-available-shortcodes#mepr-show"><?php _e('[mepr-show]/[mepr-hide] shortcode documentation', 'memberpress'); ?></a></li>
+          <li><a href="https://docs.memberpress.com/article/112-available-shortcodes#mepr-show">[mepr-show]/[mepr-hide] <?php _e('shortcode documentation', 'memberpress'); ?></a></li>
           <li><a href="https://docs.memberpress.com/article/239-protecting-partial-content"><?php _e('Protecting partial content', 'memberpress'); ?></a></li>
         </ul>
       </div>

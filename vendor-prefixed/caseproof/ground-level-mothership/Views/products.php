@@ -7,15 +7,15 @@ declare(strict_types=1);
 <div id="mosh-admin-addons" class="wrap">
     <h2>
         <form method="post" action="">
-            <?php esc_html_e('Available Add-ons', 'caseproof-mothership'); ?>
+            <?php esc_html_e('Available Add-ons', 'memberpress'); ?>
             <input type="submit"
                 class="button button-secondary"
                 name="submit-button-mosh-refresh-addon"
-                value="<?php esc_attr_e('Refresh Add-ons', 'caseproof-mothership'); ?>"
+                value="<?php esc_attr_e('Refresh Add-ons', 'memberpress'); ?>"
             >
             <input type="search"
                 id="mosh-products-search"
-                placeholder="<?php esc_attr_e('Search add-ons', 'caseproof-mothership'); ?>"
+                placeholder="<?php esc_attr_e('Search add-ons', 'memberpress'); ?>"
             >
         </form>
     </h2>
@@ -37,13 +37,13 @@ declare(strict_types=1);
 
                     if ($installed && $active) {
                         $status      = 'active';
-                        $statusLabel = esc_html__('Active', 'caseproof-mothership');
+                        $statusLabel = esc_html__('Active', 'memberpress');
                     } elseif (! $installed) {
                         $status      = 'download';
-                        $statusLabel = esc_html__('Not Installed', 'caseproof-mothership');
+                        $statusLabel = esc_html__('Not Installed', 'memberpress');
                     } elseif ($installed && ! $active) {
                         $status      = 'inactive';
-                        $statusLabel = esc_html__('Inactive', 'caseproof-mothership');
+                        $statusLabel = esc_html__('Inactive', 'memberpress');
                     } else {
                         $status = 'upgrade';
                     }
@@ -70,7 +70,7 @@ declare(strict_types=1);
                                 <?php
                                 printf(
                                     // Translators: %s: add-on status label.
-                                    esc_html__('Status: %s', 'caseproof-mothership'),
+                                    esc_html__('Status: %s', 'memberpress'),
                                     sprintf(
                                         '<span class="mosh-product-status-label">%s</span>',
                                         esc_html($statusLabel)
@@ -89,7 +89,7 @@ declare(strict_types=1);
                                             data-type="add-on"
                                         >
                                             <i class="dashicons dashicons-no-alt"></i>
-                                            <?php esc_html_e('Deactivate', 'caseproof-mothership'); ?>
+                                            <?php esc_html_e('Deactivate', 'memberpress'); ?>
                                         </button>
                                     <?php elseif ('inactive' === $status) : ?>
                                         <button type="button"
@@ -97,7 +97,7 @@ declare(strict_types=1);
                                             data-type="add-on"
                                         >
                                             <i class="dashicons dashicons-yes-alt"></i>
-                                            <?php esc_html_e('Activate', 'caseproof-mothership'); ?>
+                                            <?php esc_html_e('Activate', 'memberpress'); ?>
                                         </button>
                                     <?php elseif ('download' === $status) : ?>
                                         <?php $dataPlugin = $product->_embedded->{'version-latest'}->url ?? ''; ?>
@@ -106,7 +106,7 @@ declare(strict_types=1);
                                             data-type="add-on"
                                         >
                                             <i class="dashicons dashicons-download"></i>
-                                            <?php esc_html_e('Install Add-on', 'caseproof-mothership'); ?>
+                                            <?php esc_html_e('Install Add-on', 'memberpress'); ?>
                                         </button>
                                     <?php endif; ?>
                                 </div>
@@ -117,6 +117,6 @@ declare(strict_types=1);
             </div>
         </div>
     <?php else : ?>
-        <h3><?php esc_html_e('There were no Add-ons found for your License Key.', 'caseproof-mothership'); ?></h3>
+        <h3><?php esc_html_e('There were no Add-ons found for your License Key.', 'memberpress'); ?></h3>
     <?php endif; ?>
 </div>

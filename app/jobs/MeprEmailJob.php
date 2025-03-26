@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprEmailJob extends MeprBaseJob
 {
+    /**
+     * Perform the job.
+     *
+     * @return void
+     */
     public function perform()
     {
         if (!isset($this->class) || empty($this->class)) {
@@ -40,7 +45,7 @@ class MeprEmailJob extends MeprBaseJob
             $this->headers = null;
         }
 
-        $email = MeprEmailFactory::fetch($this->class, 'MeprBaseEmail');
+        $email     = MeprEmailFactory::fetch($this->class, 'MeprBaseEmail');
         $email->to = $this->to;
         $email->send(
             $this->values,

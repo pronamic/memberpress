@@ -3,13 +3,19 @@
 if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
-/*
-    Controlls search engine access to protected content and PayWall related stuff
-*/
+
+/**
+ * Controlls search engine access to protected content and PayWall related stuff
+ */
 class MeprPayWallCtrl extends MeprBaseCtrl
 {
     public static $cookie_name = 'mp3pi141592pw'; // CDN's and caching plugins/varnish etc should NOT cache any pages where this cookie is set
 
+    /**
+     * Load the hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_filter('mepr-pre-run-rule-content', 'MeprPayWallCtrl::allow_search_engines_content', 15, 3);
@@ -22,13 +28,18 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         add_action('template_redirect', 'MeprPayWallCtrl::paywall_update_cookie');
     }
 
-    // Do not allow certain posts to be freely viewed
+    /**
+     * Do not allow certain posts to be freely viewed.
+     *
+     * @param  integer $post The post.
+     * @return boolean
+     */
     public static function is_excluded($post)
     {
-        $excluded                 = false;
-        $excluded_category_slugs  = MeprHooks::apply_filters('mepr-paywall-excluded-category-slugs', [], $post);
-        $excluded_tag_slugs       = MeprHooks::apply_filters('mepr-paywall-excluded-tag-slugs', [], $post);
-        $excluded_wp_posts        = MeprHooks::apply_filters('mepr-paywall-excluded-posts', [], $post);
+        $excluded                = false;
+        $excluded_category_slugs = MeprHooks::apply_filters('mepr-paywall-excluded-category-slugs', [], $post);
+        $excluded_tag_slugs      = MeprHooks::apply_filters('mepr-paywall-excluded-tag-slugs', [], $post);
+        $excluded_wp_posts       = MeprHooks::apply_filters('mepr-paywall-excluded-posts', [], $post);
 
         if (!empty($excluded_category_slugs) && in_category($excluded_category_slugs, $post)) {
             $excluded = true;
@@ -47,12 +58,16 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         return $excluded;
     }
 
-    // Tell search engines NOT to cache this page
+    /**
+     * Tell search engines NOT to cache this page.
+     *
+     * @return void
+     */
     public static function add_noarchive_to_wp_head()
     {
-        $post = MeprUtils::get_current_post();
+        $post         = MeprUtils::get_current_post();
         $mepr_options = MeprOptions::fetch();
-        $uri = $_SERVER['REQUEST_URI'];
+        $uri          = $_SERVER['REQUEST_URI'];
 
         // Check the URI and post first to see if this is even a locked page
         // TODO:
@@ -77,6 +92,11 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         endif;
     }
 
+    /**
+     * Update the cookie.
+     *
+     * @return void
+     */
     public static function paywall_update_cookie()
     {
         $post = MeprUtils::get_current_post();
@@ -108,6 +128,14 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Allow through content.
+     *
+     * @param  boolean $protect The protect.
+     * @param  integer $post    The post.
+     * @param  string  $uri     The uri.
+     * @return boolean
+     */
     public static function paywall_allow_through_content($protect, $post, $uri)
     {
         if (self::paywall_allow_through()) {
@@ -117,6 +145,14 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         return $protect;
     }
 
+    /**
+     * Allow through redirection.
+     *
+     * @param  boolean $protect The protect.
+     * @param  string  $uri     The uri.
+     * @param  string  $delim   The delim.
+     * @return boolean
+     */
     public static function paywall_allow_through_redirection($protect, $uri, $delim)
     {
         if (self::paywall_allow_through('uri')) {
@@ -126,6 +162,12 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         return $protect;
     }
 
+    /**
+     * Allow through.
+     *
+     * @param  string $type The type.
+     * @return boolean
+     */
     public static function paywall_allow_through($type = 'content')
     {
         $post = MeprUtils::get_current_post();
@@ -160,6 +202,14 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Allow search engines content.
+     *
+     * @param  boolean $protect The protect.
+     * @param  integer $post    The post.
+     * @param  string  $uri     The uri.
+     * @return boolean
+     */
     public static function allow_search_engines_content($protect, $post, $uri)
     {
         if (self::allow_search_engines_through()) {
@@ -172,6 +222,14 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         return $protect;
     }
 
+    /**
+     * Allow search engines redirection.
+     *
+     * @param  boolean $protect The protect.
+     * @param  string  $uri     The uri.
+     * @param  string  $delim   The delim.
+     * @return boolean
+     */
     public static function allow_search_engines_redirection($protect, $uri, $delim)
     {
         if (self::allow_search_engines_through()) {
@@ -181,6 +239,11 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         return $protect;
     }
 
+    /**
+     * Allow search engines through.
+     *
+     * @return boolean
+     */
     public static function allow_search_engines_through()
     {
         $post = MeprUtils::get_current_post();
@@ -199,6 +262,11 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         return false;
     }
 
+    /**
+     * Verify bot.
+     *
+     * @return boolean
+     */
     public static function verify_bot()
     {
         // If the user is logged in, then bail
@@ -259,4 +327,4 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         $returned = false;
         return $returned;
     }
-} //End class
+}

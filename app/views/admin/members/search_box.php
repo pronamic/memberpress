@@ -31,4 +31,4 @@
     ?>
 </span>
 
-<?php /* _e('or', 'memberpress'); */ ?>
+<?php // _e('or', 'memberpress'); ?>

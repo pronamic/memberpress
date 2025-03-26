@@ -39,7 +39,7 @@ if (!empty($records)) {
                     break;
                 case 'col_subscr_id':
                     $view_url = admin_url("admin.php?page=memberpress-trans&subscription={$rec->id}");
-                    $add_url = admin_url("admin.php?page=memberpress-trans&action=new&subscription={$rec->id}");
+                    $add_url  = admin_url("admin.php?page=memberpress-trans&action=new&subscription={$rec->id}");
                     ?>
           <td <?php echo $attributes; ?>><b><?php echo $rec->subscr_id; ?></b> <img src="<?php echo MEPR_IMAGES_URL . '/square-loader.gif'; ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" class="mepr_loader" />
             <div class="mepr-row-actions">
@@ -50,10 +50,10 @@ if (!empty($records)) {
                     if ($sub->can('suspend-subscriptions')) :
                         if ($sub->status == MeprSubscription::$active_str) {
                             $hide_suspend = '';
-                            $hide_resume = ' mepr-hidden';
+                            $hide_resume  = ' mepr-hidden';
                         } elseif ($sub->status == MeprSubscription::$suspended_str) {
                                           $hide_suspend = ' mepr-hidden';
-                                          $hide_resume = '';
+                                          $hide_resume  = '';
                         } else {
                                         $hide_suspend = $hide_resume = ' mepr-hidden';
                         }
@@ -136,7 +136,7 @@ if (!empty($records)) {
                 case 'col_product':
                 case 'col_txn_product':
                     if ($rec->product_id) {
-                        $prd = new MeprProduct($rec->product_id);
+                        $prd          = new MeprProduct($rec->product_id);
                         $product_link = '<a href="' . $prd->edit_url() . '">' . $rec->product_name . '</a>';
                     } else {
                         $product_link = __('Unknown', 'memberpress');
@@ -183,7 +183,7 @@ if (!empty($records)) {
                 case 'col_expires_at':
                 case 'col_txn_expires_at':
                     $expire_ts = is_null($rec->expires_at) ? 0 : strtotime($rec->expires_at);
-                    $lifetime = (MeprAppHelper::format_date($rec->expires_at, 0) == 0);
+                    $lifetime  = (MeprAppHelper::format_date($rec->expires_at, 0) == 0);
 
                     $expired_class = '';
                     if (!$lifetime and $expire_ts < current_time('timestamp')) {

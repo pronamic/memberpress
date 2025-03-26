@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprExportCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load hooks for the export functionality.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('init', 'MeprExportCtrl::export_users_csv');
@@ -14,43 +19,44 @@ class MeprExportCtrl extends MeprBaseCtrl
     }
 
     /**
-     * Registers callback for PII exporter
+     * Registers callback for PII exporter.
      *
-     * @param  array $exporters
-     * @return array $exporters
+     * @param  array $exporters The existing exporters.
+     * @return array The modified exporters.
      */
     public static function register_pii_exporter($exporters)
     {
         $exporters[MEPR_PLUGIN_SLUG] = [
             'exporter_friendly_name' => MEPR_PLUGIN_NAME,
-            'callback' => ['MeprExportCtrl', 'export_pii'],
+            'callback'               => ['MeprExportCtrl', 'export_pii'],
         ];
 
         return $exporters;
     }
 
     /**
-     * Gathers PII data stored by MemberPress for export
+     * Gathers PII data stored by MemberPress for export.
      *
-     * @param  string $email Email address of requested user to export
-     * @return array ['data' => array, 'done' => bool]
+     * @param  string  $email The email address of the requested user to export.
+     * @param  integer $page  The page number for pagination.
+     * @return array An array containing the data and a done flag.
      */
     public static function export_pii($email, $page = 1)
     {
-        $user = get_user_by('email', $email);
+        $user      = get_user_by('email', $email);
         $mepr_user = new MeprUser($user->ID);
         $mepr_data = [];
 
         // Export address fields
         if ($mepr_user->address_is_set()) {
-            $address = $mepr_user->formatted_address();
+            $address     = $mepr_user->formatted_address();
             $mepr_data[] = [
-                'group_id' => MEPR_PLUGIN_NAME,
+                'group_id'    => MEPR_PLUGIN_NAME,
                 'group_label' => __('Membership Data', 'memberpress'),
-                'item_id' => 'mepr-user-data',
-                'data' => [
+                'item_id'     => 'mepr-user-data',
+                'data'        => [
                     [
-                        'name' => __('Address', 'memberpress'),
+                        'name'  => __('Address', 'memberpress'),
                         'value' => $address,
                     ],
                 ],
@@ -61,12 +67,12 @@ class MeprExportCtrl extends MeprBaseCtrl
         $vat_number = get_user_meta($user->ID, 'mepr_vat_number', true);
         if (!empty($vat_number)) {
             $mepr_data[] = [
-                'group_id' => MEPR_PLUGIN_NAME,
+                'group_id'    => MEPR_PLUGIN_NAME,
                 'group_label' => __('Membership Data', 'memberpress'),
-                'item_id' => 'mepr-user-data',
-                'data' => [
+                'item_id'     => 'mepr-user-data',
+                'data'        => [
                     [
-                        'name' => __('VAT Number', 'memberpress'),
+                        'name'  => __('VAT Number', 'memberpress'),
                         'value' => $vat_number,
                     ],
                 ],
@@ -77,12 +83,12 @@ class MeprExportCtrl extends MeprBaseCtrl
         $geo_country = get_user_meta($user->ID, 'mepr-geo-country', true);
         if (!empty($geo_country)) {
             $mepr_data[] = [
-                'group_id' => MEPR_PLUGIN_NAME,
+                'group_id'    => MEPR_PLUGIN_NAME,
                 'group_label' => __('Membership Data', 'memberpress'),
-                'item_id' => 'mepr-user-data',
-                'data' => [
+                'item_id'     => 'mepr-user-data',
+                'data'        => [
                     [
-                        'name' => __('Geo Location Country', 'memberpress'),
+                        'name'  => __('Geo Location Country', 'memberpress'),
                         'value' => $geo_country,
                     ],
                 ],
@@ -95,10 +101,16 @@ class MeprExportCtrl extends MeprBaseCtrl
         ];
     }
 
-    // This will need a major overhaul eventually, but we needed a quick fix for some clients
-    // So this is the quick fix. It can only be accessed via
-    // /wp-admin/admin.php?page=memberpress-options&mepr-export-users-csv currently.
-    // If we change this, we definitely need to let the folks at theballstonjournal.com know
+    /**
+     * Exports users to a CSV file.
+     *
+     * This will need a major overhaul eventually, but we needed a quick fix for some clients
+     * So this is the quick fix. It can only be accessed via
+     * /wp-admin/admin.php?page=memberpress-options&mepr-export-users-csv currently.
+     * If we change this, we definitely need to let the folks at theballstonjournal.com know
+     *
+     * @return void
+     */
     public static function export_users_csv()
     {
         global $wpdb;
@@ -187,9 +199,9 @@ class MeprExportCtrl extends MeprBaseCtrl
         }
 
         if (isset($_GET['page']) && $_GET['page'] == 'memberpress-options' && isset($_GET['mepr-export-inactive-users-csv'])) {
-            $db_now = $wpdb->prepare('%s', MeprUtils::db_now());
+            $db_now      = $wpdb->prepare('%s', MeprUtils::db_now());
             $db_lifetime = $wpdb->prepare('%s', MeprUtils::db_lifetime());
-            $q = "SELECT u.ID AS user_ID, u.user_login AS username, u.user_email AS email, f.meta_value AS first_name, l.meta_value AS last_name, a1.meta_value AS address1, a2.meta_value AS address2, c.meta_value AS city, s.meta_value AS state, z.meta_value AS zip, u.user_registered AS start_date, t.expires_at AS end_date, p.post_title AS membership, t.gateway, cp.post_title AS coupon
+            $q           = "SELECT u.ID AS user_ID, u.user_login AS username, u.user_email AS email, f.meta_value AS first_name, l.meta_value AS last_name, a1.meta_value AS address1, a2.meta_value AS address2, c.meta_value AS city, s.meta_value AS state, z.meta_value AS zip, u.user_registered AS start_date, t.expires_at AS end_date, p.post_title AS membership, t.gateway, cp.post_title AS coupon
               FROM {$wpdb->users} AS u
                 LEFT JOIN {$wpdb->usermeta} AS f
                   ON u.ID = f.user_id AND f.meta_key = 'first_name'
@@ -261,4 +273,4 @@ class MeprExportCtrl extends MeprBaseCtrl
             exit;
         }
     }
-} //End class
+}

@@ -8,6 +8,10 @@ class MeprJobs
 {
     public $config;
 
+    /**
+     * Constructor for the MeprJobs class.
+     * Sets up job configuration and schedules cron jobs for worker and cleanup tasks.
+     */
     public function __construct()
     {
         // Setup job configuration
@@ -18,16 +22,16 @@ class MeprJobs
                 'failed'   => 'failed',
                 'working'  => 'working',
             ],
-            'worker' => (object)[
-                'interval' => MeprUtils::minutes(1),
+            'worker'  => (object)[
+                'interval'    => MeprUtils::minutes(1),
                 'retry_after' => MeprUtils::minutes(30), // Standard retries after a failure
             ],
             'cleanup' => (object)[
-                'num_retries'             => 5, // "num_retries" before transactions fail
-                'interval'                => MeprUtils::hours(1),
-                'retry_after'             => MeprUtils::hours(1), // Purely for zombie jobs left in a bad state
-                'delete_completed_after'  => MeprUtils::days(2),
-                'delete_failed_after'     => MeprUtils::days(30),
+                'num_retries'            => 5, // "num_retries" before transactions fail
+                'interval'               => MeprUtils::hours(1),
+                'retry_after'            => MeprUtils::hours(1), // Purely for zombie jobs left in a bad state
+                'delete_completed_after' => MeprUtils::days(2),
+                'delete_failed_after'    => MeprUtils::days(30),
             ],
         ]);
 
@@ -49,31 +53,45 @@ class MeprJobs
         }
     }
 
+    /**
+     * Adds custom intervals for cron schedules.
+     *
+     * @param array $schedules The existing schedules.
+     *
+     * @return array The modified schedules.
+     */
     public function intervals($schedules)
     {
         $schedules['mepr_jobs_interval'] = [
             'interval' => $this->config->worker->interval,
-            'display' => __('MemberPress Jobs Worker', 'memberpress'),
+            'display'  => __('MemberPress Jobs Worker', 'memberpress'),
         ];
 
         $schedules['mepr_jobs_cleanup_interval'] = [
             'interval' => $this->config->cleanup->interval,
-            'display' => __('MemberPress Jobs Cleanup', 'memberpress'),
+            'display'  => __('MemberPress Jobs Cleanup', 'memberpress'),
         ];
 
         return $schedules;
     }
 
+    /**
+     * Processes jobs in the queue, executing them if possible.
+     *
+     * @return void
+     */
     public function worker()
     {
         $max_run_time = 45;
-        $start_time = time();
+        $start_time   = time();
 
         // We want to allow for at least 15 seconds of buffer
-        while (
-            ( ( time() - $start_time ) <= $max_run_time ) and
-            ( $job = $this->next_job() )
-        ) {
+        while (( time() - $start_time ) <= $max_run_time) {
+            $job = $this->next_job();
+            if (!$job) {
+                break;
+            }
+
             try {
                 $this->work($job);
                 if (isset($job->class)) {
@@ -93,6 +111,11 @@ class MeprJobs
         }
     }
 
+    /**
+     * Cleans up completed and failed jobs from the queue.
+     *
+     * @return void
+     */
     public function cleanup()
     {
         global $wpdb;
@@ -141,7 +164,9 @@ class MeprJobs
     }
 
     /**
-     * Returns a full list of all the pending jobs in the queue
+     * Retrieves the next job from the queue.
+     *
+     * @return object|null The next job object or null if no job is available.
      */
     public function queue()
     {
@@ -160,6 +185,11 @@ class MeprJobs
         return $wpdb->get_results($query, OBJECT);
     }
 
+    /**
+     * Retrieves the next job from the queue.
+     *
+     * @return object|null The next job object or null if no job is available.
+     */
     public function next_job()
     {
         global $wpdb;
@@ -176,18 +206,48 @@ class MeprJobs
         return $wpdb->get_row($query, OBJECT);
     }
 
+    /**
+     * Enqueues a job to be executed after a specified interval.
+     *
+     * @param string  $in        The interval after which the job should be executed.
+     * @param string  $classname The class name of the job.
+     * @param array   $args      Optional arguments for the job.
+     * @param integer $priority  The priority of the job.
+     *
+     * @return void
+     */
     public function enqueue_in($in, $classname, $args = [], $priority = 10)
     {
         $when = time() + $this->interval2seconds($in);
         $this->enqueue($classname, $args, $when, $priority);
     }
 
+    /**
+     * Enqueues a job to be executed at a specific time.
+     *
+     * @param integer $at        The timestamp at which the job should be executed.
+     * @param string  $classname The class name of the job.
+     * @param array   $args      Optional arguments for the job.
+     * @param integer $priority  The priority of the job.
+     *
+     * @return void
+     */
     public function enqueue_at($at, $classname, $args = [], $priority = 10)
     {
         $when = $at;
         $this->enqueue($classname, $args, $when, $priority);
     }
 
+    /**
+     * Enqueues a job to be executed.
+     *
+     * @param string  $classname The class name of the job.
+     * @param array   $args      Optional arguments for the job.
+     * @param mixed   $when      The time when the job should be executed.
+     * @param integer $priority  The priority of the job.
+     *
+     * @return integer|false The job ID on success, false on failure.
+     */
     public function enqueue($classname, $args = [], $when = 'now', $priority = 10)
     {
         global $wpdb;
@@ -198,21 +258,28 @@ class MeprJobs
         }
 
         $config = [
-            'runtime' => MeprUtils::ts_to_mysql_date($when),
+            'runtime'  => MeprUtils::ts_to_mysql_date($when),
             'firstrun' => MeprUtils::ts_to_mysql_date($when),
             'priority' => $priority,
-            'tries' => 0,
-            'class' => $classname,
-            'args' => json_encode($args),
-            'reason' => '',
-            'status' => $this->config->status->pending,
-            'lastrun' => MeprUtils::db_now(),
+            'tries'    => 0,
+            'class'    => $classname,
+            'args'     => json_encode($args),
+            'reason'   => '',
+            'status'   => $this->config->status->pending,
+            'lastrun'  => MeprUtils::db_now(),
         ];
 
         // returns the job id to dequeue later if necessary
         return $mepr_db->create_record($mepr_db->jobs, $config, true);
     }
 
+    /**
+     * Removes a job from the queue.
+     *
+     * @param integer $job_id The ID of the job to remove.
+     *
+     * @return integer|void The number of rows affected, or false on error.
+     */
     public function dequeue($job_id)
     {
         if ($job_id == 0) {
@@ -224,6 +291,13 @@ class MeprJobs
         return $mepr_db->delete_records($mepr_db->jobs, ['id' => $job_id]);
     }
 
+    /**
+     * Marks a job as in progress.
+     *
+     * @param object $job The job object.
+     *
+     * @return void
+     */
     public function work($job)
     {
         global $wpdb;
@@ -238,6 +312,14 @@ class MeprJobs
         $mepr_db->update_record($mepr_db->jobs, $job->id, $args);
     }
 
+    /**
+     * Retries a failed job after a specified interval.
+     *
+     * @param object $job    The job object.
+     * @param string $reason Optional reason for the retry.
+     *
+     * @return void
+     */
     public function retry($job, $reason = '')
     {
         global $wpdb;
@@ -254,6 +336,13 @@ class MeprJobs
         $mepr_db->update_record($mepr_db->jobs, $job->id, $args);
     }
 
+    /**
+     * Marks a job as complete.
+     *
+     * @param object $job The job object.
+     *
+     * @return void
+     */
     public function complete($job)
     {
         global $wpdb;
@@ -267,6 +356,14 @@ class MeprJobs
         $mepr_db->update_record($mepr_db->jobs, $job->id, $args);
     }
 
+    /**
+     * Marks a job as failed and retries if possible.
+     *
+     * @param object $job    The job object.
+     * @param string $reason Optional reason for the failure.
+     *
+     * @return void
+     */
     public function fail($job, $reason = '')
     {
         global $wpdb;
@@ -285,9 +382,16 @@ class MeprJobs
         }
     }
 
+    /**
+     * Converts a time interval string to seconds.
+     *
+     * @param string $interval The interval string.
+     *
+     * @return integer The interval in seconds.
+     */
     private function interval2seconds($interval)
     {
-        $units = ['m','h','d','w','M','y'];
+        $units   = ['m','h','d','w','M','y'];
         $seconds = 0;
 
         foreach ($units as $u) {
@@ -297,7 +401,7 @@ class MeprJobs
                     if ($u == 'm') {
                         $seconds += MeprUtils::minutes($m);
                     } elseif ($u == 'h') {
-                              $seconds += MeprUtils::hours($m);
+                        $seconds += MeprUtils::hours($m);
                     } elseif ($u == 'd') {
                         $seconds += MeprUtils::days($m);
                     } elseif ($u == 'w') {
@@ -314,6 +418,11 @@ class MeprJobs
         return $seconds;
     }
 
+    /**
+     * Unschedules the worker and cleanup events.
+     *
+     * @return void
+     */
     public function unschedule_events()
     {
         $timestamp = wp_next_scheduled('mepr_jobs_worker');
@@ -323,6 +432,11 @@ class MeprJobs
         wp_unschedule_event($timestamp, 'mepr_jobs_cleanup');
     }
 
+    /**
+     * Displays the option fields for background jobs.
+     *
+     * @return void
+     */
     public function display_option_fields()
     {
         $enabled = get_option('mp-bkg-email-jobs-enabled', isset($_POST['bkg_email_jobs_enabled']));
@@ -352,19 +466,35 @@ class MeprJobs
         <?php
     }
 
+    /**
+     * Validates the option fields for background jobs.
+     *
+     * @param array $errors The existing errors.
+     *
+     * @return void
+     */
     public function validate_option_fields($errors)
     {
         // Nothing to validate yet -- if ever
     }
 
+    /**
+     * Updates the option fields for background jobs.
+     *
+     * @return void
+     */
     public function update_option_fields()
     {
         // Nothing to do yet -- if ever
     }
 
+    /**
+     * Stores the option fields for background jobs.
+     *
+     * @return void
+     */
     public function store_option_fields()
     {
         update_option('mp-bkg-email-jobs-enabled', isset($_POST['bkg_email_jobs_enabled']));
     }
 }
-

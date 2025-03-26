@@ -200,18 +200,19 @@
         </tbody>
       </table>
     </div>
-    <?php /*
-              <div>&nbsp;</div>
-              <h3 class="mepr-page-title"><a href="" class="mepr-toggle-link" data-box="mepr-custom-fields"><?php _e('Custom Fields'); ?></a></h3>
-              <div class="mepr-sub-box-white mepr-custom-fields mepr-hidden" style="display: none;">
-              <div class="mepr-arrow mepr-white mepr-up mepr-sub-box-arrow"> </div>
-              <table class="form-table" id="mepr-custom-fields-box">
-              <tbody>
-              <?php MeprUsersHelper::render_editable_custom_fields(); ?>
-              </tbody>
-              </table>
-              </div>
-          */ ?>
+    <?php
+    /*
+        <div>&nbsp;</div>
+          <h3 class="mepr-page-title"><a href="" class="mepr-toggle-link" data-box="mepr-custom-fields"><?php _e('Custom Fields', 'memberpress'); ?></a></h3>
+          <div class="mepr-sub-box-white mepr-custom-fields mepr-hidden" style="display: none;">
+          <div class="mepr-arrow mepr-white mepr-up mepr-sub-box-arrow"> </div>
+          <table class="form-table" id="mepr-custom-fields-box">
+          <tbody>
+          <?php MeprUsersHelper::render_editable_custom_fields(); ?>
+          </tbody>
+          </table>
+          </div>
+    */ ?>
     <p class="submit">
       <input type="submit" id="submit" class="button button-primary" value="<?php _e('Create', 'memberpress'); ?>" />
     </p>

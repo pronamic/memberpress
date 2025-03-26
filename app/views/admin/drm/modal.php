@@ -1,7 +1,7 @@
 <?php if (! defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
-$account_link = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general', 'account');
+$account_link       = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general', 'account');
 $has_stripe_connect = MeprStripeGateway::has_method_with_connect_status();
 
 ?>

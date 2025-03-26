@@ -8,6 +8,11 @@ class MeprCoursesCtrl extends MeprBaseCtrl
 {
     private $courses_slug = 'memberpress-courses/main.php';
 
+    /**
+     * Load hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         if (! is_plugin_active($this->courses_slug)) {
@@ -18,12 +23,23 @@ class MeprCoursesCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Render the courses UI page.
+     *
+     * @return void
+     */
     public static function route()
     {
         $plugins = get_plugins();
         MeprView::render('/admin/courses/ui', get_defined_vars());
     }
 
+    /**
+     * Enqueue scripts.
+     *
+     * @param  string $hook The hook.
+     * @return void
+     */
     public function enqueue_scripts($hook)
     {
         if (preg_match('/_page_memberpress-(courses|options)$/', $hook)) {
@@ -73,22 +89,22 @@ class MeprCoursesCtrl extends MeprBaseCtrl
             wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
-        $type = sanitize_text_field($_POST['type']);
+        $type      = sanitize_text_field($_POST['type']);
         $installed = false;
         $activated = false;
-        $message = '';
-        $result = 'error';
+        $message   = '';
+        $result    = 'error';
         switch ($type) {
             case 'install-activate': // Install and activate courses
                 $installed = $this->install_courses(true);
                 $activated = $installed ? $installed : $activated;
-                $result = $installed ? 'success' : 'error';
-                $message = $installed ? esc_html__('Courses has been installed and activated successfully. Enjoy!', 'memberpress') : esc_html__('Courses could not be installed. Please check your license settings, or contact MemberPress support for help.', 'memberpress');
+                $result    = $installed ? 'success' : 'error';
+                $message   = $installed ? esc_html__('Courses has been installed and activated successfully. Enjoy!', 'memberpress') : esc_html__('Courses could not be installed. Please check your license settings, or contact MemberPress support for help.', 'memberpress');
                 break;
             case 'activate': // Just activate (already installed)
                 $activated = is_null(activate_plugin($this->courses_slug));
-                $result = 'success';
-                $message = esc_html__('Courses has been activated successfully. Enjoy!', 'memberpress');
+                $result    = 'success';
+                $message   = esc_html__('Courses has been activated successfully. Enjoy!', 'memberpress');
                 break;
             default:
                 break;
@@ -100,7 +116,7 @@ class MeprCoursesCtrl extends MeprBaseCtrl
 
         if ($activated) {
             $redirect = add_query_arg([
-                'post_type' => 'mpcs-course',
+                'post_type'         => 'mpcs-course',
                 'courses_activated' => 'true',
             ], admin_url('edit.php'));
         }
@@ -108,9 +124,9 @@ class MeprCoursesCtrl extends MeprBaseCtrl
         wp_send_json_success([
             'installed' => $installed,
             'activated' => $activated,
-            'result' => $result,
-            'message' => $message,
-            'redirect' => $redirect,
+            'result'    => $result,
+            'message'   => $message,
+            'redirect'  => $redirect,
         ]);
     }
 
@@ -124,10 +140,10 @@ class MeprCoursesCtrl extends MeprBaseCtrl
     public function install_courses($activate = false)
     {
 
-        $force = isset($_GET['refresh']) && $_GET['refresh'] == 'true';
-        $addons = (array) MeprUpdateCtrl::addons(true, $force, true);
+        $force         = isset($_GET['refresh']) && $_GET['refresh'] == 'true';
+        $addons        = (array) MeprUpdateCtrl::addons(true, $force, true);
         $courses_addon = ! empty($addons['memberpress-courses']) ? $addons['memberpress-courses'] : [];
-        $plugins = get_plugins();
+        $plugins       = get_plugins();
         wp_cache_delete('plugins', 'plugins');
 
         if (empty($courses_addon)) {
@@ -178,5 +194,5 @@ class MeprCoursesCtrl extends MeprBaseCtrl
 
         return $installer->plugin_info();
     }
-} //End class
+}
 

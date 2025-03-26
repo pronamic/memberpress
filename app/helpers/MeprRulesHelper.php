@@ -6,10 +6,18 @@ if (!defined('ABSPATH')) {
 
 class MeprRulesHelper
 {
+    /**
+     * Type dropdown.
+     *
+     * @param  string $field_name The field name.
+     * @param  string $type       The type.
+     * @param  string $onchange   The onchange.
+     * @return void
+     */
     public static function type_dropdown($field_name, $type, $onchange = '')
     {
         $field_value = (isset($_POST[$field_name])) ? $_POST[$field_name] : '';
-        $types = MeprRule::get_types();
+        $types       = MeprRule::get_types();
         ?>
       <select name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" class="mepr-dropdown mepr-rule-types-dropdown" onchange="<?php echo $onchange; ?>" data-validation="required" data-validation-error-msg="<?php _e('Rule Type cannot be blank', 'memberpress'); ?>">
         <option value="" <?php echo ! empty($_GET['post']) ? 'selected="selected"' : ''; ?>><?php _e('- Please Select -', 'memberpress'); ?></option>
@@ -24,17 +32,37 @@ class MeprRulesHelper
         <?php
     }
 
+    /**
+     * Gets the access row.
+     *
+     * @param  mixed   $access_condition The access condition.
+     * @param  integer $index            The index.
+     * @return void
+     */
     public static function access_row($access_condition = null, $index = 0)
     {
         echo self::access_row_string($access_condition, $index);
     }
 
+    /**
+     * Gets the access row string.
+     *
+     * @param  mixed   $access_condition The access condition.
+     * @param  integer $index            The index.
+     * @return string
+     */
     public static function access_row_string($access_condition = null, $index = 0)
     {
         return MeprView::get_string('/admin/rules/access_row', compact('access_condition', 'index'));
     }
 
-    // Returns Access Rule Types dropdown
+    /**
+     * Gets the access types dropdown.
+     *
+     * @param  string $selected The selected.
+     * @param  string $onchange The onchange.
+     * @return void
+     */
     public static function access_types_dropdown($selected = '', $onchange = 'mepr_show_access_options(this)')
     {
         $access_types = MeprRule::mepr_access_types();
@@ -50,6 +78,13 @@ class MeprRulesHelper
         <?php
     }
 
+    /**
+     * Gets the access types dropdown string.
+     *
+     * @param  string $selected The selected.
+     * @param  string $onchange The onchange.
+     * @return string
+     */
     public static function access_types_dropdown_string($selected = '', $onchange = 'mepr_show_access_options(this)')
     {
         ob_start();
@@ -57,7 +92,13 @@ class MeprRulesHelper
         return ob_get_clean();
     }
 
-    // Returns Access Rule Operators dropdown
+    /**
+     * Gets the access rules operators dropdown.
+     *
+     * @param  string $type     The type.
+     * @param  string $selected The selected.
+     * @return void
+     */
     public static function access_operators_dropdown($type = '', $selected = '')
     {
         switch ($type) {
@@ -94,6 +135,13 @@ class MeprRulesHelper
         }
     }
 
+    /**
+     * Gets the access operators dropdown string.
+     *
+     * @param  string $type     The type.
+     * @param  string $selected The selected.
+     * @return string
+     */
     public static function access_operators_dropdown_string($type = '', $selected = '')
     {
         ob_start();
@@ -104,6 +152,10 @@ class MeprRulesHelper
     /**
      * Returns Access Rule Conditions for selected type
      * Returns Membership dropdown or Autocomplete Member text field
+     *
+     * @param  string $type     The type.
+     * @param  string $selected The selected.
+     * @return void
      */
     public static function access_conditions_dropdown($type = '', $selected = '')
     {
@@ -144,6 +196,13 @@ class MeprRulesHelper
         }
     }
 
+    /**
+     * Gets the access conditions dropdown string.
+     *
+     * @param  string $type     The type.
+     * @param  string $selected The selected.
+     * @return string
+     */
     public static function access_conditions_dropdown_string($type = '', $selected = '')
     {
         ob_start();
@@ -151,11 +210,18 @@ class MeprRulesHelper
         return ob_get_clean();
     }
 
+    /**
+     * Gets the page title.
+     *
+     * @param  string $type    The type.
+     * @param  string $content The content.
+     * @return void
+     */
     public static function get_page_title($type, $content)
     {
-        $contents = MeprRule::get_contents_array($type);
+        $contents       = MeprRule::get_contents_array($type);
         $content_values = array_values((!$contents) ? [''] : $contents);
-        $types = MeprRule::get_types();
+        $types          = MeprRule::get_types();
 
         $type_label = $types[(!empty($type) ? $type : 'all')];
         if ($type == 'custom') {
@@ -165,6 +231,15 @@ class MeprRulesHelper
         }
     }
 
+    /**
+     * Gets the content dropdown.
+     *
+     * @param  string $field_name The field name.
+     * @param  string $content    The content.
+     * @param  string $type       The type.
+     * @param  array  $options    The options.
+     * @return void
+     */
     public static function content_dropdown($field_name, $content, $type = 'all', $options = [])
     {
         $types = MeprRule::get_types();
@@ -231,10 +306,10 @@ class MeprRulesHelper
         }
         if (!isset($obj) or empty($obj)) {
             $obj = (object)[
-                'id' => '',
+                'id'    => '',
                 'label' => '',
-                'slug' => '',
-                'desc' => '',
+                'slug'  => '',
+                'desc'  => '',
             ];
         }
 
@@ -248,6 +323,13 @@ class MeprRulesHelper
         <?php
     }
 
+    /**
+     * Gets the access dropdown.
+     *
+     * @param  string $field_name The field name.
+     * @param  array  $access     The access.
+     * @return void
+     */
     public static function access_dropdown($field_name, $access)
     {
         $contents = [];
@@ -278,6 +360,13 @@ class MeprRulesHelper
         <?php
     }
 
+    /**
+     * Gets the time units dropdown.
+     *
+     * @param  object $rule The rule.
+     * @param  string $type The type.
+     * @return void
+     */
     public static function time_units_dropdown($rule, $type)
     {
         $values = MeprRule::get_time_units();
@@ -296,11 +385,18 @@ class MeprRulesHelper
         <?php
     }
 
+    /**
+     * Gets the drip expires after dropdown.
+     *
+     * @param  object $rule The rule.
+     * @param  string $type The type.
+     * @return void
+     */
     public static function drip_expires_after_dropdown($rule, $type)
     {
         $products = MeprCptModel::all('MeprProduct', false, [
             'orderby' => 'title',
-            'order' => 'ASC',
+            'order'   => 'ASC',
         ]);
         ?>
     <select name="<?php echo $type; ?>" id="<?php echo $type; ?>">
@@ -319,4 +415,4 @@ class MeprRulesHelper
     </select>
         <?php
     }
-} //End class
+}

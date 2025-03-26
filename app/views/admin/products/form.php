@@ -32,9 +32,6 @@ if (!defined('ABSPATH')) {
          value="<?php echo $product->period_type; ?>">
 
   <div id="mepr-non-recurring-options" class="mepr-hidden">
-  <?php /*
-            <table id="mepr-interval-options">
-        */ ?>
     <p>
       <strong><?php _e('Access:', 'memberpress'); ?></strong>
     </p>

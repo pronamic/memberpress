@@ -19,7 +19,7 @@
             $subs_sorted = [];
             foreach ($subs as $prd) {
                 if ($order_by == 'date') {
-                    $created_at = MeprUser::get_user_product_signup_date($user->ID, $prd->ID);
+                    $created_at            = MeprUser::get_user_product_signup_date($user->ID, $prd->ID);
                     $subs_sorted[$prd->ID] = $created_at;
                 } elseif ($order_by == 'title') {
                     $subs_sorted[$prd->ID] = $prd->post_title;

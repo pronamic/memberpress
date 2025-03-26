@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
 class MeprNotificationsCtrl extends MeprBaseCtrl
 {
     /**
+     * Loads WordPress hooks for the class.
+     *
      * @deprecated 1.11.36
      */
     public function load_hooks()

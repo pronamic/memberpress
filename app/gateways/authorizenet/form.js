@@ -127,9 +127,9 @@
                 const container = form.getSelectedWrapper();
                 container.find(".dataDescriptor").val(opaqueData.dataDescriptor);
                 container.find(".dataValue").val(opaqueData.dataValue);
-                container.find(".cc-number").val('');
-                container.find(".cc-expires").val('');
-                container.find(".cc-cvc").val('');
+                container.find(".card-number").val('');
+                container.find(".expiry, .expiry-month, .expiry-year").val('');
+                container.find(".cvc").attr('name', 'cvc-code');
                 form.form.submit();
                 /*
 

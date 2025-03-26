@@ -5,6 +5,9 @@
  */
 class MeprSubscriptionsWidget extends WP_Widget
 {
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         parent::__construct(
@@ -14,6 +17,11 @@ class MeprSubscriptionsWidget extends WP_Widget
         );
     }
 
+    /**
+     * Register the widget
+     *
+     * @return void
+     */
     public static function register_widget()
     {
         if (MeprHooks::apply_filters('mepr-enable-legacy-widgets', !current_theme_supports('widgets-block-editor'))) {
@@ -21,6 +29,13 @@ class MeprSubscriptionsWidget extends WP_Widget
         }
     }
 
+    /**
+     * Widget
+     *
+     * @param  array $args     The arguments
+     * @param  array $instance The instance
+     * @return void
+     */
     public function widget($args, $instance)
     {
         extract($args);
@@ -31,7 +46,7 @@ class MeprSubscriptionsWidget extends WP_Widget
         $not_logged_in_msg  = $instance['not_logged_in_msg'];
         $member_no_subs_msg = $instance['member_no_subs_msg'];
         $show_link          = (isset($instance['show_link']) && $instance['show_link']);
-        $user = MeprUtils::get_currentuserinfo();
+        $user               = MeprUtils::get_currentuserinfo();
 
         echo $before_widget;
 
@@ -78,9 +93,16 @@ class MeprSubscriptionsWidget extends WP_Widget
         echo $after_widget;
     }
 
+    /**
+     * Update the widget
+     *
+     * @param  array $new_instance The new instance
+     * @param  array $old_instance The old instance
+     * @return array The instance
+     */
     public function update($new_instance, $old_instance)
     {
-        $instance = [];
+        $instance                       = [];
         $instance['title']              = stripslashes(strip_tags($new_instance['title']));
         $instance['top_desc']           = stripslashes($new_instance['top_desc']);
         $instance['bottom_desc']        = stripslashes($new_instance['bottom_desc']);
@@ -91,6 +113,12 @@ class MeprSubscriptionsWidget extends WP_Widget
         return $instance;
     }
 
+    /**
+     * Form for the widget
+     *
+     * @param  array $instance The instance
+     * @return void
+     */
     public function form($instance)
     {
         $title              = (isset($instance['title'])) ? $instance['title'] : __('Your Subscriptions', 'memberpress');
@@ -128,4 +156,4 @@ class MeprSubscriptionsWidget extends WP_Widget
     </p>
         <?php
     }
-} // class MeprSubscriptionsWidget
+}

@@ -1,9 +1,4 @@
 <?php
-/**
- * @license GPL-3.0
- *
- * Modified by Team Caseproof using {@see https://github.com/BrianHenryIE/strauss}.
- */
 
 declare(strict_types=1);
 
@@ -77,7 +72,7 @@ class Credentials implements StaticContainerAwareness
     public static function storeLicenseKey(string $licenseKey): void
     {
         if (self::isCredentialSetInEnvironmentOrConstants(MothershipService::LICENSE_KEY_BASENAME)) {
-            throw new \Exception(esc_html__('Cannot store credentials in database; found in environment variables or constants.', 'caseproof-mothership'));
+            throw new \Exception(esc_html__('Cannot store credentials in database; found in environment variables or constants.', 'memberpress'));
         }
         self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->updateLicenseKey($licenseKey);
     }

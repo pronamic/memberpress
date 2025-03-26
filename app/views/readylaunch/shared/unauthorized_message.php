@@ -25,8 +25,9 @@ if (isset($atts['welcome_image']) && $atts['welcome_image'] > 0) {
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
-
-        <?php echo $unauth->excerpt; ?>
+        <div class="mepr_pro_error_content">
+          <?php echo $unauth->excerpt; ?>
+        </div>
       </div>
     </div>
   <?php endif; ?>
@@ -38,8 +39,9 @@ if (isset($atts['welcome_image']) && $atts['welcome_image'] > 0) {
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
-
-        <?php echo $unauth->message; ?>
+        <div class="mepr_pro_error_content">
+          <?php echo $unauth->message; ?>
+        </div>
       </div>
     </div>
   <?php endif; ?>

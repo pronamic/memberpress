@@ -18,23 +18,23 @@
   </thead>
   <tbody>
     <?php
-    $records = MeprReports::get_yearly_dataset('transactions', $curr_year, $curr_product);
-    $pTotal = $fTotal = $cTotal = $rTotal = $revTotal = $refTotal = $taxTotal = 0;
+    $records   = MeprReports::get_yearly_dataset('transactions', $curr_year, $curr_product);
+    $pTotal    = $fTotal = $cTotal = $rTotal = $revTotal = $refTotal = $taxTotal = 0;
     $row_index = 0;
 
-    $revenue_dataset = MeprReports::get_revenue_dataset(false, $curr_year, $curr_product);
-    $taxes_dataset = MeprReports::get_taxes_dataset(false, $curr_year, $curr_product);
-    $refunds_dataset = MeprReports::get_refunds_dataset(false, $curr_year, $curr_product);
+    $revenue_dataset   = MeprReports::get_revenue_dataset(false, $curr_year, $curr_product);
+    $taxes_dataset     = MeprReports::get_taxes_dataset(false, $curr_year, $curr_product);
+    $refunds_dataset   = MeprReports::get_refunds_dataset(false, $curr_year, $curr_product);
     $collected_dataset = MeprReports::get_collected_dataset(false, $curr_year, $curr_product);
 
     foreach ($records as $r) {
-        $revenue = isset($revenue_dataset[$r->month]) ? (float) $revenue_dataset[$r->month] : 0.00;
-        $taxes = isset($taxes_dataset[$r->month]) ? (float) $taxes_dataset[$r->month] : 0.00;
-        $refunds = isset($refunds_dataset[$r->month]) ? (float) $refunds_dataset[$r->month] : 0.00;
+        $revenue   = isset($revenue_dataset[$r->month]) ? (float) $revenue_dataset[$r->month] : 0.00;
+        $taxes     = isset($taxes_dataset[$r->month]) ? (float) $taxes_dataset[$r->month] : 0.00;
+        $refunds   = isset($refunds_dataset[$r->month]) ? (float) $refunds_dataset[$r->month] : 0.00;
         $collected = isset($collected_dataset[$r->month]) ? (float) $collected_dataset[$r->month] : 0.00;
-        $all = (float)($revenue + $refunds + $taxes);
+        $all       = (float)($revenue + $refunds + $taxes);
         $alternate = ( $row_index++ % 2 ? '' : 'alternate' );
-        $r->day = '';
+        $r->day    = '';
         ?>
       <tr class="<?php echo $alternate; ?>">
         <td>

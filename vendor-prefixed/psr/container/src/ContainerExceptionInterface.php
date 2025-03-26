@@ -1,9 +1,4 @@
 <?php
-/**
- * @license MIT
- *
- * Modified by Team Caseproof using {@see https://github.com/BrianHenryIE/strauss}.
- */
 
 namespace MemberPress\Psr\Container;
 

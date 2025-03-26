@@ -1,6 +1,6 @@
 <?php
 
-$classes = '';
+$classes   = '';
 $show_keys = false;
 
 if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys']) && ! defined('MEPR_DISABLE_STRIPE_CONNECT')) {

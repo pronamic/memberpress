@@ -3,7 +3,7 @@
 } ?>
 
 <?php
-$products = $group->products();
+$products     = $group->products();
 $mepr_options = MeprOptions::fetch();
 
 // Limit products to five items for now
@@ -18,8 +18,8 @@ if (empty($button_color)) {
 
 $group_theme    = preg_replace('~\.css$~', '', (is_null($theme) ? $group->group_theme : $theme));
 $group_template = 'pro-template';
-$group = null;
-$preview = false;
+$group          = null;
+$preview        = false;
 ?>
 <div class="mepr-price-menu <?php echo $group_theme; ?> <?php echo $group_template; ?>">
 

@@ -32,13 +32,13 @@ class MeprBlocksCtrl extends MeprBaseCtrl
      */
     public function register_block_types_serverside()
     {
-        $mepr_options    = MeprOptions::fetch();
+        $mepr_options = MeprOptions::fetch();
 
         // Membership signup form block
         register_block_type(
             'memberpress/membership-signup',
             [
-                'api_version' => 2,
+                'api_version'     => 2,
                 'attributes'      => [
                     'membership' => [
                         'type' => 'string',
@@ -61,7 +61,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         register_block_type(
             'memberpress/login-form',
             [
-                'api_version' => 2,
+                'api_version'     => 2,
                 'attributes'      => [
                     'use_redirect' => [
                         'type' => 'boolean',
@@ -100,14 +100,14 @@ class MeprBlocksCtrl extends MeprBaseCtrl
                 'api_version'     => 2,
                 'attributes'      => [
                     'show_welcome_image' => [
-                        'type' => 'boolean',
+                        'type'    => 'boolean',
                         'default' => $mepr_options->design_show_login_welcome_image,
                     ],
                     'welcome_image'      => [
-                        'type' => 'string',
+                        'type'    => 'string',
                         'default' => wp_get_attachment_url($mepr_options->design_login_welcome_img),
                     ],
-                    'admin_view'            => [
+                    'admin_view'         => [
                         'type' => 'boolean',
                     ],
                 ],
@@ -146,7 +146,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
                 'api_version'     => 2,
                 'attributes'      => [
                     'show_welcome_image' => [
-                        'type' => 'boolean',
+                        'type'    => 'boolean',
                         'default' => $mepr_options->design_show_account_welcome_image,
                     ],
                     'welcome_image'      => [
@@ -182,8 +182,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         register_block_type(
             'memberpress/account-links',
             [
-                'api_version' => 2,
-                'attributes' => [],
+                'api_version'     => 2,
+                'attributes'      => [],
                 'render_callback' => [$this, 'render_account_links_block'],
             ]
         );
@@ -192,31 +192,31 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         register_block_type(
             'memberpress/subscriptions',
             [
-                'api_version' => 2,
-                'attributes' => [
-                    'order_by' => [
-                        'type' => 'string',
+                'api_version'     => 2,
+                'attributes'      => [
+                    'order_by'                 => [
+                        'type'    => 'string',
                         'default' => '',
                     ],
-                    'order' => [
-                        'type' => 'string',
+                    'order'                    => [
+                        'type'    => 'string',
                         'default' => '',
                     ],
-                    'not_logged_in_message' => [
-                        'type' => 'string',
+                    'not_logged_in_message'    => [
+                        'type'    => 'string',
                         'default' => __('You are not logged in.', 'memberpress'),
                     ],
                     'no_subscriptions_message' => [
-                        'type' => 'string',
+                        'type'    => 'string',
                         'default' => __('You have no Subscriptions yet.', 'memberpress'),
                     ],
-                    'top_description' => [
+                    'top_description'          => [
                         'type' => 'string',
                     ],
-                    'bottom_description' => [
+                    'bottom_description'       => [
                         'type' => 'string',
                     ],
-                    'use_access_url' => [
+                    'use_access_url'           => [
                         'type' => 'boolean',
                     ],
                 ],
@@ -228,10 +228,10 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         register_block_type(
             'memberpress/account-info',
             [
-                'api_version' => 2,
-                'attributes'  => [
+                'api_version'     => 2,
+                'attributes'      => [
                     'field' => [
-                        'type' => 'string',
+                        'type'    => 'string',
                         'default' => 'full_name',
                     ],
                 ],
@@ -313,7 +313,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Renders the MP login form
      *
-     * @param array $props Properties/data from the block
+     * @param array $atts The attributes.
      *
      * @return string
      */
@@ -341,7 +341,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Renders the MP login form
      *
-     * @param array $props Properties/data from the block
+     * @param array $atts The attributes.
      *
      * @return string
      */
@@ -373,7 +373,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Renders the MP login form
      *
-     * @param array $props Properties/data from the block
+     * @param array $atts The attributes.
      *
      * @return string
      */
@@ -400,7 +400,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Renders the MP login form
      *
-     * @param array $props Properties/data from the block
+     * @param array $atts The attributes.
      *
      * @return string
      */
@@ -430,7 +430,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
         if (MeprUtils::is_user_logged_in()) {
             $account_url = $mepr_options->account_page_url();
-            $logout_url = MeprUtils::logout_url();
+            $logout_url  = MeprUtils::logout_url();
             MeprView::render('/account/logged_in_widget', get_defined_vars());
         } else {
             $login_url = MeprUtils::login_url();
@@ -449,22 +449,22 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     public function render_subscriptions_block(array $atts)
     {
         ob_start();
-        $user = MeprUtils::get_currentuserinfo();
+        $user         = MeprUtils::get_currentuserinfo();
         $mepr_options = MeprOptions::fetch();
 
-        $order_by = isset($atts['order_by']) ?
+        $order_by                 = isset($atts['order_by']) ?
         sanitize_text_field($atts['order_by']) : '';
-        $order = isset($atts['order']) ?
+        $order                    = isset($atts['order']) ?
         sanitize_text_field($atts['order']) : '';
-        $not_logged_in_message = isset($atts['not_logged_in_message']) ?
+        $not_logged_in_message    = isset($atts['not_logged_in_message']) ?
         sanitize_text_field($atts['not_logged_in_message']) : '';
         $no_subscriptions_message = isset($atts['no_subscriptions_message']) ?
         sanitize_text_field($atts['no_subscriptions_message']) : '';
-        $top_desc = isset($atts['top_description']) ?
+        $top_desc                 = isset($atts['top_description']) ?
         sanitize_text_field($atts['top_description']) : '';
-        $bottom_desc = isset($atts['bottom_description']) ?
+        $bottom_desc              = isset($atts['bottom_description']) ?
         sanitize_text_field($atts['bottom_description']) : '';
-        $use_access_url = isset($atts['use_access_url']) &&
+        $use_access_url           = isset($atts['use_access_url']) &&
         filter_var($atts['use_access_url'], FILTER_VALIDATE_BOOLEAN) ?
         true : false;
 
@@ -547,7 +547,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         }
 
         // Assemble custom fields into an options array
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options  = MeprOptions::fetch();
         $custom_fields = [];
         if (!empty($mepr_options->custom_fields)) {
             foreach ($mepr_options->custom_fields as $field) {
@@ -661,4 +661,4 @@ class MeprBlocksCtrl extends MeprBaseCtrl
 
         return $return;
     }
-} // End MeprBlocksCtrl
+}

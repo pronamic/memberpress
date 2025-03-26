@@ -40,17 +40,17 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
     $pricing_url = $cta_data['url'];
 
     $finish_description = $cta_data['heading'];
-    $pricing_url_args = [
+    $pricing_url_args   = [
         'onboarding' => 1,
     ];
 
     if (in_array('easy-affiliate', $features_data['addons_not_installed'], true)) {
-        $finish_description = esc_html__('To unlock selected features, upgrade with Easy Affiliate.', 'memberpress');
+        $finish_description       = esc_html__('To unlock selected features, upgrade with Easy Affiliate.', 'memberpress');
         $pricing_url_args['doea'] = 1;
     }
 
     if (in_array('memberpress-coachkit', $features_data['addons_not_installed'], true)) {
-        $finish_description = esc_html__('To unlock selected features, upgrade with CoachKit™.', 'memberpress');
+        $finish_description       = esc_html__('To unlock selected features, upgrade with CoachKit™.', 'memberpress');
         $pricing_url_args['dock'] = 1;
     }
 
@@ -67,7 +67,7 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
 
     if (! empty($addons_installed)) {
         $finish_description = '';
-        $pricing_url       = '';
+        $pricing_url        = '';
     }
 
     $target = '';
@@ -79,7 +79,7 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
         $finish_description = '';
         $pricing_url        = 'https://easyaffiliate.com/ipob/pricing/';
         $cta_data['label']  = esc_html__('Purchase Easy Affiliate', 'memberpress');
-        $target = ' target="_blank"';
+        $target             = ' target="_blank"';
     }
 
     if (
@@ -90,7 +90,7 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
         $finish_description = '';
         $pricing_url        = 'https://memberpress.com/sign-in/?redirect_to=/register/coachkit-add-on/';
         $cta_data['label']  = esc_html__('Purchase CoachKit™', 'memberpress');
-        $target = ' target="_blank"';
+        $target             = ' target="_blank"';
     }
 
     $is_plan_upgrade_required = true;
@@ -99,22 +99,22 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
         MeprUtils::is_elite_edition($current_license) || MeprUtils::is_pro_edition($current_license)
     ) {
         $is_plan_upgrade_required = false;
-        $finish_description = '';
+        $finish_description       = '';
     }
 
     $multiple_ctas = [];
     if (false === $is_plan_upgrade_required && ! empty($addons_not_installed)) {
         $finish_description = sprintf(esc_html__('You have selected following features:', 'memberpress'), $cta_data['token']);
         if (in_array('easy-affiliate', $addons_not_installed, true)) {
-            $multiple_ctas['ea'] = [];
-            $multiple_ctas['ea']['url']    = 'https://memberpress.com/sign-in/?redirect_to=/register/easy-affiliate-pro/';
-            $multiple_ctas['ea']['label']  = esc_html__('Purchase Easy Affiliate', 'memberpress');
+            $multiple_ctas['ea']          = [];
+            $multiple_ctas['ea']['url']   = 'https://memberpress.com/sign-in/?redirect_to=/register/easy-affiliate-pro/';
+            $multiple_ctas['ea']['label'] = esc_html__('Purchase Easy Affiliate', 'memberpress');
         }
 
         if (in_array('memberpress-coachkit', $addons_not_installed, true)) {
-            $multiple_ctas['ck'] = [];
-            $multiple_ctas['ck']['url']    = 'https://memberpress.com/sign-in/?redirect_to=/register/coachkit-add-on/';
-            $multiple_ctas['ck']['label']  = esc_html__('Purchase CoachKit™', 'memberpress');
+            $multiple_ctas['ck']          = [];
+            $multiple_ctas['ck']['url']   = 'https://memberpress.com/sign-in/?redirect_to=/register/coachkit-add-on/';
+            $multiple_ctas['ck']['label'] = esc_html__('Purchase CoachKit™', 'memberpress');
         }
     }
 

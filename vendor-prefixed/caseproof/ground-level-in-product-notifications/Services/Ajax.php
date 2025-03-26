@@ -1,9 +1,4 @@
 <?php
-/**
- * @license GPL-3.0
- *
- * Modified by Team Caseproof using {@see https://github.com/BrianHenryIE/strauss}.
- */
 
 declare(strict_types=1);
 
@@ -86,23 +81,23 @@ class Ajax extends Service implements LoadableDependency
     {
         switch ($code) {
             case self::E_NONCE:
-                $msg    = __('Invalid nonce.', 'ground-level');
+                $msg    = __('Invalid nonce.', 'memberpress');
                 $status = 401;
                 break;
             case self::E_UNAUTHORIZED:
-                $msg    = __('You must log in to perform this action.', 'ground-level');
+                $msg    = __('You must log in to perform this action.', 'memberpress');
                 $status = 401;
                 break;
             case self::E_FORBIDDEN:
-                $msg    = __('You are not allowed to perform this action.', 'ground-level');
+                $msg    = __('You are not allowed to perform this action.', 'memberpress');
                 $status = 403;
                 break;
             case self::E_INVALID_ID:
-                $msg    = __('Missing required parameter: id.', 'ground-level');
+                $msg    = __('Missing required parameter: id.', 'memberpress');
                 $status = 422;
                 break;
             default:
-                $msg    = __('Unknown error.', 'ground-level');
+                $msg    = __('Unknown error.', 'memberpress');
                 $status = 400;
         }
 

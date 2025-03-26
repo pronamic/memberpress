@@ -14,6 +14,14 @@
   margin: 0 auto;
   padding: 5em 3em;
 }
+.mepr-pro-template #primary > * {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+.mepr-pro-template #primary > .mepr-price-menu {
+  padding-left: 0;
+  padding-right: 0;
+}
 .mepr-price-menu .mepr-price-boxes {
   display: flex;
   flex-wrap: wrap;

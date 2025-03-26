@@ -52,7 +52,7 @@
     <a target='_blank' class="mepr-wizard-popuphelp" href='<?php echo admin_url('edit.php?post_type=memberpressrule'); ?>' id="mepr-wizard-create-content-course-help">
       <?php
         printf(
-          /* translators: %1$s: open underline tag, %2$s: close underline tag */
+          // translators: %1$s: open underline tag, %2$s: close underline tag
             esc_html__('More advanced options are available in %1$sMemberPress > Rules%2$s', 'memberpress'),
             '<u>',
             '</u>'

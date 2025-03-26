@@ -14,8 +14,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
      */
     public function __construct()
     {
-        $this->name = __('Authorize.net', 'memberpress');
-        $this->key = __('authorize', 'memberpress');
+        $this->name         = 'Authorize.net';
+        $this->key          = 'authorize';
         $this->has_spc_form = true;
         $this->set_defaults();
 
@@ -31,19 +31,30 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         ];
 
         // Setup the notification actions for this gateway
-        $this->notifiers = [
-            'sp' => 'listener',
+        $this->notifiers     = [
+            'sp'  => 'listener',
             'whk' => 'webhook_listener',
         ];
         $this->message_pages = [];
     }
 
+    /**
+     * Load the gateway settings.
+     *
+     * @param  array $settings The gateway settings.
+     * @return void
+     */
     public function load($settings)
     {
         $this->settings = (object)$settings;
         $this->set_defaults();
     }
 
+    /**
+     * Set the default settings for the gateway.
+     *
+     * @return void
+     */
     public function set_defaults()
     {
         if (!isset($this->settings)) {
@@ -52,37 +63,37 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
         $this->settings = (object)array_merge(
             [
-                'gateway' => get_class($this),
-                'id' => $this->generate_id(),
-                'label' => '',
-                'use_label' => true,
-                'icon' => MEPR_IMAGES_URL . '/checkout/cards.png',
-                'use_icon' => true,
-                'desc' => __('Pay with your credit card via Authorize.net', 'memberpress'),
-                'use_desc' => true,
+                'gateway'         => get_class($this),
+                'id'              => $this->generate_id(),
+                'label'           => '',
+                'use_label'       => true,
+                'icon'            => MEPR_IMAGES_URL . '/checkout/cards.png',
+                'use_icon'        => true,
+                'desc'            => __('Pay with your credit card via Authorize.net', 'memberpress'),
+                'use_desc'        => true,
                 // 'recurrence_type' => '',
-                'login_name' => '',
+                'login_name'      => '',
                 'transaction_key' => '',
-                'signature_key' => '',
-                'force_ssl' => false,
-                'debug' => false,
+                'signature_key'   => '',
+                'force_ssl'       => false,
+                'debug'           => false,
                 // 'use_cron' => false,
-                'test_mode' => false,
-                'aimUrl' => '',
-                'arbUrl' => '',
+                'test_mode'       => false,
+                'aimUrl'          => '',
+                'arbUrl'          => '',
             ],
             (array)$this->settings
         );
 
-        $this->id    = $this->settings->id;
-        $this->label = $this->settings->label;
+        $this->id        = $this->settings->id;
+        $this->label     = $this->settings->label;
         $this->use_label = $this->settings->use_label;
-        $this->icon = $this->settings->icon;
-        $this->use_icon = $this->settings->use_icon;
-        $this->desc = $this->settings->desc;
-        $this->use_desc = $this->settings->use_desc;
+        $this->icon      = $this->settings->icon;
+        $this->use_icon  = $this->settings->use_icon;
+        $this->desc      = $this->settings->desc;
+        $this->use_desc  = $this->settings->use_desc;
         // $this->recurrence_type = $this->settings->recurrence_type;
-        $this->hash  = strtoupper(substr(md5($this->id), 0, 20)); // MD5 hashes used for Silent posts can only be 20 chars long
+        $this->hash = strtoupper(substr(md5($this->id), 0, 20)); // MD5 hashes used for Silent posts can only be 20 chars long
 
         if ($this->is_test_mode()) {
             $this->settings->aimUrl = 'https://test.authorize.net/gateway/transact.dll';
@@ -98,6 +109,11 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         $this->settings->signature_key   = trim($this->settings->signature_key);
     }
 
+    /**
+     * Listener for silent posts from Authorize.net.
+     *
+     * @return boolean|void
+     */
     public function listener()
     {
         $this->email_status('Silent Post Just Came In (' . $_SERVER['REQUEST_METHOD'] . "):\n" . MeprUtils::object_to_string($_REQUEST, true) . "\n", $this->settings->debug);
@@ -151,6 +167,13 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         return true;
     }
 
+    /**
+     * Process order bumps for a transaction.
+     *
+     * @param  MeprTransaction $txn         The transaction object.
+     * @param  array           $order_bumps The order bumps.
+     * @return mixed
+     */
     public function process_order_bumps($txn, $order_bumps)
     {
         $i = 1;
@@ -182,12 +205,15 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
     /**
      * Used to send data to a given payment gateway. In gateways which redirect
      * before this step is necessary -- this method should just be left blank.
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return mixed
      */
     public function process_payment($txn)
     {
         $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
-        $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
-        $order_bumps = $this->process_order($txn, $order_bump_products);
+        $order_bump_products    = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
+        $order_bumps            = $this->process_order($txn, $order_bump_products);
 
         if (count($order_bumps) < 1) {
             return $this->process_single_payment($txn);
@@ -202,6 +228,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
     /**
      * Used to send data to a given payment gateway. In gateways which redirect
      * before this step is necessary -- this method should just be left blank.
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return mixed
      */
     public function process_single_payment($txn)
     {
@@ -217,12 +246,12 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
         if (empty($usr->first_name) or empty($usr->last_name)) {
             $usr->first_name = sanitize_text_field(wp_unslash($_POST['mepr_first_name']));
-            $usr->last_name = sanitize_text_field(wp_unslash($_POST['mepr_last_name']));
+            $usr->last_name  = sanitize_text_field(wp_unslash($_POST['mepr_last_name']));
             $usr->store();
         }
 
         $invoice = $txn->id . '-' . time();
-        $args = [
+        $args    = [
             'x_card_num'    => sanitize_text_field($_POST['mepr_cc_num']),
             'x_card_code'   => sanitize_text_field($_POST['mepr_cvv_code']),
             'x_exp_date'    => sprintf('%02d', sanitize_text_field($_POST['mepr_cc_exp_month'])) . '-' . sanitize_text_field($_POST['mepr_cc_exp_year']),
@@ -231,6 +260,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
             'x_invoice_num' => $invoice,
             'x_first_name'  => $usr->first_name,
             'x_last_name'   => $usr->last_name,
+            'x_customer_ip' => MeprAntiCardTestingCtrl::get_ip(),
         ];
 
         if ($txn->tax_amount > 0.00) {
@@ -239,7 +269,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
         if ($mepr_options->show_address_fields && $mepr_options->require_address_fields) {
             $args = array_merge([
-                'x_address' => str_replace('&', '&amp;', get_user_meta($usr->ID, 'mepr-address-one', true)),
+                'x_address' => get_user_meta($usr->ID, 'mepr-address-one', true),
                 'x_city'    => get_user_meta($usr->ID, 'mepr-address-city', true),
                 'x_state'   => get_user_meta($usr->ID, 'mepr-address-state', true),
                 'x_zip'     => get_user_meta($usr->ID, 'mepr-address-zip', true),
@@ -248,19 +278,22 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         }
 
         // If customer provided a new ZIP code let's add it here
-        if (isset($_POST['mepr_zip_post_code']) /* && !empty($_POST['mepr_zip_post_code']) */) {
+        if (
+            isset($_POST['mepr_zip_post_code'])
+            // && !empty($_POST['mepr_zip_post_code'])
+        ) {
             $args['x_zip'] = sanitize_text_field(wp_unslash($_POST['mepr_zip_post_code']));
         }
 
         $args = MeprHooks::apply_filters('mepr_authorize_payment_args', $args, $txn);
-        $res = $this->send_aim_request('AUTH_CAPTURE', $args);
+        $res  = $this->send_aim_request('AUTH_CAPTURE', $args);
         $this->email_status("translated AIM response from Authorize.net: \n" . MeprUtils::object_to_string($res, true) . "\n", $this->settings->debug);
 
         $txn->trans_num = $res['transaction_id'];
         $txn->store();
 
-        $_POST['x_trans_id']  = $res['transaction_id'];
-        $_POST['response']    = $res;
+        $_POST['x_trans_id'] = $res['transaction_id'];
+        $_POST['response']   = $res;
 
         return $this->record_payment();
     }
@@ -274,10 +307,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
     public function record_subscription_payment()
     {
         // Make sure there's a valid subscription for this request and this payment hasn't already been recorded
-        if (
-            !($sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field($_POST['x_subscription_id']))) or
-            MeprTransaction::get_one_by_trans_num(sanitize_text_field($_POST['x_trans_id']))
-        ) {
+        $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field($_POST['x_subscription_id']));
+        $txn = MeprTransaction::get_one_by_trans_num(sanitize_text_field($_POST['x_trans_id']));
+
+        if (!$sub || $txn) {
             return false;
         }
 
@@ -288,7 +321,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
             $coupon_id = $first_txn->coupon_id;
         }
 
-        $txn = new MeprTransaction();
+        $txn                  = new MeprTransaction();
         $txn->user_id         = $sub->user_id;
         $txn->product_id      = $sub->product_id;
         $txn->txn_type        = MeprTransaction::$payment_str;
@@ -302,7 +335,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
         $txn->store();
 
-        $sub->status = MeprSubscription::$active_str;
+        $sub->status   = MeprSubscription::$active_str;
         $sub->cc_last4 = substr(sanitize_text_field($_POST['x_account_number']), -4); // Don't get the XXXX part of the string
         // $sub->txn_count = sanitize_text_field($_POST['x_subscription_paynum']);
         $sub->gateway = $this->id;
@@ -329,38 +362,40 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
             $txn_res = MeprTransaction::get_one_by_trans_num(sanitize_text_field($_POST['x_trans_id']));
 
             if (is_object($txn_res) and isset($txn_res->id)) {
-                $txn = new MeprTransaction($txn_res->id);
+                $txn         = new MeprTransaction($txn_res->id);
                 $txn->status = MeprTransaction::$failed_str;
                 $txn->store();
-            } elseif (
-                isset($_POST['x_subscription_id']) and
-                $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field($_POST['x_subscription_id']))
-            ) {
-                $first_txn = $sub->first_txn();
-                if ($first_txn == false || !($first_txn instanceof MeprTransaction)) {
-                    $coupon_id = $sub->coupon_id;
+            } elseif (isset($_POST['x_subscription_id'])) {
+                $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field($_POST['x_subscription_id']));
+                if ($sub) {
+                    $first_txn = $sub->first_txn();
+                    if ($first_txn == false || !($first_txn instanceof MeprTransaction)) {
+                        $coupon_id = $sub->coupon_id;
+                    } else {
+                        $coupon_id = $first_txn->coupon_id;
+                    }
+
+                    $txn                  = new MeprTransaction();
+                    $txn->user_id         = $sub->user_id;
+                    $txn->product_id      = $sub->product_id;
+                    $txn->coupon_id       = $coupon_id;
+                    $txn->txn_type        = MeprTransaction::$payment_str;
+                    $txn->status          = MeprTransaction::$failed_str;
+                    $txn->subscription_id = $sub->id;
+                    $txn->trans_num       = sanitize_text_field($_POST['x_trans_id']);
+                    $txn->gateway         = $this->id;
+
+                    $txn->set_gross(sanitize_text_field($_POST['x_amount']));
+
+                    $txn->store();
+
+                    $sub->status  = MeprSubscription::$active_str;
+                    $sub->gateway = $this->id;
+                    $sub->expire_txns(); // Expire associated transactions for the old subscription
+                    $sub->store();
                 } else {
-                    $coupon_id = $first_txn->coupon_id;
+                    return false;
                 }
-
-                $txn = new MeprTransaction();
-                $txn->user_id         = $sub->user_id;
-                $txn->product_id      = $sub->product_id;
-                $txn->coupon_id       = $coupon_id;
-                $txn->txn_type        = MeprTransaction::$payment_str;
-                $txn->status          = MeprTransaction::$failed_str;
-                $txn->subscription_id = $sub->id;
-                $txn->trans_num       = sanitize_text_field($_POST['x_trans_id']);
-                $txn->gateway         = $this->id;
-
-                $txn->set_gross(sanitize_text_field($_POST['x_amount']));
-
-                $txn->store();
-
-                $sub->status = MeprSubscription::$active_str;
-                $sub->gateway = $this->id;
-                $sub->expire_txns(); // Expire associated transactions for the old subscription
-                $sub->store();
             } else {
                 return false; // Nothing we can do here ... so we outta here
             }
@@ -394,10 +429,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
                     return;
                 }
 
-                $txn->status   = MeprTransaction::$complete_str;
+                $txn->status = MeprTransaction::$complete_str;
 
                 // This will only work before maybe_cancel_old_sub is run
-                $upgrade = $txn->is_upgrade();
+                $upgrade   = $txn->is_upgrade();
                 $downgrade = $txn->is_downgrade();
 
                 $event_txn = $txn->maybe_cancel_old_sub();
@@ -431,6 +466,11 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         return false;
     }
 
+    /**
+     * Record a refund for a transaction.
+     *
+     * @return mixed
+     */
     public function record_refund()
     {
         if (strtoupper($_REQUEST['x_type']) == 'CREDIT') {
@@ -440,7 +480,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
             }
 
             preg_match('#^(\d+)-#', sanitize_text_field($_POST['x_invoice_num']), $m);
-            $txn_id = $m[1];
+            $txn_id  = $m[1];
             $txn_res = MeprTransaction::get_one($txn_id);
         } elseif (strtoupper($_REQUEST['x_type']) == 'VOID') {
             $txn_res = MeprTransaction::get_one_by_trans_num(sanitize_text_field($_POST['x_trans_id']));
@@ -458,7 +498,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         }
 
         $returned_amount = MeprUtils::format_float(sanitize_text_field($_POST['x_amount']));
-        $current_amount = MeprUtils::format_float($txn->total);
+        $current_amount  = MeprUtils::format_float($txn->total);
 
         if (strtoupper(sanitize_text_field($_POST['x_type'])) == 'CREDIT' and $returned_amount < $current_amount) {
             $txn->set_gross($amount);
@@ -474,14 +514,26 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         return $txn->id;
     }
 
+    /**
+     * Process a refund for a transaction.
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return void
+     */
     public function process_refund(MeprTransaction $txn)
     {
     }
 
+    /**
+     * Process a trial payment for a transaction.
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return mixed
+     */
     public function process_trial_payment($txn)
     {
         $mepr_options = MeprOptions::fetch();
-        $sub = $txn->subscription();
+        $sub          = $txn->subscription();
 
         // Prepare the $txn for the process_payment method
         $txn->set_subtotal($sub->trial_amount + $sub->trial_tax_reversal_amount);
@@ -493,19 +545,31 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         return $this->record_trial_payment($txn);
     }
 
+    /**
+     * Record a trial payment for a transaction.
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return boolean
+     */
     public function record_trial_payment($txn)
     {
         $sub = $txn->subscription();
 
         // Update the txn member vars and store
-        $txn->txn_type = MeprTransaction::$payment_str;
-        $txn->status = MeprTransaction::$complete_str;
+        $txn->txn_type   = MeprTransaction::$payment_str;
+        $txn->status     = MeprTransaction::$complete_str;
         $txn->expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
         $txn->store();
 
         return true;
     }
 
+    /**
+     * Authorize a card before creating a subscription.
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return void
+     */
     public function authorize_card_before_subscription($txn)
     {
         if (MeprHooks::apply_filters('mepr_authorize_skip_auth_charge', false, $txn)) {
@@ -525,19 +589,20 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         $invoice = $this->create_new_order_invoice($sub);
 
         $args = [
-            'x_card_num'       => sanitize_text_field($_POST['mepr_cc_num']),
-            'x_card_code'      => sanitize_text_field($_POST['mepr_cvv_code']),
-            'x_exp_date'       => sprintf('%02d', sanitize_text_field($_POST['mepr_cc_exp_month'])) . '-' . sanitize_text_field($_POST['mepr_cc_exp_year']),
-            'x_amount'         => MeprUtils::format_float(MeprHooks::apply_filters('mepr_authorize_auth_only_amount', 1.00, $txn, $sub)),
-            'x_description'    => $prd->post_title,
-            'x_invoice_num'    => $invoice,
-            'x_first_name'     => $usr->first_name,
-            'x_last_name'      => $usr->last_name,
+            'x_card_num'    => sanitize_text_field($_POST['mepr_cc_num']),
+            'x_card_code'   => sanitize_text_field($_POST['mepr_cvv_code']),
+            'x_exp_date'    => sprintf('%02d', sanitize_text_field($_POST['mepr_cc_exp_month'])) . '-' . sanitize_text_field($_POST['mepr_cc_exp_year']),
+            'x_amount'      => MeprUtils::format_float(MeprHooks::apply_filters('mepr_authorize_auth_only_amount', 1.00, $txn, $sub)),
+            'x_description' => $prd->post_title,
+            'x_invoice_num' => $invoice,
+            'x_first_name'  => $usr->first_name,
+            'x_last_name'   => $usr->last_name,
+            'x_customer_ip' => MeprAntiCardTestingCtrl::get_ip(),
         ];
 
         if ($mepr_options->show_address_fields && $mepr_options->require_address_fields) {
             $args = array_merge([
-                'x_address' => str_replace('&', '&amp;', get_user_meta($usr->ID, 'mepr-address-one', true)),
+                'x_address' => get_user_meta($usr->ID, 'mepr-address-one', true),
                 'x_city'    => get_user_meta($usr->ID, 'mepr-address-city', true),
                 'x_state'   => get_user_meta($usr->ID, 'mepr-address-state', true),
                 'x_zip'     => get_user_meta($usr->ID, 'mepr-address-zip', true),
@@ -546,7 +611,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         }
 
         // If customer provided a new ZIP code let's add it here
-        if (isset($_POST['mepr_zip_post_code']) /* && !empty($_POST['mepr_zip_post_code']) */) {
+        if (
+            isset($_POST['mepr_zip_post_code'])
+            // && !empty($_POST['mepr_zip_post_code'])
+        ) {
             $args['x_zip'] = sanitize_text_field(wp_unslash($_POST['mepr_zip_post_code']));
         }
 
@@ -559,6 +627,13 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         $res2 = $this->send_aim_request('VOID', ['x_trans_id' => $res['transaction_id']]);
     }
 
+    /**
+     * Process the creation of a single subscription.
+     *
+     * @param  MeprTransaction $txn             The transaction object.
+     * @param  boolean         $check_for_trial Whether to check for a trial period.
+     * @return mixed
+     */
     public function process_create_single_subscription($txn, $check_for_trial = false)
     {
         $mepr_options = MeprOptions::fetch();
@@ -584,40 +659,40 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
         // $invoice = $txn->id.'-'.time();
         if (empty($usr->first_name) or empty($usr->last_name)) {
-            $usr->first_name  = sanitize_text_field(wp_unslash($_POST['mepr_first_name']));
-            $usr->last_name   = sanitize_text_field(wp_unslash($_POST['mepr_last_name']));
+            $usr->first_name = sanitize_text_field(wp_unslash($_POST['mepr_first_name']));
+            $usr->last_name  = sanitize_text_field(wp_unslash($_POST['mepr_last_name']));
             $usr->store();
         }
 
         // Default to 9999 for infinite occurrences
-        $invoice = $this->create_new_order_invoice($sub);
+        $invoice           = $this->create_new_order_invoice($sub);
         $total_occurrences = $sub->limit_cycles ? $sub->limit_cycles_num : 9999;
-        $args = [
-            'refId' => $invoice,
+        $args              = [
+            'refId'        => $invoice,
             'subscription' => [
-                'name' => $prd->post_title,
+                'name'            => $prd->post_title,
                 'paymentSchedule' => [
-                    'interval' => $this->arb_subscription_interval($sub),
+                    'interval'         => $this->arb_subscription_interval($sub),
                     // Since Authorize doesn't allow trials that have a different period_type
                     // from the subscription itself we have to do our trials here manually
-                    'startDate' => MeprUtils::get_date_from_ts((time() + (($sub->trial) ? MeprUtils::days($sub->trial_days) : 0)), 'Y-m-d'),
+                    'startDate'        => MeprUtils::get_date_from_ts((time() + (($sub->trial) ? MeprUtils::days($sub->trial_days) : 0)), 'Y-m-d'),
                     'totalOccurrences' => $total_occurrences,
                 ],
-                'amount' => MeprUtils::format_float($sub->total), // Use $sub->total here because $txn->amount may be a trial price
-                'payment' => [
+                'amount'          => MeprUtils::format_float($sub->total), // Use $sub->total here because $txn->amount may be a trial price
+                'payment'         => [
                     'creditCard' => [
-                        'cardNumber' => sanitize_text_field($_POST['mepr_cc_num']),
+                        'cardNumber'     => sanitize_text_field($_POST['mepr_cc_num']),
                         'expirationDate' => sanitize_text_field($_POST['mepr_cc_exp_month']) . '-' . sanitize_text_field($_POST['mepr_cc_exp_year']),
-                        'cardCode' => sanitize_text_field($_POST['mepr_cvv_code']),
+                        'cardCode'       => sanitize_text_field($_POST['mepr_cvv_code']),
                     ],
                 ],
-                'order' => [
+                'order'           => [
                     'invoiceNumber' => $invoice,
-                    'description' => $prd->post_title,
+                    'description'   => $prd->post_title,
                 ],
-                'billTo' => [
+                'billTo'          => [
                     'firstName' => $usr->first_name,
-                    'lastName' => $usr->last_name,
+                    'lastName'  => $usr->last_name,
                 ],
             ],
         ];
@@ -627,7 +702,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
             array_merge(
                 $args['subscription']['billTo'],
                 [
-                    'address' => str_replace('&', '&amp;', get_user_meta($usr->ID, 'mepr-address-one', true)),
+                    'address' => get_user_meta($usr->ID, 'mepr-address-one', true),
                     'city'    => get_user_meta($usr->ID, 'mepr-address-city', true),
                     'state'   => get_user_meta($usr->ID, 'mepr-address-state', true),
                     'zip'     => get_user_meta($usr->ID, 'mepr-address-zip', true),
@@ -656,8 +731,11 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
     }
 
     /**
-     * @param MeprTransaction $order
-     * @param boolean         $check_for_trial
+     * Processes a single order bump.
+     *
+     * @param  MeprTransaction $order           The order transaction object.
+     * @param  boolean         $check_for_trial Whether to check for a trial period.
+     * @return mixed
      */
     public function process_single_order_bump($order, $check_for_trial = false)
     {
@@ -677,14 +755,16 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
     /**
      * Used to send subscription data to a given payment gateway. In gateways
-     * which redirect before this step is necessary this method should just be
-     * left blank.
+     * which redirect before this step is necessary this method should just be left blank.
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return mixed
      */
     public function process_create_subscription($txn)
     {
         $order_bump_product_ids = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];
-        $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
-        $order_bumps = $this->process_order($txn, $order_bump_products);
+        $order_bump_products    = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
+        $order_bumps            = $this->process_order($txn, $order_bump_products);
 
         if (count($order_bumps) < 1) {
             return $this->process_create_single_subscription($txn);
@@ -701,20 +781,22 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
      * the ability to record a successful subscription or a failure. It is this method
      * that should be used when receiving an IPN from PayPal or a Silent Post
      * from Authorize.net.
+     *
+     * @return void
      */
     public function record_create_subscription()
     {
         $mepr_options = MeprOptions::fetch();
 
         if (isset($_POST['txn_id']) and is_numeric($_POST['txn_id'])) {
-            $txn                = new MeprTransaction((int)$_POST['txn_id']);
-            $sub                = $txn->subscription();
-            $sub->subscr_id     = sanitize_text_field($_POST['subscr_id']);
-            $sub->status        = MeprSubscription::$active_str;
-            $sub->created_at    = gmdate('c');
-            $sub->cc_last4      = substr(sanitize_text_field($_POST['mepr_cc_num']), -4); // Seriously ... only grab the last 4 digits!
-            $sub->cc_exp_month  = sanitize_text_field($_POST['mepr_cc_exp_month']);
-            $sub->cc_exp_year   = sanitize_text_field($_POST['mepr_cc_exp_year']);
+            $txn               = new MeprTransaction((int)$_POST['txn_id']);
+            $sub               = $txn->subscription();
+            $sub->subscr_id    = sanitize_text_field($_POST['subscr_id']);
+            $sub->status       = MeprSubscription::$active_str;
+            $sub->created_at   = gmdate('c');
+            $sub->cc_last4     = substr(sanitize_text_field($_POST['mepr_cc_num']), -4); // Seriously ... only grab the last 4 digits!
+            $sub->cc_exp_month = sanitize_text_field($_POST['mepr_cc_exp_month']);
+            $sub->cc_exp_year  = sanitize_text_field($_POST['mepr_cc_exp_year']);
             $sub->store();
 
             // This will only work before maybe_cancel_old_sub is run
@@ -736,10 +818,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
                     $expires_at = $txn->created_at; // Expire immediately
                 }
 
-                $txn->expires_at  = $expires_at;
-                $txn->txn_type    = MeprTransaction::$subscription_confirmation_str;
-                $txn->status      = MeprTransaction::$confirmed_str;
-                $txn->trans_num   = $sub->subscr_id;
+                $txn->expires_at = $expires_at;
+                $txn->txn_type   = MeprTransaction::$subscription_confirmation_str;
+                $txn->status     = MeprTransaction::$confirmed_str;
+                $txn->trans_num  = $sub->subscr_id;
                 $txn->set_subtotal(0.00); // This txn is just a confirmation txn ... it shouldn't have a cost
                 $txn->store(true);
             }
@@ -761,8 +843,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
     /**
      * Used to cancel a subscription by the given gateway. This method should be used
-     * by the class to record a successful cancellation from the gateway. This method
-     * should also be used by any IPN requests or Silent Posts.
+     * by the class to record a successful cancellation from the gateway. This method should also be used by any IPN requests or Silent Posts.
+     *
+     * @param  integer $sub_id The subscription ID.
+     * @return mixed
      */
     public function process_update_subscription($sub_id)
     {
@@ -779,19 +863,19 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         }
 
         $args = [
-            'refId' => $sub->id,
+            'refId'          => $sub->id,
             'subscriptionId' => $sub->subscr_id,
-            'subscription' => [
+            'subscription'   => [
                 'payment' => [
                     'creditCard' => [
-                        'cardNumber' => sanitize_text_field($_POST['update_cc_num']),
+                        'cardNumber'     => sanitize_text_field($_POST['update_cc_num']),
                         'expirationDate' => sanitize_text_field($_POST['update_cc_exp_month']) . '-' . sanitize_text_field($_POST['update_cc_exp_year']),
-                        'cardCode' => sanitize_text_field($_POST['update_cvv_code']),
+                        'cardCode'       => sanitize_text_field($_POST['update_cvv_code']),
                     ],
                 ],
-                'billTo' => [
+                'billTo'  => [
                     'firstName' => $usr->first_name,
-                    'lastName' => $usr->last_name,
+                    'lastName'  => $usr->last_name,
                 ],
             ],
         ];
@@ -801,10 +885,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
             array_merge(
                 $args['subscription']['billTo'],
                 [
-                    'address' => str_replace('&', '&amp;', get_user_meta($usr->ID, 'mepr-address-one', true)),
-                    'city' => get_user_meta($usr->ID, 'mepr-address-city', true),
-                    'state' => get_user_meta($usr->ID, 'mepr-address-state', true),
-                    'zip' => get_user_meta($usr->ID, 'mepr-address-zip', true),
+                    'address' => get_user_meta($usr->ID, 'mepr-address-one', true),
+                    'city'    => get_user_meta($usr->ID, 'mepr-address-city', true),
+                    'state'   => get_user_meta($usr->ID, 'mepr-address-state', true),
+                    'zip'     => get_user_meta($usr->ID, 'mepr-address-zip', true),
                     'country' => get_user_meta(
                         $usr->ID,
                         'mepr-address-country',
@@ -837,6 +921,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
     /**
      * Used to suspend a subscription by the given gateway.
+     *
+     * @param  integer $sub_id The subscription ID.
+     * @return void
      */
     public function process_suspend_subscription($sub_id)
     {
@@ -852,6 +939,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
     /**
      * Used to suspend a subscription by the given gateway.
+     *
+     * @param  integer $sub_id The subscription ID.
+     * @return void
      */
     public function process_resume_subscription($sub_id)
     {
@@ -869,6 +959,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
      * Used to cancel a subscription by the given gateway. This method should be used
      * by the class to record a successful cancellation from the gateway. This method
      * should also be used by any IPN requests or Silent Posts.
+     *
+     * @param  integer $sub_id The subscription ID.
+     * @return boolean
      */
     public function process_cancel_subscription($sub_id)
     {
@@ -882,11 +975,11 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         // to do this when we're "cancelling" because of a natural expiration
         if (!isset($_REQUEST['expire'])) {
             $args = [
-                'refId' => $sub->id,
+                'refId'          => $sub->id,
                 'subscriptionId' => $sub->subscr_id,
             ];
             $args = MeprHooks::apply_filters('mepr_authorize_cancel_subscription_args', $args, $sub);
-            $res = $this->send_arb_request('ARBCancelSubscriptionRequest', $args);
+            $res  = $this->send_arb_request('ARBCancelSubscriptionRequest', $args);
         }
 
         $_POST['subscr_ID'] = $sub->id;
@@ -901,7 +994,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
     public function record_cancel_subscription()
     {
         $subscr_ID = (isset($_POST['subscr_ID'])) ? (int)$_POST['subscr_ID'] : null;
-        $sub = new MeprSubscription($subscr_ID);
+        $sub       = new MeprSubscription($subscr_ID);
 
         if (!isset($sub->id) || $sub->id <= 0) {
             return false;
@@ -930,6 +1023,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
      * This gets called on the 'init' hook when the signup form is processed ...
      * this is in place so that payment solutions like paypal can redirect
      * before any content is rendered.
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return void
      */
     public function process_signup_form($txn)
     {
@@ -939,6 +1035,12 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         // }
     }
 
+    /**
+     * This gets called on the 'init' hook when the signup form is processed ...
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return void
+     */
     public function display_payment_page($txn)
     {
         // Nothing here yet
@@ -979,9 +1081,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
      */
     public function spc_payment_fields()
     {
-        $payment_method = $this;
+        $payment_method      = $this;
         $payment_form_action = 'mepr-authorize-net-payment-form';
-        $txn = new MeprTransaction(); // FIXME: This is simply for the action mepr-authorize-net-payment-form
         return MeprView::get_string('/checkout/payment_form', get_defined_vars());
     }
 
@@ -989,21 +1090,27 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
      * This spits out html for the payment form on the registration / payment
      * page for the user to fill out for payment. If we're using an offsite
      * payment solution like PayPal then this method will just redirect to it.
+     *
+     * @param  float   $amount     The amount to charge.
+     * @param  WP_User $usr        The user object.
+     * @param  integer $product_id The product ID.
+     * @param  integer $txn_id     The transaction ID.
+     * @return void
      */
     public function display_payment_form($amount, $usr, $product_id, $txn_id)
     {
-        $prd = new MeprProduct($product_id);
+        $prd                    = new MeprProduct($product_id);
         $order_bump_product_ids = isset($_REQUEST['obs']) && is_array($_REQUEST['obs']) ? array_map('intval', $_REQUEST['obs']) : [];
-        $coupon = false;
-        $mepr_options = MeprOptions::fetch();
+        $coupon                 = false;
+        $mepr_options           = MeprOptions::fetch();
 
-        $txn = new MeprTransaction($txn_id);
-        $usr = $txn->user();
+        $txn    = new MeprTransaction($txn_id);
+        $usr    = $txn->user();
         $errors = isset($_POST['errors']) ? $_POST['errors'] : [];
 
         // Artifically set the price of the $prd in case a coupon was used
         if ($prd->price != $amount) {
-            $coupon = true;
+            $coupon     = true;
             $prd->price = $amount;
         }
 
@@ -1011,7 +1118,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
         try {
             $order_bump_product_ids = isset($_GET['obs']) && is_array($_GET['obs']) ? array_map('intval', $_GET['obs']) : [];
-            $order_bump_products = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
+            $order_bump_products    = MeprCheckoutCtrl::get_order_bump_products($txn->product_id, $order_bump_product_ids);
 
             foreach ($order_bump_products as $product) {
                 list($transaction, $subscription) = MeprCheckoutCtrl::prepare_transaction(
@@ -1131,12 +1238,18 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         MeprHooks::do_action('mepr-authorize-net-payment-form', $txn);
     }
 
+    /**
+     * This gets called on the 'init' hook when the signup form is processed ...
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return void
+     */
     public function process_payment_form($txn)
     {
         // We're just here to update the user's name if they changed it
-        $user = $txn->user();
+        $user       = $txn->user();
         $first_name = MeprUtils::sanitize_name_field(wp_unslash($_POST['mepr_first_name']));
-        $last_name = MeprUtils::sanitize_name_field(wp_unslash($_POST['mepr_last_name']));
+        $last_name  = MeprUtils::sanitize_name_field(wp_unslash($_POST['mepr_last_name']));
 
         if (empty($user->first_name)) {
             update_user_meta($user->ID, 'first_name', $first_name);
@@ -1152,6 +1265,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
     /**
      * Validates the payment form before a payment is processed
+     *
+     * @param  array $errors The existing errors.
+     * @return array The modified errors.
      */
     public function validate_payment_form($errors)
     {
@@ -1256,7 +1372,10 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
     }
 
     /**
-     * Validates the form for the given payment gateway on the MemberPress Options page
+     * Validate the form for the given payment gateway on the MemberPress Options page
+     *
+     * @param  array $errors The existing errors.
+     * @return array The modified errors.
      */
     public function validate_options_form($errors)
     {
@@ -1288,20 +1407,25 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
     /**
      * Displays the update account form on the subscription account page
-     **/
+     *
+     * @param  integer $sub_id  The subscription ID.
+     * @param  array   $errors  The existing errors.
+     * @param  string  $message The message to display.
+     * @return void
+     */
     public function display_update_account_form($sub_id, $errors = [], $message = '')
     {
         $sub = new MeprSubscription($sub_id);
 
-        $last4 = isset($_POST['update_cc_num']) ? substr(sanitize_text_field($_POST['update_cc_num']), -4) : $sub->cc_last4;
+        $last4     = isset($_POST['update_cc_num']) ? substr(sanitize_text_field($_POST['update_cc_num']), -4) : $sub->cc_last4;
         $exp_month = isset($_POST['update_cc_exp_month']) ? sanitize_text_field($_POST['update_cc_exp_month']) : $sub->cc_exp_month;
-        $exp_year = isset($_POST['update_cc_exp_year']) ? sanitize_text_field($_POST['update_cc_exp_year']) : $sub->cc_exp_year;
+        $exp_year  = isset($_POST['update_cc_exp_year']) ? sanitize_text_field($_POST['update_cc_exp_year']) : $sub->cc_exp_year;
 
         // Only include the full cc number if there are errors
         if (strtolower($_SERVER['REQUEST_METHOD']) == 'post' and empty($errors)) {
-            $sub->cc_last4 = $last4;
+            $sub->cc_last4     = $last4;
             $sub->cc_exp_month = $exp_month;
-            $sub->cc_exp_year = $exp_year;
+            $sub->cc_exp_year  = $exp_year;
             $sub->store();
 
             unset($_POST['update_cvv_code']); // Unset this for security
@@ -1310,7 +1434,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         }
 
         $ccv_code = (isset($_POST['update_cvv_code'])) ? sanitize_text_field($_POST['update_cvv_code']) : '';
-        $exp = sprintf('%02d', $exp_month) . " / {$exp_year}";
+        $exp      = sprintf('%02d', $exp_month) . " / {$exp_year}";
 
         ?>
     <div class="mp_wrapper">
@@ -1382,6 +1506,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
     /**
      * Validates the payment form before a payment is processed
+     *
+     * @param  array $errors The existing errors.
+     * @return array The modified errors.
      */
     public function validate_update_account_form($errors = [])
     {
@@ -1407,6 +1534,9 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
     /**
      * Actually pushes the account update to the payment processor
+     *
+     * @param  integer $sub_id The subscription ID.
+     * @return mixed
      */
     public function process_update_account_form($sub_id)
     {
@@ -1415,17 +1545,32 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
     /**
      * Returns boolean ... whether or not we should be sending in test mode or not
+     *
+     * @return boolean
      */
     public function is_test_mode()
     {
         return (isset($this->settings->test_mode) and $this->settings->test_mode);
     }
 
+    /**
+     * Determines if SSL should be forced.
+     *
+     * @return boolean
+     */
     public function force_ssl()
     {
         return (isset($this->settings->force_ssl) and ($this->settings->force_ssl == 'on' or $this->settings->force_ssl == true));
     }
 
+    /**
+     * Send an AIM request to Authorize.net.
+     *
+     * @param  string $method      The request method.
+     * @param  array  $args        The request arguments.
+     * @param  string $http_method The HTTP method.
+     * @return array The response from Authorize.net.
+     */
     protected function send_aim_request($method, $args, $http_method = 'post')
     {
         $args = array_merge([
@@ -1474,51 +1619,51 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
         if (intval($answers[0]) == 1 or intval($answers[0]) == 4) {
             return [
-                'response_code' => $answers[0],
-                'response_subcode' => $answers[1],
-                'response_reason_code' => $answers[2],
-                'response_reason_text' => $answers[3],
-                'authorization_code' => $answers[4],
-                'avs_response' => $answers[5],
-                'transaction_id' => $answers[6],
-                'invoice_number' => $answers[7],
-                'description' => $answers[8],
-                'amount' => $answers[9],
-                'method' => $answers[10],
-                'transaction_type' => $answers[11],
-                'customer_id' => $answers[12],
-                'first_name' => $answers[13],
-                'last_name' => $answers[14],
-                'company' => $answers[15],
-                'address' => $answers[16],
-                'city' => $answers[17],
-                'state' => $answers[18],
-                'zip_code' => $answers[19],
-                'country' => $answers[20],
-                'phone' => $answers[21],
-                'fax' => $answers[22],
-                'email_address' => $answers[23],
-                'ship_to_first_name' => $answers[24],
-                'ship_to_last_name' => $answers[25],
-                'ship_to_company' => $answers[26],
-                'ship_to_address' => $answers[27],
-                'ship_to_city' => $answers[28],
-                'ship_to_state' => $answers[29],
-                'ship_to_zip' => $answers[30],
-                'ship_to_country' => $answers[31],
-                'tax' => $answers[32],
-                'duty' => $answers[33],
-                'freight' => $answers[34],
-                'tax_exempt' => $answers[35],
+                'response_code'         => $answers[0],
+                'response_subcode'      => $answers[1],
+                'response_reason_code'  => $answers[2],
+                'response_reason_text'  => $answers[3],
+                'authorization_code'    => $answers[4],
+                'avs_response'          => $answers[5],
+                'transaction_id'        => $answers[6],
+                'invoice_number'        => $answers[7],
+                'description'           => $answers[8],
+                'amount'                => $answers[9],
+                'method'                => $answers[10],
+                'transaction_type'      => $answers[11],
+                'customer_id'           => $answers[12],
+                'first_name'            => $answers[13],
+                'last_name'             => $answers[14],
+                'company'               => $answers[15],
+                'address'               => $answers[16],
+                'city'                  => $answers[17],
+                'state'                 => $answers[18],
+                'zip_code'              => $answers[19],
+                'country'               => $answers[20],
+                'phone'                 => $answers[21],
+                'fax'                   => $answers[22],
+                'email_address'         => $answers[23],
+                'ship_to_first_name'    => $answers[24],
+                'ship_to_last_name'     => $answers[25],
+                'ship_to_company'       => $answers[26],
+                'ship_to_address'       => $answers[27],
+                'ship_to_city'          => $answers[28],
+                'ship_to_state'         => $answers[29],
+                'ship_to_zip'           => $answers[30],
+                'ship_to_country'       => $answers[31],
+                'tax'                   => $answers[32],
+                'duty'                  => $answers[33],
+                'freight'               => $answers[34],
+                'tax_exempt'            => $answers[35],
                 'purchase_order_number' => $answers[36],
-                'md5_hash' => $answers[37],
-                'card_code_reason' => $answers[38],
+                'md5_hash'              => $answers[37],
+                'card_code_reason'      => $answers[38],
                 'cardholder_authentication_verification_response' => $answers[39],
-                'account_number' => $answers[40],
-                'card_type' => $answers[51],
-                'split_tender_id' => $answers[52],
-                'requested_amount' => $answers[53],
-                'balance_on_card' => $answers[54],
+                'account_number'        => $answers[40],
+                'card_type'             => $answers[51],
+                'split_tender_id'       => $answers[52],
+                'requested_amount'      => $answers[53],
+                'balance_on_card'       => $answers[54],
             ];
         } else {
             throw new MeprRemoteException($answers[3]);
@@ -1527,13 +1672,21 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         throw new MeprRemoteException($response['body']);
     }
 
+    /**
+     * Send an ARB request to Authorize.net.
+     *
+     * @param  string $method      The request method.
+     * @param  array  $args        The request arguments.
+     * @param  string $http_method The HTTP method.
+     * @return object The response from Authorize.net.
+     */
     protected function send_arb_request($method, $args, $http_method = 'post')
     {
         // This method automatically puts the authentication credentials in place
         $args = array_merge(
             [
                 'merchantAuthentication' => [
-                    'name' => $this->settings->login_name,
+                    'name'           => $this->settings->login_name,
                     'transactionKey' => $this->settings->transaction_key,
                 ],
             ],
@@ -1545,14 +1698,14 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         $content = $this->arb_array_to_xml($method, $args);
 
         $remote_array = [
-            'method' => strtoupper($http_method),
-            'timeout' => 30,
+            'method'      => strtoupper($http_method),
+            'timeout'     => 30,
             'redirection' => 5,
             'httpversion' => '1.0',
-            'blocking' => true,
-            'headers' => ['content-type' => 'application/xml'],
-            'body' => $content,
-            'cookies' => [],
+            'blocking'    => true,
+            'headers'     => ['content-type' => 'application/xml'],
+            'body'        => $content,
+            'cookies'     => [],
         ];
 
         $remote_array = MeprHooks::apply_filters('mepr_authorize_send_arb_request', $remote_array);
@@ -1588,6 +1741,12 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         }
     }
 
+    /**
+     * Get the subscription interval for ARB.
+     *
+     * @param  MeprSubscription $sub The subscription object.
+     * @return array The subscription interval.
+     */
     protected function arb_subscription_interval($sub)
     {
         // Authorize.net doesn't support 'years' or 'weeks' as a unit
@@ -1597,28 +1756,40 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         if ($sub->period_type == 'months') {
             return [
                 'length' => $sub->period,
-                'unit' => 'months',
+                'unit'   => 'months',
             ];
         } elseif ($sub->period_type == 'years') {
             $sub->period = 1; // Force this down to 1 year
             $sub->store();
             return [
                 'length' => 12,
-                'unit' => 'months',
+                'unit'   => 'months',
             ];
         } elseif ($sub->period_type == 'weeks') {
             return [
                 'length' => ($sub->period * 7),
-                'unit' => 'days',
+                'unit'   => 'days',
             ];
         }
     }
 
+    /**
+     * Get the order invoice for a subscription.
+     *
+     * @param  MeprSubscription $sub The subscription object.
+     * @return string The order invoice.
+     */
     protected function get_order_invoice($sub)
     {
         return $sub->token;
     }
 
+    /**
+     * Create a new order invoice for a subscription.
+     *
+     * @param  MeprSubscription $sub The subscription object.
+     * @return string The new order invoice.
+     */
     protected function create_new_order_invoice($sub)
     {
         $inv = strtoupper(substr(preg_replace('/\./', '', uniqid('', true)), -20));
@@ -1640,10 +1811,18 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         return (object)$array;
     }
 
+    /**
+     * Convert an array to XML for ARB requests.
+     *
+     * @param  string  $method The request method.
+     * @param  array   $array  The array to convert.
+     * @param  integer $level  The current level of recursion.
+     * @return string The XML string.
+     */
     protected function arb_array_to_xml($method, $array, $level = 0)
     {
         if ($level == 0) {
-            $xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n";
+            $xml  = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n";
             $xml .= "<{$method} xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\">\n";
         } else {
             $xml = '';
@@ -1668,7 +1847,7 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
                     $xml .= '  ';
                 }
             } else {
-                $xml .= $value;
+                $xml .= esc_xml($value);
             }
 
             // Print End tag

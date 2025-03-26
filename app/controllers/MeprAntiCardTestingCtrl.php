@@ -2,6 +2,11 @@
 
 class MeprAntiCardTestingCtrl extends MeprBaseCtrl
 {
+    /**
+     * Loads the hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('mepr_display_general_options', [$this, 'display_options']);
@@ -11,6 +16,11 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
         add_action('wp_ajax_mepr_anti_card_testing_get_ip', [$this, 'get_detected_ip_ajax']);
     }
 
+    /**
+     * Displays the options.
+     *
+     * @return void
+     */
     public function display_options()
     {
         $mepr_options = MeprOptions::fetch();
@@ -162,9 +172,9 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
      */
     public static function get_ip($method = null)
     {
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options  = MeprOptions::fetch();
         $connection_ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
-        $ips = [];
+        $ips           = [];
 
         if (is_null($method)) {
             $method = $mepr_options->anti_card_testing_ip_method;
@@ -241,7 +251,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
     /**
      * Is the given IP address valid?
      *
-     * @param  string $ip
+     * @param  string $ip The IP address to check.
      * @return boolean
      */
     private static function is_valid_ip_address($ip)
@@ -252,7 +262,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
     /**
      * Is the given IP address private?
      *
-     * @param  string $ip
+     * @param  string $ip The IP address to check.
      * @return boolean
      */
     private static function is_private_ip_address($ip)
@@ -261,6 +271,12 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
         && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
     }
 
+    /**
+     * Records a payment failure.
+     *
+     * @param  string $ip The IP address of the user.
+     * @return void
+     */
     public function record_payment_failure($ip)
     {
         $mepr_options = MeprOptions::fetch();
@@ -275,6 +291,11 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Maybe block a payment.
+     *
+     * @return void
+     */
     public function maybe_block_confirm_payment()
     {
         $this->maybe_block_ip();
@@ -286,6 +307,11 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Maybe block a checkout session.
+     *
+     * @return void
+     */
     public function maybe_block_create_checkout_session()
     {
         $this->maybe_block_ip();
@@ -339,7 +365,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
         $ip = self::get_ip();
 
         if ($ip && !self::is_private_ip_address($ip)) {
-            $failed = (int) get_transient("mepr_failed_payments_$ip");
+            $failed      = (int) get_transient("mepr_failed_payments_$ip");
             $blocked_ips = $mepr_options->anti_card_testing_blocked;
 
             if (!is_array($blocked_ips)) {
@@ -348,13 +374,18 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
 
             // If there have been 5 or more failed payments, add to permanently banned IPs
             if ($failed >= MeprHooks::apply_filters('mepr_card_testing_failure_limit', 5) && !in_array($ip, $blocked_ips, true)) {
-                $blocked_ips[] = $ip;
+                $blocked_ips[]                           = $ip;
                 $mepr_options->anti_card_testing_blocked = $blocked_ips;
                 $mepr_options->store(false);
             }
         }
     }
 
+    /**
+     * Get the detected IP address.
+     *
+     * @return void
+     */
     public function get_detected_ip_ajax()
     {
         if (!MeprUtils::is_logged_in_and_an_admin() || !isset($_GET['method']) || !is_string($_GET['method'])) {
@@ -362,7 +393,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
         }
 
         $valid_methods = ['', 'REMOTE_ADDR', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CF_CONNECTING_IP'];
-        $method = in_array($_GET['method'], $valid_methods, true) ? $_GET['method'] : '';
+        $method        = in_array($_GET['method'], $valid_methods, true) ? $_GET['method'] : '';
 
         wp_send_json_success(self::get_ip($method));
     }

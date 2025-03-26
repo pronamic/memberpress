@@ -6,16 +6,32 @@ if (!defined('ABSPATH')) {
 
 class MeprAddonUpdates
 {
-    public $memberpress_active, $slug, $main_file, $options_key, $title, $desc, $path;
+    public $memberpress_active;
+    public $slug;
+    public $main_file;
+    public $options_key;
+    public $title;
+    public $desc;
+    public $path;
 
+    /**
+     * Constructor.
+     *
+     * @param  string $slug        The slug.
+     * @param  string $main_file   The main file.
+     * @param  string $options_key The options key.
+     * @param  string $title       The title.
+     * @param  string $desc        The description.
+     * @return void
+     */
     public function __construct($slug, $main_file, $options_key = '', $title = '', $desc = '')
     {
-        $this->slug = $slug;
-        $this->main_file = $main_file;
+        $this->slug        = $slug;
+        $this->main_file   = $main_file;
         $this->options_key = $options_key;
-        $this->title = $title;
-        $this->desc = $desc;
-        $this->path = WP_PLUGIN_DIR . '/' . $slug;
+        $this->title       = $title;
+        $this->desc        = $desc;
+        $this->path        = WP_PLUGIN_DIR . '/' . $slug;
 
         add_action('after_setup_theme', [$this, 'load_language']);
         add_filter('pre_set_site_transient_update_plugins', [$this, 'queue_update']);
@@ -28,16 +44,23 @@ class MeprAddonUpdates
         $this->memberpress_active = is_plugin_active('memberpress/memberpress.php');
     }
 
+    /**
+     * Queue update.
+     *
+     * @param  object  $transient          The transient.
+     * @param  boolean $first_time_install The first time install.
+     * @return object
+     */
     public function queue_update($transient, $first_time_install = false)
     {
         if (!$first_time_install && empty($transient->checked)) {
             return $transient;
         }
 
-        $addons_ctrl = MeprCtrlFactory::fetch('addons');
-        $plugin_info = $addons_ctrl->curr_plugin_info($this->main_file);
+        $addons_ctrl       = MeprCtrlFactory::fetch('addons');
+        $plugin_info       = $addons_ctrl->curr_plugin_info($this->main_file);
         $installed_version = (!$first_time_install && isset($plugin_info['Version'])) ? $plugin_info['Version'] : '0.0.0';
-        $update_info = get_site_transient('mepr_update_info_' . $this->slug);
+        $update_info       = get_site_transient('mepr_update_info_' . $this->slug);
 
         if (!is_array($update_info)) {
             $license = $this->license();
@@ -63,7 +86,7 @@ class MeprAddonUpdates
             } else {
                 try {
                     $domain = urlencode(MeprUtils::site_domain());
-                    $args = compact('domain');
+                    $args   = compact('domain');
 
                     if (defined('MEMBERPRESS_EDGE') && MEMBERPRESS_EDGE) {
                         $args['edge'] = 'true';
@@ -122,6 +145,16 @@ class MeprAddonUpdates
         return $transient;
     }
 
+    /**
+     * Send mothership request.
+     *
+     * @param  string  $endpoint The endpoint.
+     * @param  array   $args     The args.
+     * @param  string  $method   The method.
+     * @param  string  $domain   The domain.
+     * @param  boolean $blocking The blocking.
+     * @return object
+     */
     public function send_mothership_request(
         $endpoint,
         $args = [],
@@ -130,8 +163,8 @@ class MeprAddonUpdates
         $blocking = true
     ) {
         $mepr_options = MeprOptions::fetch();
-        $domain = defined('MEPR_MOTHERSHIP_DOMAIN') ? MEPR_MOTHERSHIP_DOMAIN : $domain;
-        $uri = $domain . $endpoint;
+        $domain       = defined('MEPR_MOTHERSHIP_DOMAIN') ? MEPR_MOTHERSHIP_DOMAIN : $domain;
+        $uri          = $domain . $endpoint;
 
         $arg_array = [
             'method'    => strtoupper($method),
@@ -152,7 +185,8 @@ class MeprAddonUpdates
         if (is_wp_error($resp)) {
             throw new Exception(__('You had an HTTP error connecting to Caseproof\'s Mothership API', 'memberpress'));
         } else {
-            if (null !== ($json_res = json_decode($resp['body'], true))) {
+            $json_res = json_decode($resp['body'], true);
+            if (null !== $json_res) {
                 if (isset($json_res['error'])) {
                     throw new Exception($json_res['error']);
                 } else {
@@ -166,12 +200,23 @@ class MeprAddonUpdates
         return false;
     }
 
+    /**
+     * Manually queue update.
+     *
+     * @param  boolean $first_time_install The first time install.
+     * @return void
+     */
     public function manually_queue_update($first_time_install = false)
     {
         $transient = get_site_transient('update_plugins');
         set_site_transient('update_plugins', $this->queue_update($transient, $first_time_install));
     }
 
+    /**
+     * License.
+     *
+     * @return string
+     */
     private function license()
     {
         if ($this->memberpress_active) {
@@ -197,11 +242,16 @@ class MeprAddonUpdates
         }
     }
 
+    /**
+     * Check incorrect edition.
+     *
+     * @return void
+     */
     public function check_incorrect_edition()
     {
         if (MeprUtils::is_incorrect_edition_installed()) {
             printf(
-            /* translators: %1$s: open link tag, %2$s: close link tag */
+            // translators: %1$s: open link tag, %2$s: close link tag
                 ' <strong>' . esc_html__('To restore automatic updates, %1$sinstall the correct edition%2$s of MemberPress.', 'memberpress') . '</strong>',
                 sprintf('<a href="%s">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-license'))),
                 '</a>'
@@ -209,8 +259,13 @@ class MeprAddonUpdates
         }
     }
 
+    /**
+     * Clear update transient.
+     *
+     * @return void
+     */
     public function clear_update_transient()
     {
         delete_site_transient('mepr_update_info_' . $this->slug);
     }
-} //End class
+}

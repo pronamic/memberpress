@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprRuleAccessCondition extends MeprBaseModel
 {
+    /**
+     * Constructor.
+     *
+     * @param object|null $obj The object to initialize the model with.
+     */
     public function __construct($obj = null)
     {
         $this->initialize(
@@ -20,10 +25,17 @@ class MeprRuleAccessCondition extends MeprBaseModel
         );
     }
 
+    /**
+     * Get a single rule access condition by ID.
+     *
+     * @param  integer $id          The rule access condition ID.
+     * @param  string  $return_type The type of return value.
+     * @return object|null
+     */
     public static function get_one($id, $return_type = OBJECT)
     {
         $mepr_db = new MeprDb();
-        $args = compact('id');
+        $args    = compact('id');
 
         return $mepr_db->get_one_record($mepr_db->rule_access_conditions, $args);
     }
@@ -31,6 +43,9 @@ class MeprRuleAccessCondition extends MeprBaseModel
     /**
      * Checks to see if there's already a rule access condition like this.
      * It will return an id if there's one that's been found and '' if not.
+     *
+     * @param  object $rule_access_condition The rule access condition object.
+     * @return integer|string
      */
     public static function rule_access_condition_exists($rule_access_condition)
     {
@@ -64,6 +79,12 @@ class MeprRuleAccessCondition extends MeprBaseModel
         return $id;
     }
 
+    /**
+     * Delete all rule access conditions by rule ID.
+     *
+     * @param  integer $rule_id The rule ID.
+     * @return integer|false
+     */
     public static function delete_all_by_rule($rule_id)
     {
         global $wpdb;
@@ -80,6 +101,11 @@ class MeprRuleAccessCondition extends MeprBaseModel
         return $wpdb->query($q);
     }
 
+    /**
+     * Store the rule access condition.
+     *
+     * @return integer
+     */
     public function store()
     {
         if (isset($this->id) && !is_null($this->id) && (int)$this->id > 0) {
@@ -93,6 +119,12 @@ class MeprRuleAccessCondition extends MeprBaseModel
         return $this->id;
     }
 
+    /**
+     * Create a new rule access condition.
+     *
+     * @param  object $rule_access_condition The rule access condition object.
+     * @return integer
+     */
     public static function create($rule_access_condition)
     {
         // Ensure no duplicate rule access conditions get created
@@ -101,7 +133,7 @@ class MeprRuleAccessCondition extends MeprBaseModel
             return $id;
         }
 
-        $mepr_db = MeprDb::fetch();
+        $mepr_db    = MeprDb::fetch();
         $attributes = $rule_access_condition->get_values();
 
         return MeprHooks::apply_filters(
@@ -112,9 +144,15 @@ class MeprRuleAccessCondition extends MeprBaseModel
         );
     }
 
+    /**
+     * Update a rule access condition.
+     *
+     * @param  object $rule_access_condition The rule access condition object.
+     * @return integer
+     */
     public static function update($rule_access_condition)
     {
-        $mepr_db = new MeprDb();
+        $mepr_db    = new MeprDb();
         $attributes = $rule_access_condition->get_values();
 
         return MeprHooks::apply_filters(
@@ -125,10 +163,15 @@ class MeprRuleAccessCondition extends MeprBaseModel
         );
     }
 
+    /**
+     * Destroy a rule access condition.
+     *
+     * @return integer|false
+     */
     public function destroy()
     {
         $mepr_db = new MeprDb();
-        $args = ['id' => $this->id];
+        $args    = ['id' => $this->id];
 
         $res = $mepr_db->delete_records($mepr_db->rule_access_conditions, $args);
         MeprHooks::do_action('mepr_rule_access_deleted', $this);

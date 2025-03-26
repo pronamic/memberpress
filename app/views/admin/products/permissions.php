@@ -3,6 +3,8 @@
 } ?>
 <?php
 /**
+ * Product
+ *
  * @var MeprProduct $product
  */
 $group = $product->group();

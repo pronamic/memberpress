@@ -1,12 +1,13 @@
 <?php
 
-/*
-    File: lock.php
-    Description: This file prevents access to static files & standalone php scripts if protected.
-             For this file to function properly the .htaccess file must be altered.
-    Author: Caseproof, LLC
-    Copyright: 2004-2013, Caseproof, LLC
-*/
+/**
+ * File: lock.php
+ * Description: This file prevents access to static files & standalone php scripts if protected.
+ *             For this file to function properly the .htaccess file must be altered.
+ * Author: Caseproof, LLC
+ * Copyright: 2004-2013, Caseproof, LLC
+ */
+
 $root = dirname(dirname(dirname(dirname(__FILE__))));
 if (file_exists($root . '/wp-load.php')) {
     require_once($root . '/wp-load.php');
@@ -28,11 +29,11 @@ $full_uri = 'http' . ($is_ssl ? 's' : '') . '://' .
             $_SERVER['REQUEST_URI'];
 
 $mepr_full_uri = preg_replace('#^(https?://[^/]*).*$#', '$1', home_url()) . $mepr_uri;
-$full_uri = preg_replace('#^(https?://[^/]*).*$#', '$1', $full_uri) . $mepr_uri;
+$full_uri      = preg_replace('#^(https?://[^/]*).*$#', '$1', $full_uri) . $mepr_uri;
 
-$subdir = preg_replace('#^https?://[^/]+#', '', site_url());
-$mepr_filename = basename($mepr_uri);
-$from_abspath_uri = substr(str_replace($subdir, '', $mepr_uri), 1);
+$subdir             = preg_replace('#^https?://[^/]+#', '', site_url());
+$mepr_filename      = basename($mepr_uri);
+$from_abspath_uri   = substr(str_replace($subdir, '', $mepr_uri), 1);
 $mepr_full_filename = ABSPATH . $from_abspath_uri;
 
 // Redirecting unless the correct home_url is used
@@ -42,7 +43,8 @@ if ($mepr_full_uri != $full_uri) {
 }
 
 // Figure out the rule hash for this uri
-if ($user = MeprUtils::get_currentuserinfo()) {
+$user = MeprUtils::get_currentuserinfo();
+if ($user) {
     $rule_hash = md5($mepr_uri . $user->ID . wp_salt());
 } else {
     $rule_hash = md5($mepr_uri . wp_salt());
@@ -54,7 +56,7 @@ mepr_clean_rule_files();
 // Handle when a URI is locked
 if (MeprRule::is_uri_locked($mepr_uri)) {
     $mepr_options = MeprOptions::fetch();
-    $delim = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
+    $delim        = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
 
     if ($mepr_options->redirect_on_unauthorized) { // Send to unauth page
         $redirect_url = $mepr_options->unauthorized_redirect_url . $delim . 'action=mepr_unauthorized&redirect_to=' . urlencode($mepr_full_uri);
@@ -98,11 +100,12 @@ function mepr_redirect_locked_uri($mepr_uri, $rule_hash)
     exit;
 }
 
+// Render the locked file
 function mepr_render_locked_file($filename)
 {
     // Trim any params from the filename
-    $filename = preg_replace('#\?.*$#', '', $filename);
-    $info = wp_check_filetype($filename);
+    $filename      = preg_replace('#\?.*$#', '', $filename);
+    $info          = wp_check_filetype($filename);
     $file_contents = file_get_contents($filename);
     header("Content-Type: {$info['type']}");
     echo $file_contents;

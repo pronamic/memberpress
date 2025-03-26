@@ -418,11 +418,11 @@
       var hide_options_func = function(id) {
         if(id === 'had') {
           $('#_mepr_product_who_can_purchase-product_id')
-            .find('option[value=nothing], option[value=subscribed-before], option[value=not-subscribed-before]')
+            .find('option[value=nothing], option[value=subscribed-before], option[value=not-subscribed-before], option[value=not-subscribed-any-before]')
             .hide();
         }else {
           $('#_mepr_product_who_can_purchase-product_id')
-            .find('option[value=nothing], option[value=subscribed-before], option[value=not-subscribed-before]')
+            .find('option[value=nothing], option[value=subscribed-before], option[value=not-subscribed-before], option[value=not-subscribed-any-before]')
             .show();
         }
       };

@@ -6,9 +6,18 @@ if (!defined('ABSPATH')) {
 
 class MeprOptionsHelper
 {
+    /**
+     * Wp pages dropdown.
+     *
+     * @param  string  $field_name The field name.
+     * @param  integer $page_id    The page id.
+     * @param  string  $auto_page  The auto page.
+     * @param  boolean $blank_page The blank page.
+     * @return void
+     */
     public static function wp_pages_dropdown($field_name, $page_id = 0, $auto_page = '', $blank_page = false)
     {
-        $pages = MeprUtils::get_pages();
+        $pages            = MeprUtils::get_pages();
         $selected_page_id = (isset($_POST[$field_name]) ? $_POST[$field_name] : $page_id);
 
         ?>
@@ -41,6 +50,13 @@ class MeprOptionsHelper
         }
     }
 
+    /**
+     * Payment types dropdown.
+     *
+     * @param  string $field_name   The field name.
+     * @param  string $payment_type The payment type.
+     * @return void
+     */
     public static function payment_types_dropdown($field_name, $payment_type)
     {
         $payment_types = [
@@ -63,10 +79,17 @@ class MeprOptionsHelper
         <?php
     }
 
+    /**
+     * Payment currencies dropdown.
+     *
+     * @param  string $field_name       The field name.
+     * @param  string $payment_currency The payment currency.
+     * @return void
+     */
     public static function payment_currencies_dropdown($field_name, $payment_currency)
     {
-        $payment_currencies = MeprHooks::apply_filters('mepr-currency-symbols', ['$', 'US$', '£', '€', '¥', ' kr', 'Kn', 'R$', '฿', '₹', 'zł', ' лв', ' Ft', 'Rp', 'R', '₪', '﷼', 'CHF', ' din.', ' дин.', 'KSh', 'RM', 'Rs', 'руб', '₽', 'NT$', 'Mex$', 'P', 'lei', 'JOD', '₺', 'S/.', '₱', 'د.إ', 'Kč', '₦', '₩', 'ل.د', '₫', 'ƒ', 'GH₵', 'S$', 'K', 'CFA', 'USh', 'AED', 'د.م.', 'रु']);
-        $field_value = isset($_POST[$field_name]) ? $_POST[$field_name] : null;
+        $payment_currencies = MeprHooks::apply_filters('mepr-currency-symbols', ['$', 'US$', '£', '€', '¥', ' kr', 'Kn', 'R$', '฿', '₹', 'zł', ' лв', ' Ft', 'Rp', 'R', '₪', '﷼', 'CHF', ' din.', ' дин.', 'KSh', 'RM', 'Rs', 'руб', '₽', 'NT$', 'Mex$', 'P', 'lei', 'JOD', '₺', 'S/.', '₱', 'د.إ', 'Kč', '₦', '₩', 'ل.د', '₫', 'ƒ', 'GH₵', 'S$', 'K', 'CFA', 'USh', 'AED', 'د.م.', 'रु', 'UM']);
+        $field_value        = isset($_POST[$field_name]) ? $_POST[$field_name] : null;
 
         ?>
       <select name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" class="mepr-dropdown mepr-payment-currencies-dropdown">
@@ -81,9 +104,16 @@ class MeprOptionsHelper
         <?php
     }
 
+    /**
+     * Payment currency code dropdown.
+     *
+     * @param  string $field_name The field name.
+     * @param  string $code       The code.
+     * @return void
+     */
     public static function payment_currency_code_dropdown($field_name, $code)
     {
-        $codes = MeprHooks::apply_filters('mepr-currency-codes', ['USD', 'AED', 'AUD', 'AWG', 'BGN', 'BRL', 'BWP', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CVE', 'CZK', 'DKK', 'EUR', 'GBP', 'GHS', 'HKD', 'HRK', 'HUF', 'HUN', 'IDR', 'ILS', 'INR', 'ISK', 'JOD', 'JPY', 'KES', 'KRW', 'LYD', 'MAD', 'MMK', 'MXN', 'MYR', 'NGN', 'NOK', 'NPR', 'NZD', 'PEN', 'PHP', 'PKR', 'PLN', 'RON', 'RSD', 'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'UGX', 'VND', 'XOF', 'ZAR', 'ZMW']);
+        $codes       = MeprHooks::apply_filters('mepr-currency-codes', ['USD', 'AED', 'AUD', 'AWG', 'BGN', 'BRL', 'BWP', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CVE', 'CZK', 'DKK', 'EUR', 'GBP', 'GHS', 'HKD', 'HRK', 'HUF', 'HUN', 'IDR', 'ILS', 'INR', 'ISK', 'JOD', 'JPY', 'KES', 'KRW', 'LYD', 'MAD', 'MMK', 'MRU', 'MXN', 'MYR', 'NGN', 'NOK', 'NPR', 'NZD', 'PEN', 'PHP', 'PKR', 'PLN', 'RON', 'RSD', 'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'UGX', 'VND', 'XOF', 'ZAR', 'ZMW']);
         $field_value = isset($_POST[$field_name]) ? $_POST[$field_name] : null;
 
         ?>
@@ -99,9 +129,16 @@ class MeprOptionsHelper
         <?php
     }
 
+    /**
+     * Payment language code dropdown.
+     *
+     * @param  string $field_name The field name.
+     * @param  string $code       The code.
+     * @return void
+     */
     public static function payment_language_code_dropdown($field_name, $code)
     {
-        $codes = MeprHooks::apply_filters('mepr-language-codes', ['US', 'AE', 'AR', 'AU', 'BG', 'BR', 'CH', 'CN', 'CO', 'CZ', 'DE', 'DK', 'EN', 'ES', 'ET', 'FI', 'FR', 'GB', 'HE', 'HR', 'HU', 'ID', 'IS', 'IT', 'JP', 'KR', 'MS', 'MX', 'NL', 'NO', 'NP', 'PE', 'PH', 'PL', 'PT', 'RO', 'RU', 'SE', 'SG', 'SK', 'SR', 'SW', 'TH', 'TN', 'TR', 'TW', 'VI', 'ZA']);
+        $codes       = MeprHooks::apply_filters('mepr-language-codes', ['US', 'AE', 'AR', 'AU', 'BG', 'BR', 'CH', 'CN', 'CO', 'CZ', 'DE', 'DK', 'EN', 'ES', 'ET', 'FI', 'FR', 'GB', 'HE', 'HR', 'HU', 'ID', 'IS', 'IT', 'JP', 'KR', 'MS', 'MX', 'NL', 'NO', 'NP', 'PE', 'PH', 'PL', 'PT', 'RO', 'RU', 'SE', 'SG', 'SK', 'SR', 'SW', 'TH', 'TN', 'TR', 'TW', 'VI', 'ZA']);
         $field_value = isset($_POST[$field_name]) ? $_POST[$field_name] : null;
 
         ?>
@@ -117,9 +154,17 @@ class MeprOptionsHelper
         <?php
     }
 
+    /**
+     * Gateways dropdown.
+     *
+     * @param  string  $field_name   The field name.
+     * @param  string  $curr_gateway The current gateway.
+     * @param  integer $obj_id       The object id.
+     * @return void
+     */
     public static function gateways_dropdown($field_name, $curr_gateway, $obj_id)
     {
-        $gateways = MeprGatewayFactory::all();
+        $gateways    = MeprGatewayFactory::all();
         $field_value = isset($_POST[$field_name]) ? $_POST[$field_name] : '';
 
         // Move Stripe Gateway to the top of the list
@@ -166,10 +211,15 @@ class MeprOptionsHelper
         <?php
     }
 
+    /**
+     * Show existing custom fields.
+     *
+     * @return void
+     */
     public static function show_existing_custom_fields()
     {
         $mepr_options = MeprOptions::fetch();
-        $blank_line = [
+        $blank_line   = [
             (object)[
                 'field_key'       => '',
                 'field_name'      => '',
@@ -207,14 +257,14 @@ class MeprOptionsHelper
     /**
      * Radios for payment methods
      *
-     * @param  MeprBaseRealGateway[] $payment_methods
+     * @param  MeprBaseRealGateway[] $payment_methods The payment methods.
      * @return string Radio HTML
      */
     public static function payment_methods_radios($payment_methods)
     {
         $field_name = 'mepr_payment_method';
         $radio_html = '';
-        $first = true;
+        $first      = true;
 
         foreach ($payment_methods as $payment_method) {
             $label = self::payment_method_label($payment_method, $first);
@@ -264,15 +314,15 @@ class MeprOptionsHelper
     /**
      * Payment method descriptions and SPC forms
      *
-     * @param  MeprBaseRealGateway[] $payment_methods
-     * @param  MeprProduct|null      $product
+     * @param  MeprBaseRealGateway[] $payment_methods The payment methods.
+     * @param  MeprProduct|null      $product         The product.
      * @return string Payment method descriptions and SPC forms HTML
      */
     public static function payment_methods_descriptions($payment_methods, $product = null)
     {
         $field_name = 'mepr_payment_method';
-        $desc_html = '';
-        $first = true;
+        $desc_html  = '';
+        $first      = true;
 
         foreach ($payment_methods as $payment_method) {
             $desc = '';
@@ -281,7 +331,7 @@ class MeprOptionsHelper
                 $desc = wpautop(esc_html(trim(stripslashes($payment_method->desc))));
             }
 
-            $desc = MeprHooks::apply_filters('mepr_signup_form_payment_description', $desc, $payment_method, $first, $product);
+            $desc  = MeprHooks::apply_filters('mepr_signup_form_payment_description', $desc, $payment_method, $first, $product);
             $first = false;
 
             if (!empty($desc)) {
@@ -306,18 +356,18 @@ class MeprOptionsHelper
     /**
      * Payment methods icons
      *
-     * @param  MeprBaseRealGateway[] $payment_methods
+     * @param  MeprBaseRealGateway[] $payment_methods The payment methods.
      * @return string Icon HTML
      */
     public static function payment_methods_icons($payment_methods)
     {
         $mepr_options = MeprOptions::fetch();
-        $icons = [];
-        $icon_html = '';
+        $icons        = [];
+        $icon_html    = '';
         foreach ($payment_methods as $payment_method) {
             $first = true;
-            $icon = $payment_method->icon;
-            $name = $payment_method->name;
+            $icon  = $payment_method->icon;
+            $name  = $payment_method->name;
             // Ensure icons are unique
             if (in_array($icon, $icons)) {
                 continue;
@@ -331,7 +381,7 @@ class MeprOptionsHelper
             }
 
             $icon_html .= MeprHooks::apply_filters('mepr_signup_form_payment_icon', $icon, $payment_method, $first);
-            $first = false;
+            $first      = false;
         }
 
         return $icon_html;
@@ -340,8 +390,8 @@ class MeprOptionsHelper
     /**
      * Label for payment method
      *
-     * @param  object  $payment_method
-     * @param  boolean $first
+     * @param  object  $payment_method The payment method.
+     * @param  boolean $first          The first.
      * @return string Label HTML
      */
     private static function payment_method_label($payment_method, $first)
@@ -360,14 +410,14 @@ class MeprOptionsHelper
     /**
      * Payment method description
      *
-     * @param  MeprBaseRealGateway $payment_method
+     * @param  MeprBaseRealGateway $payment_method The payment method.
      * @return string Payment method description HTML
      */
     public static function payment_method_description($payment_method)
     {
         $mepr_options = MeprOptions::fetch();
-        $field_name = 'mepr_payment_method';
-        $desc_html = '';
+        $field_name   = 'mepr_payment_method';
+        $desc_html    = '';
 
         $desc = wpautop(wp_kses_post(trim(stripslashes($payment_method->desc))));
 
@@ -386,17 +436,25 @@ class MeprOptionsHelper
         return $desc_html;
     }
 
+    /**
+     * Payment methods dropdown.
+     *
+     * @param  string           $field_name The field name.
+     * @param  array            $pms        The payment methods.
+     * @param  MeprProduct|null $product    The product.
+     * @return string Payment methods dropdown HTML
+     */
     public static function payment_methods_dropdown($field_name, $pms = false, $product = null)
     {
         $mepr_options = MeprOptions::fetch();
-        $pms = $pms ? $pms : array_keys($mepr_options->integrations);
-        $pms = MeprHooks::apply_filters('mepr_options_helper_payment_methods', $pms, $field_name, $product);
+        $pms          = $pms ? $pms : array_keys($mepr_options->integrations);
+        $pms          = MeprHooks::apply_filters('mepr_options_helper_payment_methods', $pms, $field_name, $product);
 
         if (count($pms) == 0) :
             return false;
         elseif (count($pms) == 1) :
             $pm_id = array_shift($pms);
-            $obj = $mepr_options->payment_method($pm_id);
+            $obj   = $mepr_options->payment_method($pm_id);
 
             if ($obj instanceof MeprBaseRealGateway) :
                 $classes = [];
@@ -418,9 +476,9 @@ class MeprOptionsHelper
             ?><div class="mp-form-row <?php echo esc_attr($field_name); ?>-wrapper"><?php
         $first = true;
 foreach ($pms as $pm_id) :
-    $obj = $mepr_options->payment_method($pm_id);
+    $obj   = $mepr_options->payment_method($pm_id);
     $label = esc_html(trim($obj->label));
-    $desc = wpautop(trim(stripslashes($obj->desc)));
+    $desc  = wpautop(trim(stripslashes($obj->desc)));
 
     // This will ensure that the first pm is checked by default
     if ($first) {
@@ -442,13 +500,13 @@ foreach ($pms as $pm_id) :
         $label = '';
     }
 
-            $icon   = MeprHooks::apply_filters('mepr_signup_form_payment_icon', $icon, $obj, $first);
-            $label  = MeprHooks::apply_filters('mepr_signup_form_payment_label', $label, $obj, $first);
-            $desc   = MeprHooks::apply_filters('mepr_signup_form_payment_description', $desc, $obj, $first, $product);
+            $icon  = MeprHooks::apply_filters('mepr_signup_form_payment_icon', $icon, $obj, $first);
+            $label = MeprHooks::apply_filters('mepr_signup_form_payment_label', $label, $obj, $first);
+            $desc  = MeprHooks::apply_filters('mepr_signup_form_payment_description', $desc, $obj, $first, $product);
 
     if ($obj->use_desc && !empty($desc)) {
         $desc_hidden = ($_POST[$field_name] == $obj->id ? '' : ' mepr-hidden');
-        $desc = '<div class="mepr-payment-method-desc-text mp-pm-desc-' . $obj->id . $desc_hidden . '">' . $desc . '</div>';
+        $desc        = '<div class="mepr-payment-method-desc-text mp-pm-desc-' . $obj->id . $desc_hidden . '">' . $desc . '</div>';
     } else {
         $desc = '';
     }
@@ -490,12 +548,28 @@ endforeach;
         endif;
     }
 
+    /**
+     * Format plaintext email.
+     *
+     * @param  string $text The text.
+     * @return string Formatted plaintext email HTML
+     */
     public static function format_plaintext_email($text)
     {
         // Don't be alarmed, inline styles are required in emails
         return '<div id="body" style="width: 600px; background: white; padding: 40px; margin: 0 auto; text-align: left;">' . wpautop(make_clickable($text), true) . '</div>';
     }
 
+    /**
+     * Display show excerpts dropdown.
+     *
+     * @param  string  $excerpt_type_str The excerpt type string.
+     * @param  string  $excerpt_type     The excerpt type.
+     * @param  string  $excerpt_size_str The excerpt size string.
+     * @param  string  $excerpt_size     The excerpt size.
+     * @param  boolean $global           The global.
+     * @return void
+     */
     public static function display_show_excerpts_dropdown($excerpt_type_str, $excerpt_type, $excerpt_size_str, $excerpt_size, $global = false)
     {
         ?>
@@ -541,6 +615,15 @@ endforeach;
         <?php
     }
 
+    /**
+     * Display unauth message dropdown.
+     *
+     * @param  string $message_type_str The message type string.
+     * @param  string $message_type     The message type.
+     * @param  string $message_str      The message string.
+     * @param  string $message          The message.
+     * @return void
+     */
     public static function display_unauth_message_dropdown($message_type_str, $message_type, $message_str, $message)
     {
         ?>
@@ -562,6 +645,15 @@ endforeach;
         <?php
     }
 
+
+
+    /**
+     * Display unauth login dropdown.
+     *
+     * @param  string $login_str The login string.
+     * @param  string $login     The login.
+     * @return void
+     */
     public static function display_unauth_login_dropdown($login_str, $login)
     {
         ?>
@@ -578,6 +670,11 @@ endforeach;
         <?php
     }
 
+    /**
+     * Admin privacy settings link.
+     *
+     * @return string Admin privacy settings link
+     */
     public static function admin_privacy_settings_link()
     {
         global $wp_version;
@@ -588,4 +685,4 @@ endforeach;
 
         return admin_url('options-privacy.php');
     }
-} //End class
+}

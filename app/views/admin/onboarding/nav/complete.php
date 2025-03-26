@@ -5,7 +5,7 @@
 <?php
 MeprView::render('/admin/onboarding/video', [
     'youtube_video_id' => 'Oxv63nivZEw',
-    'step' => '8',
+    'step'             => '8',
 ]);
 ?>
 <div>

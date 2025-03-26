@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprUsersHelper
 {
+    /**
+     * Gets the email vars.
+     *
+     * @return array
+     */
     public static function get_email_vars()
     {
         return MeprHooks::apply_filters(
@@ -37,11 +42,17 @@ class MeprUsersHelper
         );
     }
 
+    /**
+     * Gets the email params.
+     *
+     * @param  WP_User $usr The user.
+     * @return array
+     */
     public static function get_email_params($usr)
     {
         $mepr_options = MeprOptions::fetch();
-        $ts = MeprUtils::db_date_to_ts($usr->user_registered);
-        $usr_date = date_i18n(__('F j, Y, g:i a', 'memberpress'), $ts, true);
+        $ts           = MeprUtils::db_date_to_ts($usr->user_registered);
+        $usr_date     = date_i18n(__('F j, Y, g:i a', 'memberpress'), $ts, true);
 
         $params = [
             'user_id'            => $usr->ID,
@@ -85,12 +96,21 @@ class MeprUsersHelper
         return MeprHooks::apply_filters('mepr_user_email_params', $params, $usr);
     }
 
+    /**
+     * Renders the custom field.
+     *
+     * @param  object $line          The line.
+     * @param  string $value         The value.
+     * @param  array  $classes       The classes.
+     * @param  string $unique_suffix The unique suffix.
+     * @return string
+     */
     public static function render_custom_field($line, $value = '', $classes = [], $unique_suffix = '')
     {
         $required_attr = $line->required ? 'required' : '';
-        $array_types = ['multiselect', 'checkboxes']; // If we update this, we need make sure it doesn't break the {$usermeta:slug} stuff in MeprTransactionsHelper
-        $bool_types  = ['checkbox'];
-        $classes = MeprHooks::apply_filters('mepr-custom-field-classes', $classes, $line);
+        $array_types   = ['multiselect', 'checkboxes']; // If we update this, we need make sure it doesn't break the {$usermeta:slug} stuff in MeprTransactionsHelper
+        $bool_types    = ['checkbox'];
+        $classes       = MeprHooks::apply_filters('mepr-custom-field-classes', $classes, $line);
         if (isset($line->placeholder)) {
             $placeholder_attr = (isset($line->required) && $line->required) ? 'placeholder="' . $line->placeholder . '*"' : 'placeholder="' . $line->placeholder . '"';
         } else {
@@ -191,9 +211,9 @@ class MeprUsersHelper
 
             case 'dropdown':
             case 'multiselect':
-                $is_multi = $line->field_type === 'multiselect';
+                $is_multi    = $line->field_type === 'multiselect';
                 $multiselect = $is_multi ? 'multiple="true"' : '';
-                $ms_class = $is_multi ? 'mepr-multi-select-field' : '';
+                $ms_class    = $is_multi ? 'mepr-multi-select-field' : '';
                 $select_name = $is_multi ? "{$line->field_key}[]" : $line->field_key;
 
                 ?>
@@ -259,12 +279,18 @@ class MeprUsersHelper
         return MeprHooks::apply_filters('mepr_custom_field_html', ob_get_clean(), $line, $value);
     }
 
+    /**
+     * Renders the address fields.
+     *
+     * @return void
+     */
     public static function render_address_fields()
     {
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options  = MeprOptions::fetch();
         $unique_suffix = '';
 
-        if ($logged_in = MeprUtils::is_user_logged_in()) {
+        $logged_in = MeprUtils::is_user_logged_in();
+        if ($logged_in) {
             $user = MeprUtils::get_currentuserinfo();
         }
 
@@ -273,16 +299,26 @@ class MeprUsersHelper
 
         foreach ($address_fields as $line) {
             $required = $line->required ? '*' : '';
-            $value = $logged_in ? get_user_meta($user->ID, $line->field_key, true) : '';
+            $value    = $logged_in ? get_user_meta($user->ID, $line->field_key, true) : '';
             MeprView::render('checkout/signup_row', get_defined_vars());
         }
     }
 
+    /**
+     * Renders the custom fields.
+     *
+     * @param  MeprProduct $product       The product.
+     * @param  string      $from_page     The from page.
+     * @param  string      $unique_suffix The unique suffix.
+     * @param  boolean     $show_address  The show address.
+     * @return void
+     */
     public static function render_custom_fields($product = null, $from_page = null, $unique_suffix = '', $show_address = true)
     {
         $mepr_options = MeprOptions::fetch();
 
-        if ($logged_in = MeprUtils::is_user_logged_in()) {
+        $logged_in = MeprUtils::is_user_logged_in();
+        if ($logged_in) {
             $user = MeprUtils::get_currentuserinfo();
         }
 
@@ -343,8 +379,8 @@ class MeprUsersHelper
             case 'multiselect':
             case 'checkboxes':
                 $options = $field->options;
-                $values = [];
-                $value = (array) $value;
+                $values  = [];
+                $value   = (array) $value;
                 foreach ($options as $option) {
                     if (in_array($option->option_value, $value) || array_key_exists($option->option_value, $value)) {
                         $values[] = $option->option_name;
@@ -379,6 +415,12 @@ class MeprUsersHelper
         <?php
     }
 
+    /**
+     * Gets the address fields.
+     *
+     * @param  WP_User $user The user.
+     * @return array
+     */
     public static function get_address_fields($user)
     {
         $mepr_options = MeprOptions::fetch();
@@ -404,7 +446,8 @@ class MeprUsersHelper
     {
         $mepr_options = MeprOptions::fetch();
 
-        if ($logged_in = MeprUtils::is_user_logged_in()) {
+        $logged_in = MeprUtils::is_user_logged_in();
+        if ($logged_in) {
             $user = MeprUtils::get_currentuserinfo();
         }
 
@@ -427,8 +470,13 @@ class MeprUsersHelper
         return $custom_fields;
     }
 
-    // Renders the actual custom fields setup by the admin user. The fields rendered here are
-    // to allow admins and the users themselves to display and edit values for the custom fields.
+    /**
+     * Renders the actual custom fields setup by the admin user. The fields rendered here are
+     * to allow admins and the users themselves to display and edit values for the custom fields.
+     *
+     * @param  WP_User $user The user.
+     * @return void
+     */
     public static function render_editable_custom_fields($user = null)
     {
         $mepr_options = MeprOptions::fetch();
@@ -463,12 +511,12 @@ class MeprUsersHelper
           <td>
                 <?php
                 echo self::render_custom_field($line, $value, [
-                    'text' => 'regular-text',
-                    'email' => 'regular-text',
-                    'url' => 'regular-text',
+                    'text'     => 'regular-text',
+                    'email'    => 'regular-text',
+                    'url'      => 'regular-text',
                     'textarea' => 'regular-text',
-                    'date' => 'regular-text',
-                    'states' => 'regular-text',
+                    'date'     => 'regular-text',
+                    'states'   => 'regular-text',
                 ]);
                 ?>
           </td>
@@ -486,23 +534,23 @@ class MeprUsersHelper
     public static function get_allowed_mime_types()
     {
         $mimes = [
-            'jpg|jpeg|jpe'  => 'image/jpeg',
-            'gif' => 'image/gif',
-            'png' => 'image/png',
-            'tiff|tif'  => 'image/tiff',
-            'txt|asc|c|cc|h|srt'  => 'text/plain',
-            'csv' => 'text/csv',
-            'rtx' => 'text/richtext',
-            'zip' => 'application/zip',
-            'doc' => 'application/msword',
-            'pot|pps|ppt' => 'application/vnd.ms-powerpoint',
-            'xla|xls|xlt|xlw' => 'application/vnd.ms-excel',
-            'docx'  => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'pptx'  => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            'odt' => 'application/vnd.oasis.opendocument.text',
-            'odp' => 'application/vnd.oasis.opendocument.presentation',
-            'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
-            'pdf' => 'application/pdf',
+            'jpg|jpeg|jpe'       => 'image/jpeg',
+            'gif'                => 'image/gif',
+            'png'                => 'image/png',
+            'tiff|tif'           => 'image/tiff',
+            'txt|asc|c|cc|h|srt' => 'text/plain',
+            'csv'                => 'text/csv',
+            'rtx'                => 'text/richtext',
+            'zip'                => 'application/zip',
+            'doc'                => 'application/msword',
+            'pot|pps|ppt'        => 'application/vnd.ms-powerpoint',
+            'xla|xls|xlt|xlw'    => 'application/vnd.ms-excel',
+            'docx'               => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'pptx'               => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'odt'                => 'application/vnd.oasis.opendocument.text',
+            'odp'                => 'application/vnd.oasis.opendocument.presentation',
+            'ods'                => 'application/vnd.oasis.opendocument.spreadsheet',
+            'pdf'                => 'application/pdf',
         ];
 
         return MeprHooks::apply_filters('mepr_upload_mimes', $mimes);
@@ -512,21 +560,20 @@ class MeprUsersHelper
     /**
      * Returns user file upload directory
      *
-     * @param  mixed $dir
-     * @return void
+     * @param  mixed $dir The directory.
+     * @return array
      */
     public static function get_upload_dir($dir)
     {
         $dir['path'] = $dir['basedir'] . '/mepr/userfiles';
-        $dir['url'] = $dir['baseurl'] . '/mepr/userfiles';
+        $dir['url']  = $dir['baseurl'] . '/mepr/userfiles';
         return $dir;
     }
 
     /**
      * Checks of uploaded file exists
      *
-     * @param mixed $url accepts URL
-     *
+     * @param  mixed $url The URL.
      * @return boolean
      */
     public static function uploaded_file_exists($url)
@@ -535,12 +582,12 @@ class MeprUsersHelper
             return false;
         }
 
-        $path = parse_url($url, PHP_URL_PATH);
-        $filename = pathinfo($path, PATHINFO_FILENAME);
+        $path      = parse_url($url, PHP_URL_PATH);
+        $filename  = pathinfo($path, PATHINFO_FILENAME);
         $extension = pathinfo($path, PATHINFO_EXTENSION);
 
         $upload_dir = wp_get_upload_dir();
-        $file_path = $upload_dir['basedir'] . '/mepr/userfiles/' . $filename . '.' . $extension;
+        $file_path  = $upload_dir['basedir'] . '/mepr/userfiles/' . $filename . '.' . $extension;
 
         return file_exists($file_path) && is_file($file_path);
     }

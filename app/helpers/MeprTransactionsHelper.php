@@ -7,19 +7,28 @@ if (!defined('ABSPATH')) {
 class MeprTransactionsHelper
 {
     /**
+     * Formats a transaction's currency display.
      * Especially for formatting a subscription's price
+     *
+     * @param MeprTransaction $txn           The transaction object.
+     * @param boolean         $show_symbol   Whether to show the currency symbol.
+     * @param boolean         $show_prorated Whether to show prorated amounts.
+     *
+     * @return string The formatted currency string.
      */
     public static function format_currency($txn, $show_symbol = true, $show_prorated = true)
     {
         $coupon_code = null;
-        if ($coupon = $txn->coupon()) {
+        $coupon      = $txn->coupon();
+        if ($coupon) {
             $coupon_code = $coupon->post_title;
         }
 
-        if ($obj = $txn->subscription()) {
+        $obj = $txn->subscription();
+        if ($obj) {
             $price = $obj->price;
         } else {
-            $obj = $txn->product();
+            $obj               = $txn->product();
             $obj->expire_fixed = $txn->expires_at;
 
             // If the txn is expired -- don't check for pro-rations
@@ -64,6 +73,11 @@ class MeprTransactionsHelper
         <?php
     }
 
+    /**
+     * Retrieves email variables for transactions.
+     *
+     * @return array The email variables.
+     */
     public static function get_email_vars()
     {
         return MeprHooks::apply_filters(
@@ -108,6 +122,13 @@ class MeprTransactionsHelper
         );
     }
 
+    /**
+     * Retrieves email parameters for a transaction.
+     *
+     * @param MeprTransaction $txn The transaction object.
+     *
+     * @return array The email parameters.
+     */
     public static function get_email_params($txn)
     {
         $mepr_options = MeprOptions::fetch();
@@ -136,7 +157,7 @@ class MeprTransactionsHelper
                     $unformatted_payment_subtotal   = $sub->trial_amount;
                     $unformatted_payment_tax_amount = $sub->trial_tax_amount;
                 } else {
-                    $expires_at_ts = $prd->get_expires_at(strtotime($txn->created_at));
+                    $expires_at_ts                  = $prd->get_expires_at(strtotime($txn->created_at));
                     $unformatted_payment_total      = $sub->total;
                     $unformatted_payment_subtotal   = $sub->price;
                     $unformatted_payment_tax_amount = $sub->tax_amount;
@@ -162,69 +183,70 @@ class MeprTransactionsHelper
         $cpn = ($cpn !== false) ? $cpn->post_title : '';
 
         $params = [
-            'user_id'               => $usr->ID,
-            'user_login'            => $usr->user_login,
-            'username'              => $usr->user_login,
-            'user_email'            => $usr->user_email,
-            'user_first_name'       => $usr->first_name,
-            'user_last_name'        => $usr->last_name,
-            'user_full_name'        => $usr->full_name(),
-            'user_address'          => $usr->formatted_address(),
-            'user_registered'       => $usr->user_registered,
-            'membership_type'       => preg_replace('~\$~', '\\\$', $prd->post_title),
-            'product_name'          => preg_replace('~\$~', '\\\$', $prd->post_title),
-            'coupon_code'           => $cpn,
-            'invoice_num'           => $txn->id,
-            'trans_num'             => $txn->trans_num,
-            'trans_date'            => $created_at,
-            'trans_expires_at'      => $expires_at,
-            'trans_gateway'         => sprintf(__('%1$s (%2$s)', 'memberpress'), $pm->label, $pm->name),
-            'trans_status'          => ucfirst($txn->status),
-            'user_remote_addr'      => $_SERVER['REMOTE_ADDR'],
-            'payment_amount'        => $payment_amount,
-            'blog_name'             => MeprUtils::blogname(),
-            'payment_subtotal'      => $payment_subtotal,
-            'tax_rate'              => $txn->tax_rate,
-            'tax_amount'            => $tax_amount,
-            'tax_desc'              => $txn->tax_desc,
-            'business_name'         => $mepr_options->attr('biz_name'),
-            'biz_name'              => $mepr_options->attr('biz_name'),
-            'biz_address1'          => $mepr_options->attr('biz_address1'),
-            'biz_address2'          => $mepr_options->attr('biz_address2'),
-            'biz_city'              => $mepr_options->attr('biz_city'),
-            'biz_state'             => $mepr_options->attr('biz_state'),
-            'biz_postcode'          => $mepr_options->attr('biz_postcode'),
-            'biz_country'           => $mepr_options->attr('biz_country'),
-            'login_page'            => $mepr_options->login_page_url(),
-            'account_url'           => $mepr_options->account_page_url(),
-            'login_url'             => $mepr_options->login_page_url(),
+            'user_id'          => $usr->ID,
+            'user_login'       => $usr->user_login,
+            'username'         => $usr->user_login,
+            'user_email'       => $usr->user_email,
+            'user_first_name'  => $usr->first_name,
+            'user_last_name'   => $usr->last_name,
+            'user_full_name'   => $usr->full_name(),
+            'user_address'     => $usr->formatted_address(),
+            'user_registered'  => $usr->user_registered,
+            'membership_type'  => preg_replace('~\$~', '\\\$', $prd->post_title),
+            'product_name'     => preg_replace('~\$~', '\\\$', $prd->post_title),
+            'coupon_code'      => $cpn,
+            'invoice_num'      => $txn->id,
+            'trans_num'        => $txn->trans_num,
+            'trans_date'       => $created_at,
+            'trans_expires_at' => $expires_at,
+            'trans_gateway'    => sprintf(__('%1$s (%2$s)', 'memberpress'), $pm->label, $pm->name),
+            'trans_status'     => ucfirst($txn->status),
+            'user_remote_addr' => $_SERVER['REMOTE_ADDR'],
+            'payment_amount'   => $payment_amount,
+            'blog_name'        => MeprUtils::blogname(),
+            'payment_subtotal' => $payment_subtotal,
+            'tax_rate'         => $txn->tax_rate,
+            'tax_amount'       => $tax_amount,
+            'tax_desc'         => $txn->tax_desc,
+            'business_name'    => $mepr_options->attr('biz_name'),
+            'biz_name'         => $mepr_options->attr('biz_name'),
+            'biz_address1'     => $mepr_options->attr('biz_address1'),
+            'biz_address2'     => $mepr_options->attr('biz_address2'),
+            'biz_city'         => $mepr_options->attr('biz_city'),
+            'biz_state'        => $mepr_options->attr('biz_state'),
+            'biz_postcode'     => $mepr_options->attr('biz_postcode'),
+            'biz_country'      => $mepr_options->attr('biz_country'),
+            'login_page'       => $mepr_options->login_page_url(),
+            'account_url'      => $mepr_options->account_page_url(),
+            'login_url'        => $mepr_options->login_page_url(),
         ];
 
         // When lifetime, include these subscription vars too
-        if (($sub = $txn->subscription())) {
+        $sub = $txn->subscription();
+        if ($sub) {
             $sub_params = MeprSubscriptionsHelper::get_email_params($sub);
         } else { // Get as much info out there as we can
             $cc = (object)[
-                'cc_last4' => '****',
+                'cc_last4'     => '****',
                 'cc_exp_month' => '',
-                'cc_exp_year' => '',
+                'cc_exp_year'  => '',
             ];
 
             $sub_params = [
-                'subscr_num'                  => $txn->trans_num,
-                'subscr_date'                 => $created_at,
-                'subscr_gateway'              => $params['trans_gateway'],
-                'subscr_next_billing_at'      => __('Never', 'memberpress'),
-                'subscr_trial_end_date'       => '',
-                'subscr_expires_at'           => $expires_at,
-                'subscr_terms'                => $params['payment_amount'],
-                'subscr_next_billing_amount'  => $params['payment_amount'],
-                'subscr_cc_num'               => MeprUtils::cc_num($cc->cc_last4),
-                'subscr_cc_month_exp'         => $cc->cc_exp_month,
-                'subscr_cc_year_exp'          => $cc->cc_exp_year,
-                'subscr_renew_url'            => $mepr_options->login_page_url('redirect_to=' . urlencode($prd->url())),
-                'subscr_update_url'           => $mepr_options->account_page_url(),
-                'subscr_upgrade_url'          => $mepr_options->login_page_url('redirect_to=' . urlencode($prd->group_url())),
+                'subscr_num'                 => $txn->trans_num,
+                'subscr_date'                => $created_at,
+                'subscr_gateway'             => $params['trans_gateway'],
+                'subscr_next_billing_at'     => __('Never', 'memberpress'),
+                'subscr_trial_end_date'      => '',
+                'subscr_expires_at'          => $expires_at,
+                'subscr_terms'               => $params['payment_amount'],
+                'subscr_next_billing_amount' => $params['payment_amount'],
+                'subscr_cc_num'              => MeprUtils::cc_num($cc->cc_last4),
+                'subscr_cc_month_exp'        => $cc->cc_exp_month,
+                'subscr_cc_year_exp'         => $cc->cc_exp_year,
+                'subscr_renew_url'           => $mepr_options->login_page_url('redirect_to=' . urlencode($prd->url())),
+                'subscr_update_url'          => $mepr_options->account_page_url(),
+                'subscr_upgrade_url'         => $mepr_options->login_page_url('redirect_to=' . urlencode($prd->group_url())),
             ];
         }
 
@@ -249,12 +271,17 @@ class MeprTransactionsHelper
     }
 
     /**
-     * This is what we use to retrieve the invoice string for the transaction
+     * Retrieves the invoice string for a transaction.
+     *
+     * @param MeprTransaction  $txn    The transaction object.
+     * @param MeprSubscription $tmpsub Optional temporary subscription object.
+     *
+     * @return string The invoice string.
      */
     public static function get_invoice($txn, $tmpsub = '')
     {
         $mepr_options = MeprOptions::fetch();
-        $prd = $txn->product();
+        $prd          = $txn->product();
 
         if (!empty($tmpsub) && $tmpsub instanceof MeprSubscription) {
             $sub = $tmpsub;
@@ -266,14 +293,15 @@ class MeprTransactionsHelper
             self::set_invoice_txn_vars_from_sub($txn, $sub);
         }
 
-        $desc = self::get_payment_description($txn, $sub, $prd);
-        $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
-        $tax_inclusive = $mepr_options->attr('tax_calc_type') == 'inclusive';
+        $desc                         = self::get_payment_description($txn, $sub, $prd);
+        $calculate_taxes              = (bool) get_option('mepr_calculate_taxes');
+        $tax_inclusive                = $mepr_options->attr('tax_calc_type') == 'inclusive';
         $show_negative_tax_on_invoice = get_option('mepr_show_negative_tax_on_invoice');
 
-        if ($coupon = $txn->coupon()) {
+        $coupon = $txn->coupon();
+        if ($coupon) {
             $raw_amount = MeprUtils::maybe_round_to_minimum_amount($prd->price);
-            $amount = $raw_amount;
+            $amount     = $raw_amount;
 
             if ($show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0) {
                 $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount - (float) $txn->tax_reversal_amount);
@@ -291,46 +319,46 @@ class MeprTransactionsHelper
                 $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount);
             }
 
-            $cpn_id = $coupon->ID;
+            $cpn_id   = $coupon->ID;
             $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
-        } elseif ($sub && ($coupon = $sub->coupon())) {
+        } elseif ($sub && ($coupon = $sub->coupon())) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
             if ($coupon->discount_mode == 'trial-override' && $sub->trial) {
-                $amount = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
-                $cpn_id = $coupon->ID;
-                $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+                $amount     = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
+                $cpn_id     = $coupon->ID;
+                $cpn_desc   = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
                 $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
             } else {
-                $amount = $sub->price;
-                $cpn_id = $coupon->ID;
-                $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+                $amount     = $sub->price;
+                $cpn_id     = $coupon->ID;
+                $cpn_desc   = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
                 $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
             }
         } else {
-            $amount = $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? $txn->amount + $txn->tax_reversal_amount : $txn->amount;
-            $cpn_id = 0;
-            $cpn_desc = '';
+            $amount     = $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? $txn->amount + $txn->tax_reversal_amount : $txn->amount;
+            $cpn_id     = 0;
+            $cpn_desc   = '';
             $cpn_amount = 0.00;
         }
 
         $invoice = MeprHooks::apply_filters(
             'mepr-invoice',
             [
-                'items' => [
+                'items'  => [
                     [
                         'description' => $prd->post_title . '&nbsp;&ndash;&nbsp;' . $desc,
-                        'quantity' => 1,
-                        'amount' => $amount,
+                        'quantity'    => 1,
+                        'amount'      => $amount,
                     ],
                 ],
                 'coupon' => [
-                    'id' => $cpn_id,
-                    'desc' => $cpn_desc,
+                    'id'     => $cpn_id,
+                    'desc'   => $cpn_desc,
                     'amount' => $cpn_amount,
                 ],
-                'tax' => [
+                'tax'    => [
                     'percent' => $txn->tax_rate,
-                    'type' => $txn->tax_desc,
-                    'amount' => $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? -1 * $txn->tax_reversal_amount : $txn->tax_amount,
+                    'type'    => $txn->tax_desc,
+                    'amount'  => $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? -1 * $txn->tax_reversal_amount : $txn->tax_amount,
                 ],
             ],
             $txn
@@ -344,7 +372,7 @@ class MeprTransactionsHelper
         }
 
         $subtotal = (float)array_sum($quantities) - (float)$invoice['coupon']['amount'];
-        $total = $subtotal + $invoice['tax']['amount'];
+        $total    = $subtotal + $invoice['tax']['amount'];
 
         ob_start();
 
@@ -389,6 +417,16 @@ class MeprTransactionsHelper
         return MeprHooks::apply_filters('mepr-invoice-html', $invoice, $txn);
     }
 
+    /**
+     * Displays a dropdown for transaction statuses.
+     *
+     * @param string $field   The field name.
+     * @param string $value   The selected value.
+     * @param string $id      Optional ID for the dropdown.
+     * @param string $classes Optional CSS classes for the dropdown.
+     *
+     * @return void
+     */
     public static function statuses_dropdown($field, $value, $id = '', $classes = '')
     {
         if (empty($id)) {
@@ -405,6 +443,17 @@ class MeprTransactionsHelper
         <?php
     }
 
+    /**
+     * Displays a dropdown for transaction membership fields.
+     *
+     * @param string $field               The field name.
+     * @param string $value               The selected value.
+     * @param string $expires_at_field_id The ID for the expiration field.
+     * @param string $id                  Optional ID for the dropdown.
+     * @param string $classes             Optional CSS classes for the dropdown.
+     *
+     * @return void
+     */
     public static function transaction_membership_field($field, $value = '', $expires_at_field_id = '', $id = '', $classes = '')
     {
         if (empty($id)) {
@@ -413,7 +462,7 @@ class MeprTransactionsHelper
 
         $products = MeprCptModel::all('MeprProduct', false, [
             'orderby' => 'title',
-            'order' => 'ASC',
+            'order'   => 'ASC',
         ]);
 
         ?>
@@ -431,6 +480,16 @@ class MeprTransactionsHelper
         <?php
     }
 
+    /**
+     * Displays a field for transaction creation date.
+     *
+     * @param string $field   The field name.
+     * @param string $value   The field value.
+     * @param string $id      Optional ID for the field.
+     * @param string $classes Optional CSS classes for the field.
+     *
+     * @return void
+     */
     public static function transaction_created_at_field($field, $value = '', $id = '', $classes = '')
     {
         if (empty($id)) {
@@ -450,6 +509,18 @@ class MeprTransactionsHelper
         <?php
     }
 
+    /**
+     * Displays a field for transaction expiration date.
+     *
+     * @param string $field            The field name.
+     * @param string $membership_field The membership field ID.
+     * @param string $created_at_field The creation date field ID.
+     * @param string $value            The field value.
+     * @param string $id               Optional ID for the field.
+     * @param string $classes          Optional CSS classes for the field.
+     *
+     * @return void
+     */
     public static function transaction_expires_at_field($field, $membership_field, $created_at_field, $value = '', $id = '', $classes = '')
     {
         if (empty($id)) {
@@ -473,11 +544,16 @@ class MeprTransactionsHelper
         <?php
     }
 
+    /**
+     * Determines if the business net price is being charged.
+     *
+     * @return boolean True if charging business net price, false otherwise.
+     */
     public static function is_charging_business_net_price()
     {
         $charge_business_customer_net_price = (bool) get_option('mepr_charge_business_customer_net_price', false);
-        $tax_calc_type = get_option('mepr_tax_calc_type');
-        $vat_tax_businesses = (bool) get_option('mepr_vat_tax_businesses');
+        $tax_calc_type                      = get_option('mepr_tax_calc_type');
+        $vat_tax_businesses                 = (bool) get_option('mepr_vat_tax_businesses');
 
         if (
             $charge_business_customer_net_price === true &&
@@ -490,6 +566,15 @@ class MeprTransactionsHelper
         return false;
     }
 
+    /**
+     * Gets the payment description for a transaction.
+     *
+     * @param MeprTransaction  $txn The transaction object.
+     * @param MeprSubscription $sub The subscription object.
+     * @param MeprProduct      $prd The product object.
+     *
+     * @return string The payment description.
+     */
     protected static function get_payment_description($txn, $sub, $prd)
     {
         if ($sub instanceof MeprSubscription) {
@@ -505,10 +590,19 @@ class MeprTransactionsHelper
         return $desc;
     }
 
+    /**
+     * Retrieves invoice order bumps for a transaction.
+     *
+     * @param MeprTransaction  $txn         The transaction object.
+     * @param MeprSubscription $tmpsub      Optional temporary subscription object.
+     * @param array            $order_bumps The order bumps.
+     *
+     * @return string The invoice order bumps.
+     */
     public static function get_invoice_order_bumps($txn, $tmpsub = '', $order_bumps = [])
     {
         $mepr_options = MeprOptions::fetch();
-        $prd = $txn->product();
+        $prd          = $txn->product();
 
         if (!empty($tmpsub) && $tmpsub instanceof MeprSubscription) {
             $sub = $tmpsub;
@@ -520,13 +614,14 @@ class MeprTransactionsHelper
             self::set_invoice_txn_vars_from_sub($txn, $sub);
         }
 
-        $desc = self::get_payment_description($txn, $sub, $prd);
-        $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
-        $tax_inclusive = $mepr_options->attr('tax_calc_type') == 'inclusive';
+        $desc                         = self::get_payment_description($txn, $sub, $prd);
+        $calculate_taxes              = (bool) get_option('mepr_calculate_taxes');
+        $tax_inclusive                = $mepr_options->attr('tax_calc_type') == 'inclusive';
         $show_negative_tax_on_invoice = get_option('mepr_show_negative_tax_on_invoice');
 
-        if ($coupon = $txn->coupon()) {
-            $amount = MeprUtils::maybe_round_to_minimum_amount($prd->price);
+        $coupon = $txn->coupon();
+        if ($coupon) {
+            $amount     = MeprUtils::maybe_round_to_minimum_amount($prd->price);
             $raw_amount = $amount;
 
             if ($show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0) {
@@ -545,46 +640,46 @@ class MeprTransactionsHelper
                 $cpn_amount = MeprUtils::format_float((float) $amount - (float) $txn->amount);
             }
 
-            $cpn_id = $coupon->ID;
+            $cpn_id   = $coupon->ID;
             $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
-        } elseif ($sub && ($coupon = $sub->coupon())) {
+        } elseif ($sub && ($coupon = $sub->coupon())) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
             if ($coupon->discount_mode == 'trial-override' && $sub->trial) {
-                $amount = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
-                $cpn_id = $coupon->ID;
-                $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+                $amount     = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
+                $cpn_id     = $coupon->ID;
+                $cpn_desc   = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
                 $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
             } else {
-                $amount = $sub->price;
-                $cpn_id = $coupon->ID;
-                $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+                $amount     = $sub->price;
+                $cpn_id     = $coupon->ID;
+                $cpn_desc   = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
                 $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
             }
         } else {
-            $amount = $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? $txn->amount + $txn->tax_reversal_amount : $txn->amount;
-            $cpn_id = 0;
-            $cpn_desc = '';
+            $amount     = $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? $txn->amount + $txn->tax_reversal_amount : $txn->amount;
+            $cpn_id     = 0;
+            $cpn_desc   = '';
             $cpn_amount = 0.00;
         }
 
         $items = [
             [
                 'description' => $prd->post_title . '&nbsp;&ndash;&nbsp;' . $desc,
-                'quantity' => 1,
-                'amount' => $amount,
+                'quantity'    => 1,
+                'amount'      => $amount,
             ],
         ];
 
         $tax_amount = 0.00;
-        $tax_items = [];
+        $tax_items  = [];
 
         if ($txn->tax_rate > 0 || $txn->tax_amount > 0) {
             $txn_tax_amount = $show_negative_tax_on_invoice && $txn->tax_reversal_amount > 0 ? -1 * $txn->tax_reversal_amount : $txn->tax_amount;
-            $tax_amount += $txn_tax_amount;
+            $tax_amount    += $txn_tax_amount;
 
             $tax_items[] = [
-                'percent' => $txn->tax_rate,
-                'type' => $txn->tax_desc,
-                'amount' => $txn_tax_amount,
+                'percent'    => $txn->tax_rate,
+                'type'       => $txn->tax_desc,
+                'amount'     => $txn_tax_amount,
                 'post_title' => $prd->post_title,
             ];
         }
@@ -600,12 +695,12 @@ class MeprTransactionsHelper
 
             if ($transaction->tax_rate > 0 || $transaction->tax_amount > 0) {
                 $transaction_tax_amount = $show_negative_tax_on_invoice && $transaction->tax_reversal_amount > 0 ? -1 * $transaction->tax_reversal_amount : $transaction->tax_amount;
-                $tax_amount += $transaction_tax_amount;
+                $tax_amount            += $transaction_tax_amount;
 
                 $tax_items[] = [
-                    'percent' => $transaction->tax_rate,
-                    'type' => $transaction->tax_desc,
-                    'amount' => $transaction_tax_amount,
+                    'percent'    => $transaction->tax_rate,
+                    'type'       => $transaction->tax_desc,
+                    'amount'     => $transaction_tax_amount,
                     'post_title' => $product->post_title,
                 ];
             }
@@ -622,7 +717,7 @@ class MeprTransactionsHelper
             }
 
             $order_bump_title = $product->post_title;
-            $order_bump_desc = self::get_payment_description($transaction, $subscription, $product);
+            $order_bump_desc  = self::get_payment_description($transaction, $subscription, $product);
 
             if ('' !== $order_bump_desc) {
                 $order_bump_title .= '&nbsp;&ndash;&nbsp;' . $order_bump_desc;
@@ -634,8 +729,8 @@ class MeprTransactionsHelper
 
             $items[] = [
                 'description' => $order_bump_title,
-                'quantity' => 1,
-                'amount' => $order_bump_amount,
+                'quantity'    => 1,
+                'amount'      => $order_bump_amount,
             ];
         }
 
@@ -649,13 +744,13 @@ class MeprTransactionsHelper
         $invoice = MeprHooks::apply_filters(
             'mepr-invoice-order-bumps',
             [
-                'items' => $items,
-                'coupon' => [
-                    'id' => $cpn_id,
-                    'desc' => $cpn_desc,
+                'items'      => $items,
+                'coupon'     => [
+                    'id'     => $cpn_id,
+                    'desc'   => $cpn_desc,
                     'amount' => $cpn_amount,
                 ],
-                'tax_items' => $tax_items,
+                'tax_items'  => $tax_items,
                 'tax_amount' => $tax_amount,
             ],
             $txn,
@@ -670,7 +765,7 @@ class MeprTransactionsHelper
         }
 
         $subtotal = (float)array_sum($quantities) - (float)$invoice['coupon']['amount'];
-        $total = $subtotal + $tax_amount;
+        $total    = $subtotal + $tax_amount;
 
         ob_start();
 
@@ -720,26 +815,26 @@ class MeprTransactionsHelper
      *
      * Displays the gateway transaction ID in a tooltip for multi-item purchases.
      *
-     * @param  stdClass $rec
+     * @param  stdClass $rec The transaction record.
      * @return string
      */
     public static function get_tooltip_attributes($rec)
     {
         if (strpos($rec->trans_num, 'mi_') === 0 && $rec->order_trans_num) {
-            $gateway = preg_match('/(.*) \((.+)\)/', $rec->gateway, $matches);
-            $gateway = !empty($matches[1]) ? $matches[1] : (!empty($matches[2]) ? $matches[2] : '');
+            $gateway      = preg_match('/(.*) \((.+)\)/', $rec->gateway, $matches);
+            $gateway      = !empty($matches[1]) ? $matches[1] : (!empty($matches[2]) ? $matches[2] : '');
             $tooltip_text = '';
 
             if (!empty($gateway)) {
                 $tooltip_text = sprintf(
-                  /* translators: %1$s: gateway name, %2$s: transaction ID */
+                  // translators: %1$s: gateway name, %2$s: transaction ID
                     __('%1$s Transaction ID: %2$s', 'memberpress'),
                     $gateway,
                     $rec->order_trans_num
                 );
             } else {
                 $tooltip_text = sprintf(
-                /* translators: %s: transaction ID */
+                // translators: %s: transaction ID
                     __('Transaction ID: %s', 'memberpress'),
                     $rec->order_trans_num
                 );
@@ -756,25 +851,25 @@ class MeprTransactionsHelper
      *
      * Used when there is a trial period or confirmation transaction to be displayed in the invoice.
      *
-     * @param MeprTransaction  $txn
-     * @param MeprSubscription $sub
+     * @param MeprTransaction  $txn The transaction object.
+     * @param MeprSubscription $sub The subscription object.
      */
     public static function set_invoice_txn_vars_from_sub(MeprTransaction $txn, MeprSubscription $sub)
     {
         if ($sub->trial && $sub->trial_days > 0) {
-            $txn->amount = $sub->trial_total - $sub->trial_tax_amount;
-            $txn->total = $sub->trial_total;
-            $txn->tax_amount = $sub->trial_tax_amount;
+            $txn->amount              = $sub->trial_total - $sub->trial_tax_amount;
+            $txn->total               = $sub->trial_total;
+            $txn->tax_amount          = $sub->trial_tax_amount;
             $txn->tax_reversal_amount = $sub->trial_tax_reversal_amount;
         } else {
-            $txn->amount = $sub->price;
-            $txn->total = $sub->total;
-            $txn->tax_amount = $sub->tax_amount;
+            $txn->amount              = $sub->price;
+            $txn->total               = $sub->total;
+            $txn->tax_amount          = $sub->tax_amount;
             $txn->tax_reversal_amount = $sub->tax_reversal_amount;
         }
 
-        $txn->tax_rate = $sub->tax_rate;
-        $txn->tax_desc = $sub->tax_desc;
+        $txn->tax_rate  = $sub->tax_rate;
+        $txn->tax_desc  = $sub->tax_desc;
         $txn->tax_class = $sub->tax_class;
     }
 }

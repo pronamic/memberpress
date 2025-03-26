@@ -1,9 +1,4 @@
 <?php
-/**
- * @license GPL-3.0
- *
- * Modified by Team Caseproof using {@see https://github.com/BrianHenryIE/strauss}.
- */
 
 declare(strict_types=1);
 
@@ -86,7 +81,8 @@ class Store extends Service
     public function fetch(bool $force = false): self
     {
         if (empty($this->data) || $force) {
-            $this->data = get_option($this->key, []);
+            $data       = get_option($this->key, []);
+            $this->data = is_array($data) ? $data : [];
         }
         return $this;
     }

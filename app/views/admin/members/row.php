@@ -24,7 +24,7 @@ if (!empty($records)) {
             // $editlink = admin_url('user-edit.php?user_id='.(int)$rec->ID);
             // $deletelink = admin_url('user-edit.php?user_id='.(int)$rec->ID);
             $deletelink = wp_nonce_url("users.php?action=delete&amp;user={$rec->ID}", 'bulk-users');
-            $editlink = esc_url(add_query_arg('wp_http_referer', urlencode(wp_unslash($_SERVER['REQUEST_URI'])), get_edit_user_link($rec->ID)));
+            $editlink   = esc_url(add_query_arg('wp_http_referer', urlencode(wp_unslash($_SERVER['REQUEST_URI'])), get_edit_user_link($rec->ID)));
 
             // Display the cell
             switch ($column_name) {
@@ -101,7 +101,7 @@ if (!empty($records)) {
                     break;
                 case 'col_sub_info':
                     $admin_sub_url = admin_url('admin.php?page=memberpress-subscriptions&member=' . urlencode($rec->username));
-                    $sub_counts = [
+                    $sub_counts    = [
                         __('Enabled', 'memberpress') => 'active',
                         __('Stopped', 'memberpress') => 'cancelled',
                         __('Pending', 'memberpress') => 'pending',
@@ -124,7 +124,7 @@ if (!empty($records)) {
                     break;
                 case 'col_txn_info':
                     $admin_txn_url = admin_url('admin.php?page=memberpress-trans&member=' . urlencode($rec->username));
-                    $other_count = $rec->txn_count;
+                    $other_count   = $rec->txn_count;
                     ?>
           <td <?php echo $attributes; ?>>
                     <?php
@@ -188,7 +188,7 @@ if (!empty($records)) {
                         $ids = explode(',', $rec->memberships);
                         foreach ($ids as $id) {
                               $membership = new MeprProduct($id);
-                              $titles[] = esc_html($membership->post_title);
+                              $titles[]   = esc_html($membership->post_title);
                         }
                     }
                     ?>
@@ -201,7 +201,7 @@ if (!empty($records)) {
                         $ids = explode(',', $rec->inactive_memberships);
 
                         foreach ($ids as $id) {
-                              $membership = new MeprProduct($id);
+                              $membership        = new MeprProduct($id);
                               $inactive_titles[] = esc_html($membership->post_title);
                         }
                     }

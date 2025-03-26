@@ -4,7 +4,7 @@
 <?php
 MeprView::render('/admin/onboarding/video', [
     'youtube_video_id' => 'M3SgL6GqEsE',
-    'step' => '4',
+    'step'             => '4',
 ]);
 ?>
 <div id="mepr-wizard-membership-nav-skip">

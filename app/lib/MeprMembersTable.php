@@ -18,6 +18,13 @@ class MeprMembersTable extends WP_List_Table
     public $db_search_cols;
     public $totalitems;
 
+    /**
+     * Constructor.
+     *
+     * @param  string $screen  The screen.
+     * @param  array  $columns The columns.
+     * @return void
+     */
     public function __construct($screen, $columns = [])
     {
         if (is_string($screen)) {
@@ -31,34 +38,39 @@ class MeprMembersTable extends WP_List_Table
         }
 
         $this->_searchable = [
-            'username' => __('Username', 'memberpress'),
-            'email' => __('Email', 'memberpress'),
+            'username'   => __('Username', 'memberpress'),
+            'email'      => __('Email', 'memberpress'),
             'first_name' => __('First Name', 'memberpress'),
-            'last_name' => __('Last Name', 'memberpress'),
-            'id' => __('Id', 'memberpress'),
+            'last_name'  => __('Last Name', 'memberpress'),
+            'id'         => __('Id', 'memberpress'),
         ];
 
         $this->db_search_cols = [
-            'username' => 'u.user_login',
-            'email' => 'u.user_email',
-            'last_name' => 'pm_last_name.meta_value',
+            'username'   => 'u.user_login',
+            'email'      => 'u.user_email',
+            'last_name'  => 'pm_last_name.meta_value',
             'first_name' => 'pm_first_name.meta_value',
-            'id' => 'u.ID',
+            'id'         => 'u.ID',
         ];
 
         parent::__construct(
             [
                 'singular' => 'wp_list_mepr_members', // Singular label
-                'plural'  => 'wp_list_mepr_members', // plural label, also this will be one of the table css class
-                'ajax'    => true, // false //We won't support Ajax for this table
+                'plural'   => 'wp_list_mepr_members', // plural label, also this will be one of the table css class
+                'ajax'     => true, // false //We won't support Ajax for this table
             ]
         );
     }
 
+    /**
+     * Get the column info.
+     *
+     * @return array
+     */
     public function get_column_info()
     {
         $columns = get_column_headers($this->_screen);
-        $hidden = get_hidden_columns($this->_screen);
+        $hidden  = get_hidden_columns($this->_screen);
 
         // Bypass MeprHooks to call built-in filter
         $sortable = apply_filters("manage_{$this->_screen->id}_sortable_columns", $this->get_sortable_columns());
@@ -67,6 +79,12 @@ class MeprMembersTable extends WP_List_Table
         return [$columns, $hidden, $sortable, $primary];
     }
 
+    /**
+     * Extra table nav.
+     *
+     * @param  string $which The which.
+     * @return void
+     */
     public function extra_tablenav($which)
     {
         if ($which == 'top') {
@@ -75,41 +93,56 @@ class MeprMembersTable extends WP_List_Table
         }
 
         if ($which == 'bottom') {
-            $action = 'mepr_members';
+            $action     = 'mepr_members';
             $totalitems = $this->totalitems;
-            $itemcount = count($this->items);
+            $itemcount  = count($this->items);
             MeprView::render('/admin/table_footer', compact('action', 'totalitems', 'itemcount'));
         }
     }
 
+    /**
+     * Get the columns.
+     *
+     * @return array
+     */
     public function get_columns()
     {
         return $this->_columns;
     }
 
+    /**
+     * Get the sortable columns.
+     *
+     * @return array
+     */
     public function get_sortable_columns()
     {
         return $sortable = [
-            'col_id'        => ['ID',true],
-            'col_username'  => ['username',true],
-            'col_email'     => ['email',true],
-            'col_status'    => ['status',true],
-            'col_name'      => ['name',true],
+            'col_id'              => ['ID',true],
+            'col_username'        => ['username',true],
+            'col_email'           => ['email',true],
+            'col_status'          => ['status',true],
+            'col_name'            => ['name',true],
             // 'col_txn_count' => array('m.txn_count',true),
             // 'col_expired_txn_count' => array('m.expired_txn_count',true),
             // 'col_active_txn_count'  => array('m.active_txn_count',true),
             // 'col_sub_count' => array('m.sub_count',true),
             'col_last_login_date' => ['last_login_date',true],
-            'col_login_count' => ['login_count',true],
-            'col_total_spent' => ['total_spent',true],
-            'col_registered'  => ['registered',true],
+            'col_login_count'     => ['login_count',true],
+            'col_total_spent'     => ['total_spent',true],
+            'col_registered'      => ['registered',true],
         ];
     }
 
+    /**
+     * Prepare the items.
+     *
+     * @return void
+     */
     public function prepare_items()
     {
         $user_id = get_current_user_id();
-        $screen = get_current_screen();
+        $screen  = get_current_screen();
 
         if (isset($screen) && is_object($screen)) {
             $option = $screen->get_option('per_page', 'option');
@@ -123,10 +156,10 @@ class MeprMembersTable extends WP_List_Table
             $perpage = !empty($_GET['perpage']) ? esc_sql($_GET['perpage']) : 10;
         }
 
-        $orderby = !empty($_GET['orderby']) ? esc_sql($_GET['orderby']) : 'registered';
-        $order   = !empty($_GET['order'])   ? esc_sql($_GET['order'])   : 'DESC';
-        $paged   = !empty($_GET['paged'])   ? esc_sql($_GET['paged'])   : 1;
-        $search  = !empty($_GET['search'])  ? esc_sql($_GET['search'])  : '';
+        $orderby      = !empty($_GET['orderby']) ? esc_sql($_GET['orderby']) : 'registered';
+        $order        = !empty($_GET['order'])   ? esc_sql($_GET['order'])   : 'DESC';
+        $paged        = !empty($_GET['paged'])   ? esc_sql($_GET['paged'])   : 1;
+        $search       = !empty($_GET['search'])  ? esc_sql($_GET['search'])  : '';
         $search_field = !empty($_GET['search-field'])  ? esc_sql($_GET['search-field'])  : 'any';
         $search_field = isset($this->db_search_cols[$search_field]) ? $this->db_search_cols[$search_field] : 'any';
 
@@ -136,16 +169,16 @@ class MeprMembersTable extends WP_List_Table
         // How many pages do we have in total?
         $totalpages = ceil($totalitems / $perpage);
 
-        /* -- Register the pagination -- */
+        // -- Register the pagination --
         $this->set_pagination_args(
             [
                 'total_items' => $totalitems,
                 'total_pages' => $totalpages,
-                'per_page' => $perpage,
+                'per_page'    => $perpage,
             ]
         );
 
-        /* -- Register the Columns -- */
+        // -- Register the Columns --
         if (isset($screen) && is_object($screen)) {
             $this->_column_headers = $this->get_column_info();
         } else {
@@ -159,10 +192,15 @@ class MeprMembersTable extends WP_List_Table
 
         $this->totalitems = $totalitems;
 
-        /* -- Fetch the items -- */
+        // -- Fetch the items --
         $this->items = $list_table['results'];
     }
 
+    /**
+     * Display the rows.
+     *
+     * @return void
+     */
     public function display_rows()
     {
         // Get the records registered in the prepare_items method
@@ -174,6 +212,11 @@ class MeprMembersTable extends WP_List_Table
         MeprView::render('/admin/members/row', get_defined_vars());
     }
 
+    /**
+     * Get the items.
+     *
+     * @return array
+     */
     public function get_items()
     {
         return $this->items;

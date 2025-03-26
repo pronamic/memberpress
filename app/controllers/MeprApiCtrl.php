@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprApiCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('wp_ajax_nopriv_mepr_user', [$this, 'user']);
@@ -14,20 +19,22 @@ class MeprApiCtrl extends MeprBaseCtrl
 
     /**
      * GET user information
+     *
+     * @return void
      */
     public function user()
     {
-        $user = $this->user_auth();
+        $user      = $this->user_auth();
         $mepr_user = new MeprUser($user->ID);
 
         $txns = $mepr_user->active_product_subscriptions('transactions');
 
         $filename = "{$mepr_user->user_login}-" . gmdate('Ymd');
 
-        $struct = [];
-        $struct['user'] = (array)$mepr_user->rec;
+        $struct                 = [];
+        $struct['user']         = (array)$mepr_user->rec;
         $struct['transactions'] = [];
-        $struct['timestamp'] = gmdate('Y-m-d H:i:s');
+        $struct['timestamp']    = gmdate('Y-m-d H:i:s');
 
         foreach ($txns as $txn) {
             $txn_struct = (array)$txn->rec;
@@ -73,6 +80,11 @@ class MeprApiCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * User auth.
+     *
+     * @return mixed
+     */
     protected function user_auth()
     {
         if (!isset($_SERVER['PHP_AUTH_USER'])) {
@@ -88,6 +100,12 @@ class MeprApiCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Unauthorized.
+     *
+     * @param  string $message The message.
+     * @return void
+     */
     protected function unauthorized($message)
     {
         header('WWW-Authenticate: Basic realm="' . MeprUtils::blogname() . '"');
@@ -95,6 +113,13 @@ class MeprApiCtrl extends MeprBaseCtrl
         die(sprintf(__('UNAUTHORIZED: %s', 'memberpress'), $message));
     }
 
+    /**
+     * Render json.
+     *
+     * @param  array  $struct   The struct.
+     * @param  string $filename The filename.
+     * @return void
+     */
     protected function render_json($struct, $filename = '')
     {
         header('Content-Type: text/json');
@@ -106,6 +131,13 @@ class MeprApiCtrl extends MeprBaseCtrl
         die(json_encode($struct));
     }
 
+    /**
+     * Render xml.
+     *
+     * @param  array  $struct   The struct.
+     * @param  string $filename The filename.
+     * @return void
+     */
     protected function render_xml($struct, $filename = '')
     {
         header('Content-Type: text/xml');
@@ -117,6 +149,13 @@ class MeprApiCtrl extends MeprBaseCtrl
         die($this->to_xml($struct));
     }
 
+    /**
+     * Render csv.
+     *
+     * @param  array  $struct   The struct.
+     * @param  string $filename The filename.
+     * @return void
+     */
     protected function render_csv($struct, $filename = '')
     {
         if (!$this->is_debug()) {
@@ -136,9 +175,11 @@ class MeprApiCtrl extends MeprBaseCtrl
      * The main function for converting to an XML document.
      * Pass in a multi dimensional array and this recrusively loops through and builds up an XML document.
      *
-     * @param  array            $data
-     * @param  string           $root_node_name - what you want the root node to be - defaultsto data.
-     * @param  SimpleXMLElement $xml            - should only be used recursively
+     * @param array            $data             The data.
+     * @param string           $root_node_name   - what you want the root node to be - defaultsto data.
+     * @param SimpleXMLElement $xml              - should only be used recursively
+     * @param string           $parent_node_name - the parent node name
+     *
      * @return string XML
      */
     protected function to_xml($data, $root_node_name = 'memberpressData', $xml = null, $parent_node_name = '')
@@ -185,6 +226,13 @@ class MeprApiCtrl extends MeprBaseCtrl
     /**
      * Formats a line (passed as a fields array) as CSV and returns the CSV as a string.
      * Adapted from http://us3.php.net/manual/en/function.fputcsv.php#87120
+     *
+     * @param  array   $struct             The struct.
+     * @param  string  $delimiter          The delimiter.
+     * @param  string  $enclosure          The enclosure.
+     * @param  boolean $enclose_all        The enclose all.
+     * @param  boolean $null_to_mysql_null The null to mysql null.
+     * @return string
      */
     public function to_csv(
         $struct,
@@ -196,7 +244,7 @@ class MeprApiCtrl extends MeprBaseCtrl
         $delimiter_esc = preg_quote($delimiter, '/');
         $enclosure_esc = preg_quote($enclosure, '/');
 
-        $csv = '';
+        $csv      = '';
         $line_num = 0;
         foreach ($struct as $line) {
             $output = [];
@@ -222,6 +270,12 @@ class MeprApiCtrl extends MeprBaseCtrl
         return $csv;
     }
 
+    /**
+     * Camelize.
+     *
+     * @param  string $str The str.
+     * @return string
+     */
     protected function camelize($str)
     {
         // Level the playing field
@@ -238,6 +292,11 @@ class MeprApiCtrl extends MeprBaseCtrl
         return $str;
     }
 
+    /**
+     * Is debug.
+     *
+     * @return boolean
+     */
     protected function is_debug()
     {
         return (isset($_REQUEST['debug']) and (int)$_REQUEST['debug'] = 1);

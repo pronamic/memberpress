@@ -26,7 +26,7 @@
   <td>
     <?php $products = MeprCptModel::all('MeprProduct', false, [
     'orderby' => 'title',
-    'order' => 'ASC',
+    'order'   => 'ASC',
 ]); ?>
     <select name="product_id" id="product_id" class="mepr-membership-dropdown" data-expires_at_field_id="expires_at">
       <?php foreach ($products as $product) : ?>

@@ -1,5 +1,4 @@
 <?php
-
 $classes = '';
 
 if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys']) && ! defined('MEPR_DISABLE_STRIPE_CONNECT')) {
@@ -9,15 +8,15 @@ if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys
 
 <?php if (MeprStripeGateway::stripe_connect_status($id) == 'connected') : ?>
     <?php
-    $refresh_url = add_query_arg([
-        'action' => 'mepr_stripe_connect_refresh',
+    $refresh_url            = add_query_arg([
+        'action'    => 'mepr_stripe_connect_refresh',
         'method-id' => $id,
-        '_wpnonce' => wp_create_nonce('stripe-refresh'),
+        '_wpnonce'  => wp_create_nonce('stripe-refresh'),
     ], admin_url('admin-ajax.php'));
-    $disconnect_url = add_query_arg([
-        'action' => 'mepr_stripe_connect_disconnect',
+    $disconnect_url         = add_query_arg([
+        'action'    => 'mepr_stripe_connect_disconnect',
         'method-id' => $id,
-        '_wpnonce' => wp_create_nonce('stripe-disconnect'),
+        '_wpnonce'  => wp_create_nonce('stripe-disconnect'),
     ], admin_url('admin-ajax.php'));
     $disconnect_confirm_msg = __('Disconnecting from this Stripe Account will block webhooks from being processed, and prevent MemberPress subscriptions associated with it from working.', 'memberpress');
     ?>
@@ -76,10 +75,7 @@ if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys
   </div>
     <?php
 
-    /*****
-     * THIS IS A NEW PAYMENT METHOD
-     *****/
-
+    // THIS IS A NEW PAYMENT METHOD
     ?>
 <?php elseif (!MeprStripeGateway::keys_are_set($id)) : ?>
   <div id="mepr-stripe-connect-migrate-prompt" class="mepr-payment-option-prompt">

@@ -111,8 +111,8 @@
             <div><?php _e('No Payment Methods were found. Please go to the options page to configure some.', 'memberpress'); ?></div>
             <?php
         } else {
-            $pmkeys = array_keys($pms);
-            $active_pms = $product->payment_methods();
+            $pmkeys       = array_keys($pms);
+            $active_pms   = $product->payment_methods();
             $inactive_pms = array_diff($pmkeys, $active_pms);
             ?>
           <ul id="mepr-product-active-payment-methods" class="mepr-sortable">

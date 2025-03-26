@@ -2,8 +2,15 @@
 
 class MeprPopupCtrl extends MeprBaseCtrl
 {
-    public $popup_css, $popup_js, $popups;
+    public $popup_css;
+    public $popup_js;
+    public $popups;
 
+    /**
+     * Constructor for the MeprPopupCtrl class.
+     *
+     * Initializes popup CSS and JS URLs and sets up the popups array.
+     */
     public function __construct()
     {
         $this->popup_css = MEPR_CSS_URL . '/vendor/magnific-popup.min.css';
@@ -23,6 +30,11 @@ class MeprPopupCtrl extends MeprBaseCtrl
         parent::__construct();
     }
 
+    /**
+     * Loads hooks for admin scripts and AJAX actions related to popups.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         // This is a hidden option to help support in case
@@ -38,6 +50,13 @@ class MeprPopupCtrl extends MeprBaseCtrl
         add_action('admin_notices', [$this,'display_popups']);
     }
 
+    /**
+     * Enqueues admin scripts and styles for popups.
+     *
+     * @param string $hook The current admin page hook.
+     *
+     * @return void
+     */
     public function enqueue_admin_scripts($hook)
     {
         $mepr_cpts = [
@@ -71,12 +90,17 @@ class MeprPopupCtrl extends MeprBaseCtrl
             );
             $loc = [
                 'security' => wp_create_nonce('mepr-admin-popup'),
-                'error' => __('An unknown error occurred.', 'memberpress'),
+                'error'    => __('An unknown error occurred.', 'memberpress'),
             ];
             wp_localize_script('mepr-admin-popup', 'MeprPopup', $loc);
         }
     }
 
+    /**
+     * Displays popups for authorized MemberPress users.
+     *
+     * @return void
+     */
     public function display_popups()
     {
         // If this isn't a MemberPress authorized user, then bail.
@@ -89,6 +113,11 @@ class MeprPopupCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Handles AJAX requests to stop or delay a popup.
+     *
+     * @return void
+     */
     public function ajax_stop_or_delay_popup()
     {
         MeprUtils::check_ajax_referer('mepr-admin-popup', 'security');
@@ -119,11 +148,25 @@ class MeprPopupCtrl extends MeprBaseCtrl
         MeprUtils::exit_with_status(200, json_encode(compact('message')));
     }
 
+    /**
+     * Checks if a given popup is valid.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return boolean True if the popup is valid, false otherwise.
+     */
     private function is_valid_popup($popup)
     {
         return in_array($popup, array_keys($this->popups));
     }
 
+    /**
+     * Stops a popup from being displayed.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return void
+     */
     private function stop_popup($popup)
     {
         // TODO: Should we add some error handling?
@@ -139,6 +182,13 @@ class MeprPopupCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Delays a popup from being displayed.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return void
+     */
     private function delay_popup($popup)
     {
         // TODO: Should we add some error handling?
@@ -153,6 +203,13 @@ class MeprPopupCtrl extends MeprBaseCtrl
         );
     }
 
+    /**
+     * Checks if a popup is delayed.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return boolean|void True if the popup is delayed, false otherwise.
+     */
     private function is_popup_delayed($popup)
     {
         if (!$this->is_valid_popup($popup)) {
@@ -168,6 +225,13 @@ class MeprPopupCtrl extends MeprBaseCtrl
         return get_transient($this->popup_delay_key($popup));
     }
 
+    /**
+     * Checks if a popup is stopped.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return boolean|void True if the popup is stopped, false otherwise.
+     */
     private function is_popup_stopped($popup)
     {
         if (!$this->is_valid_popup($popup)) {
@@ -182,21 +246,40 @@ class MeprPopupCtrl extends MeprBaseCtrl
         return get_option($this->popup_stop_key($popup));
     }
 
+    /**
+     * Sets the last viewed timestamp for a popup.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return boolean True on success, false on failure.
+     */
     private function set_popup_last_viewed_timestamp($popup)
     {
         $timestamp = time();
         return update_option('mepr-popup-last-viewed', compact('popup', 'timestamp'));
     }
 
+    /**
+     * Gets the last viewed timestamp for a popup.
+     *
+     * @return array An array containing the popup identifier and timestamp.
+     */
     private function get_popup_last_viewed_timestamp()
     {
         $default = [
-            'popup' => false,
+            'popup'     => false,
             'timestamp' => false,
         ];
         return get_option('mepr-popup-last-viewed', $default);
     }
 
+    /**
+     * Determines if a popup should be shown and displays it if so.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return void
+     */
     private function maybe_show_popup($popup)
     {
         if ($this->popup_visible($popup)) {
@@ -206,6 +289,13 @@ class MeprPopupCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Checks if a popup is visible based on various conditions.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return boolean True if the popup is visible, false otherwise.
+     */
     private function popup_visible($popup)
     {
         $mepr_update = new MeprUpdateCtrl();
@@ -235,18 +325,39 @@ class MeprPopupCtrl extends MeprBaseCtrl
         return (!$delayed && !$stopped);
     }
 
+    /**
+     * Increments the display count for a popup.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return void
+     */
     private function increment_popup_display_count($popup)
     {
         $user_id = MeprUtils::get_current_user_id();
-        $count = (int)get_user_meta($user_id, $this->popup_display_count_key($popup), true);
+        $count   = (int)get_user_meta($user_id, $this->popup_display_count_key($popup), true);
         update_user_meta($user_id, $this->popup_display_count_key($popup), ++$count);
     }
 
+    /**
+     * Gets the display count key for a popup.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return string The display count key.
+     */
     private function popup_display_count_key($popup)
     {
         return "mepr-{$popup}-popup-display-count";
     }
 
+    /**
+     * Gets the delay key for a popup.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return string The delay key.
+     */
     private function popup_delay_key($popup)
     {
         if ($this->is_valid_popup($popup) && $this->popups[$popup]['user_popup']) {
@@ -257,6 +368,13 @@ class MeprPopupCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Gets the stop key for a popup.
+     *
+     * @param string $popup The popup identifier.
+     *
+     * @return string The stop key.
+     */
     private function popup_stop_key($popup)
     {
         return "mepr-stop-{$popup}-popup";

@@ -6,6 +6,13 @@ if (!defined('ABSPATH')) {
 
 class MeprAppHelper
 {
+    /**
+     * Displays an information tooltip.
+     *
+     * @param string $id    The ID of the tooltip.
+     * @param string $title The title of the tooltip.
+     * @param string $info  The information to display in the tooltip.
+     */
     public static function info_tooltip($id, $title, $info)
     {
         ?>
@@ -17,11 +24,21 @@ class MeprAppHelper
         <?php
     }
 
+    /**
+     * Formats a number as currency.
+     *
+     * @param float   $number          The number to format.
+     * @param boolean $show_symbol     Whether to show the currency symbol.
+     * @param boolean $free_str        Whether to display 'Free' for zero values.
+     * @param boolean $truncate_zeroes Whether to truncate trailing zeroes.
+     *
+     * @return string The formatted currency string.
+     */
     public static function format_currency($number, $show_symbol = true, $free_str = true, $truncate_zeroes = false)
     {
         global $wp_locale;
         $mepr_options = MeprOptions::fetch();
-        $dp = $wp_locale->number_format['decimal_point'];
+        $dp           = $wp_locale->number_format['decimal_point'];
 
         if ((float) $number > 0.00 || !$free_str) {
             // Do decimal and 0's handling before adding symbol
@@ -57,17 +74,34 @@ class MeprAppHelper
         return MeprHooks::apply_filters('mepr_format_currency', $rstr, $number, $show_symbol);
     }
 
+    /**
+     * Automatically adds a page with the given name and content.
+     *
+     * @param string $page_name The name of the page.
+     * @param string $content   The content of the page.
+     *
+     * @return integer|WP
+     */
     public static function auto_add_page($page_name, $content = '')
     {
         return wp_insert_post([
-            'post_title' => $page_name,
-            'post_content' => $content,
-            'post_type' => 'page',
-            'post_status' => 'publish',
+            'post_title'     => $page_name,
+            'post_content'   => $content,
+            'post_type'      => 'page',
+            'post_status'    => 'publish',
             'comment_status' => 'closed',
         ]);
     }
 
+    /**
+     * Formats a number with optional decimals and truncation.
+     *
+     * @param float   $number          The number to format.
+     * @param boolean $show_decimals   Whether to show decimals.
+     * @param boolean $truncate_zeroes Whether to truncate trailing zeroes.
+     *
+     * @return string The formatted number.
+     */
     public static function format_number($number, $show_decimals = false, $truncate_zeroes = false)
     {
         global $wp_locale;
@@ -92,8 +126,17 @@ class MeprAppHelper
         return $rstr;
     }
 
-    // NOTE - This should only be used in views/emails as it modifies UTC
-    // timestamps to show in the users WP locale settings instead of in UTC
+    /**
+     * Formats a date based on the user's WordPress locale settings.
+     * NOTE - This should only be used in views/emails as it modifies UTC
+     * timestamps to show in the users WP locale settings instead of in UTC
+     *
+     * @param string $datetime The date/time string to format.
+     * @param string $default  The default value to return if the date is invalid.
+     * @param string $format   The date format to use.
+     *
+     * @return string The formatted date.
+     */
     public static function format_date($datetime, $default = null, $format = null)
     {
         if (is_null($default)) {
@@ -106,14 +149,23 @@ class MeprAppHelper
             return $default;
         }
 
-        $ts = strtotime($datetime);
+        $ts     = strtotime($datetime);
         $offset = get_option('gmt_offset'); // Gets WP timezone offset option
 
         // Return a translatable date in the WP locale options
         return date_i18n($format, ($ts + MeprUtils::hours($offset)), false);
     }
 
-    // Right now - just used on the new/edit txn pages
+    /**
+     * Formats a date in UTC timezone.
+     * Right now - just used on the new/edit txn pages
+     *
+     * @param string $utc_datetime The UTC date/time string to format.
+     * @param string $default      The default value to return if the date is invalid.
+     * @param string $format       The date format to use.
+     *
+     * @return string The formatted date.
+     */
     public static function format_date_utc($utc_datetime, $default = null, $format = null)
     {
         if (is_null($default)) {
@@ -131,6 +183,12 @@ class MeprAppHelper
         return date_i18n($format, $ts, true); // return a translatable date in the WP locale options
     }
 
+    /**
+     * Renders a dropdown for page templates.
+     *
+     * @param string $field_name  The name of the field.
+     * @param string $field_value The selected value.
+     */
     public static function page_template_dropdown($field_name, $field_value = null)
     {
         $templates = get_page_templates();
@@ -151,6 +209,14 @@ class MeprAppHelper
         <?php
     }
 
+    /**
+     * Converts a status to a human-readable string.
+     *
+     * @param string $status The status to convert.
+     * @param string $type   The type of status ('transaction' or 'subscription').
+     *
+     * @return string The human-readable status.
+     */
     public static function human_readable_status($status, $type = 'transaction')
     {
         if ($type == 'transaction') {
@@ -182,6 +248,13 @@ class MeprAppHelper
         }
     }
 
+    /**
+     * Determines the subscription status for a template.
+     *
+     * @param object $sub The subscription object.
+     *
+     * @return string The subscription status.
+     */
     public static function pro_template_sub_status($sub)
     {
         $type = $sub->sub_type;
@@ -196,7 +269,7 @@ class MeprAppHelper
 
             if ('active' === $status) {
                 $subscription = new MeprSubscription($sub->id);
-                $txns = $subscription->transactions();
+                $txns         = $subscription->transactions();
                 if ($subscription->latest_txn_failed() || strpos($sub->active, 'No') !== false) {
                     $status = 'lapsed';
                 }
@@ -219,6 +292,13 @@ class MeprAppHelper
         }
     }
 
+    /**
+     * Determines the transaction status for a template.
+     *
+     * @param object $txn The transaction object.
+     *
+     * @return string The transaction status.
+     */
     public static function pro_template_txn_status($txn)
     {
         switch ($txn->status) {
@@ -231,14 +311,25 @@ class MeprAppHelper
         }
     }
 
+    /**
+     * Formats a price string with optional coupon and proration.
+     *
+     * @param object  $obj           The object containing price details.
+     * @param float   $price         The price amount.
+     * @param boolean $show_symbol   Whether to show the currency symbol.
+     * @param string  $coupon_code   The coupon code, if any.
+     * @param boolean $show_prorated Whether to show proration details.
+     *
+     * @return string The formatted price string.
+     */
     public static function format_price_string($obj, $price = 0.00, $show_symbol = true, $coupon_code = null, $show_prorated = true)
     {
         global $wp_locale;
 
-        $user = MeprUtils::get_currentuserinfo();
-        $regex_dp = preg_quote($wp_locale->number_format['decimal_point'], '#');
+        $user         = MeprUtils::get_currentuserinfo();
+        $regex_dp     = preg_quote($wp_locale->number_format['decimal_point'], '#');
         $mepr_options = MeprOptions::fetch();
-        $coupon = false;
+        $coupon       = false;
 
         if (empty($coupon_code)) {
             $coupon_code = null;
@@ -264,7 +355,7 @@ class MeprAppHelper
         if (!empty($obj->tax_rate) && $obj->tax_rate > 0.00) {
             // $tax_rate = $obj->tax_rate;
             $tax_amount = preg_replace("#([{$regex_dp}]000?)([^0-9]*)$#", '$2', $obj->tax_amount);
-            $tax_desc = $obj->tax_desc;
+            $tax_desc   = $obj->tax_desc;
             // $tax_str = ' +'.MeprUtils::format_float($tax_rate).'% '.$tax_desc;
             $tax_str = _x(' (price includes taxes)', 'ui', 'memberpress');
             if ($tax_amount <= 0) {
@@ -277,8 +368,8 @@ class MeprAppHelper
         $fprice = MeprAppHelper::format_currency($price, $show_symbol);
         $fprice = preg_replace("#([{$regex_dp}]000?)([^0-9]*)$#", '$2', (string) $fprice);
 
-        $period = isset($obj->period) ? (int) $obj->period : 1;
-        $period_type = isset($obj->period_type) ? $obj->period_type : 'lifetime';
+        $period          = isset($obj->period) ? (int) $obj->period : 1;
+        $period_type     = isset($obj->period_type) ? $obj->period_type : 'lifetime';
         $period_type_str = MeprUtils::period_type_name($period_type, $period);
 
         if ((float) $price <= 0.00) {
@@ -300,9 +391,9 @@ class MeprAppHelper
                 $show_prorated && $obj instanceof MeprProduct &&
                 $mepr_options->pro_rated_upgrades && $obj->is_upgrade_or_downgrade()
             ) {
-                $group = $obj->group();
-                $lt = false;
-                $old_subscr = $user->subscription_in_group($group->ID);
+                $group        = $obj->group();
+                $lt           = false;
+                $old_subscr   = $user->subscription_in_group($group->ID);
                 $old_lifetime = $user->lifetime_subscription_in_group($group->ID);
 
                 if ($old_subscr !== false) {
@@ -335,11 +426,8 @@ class MeprAppHelper
                         $usr = MeprUtils::get_currentuserinfo();
                         $grp = $obj->group();
 
-                        if ($show_prorated && ($old_sub = $usr->subscription_in_group($grp->ID))) {
-                            $upgrade_str = __(' (proration)', 'memberpress');
-                        } else {
-                            $upgrade_str = '';
-                        }
+                        $old_sub     = $usr->subscription_in_group($grp->ID);
+                        $upgrade_str = ($show_prorated && $old_sub) ? __(' (proration)', 'memberpress') : '';
                     } elseif ($show_prorated) {
                         $upgrade_str = __(' (proration)', 'memberpress');
                     } else {
@@ -363,7 +451,7 @@ class MeprAppHelper
 
                     $price_str = sprintf($sub_str, $conv_trial_count, $conv_trial_type_str, $trial_str, $upgrade_str);
                 } else {
-                    $sub_str = __('%1$s%2$s once and ', 'memberpress');
+                    $sub_str   = __('%1$s%2$s once and ', 'memberpress');
                     $price_str = sprintf($sub_str, $trial_str, $upgrade_str);
                 }
             } else {
@@ -437,6 +525,12 @@ class MeprAppHelper
         return MeprHooks::apply_filters('mepr-price-string', $price_str, $obj, $show_symbol);
     }
 
+    /**
+     * Displays available email templates.
+     *
+     * @param string $etype The email type.
+     * @param array  $args  Additional arguments.
+     */
     public static function display_emails($etype = 'MeprBaseEmail', $args = [])
     {
         ?>
@@ -453,6 +547,15 @@ class MeprAppHelper
         ?></div><?php
     }
 
+    /**
+     * Renders a CSV file for download.
+     *
+     * @param array  $rows     The data rows.
+     * @param array  $header   The header row.
+     * @param string $filename The filename for the CSV.
+     *
+     * @return void
+     */
     public static function render_csv($rows, $header = [], $filename = null)
     {
         $filename = (is_null($filename) ? uniqid() . '.csv' : $filename);
@@ -477,6 +580,18 @@ class MeprAppHelper
         exit;
     }
 
+    /**
+     * Renders a dropdown for countries.
+     *
+     * @param string  $field_key     The field key.
+     * @param string  $value         The selected value.
+     * @param string  $classes       Additional CSS classes.
+     * @param string  $required_attr Required attribute.
+     * @param boolean $geolocate     Whether to geolocate.
+     * @param string  $unique_suffix A unique suffix for the field.
+     *
+     * @return string The HTML for the dropdown.
+     */
     public static function countries_dropdown($field_key, $value = null, $classes = '', $required_attr = '', $geolocate = true, $unique_suffix = '')
     {
         $value = (($geolocate && empty($value)) ? '' : $value);
@@ -496,7 +611,17 @@ class MeprAppHelper
     }
 
     /**
+     * Renders a dropdown for memberships.
      * NOTE: In order to use this method you must also enqueue the i18n.js along with the localize script array.
+     *
+     * @param string  $field_key     The field key.
+     * @param string  $value         The selected value.
+     * @param string  $classes       Additional CSS classes.
+     * @param string  $required_attr Required attribute.
+     * @param boolean $geolocate     Whether to geolocate.
+     * @param string  $unique_suffix A unique suffix for the field.
+     *
+     * @return string The HTML for the dropdown.
      */
     public static function states_dropdown($field_key, $value = null, $classes = '', $required_attr = '', $geolocate = true, $unique_suffix = '')
     {
@@ -509,7 +634,7 @@ class MeprAppHelper
                 class="<?php echo $classes; ?> mepr-hidden mepr-states-dropdown mepr-form-input mepr-select-field"
                 style="display: none;" <?php echo $required_attr; ?>>
         </select>
-        <?php /* Make sure the text box isn't hidden ... at the very least we need to see something! */ ?>
+        <?php // Make sure the text box isn't hidden ... at the very least we need to see something! ?>
         <input type="text" name="<?php echo $field_key; ?>" data-fieldname="<?php echo $field_key; ?>"
                data-value="<?php echo esc_attr($value); ?>" id="<?php echo $field_key . $unique_suffix; ?>"
                class="<?php echo $classes; ?> mepr-states-text mepr-form-input"
@@ -518,14 +643,23 @@ class MeprAppHelper
         return ob_get_clean();
     }
 
+    /**
+     * Renders a dropdown for memberships.
+     *
+     * @param string $field_name  The field name.
+     * @param array  $memberships The memberships to include.
+     * @param string $classes     Additional CSS classes.
+     *
+     * @return void
+     */
     public static function memberships_dropdown($field_name, $memberships = [], $classes = '')
     {
         $memberships = is_array($memberships) ? $memberships : [];
-        $contents = [];
+        $contents    = [];
 
         $posts = MeprCptModel::all('MeprProduct', false, [
             'orderby' => 'title',
-            'order' => 'ASC',
+            'order'   => 'ASC',
         ]);
 
         foreach ($posts as $post) {
@@ -543,9 +677,18 @@ class MeprAppHelper
         <?php
     }
 
+    /**
+     * Renders a dropdown for roles.
+     *
+     * @param string $field_name The field name.
+     * @param array  $roles      The roles to include.
+     * @param string $classes    Additional CSS classes.
+     *
+     * @return void
+     */
     public static function roles_dropdown($field_name, $roles = [], $classes = '')
     {
-        $roles = is_array($roles) ? $roles : [];
+        $roles    = is_array($roles) ? $roles : [];
         $contents = [];
 
         $wp_roles = wp_roles();
@@ -565,13 +708,24 @@ class MeprAppHelper
         <?php
     }
 
+    /**
+     * Generates a link for exporting a table as CSV.
+     *
+     * @param string  $action       The action to perform.
+     * @param string  $nonce_action The nonce action.
+     * @param string  $nonce_name   The nonce name.
+     * @param integer $itemcount    The number of items.
+     * @param boolean $all          Whether to export all items.
+     *
+     * @return void
+     */
     public static function export_table_link($action, $nonce_action, $nonce_name, $itemcount, $all = false)
     {
         $params = ['action' => $action];
 
         if ($all) {
             $params['all'] = 1;
-            $label = __('Export table as CSV (%s records)', 'memberpress');
+            $label         = __('Export table as CSV (%s records)', 'memberpress');
         } else {
             $label = __('Export all as CSV (%s records)', 'memberpress');
         }
@@ -588,6 +742,11 @@ class MeprAppHelper
         <?php
     }
 
+    /**
+     * Retrieves the privacy policy page link.
+     *
+     * @return string|false The permalink of the privacy policy page, or false if not set.
+     */
     public static function privacy_policy_page_link()
     {
         $privacy_policy_page_id = get_option('wp_page_for_privacy_policy', false);
@@ -598,6 +757,15 @@ class MeprAppHelper
         return false;
     }
 
+    /**
+     * Renders an input field with clipboard functionality.
+     *
+     * @param string $value         The value to display.
+     * @param string $input_classes Additional CSS classes for the input.
+     * @param string $icon_classes  Additional CSS classes for the icon.
+     *
+     * @return void
+     */
     public static function clipboard_input($value, $input_classes = '', $icon_classes = '')
     {
         ?>
@@ -609,16 +777,23 @@ class MeprAppHelper
         <?php
     }
 
+    /**
+     * Converts a status to a human-readable string.
+     *
+     * @param string $status The status to convert.
+     *
+     * @return string The human-readable status.
+     */
     public static function status_human_readable($status)
     {
         $status = strtolower($status);
-        $map = [
-            'active' => __('Active', 'memberpress'),
+        $map    = [
+            'active'   => __('Active', 'memberpress'),
             'canceled' => __('Canceled', 'memberpress'),
-            'lapsed' => __('Lapsed', 'memberpress'),
-            'pending' => __('Pending', 'memberpress'),
-            'paused' => __('Paused', 'memberpress'),
-            'unknown' => __('Unknown', 'memberpress'),
+            'lapsed'   => __('Lapsed', 'memberpress'),
+            'pending'  => __('Pending', 'memberpress'),
+            'paused'   => __('Paused', 'memberpress'),
+            'unknown'  => __('Unknown', 'memberpress'),
         ];
 
         if (isset($map[$status])) {
@@ -628,6 +803,11 @@ class MeprAppHelper
         }
     }
 
+    /**
+     * Checks if the coaching feature is enabled.
+     *
+     * @return boolean True if coaching is enabled, false otherwise.
+     */
     public static function is_coaching_enabled()
     {
         $slug = 'memberpress-coachkit/main.php';
@@ -676,11 +856,10 @@ class MeprAppHelper
         return has_block($block_name) || self::block_template_has_block($block_name);
     }
 
-
     /**
      * Check if the current page is a memberpress page.
      *
-     * @param object $post Post object
+     * @param object $post_object The post object.
      *
      * @return boolean
      */
@@ -711,112 +890,127 @@ class MeprAppHelper
         return MeprHooks::apply_filters('mepr_is_memberpress_page', $is_memberpress_page, $post_object);
     }
 
+    /**
+     * Checks if a page is the thank you page.
+     *
+     * @param WP_Post $post The post object to check.
+     *
+     * @return boolean True if the page is the thank you page, false otherwise.
+     */
     public static function is_thankyou_page($post)
     {
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options     = MeprOptions::fetch();
         $is_thankyou_page = $post instanceof WP_Post && $post->ID == $mepr_options->thankyou_page_id;
 
         return MeprHooks::apply_filters('mepr_is_thankyou_page', $is_thankyou_page, $post);
     }
 
+    /**
+     * Sanitizes content using allowed HTML tags.
+     *
+     * @param string $content      The content to sanitize.
+     * @param array  $allowed_tags The allowed HTML tags.
+     *
+     * @return string The sanitized content.
+     */
     public static function wp_kses($content, $allowed_tags = [])
     {
         if (!is_array($allowed_tags) || empty($allowed_tags)) {
             $allowed_tags = [
-                'a' => [
+                'a'          => [
                     'class' => [],
-                    'href' => [],
-                    'rel' => [],
+                    'href'  => [],
+                    'rel'   => [],
                     'title' => [],
                 ],
-                'abbr' => [
+                'abbr'       => [
                     'title' => [],
                 ],
-                'b' => [],
+                'b'          => [],
                 'blockquote' => [
                     'cite' => [],
                 ],
-                'cite' => [
+                'cite'       => [
                     'title' => [],
                 ],
-                'code' => [],
-                'del' => [
+                'code'       => [],
+                'del'        => [
                     'datetime' => [],
-                    'title' => [],
+                    'title'    => [],
                 ],
-                'dd' => [],
-                'div' => [
+                'dd'         => [],
+                'div'        => [
                     'class' => [],
                     'title' => [],
                     'style' => [],
                 ],
-                'dl' => [],
-                'dt' => [],
-                'em' => [],
-                'h1' => [],
-                'h2' => [],
-                'h3' => [],
-                'h4' => [],
-                'h5' => [],
-                'h6' => [],
-                'i' => [],
-                'img' => [
-                    'alt' => [],
-                    'class' => [],
+                'dl'         => [],
+                'dt'         => [],
+                'em'         => [],
+                'h1'         => [],
+                'h2'         => [],
+                'h3'         => [],
+                'h4'         => [],
+                'h5'         => [],
+                'h6'         => [],
+                'i'          => [],
+                'img'        => [
+                    'alt'    => [],
+                    'class'  => [],
                     'height' => [],
-                    'src' => [],
-                    'width' => [],
+                    'src'    => [],
+                    'width'  => [],
                 ],
-                'form' => [
-                    'id' => [],
-                    'class' => [],
-                    'name' => [],
+                'form'       => [
+                    'id'     => [],
+                    'class'  => [],
+                    'name'   => [],
                     'action' => [],
                     'method' => [],
                 ],
-                'li' => [
+                'li'         => [
                     'class' => [],
                 ],
-                'ol' => [
+                'ol'         => [
                     'class' => [],
                 ],
-                'p' => [
+                'p'          => [
                     'class' => [],
                 ],
-                'q' => [
-                    'cite' => [],
+                'q'          => [
+                    'cite'  => [],
                     'title' => [],
                 ],
-                'span' => [
+                'span'       => [
                     'class' => [],
                     'title' => [],
                     'style' => [],
                 ],
-                'strike' => [],
-                'strong' => [],
-                'ul' => [
+                'strike'     => [],
+                'strong'     => [],
+                'ul'         => [
                     'class' => [],
                 ],
-                'input' => [
-                    'type' => [],
-                    'name' => [],
-                    'value' => [],
-                    'class' => [],
-                    'id' => [],
+                'input'      => [
+                    'type'        => [],
+                    'name'        => [],
+                    'value'       => [],
+                    'class'       => [],
+                    'id'          => [],
                     'placeholder' => [],
-                    'readonly' => [],
-                    'disabled' => [],
-                    'checked' => [],
+                    'readonly'    => [],
+                    'disabled'    => [],
+                    'checked'     => [],
                 ],
-                'button' => [
-                    'type' => [],
+                'button'     => [
+                    'type'        => [],
                     'data-toggle' => [],
-                    'value' => [],
-                    'class' => [],
-                    'id' => [],
-                    'aria-label' => [],
-                    'readonly' => [],
-                    'disabled' => [],
+                    'value'       => [],
+                    'class'       => [],
+                    'id'          => [],
+                    'aria-label'  => [],
+                    'readonly'    => [],
+                    'disabled'    => [],
                 ],
             ];
         }

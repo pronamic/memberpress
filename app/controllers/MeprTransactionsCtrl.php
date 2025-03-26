@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprTransactionsCtrl extends MeprBaseCtrl
 {
+    /**
+     * Loads hooks for various AJAX actions and screen options.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('wp_ajax_mepr_edit_status', [$this, 'edit_trans_status']);
@@ -35,32 +40,51 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             if (!wp_next_scheduled('mepr_send_txn_expire_events')) {
                 wp_schedule_event(time() + MeprUtils::hours(1), 'mepr_send_txn_expire_events_interval', 'mepr_send_txn_expire_events');
             }
-        } elseif (($timestamp = wp_next_scheduled('mepr_send_txn_expire_events'))) {
-            wp_unschedule_event($timestamp, 'mepr_send_txn_expire_events');
+        } else {
+            $timestamp = wp_next_scheduled('mepr_send_txn_expire_events');
+            if ($timestamp) {
+                wp_unschedule_event($timestamp, 'mepr_send_txn_expire_events');
+            }
         }
-
         add_action('mepr_table_controls_search', [$this, 'table_search_box']);
 
         // Capture complete and refunded events for offline gateway
         add_action('mepr-txn-store', 'MeprArtificialGateway::capture_txn_status_for_events');
     }
 
+    /**
+     * Adds custom intervals for cron schedules.
+     *
+     * @param array $schedules The existing schedules.
+     *
+     * @return array The modified schedules.
+     */
     public function intervals($schedules)
     {
         $schedules['mepr_send_txn_expire_events_interval'] = [
             'interval' => MeprUtils::hours(1), // Every hour
-            'display' => __('MemberPress Send Transaction Expire Events', 'memberpress'),
+            'display'  => __('MemberPress Send Transaction Expire Events', 'memberpress'),
         ];
 
         return $schedules;
     }
 
+    /**
+     * Unschedules the transaction expire events.
+     *
+     * @return void
+     */
     public static function unschedule_events()
     {
         $timestamp = wp_next_scheduled('mepr_send_txn_expire_events');
         wp_unschedule_event($timestamp, 'mepr_send_txn_expire_events');
     }
 
+    /**
+     * Handles the listing of transactions, including new and edit actions.
+     *
+     * @return void
+     */
     public function listing()
     {
         $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? $_REQUEST['action'] : false;
@@ -73,11 +97,18 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Handles the creation of a new transaction.
+     *
+     * @param array $errors An array of errors, if any.
+     *
+     * @return void
+     */
     public function new_trans($errors = [])
     {
         $mepr_options = MeprOptions::fetch();
-        $txn = new MeprTransaction();
-        $user_login = $subscr_num = '';
+        $txn          = new MeprTransaction();
+        $user_login   = $subscr_num = '';
 
         if (empty($errors) && MeprUtils::is_post_request()) {
             $this->create_trans($txn);
@@ -87,11 +118,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             }
 
             if (isset($_REQUEST['subscription']) && is_numeric($_REQUEST['subscription'])) {
-                $sub = new MeprSubscription($_REQUEST['subscription']);
-                $usr = $sub->user();
-                $prd = $sub->product();
-                $user_login = $usr->user_login;
-                $subscr_num = $sub->subscr_id;
+                $sub             = new MeprSubscription($_REQUEST['subscription']);
+                $usr             = $sub->user();
+                $prd             = $sub->product();
+                $user_login      = $usr->user_login;
+                $subscr_num      = $sub->subscr_id;
                 $txn->product_id = $sub->product_id;
             }
 
@@ -99,17 +130,23 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Handles the editing of an existing transaction.
+     *
+     * @return void
+     */
     public function edit_trans()
     {
         $mepr_options = MeprOptions::fetch();
-        $subscr_num = '';
+        $subscr_num   = '';
 
         if (isset($_REQUEST['id'])) {
-            $txn = new MeprTransaction($_REQUEST['id']);
-            $usr = $txn->user();
+            $txn        = new MeprTransaction($_REQUEST['id']);
+            $usr        = $txn->user();
             $user_login = $usr->user_login;
 
-            if ($sub = $txn->subscription()) {
+            $sub = $txn->subscription();
+            if ($sub) {
                 $subscr_num = $sub->subscr_id;
             }
 
@@ -124,7 +161,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
     }
 
     /**
-     * @param MeprTransaction $txn
+     * Creates a new transaction.
+     *
+     * @param MeprTransaction $txn The transaction object.
+     *
+     * @return void
      */
     public function create_trans($txn)
     {
@@ -151,9 +192,10 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $txn->gateway    = sanitize_text_field($_POST['gateway']);
 
         if (isset($_POST['subscr_num']) && !empty($_POST['subscr_num'])) {
-            if ($sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_num'])) {
+            $sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_num']);
+            if ($sub) {
                 $txn->subscription_id = $sub->id;
-                $subscr_num = $sub->subscr_id;
+                $subscr_num           = $sub->subscr_id;
                 $sub->store();
             }
         }
@@ -178,7 +220,8 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                 MeprEvent::record('transaction-completed', $txn);
 
                 // This is a recurring payment
-                if (($sub = $txn->subscription()) && $sub->txn_count > 1) {
+                $sub = $txn->subscription();
+                if ($sub && $sub->txn_count > 1) {
                     MeprEvent::record('recurring-transaction-completed', $txn);
                 } elseif (!$sub) {
                     MeprEvent::record('non-recurring-transaction-completed', $txn);
@@ -200,13 +243,20 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             $message = __('A transaction was created successfully.', 'memberpress');
 
             $_REQUEST['action'] = 'edit';
-            $txn = new MeprTransaction($txn->id); // refresh the txn obj to get all generated fields
+            $txn                = new MeprTransaction($txn->id); // refresh the txn obj to get all generated fields
             MeprView::render('/admin/transactions/edit_trans', get_defined_vars());
         } else {
             $this->new_trans($errors);
         }
     }
 
+    /**
+     * Updates an existing transaction.
+     *
+     * @param MeprTransaction $txn The transaction object.
+     *
+     * @return void
+     */
     public function update_trans($txn)
     {
         check_admin_referer('mepr_create_or_update_transaction', 'mepr_transactions_nonce');
@@ -217,8 +267,8 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
 
         $usr = new MeprUser();
         $usr->load_user_data_by_login($_POST['user_login']);
-        $user_login = $usr->user_login;
-        $subscr_num = '';
+        $user_login      = $usr->user_login;
+        $subscr_num      = '';
         $txn->trans_num  = sanitize_file_name(wp_unslash($_POST['trans_num']));
         $txn->user_id    = $usr->ID;
         $txn->product_id = sanitize_key($_POST['product_id']);
@@ -231,9 +281,10 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $txn->gateway    = sanitize_text_field($_POST['gateway']);
 
         if (isset($_POST['subscr_num']) && !empty($_POST['subscr_num'])) {
-            if ($sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_num'])) {
+            $sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_num']);
+            if ($sub) {
                 $txn->subscription_id = $sub->id;
-                $subscr_num = $sub->subscr_id;
+                $subscr_num           = $sub->subscr_id;
                 $sub->store();
             }
         }
@@ -259,10 +310,15 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         MeprView::render('/admin/transactions/edit_trans', get_defined_vars());
     }
 
+    /**
+     * Validates transaction data.
+     *
+     * @return array An array of validation errors.
+     */
     public function validate_trans()
     {
         $errors = [];
-        $usr = new MeprUser();
+        $usr    = new MeprUser();
 
         if (!isset($_POST['user_login']) || empty($_POST['user_login'])) {
             $errors[] = __('The username must be set.', 'memberpress');
@@ -292,10 +348,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
 
         if (isset($_POST['subscr_num']) && !empty($_POST['subscr_num'])) {
-            if ($sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_num'])) {
+            $sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_num']);
+            if ($sub) {
                 if ($sub->product_id != $_POST['product_id']) {
-                    $prd = new MeprProduct($_POST['product_id']);
-                    $sub_prd = $sub->product();
+                    $prd      = new MeprProduct($_POST['product_id']);
+                    $sub_prd  = $sub->product();
                     $errors[] = sprintf(__("This is not a subscription for membership '%1\$s' but for '%2\$s'", 'memberpress'), $prd->post_title, $sub_prd->post_title);
                 }
 
@@ -311,19 +368,18 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                 }
 
                 /*
-                    don't enforce this for now
-                 **
+                 * Gateway validation is temporarily disabled.
                     if($sub->gateway != $_POST['gateway']) {
-                    if( $sub->gateway == MeprTransaction::$free_gateway_str ||
-                    $sub->gateway == MeprTransaction::$manual_gateway_str ) {
-                    $sub_gateway = $sub->gateway;
-                    }
-                    else {
-                    $pm = $sub->payment_method();
-                    $sub_gateway = sprintf( __( '%s (%s)' ), $pm->label, $pm->name );
-                    }
+                        if( $sub->gateway == MeprTransaction::$free_gateway_str ||
+                            $sub->gateway == MeprTransaction::$manual_gateway_str ) {
+                            $sub_gateway = $sub->gateway;
+                        }
+                        else {
+                            $pm = $sub->payment_method();
+                            $sub_gateway = sprintf( __( '%s (%s)' ), $pm->label, $pm->name );
+                        }
 
-                    $errors[] = sprintf( __( "This subscription is using a different payment gateway: %s" ), $sub_gateway );
+                        $errors[] = sprintf( __( "This subscription is using a different payment gateway: %s" ), $sub_gateway );
                     }
                  */
             } else {
@@ -338,38 +394,41 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         return MeprHooks::apply_filters('mepr-admin-transaction-validation-errors', $errors);
     }
 
+    /**
+     * Enqueues scripts for the transactions admin page.
+     *
+     * @param string $hook The current admin page hook.
+     *
+     * @return void
+     */
     public function enqueue_scripts($hook)
     {
-        $wp_scripts = new WP_Scripts();
-        $ui = $wp_scripts->query('jquery-ui-core');
-        $url = "//ajax.googleapis.com/ajax/libs/jqueryui/{$ui->ver}/themes/smoothness/jquery-ui.css";
-
         if ($hook == 'memberpress_page_memberpress-trans' || $hook == 'memberpress_page_memberpress-new-trans') {
             $l10n = [
-                'del_txn' => __('Deleting Transactions could cause the associated member to lose access to protected content. Are you sure you want to delete this Transaction?', 'memberpress'),
-                'del_txn_error' => __('The Transaction could not be deleted. Please try again later.', 'memberpress'),
-                'refund_txn' => __('This will refund the transaction at the gateway level. This action is not reversable. Are you sure you want to refund this Transaction?', 'memberpress'),
-                'refund_txn_and_cancel_sub' => __('This will refund the transaction and cancel the subscription associated with this transaction at the gateway level. This action is not reversable. Are you sure you want to refund this Transaction and cancel it\'s Subscription?', 'memberpress'),
-                'refunded_text' => __('Refunded', 'memberpress'),
-                'refund_txn_success' => __('Your transaction was successfully refunded.', 'memberpress'),
-                'refund_txn_error' => __('The Transaction could not be refunded. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
+                'del_txn'                           => __('Deleting Transactions could cause the associated member to lose access to protected content. Are you sure you want to delete this Transaction?', 'memberpress'),
+                'del_txn_error'                     => __('The Transaction could not be deleted. Please try again later.', 'memberpress'),
+                'refund_txn'                        => __('This will refund the transaction at the gateway level. This action is not reversable. Are you sure you want to refund this Transaction?', 'memberpress'),
+                'refund_txn_and_cancel_sub'         => __('This will refund the transaction and cancel the subscription associated with this transaction at the gateway level. This action is not reversable. Are you sure you want to refund this Transaction and cancel it\'s Subscription?', 'memberpress'),
+                'refunded_text'                     => __('Refunded', 'memberpress'),
+                'refund_txn_success'                => __('Your transaction was successfully refunded.', 'memberpress'),
+                'refund_txn_error'                  => __('The Transaction could not be refunded. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
                 'refund_txn_and_cancel_sub_success' => __('Your transaction was refunded and subscription was cancelled successfully.', 'memberpress'),
-                'refund_txn_and_cancel_sub_error' => __('The Transaction could not be refunded and/or Subscription could not be cancelled. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
-                'delete_transaction_nonce' => wp_create_nonce('delete_transaction'),
-                'edit_txn_status_nonce' => wp_create_nonce('edit_txn_status'),
-                'refund_txn_nonce' => wp_create_nonce('refund_txn'),
-                'refund_txn_cancel_sub_nonce' => wp_create_nonce('refund_txn_cancel_sub'),
-                'click_to_copy' => __('Click to copy', 'memberpress'),
+                'refund_txn_and_cancel_sub_error'   => __('The Transaction could not be refunded and/or Subscription could not be cancelled. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
+                'delete_transaction_nonce'          => wp_create_nonce('delete_transaction'),
+                'edit_txn_status_nonce'             => wp_create_nonce('edit_txn_status'),
+                'refund_txn_nonce'                  => wp_create_nonce('refund_txn'),
+                'refund_txn_cancel_sub_nonce'       => wp_create_nonce('refund_txn_cancel_sub'),
+                'click_to_copy'                     => __('Click to copy', 'memberpress'),
             ];
 
-            wp_register_style('mepr-jquery-ui-smoothness', $url);
-            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
+            wp_register_style('mepr-jquery-ui-smoothness', MEPR_CSS_URL . '/vendor/jquery-ui/smoothness.min.css', [], '1.13.3');
+            wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness'], MEPR_VERSION);
             wp_register_style('mepr-clipboardtip', MEPR_CSS_URL . '/vendor/tooltipster.bundle.min.css', [], MEPR_VERSION);
             wp_register_style('mepr-clipboardtip-borderless', MEPR_CSS_URL . '/vendor/tooltipster-sideTip-borderless.min.css', ['mepr-clipboardtip'], MEPR_VERSION);
             wp_enqueue_style('mepr-transactions-css', MEPR_CSS_URL . '/admin-transactions.css', ['jquery-ui-timepicker-addon', 'mepr-clipboardtip', 'mepr-clipboardtip-borderless'], MEPR_VERSION);
 
             wp_register_script('mepr-table-controls-js', MEPR_JS_URL . '/table_controls.js', ['jquery'], MEPR_VERSION);
-            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
+            wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker'], MEPR_VERSION);
             wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
             wp_register_script('mphelpers', MEPR_JS_URL . '/mphelpers.js', ['suggest'], MEPR_VERSION);
             wp_register_script('mepr-clipboard-js', MEPR_JS_URL . '/vendor/clipboard.min.js', [], MEPR_VERSION);
@@ -392,6 +451,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Edits the status of a transaction via AJAX.
+     *
+     * @return void
+     */
     public function edit_trans_status()
     {
         global $wpdb;
@@ -405,7 +469,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             die(__('Save Failed', 'memberpress'));
         }
 
-        $id = sanitize_key($_POST['id']);
+        $id    = sanitize_key($_POST['id']);
         $value = sanitize_key($_POST['value']);
         $tdata = MeprTransaction::get_one($id, ARRAY_A);
 
@@ -420,6 +484,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Refunds a transaction via AJAX.
+     *
+     * @return void
+     */
     public function refund_transaction()
     {
         check_ajax_referer('refund_txn', 'refund_txn_nonce');
@@ -443,6 +512,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         die('true'); // don't localize this string
     }
 
+    /**
+     * Refunds a transaction and cancels the associated subscription via AJAX.
+     *
+     * @return void
+     */
     public function refund_txn_and_cancel_sub()
     {
         check_ajax_referer('refund_txn_cancel_sub', 'refund_txn_cancel_sub_nonce');
@@ -460,7 +534,8 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         try {
             $txn->refund();
 
-            if (($sub = $txn->subscription())) {
+            $sub = $txn->subscription();
+            if ($sub) {
                 $sub->cancel();
             }
         } catch (Exception $e) {
@@ -470,6 +545,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         die('true'); // don't localize this string
     }
 
+    /**
+     * Deletes a transaction via AJAX.
+     *
+     * @return void
+     */
     public function delete_transaction()
     {
         check_ajax_referer('delete_transaction', 'mepr_transactions_nonce');
@@ -488,31 +568,40 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         die('true'); // don't localize this string
     }
 
-    /* This is here to use wherever we want. */
+    /**
+     * Gets the columns for the transactions table.
+     *
+     * @return array The columns.
+     */
     public function get_columns()
     {
         $cols = [
-            'col_id'              => __('Id', 'memberpress'),
-            'col_trans_num'       => __('Transaction', 'memberpress'),
-            'col_subscr_id'       => __('Subscription', 'memberpress'),
-            'col_status'          => __('Status', 'memberpress'),
-            'col_product'         => __('Membership', 'memberpress'),
-            'col_net'             => __('Net', 'memberpress'),
-            'col_tax'             => __('Tax', 'memberpress'),
-            'col_total'           => __('Total', 'memberpress'),
-            'col_propername'      => __('Name', 'memberpress'),
-            'col_user_login'      => __('User', 'memberpress'),
-            'col_payment_system'  => __('Gateway', 'memberpress'),
-            'col_created_at'      => __('Created On', 'memberpress'),
-            'col_expires_at'      => __('Expires On', 'memberpress'),
+            'col_id'             => __('Id', 'memberpress'),
+            'col_trans_num'      => __('Transaction', 'memberpress'),
+            'col_subscr_id'      => __('Subscription', 'memberpress'),
+            'col_status'         => __('Status', 'memberpress'),
+            'col_product'        => __('Membership', 'memberpress'),
+            'col_net'            => __('Net', 'memberpress'),
+            'col_tax'            => __('Tax', 'memberpress'),
+            'col_total'          => __('Total', 'memberpress'),
+            'col_propername'     => __('Name', 'memberpress'),
+            'col_user_login'     => __('User', 'memberpress'),
+            'col_payment_system' => __('Gateway', 'memberpress'),
+            'col_created_at'     => __('Created On', 'memberpress'),
+            'col_expires_at'     => __('Expires On', 'memberpress'),
         ];
 
         return MeprHooks::apply_filters('mepr-admin-transactions-cols', $cols);
     }
 
+    /**
+     * Displays the list of transactions.
+     *
+     * @return void
+     */
     public function display_list()
     {
-        $screen = get_current_screen();
+        $screen     = get_current_screen();
         $list_table = new MeprTransactionsTable($screen, $this->get_columns());
 
         $list_table->prepare_items();
@@ -520,6 +609,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         MeprView::render('/admin/transactions/list', get_defined_vars());
     }
 
+    /**
+     * Resends a transaction email via AJAX.
+     *
+     * @return void
+     */
     public function resend_txn_email()
     {
         $mepr_options = MeprOptions::fetch();
@@ -543,6 +637,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         die(__('Email sent', 'memberpress'));
     }
 
+    /**
+     * Sends a welcome email for a transaction via AJAX.
+     *
+     * @return void
+     */
     public function send_welcome_email()
     {
         $mepr_options = MeprOptions::fetch();
@@ -563,26 +662,38 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         die(__('Welcome Email sent', 'memberpress'));
     }
 
+    /**
+     * Calculates the default expiration date for a product.
+     *
+     * @return void
+     */
     public function default_expiration()
     {
-        if (
-            isset($_REQUEST['product_id']) && isset($_REQUEST['created_at']) &&
-            ($prd = MeprProduct::get_one($_REQUEST['product_id'])) &&
-            // !$prd->is_one_time_payment() && //Breaking one-offs which have an expiration date
-            ( preg_match('/\d\d\d\d-\d\d-\d\d/', $_REQUEST['created_at']) ||
-            preg_match('/\d\d\d\d-\d\d-\d\d \d\d-\d\d-\d\d/', $_REQUEST['created_at']) ||
-            empty($_REQUEST['created_at']) )
-        ) {
-            $expires_at_ts = $prd->get_expires_at(strtotime($_REQUEST['created_at']), false);
+        if (isset($_REQUEST['product_id']) && isset($_REQUEST['created_at'])) {
+            $prd = MeprProduct::get_one($_REQUEST['product_id']);
+            if (
+                $prd &&
+                // !$prd->is_one_time_payment() && //Breaking one-offs which have an expiration date
+                (preg_match('/\d\d\d\d-\d\d-\d\d/', $_REQUEST['created_at']) ||
+                preg_match('/\d\d\d\d-\d\d-\d\d \d\d-\d\d-\d\d/', $_REQUEST['created_at']) ||
+                empty($_REQUEST['created_at']))
+            ) {
+                $expires_at_ts = $prd->get_expires_at(strtotime($_REQUEST['created_at']), false);
 
-            if (!is_null($expires_at_ts)) {
-                echo date('Y-m-d H:i:s', (int)$expires_at_ts);
+                if (!is_null($expires_at_ts)) {
+                    echo date('Y-m-d H:i:s', (int)$expires_at_ts);
+                }
             }
         }
 
         die;
     }
 
+    /**
+     * Exports transactions to a CSV file.
+     *
+     * @return void
+     */
     public function csv()
     {
         check_ajax_referer('export_transactions', 'mepr_transactions_nonce');
@@ -593,21 +704,21 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $GLOBALS['hook_suffix'] = false;
 
         $screen = get_current_screen();
-        $tab = new MeprTransactionsTable($screen, $this->get_columns());
+        $tab    = new MeprTransactionsTable($screen, $this->get_columns());
 
         if (isset($_REQUEST['all']) && !empty($_REQUEST['all'])) {
-            $search  = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql($_REQUEST['search'])  : '';
+            $search       = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql($_REQUEST['search'])  : '';
             $search_field = isset($_REQUEST['search']) && !empty($_REQUEST['search-field'])  ? esc_sql($_REQUEST['search-field'])  : 'any';
             $search_field = isset($tab->db_search_cols[$search_field]) ? $tab->db_search_cols[$search_field] : 'any';
 
             $all = MeprTransaction::list_table(
-            /* $order_by */                'created_at',
-                /* $order */        'ASC',
-                /* $paged */        '',
-                /* $search */       $search,
-                /* $search_field */ $search_field,
-                /* $perpage */      '',
-                /* $params */       $_REQUEST
+                'created_at',
+                'ASC',
+                '',
+                $search,
+                $search_field,
+                '',
+                $_REQUEST
             );
 
             MeprUtils::render_csv($all['results'], $filename);
@@ -617,6 +728,15 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Adds an export link to the footer of the transactions table.
+     *
+     * @param string  $action     The current action.
+     * @param integer $totalitems The total number of items.
+     * @param integer $itemcount  The current item count.
+     *
+     * @return void
+     */
     public function export_footer_link($action, $totalitems, $itemcount)
     {
         if ($action == 'mepr_transactions') {
@@ -626,6 +746,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Adds screen options for the transactions page.
+     *
+     * @return void
+     */
     public function add_screen_options()
     {
         add_screen_option('layout_columns');
@@ -633,14 +758,23 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $option = 'per_page';
 
         $args = [
-            'label' => __('Transactions', 'memberpress'),
+            'label'   => __('Transactions', 'memberpress'),
             'default' => 10,
-            'option' => 'mp_transactions_perpage',
+            'option'  => 'mp_transactions_perpage',
         ];
 
         add_screen_option($option, $args);
     }
 
+    /**
+     * Sets up screen options for the transactions page.
+     *
+     * @param mixed  $status The current status.
+     * @param string $option The option name.
+     * @param mixed  $value  The option value.
+     *
+     * @return mixed The updated status or value.
+     */
     public function setup_screen_options($status, $option, $value)
     {
         if ('mp_transactions_perpage' === $option) {
@@ -649,10 +783,15 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         return $status;
     }
 
+    /**
+     * Sends events for expired transactions.
+     *
+     * @return void
+     */
     public function send_expired_txn_events()
     {
         $start_time = time();
-        $max_time = MeprUtils::minutes(10);
+        $max_time   = MeprUtils::minutes(10);
 
         $res = MeprTransaction::get_expired_txns();
 
@@ -675,23 +814,28 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Displays the search box for the transactions table.
+     *
+     * @return void
+     */
     public function table_search_box()
     {
         if (isset($_REQUEST['page']) && $_REQUEST['page'] == 'memberpress-trans') {
             $mepr_options = MeprOptions::fetch();
 
             $membership = (isset($_REQUEST['membership']) ? $_REQUEST['membership'] : false);
-            $status = (isset($_REQUEST['status']) ? $_REQUEST['status'] : 'all');
-            $gateway = (isset($_REQUEST['gateway']) ? $_REQUEST['gateway'] : 'all');
+            $status     = (isset($_REQUEST['status']) ? $_REQUEST['status'] : 'all');
+            $gateway    = (isset($_REQUEST['gateway']) ? $_REQUEST['gateway'] : 'all');
 
-            $args = [
+            $args     = [
                 'orderby' => 'title',
                 'order'   => 'ASC',
             ];
-            $prds = MeprCptModel::all('MeprProduct', false, $args);
+            $prds     = MeprCptModel::all('MeprProduct', false, $args);
             $gateways = $mepr_options->payment_methods();
 
             MeprView::render('/admin/transactions/search_box', compact('membership', 'status', 'prds', 'gateways', 'gateway'));
         }
     }
-} //End class
+}

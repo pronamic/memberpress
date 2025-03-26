@@ -6,6 +6,11 @@ if (! defined('ABSPATH')) {
 
 class MeprReadyLaunchCtrl extends MeprBaseCtrl
 {
+    /**
+     * Loads the hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('mepr_display_options_tabs', 'MeprReadyLaunchCtrl::display_option_tab', 100);
@@ -43,7 +48,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     public function login_form_shortcode($atts = [])
     {
         $show_welcome_image = 0;
-        $welcome_image = 0;
+        $welcome_image      = 0;
 
         // Show welcome image
         if (isset($atts['show_welcome_image'])) {
@@ -65,11 +70,10 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
      * Render pricing table shortcode
      *
      * @param  array $atts shortcode args.
-     * @return void
+     * @return string
      */
     public function pricing_table_shortcode($atts = [])
     {
-
         wp_enqueue_script('mepr-pro-pricing', MEPR_JS_URL . '/readylaunch/pricing.js', ['jquery'], MEPR_VERSION, true);
 
 
@@ -85,6 +89,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
 
         add_filter('mepr_pro_templates_has_pricing_block', '__return_true');
         $content = do_shortcode('[mepr-group-price-boxes group_id="' . $group->ID . '" show_title="' . $atts['show_title'] . '" button_highlight_color="' . $atts['button_highlight_color'] . '"] ');
+
         return $content;
     }
 
@@ -92,7 +97,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
      * Render pricing table shortcode
      *
      * @param  array $atts shortcode args.
-     * @return void
+     * @return string
      */
     public function account_shortcode($atts = [])
     {
@@ -172,14 +177,14 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     public function override_page_templates($template)
     {
         global $post;
-        $mepr_options         = MeprOptions::fetch();
-        $logout_url           = MeprUtils::logout_url();
-        $account_url          = $mepr_options->account_page_url();
-        $delim                = MeprAppCtrl::get_param_delimiter_char($account_url);
-        $change_password_url  = MeprHooks::apply_filters('mepr-rl-change-password-url', $account_url . $delim . 'action=newpassword');
-        $logo                 = esc_url(wp_get_attachment_url($mepr_options->design_logo_img));
-        $user                 = MeprUtils::get_currentuserinfo();
-        $wrapper_classes      = '';
+        $mepr_options        = MeprOptions::fetch();
+        $logout_url          = MeprUtils::logout_url();
+        $account_url         = $mepr_options->account_page_url();
+        $delim               = MeprAppCtrl::get_param_delimiter_char($account_url);
+        $change_password_url = MeprHooks::apply_filters('mepr-rl-change-password-url', $account_url . $delim . 'action=newpassword');
+        $logo                = esc_url(wp_get_attachment_url($mepr_options->design_logo_img));
+        $user                = MeprUtils::get_currentuserinfo();
+        $wrapper_classes     = '';
 
         if (self::template_enabled('pricing')) {
             $user              = MeprUtils::get_currentuserinfo();
@@ -225,7 +230,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Gets the page content for thankyou page
      *
-     * @param  string $content
+     * @param  string $content The content.
      * @return string
      */
     public function thankyou_page_content($content)
@@ -236,18 +241,19 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             $txn = !empty($txn->id) ? new MeprTransaction($txn->id) : null;
 
             if ($txn instanceof MeprTransaction && !empty($txn->id)) {
-                $mepr_options = MeprOptions::fetch();
-                $hide_invoice = $mepr_options->design_thankyou_hide_invoice;
-                $invoice_message = do_shortcode($mepr_options->design_thankyou_invoice_message);
+                $mepr_options      = MeprOptions::fetch();
+                $hide_invoice      = $mepr_options->design_thankyou_hide_invoice;
+                $invoice_message   = do_shortcode($mepr_options->design_thankyou_invoice_message);
                 $has_welcome_image = $mepr_options->design_show_thankyou_welcome_image;
-                $welcome_image = esc_url(wp_get_attachment_url($mepr_options->design_thankyou_welcome_img));
+                $welcome_image     = esc_url(wp_get_attachment_url($mepr_options->design_thankyou_welcome_img));
+                $order             = $txn->order();
 
-                if (($order = $txn->order()) instanceof MeprOrder) {
+                if ($order instanceof MeprOrder) {
                     $order_bump_transactions = MeprTransaction::get_all_by_order_id_and_gateway($order->id, $txn->gateway, $txn->id);
-                    $transactions = array_merge([$txn], $order_bump_transactions);
-                    $processed_sub_ids = [];
-                    $order_bumps = [];
-                    $amount = 0.00;
+                    $transactions            = array_merge([$txn], $order_bump_transactions);
+                    $processed_sub_ids       = [];
+                    $order_bumps             = [];
+                    $amount                  = 0.00;
 
                     foreach ($transactions as $index => $transaction) {
                         if ($transaction->is_one_time_payment()) {
@@ -280,8 +286,8 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
                         }
                     }
 
-                    $amount = MeprAppHelper::format_currency($amount);
-                    $trans_num = $order->trans_num;
+                    $amount       = MeprAppHelper::format_currency($amount);
+                    $trans_num    = $order->trans_num;
                     $invoice_html = MeprTransactionsHelper::get_invoice_order_bumps($txn, '', $order_bumps);
                 } else {
                     $sub = $txn->subscription();
@@ -292,7 +298,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
 
                     $amount = strtok(MeprAppHelper::format_price_string($txn, $txn->amount), ' ');
 
-                    $trans_num = $txn->trans_num;
+                    $trans_num    = $txn->trans_num;
                     $invoice_html = MeprTransactionsHelper::get_invoice($txn);
                 }
 
@@ -419,7 +425,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
      */
     public static function display_option_fields()
     {
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options          = MeprOptions::fetch();
         $groups                = MeprCptModel::all('MeprGroup');
         $pricing_columns_limit = false;
 
@@ -464,8 +470,8 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
                 'removeInstructorLink' => '',
                 'logoId'               => '',
             ],
-            'coaching'  => [
-                'enableTemplate'        =>  isset($mepr_options->rl_enable_coaching_template) ? filter_var($mepr_options->rl_enable_coaching_template, FILTER_VALIDATE_BOOLEAN) : '',
+            'coaching' => [
+                'enableTemplate' =>  isset($mepr_options->rl_enable_coaching_template) ? filter_var($mepr_options->rl_enable_coaching_template, FILTER_VALIDATE_BOOLEAN) : '',
             ],
         ];
 
@@ -584,6 +590,14 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Adds the view path for the slug.
+     *
+     * @param  array  $paths         The paths.
+     * @param  string $slug          The slug.
+     * @param  array  $allowed_slugs The allowed slugs.
+     * @return array
+     */
     public function add_view_path_for_slug($paths, $slug, $allowed_slugs = [])
     {
         if (in_array($slug, $allowed_slugs) || empty($allowed_slugs)) {
@@ -595,6 +609,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Only remove admin bar when on readylaunch pro templates
      *
+     * @param  boolean $show The show.
      * @return boolean
      */
     public function remove_admin_bar($show)
@@ -633,8 +648,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Checks if we should override the page template
      *
-     * @param  string      $template template name.
-     * @param  MeprOptions $options  MeprOptions object.
+     * @param  string $template template name.
      * @return boolean
      */
     public static function template_enabled($template)
@@ -672,7 +686,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
      */
     public static function template_active($template)
     {
-        $options = MeprOptions::fetch();
+        $options        = MeprOptions::fetch();
         $attribute_name = 'design_enable_' . $template . '_template';
 
         return isset($options->$attribute_name) && filter_var($options->$attribute_name, FILTER_VALIDATE_BOOLEAN);
@@ -702,6 +716,14 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         wp_send_json_success($content);
     }
 
+    /**
+     * Validates the account fields.
+     *
+     * @param  array  $errors    The errors.
+     * @param  object $user      The user.
+     * @param  string $field_key The field key.
+     * @return array
+     */
     public function validate_account_fields($errors, $user, $field_key)
     {
         $mepr_options = MeprOptions::fetch();
@@ -730,6 +752,11 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         return $errors;
     }
 
+    /**
+     * Load more subscriptions.
+     *
+     * @return void
+     */
     public function load_more_subscriptions()
     {
         // Check for nonce security!
@@ -755,6 +782,11 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         wp_send_json_success($content);
     }
 
+    /**
+     * Load more payments.
+     *
+     * @return void
+     */
     public function load_more_payments()
     {
         // Check for nonce security!
@@ -777,6 +809,12 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         wp_send_json_success($content);
     }
 
+    /**
+     * Placeholders to address fields.
+     *
+     * @param  array $fields The fields.
+     * @return array
+     */
     public function placeholders_to_address_fields($fields)
     {
         foreach ($fields as $key => $field) {
@@ -786,6 +824,11 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         return $fields;
     }
 
+    /**
+     * Theme style.
+     *
+     * @return void
+     */
     public static function theme_style()
     {
         $mepr_options = MeprOptions::fetch();
@@ -832,9 +875,15 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Get the contrast color.
+     *
+     * @param  string $hexColor The hex color.
+     * @return string
+     */
     public static function getContrastColor($hexColor)
     {
-        $hexColor = trim($hexColor);
+        $hexColor     = trim($hexColor);
         $tmp_hexColor = trim($hexColor, '#');
         if (! ctype_xdigit($tmp_hexColor)) { // Validate HEX code.
             $hexColor = '#FFFFFF'; // Fallback to white color.
@@ -876,6 +925,13 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Hex to RGB.
+     *
+     * @param  string  $hex   The hex.
+     * @param  boolean $alpha The alpha.
+     * @return string
+     */
     public static function hexToRgb($hex, $alpha = false)
     {
         $hex      = str_replace('#', '', $hex);
@@ -888,4 +944,4 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
         return implode(',', $rgb);
     }
-} //End class
+}

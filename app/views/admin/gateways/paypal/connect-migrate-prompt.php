@@ -1,7 +1,9 @@
 <?php
-$classes = '';
+$classes      = '';
 $display_keys = isset($_GET['display-keys']);
 /**
+ * PayPal Commerce Gateway
+ *
  * @var MeprPayPalCommerceGateway $pm
 */
 ?>

@@ -61,6 +61,8 @@ class MeprBatchMigrator
     protected $first_batch = true;
 
     /**
+     * Initializes a new instance of the MeprBatchMigrator class.
+     *
      * @param Closure $fetch_batch Function to get the next batch of items.
      * @param integer $limit       The starting limit.
      * @param integer $offset      The starting offset.
@@ -68,9 +70,9 @@ class MeprBatchMigrator
     public function __construct(Closure $fetch_batch, int $limit, int $offset)
     {
         $this->fetch_batch = $fetch_batch;
-        $this->limit = $limit;
-        $this->offset = $offset;
-        $this->start = microtime(true);
+        $this->limit       = $limit;
+        $this->offset      = $offset;
+        $this->start       = microtime(true);
     }
 
     /**
@@ -136,7 +138,7 @@ class MeprBatchMigrator
 
             // Calculate the number of items to process in the next batch
             if ($this->processed > 0) {
-                $elapsed_time = microtime(true) - $this->start;
+                $elapsed_time  = microtime(true) - $this->start;
                 $time_per_item = $elapsed_time / $this->processed;
 
                 if ($time_per_item > 0) {
@@ -152,8 +154,8 @@ class MeprBatchMigrator
         }
 
         if ($this->processed > 0) {
-            $elapsed_time = microtime(true) - $this->start;
-            $time_per_item = $elapsed_time / $this->processed;
+            $elapsed_time         = microtime(true) - $this->start;
+            $time_per_item        = $elapsed_time / $this->processed;
             $projected_batch_time = count($this->items) * $time_per_item;
 
             return ($elapsed_time + $projected_batch_time) < self::TIMEOUT;

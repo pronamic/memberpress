@@ -12,8 +12,15 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
-class WP_Rollback_MemberPress_Upgrader extends Plugin_Upgrader
+class WPRollbackMembercoreUpgrader extends Plugin_Upgrader
 {
+    /**
+     * Perform the rollback update.
+     *
+     * @param  array $info The info.
+     * @param  array $args The args.
+     * @return boolean|WP_Error
+     */
     public function rollback($info, $args = [])
     {
         $defaults    = ['clear_update_cache' => true];

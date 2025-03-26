@@ -53,7 +53,7 @@ if (!empty($records)) {
                     break;
                 case 'col_product':
                     if ($rec->product_id) {
-                        $prd = new MeprProduct($rec->product_id);
+                        $prd          = new MeprProduct($rec->product_id);
                         $product_link = '<a href="' . $prd->edit_url() . '">' . $rec->product_name . '</a>';
                     } else {
                         $product_link = __('Unknown', 'memberpress');
@@ -103,7 +103,8 @@ if (!empty($records)) {
                   <a href="" class="mepr-refund-txn" title="<?php _e('Refund Transaction', 'memberpress'); ?>" data-value="<?php echo $rec->id; ?>"><?php _e('Refund', 'memberpress'); ?></a> |
                 </span>
                         <?php
-                        if (($sub = $txn->subscription()) && $sub->status == MeprSubscription::$active_str and $sub->can('cancel-subscriptions')) :
+                        $sub = $txn->subscription();
+                        if ($sub && $sub->status == MeprSubscription::$active_str && $sub->can('cancel-subscriptions')) :
                             ?>
                   <span class="mepr-refund-txn-and-cancel-sub-action">
                     <a href="" class="mepr-refund-txn-and-cancel-sub" title="<?php _e('Refund Transaction and Cancel Subscription', 'memberpress'); ?>" data-value="<?php echo $rec->id; ?>"><?php _e('Refund & Cancel', 'memberpress'); ?></a> |

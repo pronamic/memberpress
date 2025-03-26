@@ -29,6 +29,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         add_action('mepr_drm_app_fee_revision', [$this, 'drm_app_fee_percentage_revision']);
     }
 
+    /**
+     * DRM license activated.
+     *
+     * @return void
+     */
     public function drm_license_activated()
     {
         delete_option('mepr_drm_no_license');
@@ -47,6 +52,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         $drm_app_fee->undo_app_fee();
     }
 
+    /**
+     * DRM license deactivated.
+     *
+     * @return void
+     */
     public function drm_license_deactivated()
     {
         wp_clear_scheduled_hook('mepr_drm_app_fee_mapper');
@@ -66,6 +76,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * DRM license invalid expired.
+     *
+     * @return void
+     */
     public function drm_license_invalid_expired()
     {
         $drm_invalid_license = get_option('mepr_drm_invalid_license', false);
@@ -81,6 +96,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * DRM dismiss notice.
+     *
+     * @return void
+     */
     public static function drm_dismiss_notice()
     {
 
@@ -114,7 +134,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         wp_send_json_success();
     }
 
-
+    /**
+     * DRM init.
+     *
+     * @return void
+     */
     public function drm_init()
     {
 
@@ -144,6 +168,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * DRM throttle.
+     *
+     * @return void
+     */
     public function drm_throttle()
     {
 
@@ -172,6 +201,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * AJAX DRM activate license.
+     *
+     * @return void
+     */
     public function ajax_drm_activate_license()
     {
         if (! MeprUtils::is_post_request() || ! isset($_POST['key']) || ! is_string($_POST['key'])) {
@@ -200,6 +234,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * DRM menu append alert.
+     *
+     * @return void
+     */
     public function drm_menu_append_alert()
     {
 
@@ -224,6 +263,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         <?php
     }
 
+    /**
+     * AJAX DRM use without license.
+     *
+     * @return void
+     */
     public function ajax_drm_use_without_license()
     {
         if (! MeprUtils::is_post_request()) {
@@ -262,6 +306,14 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * DRM set status locked.
+     *
+     * @param  string  $status     The status.
+     * @param  integer $days       The days.
+     * @param  string  $event_name The event name.
+     * @return void
+     */
     public function drm_set_status_locked($status, $days, $event_name)
     {
 
@@ -282,6 +334,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * App fee admin notices.
+     *
+     * @return void
+     */
     public function app_fee_admin_notices()
     {
 
@@ -296,6 +353,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * DRM dismiss fee notice.
+     *
+     * @return void
+     */
     public static function drm_dismiss_fee_notice()
     {
 
@@ -306,11 +368,22 @@ class MeprDrmCtrl extends MeprBaseCtrl
         wp_send_json_success();
     }
 
+    /**
+     * App fee modal footer.
+     *
+     * @return void
+     */
     public function app_fee_modal_footer()
     {
         MeprView::render('/admin/drm/modal_fee');
     }
 
+    /**
+     * DRM cron schedules.
+     *
+     * @param  array $array The array.
+     * @return array
+     */
     public function drm_cron_schedules($array)
     {
 
@@ -322,15 +395,20 @@ class MeprDrmCtrl extends MeprBaseCtrl
         return $array;
     }
 
+    /**
+     * DRM app fee mapper.
+     *
+     * @return void
+     */
     public function drm_app_fee_mapper()
     {
         if (! MeprDrmHelper::is_app_fee_enabled()) {
             return; // bail.
         }
 
-        $api_version = MeprDrmHelper::get_drm_app_fee_version();
+        $api_version        = MeprDrmHelper::get_drm_app_fee_version();
         $current_percentage = MeprDrmHelper::get_application_fee_percentage();
-        $meprdrm = new MeprDrmAppFee();
+        $meprdrm            = new MeprDrmAppFee();
 
         // --Add fee--
         $subscriptions = $meprdrm->get_all_active_subs(['mepr_app_fee_not_applied' => true]);
@@ -341,6 +419,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         $meprdrm->process_subscriptions_fee($subscriptions, $api_version, $current_percentage);
     }
 
+    /**
+     * DRM app fee reversal.
+     *
+     * @return void
+     */
     public function drm_app_fee_reversal()
     {
 
@@ -348,16 +431,21 @@ class MeprDrmCtrl extends MeprBaseCtrl
             return; // bail.
         }
 
-        $meprdrm = new MeprDrmAppFee();
-        $api_version = MeprDrmHelper::get_drm_app_fee_version();
+        $meprdrm            = new MeprDrmAppFee();
+        $api_version        = MeprDrmHelper::get_drm_app_fee_version();
         $current_percentage = MeprDrmHelper::get_application_fee_percentage();
-        $subscriptions = $meprdrm->get_all_active_subs(['mepr_app_fee_applied' => MeprDrmHelper::get_drm_app_fee_version()]);
+        $subscriptions      = $meprdrm->get_all_active_subs(['mepr_app_fee_applied' => MeprDrmHelper::get_drm_app_fee_version()]);
         $meprdrm->process_subscriptions_fee($subscriptions, $api_version, 0, true);
     }
 
+    /**
+     * DRM app fee percentage revision.
+     *
+     * @return void
+     */
     public function drm_app_fee_percentage_revision()
     {
-        $current_version = MeprDrmHelper::get_drm_app_fee_version();
+        $current_version    = MeprDrmHelper::get_drm_app_fee_version();
         $current_percentage = MeprDrmHelper::get_application_fee_percentage();
         MeprDrmHelper::get_application_fee_percentage(true);
     }

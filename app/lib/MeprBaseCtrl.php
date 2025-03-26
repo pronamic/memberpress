@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 abstract class MeprBaseCtrl
 {
+    /**
+     * Constructor.
+     *
+     * @return void
+     */
     public function __construct()
     {
         // This is to ensure that the load_hooks method is
@@ -24,5 +29,10 @@ abstract class MeprBaseCtrl
         }
     }
 
+    /**
+     * Load the hooks.
+     *
+     * @return void
+     */
     abstract public function load_hooks();
 }

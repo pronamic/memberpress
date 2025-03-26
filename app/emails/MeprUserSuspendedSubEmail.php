@@ -7,19 +7,22 @@ if (!defined('ABSPATH')) {
 class MeprUserSuspendedSubEmail extends MeprBaseOptionsUserEmail
 {
     /**
-     * Set the default enabled, title, subject & body
+     * Set the default enabled, title, subject & body.
+     *
+     * @param  array $args The args.
+     * @return void
      */
     public function set_defaults($args = [])
     {
-        $this->title = __('<b>Paused Subscription</b> Notice', 'memberpress');
+        $this->title       = __('<b>Paused Subscription</b> Notice', 'memberpress');
         $this->description = __('This email is sent to the user when one of their subscriptions is paused.', 'memberpress');
-        $this->ui_order = 5;
+        $this->ui_order    = 5;
 
         $enabled = $use_template = $this->show_form = true;
         $subject = __('** You\'ve paused your subscription', 'memberpress');
-        $body = $this->body_partial();
+        $body    = $this->body_partial();
 
-        $this->defaults = compact('enabled', 'subject', 'body', 'use_template');
+        $this->defaults  = compact('enabled', 'subject', 'body', 'use_template');
         $this->variables = MeprSubscriptionsHelper::get_email_vars();
     }
 }

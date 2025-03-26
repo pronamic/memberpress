@@ -9,6 +9,13 @@ if (!defined('ABSPATH')) {
  **/
 class MeprGatewayFactory
 {
+    /**
+     * Fetch.
+     *
+     * @param  string $class    The class.
+     * @param  mixed  $settings The settings.
+     * @return mixed
+     */
     public static function fetch($class, $settings = null)
     {
         if (!class_exists($class)) {
@@ -30,6 +37,11 @@ class MeprGatewayFactory
         return $obj;
     }
 
+    /**
+     * Gets all the gateways.
+     *
+     * @return array
+     */
     public static function all()
     {
         static $gateways;
@@ -43,7 +55,7 @@ class MeprGatewayFactory
                     $class = preg_replace('#\.php#', '', basename($file));
 
                     try {
-                          $obj = self::fetch($class);
+                          $obj              = self::fetch($class);
                           $gateways[$class] = $obj->name;
                     } catch (Exception $e) {
                         continue; // For now we do nothing if an exception is thrown
@@ -55,6 +67,11 @@ class MeprGatewayFactory
         return $gateways;
     }
 
+    /**
+     * Gets the paths.
+     *
+     * @return array
+     */
     public static function paths()
     {
         return MeprHooks::apply_filters('mepr-gateway-paths', [MEPR_GATEWAYS_PATH]);

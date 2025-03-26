@@ -26,21 +26,21 @@
 
         <?php
         foreach ($addons as $slug => $info) :
-            $info = (object) $info;
+            $info         = (object) $info;
             $status_label = '';
             $action_class = 'mepr-addon-action';
 
             $installed = isset($info->extra_info->directory) && is_dir(WP_PLUGIN_DIR . '/' . $info->extra_info->directory);
-            $active = isset($info->extra_info->main_file) && is_plugin_active($info->extra_info->main_file);
+            $active    = isset($info->extra_info->main_file) && is_plugin_active($info->extra_info->main_file);
 
             if ($installed && $active) {
-                $status = 'active';
+                $status       = 'active';
                 $status_label = esc_html__('Active', 'memberpress');
             } elseif (!$installed && $info->installable) {
-                $status = 'download';
+                $status       = 'download';
                 $status_label = esc_html__('Not Installed', 'memberpress');
             } elseif ($installed && !$active) {
-                $status = 'inactive';
+                $status       = 'inactive';
                 $status_label = esc_html__('Inactive', 'memberpress');
             } else {
                 $status = 'upgrade';

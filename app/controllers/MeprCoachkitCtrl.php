@@ -8,6 +8,11 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
 {
     private $coachkit_slug = 'memberpress-coachkit/main.php';
 
+    /**
+     * Load hooks for the CoachKit management.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         if (! is_plugin_active($this->coachkit_slug)) {
@@ -18,6 +23,11 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Display an admin notice when CoachKit is activated.
+     *
+     * @return void
+     */
     public function activated_admin_notice()
     {
         if (isset($_GET['coachkit_activated']) && ! empty($_GET['coachkit_activated']) && 'true' === $_GET['coachkit_activated']) : ?>
@@ -27,6 +37,11 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
         <?php endif;
     }
 
+    /**
+     * Route the CoachKit management page.
+     *
+     * @return void
+     */
     public static function route()
     {
         $plugins = get_plugins();
@@ -34,13 +49,19 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
         $coachkit_addon = false;
         if (empty($plugins['memberpress-coachkit/main.php'])) {
             // only query addons if CoachKit™ is not installed.
-            $addons = (array) MeprUpdateCtrl::addons(true, true, true);
+            $addons         = (array) MeprUpdateCtrl::addons(true, true, true);
             $coachkit_addon = ! empty($addons['memberpress-coachkit']) ? $addons['memberpress-coachkit'] : false;
         }
 
         MeprView::render('/admin/coachkit/ui', get_defined_vars());
     }
 
+    /**
+     * Enqueue scripts and styles for the CoachKit admin page.
+     *
+     * @param  string $hook The current admin page hook.
+     * @return void
+     */
     public function enqueue_scripts($hook)
     {
         if (preg_match('/_page_memberpress-(coachkit|options)$/', $hook)) {
@@ -65,22 +86,22 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
             wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
-        $type = sanitize_text_field($_POST['type']);
+        $type      = sanitize_text_field($_POST['type']);
         $installed = false;
         $activated = false;
-        $message = '';
-        $result = 'error';
+        $message   = '';
+        $result    = 'error';
         switch ($type) {
             case 'install-activate': // Install and activate courses
                 $installed = $this->install_coachkit(true);
                 $activated = $installed ? $installed : $activated;
-                $result = $installed ? 'success' : 'error';
-                $message = $installed ? esc_html__('CoachKit™ has been installed and activated successfully. Enjoy!', 'memberpress') : esc_html__('CoachKit™ could not be installed. Please check your license settings, or contact MemberPress support for help.', 'memberpress');
+                $result    = $installed ? 'success' : 'error';
+                $message   = $installed ? esc_html__('CoachKit™ has been installed and activated successfully. Enjoy!', 'memberpress') : esc_html__('CoachKit™ could not be installed. Please check your license settings, or contact MemberPress support for help.', 'memberpress');
                 break;
             case 'activate': // Just activate (already installed)
                 $activated = is_null(activate_plugin($this->coachkit_slug));
-                $result = 'success';
-                $message = esc_html__('CoachKit™ has been activated successfully. Enjoy!', 'memberpress');
+                $result    = 'success';
+                $message   = esc_html__('CoachKit™ has been activated successfully. Enjoy!', 'memberpress');
                 break;
             default:
                 break;
@@ -93,7 +114,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
         if ($activated) {
             // redirect to Programs page.
             $redirect = add_query_arg([
-                'post_type' => 'mpch-program',
+                'post_type'          => 'mpch-program',
                 'coachkit_activated' => 'true',
             ], admin_url('edit.php'));
         }
@@ -101,9 +122,9 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
         wp_send_json_success([
             'installed' => $installed,
             'activated' => $activated,
-            'result' => $result,
-            'message' => $message,
-            'redirect' => $redirect,
+            'result'    => $result,
+            'message'   => $message,
+            'redirect'  => $redirect,
         ]);
     }
 
@@ -116,7 +137,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
      */
     public function install_coachkit($activate = false)
     {
-        $addons = (array) MeprUpdateCtrl::addons(true, true, true);
+        $addons         = (array) MeprUpdateCtrl::addons(true, true, true);
         $coachkit_addon = ! empty($addons['memberpress-coachkit']) ? $addons['memberpress-coachkit'] : [];
 
         $plugins = get_plugins();
@@ -170,5 +191,5 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
 
         return $installer->plugin_info();
     }
-} //End class
+}
 

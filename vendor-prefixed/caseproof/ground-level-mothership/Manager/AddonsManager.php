@@ -1,9 +1,4 @@
 <?php
-/**
- * @license GPL-3.0
- *
- * Modified by Team Caseproof using {@see https://github.com/BrianHenryIE/strauss}.
- */
 
 declare(strict_types=1);
 
@@ -127,15 +122,15 @@ class AddonsManager implements StaticContainerAwareness
     public static function ajaxAddonActivate(): void
     {
         if (! isset($_POST['plugin'])) {
-            wp_send_json_error(esc_html__('Bad request.', 'caseproof-mothership'));
+            wp_send_json_error(esc_html__('Bad request.', 'memberpress'));
         }
 
         if (! current_user_can('activate_plugins')) {
-            wp_send_json_error(esc_html__('Sorry, you don\'t have permission to do this.', 'caseproof-mothership'));
+            wp_send_json_error(esc_html__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
         if (! check_ajax_referer('mosh_addons', false, false)) {
-            wp_send_json_error(esc_html__('Security check failed.', 'caseproof-mothership'));
+            wp_send_json_error(esc_html__('Security check failed.', 'memberpress'));
         }
 
         $result = activate_plugins(wp_unslash($_POST['plugin']));
@@ -146,23 +141,23 @@ class AddonsManager implements StaticContainerAwareness
                 wp_send_json_error(
                     esc_html__(
                         'Could not activate plugin. Please activate from the Plugins page manually.',
-                        'caseproof-mothership'
+                        'memberpress'
                     )
                 );
             } else {
                 wp_send_json_error(
                     esc_html__(
                         'Could not activate add-on. Please activate from the Plugins page manually.',
-                        'caseproof-mothership'
+                        'memberpress'
                     )
                 );
             }
         }
 
         if ($type === 'plugin') {
-            wp_send_json_success(esc_html__('Plugin activated.', 'caseproof-mothership'));
+            wp_send_json_success(esc_html__('Plugin activated.', 'memberpress'));
         } else {
-            wp_send_json_success(esc_html__('Add-on activated.', 'caseproof-mothership'));
+            wp_send_json_success(esc_html__('Add-on activated.', 'memberpress'));
         }
     }
 
@@ -174,22 +169,22 @@ class AddonsManager implements StaticContainerAwareness
     public static function ajaxAddonDeactivate(): void
     {
         if (! isset($_POST['plugin'])) {
-            wp_send_json_error(esc_html__('Bad request.', 'caseproof-mothership'));
+            wp_send_json_error(esc_html__('Bad request.', 'memberpress'));
         }
         if (! current_user_can('deactivate_plugins')) {
-            wp_send_json_error(esc_html__('Sorry, you don\'t have permission to do this.', 'caseproof-mothership'));
+            wp_send_json_error(esc_html__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
         if (! check_ajax_referer('mosh_addons', false, false)) {
-            wp_send_json_error(esc_html__('Security check failed.', 'caseproof-mothership'));
+            wp_send_json_error(esc_html__('Security check failed.', 'memberpress'));
         }
 
         deactivate_plugins(wp_unslash($_POST['plugin']));
         $type = isset($_POST['type']) ? sanitize_key($_POST['type']) : 'add-on';
 
         if ($type === 'plugin') {
-            wp_send_json_success(esc_html__('Plugin deactivated.', 'caseproof-mothership'));
+            wp_send_json_success(esc_html__('Plugin deactivated.', 'memberpress'));
         } else {
-            wp_send_json_success(esc_html__('Add-on deactivated.', 'caseproof-mothership'));
+            wp_send_json_success(esc_html__('Add-on deactivated.', 'memberpress'));
         }
     }
 
@@ -201,15 +196,15 @@ class AddonsManager implements StaticContainerAwareness
     public static function ajaxAddonInstall(): void
     {
         if (! isset($_POST['plugin'])) {
-            wp_send_json_error(esc_html__('Bad request.', 'caseproof-mothership'));
+            wp_send_json_error(esc_html__('Bad request.', 'memberpress'));
         }
 
         if (! current_user_can('install_plugins') || ! current_user_can('activate_plugins')) {
-            wp_send_json_error(esc_html__('Sorry, you don\'t have permission to do this.', 'caseproof-mothership'));
+            wp_send_json_error(esc_html__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
         if (! check_ajax_referer('mosh_addons', false, false)) {
-            wp_send_json_error(esc_html__('Security check failed.', 'caseproof-mothership'));
+            wp_send_json_error(esc_html__('Security check failed.', 'memberpress'));
         }
 
         $type = isset($_POST['type']) ? sanitize_key($_POST['type']) : 'add-on';
@@ -217,10 +212,10 @@ class AddonsManager implements StaticContainerAwareness
         if ($type === 'plugin') {
             $error = esc_html__(
                 'Could not install plugin. Please download and install manually.',
-                'caseproof-mothership'
+                'memberpress'
             );
         } else {
-            $error = esc_html__('Could not install add-on.', 'caseproof-mothership');
+            $error = esc_html__('Could not install add-on.', 'memberpress');
         }
 
         // Set the current screen to avoid undefined notices.
@@ -267,8 +262,8 @@ class AddonsManager implements StaticContainerAwareness
                 wp_send_json_success(
                     [
                         'message'   => $type === 'plugin'
-                                        ? esc_html__('Plugin installed & activated.', 'caseproof-mothership')
-                                        : esc_html__('Add-on installed & activated.', 'caseproof-mothership'),
+                                        ? esc_html__('Plugin installed & activated.', 'memberpress')
+                                        : esc_html__('Add-on installed & activated.', 'memberpress'),
                         'activated' => true,
                         'basename'  => $pluginBaseName,
                     ]
@@ -277,8 +272,8 @@ class AddonsManager implements StaticContainerAwareness
                 wp_send_json_success(
                     [
                         'message'   => $type === 'plugin'
-                                        ? esc_html__('Plugin installed.', 'caseproof-mothership')
-                                        : esc_html__('Add-on installed.', 'caseproof-mothership'),
+                                        ? esc_html__('Plugin installed.', 'memberpress')
+                                        : esc_html__('Add-on installed.', 'memberpress'),
                         'activated' => false,
                         'basename'  => $pluginBaseName,
                     ]
@@ -322,7 +317,7 @@ class AddonsManager implements StaticContainerAwareness
     public static function generateAddonsHtml(): string
     {
         if (! self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getLicenseKey()) {
-            return '<div class="notice notice-error is-dismissible"><p>' . esc_html__('Please enter your license key to access add-ons.', 'caseproof-mothership') . '</p></div>';
+            return '<div class="notice notice-error is-dismissible"><p>' . esc_html__('Please enter your license key to access add-ons.', 'memberpress') . '</p></div>';
         }
 
         // Refresh the add-ons if the button is clicked.
@@ -334,7 +329,7 @@ class AddonsManager implements StaticContainerAwareness
         if ($addons instanceof Response && $addons->isError()) {
             return sprintf(
                 '<div class=""><p>%s <b>%s</b></p></div>',
-                esc_html__('There was an issue connecting with the API.', 'caseproof-mothership'),
+                esc_html__('There was an issue connecting with the API.', 'memberpress'),
                 $addons->error
             );
         }
@@ -359,17 +354,17 @@ class AddonsManager implements StaticContainerAwareness
         wp_localize_script('mosh-addons-js', 'MoshAddons', [
             'ajax_url'              => admin_url('admin-ajax.php'),
             'nonce'                 => wp_create_nonce('mosh_addons'),
-            'active'                => esc_html__('Active', 'caseproof-mothership'),
-            'inactive'              => esc_html__('Inactive', 'caseproof-mothership'),
-            'activate'              => esc_html__('Activate', 'caseproof-mothership'),
-            'deactivate'            => esc_html__('Deactivate', 'caseproof-mothership'),
+            'active'                => esc_html__('Active', 'memberpress'),
+            'inactive'              => esc_html__('Inactive', 'memberpress'),
+            'activate'              => esc_html__('Activate', 'memberpress'),
+            'deactivate'            => esc_html__('Deactivate', 'memberpress'),
             'install_failed'        => esc_html__(
                 'Could not install add-on. Please download and install manually.',
-                'caseproof-mothership'
+                'memberpress'
             ),
             'plugin_install_failed' => esc_html__(
                 'Could not install plugin. Please download and install manually.',
-                'caseproof-mothership'
+                'memberpress'
             ),
         ]);
     }

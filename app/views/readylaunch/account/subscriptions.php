@@ -87,7 +87,11 @@ if (!empty($subscriptions)) {
 
                     if ($txn != false && $txn instanceof MeprTransaction && $group !== false && strpos($s->active, 'mepr-inactive') === false) {
                         MeprAccountHelper::group_link($txn);
-                    } elseif ( /*$group !== false &&*/strpos($s->active, 'mepr-inactive') !== false /*&& !$prd->is_renewable()*/) {
+                    } elseif (
+                        // $group !== false &&
+                        strpos($s->active, 'mepr-inactive') !== false
+                        // && !$prd->is_renewable()
+                    ) {
                         if ($prd->can_you_buy_me()) {
                             MeprAccountHelper::purchase_link($prd);
                         }
@@ -142,8 +146,11 @@ if (!empty($subscriptions)) {
                             if ($is_sub) {
                                 $subscr = new MeprSubscription($s->id);
 
-                                if ($subscr->coupon_id && ($coupon = new MeprCoupon($subscr->coupon_id)) && isset($coupon->ID) && $coupon->ID) {
-                                    $coupon_str = ' ' . _x('with coupon', 'ui', 'memberpress') . ' ' . $coupon->post_title;
+                                if ($subscr->coupon_id) {
+                                    $coupon = new MeprCoupon($subscr->coupon_id);
+                                    if (isset($coupon->ID) && $coupon->ID) {
+                                        $coupon_str = ' ' . _x('with coupon', 'ui', 'memberpress') . ' ' . $coupon->post_title;
+                                    }
                                 }
                             }
                             echo esc_html(stripslashes($prd->register_price) . $coupon_str);
@@ -165,9 +172,9 @@ if (!empty($subscriptions)) {
               <div class="mepr-pro-account-table__created_at"><?php echo MeprAppHelper::format_date($s->created_at); ?></div>
               <div class="mepr-pro-account-table__rebill">
 
-                <?php if ($txn != false && $txn instanceof MeprTransaction && !$txn->is_sub_account && $is_sub && ($nba = $sub->next_billing_at)) : ?>
+                <?php if ($txn != false && $txn instanceof MeprTransaction && !$txn->is_sub_account && $is_sub && ($nba = $sub->next_billing_at)) : // phpcs:ignore ?>
                     <?php printf(_x('Next Billing: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba)); ?>
-                <?php elseif (!$sub->next_billing_at && ($nba = $sub->expires_at) && stripos($sub->expires_at, '0000-00') === false) : ?>
+                <?php elseif (!$sub->next_billing_at && ($nba = $sub->expires_at) && stripos($sub->expires_at, '0000-00') === false) : // phpcs:ignore ?>
                     <?php
                     if (strtotime($nba) < time()) {
                         printf(_x('Expired: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba));
@@ -175,7 +182,7 @@ if (!empty($subscriptions)) {
                         printf(_x('Expires: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba));
                     }
                     ?>
-                <?php elseif (false === $txn && ($nba = $sub->created_at)) : ?>
+                <?php elseif (false === $txn && ($nba = $sub->created_at)) : // phpcs:ignore ?>
                     <?php printf(_x('Expired: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba)); ?>
                 <?php endif; ?>
               </div>

@@ -23,7 +23,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
      */
     protected function migrate_model(string $class, int $existing_id, array $data)
     {
-        $model = new $class($existing_id);
+        $model       = new $class($existing_id);
         $valid_attrs = $model->get_attrs();
 
         foreach ($data as $key => $value) {
@@ -44,7 +44,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
     /**
      * Runs before the migrator starts.
      */
-    protected static function before_start()
+    public static function before_start()
     {
         if (function_exists('set_time_limit')) {
             set_time_limit(0);
@@ -58,7 +58,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
     /**
      * Runs when the migrator finishes.
      */
-    protected static function finish()
+    public static function finish()
     {
         wp_suspend_cache_invalidation(false);
         wp_cache_flush();
@@ -97,7 +97,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
             array_merge(
                 [
                     'migrator' => $data['migrator'],
-                    'options' => $data['options'],
+                    'options'  => $data['options'],
                 ],
                 $response
             )
@@ -116,7 +116,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
     protected function model_migration_failed_log(string $class, string $title, $id, string $message): string
     {
         return sprintf(
-            /* translators: %1$s: the model type, %2$s: the model title, %3$s: the model ID, %4$s: the error message */
+            // translators: %1$s: the model type, %2$s: the model title, %3$s: the model ID, %4$s: the error message
             __('Failed to migrate %1$s "%2$s" [ID: %3$s]: %4$s', 'memberpress'),
             basename($class),
             $title,
@@ -134,7 +134,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
      */
     protected function get_request_limit_offset(array $data, int $default_limit): array
     {
-        $limit = isset($data['limit']) && is_numeric($data['limit']) && $data['limit'] > 0 ? MeprUtils::clamp((int) $data['limit'], 1, 500) : $default_limit;
+        $limit  = isset($data['limit']) && is_numeric($data['limit']) && $data['limit'] > 0 ? MeprUtils::clamp((int) $data['limit'], 1, 500) : $default_limit;
         $offset = isset($data['offset']) && is_numeric($data['offset']) && $data['offset'] > 0 ? (int) $data['offset'] : 0;
 
         return [$limit, $offset];

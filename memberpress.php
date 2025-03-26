@@ -4,7 +4,7 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: https://memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.11.37
+Version: 1.12.0
 Requires PHP: 7.4
 Author: Caseproof, LLC
 Author URI: http://caseproof.com/
@@ -57,6 +57,7 @@ define('MEPR_VIEWS_PATH', MEPR_PATH . '/app/views');
 define('MEPR_BRAND_VIEWS_PATH', MEPR_BRAND_PATH . '/views');
 define('MEPR_WIDGETS_PATH', MEPR_PATH . '/app/widgets');
 define('MEPR_HELPERS_PATH', MEPR_PATH . '/app/helpers');
+define('MEPR_EXCEPTIONS_PATH', MEPR_PATH . '/app/lib/exceptions');
 define('MEPR_URL', plugins_url('/' . MEPR_PLUGIN_NAME));
 define('MEPR_VIEWS_URL', MEPR_URL . '/app/views');
 define('MEPR_IMAGES_URL', MEPR_URL . '/images');
@@ -74,6 +75,7 @@ define('MEPR_MIN_PHP_VERSION', '5.6.20');
 /**
  * Returns current plugin version.
  *
+ * @param  string $field The field.
  * @return string Plugin version
  */
 function mepr_plugin_info($field)
@@ -119,7 +121,7 @@ function mepr_autoloader($class_name)
         } elseif (preg_match('/^.+Helper$/', $class_name)) {
             $filepath = MEPR_HELPERS_PATH . "/{$class_name}.php";
         } elseif (preg_match('/^.+Exception$/', $class_name)) {
-            $filepath = MEPR_LIB_PATH . '/MeprExceptions.php';
+            $filepath = MEPR_EXCEPTIONS_PATH . "/{$class_name}.php";
         } elseif (preg_match('/^.+Jobs$/', $class_name)) {
             $filepath = MEPR_LIB_PATH . '/MeprJobs.php';
         } elseif (preg_match('/^MeprMigrator.+$/', $class_name)) {

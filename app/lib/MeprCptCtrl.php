@@ -8,6 +8,11 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
 {
     public $cpt;
 
+    /**
+     * Constructor
+     *
+     * @return void
+     */
     public function __construct()
     {
         add_action('init', [$this, 'register_post_type'], 0);
@@ -17,8 +22,19 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
         parent::__construct();
     }
 
+    /**
+     * Register the post type
+     *
+     * @return void
+     */
     abstract public function register_post_type();
 
+    /**
+     * Update all models for class transient
+     *
+     * @param  integer $post_id The post ID
+     * @return void
+     */
     public function update_all_models_for_class_transient($post_id)
     {
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
@@ -81,6 +97,9 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
 
     /**
      * Used to ensure we don't see any references to 'post' or a link when.
+     *
+     * @param  array $messages The messages
+     * @return array The modified messages
      */
     public function post_updated_messages($messages)
     {
@@ -91,10 +110,10 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
         }
 
         $singular_name = $this->cpt->config['labels']['singular_name'];
-        $slug = $this->cpt->slug;
-        $public = $this->cpt->config['public'];
+        $slug          = $this->cpt->slug;
+        $public        = $this->cpt->config['public'];
 
-        $messages[$slug] = [];
+        $messages[$slug]    = [];
         $messages[$slug][0] = '';
 
         if ($public) {
@@ -127,13 +146,13 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
         $messages[$slug][7] = sprintf(__('%s saved.', 'memberpress'), $singular_name);
 
         if ($public) {
-            $messages[$slug][8] = sprintf(
+            $messages[$slug][8]  = sprintf(
                 __('%1$s submitted. <a target="_blank" href="%2$s">Preview %3$s</a>', 'memberpress'),
                 $singular_name,
                 esc_url(add_query_arg('preview', 'true', get_permalink($post_ID))),
                 $singular_name
             );
-            $messages[$slug][9] = sprintf(
+            $messages[$slug][9]  = sprintf(
                 __('%1$s scheduled for: <strong>%2$s</strong>. <a target="_blank" href="%3$s">Preview %4$s</a>', 'memberpress'),
                 $singular_name,
                 date_i18n('M j, Y @ G:i', strtotime($post->post_date), true),
@@ -147,8 +166,8 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
                 $singular_name
             );
         } else {
-            $messages[$slug][8] = sprintf(__('%s submitted.', 'memberpress'), $singular_name);
-            $messages[$slug][9] = sprintf(
+            $messages[$slug][8]  = sprintf(__('%s submitted.', 'memberpress'), $singular_name);
+            $messages[$slug][9]  = sprintf(
                 __('%1$s scheduled for: <strong>%2$s</strong>.', 'memberpress'),
                 $singular_name,
                 date_i18n('M j, Y @ G:i', strtotime($post->post_date), true)
@@ -159,7 +178,13 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
         return $messages;
     }
 
-    /* Modify the bulk update messages for the cpt associated with this controller */
+    /**
+     * Modify the bulk update messages for the cpt associated with this controller
+     *
+     * @param  array $messages The messages
+     * @param  array $counts   The counts
+     * @return array The modified messages
+     */
     public function bulk_post_updated_messages($messages, $counts)
     {
         global $post, $post_ID;
@@ -169,9 +194,9 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
         }
 
         $singular_name = strtolower($this->cpt->config['labels']['singular_name']);
-        $plural_name = strtolower($this->cpt->config['labels']['name']);
-        $slug = $this->cpt->slug;
-        $public = $this->cpt->config['public'];
+        $plural_name   = strtolower($this->cpt->config['labels']['name']);
+        $slug          = $this->cpt->slug;
+        $public        = $this->cpt->config['public'];
 
         $messages[$slug] = [
             'updated'   => _n(

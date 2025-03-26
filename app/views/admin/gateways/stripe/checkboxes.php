@@ -35,7 +35,7 @@ if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys
                           <p>
                             <?php
                               printf(
-                                /* translators: %1$s: open link tag, %2$s: close link tag */
+                                // translators: %1$s: open link tag, %2$s: close link tag
                                   esc_html__('Some of these payment methods have limitations. %1$sClick here%2$s to learn more.', 'memberpress'),
                                   '<a href="https://docs.memberpress.com/article/35-stripe" target="_blank">',
                                   '</a>'
@@ -55,7 +55,7 @@ if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys
                                     // These payment methods require domain verification, but aren't separate payment method types
                                     // that can be activated like the others, nor can they be deactivated.
                                     $domain_payment_methods = [
-                                        'apple_pay' => __('Apple Pay', 'memberpress'),
+                                        'apple_pay'  => __('Apple Pay', 'memberpress'),
                                         'google_pay' => __('Google Pay', 'memberpress'),
                                     ];
                                     ?>

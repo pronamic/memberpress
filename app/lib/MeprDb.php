@@ -9,8 +9,10 @@ class MeprDb
     private $tables;
 
     /**
-     * @param  boolean $force
-     * @return MeprDb
+     * Fetches the MeprDb instance.
+     *
+     * @param  boolean $force Whether to force a new instance.
+     * @return MeprDb The MeprDb instance.
      */
     public static function fetch($force = false)
     {
@@ -23,6 +25,10 @@ class MeprDb
         return MeprHooks::apply_filters('mepr_fetch_db', $mepr_db);
     }
 
+    /**
+     * Constructor for the MeprDb class.
+     * Initializes the tables property with default table names.
+     */
     public function __construct()
     {
         // MemberPress tables
@@ -45,6 +51,11 @@ class MeprDb
         );
     }
 
+    /**
+     * Checks if a database upgrade is needed.
+     *
+     * @return boolean True if an upgrade is needed, false otherwise.
+     */
     public function do_upgrade()
     {
         if (empty(MEPR_VERSION) && defined('TESTS_RUNNING') && TESTS_RUNNING) {
@@ -55,8 +66,13 @@ class MeprDb
         return (version_compare(MEPR_VERSION, $old_db_version, '>'));
     }
 
-    // Upgrades that require migrations should use the db upgrade ui
-    // To ensure admins are aware of what's going on
+    /**
+     * Shows the upgrade UI if an upgrade is needed.
+     * Upgrades that require migrations should use the db upgrade ui
+     * To ensure admins are aware of what's going on
+     *
+     * @return boolean True if the upgrade UI is shown, false otherwise.
+     */
     public function show_upgrade_ui()
     {
         if ($this->do_upgrade()) {
@@ -66,6 +82,11 @@ class MeprDb
         return false;
     }
 
+    /**
+     * Upgrades the database for all sites in a multisite network.
+     *
+     * @return void
+     */
     public function upgrade_multisite()
     {
         global $wpdb;
@@ -108,14 +129,14 @@ class MeprDb
 
             // This was introduced in WordPress 3.5
             // $char_col = $wpdb->get_charset_collate(); //This doesn't work for most non english setups
-            $char_col = '';
+            $char_col  = '';
             $collation = $wpdb->get_row("SHOW FULL COLUMNS FROM {$wpdb->posts} WHERE field = 'post_content'");
 
             if (isset($collation->Collation)) {
                 $charset = explode('_', $collation->Collation);
 
                 if (is_array($charset) && count($charset) > 1) {
-                    $charset = $charset[0]; // Get the charset from the collation
+                    $charset  = $charset[0]; // Get the charset from the collation
                     $char_col = "DEFAULT CHARACTER SET {$charset} COLLATE {$collation->Collation}";
                 }
             }
@@ -127,7 +148,7 @@ class MeprDb
 
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
-            /* Create/Upgrade Board Posts Table */
+            // Create/Upgrade Board Posts Table
             $txns =
             "CREATE TABLE {$this->transactions} (
           id bigint(20) NOT NULL auto_increment,
@@ -183,7 +204,7 @@ class MeprDb
 
             dbDelta($txns);
 
-            /* Create/Upgrade Transaction Meta Table */
+            // Create/Upgrade Transaction Meta Table
             $txnmeta =
             "CREATE TABLE {$this->transaction_meta} (
           id bigint(20) NOT NULL auto_increment,
@@ -349,7 +370,7 @@ class MeprDb
 
             dbDelta($subscriptions);
 
-            /* Create/Upgrade Subscription Meta Table */
+            // Create/Upgrade Subscription Meta Table
             $submeta =
             "CREATE TABLE {$this->subscription_meta} (
           id bigint(20) NOT NULL auto_increment,
@@ -472,6 +493,13 @@ class MeprDb
         }
     }
 
+    /**
+     * Actions to perform before upgrading the database.
+     *
+     * @param string $from_version The version from which the upgrade is occurring.
+     *
+     * @return void
+     */
     public function before_upgrade($from_version)
     {
         global $wpdb;
@@ -481,15 +509,34 @@ class MeprDb
         MeprOptions::migrate_to_new_unauth_system();
     }
 
+    /**
+     * Actions to perform after upgrading the database.
+     *
+     * @param string $from_version The version from which the upgrade occurred.
+     *
+     * @return boolean True on success, false otherwise.
+     */
     public function after_upgrade($from_version)
     {
-        global $wpdb;
-
         MeprDbMigrations::run($from_version, MEPR_VERSION);
+
+        // For fresh installations (or upgrades pre-1.3.9), enqueue a job to update all member data in the background.
+        if (empty($from_version) || version_compare($from_version, '1.3.9', '<')) {
+            $job = new MeprUpdateMemberDataJob();
+            $job->enqueue_in('15m');
+        }
 
         return true;
     }
 
+    /**
+     * Checks if a column exists in a table.
+     *
+     * @param string $table  The name of the table.
+     * @param string $column The name of the column.
+     *
+     * @return boolean True if the column exists, false otherwise.
+     */
     public function column_exists($table, $column)
     {
         global $wpdb;
@@ -501,11 +548,21 @@ class MeprDb
                 'AND COLUMN_NAME = %s';
 
         $query = $wpdb->prepare($query, DB_NAME, $table, $column);
-        $res = $wpdb->get_results($query);
+        $res   = $wpdb->get_results($query);
 
         return !empty($res);
     }
 
+    /**
+     * Adds a column to a table.
+     *
+     * @param string  $table  The name of the table.
+     * @param string  $column The name of the column to add.
+     * @param string  $type   The data type of the column.
+     * @param boolean $index  Whether to add an index to the column.
+     *
+     * @return integer|false The number of rows affected, or false on error.
+     */
     public function add_column($table, $column, $type, $index = false)
     {
         global $wpdb;
@@ -518,6 +575,15 @@ class MeprDb
         return $wpdb->query($query);
     }
 
+    /**
+     * Removes a column from a table.
+     *
+     * @param string $table  The name of the table.
+     * @param string $column The name of the column to remove.
+     * @param string $type   The type of removal (default is 'COLUMN').
+     *
+     * @return integer|false The number of rows affected, or false on error.
+     */
     public function remove_column($table, $column, $type = 'COLUMN')
     {
         global $wpdb;
@@ -527,6 +593,14 @@ class MeprDb
         return $wpdb->query($query);
     }
 
+    /**
+     * Removes multiple columns from a table.
+     *
+     * @param string $table   The name of the table.
+     * @param array  $columns An array of column names to remove.
+     *
+     * @return integer|false The number of rows affected, or false on error.
+     */
     public function remove_columns($table, $columns)
     {
         global $wpdb;
@@ -545,12 +619,21 @@ class MeprDb
         return $wpdb->query($query);
     }
 
+    /**
+     * Creates a new record in a table.
+     *
+     * @param string  $table             The name of the table.
+     * @param array   $args              An associative array of column-value pairs.
+     * @param boolean $record_created_at Whether to record the creation timestamp.
+     *
+     * @return integer|false The ID of the inserted record, or false on error.
+     */
     public function create_record($table, $args, $record_created_at = true)
     {
         global $wpdb;
 
-        $cols = [];
-        $vars = [];
+        $cols   = [];
+        $vars   = [];
         $values = [];
 
         $i = 0;
@@ -608,6 +691,15 @@ class MeprDb
         }
     }
 
+    /**
+     * Updates a record in a table.
+     *
+     * @param string  $table The name of the table.
+     * @param integer $id    The ID of the record to update.
+     * @param array   $args  An associative array of column-value pairs to update.
+     *
+     * @return integer|false The ID of the updated record, or false on error.
+     */
     public function update_record($table, $id, $args)
     {
         global $wpdb;
@@ -616,7 +708,7 @@ class MeprDb
             return false;
         }
 
-        $set = '';
+        $set    = '';
         $values = [];
         foreach ($args as $key => $value) {
             if (empty($set)) {
@@ -645,13 +737,21 @@ class MeprDb
         }
 
         $values[] = $id;
-        $query = "UPDATE {$table}{$set} WHERE id=%d";
-        $query = $wpdb->prepare($query, $values);
+        $query    = "UPDATE {$table}{$set} WHERE id=%d";
+        $query    = $wpdb->prepare($query, $values);
         $wpdb->query($query);
 
         return $id;
     }
 
+    /**
+     * Deletes records from a table based on conditions.
+     *
+     * @param string $table The name of the table.
+     * @param array  $args  An associative array of conditions for deletion.
+     *
+     * @return integer|false The number of rows deleted, or false on error.
+     */
     public function delete_records($table, $args)
     {
         global $wpdb;
@@ -665,12 +765,28 @@ class MeprDb
         return $wpdb->query($query);
     }
 
+    /**
+     * Checks if a record exists in a table based on conditions.
+     *
+     * @param string $table The name of the table.
+     * @param array  $args  An associative array of conditions to check.
+     *
+     * @return boolean True if the record exists, false otherwise.
+     */
     public function record_exists($table, $args = [])
     {
         $count = $this->get_count($table, $args);
         return !empty($count);
     }
 
+    /**
+     * Gets the count of records in a table based on conditions.
+     *
+     * @param string $table The name of the table.
+     * @param array  $args  An associative array of conditions to check.
+     *
+     * @return integer The count of records.
+     */
     public function get_count($table, $args = [])
     {
         global $wpdb;
@@ -684,11 +800,19 @@ class MeprDb
         return $wpdb->get_var($query);
     }
 
+    /**
+     * Gets the WHERE clause and values for a query based on conditions.
+     *
+     * @param string $table The name of the table.
+     * @param array  $args  An associative array of conditions.
+     *
+     * @return array An array containing the WHERE clause and values.
+     */
     public static function get_where_clause_and_values($table, $args)
     {
         $mepr_db = self::fetch();
 
-        $where = '';
+        $where  = '';
         $values = [];
         foreach ($args as $key => $value) {
             $where .= (empty($where) ? ' WHERE' : ' AND');
@@ -705,6 +829,15 @@ class MeprDb
         return compact('where', 'values');
     }
 
+    /**
+     * Gets a single record from a table based on conditions.
+     *
+     * @param string $table       The name of the table.
+     * @param array  $args        An associative array of conditions.
+     * @param string $return_type The return type (OBJECT, ARRAY_A, etc.).
+     *
+     * @return mixed The record, or null if not found.
+     */
     public function get_one_record($table, $args = [], $return_type = OBJECT)
     {
         global $wpdb;
@@ -726,20 +859,31 @@ class MeprDb
             return false;
         }
 
-        $table = $this->table_name_from_class_name($model_name);
+        $table   = $this->table_name_from_class_name($model_name);
         $results = $this->get_one_record($table, $args, ARRAY_A);
 
         if (empty($results)) {
             return false;
         }
 
-        $r = new ReflectionClass($model_name);
+        $r     = new ReflectionClass($model_name);
         $model = $r->newInstance();
         $model->load_from_array($results);
 
         return $model;
     }
 
+    /**
+     * Gets multiple records from a table based on conditions.
+     *
+     * @param string $table       The name of the table.
+     * @param array  $args        An associative array of conditions.
+     * @param string $order_by    The column to order by.
+     * @param string $limit       The limit of records to return.
+     * @param string $return_type The return type (OBJECT, ARRAY_A, etc.).
+     *
+     * @return array An array of records.
+     */
     public function get_records($table, $args = [], $order_by = '', $limit = '', $return_type = OBJECT)
     {
         global $wpdb;
@@ -768,7 +912,7 @@ class MeprDb
             return false;
         }
 
-        $table = $this->table_name_from_class_name($model_name);
+        $table   = $this->table_name_from_class_name($model_name);
         $results = $this->get_records($table, $args, $order_by, $limit, ARRAY_A);
 
         if (empty($results)) {
@@ -787,6 +931,17 @@ class MeprDb
         return $models;
     }
 
+    /**
+     * Gets a single column from a table based on conditions.
+     *
+     * @param string $table    The name of the table.
+     * @param string $col      The column to retrieve.
+     * @param array  $args     An associative array of conditions.
+     * @param string $order_by The column to order by.
+     * @param string $limit    The limit of records to return.
+     *
+     * @return array An array of column values.
+     */
     public function get_col($table, $col, $args = [], $order_by = '', $limit = '')
     {
         global $wpdb;
@@ -808,7 +963,7 @@ class MeprDb
         return $wpdb->get_col($query);
     }
 
-    /* Built to work with WordPress' built in WP_List_Table class */
+    // Built to work with WordPress' built in WP_List_Table class
     public static function list_table(
         $cols,
         $from,
@@ -848,14 +1003,15 @@ class MeprDb
                 }
             }
             $important_join_str = ' ' . implode(' ', $important_joins);
-            $normal_join_str = ' ' . implode(' ', $normal_joins);
-            $join_str = ' ' . implode(' ', $joins);
+            $normal_join_str    = ' ' . implode(' ', $normal_joins);
+            $join_str           = ' ' . implode(' ', $joins);
         }
 
         $args_str = implode(' AND ', $args);
 
         /*
-            -- Ordering parameters -- */
+            -- Ordering parameters --
+        */
         // Parameters that are going to be used to order the result
         if (!(empty($order_by) && empty($order))) {
             $order_by_str = ' ORDER BY ';
@@ -865,7 +1021,7 @@ class MeprDb
                 $order_by_str .= '`' . $order_by . '`';
             } else {
                 $order_by_str = '';
-                $order = '';
+                $order        = '';
             }
             if (preg_match('/^(ASC|DESC)$/i', $order)) {
                 $order_by_str .= " {$order}";
@@ -883,12 +1039,12 @@ class MeprDb
         // adjust the query to take pagination into account
         if (!empty($paged) and !empty($perpage)) {
             $offset = ($paged - 1) * $perpage;
-            $limit = ' LIMIT ' . (int)$offset . ',' . (int)$perpage;
+            $limit  = ' LIMIT ' . (int)$offset . ',' . (int)$perpage;
         }
 
         // Searching
         $search_str = '';
-        $searches = [];
+        $searches   = [];
         if (!empty($search)) {
             if ($search_field == 'any' || empty($search_field)) {
                 $terms = explode(' ', $search); // BOOM, much more robust search now
@@ -909,7 +1065,7 @@ class MeprDb
                 $search_fields = explode(',', $search_field);
 
                 foreach ($search_fields as $search_field) {
-                    $search_join = explode('.', trim($search_field));
+                    $search_join     = explode('.', trim($search_field));
                     $search_join_str = $search_join[0];
                     if (strpos($important_join_str, "AS {$search_join_str}") === false) {
                         // we know we have find the join
@@ -946,7 +1102,7 @@ class MeprDb
             }
         }
 
-        $query = "SELECT {$col_str} FROM {$from}{$join_str}{$conditions}{$order_by_str}{$limit}";
+        $query       = "SELECT {$col_str} FROM {$from}{$join_str}{$conditions}{$order_by_str}{$limit}";
         $total_query = "SELECT COUNT(*) FROM {$from}{$important_join_str}{$conditions}";
 
         MeprUtils::debug_log("List Table Query: {$query}");
@@ -958,13 +1114,13 @@ class MeprDb
             // Allows us to run the bazillion JOINS we use on the list tables
             $wpdb->query('SET SQL_BIG_SELECTS=1');
 
-            $st = microtime(true);
+            $st      = microtime(true);
             $results = $wpdb->get_results($query);
 
             $results_exetime = microtime(true) - $st;
             MeprUtils::debug_log("List Table Query Time: {$results_exetime} sec");
 
-            $st = microtime(true);
+            $st    = microtime(true);
             $count = $wpdb->get_var($total_query);
 
             $count_exetime = microtime(true) - $st;
@@ -972,37 +1128,58 @@ class MeprDb
 
             return [
                 'results' => $results,
-                'count' => $count,
-                'time' => [
+                'count'   => $count,
+                'time'    => [
                     'results' => $results_exetime,
-                    'count' => $count_exetime,
+                    'count'   => $count_exetime,
                 ],
             ];
         }
     }
 
+    /**
+     * Gets the table name from a class name.
+     *
+     * @param string $class_name The class name.
+     *
+     * @return string The table name.
+     */
     private function table_name_from_class_name($class_name)
     {
         global $wpdb;
 
-        $name = MeprUtils::snakecase($class_name);
+        $name  = MeprUtils::snakecase($class_name);
         $name .= 's'; // eyeah at some point we may want a more sophisticated way to pluralize
 
         return $wpdb->prefix . $name;
     }
 
+    /**
+     * Checks if a class is a model class.
+     *
+     * @param string $model_name The model class name.
+     *
+     * @return boolean True if the class is a model class, false otherwise.
+     */
     private function is_model_class($model_name)
     {
         if (!class_exists($model_name)) {
             return false;
         }
 
-        $r = new ReflectionClass($model_name);
+        $r     = new ReflectionClass($model_name);
         $model = $r->newInstance();
 
         return ($model instanceof MeprBaseModel);
     }
 
+    /**
+     * Magic method to get the table name for a given property.
+     *
+     * @param string $name The property name.
+     *
+     * @return string The table name.
+     */
     public function __get($name)
     {
         if (in_array($name, $this->tables)) {
@@ -1011,15 +1188,29 @@ class MeprDb
         }
     }
 
+    /**
+     * Checks if a table exists in the database.
+     *
+     * @param string $table The name of the table.
+     *
+     * @return boolean True if the table exists, false otherwise.
+     */
     public function table_exists($table)
     {
         global $wpdb;
-        $q = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
+        $q         = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
         $table_res = $wpdb->get_var($q);
 
         return is_null($table_res) ? false : (strtolower($table_res) == strtolower($table));
     }
 
+    /**
+     * Gets the collation of a table.
+     *
+     * @param string $table The name of the table.
+     *
+     * @return string|false The collation, or false if not found.
+     */
     public function get_collation($table)
     {
         global $wpdb;
@@ -1033,6 +1224,13 @@ class MeprDb
         return false;
     }
 
+    /**
+     * Gets the charset of a table.
+     *
+     * @param string $table The name of the table.
+     *
+     * @return string|false The charset, or false if not found.
+     */
     public function get_charset($table)
     {
         global $wpdb;
@@ -1050,11 +1248,19 @@ class MeprDb
         return false;
     }
 
+    /**
+     * Gets column information for a table.
+     *
+     * @param string $table The name of the table.
+     *
+     * @return array An array of column information.
+     */
     public function get_column_info($table)
     {
         global $wpdb;
 
-        if (false === ( $table_columns_info = get_transient('_mepr_table_columns_info') )) {
+        $table_columns_info = get_transient('_mepr_table_columns_info');
+        if (false === $table_columns_info) {
             $table_columns_info = [];
         }
 
@@ -1081,14 +1287,23 @@ class MeprDb
         return $table_columns_info[$table];
     }
 
+    /**
+     * Gets the prepare type for a column based on its data type.
+     *
+     * @param string $table  The name of the table.
+     * @param string $column The name of the column.
+     * @param mixed  $value  The value to check.
+     *
+     * @return string The prepare type (%s, %d, %f).
+     */
     public function get_column_prepare_type($table, $column, $value = null)
     {
         $info = $this->get_column_info($table);
 
         $patterns = (object)[
             'integer' => '/(bit|binary|bool|boolean|tinyint|smallint|mediumint|integer|int|bigint)/',
-            'float' => '/(real|double|float|dec|decimal|numeric)/',
-            'string' => '/(datetime|date|timestamp|time|year|tinyblob|blob|mediumblob|longblob|varchar|char|varbinary|tinytext|text|mediumtext|longtext|enum|set)/',
+            'float'   => '/(real|double|float|dec|decimal|numeric)/',
+            'string'  => '/(datetime|date|timestamp|time|year|tinyblob|blob|mediumblob|longblob|varchar|char|varbinary|tinytext|text|mediumtext|longtext|enum|set)/',
         ];
 
         $prepare_type = '%s';
@@ -1133,7 +1348,7 @@ class MeprDb
                 $table,
                 [
                     $object_col => $object_id,
-                    'meta_key' => $meta_key,
+                    'meta_key'  => $meta_key,
                 ]
             );
 
@@ -1146,7 +1361,7 @@ class MeprDb
                 'meta_value',
                 [
                     $object_col => $object_id,
-                    'meta_key' => $meta_key,
+                    'meta_key'  => $meta_key,
                 ]
             );
             $meta_value = array_map('maybe_unserialize', $meta_value);
@@ -1188,13 +1403,13 @@ class MeprDb
         }
 
         // expected_slashed ($meta_key)
-        $meta_key = wp_unslash($meta_key);
+        $meta_key   = wp_unslash($meta_key);
         $meta_value = wp_unslash($meta_value);
         $meta_value = maybe_serialize($meta_value);
 
         $result = $wpdb->insert($table, [
-            $object_col => $object_id,
-            'meta_key' => $meta_key,
+            $object_col  => $object_id,
+            'meta_key'   => $meta_key,
             'meta_value' => $meta_value,
         ]);
 
@@ -1230,14 +1445,14 @@ class MeprDb
 
         // expected_slashed ($meta_key)
         $raw_meta_key = $meta_key;
-        $meta_key = wp_unslash($meta_key);
+        $meta_key     = wp_unslash($meta_key);
         $passed_value = $meta_value;
-        $meta_value = wp_unslash($meta_value);
-        $meta_value = maybe_serialize($meta_value);
+        $meta_value   = wp_unslash($meta_value);
+        $meta_value   = maybe_serialize($meta_value);
 
         $args = [
             $object_col => $object_id,
-            'meta_key' => $meta_key,
+            'meta_key'  => $meta_key,
         ];
 
         $data = ['meta_value' => $meta_value];
@@ -1246,7 +1461,7 @@ class MeprDb
             $prev_value = $args['meta_value'] = maybe_serialize($prev_value);
         }
 
-        $meta_count = $this->get_count($table, $args);
+        $meta_count  = $this->get_count($table, $args);
         $meta_exists = ($meta_count > 0);
 
         if ($meta_exists) {
@@ -1295,7 +1510,7 @@ class MeprDb
         }
 
         // expected_slashed ($meta_key)
-        $meta_key = wp_unslash($meta_key);
+        $meta_key   = wp_unslash($meta_key);
         $meta_value = wp_unslash($meta_value);
 
         $meta_value = maybe_serialize($meta_value);

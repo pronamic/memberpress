@@ -11,10 +11,18 @@ class MeprAuthorizeWebhooks
 {
     private $gateway_settings;
     /**
-     * @var MeprAuthorizeAPI|MeprArtificialAuthorizeNetProfileHttpClient $authorize_api
+     * The HTTP client for Authorize.net profile.
+     *
+     * @var MeprAuthorizeAPI|MeprArtificialAuthorizeNetProfileHttpClient
      */
     private $authorize_api;
 
+    /**
+     * Constructor for the MeprAuthorizeWebhooks class.
+     *
+     * @param array                                                             $gateway_settings The gateway settings.
+     * @param MeprAuthorizeAPI|MeprArtificialAuthorizeNetProfileHttpClient|null $authorize_api    Optional. The HTTP client for Authorize.net profile.
+     */
     public function __construct($gateway_settings, $authorize_api = null)
     {
         $this->gateway_settings = $gateway_settings;
@@ -25,7 +33,7 @@ class MeprAuthorizeWebhooks
     /**
      * Validate and process select Authorize.net webhooks
      *
-     * @throws MeprGatewayException
+     * @throws MeprGatewayException When webhook validation fails or processing encounters an error
      * @return object|false MeprTransaction or false
      */
     public function process_webhook()
@@ -76,6 +84,11 @@ class MeprAuthorizeWebhooks
         return false;
     }
 
+    /**
+     * Get the raw HTTP request body from the input stream.
+     *
+     * @return string The raw HTTP request body.
+     */
     public function get_input_stream()
     {
         return file_get_contents('php://input');
@@ -91,7 +104,7 @@ class MeprAuthorizeWebhooks
     {
         if (isset($_SERVER['HTTP_X_ANET_SIGNATURE'])) {
             $webhook_signature = strtoupper(explode('=', $_SERVER['HTTP_X_ANET_SIGNATURE'])[1]);
-            $hashed_body = strtoupper(hash_hmac('sha512', $request_body, $this->gateway_settings->signature_key));
+            $hashed_body       = strtoupper(hash_hmac('sha512', $request_body, $this->gateway_settings->signature_key));
             return $webhook_signature === $hashed_body;
         }
         return false;
@@ -114,25 +127,27 @@ class MeprAuthorizeWebhooks
             $txn_res = MeprTransaction::get_one_by_trans_num($auth_transaction->transId);
 
             if (is_object($txn_res) and isset($txn_res->id)) {
-                $txn = new MeprTransaction($txn_res->id);
+                $txn         = new MeprTransaction($txn_res->id);
                 $txn->status = MeprTransaction::$failed_str;
                 $txn->store();
             } elseif (!isset($auth_transaction->subscription->id) && $setup_job) {
-                $job = new MeprAuthorizeRetryJob();
+                $job                   = new MeprAuthorizeRetryJob();
                 $job->gateway_settings = $this->gateway_settings;
                 $job->transaction_data = json_encode($auth_transaction);
-                $job->payment_failed = true;
+                $job->payment_failed   = true;
                 $job->enqueue_in('10m'); // Try again in 10 minutes, then it will retry every 30 minutes after.
                 return false;
-            } elseif (isset($auth_transaction->subscription->id) && $sub = MeprSubscription::get_one_by_subscr_id($auth_transaction->subscription->id)) {
-                $txn = $this->insert_transaction($sub, $auth_transaction, MeprTransaction::$failed_str);
-
-                $sub->status = MeprSubscription::$active_str;
-                $sub->gateway = $this->gateway_settings->id;
-                $sub->expire_txns();
-                $sub->store();
             } else {
-                return false;
+                if (isset($auth_transaction->subscription->id)) {
+                    $sub = MeprSubscription::get_one_by_subscr_id($auth_transaction->subscription->id);
+                    if ($sub) {
+                        $txn = $this->insert_transaction($sub, $auth_transaction, MeprTransaction::$failed_str);
+
+                        $sub->status  = MeprSubscription::$active_str;
+                        $sub->gateway = $this->gateway_settings->id;
+                        $sub->expire_txns();
+                    }
+                }
             }
 
             if (!defined('TESTS_RUNNING')) {
@@ -145,6 +160,13 @@ class MeprAuthorizeWebhooks
         return false;
     }
 
+    /**
+     * Log data to the authorize-net.log file if debugging is enabled.
+     *
+     * @param mixed $data The data to log.
+     *
+     * @return void
+     */
     public function log($data)
     {
         if (! defined('WP_MEPR_DEBUG')) {
@@ -161,32 +183,34 @@ class MeprAuthorizeWebhooks
      * net.authorize.payment.capture.created
      * net.authorize.payment.fraud.approved
      *
-     * @param  object $auth_transaction JSON transaction object
+     * @param  object  $auth_transaction JSON transaction object
+     * @param  boolean $setup_job        Optional. Set to true to enqueue a job to retry if subscription data is not yet available.
      * @return object|false MeprTransaction or false
      */
     public function record_subscription_payment($auth_transaction, $setup_job = true)
     {
         if ($setup_job && !isset($auth_transaction->subscription)) {
             // Enqueue a job to try again in 30 minutes
-            $job                    = new MeprAuthorizeRetryJob();
-            $job->gateway_settings  = $this->gateway_settings;
-            $job->transaction_data  = json_encode($auth_transaction);
-            $job->payment_failed    = false;
+            $job                   = new MeprAuthorizeRetryJob();
+            $job->gateway_settings = $this->gateway_settings;
+            $job->transaction_data = json_encode($auth_transaction);
+            $job->payment_failed   = false;
             $job->enqueue_in('10m'); // Try again in 10 minutes. Then it will retry every 30 minutes after
             return false;
         }
 
         $this->log('New recurring payment came');
         $this->log($auth_transaction);
-        if (!$sub = MeprSubscription::get_one_by_subscr_id($auth_transaction->subscription->id)) {
+        $sub = MeprSubscription::get_one_by_subscr_id($auth_transaction->subscription->id);
+        if (!$sub) {
             return false;
         }
 
         $txn = $this->insert_transaction($sub, $auth_transaction, MeprTransaction::$complete_str);
 
-        $sub->status    = MeprSubscription::$active_str;
-        $sub->cc_last4  = substr($auth_transaction->payment->creditCard->cardNumber, -4); // Don't get the XXXX part of the string
-        $sub->gateway   = $this->gateway_settings->id;
+        $sub->status   = MeprSubscription::$active_str;
+        $sub->cc_last4 = substr($auth_transaction->payment->creditCard->cardNumber, -4); // Don't get the XXXX part of the string
+        $sub->gateway  = $this->gateway_settings->id;
         $sub->store();
         $sub->limit_payment_cycles();
 
@@ -234,7 +258,7 @@ class MeprAuthorizeWebhooks
      *
      * @param  object $sub              MeprSubscription
      * @param  object $auth_transaction AuthorizeNet transaction object
-     * @param  string $status
+     * @param  string $status           The status of the transaction.
      * @return object MeprTransaction
      */
     private function insert_transaction($sub, $auth_transaction, $status)
@@ -246,15 +270,15 @@ class MeprAuthorizeWebhooks
             $coupon_id = $first_txn->coupon_id;
         }
 
-        $txn = new MeprTransaction();
-        $txn->user_id = $sub->user_id;
-        $txn->product_id = $sub->product_id;
-        $txn->coupon_id = $coupon_id;
-        $txn->txn_type = MeprTransaction::$payment_str;
-        $txn->status = $status;
+        $txn                  = new MeprTransaction();
+        $txn->user_id         = $sub->user_id;
+        $txn->product_id      = $sub->product_id;
+        $txn->coupon_id       = $coupon_id;
+        $txn->txn_type        = MeprTransaction::$payment_str;
+        $txn->status          = $status;
         $txn->subscription_id = $sub->id;
-        $txn->trans_num = $auth_transaction->transId;
-        $txn->gateway = $this->gateway_settings->id;
+        $txn->trans_num       = $auth_transaction->transId;
+        $txn->gateway         = $this->gateway_settings->id;
         $txn->set_gross(isset($auth_transaction->settleAmount) ? $auth_transaction->settleAmount : $auth_transaction->authAmount);
         $txn->store();
 

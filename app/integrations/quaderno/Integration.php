@@ -6,6 +6,9 @@ if (!defined('ABSPATH')) {
 
 class MeprQuadernoIntegration
 {
+    /**
+     * Constructor for the MeprQuadernoIntegration class.
+     */
     public function __construct()
     {
         add_filter('mepr_stripe_payment_args', [$this, 'stripe_payment_args'], 10, 2);
@@ -18,6 +21,13 @@ class MeprQuadernoIntegration
         add_filter('mepr_paypal_std_payment_vars', [$this, 'paypal_std_payment_vars'], 10, 2);
     }
 
+    /**
+     * Modify Stripe payment arguments.
+     *
+     * @param  array  $args The original payment arguments.
+     * @param  object $txn  The transaction object.
+     * @return array Modified payment arguments.
+     */
     public function stripe_payment_args($args, $txn)
     {
         $usr = $txn->user();
@@ -30,12 +40,20 @@ class MeprQuadernoIntegration
             $args['metadata']['tax_rate'] = $txn->tax_rate;
         }
 
-        $args['metadata']['vat_number']     = get_user_meta($usr->ID, 'mepr_vat_number', true);
-        $args['metadata']['invoice_email']  = $usr->user_email;
+        $args['metadata']['vat_number']    = get_user_meta($usr->ID, 'mepr_vat_number', true);
+        $args['metadata']['invoice_email'] = $usr->user_email;
 
         return $args;
     }
 
+    /**
+     * Modify Stripe subscription arguments.
+     *
+     * @param  array  $args The original subscription arguments.
+     * @param  object $txn  The transaction object.
+     * @param  object $sub  The subscription object.
+     * @return array
+     */
     public function stripe_subscription_args($args, $txn, $sub)
     {
         if (!isset($args['metadata']) || !is_array($args['metadata'])) {
@@ -49,6 +67,13 @@ class MeprQuadernoIntegration
         return $args;
     }
 
+    /**
+     * Modify Stripe resume subscription arguments.
+     *
+     * @param  array  $args The original resume subscription arguments.
+     * @param  object $sub  The subscription object.
+     * @return array
+     */
     public function stripe_resume_subscription_args($args, $sub)
     {
         if (!isset($args['metadata']) || !is_array($args['metadata'])) {
@@ -62,11 +87,25 @@ class MeprQuadernoIntegration
         return $args;
     }
 
+    /**
+     * Modify Stripe customer arguments.
+     *
+     * @param  array  $args The original customer arguments.
+     * @param  object $sub  The subscription object.
+     * @return array
+     */
     public function stripe_customer_args($args, $sub)
     {
         return $this->stripe_create_customer_args($args, $sub->user());
     }
 
+    /**
+     * Create Stripe customer arguments.
+     *
+     * @param  array  $args The original customer arguments.
+     * @param  object $usr  The user object.
+     * @return array
+     */
     public function stripe_create_customer_args($args, $usr)
     {
         if (!isset($args['metadata']) || !is_array($args['metadata'])) {
@@ -78,6 +117,13 @@ class MeprQuadernoIntegration
         return $args;
     }
 
+    /**
+     * Modify PayPal standard custom payment variables.
+     *
+     * @param  array  $custom The original custom payment variables.
+     * @param  object $txn    The transaction object.
+     * @return array
+     */
     public function paypal_std_custom_payment_vars($custom, $txn)
     {
         $usr = $txn->user();
@@ -86,8 +132,8 @@ class MeprQuadernoIntegration
             $custom = [];
         }
 
-        $custom['vat_number']   = get_user_meta($usr->ID, 'mepr_vat_number', true);
-        $custom['tax_id']   = get_user_meta($usr->ID, 'mepr_vat_number', true);
+        $custom['vat_number'] = get_user_meta($usr->ID, 'mepr_vat_number', true);
+        $custom['tax_id']     = get_user_meta($usr->ID, 'mepr_vat_number', true);
 
         if ($txn->tax_rate > 0) {
             $custom['tax']['rate'] = $txn->tax_rate;
@@ -96,6 +142,13 @@ class MeprQuadernoIntegration
         return $custom;
     }
 
+    /**
+     * Modify PayPal standard payment variables.
+     *
+     * @param  array  $vars The original payment variables.
+     * @param  object $txn  The transaction object.
+     * @return array
+     */
     public function paypal_std_payment_vars($vars, $txn)
     {
         $user = $txn->user();

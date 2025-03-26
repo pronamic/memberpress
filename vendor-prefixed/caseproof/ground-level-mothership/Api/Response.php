@@ -1,9 +1,4 @@
 <?php
-/**
- * @license GPL-3.0
- *
- * Modified by Team Caseproof using {@see https://github.com/BrianHenryIE/strauss}.
- */
 
 declare(strict_types=1);
 
@@ -112,7 +107,7 @@ class Response
                 // Translators: %s The name of the property that does not exist on the response object.
                 esc_html__(
                     'Property %s does not exist on the response object.',
-                    'caseproof-mothership'
+                    'memberpress'
                 ),
                 $name
             );

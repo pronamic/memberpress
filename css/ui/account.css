@@ -132,3 +132,29 @@ div#mepr-account-nav {
     color: inherit;
   }
 }
+.mepr-two-factor-options th {
+    vertical-align: top;
+    text-align: left;
+    padding: 20px 10px 20px 0;
+    width: 200px;
+    line-height: 1.3;
+    font-weight: 600;
+}
+.mepr-two-factor-options td {
+    vertical-align: top;
+    margin-bottom: 9px;
+    padding: 15px 10px;
+    line-height: 1.3;
+}
+.mepr-two-factor-options .two-factor-method-label,
+.mepr-two-factor-options select[name="_two_factor_provider"] {
+    margin-bottom: 10px;
+}
+.mepr-two-factor-options p {
+    margin: 0 0 1.5em 0;
+}
+.mepr-two-factor-options label[for="two-factor-totp-authcode"],
+.mepr-two-factor-options input[type="text"],
+.mepr-two-factor-options select {
+    width: auto !important;
+}

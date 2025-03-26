@@ -6,13 +6,18 @@ if (!defined('ABSPATH')) {
 
 class MeprAvalaraTaxRateIntegration
 {
+    /**
+     * Constructor.
+     *
+     * @return void
+     */
     public function __construct()
     {
         // Filter for MP Options page (field to enable VAT and collect VAT country & VAT ID)
         add_action('mepr_tax_rate_options', [$this,'options']);
         add_action('mepr-process-options', [$this,'store_options']);
 
-        $calculate_taxes = get_option('mepr_calculate_taxes');
+        $calculate_taxes     = get_option('mepr_calculate_taxes');
         $tax_avalara_enabled = get_option('mepr_tax_avalara_enabled');
 
         if ($calculate_taxes && $tax_avalara_enabled) {
@@ -21,6 +26,11 @@ class MeprAvalaraTaxRateIntegration
         }
     }
 
+    /**
+     * Display the options.
+     *
+     * @return void
+     */
     public function options()
     {
         $mepr_options = MeprOptions::fetch();
@@ -36,21 +46,37 @@ class MeprAvalaraTaxRateIntegration
         }
     }
 
+    /**
+     * Store the options.
+     *
+     * @return void
+     */
     public function store_options()
     {
         update_option('mepr_tax_avalara_enabled', isset($_POST['mepr_tax_avalara_enabled']));
     }
 
+    /**
+     * Find tax rate.
+     *
+     * @param  MeprTaxRate $tax_rate The tax rate.
+     * @param  string      $country  The country.
+     * @param  string      $state    The state.
+     * @param  string      $postcode The postcode.
+     * @param  string      $city     The city.
+     * @param  string      $street   The street.
+     * @return MeprTaxRate
+     */
     public function find_rate($tax_rate, $country, $state, $postcode, $city, $street)
     {
         $mepr_options = MeprOptions::fetch();
-        $apikey   = $mepr_options->attr('tax_avalara_key');
-        $accountID = $mepr_options->attr('tax_avalara_account_id');
-        $auth      = base64_encode($accountID . ':' . $apikey);
-        $street   = urlencode($street);
-        $city     = urlencode($city);
-        $postcode = urlencode($postcode);
-        $state    = urlencode($state);
+        $apikey       = $mepr_options->attr('tax_avalara_key');
+        $accountID    = $mepr_options->attr('tax_avalara_account_id');
+        $auth         = base64_encode($accountID . ':' . $apikey);
+        $street       = urlencode($street);
+        $city         = urlencode($city);
+        $postcode     = urlencode($postcode);
+        $state        = urlencode($state);
 
         if (strtoupper($country) == 'US') {
             $response = wp_remote_get(

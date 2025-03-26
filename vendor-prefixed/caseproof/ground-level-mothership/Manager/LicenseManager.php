@@ -1,9 +1,4 @@
 <?php
-/**
- * @license GPL-3.0
- *
- * Modified by Team Caseproof using {@see https://github.com/BrianHenryIE/strauss}.
- */
 
 declare(strict_types=1);
 
@@ -84,7 +79,7 @@ class LicenseManager implements StaticContainerAwareness
                     self::activateLicense($_POST['license_key'], $_POST['activation_domain']);
                     printf(
                         '<div class="notice notice-success is-dismissible"><p>%s</p></div>',
-                        esc_html__('License activated successfully', 'caseproof-mothership')
+                        esc_html__('License activated successfully', 'memberpress')
                     );
                 } catch (\Exception $e) {
                     printf(
@@ -97,7 +92,7 @@ class LicenseManager implements StaticContainerAwareness
                     self::deactivateLicense($_POST['license_key'], $_POST['activation_domain']);
                     printf(
                         '<div class="notice notice-success is-dismissible"><p>%s</p></div>',
-                        esc_html__('License deactivated successfully', 'caseproof-mothership')
+                        esc_html__('License deactivated successfully', 'memberpress')
                     );
                 } catch (\Exception $e) {
                     printf(
@@ -134,7 +129,7 @@ class LicenseManager implements StaticContainerAwareness
         ?>
         <form method="post" action="" name="<?php echo esc_attr($pluginId); ?>_activate_license_form">
             <div class="<?php echo esc_attr($pluginId); ?>-licence-div-form">
-                <label for="license_key"><?php esc_html_e('License Key: ', 'caseproof-mothership'); ?></label>
+                <label for="license_key"><?php esc_html_e('License Key: ', 'memberpress'); ?></label>
                 <input name="license_key"
                     type="text"
                     id="license_key"
@@ -151,7 +146,7 @@ class LicenseManager implements StaticContainerAwareness
                 <?php wp_nonce_field('mothership_activate_license', '_wpnonce'); ?>
                 <input type="hidden" name="<?php echo esc_attr($pluginId); ?>_license_button" value="activate">
                 <input type="submit"
-                    value="<?php esc_html_e('Activate License', 'caseproof-mothership'); ?>"
+                    value="<?php esc_html_e('Activate License', 'memberpress'); ?>"
                     class="button button-primary <?php echo esc_attr($pluginId); ?>-button-activate"
                     <?php if ($licenseIsStored) :
                         ?>disabled<?php
@@ -173,7 +168,7 @@ class LicenseManager implements StaticContainerAwareness
         ?>
         <form method="post" action="" name="<?php echo esc_attr($pluginId); ?>_deactivate_license_form">
             <div class="<?php echo esc_attr($pluginId); ?>-licence-div-form">
-                <label for="license_key"><?php esc_html_e('License Key: ', 'caseproof-mothership'); ?></label>
+                <label for="license_key"><?php esc_html_e('License Key: ', 'memberpress'); ?></label>
                 <input name="license_key"
                     type="text"
                     readonly
@@ -187,7 +182,7 @@ class LicenseManager implements StaticContainerAwareness
                 >
                 <?php wp_nonce_field('mothership_deactivate_license', '_wpnonce'); ?>
                 <input type="hidden" name="<?php echo esc_attr($pluginId); ?>_license_button" value="deactivate">
-                <input type="submit" value="<?php esc_html_e('Deactivate License', 'caseproof-mothership'); ?>" class="button button-secondary <?php echo esc_attr($pluginId); ?>-button-deactivate">
+                <input type="submit" value="<?php esc_html_e('Deactivate License', 'memberpress'); ?>" class="button button-secondary <?php echo esc_attr($pluginId); ?>-button-deactivate">
             </div>
         </form>
         <?php
@@ -205,16 +200,16 @@ class LicenseManager implements StaticContainerAwareness
     {
         // Check if the user has the necessary capabilities.
         if (!current_user_can('manage_options')) {
-            throw new \Exception(esc_html__('Insufficient permissions', 'caseproof-mothership'));
+            throw new \Exception(esc_html__('Insufficient permissions', 'memberpress'));
         }
 
         // Check if the nonce is valid.
         if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'mothership_activate_license')) {
-            throw new \Exception(esc_html__('Invalid nonce', 'caseproof-mothership'));
+            throw new \Exception(esc_html__('Invalid nonce', 'memberpress'));
         }
 
         // Translators: %s is the response error message.
-        $errorHtml = esc_html__('License activation failed: %s', 'caseproof-mothership');
+        $errorHtml = esc_html__('License activation failed: %s', 'memberpress');
         try {
             $product  = self::getContainer()
                 ->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)
@@ -262,12 +257,12 @@ class LicenseManager implements StaticContainerAwareness
 
         // Check if the user has the necessary capabilities.
         if (!current_user_can('manage_options')) {
-            throw new \Exception(esc_html__('Insufficient permissions', 'caseproof-mothership'));
+            throw new \Exception(esc_html__('Insufficient permissions', 'memberpress'));
         }
 
         // Check if the nonce is valid.
         if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'mothership_deactivate_license')) {
-            throw new \Exception(esc_html__('Invalid nonce', 'caseproof-mothership'));
+            throw new \Exception(esc_html__('Invalid nonce', 'memberpress'));
         }
 
         try {
@@ -278,7 +273,7 @@ class LicenseManager implements StaticContainerAwareness
                 '%1$s : %2$s',
                 esc_html__(
                     'License deactivation failed, you are using a license key from an environment variable or constant.',
-                    'caseproof-mothership'
+                    'memberpress'
                 ),
                 esc_html($e->getMessage())
             ));

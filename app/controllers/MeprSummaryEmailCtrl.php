@@ -27,14 +27,14 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
     /**
      * Add the weekly schedule to WP Cron
      *
-     * @param  array $schedules
+     * @param  array $schedules The schedules.
      * @return array
      */
     public function add_cron_schedule($schedules)
     {
         $schedules['mepr_summary_email_interval'] = [
             'interval' => 604800, // weekly
-            'display' => __('MemberPress Summary Email', 'memberpress'),
+            'display'  => __('MemberPress Summary Email', 'memberpress'),
         ];
 
         return $schedules;
@@ -52,57 +52,57 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
         }
 
         try {
-            $utc = new DateTimeZone('UTC');
-            $tomorrow = new DateTimeImmutable('tomorrow', $utc);
-            $report_date = $tomorrow->modify('last monday 00:00:00');
-            $last_week_end = $report_date->modify('-1 day');
+            $utc             = new DateTimeZone('UTC');
+            $tomorrow        = new DateTimeImmutable('tomorrow', $utc);
+            $report_date     = $tomorrow->modify('last monday 00:00:00');
+            $last_week_end   = $report_date->modify('-1 day');
             $last_week_start = $report_date->modify('-7 days');
 
             $last_week = $previous_week = [
-                'failed' => 0,
-                'pending' => 0,
-                'refunded' => 0,
+                'failed'    => 0,
+                'pending'   => 0,
+                'refunded'  => 0,
                 'completed' => 0,
-                'revenue' => 0,
-                'refunds' => 0,
+                'revenue'   => 0,
+                'refunds'   => 0,
                 'recurring' => 0,
-                'new' => 0,
+                'new'       => 0,
             ];
 
             for ($i = 0; $i < 7; $i++) {
-                $ts = $last_week_start->getTimestamp() + MeprUtils::days($i);
-                $month = gmdate('n', $ts);
-                $day = gmdate('j', $ts);
-                $year = gmdate('Y', $ts);
-                $revenue = MeprReports::get_revenue($month, $day, $year);
+                $ts        = $last_week_start->getTimestamp() + MeprUtils::days($i);
+                $month     = gmdate('n', $ts);
+                $day       = gmdate('j', $ts);
+                $year      = gmdate('Y', $ts);
+                $revenue   = MeprReports::get_revenue($month, $day, $year);
                 $recurring = MeprReports::get_recurring_revenue($month, $day, $year);
 
-                $last_week['pending'] += MeprReports::get_transactions_count(MeprTransaction::$pending_str, $day, $month, $year);
-                $last_week['failed'] += MeprReports::get_transactions_count(MeprTransaction::$failed_str, $day, $month, $year);
-                $last_week['refunded'] += MeprReports::get_transactions_count(MeprTransaction::$refunded_str, $day, $month, $year);
+                $last_week['pending']   += MeprReports::get_transactions_count(MeprTransaction::$pending_str, $day, $month, $year);
+                $last_week['failed']    += MeprReports::get_transactions_count(MeprTransaction::$failed_str, $day, $month, $year);
+                $last_week['refunded']  += MeprReports::get_transactions_count(MeprTransaction::$refunded_str, $day, $month, $year);
                 $last_week['completed'] += MeprReports::get_transactions_count(MeprTransaction::$complete_str, $day, $month, $year);
 
-                $last_week['revenue'] += $revenue;
-                $last_week['refunds'] += MeprReports::get_refunds($month, $day, $year);
+                $last_week['revenue']   += $revenue;
+                $last_week['refunds']   += MeprReports::get_refunds($month, $day, $year);
                 $last_week['recurring'] += $recurring;
-                $last_week['new'] += $revenue - $recurring;
+                $last_week['new']       += $revenue - $recurring;
 
-                $ts = $last_week_start->getTimestamp() - MeprUtils::days($i);
-                $month = gmdate('n', $ts);
-                $day = gmdate('j', $ts);
-                $year = gmdate('Y', $ts);
-                $revenue = MeprReports::get_revenue($month, $day, $year);
+                $ts        = $last_week_start->getTimestamp() - MeprUtils::days($i);
+                $month     = gmdate('n', $ts);
+                $day       = gmdate('j', $ts);
+                $year      = gmdate('Y', $ts);
+                $revenue   = MeprReports::get_revenue($month, $day, $year);
                 $recurring = MeprReports::get_recurring_revenue($month, $day, $year);
 
-                $previous_week['pending'] += MeprReports::get_transactions_count(MeprTransaction::$pending_str, $day, $month, $year);
-                $previous_week['failed'] += MeprReports::get_transactions_count(MeprTransaction::$failed_str, $day, $month, $year);
-                $previous_week['refunded'] += MeprReports::get_transactions_count(MeprTransaction::$refunded_str, $day, $month, $year);
+                $previous_week['pending']   += MeprReports::get_transactions_count(MeprTransaction::$pending_str, $day, $month, $year);
+                $previous_week['failed']    += MeprReports::get_transactions_count(MeprTransaction::$failed_str, $day, $month, $year);
+                $previous_week['refunded']  += MeprReports::get_transactions_count(MeprTransaction::$refunded_str, $day, $month, $year);
                 $previous_week['completed'] += MeprReports::get_transactions_count(MeprTransaction::$complete_str, $day, $month, $year);
 
-                $previous_week['revenue'] += $revenue;
-                $previous_week['refunds'] += MeprReports::get_refunds($month, $day, $year);
+                $previous_week['revenue']   += $revenue;
+                $previous_week['refunds']   += MeprReports::get_refunds($month, $day, $year);
                 $previous_week['recurring'] += $recurring;
-                $previous_week['new'] += $revenue - $recurring;
+                $previous_week['new']       += $revenue - $recurring;
             }
 
             if ($last_week['revenue'] + $previous_week['revenue'] <= 0.00) {
@@ -140,12 +140,12 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
     {
         $url = add_query_arg([
             'ad-group' => apply_filters('mepr_summary_email_ad_group', 3),
-            'orderby' => 'rand',
+            'orderby'  => 'rand',
         ], 'https://sg-assets.caseproof.com/wp-json/wp/v2/ads');
 
         $response = wp_remote_get($url);
-        $code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
+        $code     = wp_remote_retrieve_response_code($response);
+        $body     = wp_remote_retrieve_body($response);
 
         if ($code == 200 && $body) {
             $ads = json_decode($body, true);

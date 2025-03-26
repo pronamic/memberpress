@@ -6,6 +6,9 @@ if (! defined('ABSPATH')) {
 
 class MeprDrmInvalid extends MeprBaseDrm
 {
+    /**
+     * Constructs the MeprDrmInvalid object.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -14,6 +17,11 @@ class MeprDrmInvalid extends MeprBaseDrm
         add_action('mepr_drm_invalid_license_event', [$this, 'drm_event'], 10, 3);
     }
 
+    /**
+     * Runs the MeprDrmInvalid object.
+     *
+     * @return void
+     */
     public function run()
     {
         $event = MeprEvent::latest($this->event_name);
@@ -36,6 +44,12 @@ class MeprDrmInvalid extends MeprBaseDrm
         }
     }
 
+    /**
+     * Adds the site health status.
+     *
+     * @param  array $tests The tests.
+     * @return array
+     */
     public function site_health_status($tests)
     {
 
@@ -52,4 +66,4 @@ class MeprDrmInvalid extends MeprBaseDrm
 
         return $tests;
     }
-} //End class
+}

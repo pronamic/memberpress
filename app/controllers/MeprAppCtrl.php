@@ -8,6 +8,11 @@ if (!defined('ABSPATH')) {
 
 class MeprAppCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load hooks for various actions and filters.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('manage_posts_custom_column', 'MeprAppCtrl::custom_columns', 100, 2);
@@ -21,6 +26,7 @@ class MeprAppCtrl extends MeprBaseCtrl
         add_filter('custom_menu_order', '__return_true');
         add_filter('menu_order', 'MeprAppCtrl::admin_menu_order');
         add_filter('menu_order', 'MeprAppCtrl::admin_submenu_order');
+        add_filter('submenu_file', 'MeprAppCtrl::set_up_hidden_pages');
         add_action('widgets_init', 'MeprAppCtrl::register_global_widget_area');
         add_action('widgets_init', 'MeprAccountLinksWidget::register_widget');
         add_action('widgets_init', 'MeprLoginWidget::register_widget');
@@ -54,9 +60,6 @@ class MeprAppCtrl extends MeprBaseCtrl
         // Integrate with WP Debugging plugin - https://github.com/afragen/wp-debugging/issues/6
         add_filter('wp_debugging_add_constants', 'MeprAppCtrl::integrate_wp_debugging');
 
-        // show MemberPress as active menu item when support admin page is selected
-        add_filter('mp_hidden_submenu', 'MeprAppCtrl::highlight_parent_menu');
-
         add_action('activated_plugin', 'MeprAppCtrl::activated_plugin');
     }
 
@@ -70,9 +73,16 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
-    // Fix for Elementor page builder and our static the_content caching
-    // Elementor runs the_content filter on each video embed, our the_content static caching
-    // caused the same video to load for all instances of a video on a page as a result
+
+    /**
+     * Wraps the oembed HTML in a span with a random class.
+     * Fix for Elementor page builder and our static the_content caching
+     * Elementor runs the_content filter on each video embed, our the_content static caching
+     * caused the same video to load for all instances of a video on a page as a result
+     *
+     * @param  string $cached_html The cached HTML.
+     * @return string The wrapped HTML.
+     */
     public static function wrap_oembed_html($cached_html)
     {
         $length = rand(1, 100); // Random length, this is the key to all of this
@@ -80,6 +90,14 @@ class MeprAppCtrl extends MeprBaseCtrl
         return '<span class="' . $class . '">' . $cached_html . '</span>';
     }
 
+    /**
+     * Add meta boxes to the post edit screen.
+     *
+     * @param string  $post_type The post type.
+     * @param WP_Post $post      The post object.
+     *
+     * @return void
+     */
     public static function add_meta_boxes($post_type, $post)
     {
         $mepr_options = MeprOptions::fetch();
@@ -171,6 +189,14 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Display custom columns in the post list table.
+     *
+     * @param string  $column  The name of the column.
+     * @param integer $post_id The ID of the post.
+     *
+     * @return void
+     */
     public static function custom_columns($column, $post_id)
     {
         $post = get_post($post_id);
@@ -201,6 +227,14 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Set up columns for custom post types.
+     *
+     * @param string $post_type The post type.
+     * @param array  $args      The arguments for the post type.
+     *
+     * @return void
+     */
     public static function setup_columns($post_type, $args)
     {
         add_filter('manage_posts_columns', 'MeprAppCtrl::columns');
@@ -208,6 +242,13 @@ class MeprAppCtrl extends MeprBaseCtrl
         add_filter("manage_edit-{$post_type}_columns", 'MeprAppCtrl::columns');
     }
 
+    /**
+     * Modify the columns displayed in the post list table.
+     *
+     * @param array $columns The existing columns.
+     *
+     * @return array The modified columns.
+     */
     public static function columns($columns)
     {
         global $post_type, $post;
@@ -243,6 +284,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         return $columns;
     }
 
+    /**
+     * Render the rules meta box.
+     *
+     * @return void
+     */
     public static function rules_meta_box()
     {
         global $post;
@@ -255,6 +301,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         MeprView::render('/admin/rules/rules_meta_box', get_defined_vars());
     }
 
+    /**
+     * Display a notice if the content is protected by MemberPress rules.
+     *
+     * @return void
+     */
     public static function protected_notice()
     {
         global $post, $pagenow;
@@ -286,6 +337,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Check the PHP version and display a notice if it is outdated.
+     *
+     * @return void
+     */
     public static function php_min_version_check()
     {
         $current_php_version = phpversion();
@@ -301,6 +357,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Show a 'Get Started' notice if certain conditions are met.
+     *
+     * @return void
+     */
     public static function maybe_show_get_started_notice()
     {
         $mepr_options = MeprOptions::fetch();
@@ -322,6 +383,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         MeprView::render('/admin/get_started', compact('has_payment_method', 'has_product', 'has_rule'));
     }
 
+    /**
+     * Dismiss a specific admin notice via AJAX.
+     *
+     * @return void
+     */
     public static function dismiss_notice()
     {
         if (check_ajax_referer('mepr_dismiss_notice', false, false) && isset($_POST['notice']) && is_string($_POST['notice'])) {
@@ -332,6 +398,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         wp_send_json_success();
     }
 
+    /**
+     * Dismiss a global admin notice via AJAX.
+     *
+     * @return void
+     */
     public static function dismiss_global_notice()
     {
         if (check_ajax_referer('mepr_dismiss_notice', false, false) && isset($_POST['notice']) && is_string($_POST['notice'])) {
@@ -342,6 +413,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         wp_send_json_success();
     }
 
+    /**
+     * Dismiss a daily admin notice via AJAX.
+     *
+     * @return void
+     */
     public static function dismiss_daily_notice()
     {
         if (check_ajax_referer('mepr_dismiss_notice', false, false) && isset($_POST['notice']) && is_string($_POST['notice'])) {
@@ -352,6 +428,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         wp_send_json_success();
     }
 
+    /**
+     * Dismiss a weekly admin notice via AJAX.
+     *
+     * @return void
+     */
     public static function dismiss_weekly_notice()
     {
         if (check_ajax_referer('mepr_dismiss_notice', false, false) && isset($_POST['notice']) && is_string($_POST['notice'])) {
@@ -362,6 +443,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         wp_send_json_success();
     }
 
+    /**
+     * Render the unauthorized access meta box.
+     *
+     * @return void
+     */
     public static function unauthorized_meta_box()
     {
         global $post;
@@ -370,11 +456,13 @@ class MeprAppCtrl extends MeprBaseCtrl
 
         $_wpnonce = wp_create_nonce('mepr_unauthorized');
 
-        if (!($unauthorized_message_type = get_post_meta($post->ID, '_mepr_unauthorized_message_type', true))) {
+        $unauthorized_message_type = get_post_meta($post->ID, '_mepr_unauthorized_message_type', true);
+        if (!$unauthorized_message_type) {
             $unauthorized_message_type = 'default';
         }
 
-        if (!($unauthorized_message = get_post_meta($post->ID, '_mepr_unauthorized_message', true))) {
+        $unauthorized_message = get_post_meta($post->ID, '_mepr_unauthorized_message', true);
+        if (!$unauthorized_message) {
             $unauthorized_message = '';
         }
 
@@ -409,6 +497,13 @@ class MeprAppCtrl extends MeprBaseCtrl
         MeprView::render('/admin/unauthorized_meta_box', get_defined_vars());
     }
 
+    /**
+     * Save the meta box data when a post is saved.
+     *
+     * @param integer $post_id The ID of the post being saved.
+     *
+     * @return integer The post ID.
+     */
     public static function save_meta_boxes($post_id)
     {
         // Verify the Nonce First
@@ -441,16 +536,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         update_post_meta($post_ID, '_mepr_unauth_excerpt_size', $_REQUEST['_mepr_unauth_excerpt_size']);
     }
 
-    public static function highlight_parent_menu($submenu)
-    {
-        $screen = get_current_screen();
-
-        if ($screen->id === 'memberpress-support') {
-            $submenu = 'memberpress';
-        }
-        return $submenu;
-    }
-
+    /**
+     * Set up the admin menus.
+     *
+     * @return void
+     */
     public static function setup_menus()
     {
         add_action('admin_menu', 'MeprAppCtrl::menu');
@@ -458,6 +548,13 @@ class MeprAppCtrl extends MeprBaseCtrl
         add_action('admin_bar_menu', 'MeprAppCtrl::admin_bar_menu', 100);
     }
 
+    /**
+     * Add items to the WordPress admin bar.
+     *
+     * @param WP_Admin_Bar $wp_admin_bar The WordPress admin bar object.
+     *
+     * @return void
+     */
     public static function admin_bar_menu($wp_admin_bar)
     {
         $mepr_options = MeprOptions::fetch();
@@ -554,6 +651,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         ]);
     }
 
+    /**
+     * Redirect to the MemberPress options page.
+     *
+     * @return void
+     */
     public static function toplevel_menu_route()
     {
         ?>
@@ -563,6 +665,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         <?php
     }
 
+    /**
+     * Redirect to the MemberPress members page.
+     *
+     * @return void
+     */
     public static function toplevel_menu_drm_route()
     {
         ?>
@@ -572,6 +679,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         <?php
     }
 
+    /**
+     * Set up the MemberPress menu.
+     *
+     * @return void
+     */
     public static function menu()
     {
         if (MeprDrmHelper::is_locked()) {
@@ -624,7 +736,12 @@ class MeprAppCtrl extends MeprBaseCtrl
         return $new_menu_order;
     }
 
-    // Organize the CPT's in our submenu
+    /**
+     * Organize the CPT's in our submenu
+     *
+     * @param  array $menu_order Menu Order
+     * @return array Modified menu order
+     */
     public static function admin_submenu_order($menu_order)
     {
         global $submenu;
@@ -668,6 +785,37 @@ class MeprAppCtrl extends MeprBaseCtrl
         return $menu_order;
     }
 
+    /**
+     * Set up the pages that should not show on the menu.
+     *
+     * Removes the menu item and highlights the most closely related menu item instead.
+     *
+     * @param  string $submenu_file The submenu file.
+     * @return string
+     */
+    public static function set_up_hidden_pages($submenu_file)
+    {
+        remove_submenu_page('memberpress', 'memberpress-lifetimes');
+        remove_submenu_page('memberpress', 'memberpress-support');
+
+        $id = MeprUtils::get_current_screen_id();
+
+        if (!empty($id) && is_string($id)) {
+            if (preg_match('/_page_memberpress-lifetimes$/', $id)) {
+                $submenu_file = 'memberpress-subscriptions';
+            } elseif (preg_match('/_page_memberpress-support$/', $id)) {
+                $submenu_file = 'memberpress-options';
+            }
+        }
+
+        return $submenu_file;
+    }
+
+    /**
+     * Register global widget areas for ReadyLaunch templates.
+     *
+     * @return void
+     */
     public static function register_global_widget_area()
     {
         if (
@@ -725,7 +873,12 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
-    // Routes for WordPress pages -- we're just replacing content here folks.
+    /**
+     * Routes for WordPress pages -- we're just replacing content here folks.
+     *
+     * @param  string $content The content.
+     * @return string The content.
+     */
     public static function page_route($content)
     {
         $current_post = MeprUtils::get_current_post();
@@ -853,6 +1006,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         return $new_content[$current_post->ID];
     }
 
+    /**
+     * Load scripts.
+     *
+     * @return void
+     */
     public static function load_scripts()
     {
         global $post;
@@ -891,11 +1049,8 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
 
         if ($global_styles || $is_product_page || $is_account_page) {
-            $wp_scripts = new WP_Scripts();
-            $ui         = $wp_scripts->query('jquery-ui-core');
-            $url        = "//ajax.googleapis.com/ajax/libs/jqueryui/{$ui->ver}/themes/smoothness/jquery-ui.css";
-            wp_enqueue_style('mepr-jquery-ui-smoothness', $url);
-            wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness']);
+            wp_enqueue_style('mepr-jquery-ui-smoothness', MEPR_CSS_URL . '/vendor/jquery-ui/smoothness.min.css', [], '1.13.3');
+            wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness'], MEPR_VERSION);
 
             $popup_ctrl = new MeprPopupCtrl();
             wp_enqueue_style('jquery-magnific-popup', $popup_ctrl->popup_css);
@@ -936,15 +1091,15 @@ class MeprAppCtrl extends MeprBaseCtrl
             wp_enqueue_script('mp-signup', MEPR_JS_URL . '/signup.js', $prereqs, MEPR_VERSION);
 
             $local_data = [
-                'coupon_nonce'      => wp_create_nonce('mepr_coupons'),
-                'spc_enabled'       => ( $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template ),
-                'spc_invoice'       => ( $mepr_options->enable_spc_invoice || $mepr_options->design_enable_checkout_template ),
-                'no_compatible_pms' => __('There are no payment methods available that can purchase this product, please contact the site administrator or purchase it separately.', 'memberpress'),
-                'switch_pm_prompt' => __('It looks like your purchase requires %s. No problem! Just click below to switch.', 'memberpress'),
-                'switch_pm' => __('Switch to %s', 'memberpress'),
-                'cancel' => __('Cancel', 'memberpress'),
+                'coupon_nonce'                  => wp_create_nonce('mepr_coupons'),
+                'spc_enabled'                   => ( $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template ),
+                'spc_invoice'                   => ( $mepr_options->enable_spc_invoice || $mepr_options->design_enable_checkout_template ),
+                'no_compatible_pms'             => __('There are no payment methods available that can purchase this product, please contact the site administrator or purchase it separately.', 'memberpress'),
+                'switch_pm_prompt'              => __('It looks like your purchase requires %s. No problem! Just click below to switch.', 'memberpress'),
+                'switch_pm'                     => __('Switch to %s', 'memberpress'),
+                'cancel'                        => __('Cancel', 'memberpress'),
                 'no_compatible_pms_ob_required' => __('Payment Gateway(s) do not support required order configuration.', 'memberpress'),
-                'warning_icon_url' => MEPR_IMAGES_URL . '/notice-icon-error.png',
+                'warning_icon_url'              => MEPR_IMAGES_URL . '/notice-icon-error.png',
             ];
 
             wp_localize_script('mp-signup', 'MeprSignup', $local_data);
@@ -964,6 +1119,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Get the datepicker strings for localization.
+     *
+     * @return array The datepicker strings.
+     */
     public static function get_datepicker_strings()
     {
         return [
@@ -987,6 +1147,13 @@ class MeprAppCtrl extends MeprBaseCtrl
         ];
     }
 
+    /**
+     * Enqueue scripts and styles for the admin area.
+     *
+     * @param string $hook The current admin page hook.
+     *
+     * @return void
+     */
     public static function load_admin_scripts($hook)
     {
         global $wp_version;
@@ -1046,7 +1213,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
-    // The tight way to process standalone requests dogg...
+    /**
+     * The tight way to process standalone requests dogg...
+     *
+     * @return void
+     */
     public static function parse_standalone_request()
     {
         global $user_ID;
@@ -1142,6 +1313,8 @@ class MeprAppCtrl extends MeprBaseCtrl
      *
      * For backwards-compatibility only. It is recommended to add the .mo file into the /wp-content/languages/plugins
      * directory instead.
+     *
+     * @return void
      */
     public static function load_language()
     {
@@ -1150,6 +1323,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Load the plugin's translations.
+     *
+     * @return void
+     */
     public static function load_translations()
     {
         if (MeprHooks::apply_filters('mepr-remove-traduttore', false)) {
@@ -1165,17 +1343,34 @@ class MeprAppCtrl extends MeprBaseCtrl
         );
     }
 
-    // Utility function to grab the parameter whether it's a get or post
+    /**
+     * Utility function to grab the parameter whether it's a get or post
+     *
+     * @param  string $param   The parameter to get.
+     * @param  string $default The default value.
+     * @return string The parameter value.
+     */
     public static function get_param($param, $default = '')
     {
         return (isset($_REQUEST[$param]) ? $_REQUEST[$param] : $default);
     }
 
+    /**
+     * Get the parameter delimiter character for a URL.
+     *
+     * @param  string $link The URL link.
+     * @return string The delimiter character.
+     */
     public static function get_param_delimiter_char($link)
     {
         return ((preg_match('#\?#', $link)) ? '&' : '?');
     }
 
+    /**
+     * Add dashboard widgets for MemberPress.
+     *
+     * @return void
+     */
     public static function add_dashboard_widgets()
     {
         if (!MeprUtils::is_mepr_admin()) {
@@ -1202,6 +1397,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         $wp_meta_boxes['dashboard']['normal']['core'] = $sorted_dashboard;
     }
 
+    /**
+     * Render the weekly stats widget on the dashboard.
+     *
+     * @return void
+     */
     public static function weekly_stats_widget()
     {
         $mepr_options = MeprOptions::fetch();
@@ -1236,6 +1436,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         MeprView::render('/admin/widgets/admin_stats_widget', get_defined_vars());
     }
 
+    /**
+     * Output today's date in a specific format.
+     *
+     * @return void
+     */
     public static function todays_date()
     {
         if (isset($_REQUEST['datetime'])) {
@@ -1247,6 +1452,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         die;
     }
 
+    /**
+     * Determine if the 'About' notice should be shown.
+     *
+     * @return boolean True if the notice should be shown, false otherwise.
+     */
     public static function show_about_notice()
     {
         $last_shown_notice = get_option('mepr_about_notice_version');
@@ -1255,6 +1465,11 @@ class MeprAppCtrl extends MeprBaseCtrl
              file_exists(MeprView::file("/admin/about/{$version_str}")) );
     }
 
+    /**
+     * Get the content for the 'About' notice.
+     *
+     * @return string The content of the notice.
+     */
     public static function about_notice()
     {
         $version_str  = preg_replace('/\./', '-', MEPR_VERSION);
@@ -1268,11 +1483,23 @@ class MeprAppCtrl extends MeprBaseCtrl
         return '';
     }
 
+    /**
+     * Close the 'About' notice and update the version.
+     *
+     * @return void
+     */
     public static function close_about_notice()
     {
         update_option('mepr_about_notice_version', MEPR_VERSION);
     }
 
+    /**
+     * Clean up the list view by removing certain views.
+     *
+     * @param array $views The existing views.
+     *
+     * @return array The modified views.
+     */
     public static function cleanup_list_view($views)
     {
         if (isset($views['draft'])) {
@@ -1284,6 +1511,14 @@ class MeprAppCtrl extends MeprBaseCtrl
         return $views;
     }
 
+    /**
+     * Clean up the month dropdown in the list table.
+     *
+     * @param array  $months    The existing months.
+     * @param string $post_type The post type.
+     *
+     * @return array The modified months.
+     */
     public function cleanup_list_table_month_dropdown($months, $post_type)
     {
         $ours = [MeprProduct::$cpt, MeprRule::$cpt, MeprGroup::$cpt, MeprCoupon::$cpt];
@@ -1293,7 +1528,12 @@ class MeprAppCtrl extends MeprBaseCtrl
         return $months;
     }
 
-    // TODO: We want to eliminate this when we get css compilation / compression in place
+    /**
+     * Load the CSS for the plugin.
+     * TODO: We want to eliminate this when we get css compilation / compression in place
+     *
+     * @return void
+     */
     public static function load_css()
     {
         // IF WE MOVE BACK TO admin-ajax.php method, then this conditional needs to go
@@ -1351,6 +1591,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         exit($css);
     }
 
+    /**
+     * Append the MemberPress privacy policy to the WordPress privacy policy.
+     *
+     * @return void
+     */
     public static function append_mp_privacy_policy()
     {
         if (!function_exists('wp_add_privacy_policy_content')) {
@@ -1364,6 +1609,13 @@ class MeprAppCtrl extends MeprBaseCtrl
         wp_add_privacy_policy_content('MemberPress', $privacy_policy);
     }
 
+    /**
+     * Integrate with the WP Debugging plugin by adding constants.
+     *
+     * @param array $user_defined_constants The user-defined constants.
+     *
+     * @return array The modified constants.
+     */
     public static function integrate_wp_debugging($user_defined_constants)
     {
         if (!defined('WP_MEPR_DEBUG') || WP_MEPR_DEBUG === false) {
@@ -1377,11 +1629,21 @@ class MeprAppCtrl extends MeprBaseCtrl
         return $user_defined_constants;
     }
 
+    /**
+     * Render the admin support page.
+     *
+     * @return void
+     */
     public static function render_admin_support()
     {
         MeprView::render('admin/support/view');
     }
 
+    /**
+     * Set up the MemberPress menu.
+     *
+     * @return void
+     */
     public static function mepr_menu()
     {
         $capability = MeprUtils::get_mepr_admin_capability();
@@ -1404,7 +1666,7 @@ class MeprAppCtrl extends MeprBaseCtrl
 
         add_submenu_page('memberpress', __('Subscriptions', 'memberpress'), __('Subscriptions', 'memberpress'), $capability, 'memberpress-subscriptions', [$sub_ctrl, 'listing']);
         // Specifically for subscriptions listing
-        add_submenu_page('', __('Subscriptions', 'memberpress'), __('Subscriptions', 'memberpress'), $capability, 'memberpress-lifetimes', [$sub_ctrl, 'listing']);
+        add_submenu_page('memberpress', __('Non-Recurring Subscriptions', 'memberpress'), __('Subscriptions', 'memberpress'), $capability, 'memberpress-lifetimes', [$sub_ctrl, 'listing']);
         add_submenu_page('memberpress', __('Transactions', 'memberpress'), __('Transactions', 'memberpress'), $capability, 'memberpress-trans', [$txn_ctrl, 'listing']);
         add_submenu_page('memberpress', __('Reports', 'memberpress'), __('Reports', 'memberpress'), $capability, 'memberpress-reports', 'MeprReportsCtrl::main');
         add_submenu_page('memberpress', __('Settings', 'memberpress'), __('Settings', 'memberpress') . MeprUtils::new_badge(), $capability, 'memberpress-options', 'MeprOptionsCtrl::route');
@@ -1420,11 +1682,16 @@ class MeprAppCtrl extends MeprBaseCtrl
             add_submenu_page('memberpress', __('CoachKit™', 'memberpress'), __('CoachKit™', 'memberpress'), $capability, 'memberpress-coachkit', 'MeprCoachkitCtrl::route', 12);
         }
 
-        add_submenu_page('', __('Support', 'memberpress'), __('Support', 'memberpress'), $capability, 'memberpress-support', 'MeprAppCtrl::render_admin_support');
+        add_submenu_page('memberpress', __('Support', 'memberpress'), __('Support', 'memberpress'), $capability, 'memberpress-support', 'MeprAppCtrl::render_admin_support');
 
         MeprHooks::do_action('mepr_menu');
     }
 
+    /**
+     * Set up the DRM menu for MemberPress.
+     *
+     * @return void
+     */
     public static function mepr_drm_menu()
     {
         $capability = MeprUtils::get_mepr_admin_capability();
@@ -1438,6 +1705,13 @@ class MeprAppCtrl extends MeprBaseCtrl
         MeprHooks::do_action('mepr_drm_menu');
     }
 
+    /**
+     * Handle actions when the plugin is activated.
+     *
+     * @param string $plugin The plugin being activated.
+     *
+     * @return void
+     */
     public static function activated_plugin($plugin)
     {
         if ($plugin != MEPR_PLUGIN_SLUG) {
@@ -1466,14 +1740,18 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Attempt to automatically log in during signup if the username and password are correct for an existing account.
+     */
     public static function maybe_auto_log_in()
     {
-        if (!is_user_logged_in()) {
+        if (!is_user_logged_in() && MeprHooks::apply_filters('mepr_maybe_auto_log_in', true)) {
             $mepr_options     = MeprOptions::fetch();
             $is_signup        = MeprUtils::is_post_request() && isset($_POST['mepr_process_signup_form']);
             $is_stripe_signup = wp_doing_ajax() && isset($_POST['action']) && $_POST['action'] == 'mepr_stripe_confirm_payment';
+            $is_spc           = $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template;
 
-            if ($is_signup || ($mepr_options->enable_spc && $is_stripe_signup)) {
+            if ($is_signup || ($is_spc && $is_stripe_signup)) {
                 $email            = sanitize_email($_POST['user_email'] ?? '');
                 $username         = $mepr_options->username_is_email ? $email : sanitize_user($_POST['user_login'] ?? '');
                 $password         = $_POST['mepr_user_password'] ?? '';
@@ -1504,4 +1782,4 @@ class MeprAppCtrl extends MeprBaseCtrl
             }
         }
     }
-} //End class
+}

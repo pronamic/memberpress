@@ -6,6 +6,9 @@ if (! defined('ABSPATH')) {
 
 class MeprDrmNokey extends MeprBaseDrm
 {
+    /**
+     * Constructor for the MeprDrmNokey class.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -13,6 +16,11 @@ class MeprDrmNokey extends MeprBaseDrm
         add_action('mepr_drm_no_license_event', [$this, 'drm_event'], 10, 3);
     }
 
+    /**
+     * Runs the DRM no-key check functionality.
+     *
+     * @return void
+     */
     public function run()
     {
         $event = MeprEvent::latest($this->event_name);
@@ -37,6 +45,13 @@ class MeprDrmNokey extends MeprBaseDrm
         }
     }
 
+    /**
+     * Adds site health status check for DRM key.
+     *
+     * @param array $tests The existing tests array
+     *
+     * @return array
+     */
     public function site_health_status($tests)
     {
 
@@ -53,4 +68,4 @@ class MeprDrmNokey extends MeprBaseDrm
 
         return $tests;
     }
-} //End class
+}

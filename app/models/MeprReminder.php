@@ -19,30 +19,35 @@ class MeprReminder extends MeprCptModel
 
     public static $cpt = 'mp-reminder';
 
-    public $trigger_intervals, $trigger_timings, $trigger_events, $event_actions;
+    public $trigger_intervals;
+    public $trigger_timings;
+    public $trigger_events;
+    public $event_actions;
 
-    /***
-     * Instance Methods
-     ***/
+    /**
+     * Constructor for the MeprReminder class.
+     *
+     * @param mixed $obj The object to initialize the reminder with.
+     */
     public function __construct($obj = null)
     {
         $this->load_cpt(
             $obj,
             self::$cpt,
             [
-                'trigger_length'    => 1,
-                'trigger_interval'  => 'days',
-                'trigger_timing'    => 'before',
-                'trigger_event'     => 'sub-expires',
-                'filter_products'   => false, // Send only for specific memberships?
-                'products'          => [], // Empty array means ALL memberships
-                'emails'            => [],
+                'trigger_length'   => 1,
+                'trigger_interval' => 'days',
+                'trigger_timing'   => 'before',
+                'trigger_event'    => 'sub-expires',
+                'filter_products'  => false, // Send only for specific memberships?
+                'products'         => [], // Empty array means ALL memberships
+                'emails'           => [],
             ]
         );
 
         $this->trigger_intervals = ['hours','days','weeks','months','years'];
-        $this->trigger_timings = ['before','after'];
-        $this->trigger_events = [
+        $this->trigger_timings   = ['before','after'];
+        $this->trigger_events    = [
             'sub-expires',
             'sub-renews',
             'cc-expires',
@@ -59,6 +64,11 @@ class MeprReminder extends MeprCptModel
         }
     }
 
+    /**
+     * Validate the reminder's properties.
+     *
+     * @return void
+     */
     public function validate()
     {
         $this->validate_is_numeric($this->trigger_length, 0, null, 'trigger_length');
@@ -70,10 +80,20 @@ class MeprReminder extends MeprCptModel
         $this->validate_is_array($this->emails, 'emails');
     }
 
+    /**
+     * Placeholder for event handling logic.
+     *
+     * @return void
+     */
     public function events()
     {
     }
 
+    /**
+     * Get the name of the trigger event.
+     *
+     * @return string
+     */
     public function trigger_event_name()
     {
         switch ($this->trigger_event) {
@@ -94,16 +114,26 @@ class MeprReminder extends MeprCptModel
         }
     }
 
+    /**
+     * Get the trigger interval as a string.
+     *
+     * @return string
+     */
     public function get_trigger_interval_str()
     {
         return MeprUtils::period_type_name($this->trigger_interval, $this->trigger_length);
     }
 
+    /**
+     * Store the reminder's metadata.
+     *
+     * @return void
+     */
     public function store_meta()
     {
         global $wpdb;
         $skip_name_override = false;
-        $id = $this->ID;
+        $id                 = $this->ID;
 
         if (isset($_POST['post_title']) && !empty($_POST['post_title'])) {
             $skip_name_override = true;
@@ -140,6 +170,11 @@ class MeprReminder extends MeprCptModel
         return strtoupper(substr($this->trigger_interval, 0, -1));
     }
 
+    /**
+     * Get the formatted list of products for the reminder.
+     *
+     * @return array
+     */
     public function get_formatted_products()
     {
         $formatted_array = [];
@@ -159,6 +194,12 @@ class MeprReminder extends MeprCptModel
         return $formatted_array;
     }
 
+    /**
+     * Get the query string for filtering products.
+     *
+     * @param  string $join_name The name of the join table.
+     * @return string
+     */
     public function get_query_products($join_name)
     {
         if ($this->filter_products && is_array($this->products) && !empty($this->products)) {
@@ -169,14 +210,18 @@ class MeprReminder extends MeprCptModel
         return '';
     }
 
-    // Used for Subscription Expiration Reminders
+    /**
+     * Get the next expiring transaction for subscription expiration reminders.
+     *
+     * @return object|null
+     */
     public function get_next_expiring_txn()
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
         $unit = $this->db_trigger_interval();
-        $op = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
+        $op   = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
         // If $this->products is empty, then we should send for all product_id's
@@ -267,7 +312,11 @@ class MeprReminder extends MeprCptModel
         return $res;
     }
 
-    // Used for After Subscription Renews Reminders
+    /**
+     * Get the next renewed transaction for after subscription renews reminders.
+     *
+     * @return object|null
+     */
     public function get_renewed_txn()
     {
         global $wpdb;
@@ -331,7 +380,11 @@ class MeprReminder extends MeprCptModel
         return $res;
     }
 
-    // Used for Before Subscription Renews Reminders
+    /**
+     * Get the next renewing transaction for before subscription renews reminders.
+     *
+     * @return object|null
+     */
     public function get_next_renewing_txn()
     {
         global $wpdb;
@@ -428,6 +481,11 @@ class MeprReminder extends MeprCptModel
         return $res;
     }
 
+    /**
+     * Get the next member signup for reminders.
+     *
+     * @return integer|false
+     */
     public function get_next_member_signup()
     {
         global $wpdb;
@@ -518,6 +576,11 @@ class MeprReminder extends MeprCptModel
         return $res;
     }
 
+    /**
+     * Get the next abandoned signup for reminders.
+     *
+     * @return integer|false
+     */
     public function get_next_abandoned_signup()
     {
         global $wpdb;
@@ -609,13 +672,18 @@ class MeprReminder extends MeprCptModel
         return $res;
     }
 
+    /**
+     * Get the next expired credit card for reminders.
+     *
+     * @return integer|false
+     */
     public function get_next_expired_cc()
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
         $unit = $this->db_trigger_interval();
-        $op = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
+        $op   = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
 
         // We want to get expiring subscriptions
         $not = ( ( $this->trigger_event == 'sub-expires' ) ? ' ' : ' NOT ' );
@@ -709,6 +777,11 @@ class MeprReminder extends MeprCptModel
         return $res;
     }
 
+    /**
+     * Get the next trial ending subscription for reminders.
+     *
+     * @return integer|false
+     */
     public function get_next_trial_ends_subs()
     {
         global $wpdb;
@@ -720,7 +793,7 @@ class MeprReminder extends MeprCptModel
         $mepr_db = new MeprDb();
 
         $unit = $this->db_trigger_interval();
-        $op = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
+        $op   = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
         // If $this->products is empty, then we should send for all product_id's
@@ -823,4 +896,4 @@ class MeprReminder extends MeprCptModel
     //
     // return $res;
     // }
-} //End class
+}

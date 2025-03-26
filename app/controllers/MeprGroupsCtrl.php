@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprGroupsCtrl extends MeprCptCtrl
 {
+    /**
+     * Load hooks for the groups management.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('admin_init', 'MeprGroup::cleanup_db');
@@ -31,41 +36,53 @@ class MeprGroupsCtrl extends MeprCptCtrl
         add_filter('views_edit-' . MeprGroup::$cpt, 'MeprAppCtrl::cleanup_list_view');
     }
 
+    /**
+     * Register the custom post type for groups.
+     *
+     * @return void
+     */
     public function register_post_type()
     {
         $mepr_options = MeprOptions::fetch();
-        $this->cpt = (object)[
-            'slug' => MeprGroup::$cpt,
+        $this->cpt    = (object)[
+            'slug'   => MeprGroup::$cpt,
             'config' => [
-                'labels' => [
-                    'name' => __('Groups', 'memberpress'),
-                    'singular_name' => __('Group', 'memberpress'),
-                    'add_new' => __('Add New', 'memberpress'),
-                    'add_new_item' => __('Add New Group', 'memberpress'),
-                    'edit_item' => __('Edit Group', 'memberpress'),
-                    'new_item' => __('New Group', 'memberpress'),
-                    'view_item' => __('View Group', 'memberpress'),
-                    'search_items' => __('Search Group', 'memberpress'),
-                    'not_found' => __('No Group found', 'memberpress'),
+                'labels'               => [
+                    'name'               => __('Groups', 'memberpress'),
+                    'singular_name'      => __('Group', 'memberpress'),
+                    'add_new'            => __('Add New', 'memberpress'),
+                    'add_new_item'       => __('Add New Group', 'memberpress'),
+                    'edit_item'          => __('Edit Group', 'memberpress'),
+                    'new_item'           => __('New Group', 'memberpress'),
+                    'view_item'          => __('View Group', 'memberpress'),
+                    'search_items'       => __('Search Group', 'memberpress'),
+                    'not_found'          => __('No Group found', 'memberpress'),
                     'not_found_in_trash' => __('No Group found in Trash', 'memberpress'),
-                    'parent_item_colon' => __('Parent Group:', 'memberpress'),
+                    'parent_item_colon'  => __('Parent Group:', 'memberpress'),
                 ],
-                'public' => true,
-                'show_ui' => true, // MeprUpdateCtrl::is_activated(),
-                'show_in_menu' => 'memberpress',
-                'capability_type' => 'page',
-                'hierarchical' => true,
+                'public'               => true,
+                'show_ui'              => true, // MeprUpdateCtrl::is_activated(),
+                'show_in_menu'         => 'memberpress',
+                'capability_type'      => 'page',
+                'hierarchical'         => true,
                 'register_meta_box_cb' => 'MeprGroupsCtrl::add_meta_boxes',
-                'rewrite' => [
-                    'slug' => $mepr_options->group_pages_slug,
+                'rewrite'              => [
+                    'slug'       => $mepr_options->group_pages_slug,
                     'with_front' => false,
                 ],
-                'supports' => ['title', 'editor', 'page-attributes', 'comments', 'thumbnail'],
+                'supports'             => ['title', 'editor', 'page-attributes', 'comments', 'thumbnail'],
             ],
         ];
         register_post_type($this->cpt->slug, $this->cpt->config);
     }
 
+    /**
+     * Render pricing boxes for the group.
+     *
+     * @param  string  $content The existing content.
+     * @param  boolean $manual  Whether to render manually.
+     * @return string
+     */
     public static function render_pricing_boxes($content, $manual = false)
     {
         $current_post = MeprUtils::get_current_post();
@@ -83,13 +100,13 @@ class MeprGroupsCtrl extends MeprCptCtrl
         // WARNING the_content CAN be run more than once per page load
         // so this static var prevents stuff from happening twice
         // like cancelling a subscr or resuming etc...
-        static $already_run = [];
-        static $new_content = [];
+        static $already_run    = [];
+        static $new_content    = [];
         static $content_length = [];
         // Init this posts static values
         if (!isset($new_content[$current_post->ID]) || empty($new_content[$current_post->ID])) {
-            $already_run[$current_post->ID] = false;
-            $new_content[$current_post->ID] = '';
+            $already_run[$current_post->ID]    = false;
+            $new_content[$current_post->ID]    = '';
             $content_length[$current_post->ID] = -1;
         }
 
@@ -98,7 +115,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
 
         $content_length[$current_post->ID] = strlen($content);
-        $already_run[$current_post->ID] = true;
+        $already_run[$current_post->ID]    = true;
 
         if (isset($current_post) && is_a($current_post, 'WP_Post') && $current_post->post_type == MeprGroup::$cpt) {
             $group = new MeprGroup($current_post->ID);
@@ -124,6 +141,14 @@ class MeprGroupsCtrl extends MeprCptCtrl
         return $new_content[$current_post->ID];
     }
 
+    /**
+     * Display pricing boxes for the group.
+     *
+     * @param  MeprGroup   $group The group object.
+     * @param  string|null $theme The theme to use.
+     * @param  array       $args  Additional arguments.
+     * @return void
+     */
     public static function display_pricing_boxes($group, $theme = null, $args = [])
     {
         if (MeprReadyLaunchCtrl::template_enabled('pricing') || MeprAppHelper::has_block('memberpress/pro-pricing-table')) {
@@ -133,18 +158,31 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
     }
 
+    /**
+     * Define the columns for the group list table.
+     *
+     * @param  array $columns The existing columns.
+     * @return array
+     */
     public static function columns($columns)
     {
         $columns = [
-            'cb' => '<input type="checkbox" />',
-            'ID' => __('ID', 'memberpress'),
-            'title' => __('Group Title', 'memberpress'),
-            'url' => __('URL', 'memberpress'),
+            'cb'             => '<input type="checkbox" />',
+            'ID'             => __('ID', 'memberpress'),
+            'title'          => __('Group Title', 'memberpress'),
+            'url'            => __('URL', 'memberpress'),
             'group-products' => __('Memberships in Group', 'memberpress'),
         ];
         return $columns;
     }
 
+    /**
+     * Render custom columns in the group list table.
+     *
+     * @param  string  $column  The name of the column.
+     * @param  integer $post_id The ID of the post.
+     * @return void
+     */
     public static function custom_columns($column, $post_id)
     {
         $group = new MeprGroup($post_id);
@@ -161,6 +199,12 @@ class MeprGroupsCtrl extends MeprCptCtrl
     }
 
     // Template selection
+    /**
+     * Template selection
+     *
+     * @param  string $template The current template.
+     * @return string
+     */
     public static function template_include($template)
     {
         global $post, $wp_query;
@@ -178,7 +222,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
                 MeprUtils::wp_redirect($group->alternate_group_url);
             } else {
                 $wp_query->is_404 = true;
-                $new_template = locate_template(['404.php']);
+                $new_template     = locate_template(['404.php']);
             }
         }
 
@@ -189,6 +233,11 @@ class MeprGroupsCtrl extends MeprCptCtrl
         return $template;
     }
 
+    /**
+     * Add meta boxes for the group edit screen.
+     *
+     * @return void
+     */
     public static function add_meta_boxes()
     {
         global $post_id;
@@ -198,9 +247,15 @@ class MeprGroupsCtrl extends MeprCptCtrl
         add_meta_box('memberpress-custom-template', __('Custom Page Template', 'memberpress'), 'MeprGroupsCtrl::custom_page_template', MeprGroup::$cpt, 'side', 'default', ['group' => $group]);
     }
 
+    /**
+     * Save the group's metadata when the post is saved.
+     *
+     * @param  integer $post_id The ID of the post being saved.
+     * @return mixed
+     */
     public static function save_postdata($post_id)
     {
-        $post = get_post($post_id);
+        $post           = get_post($post_id);
         $fallback_state = 'unchanged';
 
         if (!wp_verify_nonce((isset($_POST[MeprGroup::$nonce_str])) ? $_POST[MeprGroup::$nonce_str] : '', MeprGroup::$nonce_str . wp_salt())) {
@@ -216,23 +271,23 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
 
         if (!empty($post) && $post->post_type == MeprGroup::$cpt) {
-            $group = new MeprGroup($post_id);
-            $group->pricing_page_disabled = isset($_POST[MeprGroup::$pricing_page_disabled_str]);
+            $group                            = new MeprGroup($post_id);
+            $group->pricing_page_disabled     = isset($_POST[MeprGroup::$pricing_page_disabled_str]);
             $group->disable_change_plan_popup = isset($_POST[MeprGroup::$disable_change_plan_popup_str]);
-            $group->is_upgrade_path = isset($_POST[MeprGroup::$is_upgrade_path_str]);
+            $group->is_upgrade_path           = isset($_POST[MeprGroup::$is_upgrade_path_str]);
             $group->upgrade_path_reset_period = isset($_POST[MeprGroup::$upgrade_path_reset_period_str]);
             // $group->group_page_style_options = self::get_style_options_array();
-            $group->group_theme = sanitize_text_field($_POST[MeprGroup::$group_theme_str]);
-            $group->page_button_class = sanitize_text_field(trim($_POST[MeprGroup::$page_button_class_str]));
+            $group->group_theme                   = sanitize_text_field($_POST[MeprGroup::$group_theme_str]);
+            $group->page_button_class             = sanitize_text_field(trim($_POST[MeprGroup::$page_button_class_str]));
             $group->page_button_highlighted_class = sanitize_text_field(trim($_POST[MeprGroup::$page_button_highlighted_class_str]));
-            $group->page_button_disabled_class = sanitize_text_field(trim($_POST[MeprGroup::$page_button_disabled_class_str]));
-            $group->alternate_group_url = sanitize_text_field(wp_unslash($_POST[MeprGroup::$alternate_group_url_str]));
+            $group->page_button_disabled_class    = sanitize_text_field(trim($_POST[MeprGroup::$page_button_disabled_class_str]));
+            $group->alternate_group_url           = sanitize_text_field(wp_unslash($_POST[MeprGroup::$alternate_group_url_str]));
             self::store_chosen_products($group->ID);
             $group->use_custom_template = isset($_POST['_mepr_use_custom_template']);
-            $group->custom_template = isset($_POST['_mepr_custom_template']) ? sanitize_text_field($_POST['_mepr_custom_template']) : '';
+            $group->custom_template     = isset($_POST['_mepr_custom_template']) ? sanitize_text_field($_POST['_mepr_custom_template']) : '';
 
             $orig_fallback_membership = $group->fallback_membership;
-            $fallback_membership = sanitize_text_field($_POST[MeprGroup::$fallback_membership_str]);
+            $fallback_membership      = sanitize_text_field($_POST[MeprGroup::$fallback_membership_str]);
 
             if (empty($_POST[MeprGroup::$fallback_membership_str])) {
                 if (!empty($orig_fallback_membership)) {
@@ -260,6 +315,12 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
     }
 
+    /**
+     * Remove memberships when a group is trashed.
+     *
+     * @param  integer $id The ID of the group being trashed.
+     * @return void
+     */
     public static function trash_group_remove_memberships($id)
     {
         global $post_type, $wpdb;
@@ -280,6 +341,12 @@ class MeprGroupsCtrl extends MeprCptCtrl
     // $styles['button_color'] = $_POST[MeprGroup::$group_page_button_color_str];
     // return $styles;
     // }
+    /**
+     * Store chosen products for the group.
+     *
+     * @param  integer $group_id The ID of the group.
+     * @return void
+     */
     public static function store_chosen_products($group_id)
     {
         if (isset($_POST[MeprGroup::$products_str]['product'])) {
@@ -288,10 +355,10 @@ class MeprGroupsCtrl extends MeprCptCtrl
 
             for ($index = 0; $index < (count($_POST[MeprGroup::$products_str]['product']) - 1); $index++) {
                 $product_id = (int)sanitize_key($_POST[MeprGroup::$products_str]['product'][$index]);
-                $prd = new MeprProduct($product_id);
+                $prd        = new MeprProduct($product_id);
 
                 if ($prd->ID) {
-                    $prd->group_id = $group_id;
+                    $prd->group_id    = $group_id;
                     $prd->group_order = $index;
                     $prd->store_meta();
                 }
@@ -300,9 +367,15 @@ class MeprGroupsCtrl extends MeprCptCtrl
     }
 
     // Deletes all memberships from the given group. We purge memberships before saving the new one's.
+    /**
+     * Zero out old products for the group.
+     *
+     * @param  integer $group_id The ID of the group.
+     * @return void
+     */
     public static function zero_out_old_products($group_id)
     {
-        $group = new MeprGroup($group_id);
+        $group    = new MeprGroup($group_id);
         $products = $group->products();
 
         if (!empty($products)) {
@@ -313,15 +386,29 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
     }
 
+    /**
+     * Display the group meta box.
+     *
+     * @param  WP_Post $post The current post object.
+     * @param  array   $args Additional arguments.
+     * @return void
+     */
     public static function group_meta_box($post, $args)
     {
         // Don't use $post here, it is null on new group - use args instead
-        $group = $args['args']['group'];
+        $group        = $args['args']['group'];
         $mepr_options = MeprOptions::fetch();
 
         MeprView::render('/admin/groups/form', get_defined_vars());
     }
 
+    /**
+     * Display the custom page template meta box.
+     *
+     * @param  WP_Post $post The current post object.
+     * @param  array   $args Additional arguments.
+     * @return void
+     */
     public static function custom_page_template($post, $args)
     {
         $group = $args['args']['group'];
@@ -329,6 +416,12 @@ class MeprGroupsCtrl extends MeprCptCtrl
         MeprView::render('/admin/groups/custom_page_template_form', get_defined_vars());
     }
 
+    /**
+     * Enqueue scripts and styles for the group admin page.
+     *
+     * @param  string $hook The current admin page hook.
+     * @return void
+     */
     public static function enqueue_scripts($hook)
     {
         global $current_screen;
@@ -344,6 +437,11 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
     }
 
+    /**
+     * Check if a product is already in a group via AJAX.
+     *
+     * @return void
+     */
     public static function is_product_already_in_group()
     {
         if (!isset($_POST['product_id'])) {
@@ -358,7 +456,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
 
         foreach ($groups as $g) {
-            $group = new MeprGroup($g->ID);
+            $group    = new MeprGroup($g->ID);
             $products = $group->products();
 
             if (empty($products)) {
@@ -379,6 +477,10 @@ class MeprGroupsCtrl extends MeprCptCtrl
     /**
      * Removes all fallback transactions matching the product and gateway
      * Hook: mepr-group-fallback-membership-deleted
+     *
+     * @param  integer   $fallback_membership The ID of the fallback membership.
+     * @param  MeprGroup $group               The group object.
+     * @return void
      */
     public static function remove_fallback_memberships($fallback_membership, $group)
     {
@@ -402,6 +504,10 @@ class MeprGroupsCtrl extends MeprCptCtrl
     /**
      * Updates all fallback transactions matching the product and gateway to the new product/membership
      * Hook: mepr-group-fallback-membership-changed
+     *
+     * @param  integer   $fallback_membership The ID of the fallback membership.
+     * @param  MeprGroup $group               The group object.
+     * @return void
      */
     public static function update_fallback_memberships($fallback_membership, $group)
     {
@@ -426,13 +532,16 @@ class MeprGroupsCtrl extends MeprCptCtrl
 
     /**
      * Used to expire the active fallback transaction
-     * Hooks: mepr-txn-status-complete, mepr-txn-status-confirmed
+     * Hook: mepr-txn-status-complete, mepr-txn-status-confirmed
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return void
      */
     public static function expire_fallback($txn)
     {
         $product = $txn->product();
-        $user = $txn->user();
-        $group = $product->group();
+        $user    = $txn->user();
+        $group   = $product->group();
 
         // Return if product doesn't belong to a group
         if ($group === false) {
@@ -452,14 +561,18 @@ class MeprGroupsCtrl extends MeprCptCtrl
     }
 
     /**
-     * Used to expire create a fallback transaction
+     * Used to create a fallback transaction
      * Hooks: mepr-transaction-expired, mepr-txn-status-refunded, mepr-txn-status-failed
+     *
+     * @param  MeprTransaction $txn        The transaction object.
+     * @param  boolean         $sub_status The subscription status.
+     * @return void
      */
     public static function create_fallback($txn, $sub_status = false)
     {
-        $user = $txn->user();
+        $user    = $txn->user();
         $product = $txn->product();
-        $group = $product->group();
+        $group   = $product->group();
 
         // Return if product doesn't belong to a group
         if ($group === false) {
@@ -476,9 +589,17 @@ class MeprGroupsCtrl extends MeprCptCtrl
         } // No fallback for product or the transaction product is the fallback
     }
 
+    /**
+     * Shortcode to display group price boxes.
+     *
+     * @param  array  $atts    The shortcode attributes.
+     * @param  string $content The content inside the shortcode.
+     * @return string
+     */
     public static function shortcode_group_price_boxes($atts, $content = '')
     {
-        if (isset($atts['group_id']) and $group = new MeprGroup($atts['group_id'])) {
+        if (isset($atts['group_id'])) {
+            $group = new MeprGroup($atts['group_id']);
             $theme = (isset($atts['theme']) ? $atts['theme'] : null);
 
             ob_start();
@@ -486,10 +607,10 @@ class MeprGroupsCtrl extends MeprCptCtrl
             self::display_pricing_boxes($group, $theme, $atts);
 
             return ob_get_clean();
-        } else {
-            // No validation needed here as the below function does it all
-            // This is just a wrapper
-            return self::render_pricing_boxes('', true);
         }
+
+        // No validation needed here as the below function does it all
+        // This is just a wrapper
+        return self::render_pricing_boxes('', true);
     }
-} //End class
+}

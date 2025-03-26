@@ -3,7 +3,7 @@
 } ?>
 <?php
   $ld_migration_possible = MeprMigratorLearnDash::is_migration_possible();
-  $courses_active = MeprOnboardingHelper::is_courses_addon_applicable();
+  $courses_active        = MeprOnboardingHelper::is_courses_addon_applicable();
 ?>
 <?php if ($ld_migration_possible) : ?>
   <div id="mepr-wizard-ld-migrator-success" class="mepr-hidden">

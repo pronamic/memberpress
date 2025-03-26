@@ -6,7 +6,13 @@ if (!defined('ABSPATH')) {
 
 abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
 {
-    public function validate_ipn()
+    /**
+     * Validate PayPal IPN request
+     *
+     * @param  array $ipn_data The IPN data to validate
+     * @return boolean True if valid, false otherwise
+     */
+    public function validate_ipn($ipn_data)
     {
         // Set the command that is used to validate the message
         $_POST['cmd'] = '_notify-validate';
@@ -64,9 +70,15 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
         return MeprUtils::format_float($amount);
     }
 
-    protected function do_thankyou_url($query_params, $txn)
+    /**
+     * Process thank you URL redirect
+     *
+     * @param  MeprTransaction $txn The transaction object
+     * @return string The thank you URL
+     */
+    public function do_thankyou_url($txn)
     {
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options                   = MeprOptions::fetch();
         $query_params['transaction_id'] = $txn->id;
         return $mepr_options->thankyou_page_url(build_query($query_params));
     }

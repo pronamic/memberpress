@@ -140,7 +140,7 @@ if (!defined('ABSPATH')) {
             'admin.php',
             ['clear_tax_rates', 'mepr_taxes_nonce'],
             [
-                'page' => 'memberpress-options',
+                'page'   => 'memberpress-options',
                 'action' => 'clear_tax_rates',
             ]
         );

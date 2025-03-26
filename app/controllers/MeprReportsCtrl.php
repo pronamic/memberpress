@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprReportsCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load hooks for the reports functionality.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('admin_enqueue_scripts', 'MeprReportsCtrl::enqueue_scripts');
@@ -22,6 +27,11 @@ class MeprReportsCtrl extends MeprBaseCtrl
         add_action('wp_ajax_mepr_all_time_info_blocks', 'MeprReportsCtrl::load_all_time_info_blocks');
     }
 
+    /**
+     * Main function to render the reports page.
+     *
+     * @return void
+     */
     public static function main()
     {
         $mepr_options = MeprOptions::fetch();
@@ -34,13 +44,20 @@ class MeprReportsCtrl extends MeprBaseCtrl
             return;
         }
 
-        $curr_month = (isset($_GET['month']) && !empty($_GET['month'])) ? $_GET['month'] : gmdate('n');
-        $curr_year = (isset($_GET['year']) && !empty($_GET['year'])) ? $_GET['year'] : gmdate('Y');
+        $curr_month   = (isset($_GET['month']) && !empty($_GET['month'])) ? $_GET['month'] : gmdate('n');
+        $curr_year    = (isset($_GET['year']) && !empty($_GET['year'])) ? $_GET['year'] : gmdate('Y');
         $curr_product = (isset($_GET['product']) && !empty($_GET['product'])) ? $_GET['product'] : 'all';
 
         MeprView::render('/admin/reports/main', get_defined_vars());
     }
 
+    /**
+     * Enqueue scripts and styles for the reports page.
+     *
+     * @param string $hook The current admin page hook.
+     *
+     * @return void
+     */
     public static function enqueue_scripts($hook)
     {
         $local_data = [
@@ -55,6 +72,11 @@ class MeprReportsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Handle CSV export for reports.
+     *
+     * @return void
+     */
     public static function csv()
     {
         check_ajax_referer('export_report', 'mepr_reports_nonce');
@@ -63,74 +85,84 @@ class MeprReportsCtrl extends MeprBaseCtrl
             MeprUtils::exit_with_status(403, __('Forbidden', 'memberpress'));
         }
 
-        $export = $_REQUEST['export'];
+        $export        = $_REQUEST['export'];
         $valid_exports = ['widget', 'yearly', 'monthly'];
         if (in_array($export, $valid_exports)) {
             call_user_func("MeprReportsCtrl::export_{$export}");
         }
     }
 
+    /**
+     * Export widget data to CSV.
+     *
+     * @return void
+     */
     public static function export_widget()
     {
         $start_date = date_i18n('Y-m-d', time() - MeprUtils::days(6), true);
-        $end_date = date_i18n('Y-m-d', time(), true);
-        $filename = "memberpress-report-{$start_date}-to-{$end_date}";
-        $txns = MeprReports::get_widget_data('transactions');
-        $amts = MeprReports::get_widget_data('amounts');
-        $results = self::format_for_csv($txns, $amts);
+        $end_date   = date_i18n('Y-m-d', time(), true);
+        $filename   = "memberpress-report-{$start_date}-to-{$end_date}";
+        $txns       = MeprReports::get_widget_data('transactions');
+        $amts       = MeprReports::get_widget_data('amounts');
+        $results    = self::format_for_csv($txns, $amts);
         MeprUtils::render_csv($results, $filename);
     }
 
+    /**
+     * Load widget data for reports.
+     *
+     * @return void
+     */
     public static function load_widget()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
 
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options    = MeprOptions::fetch();
         $currency_symbol = $mepr_options->currency_symbol;
-        $results = MeprReports::get_widget_data();
-        $chart_data =
+        $results         = MeprReports::get_widget_data();
+        $chart_data      =
         [
             'cols' =>
             [
                 [
                     'label' => __('Date', 'memberpress'),
-                    'type' => 'string',
+                    'type'  => 'string',
                 ],
                 [
                     'label' => __('Completed', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
                 [
                     'label' => __('Pending', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
                 [
                     'label' => __('Failed', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
                 [
                     'label' => __('Refunded', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
             ],
         ];
@@ -186,12 +218,17 @@ class MeprReportsCtrl extends MeprBaseCtrl
         die();
     }
 
+    /**
+     * Load pie chart data for reports.
+     *
+     * @return void
+     */
     public static function load_pie()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
 
-        $year = (isset($_REQUEST['year'])) ? $_REQUEST['year'] : false;
-        $month = (isset($_REQUEST['month'])) ? $_REQUEST['month'] : false;
+        $year    = (isset($_REQUEST['year'])) ? $_REQUEST['year'] : false;
+        $month   = (isset($_REQUEST['month'])) ? $_REQUEST['month'] : false;
         $results = MeprReports::get_pie_data($year, $month);
 
         $chart_data =
@@ -200,17 +237,17 @@ class MeprReportsCtrl extends MeprBaseCtrl
             [
                 [
                     'label' => __('Membership', 'memberpress'),
-                    'type' => 'string',
+                    'type'  => 'string',
                 ],
                 [
                     'label' => __('Transactions', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
             ],
         ];
 
         foreach ($results as $result) {
-            $product = ($result->product) ? $result->product : __('Other', 'memberpress');
+            $product              = ($result->product) ? $result->product : __('Other', 'memberpress');
             $chart_data['rows'][] =
             [
                 'c' =>
@@ -231,32 +268,49 @@ class MeprReportsCtrl extends MeprBaseCtrl
         die();
     }
 
+    /**
+     * Export monthly data to CSV.
+     *
+     * @return void
+     */
     public static function export_monthly()
     {
         self::monthly_table(true);
     }
 
+    /**
+     * Load monthly data for reports.
+     *
+     * @return void
+     */
     public static function load_monthly()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
         self::monthly_table();
     }
 
+    /**
+     * Generate monthly table data for reports.
+     *
+     * @param boolean $export Whether to export the data.
+     *
+     * @return void
+     */
     public static function monthly_table($export = false)
     {
-        $mepr_options = MeprOptions::fetch();
-        $type = (isset($_REQUEST['type']) && !empty($_REQUEST['type'])) ? $_REQUEST['type'] : 'amounts';
+        $mepr_options    = MeprOptions::fetch();
+        $type            = (isset($_REQUEST['type']) && !empty($_REQUEST['type'])) ? $_REQUEST['type'] : 'amounts';
         $currency_symbol = ($type == 'amounts') ? $mepr_options->currency_symbol : '';
-        $month = (isset($_REQUEST['month']) && !empty($_REQUEST['month'])) ? $_REQUEST['month'] : gmdate('n');
-        $year = (isset($_REQUEST['year']) && !empty($_REQUEST['year'])) ? $_REQUEST['year'] : gmdate('Y');
-        $product = (isset($_REQUEST['product']) && $_GET['product'] != 'all') ? $_REQUEST['product'] : 'all';
-        $q = (isset($_REQUEST['q']) && $_REQUEST['q'] != 'none') ? $_REQUEST['q'] : [];
+        $month           = (isset($_REQUEST['month']) && !empty($_REQUEST['month'])) ? $_REQUEST['month'] : gmdate('n');
+        $year            = (isset($_REQUEST['year']) && !empty($_REQUEST['year'])) ? $_REQUEST['year'] : gmdate('Y');
+        $product         = (isset($_REQUEST['product']) && $_GET['product'] != 'all') ? $_REQUEST['product'] : 'all';
+        $q               = (isset($_REQUEST['q']) && $_REQUEST['q'] != 'none') ? $_REQUEST['q'] : [];
 
         if ($export) {
-            $txns = MeprReports::get_monthly_dataset('transactions', $month, $year, $product, $q);
-            $amts = MeprReports::get_monthly_dataset('amounts', $month, $year, $product, $q);
+            $txns     = MeprReports::get_monthly_dataset('transactions', $month, $year, $product, $q);
+            $amts     = MeprReports::get_monthly_dataset('amounts', $month, $year, $product, $q);
             $filename = "memberpress-monthly-{$month}-{$year}-{$type}-for-{$product}";
-            $results = self::format_for_csv($txns, $amts);
+            $results  = self::format_for_csv($txns, $amts);
             MeprUtils::render_csv(array_values($results), $filename);
         }
 
@@ -268,43 +322,43 @@ class MeprReportsCtrl extends MeprBaseCtrl
             [
                 [
                     'label' => MeprUtils::period_type_name('days'),
-                    'type' => 'string',
+                    'type'  => 'string',
                 ],
                 [
                     'label' => __('Completed', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
                 [
                     'label' => __('Pending', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
                 [
                     'label' => __('Failed', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
                 [
                     'label' => __('Refunded', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
             ],
         ];
@@ -360,31 +414,48 @@ class MeprReportsCtrl extends MeprBaseCtrl
         die();
     }
 
+    /**
+     * Export yearly data to CSV.
+     *
+     * @return void
+     */
     public static function export_yearly()
     {
         self::yearly_table(true);
     }
 
+    /**
+     * Load yearly data for reports.
+     *
+     * @return void
+     */
     public static function load_yearly()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
         self::yearly_table();
     }
 
+    /**
+     * Generate yearly table data for reports.
+     *
+     * @param boolean $export Whether to export the data.
+     *
+     * @return void
+     */
     public static function yearly_table($export = false)
     {
-        $mepr_options = MeprOptions::fetch();
-        $type = (isset($_REQUEST['type']) && !empty($_REQUEST['type'])) ? $_REQUEST['type'] : 'amounts';
+        $mepr_options    = MeprOptions::fetch();
+        $type            = (isset($_REQUEST['type']) && !empty($_REQUEST['type'])) ? $_REQUEST['type'] : 'amounts';
         $currency_symbol = ($type == 'amounts') ? $mepr_options->currency_symbol : '';
-        $year = (isset($_REQUEST['year']) && !empty($_REQUEST['year'])) ? $_REQUEST['year'] : gmdate('Y');
-        $product = (isset($_REQUEST['product']) && $_GET['product'] != 'all') ? $_REQUEST['product'] : 'all';
-        $q = (isset($_REQUEST['q']) && $_GET['q'] != 'none') ? $_REQUEST['q'] : '';
+        $year            = (isset($_REQUEST['year']) && !empty($_REQUEST['year'])) ? $_REQUEST['year'] : gmdate('Y');
+        $product         = (isset($_REQUEST['product']) && $_GET['product'] != 'all') ? $_REQUEST['product'] : 'all';
+        $q               = (isset($_REQUEST['q']) && $_GET['q'] != 'none') ? $_REQUEST['q'] : '';
 
         if ($export) {
             $filename = "memberpress-yearly-{$year}-{$type}-for-{$product}";
-            $txns = MeprReports::get_yearly_dataset('transactions', $year, $product, $q);
-            $amts = MeprReports::get_yearly_dataset('amounts', $year, $product, $q);
-            $results = self::format_for_csv($txns, $amts);
+            $txns     = MeprReports::get_yearly_dataset('transactions', $year, $product, $q);
+            $amts     = MeprReports::get_yearly_dataset('amounts', $year, $product, $q);
+            $results  = self::format_for_csv($txns, $amts);
             MeprUtils::render_csv($results, $filename);
         }
 
@@ -396,49 +467,49 @@ class MeprReportsCtrl extends MeprBaseCtrl
             [
                 [
                     'label' => MeprUtils::period_type_name('months'),
-                    'type' => 'string',
+                    'type'  => 'string',
                 ],
                 [
                     'label' => __('Completed', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
                 [
                     'label' => __('Pending', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
                 [
                     'label' => __('Failed', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
                 [
                     'label' => __('Refunded', 'memberpress'),
-                    'type' => 'number',
+                    'type'  => 'number',
                 ],
                 [
                     'role' => 'tooltip',
                     'type' => 'string',
-                    'p' => ['role' => 'tooltip'],
+                    'p'    => ['role' => 'tooltip'],
                 ],
             ],
         ];
 
         foreach ($results as $r) {
-            $tooltip_date = date_i18n('M, Y', mktime(0, 0, 0, $r->month, 15, $year), true);
+            $tooltip_date         = date_i18n('M, Y', mktime(0, 0, 0, $r->month, 15, $year), true);
             $chart_data['rows'][] =
             [
                 'c' =>
@@ -487,16 +558,24 @@ class MeprReportsCtrl extends MeprBaseCtrl
         die();
     }
 
+    /**
+     * Format data for CSV export.
+     *
+     * @param array $txns The transaction data.
+     * @param array $amts The amounts data.
+     *
+     * @return array The formatted CSV data.
+     */
     public static function format_for_csv($txns, $amts)
     {
         $tmap = [
-            'date' => 'date',
-            'day' => 'day',
+            'date'  => 'date',
+            'day'   => 'day',
             'month' => 'month',
-            'p' => 'pending.count',
-            'f' => 'failed.count',
-            'c' => 'complete.count',
-            'r' => 'refunded.count',
+            'p'     => 'pending.count',
+            'f'     => 'failed.count',
+            'c'     => 'complete.count',
+            'r'     => 'refunded.count',
         ];
 
         $amap = [
@@ -509,8 +588,8 @@ class MeprReportsCtrl extends MeprBaseCtrl
         ];
 
         $valid_cols = array_keys($tmap);
-        $ta_cols = array_keys($amap);
-        $a_cols = array_diff($ta_cols, $valid_cols);
+        $ta_cols    = array_keys($amap);
+        $a_cols     = array_diff($ta_cols, $valid_cols);
 
         $txns = array_values($txns);
         $amts = array_values($amts);
@@ -541,6 +620,11 @@ class MeprReportsCtrl extends MeprBaseCtrl
         return $csv;
     }
 
+    /**
+     * Load overall info blocks for reports.
+     *
+     * @return void
+     */
     public static function load_overall_info()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
@@ -549,19 +633,29 @@ class MeprReportsCtrl extends MeprBaseCtrl
         ]);
     }
 
+    /**
+     * Get common variables for reports.
+     *
+     * @return array The common variables.
+     */
     protected static function do_common_vars()
     {
-        $curr_month = (isset($_GET['month']) && !empty($_GET['month'])) ? $_GET['month'] : gmdate('n');
-        $curr_year = (isset($_GET['year']) && !empty($_GET['year'])) ? $_GET['year'] : gmdate('Y');
+        $curr_month   = (isset($_GET['month']) && !empty($_GET['month'])) ? $_GET['month'] : gmdate('n');
+        $curr_year    = (isset($_GET['year']) && !empty($_GET['year'])) ? $_GET['year'] : gmdate('Y');
         $curr_product = (isset($_GET['product']) && !empty($_GET['product'])) ? $_GET['product'] : 'all';
 
         return [
-            'curr_month' => $curr_month,
-            'curr_year' => $curr_year,
+            'curr_month'   => $curr_month,
+            'curr_year'    => $curr_year,
             'curr_product' => $curr_product,
         ];
     }
 
+    /**
+     * Load month info blocks for reports.
+     *
+     * @return void
+     */
     public static function load_month_info_blocks()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
@@ -570,6 +664,11 @@ class MeprReportsCtrl extends MeprBaseCtrl
         ]);
     }
 
+    /**
+     * Load month info table for reports.
+     *
+     * @return void
+     */
     public static function load_month_info_table()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
@@ -578,6 +677,11 @@ class MeprReportsCtrl extends MeprBaseCtrl
         ]);
     }
 
+    /**
+     * Load year info blocks for reports.
+     *
+     * @return void
+     */
     public static function load_year_info_blocks()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
@@ -586,6 +690,11 @@ class MeprReportsCtrl extends MeprBaseCtrl
         ]);
     }
 
+    /**
+     * Load year info table for reports.
+     *
+     * @return void
+     */
     public static function load_year_info_table()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
@@ -594,6 +703,11 @@ class MeprReportsCtrl extends MeprBaseCtrl
         ]);
     }
 
+    /**
+     * Load all-time info blocks for reports.
+     *
+     * @return void
+     */
     public static function load_all_time_info_blocks()
     {
         check_ajax_referer('mepr_reports', 'report_nonce');

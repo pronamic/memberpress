@@ -461,11 +461,6 @@ img {
   max-width: 100%;
 }
 
-svg {
-  width: 1rem;
-  height: 1rem;
-}
-
 figure {
   margin: 1em 0;
 }
@@ -723,6 +718,8 @@ input[type=submit].btn-link {
 --------------------------------------------------------------*/
 .site-header {
   display: flex;
+  position: relative;
+  z-index: 999;
   background-color: #06429E;
   justify-content: space-between;
   align-items: center;
@@ -736,6 +733,7 @@ input[type=submit].btn-link {
 }
 .mepr-guest-layout .site-branding img.site-logo {
   max-height: 100px;
+  width: 100%;
 }
 
 .mepr-guest-layout main{
@@ -841,6 +839,9 @@ input[type=submit].btn-link {
 .mepr-unauthorized-message > * + * {
   margin-left: 1rem;
 }
+.mepr_pro_error .mepr_pro_error_content {
+  flex: 1;
+}
 .mepr_pro_error ul,
 .mepr-unauthorized-message ul {
   list-style-type: none;
@@ -933,4 +934,3 @@ input[type=submit].btn-link {
     padding-right: 0;
   }
 }
-

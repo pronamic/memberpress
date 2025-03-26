@@ -10,6 +10,13 @@ if (!defined('ABSPATH')) {
  */
 class MeprCtrlFactory
 {
+    /**
+     * Fetch a controller instance
+     *
+     * @param  string $class The controller class to fetch.
+     * @param  array  $args  The args.
+     * @return MeprBaseCtrl|false
+     */
     public static function fetch($class, $args = [])
     {
         static $objs;
@@ -34,7 +41,7 @@ class MeprCtrlFactory
 
         // We'll let the autoloader in memberpress.php
         // handle including files containing these classes
-        $r = new ReflectionClass($class);
+        $r   = new ReflectionClass($class);
         $obj = $r->newInstanceArgs($args);
 
         $objs[$class] = $obj;
@@ -42,6 +49,12 @@ class MeprCtrlFactory
         return $obj;
     }
 
+    /**
+     * Get all controllers.
+     *
+     * @param  array $args The args.
+     * @return array
+     */
     public static function all($args = [])
     {
         $objs = [];
@@ -49,7 +62,7 @@ class MeprCtrlFactory
         foreach (self::paths() as $path) {
             $ctrls = @glob($path . '/Mepr*Ctrl.php', GLOB_NOSORT);
             foreach ($ctrls as $ctrl) {
-                $class = preg_replace('#\.php#', '', basename($ctrl));
+                $class        = preg_replace('#\.php#', '', basename($ctrl));
                 $objs[$class] = self::fetch($class, $args);
             }
         }
@@ -57,6 +70,11 @@ class MeprCtrlFactory
         return $objs;
     }
 
+    /**
+     * Get controller paths
+     *
+     * @return array Array of controller file paths
+     */
     public static function paths()
     {
         return MeprHooks::apply_filters('mepr-ctrls-paths', [MEPR_CTRLS_PATH, MEPR_BRAND_CTRLS_PATH]);

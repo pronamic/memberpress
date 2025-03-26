@@ -6,6 +6,11 @@ if (! defined('ABSPATH')) {
 
 class MeprDrmAppFee
 {
+    /**
+     * Applies the application fee to the relevant transactions.
+     *
+     * @return void
+     */
     public function do_app_fee()
     {
         MeprDrmHelper::enable_app_fee();
@@ -13,6 +18,11 @@ class MeprDrmAppFee
         $this->schedule_event_app_fee();
     }
 
+    /**
+     * Schedules an event to apply the application fee.
+     *
+     * @return void
+     */
     private function schedule_event_app_fee()
     {
         if (! wp_next_scheduled('mepr_drm_app_fee_mapper', [false])) {
@@ -20,6 +30,11 @@ class MeprDrmAppFee
         }
     }
 
+    /**
+     * Reverses the application fee from transactions.
+     *
+     * @return void
+     */
     public function undo_app_fee()
     {
         if (! MeprDrmHelper::is_app_fee_enabled()) {
@@ -31,6 +46,11 @@ class MeprDrmAppFee
         $this->schedule_event_app_fee_reversal();
     }
 
+    /**
+     * Schedules an event to reverse the application fee.
+     *
+     * @return void
+     */
     private function schedule_event_app_fee_reversal()
     {
         if (! wp_next_scheduled('mepr_drm_app_fee_reversal', [false])) {
@@ -38,6 +58,11 @@ class MeprDrmAppFee
         }
     }
 
+    /**
+     * Revises the application fee for transactions.
+     *
+     * @return void
+     */
     public function do_app_fee_revision()
     {
         if (! wp_next_scheduled('mepr_drm_app_fee_revision', [false])) {
@@ -45,17 +70,27 @@ class MeprDrmAppFee
         }
     }
 
+    /**
+     * Initializes cron jobs for application fee processing.
+     *
+     * @return void
+     */
     public function init_crons()
     {
         $this->schedule_event_app_fee();
         $this->do_app_fee_revision();
     }
 
+    /**
+     * Retrieves Stripe connected payment methods.
+     *
+     * @return array List of connected payment methods
+     */
     private function get_stripe_connected_payment_methods()
     {
         $mepr_options = MeprOptions::fetch();
-        $pmt_methods = $mepr_options->payment_methods();
-        $methods = [];
+        $pmt_methods  = $mepr_options->payment_methods();
+        $methods      = [];
 
         foreach ($pmt_methods as $key => $method) {
             if ($method instanceof MeprStripeGateway && MeprStripeGateway::is_stripe_connect($key)) {
@@ -66,6 +101,14 @@ class MeprDrmAppFee
         return $methods;
     }
 
+    /**
+     * Retrieves all active subscriptions.
+     *
+     * @param  array   $params An array of parameters to filter the subscriptions.
+     * @param  integer $limit  The maximum number of subscriptions to retrieve.
+     * @param  boolean $count  A boolean indicating whether to return a count of subscriptions.
+     * @return array|integer List of active subscriptions or count of subscriptions
+     */
     public function get_all_active_subs($params = [], $limit = '30', $count = false)
     {
         global $wpdb;
@@ -149,6 +192,15 @@ class MeprDrmAppFee
         }
     }
 
+    /**
+     * Processes the application fee for subscriptions.
+     *
+     * @param  array   $subscriptions      An array of subscription objects to process.
+     * @param  string  $api_version        The version of the API to use.
+     * @param  float   $current_percentage The current percentage of the application fee.
+     * @param  boolean $delete_metadata    A boolean indicating whether to delete metadata.
+     * @return integer|void Number of updated subscriptions
+     */
     public function process_subscriptions_fee($subscriptions, $api_version, $current_percentage, $delete_metadata = false)
     {
 
@@ -156,14 +208,14 @@ class MeprDrmAppFee
             return;
         }
 
-        $mepr_db = new MeprDb();
+        $mepr_db      = new MeprDb();
         $mepr_options = MeprOptions::fetch();
 
         $updated = 0;
 
         foreach ($subscriptions as $subscription) {
             try {
-                $pm = $mepr_options->payment_method($subscription->gateway);
+                $pm            = $mepr_options->payment_method($subscription->gateway);
                 $json_response = $pm->send_stripe_request('subscriptions/' . $subscription->subscr_id, [
                     'application_fee_percent' => $current_percentage,
                 ], 'post');
@@ -186,4 +238,4 @@ class MeprDrmAppFee
 
         return $updated;
     }
-} //End class
+}

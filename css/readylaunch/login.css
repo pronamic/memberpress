@@ -36,6 +36,16 @@
   outline: 0;
 }
 
+.mepr-pro-template #primary > * {
+  padding-left: 36px;
+  padding-right: 36px;
+}
+.mepr-pro-template #primary > #mepro-login-hero,
+.mepr-pro-template #primary > .mepr-account-container {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .mepro-boxed {
   display: flex;
   box-sizing: border-box;

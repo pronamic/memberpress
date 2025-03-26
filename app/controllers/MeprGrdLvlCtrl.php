@@ -58,8 +58,9 @@ class MeprGrdLvlCtrl extends MeprBaseCtrl implements StaticContainerAwareness
             self::setContainer(new Container());
 
             /**
+             * Plugin bootstrap via GrdLvl package.
+             *
              * @todo: Later we'll want to "properly" bootstrap a container via a
-             * plugin bootstrap via GrdLvl package.
              */
 
             self::init_mothership();

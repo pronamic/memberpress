@@ -9,6 +9,11 @@ abstract class MeprBaseMetaModel extends MeprBaseModel
     private $object_type;
     private $meta_table;
 
+    /**
+     * Constructor
+     *
+     * @param mixed $obj The object
+     */
     public function __construct($obj = null)
     {
         $this->object_type = $this->object_type();

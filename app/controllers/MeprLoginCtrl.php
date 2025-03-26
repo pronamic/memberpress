@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprLoginCtrl extends MeprBaseCtrl
 {
+    /**
+     * Loads the hooks for the login controller.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         MeprHooks::add_shortcode('mepr-logout-link', [$this,'logout_link']);
@@ -19,11 +24,17 @@ class MeprLoginCtrl extends MeprBaseCtrl
         add_action('init', [$this, 'process_reset_password_form']);
     }
 
+    /**
+     * Renders the logout link.
+     *
+     * @param  array $atts The attributes.
+     * @return string
+     */
     public function logout_link($atts)
     {
         $current_post = MeprUtils::get_current_post();
         $mepr_options = MeprOptions::fetch();
-        $permalink = !empty($current_post->ID) ? MeprUtils::get_permalink($current_post->ID) : '';
+        $permalink    = !empty($current_post->ID) ? MeprUtils::get_permalink($current_post->ID) : '';
 
         ob_start();
 
@@ -40,7 +51,14 @@ class MeprLoginCtrl extends MeprBaseCtrl
         return ob_get_clean();
     }
 
-    // Grabs a string of the login form
+    /**
+     * Grabs a string of the login form.
+     *
+     * @param  array   $atts      The attributes.
+     * @param  string  $content   The content.
+     * @param  boolean $shortcode Whether the shortcode is being used.
+     * @return string
+     */
     public function render_login_form($atts = [], $content = '', $shortcode = true)
     {
         global $post;
@@ -89,11 +107,18 @@ class MeprLoginCtrl extends MeprBaseCtrl
         return ob_get_clean();
     }
 
-    // Outputs the login form
+    /**
+     * Outputs the login form.
+     *
+     * @param boolean $shortcode                Whether the shortcode is being used.
+     * @param boolean $widget_use_redirect_urls Whether the widget is using redirect URLs.
+     * @param string  $message                  The message.
+     * @param array   $atts                     The attributes.
+     */
     public function display_login_form($shortcode = false, $widget_use_redirect_urls = false, $message = '', $atts = [])
     {
-        $current_post = MeprUtils::get_current_post();
-        $mepr_options = MeprOptions::fetch();
+        $current_post  = MeprUtils::get_current_post();
+        $mepr_options  = MeprOptions::fetch();
         $login_page_id = (!empty($mepr_options->login_page_id) && $mepr_options->login_page_id > 0) ? $mepr_options->login_page_id : 0;
         $is_login_page = (is_page($login_page_id) || $widget_use_redirect_urls);
 
@@ -125,11 +150,11 @@ class MeprLoginCtrl extends MeprBaseCtrl
         $redirect_to = MeprHooks::apply_filters('mepr-login-redirect-url', $redirect_to);
 
         if ($login_page_id) {
-            $login_url = $mepr_options->login_page_url();
-            $login_delim = MeprAppCtrl::get_param_delimiter_char($login_url);
+            $login_url           = $mepr_options->login_page_url();
+            $login_delim         = MeprAppCtrl::get_param_delimiter_char($login_url);
             $forgot_password_url = "{$login_url}{$login_delim}action=forgot_password";
         } else {
-            $login_url = home_url('/wp-login.php');
+            $login_url           = home_url('/wp-login.php');
             $forgot_password_url = home_url('/wp-login.php?action=lostpassword');
         }
 
@@ -166,7 +191,11 @@ class MeprLoginCtrl extends MeprBaseCtrl
         }
     }
 
-    // Processes the login form
+    /**
+     * Processes the login form.
+     *
+     * @return void
+     */
     public function process_login_form()
     {
         $mepr_options = MeprOptions::fetch();
@@ -199,9 +228,9 @@ class MeprLoginCtrl extends MeprBaseCtrl
 
         $wp_user = wp_signon(
             [
-                'user_login' => $login,
+                'user_login'    => $login,
                 'user_password' => $_POST['pwd'], // Do not need to sanitize here - it causes issues with passwords like test%12test (the %12 is stripped out)
-                'remember' => isset($_POST['rememberme']),
+                'remember'      => isset($_POST['rememberme']),
             ],
             MeprUtils::is_ssl() // May help with the users getting logged out when going between http and https
         );
@@ -227,7 +256,11 @@ class MeprLoginCtrl extends MeprBaseCtrl
         MeprUtils::wp_redirect($redirect_to);
     }
 
-    // Alters the default logout redirect
+    /**
+     * Alters the default logout redirect.
+     *
+     * @return void
+     */
     public function logout_redirect_override()
     {
         $mepr_options = MeprOptions::fetch();
@@ -238,17 +271,27 @@ class MeprLoginCtrl extends MeprBaseCtrl
         }
     }
 
-    // This needs to be done in init as before then it seems to cause conflicts with Shield Security plugin
+    /**
+     * This needs to be done in init as before then it seems to cause conflicts with Shield Security plugin.
+     *
+     * @return void
+     */
     public function override_wp_login_url_init()
     {
         add_filter('login_url', [$this, 'override_wp_login_url'], 999999, 2);
     }
 
-    // Override the default WordPress login url
+    /**
+     * Override the default WordPress login URL.
+     *
+     * @param  string $url         The URL.
+     * @param  string $redirect_to The redirect URL.
+     * @return string
+     */
     public function override_wp_login_url($url, $redirect_to)
     {
         $mepr_options = MeprOptions::fetch();
-        $redirect_to = urldecode($redirect_to); // might not be urlencoded, but let's do this just in case before we call urlencode below
+        $redirect_to  = urldecode($redirect_to); // might not be urlencoded, but let's do this just in case before we call urlencode below
 
         if (is_admin() || !$mepr_options->force_login_page_url || strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false) {
             return $url;
@@ -263,6 +306,11 @@ class MeprLoginCtrl extends MeprBaseCtrl
         return $new_login_url;
     }
 
+    /**
+     * Displays the forgot password form.
+     *
+     * @return void
+     */
     public function display_forgot_password_form()
     {
         $mepr_options = MeprOptions::fetch();
@@ -283,17 +331,22 @@ class MeprLoginCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Processes the forgot password form.
+     *
+     * @return void
+     */
     public function process_forgot_password_form()
     {
         $mepr_options = MeprOptions::fetch();
-        $errors = MeprHooks::apply_filters('mepr-validate-forgot-password', MeprUser::validate_forgot_password($_POST, []));
+        $errors       = MeprHooks::apply_filters('mepr-validate-forgot-password', MeprUser::validate_forgot_password($_POST, []));
 
         extract($_POST, EXTR_SKIP);
 
         $mepr_user_or_email = wp_unslash($mepr_user_or_email);
 
         if (empty($errors)) {
-            $is_email = (is_email($mepr_user_or_email) and email_exists($mepr_user_or_email));
+            $is_email    = (is_email($mepr_user_or_email) and email_exists($mepr_user_or_email));
             $is_username = username_exists($mepr_user_or_email);
 
             // If the username & email are not found then let's display a generic message.
@@ -337,6 +390,13 @@ class MeprLoginCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Displays the reset password form.
+     *
+     * @param  string $mepr_key        The key.
+     * @param  string $mepr_screenname The screenname.
+     * @return void
+     */
     public function display_reset_password_form($mepr_key, $mepr_screenname)
     {
         $user = new MeprUser();
@@ -365,11 +425,17 @@ class MeprLoginCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Displays the reset password form errors.
+     *
+     * @param  array $errors The errors.
+     * @return void
+     */
     public function display_reset_password_form_errors($errors)
     {
         if (!empty($errors)) {
             $mepr_screenname = isset($_POST['mepr_screenname']) ? sanitize_user(wp_unslash($_POST['mepr_screenname'])) : '';
-            $mepr_key = isset($_POST['mepr_key']) ? wp_unslash($_POST['mepr_key']) : '';
+            $mepr_key        = isset($_POST['mepr_key']) ? wp_unslash($_POST['mepr_key']) : '';
 
             if (MeprReadyLaunchCtrl::template_enabled('login')) {
                 MeprView::render('/readylaunch/shared/errors', get_defined_vars());
@@ -381,6 +447,11 @@ class MeprLoginCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Processes the reset password form.
+     *
+     * @return void
+     */
     public function process_reset_password_form()
     {
         // Log user out when clicking reset password link
@@ -402,9 +473,9 @@ class MeprLoginCtrl extends MeprBaseCtrl
             }
 
             if (empty($errors)) {
-                $mepr_screenname = isset($_POST['mepr_screenname']) ? sanitize_user(wp_unslash($_POST['mepr_screenname'])) : '';
+                $mepr_screenname    = isset($_POST['mepr_screenname']) ? sanitize_user(wp_unslash($_POST['mepr_screenname'])) : '';
                 $mepr_user_password = isset($_POST['mepr_user_password']) ? $_POST['mepr_user_password'] : '';
-                $mepr_key = isset($_POST['mepr_key']) ? wp_unslash($_POST['mepr_key']) : '';
+                $mepr_key           = isset($_POST['mepr_key']) ? wp_unslash($_POST['mepr_key']) : '';
 
                 $user = new MeprUser();
                 $user->load_user_data_by_login($mepr_screenname);
@@ -416,7 +487,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
                         if (!MeprUtils::is_user_logged_in()) {
                             $wp_user = wp_signon(
                                 [
-                                    'user_login' => $mepr_screenname,
+                                    'user_login'    => $mepr_screenname,
                                     'user_password' => $mepr_user_password,
                                 ],
                                 MeprUtils::is_ssl()

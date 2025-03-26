@@ -6,10 +6,18 @@ if (!defined('ABSPATH')) {
 
 class MeprView
 {
+    /**
+     * Get the file for a given slug.
+     *
+     * @param string $slug  The slug of the file.
+     * @param array  $paths The paths to search for the file.
+     *
+     * @return string The path to the file.
+     */
     public static function file($slug, $paths = [])
     {
         $paths = (empty($paths) ? self::paths() : $paths);
-        $find = $slug . '.php';
+        $find  = $slug . '.php';
 
         if (!preg_match('#^/#', $find)) {
             $find = '/' . $find;
@@ -31,6 +39,12 @@ class MeprView
      * pass all the locally defined variables as the args variable:
      *
      * MeprView::get_string('mycoolstuff/what', get_defined_vars());
+     *
+     * @param string $slug  The slug of the view.
+     * @param array  $vars  The variables to pass to the view.
+     * @param array  $paths The paths to search for the view.
+     *
+     * @return string|void
      */
     public static function get_string($slug, $vars = [], $paths = [])
     {
@@ -65,6 +79,12 @@ class MeprView
      * pass all the locally defined variables as the args variable:
      *
      * MeprView::render('mycoolstuff/what', get_defined_vars());
+     *
+     * @param string $slug  The slug of the view.
+     * @param array  $vars  The variables to pass to the view.
+     * @param array  $paths The paths to search for the view.
+     *
+     * @return string The string of the view.
      */
     public static function render($slug, $vars = [], $paths = [])
     {
@@ -75,11 +95,16 @@ class MeprView
         return $view;
     }
 
+    /**
+     * Get the paths for the views.
+     *
+     * @return array The paths for the views.
+     */
     public static function paths()
     {
         $paths = [];
 
-        $template_path = get_template_directory();
+        $template_path   = get_template_directory();
         $stylesheet_path = get_stylesheet_directory();
 
         // Put child theme's first if one's being used

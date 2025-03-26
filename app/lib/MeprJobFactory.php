@@ -6,6 +6,13 @@ if (!defined('ABSPATH')) {
 
 class MeprJobFactory
 {
+    /**
+     * Fetch a job.
+     *
+     * @param  string  $class The class.
+     * @param  boolean $db    The db.
+     * @return MeprBaseJob
+     */
     public static function fetch($class, $db = false)
     {
         if (!class_exists($class)) {
@@ -14,7 +21,7 @@ class MeprJobFactory
 
         // We'll let the autoloader in memberpress.php
         // handle including files containing these classes
-        $r = new ReflectionClass($class);
+        $r   = new ReflectionClass($class);
         $job = $r->newInstanceArgs([$db]);
 
         if (!( $job instanceof MeprBaseJob )) {
@@ -24,6 +31,11 @@ class MeprJobFactory
         return $job;
     }
 
+    /**
+     * Get the paths.
+     *
+     * @return array
+     */
     public static function paths()
     {
         $paths = MeprHooks::apply_filters('mepr-job-paths', [MEPR_JOBS_PATH]);

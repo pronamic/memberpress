@@ -7,14 +7,19 @@ if (!defined('ABSPATH')) {
 class MeprEvent extends MeprBaseModel
 {
     // Supported event types
-    public static $users_str = 'users';
-    public static $transactions_str = 'transactions';
+    public static $users_str         = 'users';
+    public static $transactions_str  = 'transactions';
     public static $subscriptions_str = 'subscriptions';
-    public static $drm_str = 'drm';
+    public static $drm_str           = 'drm';
 
     // User events
     public static $login_event_str = 'login';
 
+    /**
+     * Constructor for the MeprEvent class.
+     *
+     * @param mixed $obj The object to initialize the event with.
+     */
     public function __construct($obj = null)
     {
         $this->initialize(
@@ -30,68 +35,142 @@ class MeprEvent extends MeprBaseModel
         );
     }
 
+    /**
+     * Validate the event's properties.
+     *
+     * @return void
+     */
     public function validate()
     {
         $this->validate_is_numeric($this->evt_id, 0, null, 'evt_id');
     }
 
+    /**
+     * Get a single event by ID.
+     *
+     * @param  integer $id          The ID of the event.
+     * @param  string  $return_type The return type of the result.
+     * @return object|null
+     */
     public static function get_one($id, $return_type = OBJECT)
     {
         $mepr_db = new MeprDb();
-        $args = compact('id');
+        $args    = compact('id');
         return $mepr_db->get_one_record($mepr_db->events, $args, $return_type);
     }
 
+    /**
+     * Get a single event by event, event ID, and event ID type.
+     *
+     * @param  string  $event       The event name.
+     * @param  integer $evt_id      The event ID.
+     * @param  string  $evt_id_type The event ID type.
+     * @param  string  $return_type The return type of the result.
+     * @return object|null
+     */
     public static function get_one_by_event_and_evt_id_and_evt_id_type($event, $evt_id, $evt_id_type, $return_type = OBJECT)
     {
         $mepr_db = new MeprDb();
         return $mepr_db->get_one_record($mepr_db->events, compact('event', 'evt_id', 'evt_id_type'), $return_type);
     }
 
+    /**
+     * Get the count of all events.
+     *
+     * @return integer
+     */
     public static function get_count()
     {
         $mepr_db = new MeprDb();
         return $mepr_db->get_count($mepr_db->events);
     }
 
+    /**
+     * Get the count of events by event name.
+     *
+     * @param  string $event The event name.
+     * @return integer
+     */
     public static function get_count_by_event($event)
     {
         $mepr_db = new MeprDb();
         return $mepr_db->get_count($mepr_db->events, compact('event'));
     }
 
+    /**
+     * Get the count of events by event ID type.
+     *
+     * @param  string $evt_id_type The event ID type.
+     * @return integer
+     */
     public static function get_count_by_evt_id_type($evt_id_type)
     {
         $mepr_db = new MeprDb();
         return $mepr_db->get_count($mepr_db->events, compact('evt_id_type'));
     }
 
+    /**
+     * Get the count of events by event, event ID, and event ID type.
+     *
+     * @param  string  $event       The event name.
+     * @param  integer $evt_id      The event ID.
+     * @param  string  $evt_id_type The event ID type.
+     * @return integer
+     */
     public static function get_count_by_event_and_evt_id_and_evt_id_type($event, $evt_id, $evt_id_type)
     {
         $mepr_db = new MeprDb();
         return $mepr_db->get_count($mepr_db->events, compact('event', 'evt_id', 'evt_id_type'));
     }
 
+    /**
+     * Get all events.
+     *
+     * @param  string $order_by The order by clause.
+     * @param  string $limit    The limit clause.
+     * @return array
+     */
     public static function get_all($order_by = '', $limit = '')
     {
         $mepr_db = new MeprDb();
         return $mepr_db->get_records($mepr_db->events, [], $order_by, $limit);
     }
 
+    /**
+     * Get all events by event name.
+     *
+     * @param  string $event    The event name.
+     * @param  string $order_by The order by clause.
+     * @param  string $limit    The limit clause.
+     * @return array
+     */
     public static function get_all_by_event($event, $order_by = '', $limit = '')
     {
         $mepr_db = new MeprDb();
-        $args = ['event' => $event];
+        $args    = ['event' => $event];
         return $mepr_db->get_records($mepr_db->events, $args, $order_by, $limit);
     }
 
+    /**
+     * Get all events by event ID type.
+     *
+     * @param  string $evt_id_type The event ID type.
+     * @param  string $order_by    The order by clause.
+     * @param  string $limit       The limit clause.
+     * @return array
+     */
     public static function get_all_by_evt_id_type($evt_id_type, $order_by = '', $limit = '')
     {
         $mepr_db = new MeprDb();
-        $args = ['evt_id_type' => $evt_id_type];
+        $args    = ['evt_id_type' => $evt_id_type];
         return $mepr_db->get_records($mepr_db->events, $args, $order_by, $limit);
     }
 
+    /**
+     * Store the event in the database.
+     *
+     * @return integer The ID of the stored event.
+     */
     public function store()
     {
         $mepr_db = new MeprDb();
@@ -120,11 +199,16 @@ class MeprEvent extends MeprBaseModel
         return $this->id;
     }
 
+    /**
+     * Destroy the event from the database.
+     *
+     * @return boolean True on success, false on failure.
+     */
     public function destroy()
     {
         $mepr_db = new MeprDb();
 
-        $id = $this->id;
+        $id   = $this->id;
         $args = compact('id');
 
         MeprHooks::do_action('mepr_event_destroy', $this);
@@ -134,6 +218,11 @@ class MeprEvent extends MeprBaseModel
 
     // TODO: This is a biggie ... we don't want to send the event object like this
     // we need to send the object associated with the event instead.
+    /**
+     * Get the data for the event.
+     *
+     * @return object|false
+     */
     public function get_data()
     {
         $obj = false;
@@ -144,11 +233,11 @@ class MeprEvent extends MeprBaseModel
                 // If member-deleted event is being passed, make sure we generate some data.
                 if (!isset($obj->ID) || $obj->ID <= 0) {
                     if ($this->event == 'member-deleted') {
-                          $obj->ID = 0;
+                          $obj->ID         = 0;
                           $obj->user_email = 'johndoe@email.com';
                           $obj->user_login = 'johndoe';
                           $obj->first_name = 'John';
-                          $obj->last_name = 'Doe';
+                          $obj->last_name  = 'Doe';
                     }
                 }
 
@@ -166,6 +255,11 @@ class MeprEvent extends MeprBaseModel
         return $obj;
     }
 
+    /**
+     * Get the arguments for the event.
+     *
+     * @return mixed
+     */
     public function get_args()
     {
         if (!empty($this->args) && is_string($this->args)) {
@@ -174,6 +268,14 @@ class MeprEvent extends MeprBaseModel
         return $this->args;
     }
 
+    /**
+     * Record an event.
+     *
+     * @param  string        $event The event name.
+     * @param  MeprBaseModel $obj   The object associated with the event.
+     * @param  mixed         $args  The arguments for the event.
+     * @return void
+     */
     public static function record($event, MeprBaseModel $obj, $args = '')
     {
         // Nothing to record? Hopefully this stops some ghost duplicate reminders we are seeing
@@ -182,9 +284,9 @@ class MeprEvent extends MeprBaseModel
             return;
         }
 
-        $e = new MeprEvent();
+        $e        = new MeprEvent();
         $e->event = $event;
-        $e->args = $args;
+        $e->args  = $args;
 
         // Just turn objects into json for fun
         if (is_array($args) || is_object($args)) {
@@ -192,16 +294,16 @@ class MeprEvent extends MeprBaseModel
         }
 
         if ($obj instanceof MeprUser) {
-            $e->evt_id = $obj->rec->ID;
+            $e->evt_id      = $obj->rec->ID;
             $e->evt_id_type = self::$users_str;
         } elseif ($obj instanceof MeprTransaction) {
-            $e->evt_id = $obj->rec->id;
+            $e->evt_id      = $obj->rec->id;
             $e->evt_id_type = self::$transactions_str;
         } elseif ($obj instanceof MeprSubscription) {
-            $e->evt_id = $obj->rec->id;
+            $e->evt_id      = $obj->rec->id;
             $e->evt_id_type = self::$subscriptions_str;
         } elseif ($obj instanceof MeprDrm) {
-            $e->evt_id = $obj->rec->id;
+            $e->evt_id      = $obj->rec->id;
             $e->evt_id_type = self::$drm_str;
         } else {
             return;
@@ -211,7 +313,10 @@ class MeprEvent extends MeprBaseModel
     }
 
     /**
-     * Get the latest object for a given event
+     * Get the latest object for a given event.
+     *
+     * @param  string $event The event name.
+     * @return MeprEvent|false
      */
     public static function latest($event)
     {
@@ -226,7 +331,8 @@ class MeprEvent extends MeprBaseModel
        LIMIT 1
     ", $event);
 
-        if (($id = $wpdb->get_var($q))) {
+        $id = $wpdb->get_var($q);
+        if ($id) {
             return new MeprEvent($id);
         }
 
@@ -234,7 +340,10 @@ class MeprEvent extends MeprBaseModel
     }
 
     /**
-     * Get the tablename for the specific type of event
+     * Get the tablename for the specific type of event.
+     *
+     * @param  string $event_type The event type.
+     * @return string|null
      */
     public static function get_tablename($event_type)
     {
@@ -291,14 +400,18 @@ class MeprEvent extends MeprBaseModel
         if ($this->is_unique()) {
             $existing_event = self::get_one_by_event_and_evt_id_and_evt_id_type($this->event, $this->evt_id, $this->evt_id_type);
             if (!empty($existing_event)) {
-                $this->id = $existing_event->id;
+                $this->id   = $existing_event->id;
                 $this->args = $existing_event->args;
             }
         }
     }
 
     /**
-     * Get the latest object for a given event and elapsed days
+     * Get the latest object for a given event and elapsed days.
+     *
+     * @param  string  $event        The event name.
+     * @param  integer $elapsed_days The number of elapsed days.
+     * @return MeprEvent|false
      */
     public static function latest_by_elapsed_days($event, $elapsed_days)
     {
@@ -314,10 +427,11 @@ class MeprEvent extends MeprBaseModel
        LIMIT 1
     ", $event, MeprUtils::db_now(), $elapsed_days);
 
-        if (($id = $wpdb->get_var($q))) {
+        $id = $wpdb->get_var($q);
+        if ($id) {
             return new MeprEvent($id);
         }
 
         return false;
     }
-} //End class
+}

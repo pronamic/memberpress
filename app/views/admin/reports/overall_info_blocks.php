@@ -1,4 +1,5 @@
-<?php if (!defined('ABSPATH')) {
+<?php
+if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 } ?>
 
@@ -36,18 +37,17 @@
   <h3><?php echo MeprAppHelper::format_currency(MeprReports::get_average_lifetime_value(), true, false); ?></h3>
 </div>
 <?php
+/*
+ *  These are slowing things down too much for now
+    <div class="info_block">
+    <span class="info_block_title"><?php _e('Avg Num Mbr Pmts', 'memberpress'); ?></span>
+    <h3><?php echo MeprUtils::format_float(MeprReports::get_average_payments_per_member()); ?></h3>
+    </div>
 
-/**
- * These are slowing things down too much for now
-<div class="info_block">
-  <span class="info_block_title"><?php _e('Avg Num Mbr Pmts', 'memberpress'); ?></span>
-  <h3><?php echo MeprUtils::format_float(MeprReports::get_average_payments_per_member()); ?></h3>
-</div>
-
-<div class="info_block">
-  <span class="info_block_title"><?php _e('% Members Rebill', 'memberpress'); ?></span>
-  <h3><?php echo MeprUtils::format_float(MeprReports::get_percentage_members_who_rebill()) . '%'; ?></h3>
-</div>
+    <div class="info_block">
+    <span class="info_block_title"><?php _e('% Members Rebill', 'memberpress'); ?></span>
+    <h3><?php echo MeprUtils::format_float(MeprReports::get_percentage_members_who_rebill()) . '%'; ?></h3>
+    </div>
  */
 
 ?>

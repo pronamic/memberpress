@@ -6,16 +6,20 @@ if (!defined('ABSPATH')) {
 
 class MeprReportsHelper
 {
-    // Show a memberships dropdown
+    /**
+     * Displays the products dropdown.
+     *
+     * @return void
+     */
     public static function display_products_dropdown()
     {
         global $wpdb;
-        $product = (isset($_GET['product']) && $_GET['product'] != 'all') ? $_GET['product'] : 'all';
+        $product  = (isset($_GET['product']) && $_GET['product'] != 'all') ? $_GET['product'] : 'all';
         $contents = [];
 
         $posts = MeprCptModel::all('MeprProduct', false, [
             'orderby' => 'title',
-            'order' => 'ASC',
+            'order'   => 'ASC',
         ]);
 
         foreach ($posts as $post) {
@@ -36,7 +40,11 @@ class MeprReportsHelper
         <?php
     }
 
-    // MONTHLY HELPERS
+    /**
+     * Gets the monthly dropdowns form.
+     *
+     * @return void
+     */
     public static function get_monthly_dropdowns_form()
     {
         ?>
@@ -55,9 +63,14 @@ class MeprReportsHelper
         <?php
     }
 
+    /**
+     * Displays the monthly month dropdown.
+     *
+     * @return void
+     */
     public static function display_monthly_month_dropdown()
     {
-        $month = (isset($_GET['month']) && !empty($_GET['month']) && is_numeric($_GET['month'])) ? $_GET['month'] : date('n');
+        $month  = (isset($_GET['month']) && !empty($_GET['month']) && is_numeric($_GET['month'])) ? $_GET['month'] : date('n');
         $months = [
             __('January', 'memberpress'),
             __('February', 'memberpress'),
@@ -75,14 +88,18 @@ class MeprReportsHelper
 
         echo '<select name="month">';
         foreach ($months as $i => $m) {
-            $val = $i + 1;
+            $val      = $i + 1;
             $selected = ($month == $val) ? 'selected="selected"' : '';
             echo '<option value="' . $val . '" ' . $selected . '>' . $m . '</option>';
         }
         echo '</select>';
     }
 
-    // YEARLY HELPERS
+    /**
+     * Gets the yearly dropdowns form.
+     *
+     * @return void
+     */
     public static function get_yearly_dropdowns_form()
     {
         $month = (isset($_GET['month'])) ? $_GET['month'] : date('n', time());
@@ -101,11 +118,16 @@ class MeprReportsHelper
         <?php
     }
 
+    /**
+     * Displays the year dropdown.
+     *
+     * @return void
+     */
     public static function display_year_dropdown()
     {
-        $year = (isset($_GET['year']) && !empty($_GET['year']) && is_numeric($_GET['year'])) ? $_GET['year'] : date('Y');
+        $year  = (isset($_GET['year']) && !empty($_GET['year']) && is_numeric($_GET['year'])) ? $_GET['year'] : date('Y');
         $first = MeprReports::get_first_year();
-        $last = MeprReports::get_last_year();
+        $last  = MeprReports::get_last_year();
 
         echo '<select name="year">';
 
@@ -119,11 +141,15 @@ class MeprReportsHelper
         echo '</select>';
     }
 
-    // ALL-TIME HELPERS
+    /**
+     * Gets the all-time dropdowns form.
+     *
+     * @return void
+     */
     public static function get_all_time_dropdowns_form()
     {
         $month = (isset($_GET['month'])) ? $_GET['month'] : date('n', time());
-        $year = (isset($_GET['year'])) ? $_GET['year'] : date('Y', time());
+        $year  = (isset($_GET['year'])) ? $_GET['year'] : date('Y', time());
         ?>
       <form method="get" action="admin.php">
         <input type="hidden" name="page" value="memberpress-reports" />
@@ -137,4 +163,4 @@ class MeprReportsHelper
       </form>
         <?php
     }
-} //End class
+}

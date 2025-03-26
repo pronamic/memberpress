@@ -17,6 +17,11 @@ class MeprLoginWidget extends WP_Widget
         );
     }
 
+    /**
+     * Register widget.
+     *
+     * @return void
+     */
     public static function register_widget()
     {
         if (MeprHooks::apply_filters('mepr-enable-legacy-widgets', !current_theme_supports('widgets-block-editor'))) {
@@ -43,7 +48,7 @@ class MeprLoginWidget extends WP_Widget
     public function widget($args, $instance)
     {
         extract($args);
-        $title = MeprHooks::apply_filters('mepr-login-title', $instance['title']);
+        $title    = MeprHooks::apply_filters('mepr-login-title', $instance['title']);
         $redirect = (isset($instance['redirect']) && $instance['redirect']);
 
         echo $before_widget;
@@ -78,8 +83,8 @@ class MeprLoginWidget extends WP_Widget
      */
     public function update($new_instance, $old_instance)
     {
-        $instance = [];
-        $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : __('Login', 'memberpress');
+        $instance             = [];
+        $instance['title']    = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : __('Login', 'memberpress');
         $instance['redirect'] = isset($new_instance['redirect']);
 
         return $instance;
@@ -94,7 +99,7 @@ class MeprLoginWidget extends WP_Widget
      */
     public function form($instance)
     {
-        $title = (!empty($instance['title'])) ? $instance['title'] : __('Login', 'memberpress');
+        $title    = (!empty($instance['title'])) ? $instance['title'] : __('Login', 'memberpress');
         $redirect = (isset($instance['redirect']) && $instance['redirect']);
 
         ?>
@@ -108,4 +113,4 @@ class MeprLoginWidget extends WP_Widget
     </p>
         <?php
     }
-} // class MeprLoginWidget
+}

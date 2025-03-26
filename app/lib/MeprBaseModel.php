@@ -7,8 +7,16 @@ if (!defined('ABSPATH')) {
 #[AllowDynamicProperties]
 abstract class MeprBaseModel
 {
-    protected $rec, $attrs, $defaults;
+    protected $rec;
+    protected $attrs;
+    protected $defaults;
 
+    /**
+     * Get the value of a property.
+     *
+     * @param  string $name The name of the property.
+     * @return mixed
+     */
     public function __get($name)
     {
         $value = null;
@@ -18,7 +26,7 @@ abstract class MeprBaseModel
         }
 
         $object_vars = array_keys(get_object_vars($this));
-        $rec_array = (array)$this->rec;
+        $rec_array   = (array)$this->rec;
 
         if (in_array($name, $object_vars)) {
             $value = $this->$name;
@@ -39,6 +47,13 @@ abstract class MeprBaseModel
         return MeprHooks::apply_filters('mepr-get-model-attribute-' . $name, $value, $this);
     }
 
+    /**
+     * Set the value of a property.
+     *
+     * @param  string $name  The name of the property.
+     * @param  mixed  $value The value of the property.
+     * @return mixed
+     */
     public function __set($name, $value)
     {
         $value = MeprHooks::apply_filters('mepr-set-model-attribute-' . $name, $value, $this);
@@ -54,7 +69,7 @@ abstract class MeprBaseModel
         }
 
         $object_vars = array_keys(get_object_vars($this));
-        $rec_array = (array)$this->rec;
+        $rec_array   = (array)$this->rec;
 
         if (in_array($name, $object_vars)) {
             $this->$name = $value;
@@ -69,6 +84,12 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Check if a property is set.
+     *
+     * @param  string $name The name of the property.
+     * @return boolean
+     */
     public function __isset($name)
     {
         if ($this->magic_method_handler_exists($name)) {
@@ -84,6 +105,12 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Unset a property.
+     *
+     * @param  string $name The name of the property.
+     * @return mixed
+     */
     public function __unset($name)
     {
         if ($this->magic_method_handler_exists($name)) {
@@ -106,9 +133,16 @@ abstract class MeprBaseModel
         return json_encode((array)$this->rec);
     }
 
+    /**
+     * Initialize the model.
+     *
+     * @param  array   $defaults The defaults.
+     * @param  integer $obj      The object.
+     * @return void
+     */
     public function initialize($defaults, $obj = null)
     {
-        $this->rec = (object)$defaults;
+        $this->rec   = (object)$defaults;
         $this->attrs = array_keys($defaults);
 
         if (!is_null($obj)) {
@@ -118,7 +152,7 @@ abstract class MeprBaseModel
                 // $fetched_obj = $class::get_one((int)$obj);
                 // $fetched_obj = call_user_func("{$class}::get_one",(int)$obj);
                 // ReflectionMethod is less error prone than the other two methods above
-                $rm = new ReflectionMethod($class, 'get_one');
+                $rm          = new ReflectionMethod($class, 'get_one');
                 $fetched_obj = $rm->invoke(null, (int)$obj);
 
                 $this->load_from_array($fetched_obj);
@@ -130,17 +164,31 @@ abstract class MeprBaseModel
         MeprHooks::do_action('mepr-model-initialized', $this);
     }
 
+    /**
+     * Get the values of the model.
+     *
+     * @return array
+     */
     public function get_values()
     {
         return MeprUtils::filter_array_keys((array)$this->rec, (array)$this->attrs);
     }
 
+    /**
+     * Get the attributes of the model.
+     *
+     * @return array
+     */
     public function get_attrs()
     {
         return (array)$this->attrs;
     }
 
-    // create a duplicate model without an id
+    /**
+     * Duplicate the model without an id.
+     *
+     * @return array
+     */
     public function duplicate()
     {
         $values = (array)$this->rec;
@@ -154,7 +202,7 @@ abstract class MeprBaseModel
 
         $class = get_class($this);
 
-        $r = new ReflectionClass($class);
+        $r   = new ReflectionClass($class);
         $obj = $r->newInstance();
 
         $obj->load_from_array($values);
@@ -162,11 +210,17 @@ abstract class MeprBaseModel
         return $obj;
     }
 
+    /**
+     * Load the model from an array.
+     *
+     * @param  array $values The values.
+     * @return void
+     */
     public function load_from_array($values)
     {
         $unserialized_values = [];
-        $values = (array)$values;
-        $defaults = (array)$this->defaults;
+        $values              = (array)$values;
+        $defaults            = (array)$this->defaults;
 
         foreach ($values as $key => $value) {
             // Try to detect the type appropriately
@@ -185,35 +239,60 @@ abstract class MeprBaseModel
         $this->rec = (object)array_merge((array)$this->rec, (array)$unserialized_values);
     }
 
-    // Alias just for convenience
+    /**
+     * Alias for load_from_array().
+     *
+     * @param  array $values The values.
+     * @return void
+     */
     public function load_by_array($values)
     {
         $this->load_from_array($values);
     }
 
-    // Alias just for convenience
+    /**
+     * Alias for load_from_array().
+     *
+     * @param  array $values The values.
+     * @return void
+     */
     public function load_data($values)
     {
         $this->load_from_array($values);
     }
 
-    /* Ensure that the object validates. */
+    /**
+     * Ensure that the object validates.
+     *
+     * @return boolean
+     */
     public function validate()
     {
         return true;
     }
 
-    /* Store the object in the database */
+    /**
+     * Store the object in the database.
+     *
+     * @return boolean
+     */
     abstract public function store();
 
     /**
      * This is an alias of store()
+     *
+     * @return boolean
      */
     public function save()
     {
         return $this->store();
     }
 
+    /**
+     * Destroy the object.
+     *
+     * @return boolean
+     */
     abstract public function destroy();
 
     /**
@@ -224,17 +303,37 @@ abstract class MeprBaseModel
         return $this->destroy();
     }
 
-    // If this function exists it will override the default behavior of looking in the rec object
+    /**
+     * If this function exists it will override the default behavior of looking in the rec object
+     *
+     * @param  string $name The name of the method.
+     * @return boolean
+     */
     protected function magic_method_handler_exists($name)
     {
         return in_array("mgm_{$name}", get_class_methods($this));
     }
 
+    /**
+     * Call the magic method handler.
+     *
+     * @param  string $mgm   The magic method.
+     * @param  string $name  The name of the method.
+     * @param  string $value The value of the method.
+     * @return boolean
+     */
     protected function call_magic_method_handler($mgm, $name, $value = '')
     {
         return call_user_func_array([$this, "mgm_{$name}"], [$mgm, $value]);
     }
 
+    /**
+     * Validate that the variable is not null.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_not_null($var, $field = '')
     {
         if (is_null($var)) {
@@ -242,6 +341,13 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is not empty.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_not_empty($var, $field = '')
     {
         if (empty($var)) {
@@ -249,6 +355,13 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is a boolean.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_bool($var, $field = '')
     {
         if (!is_bool($var) && $var != 0 && $var != 1) {
@@ -256,6 +369,13 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is an array.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_array($var, $field = '')
     {
         if (!is_array($var)) {
@@ -263,6 +383,14 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is in the array.
+     *
+     * @param  string $var    The variable.
+     * @param  string $lookup The lookup.
+     * @param  string $field  The field.
+     * @return void
+     */
     protected function validate_is_in_array($var, $lookup, $field = '')
     {
         if (is_array($lookup) && !in_array($var, $lookup)) {
@@ -270,6 +398,13 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is a valid URL.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_url($var, $field = '')
     {
         if (!MeprUtils::is_url($var)) {
@@ -277,6 +412,15 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is a valid currency.
+     *
+     * @param  string $var   The variable.
+     * @param  string $min   The minimum.
+     * @param  string $max   The maximum.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_currency($var, $min = 0.00, $max = null, $field = '')
     {
         if (!is_numeric($var) || $var < $min || (!is_null($max) && $var > $max)) {
@@ -284,6 +428,15 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is a valid number.
+     *
+     * @param  string $var   The variable.
+     * @param  string $min   The minimum.
+     * @param  string $max   The maximum.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_numeric($var, $min = 0, $max = null, $field = '')
     {
         if (!is_numeric($var) || $var < $min || (!is_null($max) && $var > $max)) {
@@ -291,6 +444,13 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is a valid email.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_email($var, $field = '')
     {
         if (!MeprUtils::is_email($var)) {
@@ -298,6 +458,13 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is a valid phone number.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_phone($var, $field = '')
     {
         if (!MeprUtils::is_phone($var)) {
@@ -305,6 +472,13 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is a valid IP address.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_ip_addr($var, $field = '')
     {
         if (!MeprUtils::is_ip($var)) {
@@ -312,6 +486,13 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable is a valid date.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_date($var, $field = '')
     {
         if (!MeprUtils::is_date($var)) {
@@ -319,7 +500,13 @@ abstract class MeprBaseModel
         }
     }
 
-    // Pretty much all we can do here is make sure it's a number and not empty
+    /**
+     * Validate that the variable is a valid timestamp.
+     *
+     * @param  string $var   The variable.
+     * @param  string $field The field.
+     * @return void
+     */
     protected function validate_is_timestamp($var, $field = '')
     {
         if (empty($var) || !is_numeric($var)) {
@@ -327,6 +514,14 @@ abstract class MeprBaseModel
         }
     }
 
+    /**
+     * Validate that the variable matches the regex pattern.
+     *
+     * @param  string $pattern The pattern.
+     * @param  string $var     The variable.
+     * @param  string $field   The field.
+     * @return void
+     */
     protected function validate_regex($pattern, $var, $field = '')
     {
         if (!preg_match($pattern, $var)) {

@@ -6,11 +6,23 @@ if (!defined('ABSPATH')) {
 
 class MeprPostStatesCtrl extends MeprBaseCtrl
 {
+    /**
+     * Loads the hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_filter('display_post_states', [$this, 'add_display_post_states'], 10, 2);
     }
 
+    /**
+     * Adds the display post states.
+     *
+     * @param  array   $post_states The post states.
+     * @param  WP_Post $post        The post.
+     * @return array
+     */
     public function add_display_post_states($post_states, $post)
     {
 

@@ -9,6 +9,14 @@ if (!defined('ABSPATH')) {
  **/
 class MeprEmailFactory
 {
+    /**
+     * Fetch.
+     *
+     * @param  string $class The class.
+     * @param  string $etype The etype.
+     * @param  array  $args  The args.
+     * @return mixed
+     */
     public static function fetch($class, $etype = 'MeprBaseEmail', $args = [])
     {
         if (!class_exists($class)) {
@@ -17,7 +25,7 @@ class MeprEmailFactory
 
         // We'll let the autoloader in memberpress.php
         // handle including files containing these classes
-        $r = new ReflectionClass($class);
+        $r   = new ReflectionClass($class);
         $obj = $r->newInstanceArgs($args);
 
         if (!($obj instanceof $etype)) {
@@ -27,6 +35,13 @@ class MeprEmailFactory
         return $obj;
     }
 
+    /**
+     * All.
+     *
+     * @param  string $etype The etype.
+     * @param  array  $args  The args.
+     * @return array
+     */
     public static function all($etype = 'MeprBaseEmail', $args = [])
     {
         static $objs;
@@ -44,7 +59,7 @@ class MeprEmailFactory
                     $class = preg_replace('#\.php#', '', basename($file));
 
                     try {
-                        $obj = self::fetch($class, $etype, $args);
+                        $obj                  = self::fetch($class, $etype, $args);
                         $objs[$etype][$class] = $obj;
                     } catch (Exception $e) {
                         continue; // For now we do nothing if an exception is thrown
@@ -65,6 +80,11 @@ class MeprEmailFactory
         return $objs[$etype];
     }
 
+    /**
+     * Gets the paths.
+     *
+     * @return array
+     */
     public static function paths()
     {
         return MeprHooks::apply_filters('mepr-email-paths', [MEPR_EMAILS_PATH]);

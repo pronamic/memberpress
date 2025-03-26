@@ -6,35 +6,44 @@ if (!defined('ABSPATH')) {
 
 class MeprRule extends MeprCptModel
 {
-    public static $mepr_type_str                = '_mepr_rules_type';
-    public static $mepr_content_str             = '_mepr_rules_content';
-    public static $is_mepr_content_regexp_str   = '_is_mepr_rules_content_regexp';
-    public static $drip_enabled_str             = '_mepr_rules_drip_enabled';
-    public static $drip_amount_str              = '_mepr_rules_drip_amount';
-    public static $drip_unit_str                = '_mepr_rules_drip_unit';
-    public static $drip_after_str               = '_mepr_rules_drip_after';
-    public static $drip_after_fixed_str         = '_mepr_rules_drip_after_fixed';
-    public static $expires_enabled_str          = '_mepr_rules_expires_enabled';
-    public static $expires_amount_str           = '_mepr_rules_expires_amount';
-    public static $expires_unit_str             = '_mepr_rules_expires_unit';
-    public static $expires_after_str            = '_mepr_rules_expires_after';
-    public static $expires_after_fixed_str      = '_mepr_rules_expires_after_fixed';
-    public static $unauth_excerpt_type_str      = '_mepr_rules_unauth_excerpt_type';
-    public static $unauth_excerpt_size_str      = '_mepr_rules_unauth_excerpt_size';
-    public static $unauth_message_type_str      = '_mepr_rules_unauth_message_type';
-    public static $unauth_message_str           = '_mepr_rules_unath_message';
-    public static $unauth_login_str             = '_mepr_rules_unath_login';
-    public static $auto_gen_title_str           = '_mepr_auto_gen_title';
+    public static $mepr_type_str              = '_mepr_rules_type';
+    public static $mepr_content_str           = '_mepr_rules_content';
+    public static $is_mepr_content_regexp_str = '_is_mepr_rules_content_regexp';
+    public static $drip_enabled_str           = '_mepr_rules_drip_enabled';
+    public static $drip_amount_str            = '_mepr_rules_drip_amount';
+    public static $drip_unit_str              = '_mepr_rules_drip_unit';
+    public static $drip_after_str             = '_mepr_rules_drip_after';
+    public static $drip_after_fixed_str       = '_mepr_rules_drip_after_fixed';
+    public static $expires_enabled_str        = '_mepr_rules_expires_enabled';
+    public static $expires_amount_str         = '_mepr_rules_expires_amount';
+    public static $expires_unit_str           = '_mepr_rules_expires_unit';
+    public static $expires_after_str          = '_mepr_rules_expires_after';
+    public static $expires_after_fixed_str    = '_mepr_rules_expires_after_fixed';
+    public static $unauth_excerpt_type_str    = '_mepr_rules_unauth_excerpt_type';
+    public static $unauth_excerpt_size_str    = '_mepr_rules_unauth_excerpt_size';
+    public static $unauth_message_type_str    = '_mepr_rules_unauth_message_type';
+    public static $unauth_message_str         = '_mepr_rules_unath_message';
+    public static $unauth_login_str           = '_mepr_rules_unath_login';
+    public static $auto_gen_title_str         = '_mepr_auto_gen_title';
 
-    public static $mepr_nonce_str               = 'mepr_rules_nonce';
-    public static $last_run_str                 = 'mepr_rules_db_cleanup_last_run';
-    public static $unauth_modern_paywall_str    = '_mepr_rules_unath_modern_paywall';
+    public static $mepr_nonce_str            = 'mepr_rules_nonce';
+    public static $last_run_str              = 'mepr_rules_db_cleanup_last_run';
+    public static $unauth_modern_paywall_str = '_mepr_rules_unath_modern_paywall';
 
-    public $drip_expire_units, $drip_expire_afters, $unauth_excerpt_types, $unauth_message_types, $unauth_login_types;
+    public $drip_expire_units;
+    public $drip_expire_afters;
+    public $unauth_excerpt_types;
+    public $unauth_message_types;
+    public $unauth_login_types;
 
-    public static $cpt                          = 'memberpressrule';
+    public static $cpt = 'memberpressrule';
     public static $all_rules;
 
+    /**
+     * Get the available access types for rules.
+     *
+     * @return array
+     */
     public static function mepr_access_types()
     {
         return [
@@ -57,6 +66,11 @@ class MeprRule extends MeprCptModel
         ];
     }
 
+    /**
+     * Get the available access operators for rules.
+     *
+     * @return array
+     */
     public static function mepr_access_operators()
     {
         return [
@@ -67,45 +81,52 @@ class MeprRule extends MeprCptModel
         ];
     }
 
-    /***
-     * Instance Methods
-     ***/
+    /**
+     * Constructor for the MeprRule class.
+     *
+     * @param mixed $obj The object to initialize the rule with.
+     */
     public function __construct($obj = null)
     {
         $this->load_cpt(
             $obj,
             self::$cpt,
             [
-                'mepr_type' => 'all',
-                'mepr_content' => '',
+                'mepr_type'              => 'all',
+                'mepr_content'           => '',
                 'is_mepr_content_regexp' => false,
-                'drip_enabled' => false,
-                'drip_amount' => 0,
-                'drip_unit' => 'days',
-                'drip_after' => 'registers',
-                'drip_after_fixed' => '',
-                'expires_enabled' => false,
-                'expires_amount' => 0,
-                'expires_unit' => 'days',
-                'expires_after' => 'registers',
-                'expires_after_fixed' => '',
-                'unauth_excerpt_type' => 'default',
-                'unauth_excerpt_size' => 100,
-                'unauth_message_type' => 'default',
-                'unauth_message' => '',
-                'unauth_login' => 'default',
-                'unauth_modern_paywall' => false,
-                'auto_gen_title' => true,
+                'drip_enabled'           => false,
+                'drip_amount'            => 0,
+                'drip_unit'              => 'days',
+                'drip_after'             => 'registers',
+                'drip_after_fixed'       => '',
+                'expires_enabled'        => false,
+                'expires_amount'         => 0,
+                'expires_unit'           => 'days',
+                'expires_after'          => 'registers',
+                'expires_after_fixed'    => '',
+                'unauth_excerpt_type'    => 'default',
+                'unauth_excerpt_size'    => 100,
+                'unauth_message_type'    => 'default',
+                'unauth_message'         => '',
+                'unauth_login'           => 'default',
+                'unauth_modern_paywall'  => false,
+                'auto_gen_title'         => true,
             ]
         );
 
-        $this->drip_expire_units = ['days','weeks','months','years'];
-        $this->drip_expire_afters = ['registers','fixed','rule-products'];
+        $this->drip_expire_units    = ['days','weeks','months','years'];
+        $this->drip_expire_afters   = ['registers','fixed','rule-products'];
         $this->unauth_excerpt_types = ['default','hide','more','excerpt','custom'];
         $this->unauth_message_types = ['default','hide','custom'];
-        $this->unauth_login_types = ['default','show','hide'];
+        $this->unauth_login_types   = ['default','show','hide'];
     }
 
+    /**
+     * Validate the rule properties.
+     *
+     * @return void
+     */
     public function validate()
     {
         // $this->validate_is_array($this->emails, 'emails');
@@ -142,6 +163,11 @@ class MeprRule extends MeprCptModel
         $this->validate_is_bool($this->unauth_modern_paywall, 'unauth_modern_paywall');
     }
 
+    /**
+     * Get the available rule types.
+     *
+     * @return array
+     */
     public static function get_types()
     {
         global $wp_taxonomies, $wp_post_types;
@@ -152,7 +178,7 @@ class MeprRule extends MeprCptModel
 
         if (!isset($types) or empty($types)) {
             $types = [
-                'all' => [],
+                'all'  => [],
                 'post' => [
                     'all_posts'   => __('All Posts', 'memberpress'),
                     'single_post' => __('A Single Post', 'memberpress'),
@@ -167,7 +193,7 @@ class MeprRule extends MeprCptModel
             ];
 
             $cpts = get_post_types([
-                'public' => true,
+                'public'   => true,
                 '_builtin' => false,
             ], 'objects');
             unset($cpts['memberpressproduct']);
@@ -176,7 +202,7 @@ class MeprRule extends MeprCptModel
 
             foreach ($cpts as $type_name => $cpt) {
                 $types[$type_name] = [
-                    "all_{$type_name}" => sprintf(__('All %s', 'memberpress'), $cpt->labels->name),
+                    "all_{$type_name}"    => sprintf(__('All %s', 'memberpress'), $cpt->labels->name),
                     "single_{$type_name}" => sprintf(__('A Single %s', 'memberpress'), $cpt->labels->singular_name),
                 ];
 
@@ -191,7 +217,7 @@ class MeprRule extends MeprCptModel
             ];
 
             $txs = array_merge($txs, get_taxonomies([
-                'public' => true,
+                'public'   => true,
                 '_builtin' => false,
             ], 'objects'));
 
@@ -253,6 +279,11 @@ class MeprRule extends MeprCptModel
         return $types;
     }
 
+    /**
+     * Get the public post types.
+     *
+     * @return array
+     */
     public static function public_post_types()
     {
         $types = get_post_types(['public' => true]);
@@ -261,6 +292,12 @@ class MeprRule extends MeprCptModel
         return array_values($types);
     }
 
+    /**
+     * Get the contents array for a given rule type.
+     *
+     * @param  string $type The rule type.
+     * @return array|false
+     */
     public static function get_contents_array($type)
     {
         static $contents;
@@ -295,6 +332,13 @@ class MeprRule extends MeprCptModel
         return MeprHooks::apply_filters('mepr-rule-contents-array', $contents, $type);
     }
 
+    /**
+     * Search for content based on rule type and search term.
+     *
+     * @param  string $type   The rule type.
+     * @param  string $search The search term.
+     * @return array|false
+     */
     public static function search_content($type, $search = '')
     {
         if (preg_match('#^single_(.*?)$#', $type, $matches)) {
@@ -315,6 +359,13 @@ class MeprRule extends MeprCptModel
         return MeprHooks::apply_filters('mepr-rule-search-content', false, $type, $search);
     }
 
+    /**
+     * Get content based on rule type and ID.
+     *
+     * @param  string  $type The rule type.
+     * @param  integer $id   The content ID.
+     * @return mixed
+     */
     public static function get_content($type, $id)
     {
         if (preg_match('#^single_(.*?)$#', $type, $matches)) {
@@ -335,6 +386,12 @@ class MeprRule extends MeprCptModel
         return MeprHooks::apply_filters('mepr-rule-content', false, $type, $id);
     }
 
+    /**
+     * Check if a rule type has contents.
+     *
+     * @param  string $type The rule type.
+     * @return boolean
+     */
     public static function type_has_contents($type)
     {
         if (preg_match('#^single_(.*?)$#', $type, $matches)) {
@@ -355,6 +412,12 @@ class MeprRule extends MeprCptModel
         return MeprHooks::apply_filters('mepr-rule-has-content', false, $type);
     }
 
+    /**
+     * Check if singles of a given type have contents.
+     *
+     * @param  string $type The post type.
+     * @return boolean
+     */
     public static function singles_have_contents($type)
     {
         $counts = wp_count_posts($type);
@@ -366,6 +429,12 @@ class MeprRule extends MeprCptModel
         }
     }
 
+    /**
+     * Get an array of single posts for a given type.
+     *
+     * @param  string $type The post type.
+     * @return array
+     */
     public static function get_single_array($type)
     {
         global $wpdb;
@@ -383,6 +452,14 @@ class MeprRule extends MeprCptModel
         return $lookup;
     }
 
+    /**
+     * Search for single posts based on type and search term.
+     *
+     * @param  string  $type   The post type.
+     * @param  string  $search The search term.
+     * @param  integer $limit  The maximum number of results to return.
+     * @return array
+     */
     public static function search_singles($type, $search = '', $limit = 25)
     {
         global $wpdb;
@@ -394,10 +471,10 @@ class MeprRule extends MeprCptModel
         if (!empty($search)) {
             $query .= 'AND ( p.ID LIKE %s OR p.post_title LIKE %s ) ';
             $query .= "LIMIT {$limit}";
-            $query = $wpdb->prepare($query, $type, 'publish', 'future', "%{$search}%", "%{$search}%");
+            $query  = $wpdb->prepare($query, $type, 'publish', 'future', "%{$search}%", "%{$search}%");
         } else {
             $query .= "LIMIT {$limit}";
-            $query = $wpdb->prepare($query, $type, 'publish', 'future');
+            $query  = $wpdb->prepare($query, $type, 'publish', 'future');
         }
 
         $query = MeprHooks::apply_filters('mepr-search-singles-query', $query, $type, $search);
@@ -412,6 +489,13 @@ class MeprRule extends MeprCptModel
         );
     }
 
+    /**
+     * Get a single post based on type and ID.
+     *
+     * @param  string  $type The post type.
+     * @param  integer $id   The post ID.
+     * @return object|false
+     */
     public static function get_single($type, $id)
     {
         global $wpdb;
@@ -436,7 +520,7 @@ class MeprRule extends MeprCptModel
     }
 
     /**
-     * Get the total number of published rules
+     * Get the total number of published rules.
      *
      * @return integer
      */
@@ -452,35 +536,72 @@ class MeprRule extends MeprCptModel
         return (int) $wpdb->get_var($query);
     }
 
+    /**
+     * Check if parents of a given type have contents.
+     *
+     * @param  string $type The post type.
+     * @return boolean
+     */
     public static function parents_have_contents($type = 'page')
     {
         return self::singles_have_contents($type);
     }
 
+    /**
+     * Get an array of parent posts for a given type.
+     *
+     * @param  string $type The post type.
+     * @return array
+     */
     public static function get_parent_array($type = 'page')
     {
         return self::get_single_array($type);
     }
 
+    /**
+     * Search for parent posts based on type and search term.
+     *
+     * @param  string  $type   The post type.
+     * @param  string  $search The search term.
+     * @param  integer $limit  The maximum number of results to return.
+     * @return array
+     */
     public static function search_parents($type = 'page', $search = '', $limit = 25)
     {
         return self::search_singles($type, $search, $limit);
     }
 
+    /**
+     * Get a parent post based on type and ID.
+     *
+     * @param  string  $type The post type.
+     * @param  integer $id   The post ID.
+     * @return object|false
+     */
     public static function get_parent($type, $id)
     {
         return self::get_single($type, $id);
     }
 
+    /**
+     * Check if categories have contents.
+     *
+     * @return boolean
+     */
     public static function categories_have_contents()
     {
         return ( wp_count_terms('category', ['hide_empty' => 0]) > 0 );
     }
 
+    /**
+     * Get an array of categories.
+     *
+     * @return array
+     */
     public static function get_category_array()
     {
         $category_contents = get_categories(['hide_empty' => 0]);
-        $contents = [];
+        $contents          = [];
 
         foreach ($category_contents as $category) {
             $contents[$category->term_id] = $category->name;
@@ -489,6 +610,14 @@ class MeprRule extends MeprCptModel
         return $contents;
     }
 
+    /**
+     * Search for terms based on taxonomy and search term.
+     *
+     * @param  string  $tax    The taxonomy.
+     * @param  string  $search The search term.
+     * @param  integer $limit  The maximum number of results to return.
+     * @return array
+     */
     public static function search_terms($tax, $search = '', $limit = 25)
     {
         global $wpdb;
@@ -501,11 +630,11 @@ class MeprRule extends MeprCptModel
         if (!empty($search)) {
             $query .= 'WHERE ( t.term_id LIKE %s OR t.name LIKE %s OR t.slug LIKE %s OR tx.description LIKE %s ) ';
             $query .= "LIMIT {$limit}";
-            $s = "%{$search}%";
-            $query = $wpdb->prepare($query, $tax, $s, $s, $s, $s);
+            $s      = "%{$search}%";
+            $query  = $wpdb->prepare($query, $tax, $s, $s, $s, $s);
         } else {
             $query .= "LIMIT {$limit}";
-            $query = $wpdb->prepare($query, $tax);
+            $query  = $wpdb->prepare($query, $tax);
         }
 
         return array_map(
@@ -517,6 +646,13 @@ class MeprRule extends MeprCptModel
         );
     }
 
+    /**
+     * Get a term based on taxonomy and ID.
+     *
+     * @param  string  $tax The taxonomy.
+     * @param  integer $id  The term ID.
+     * @return object|false
+     */
     public static function get_term($tax, $id)
     {
         global $wpdb;
@@ -529,7 +665,7 @@ class MeprRule extends MeprCptModel
               'LIMIT 1';
 
         $query = $wpdb->prepare($query, $tax, $id);
-        $i = $wpdb->get_row($query);
+        $i     = $wpdb->get_row($query);
         if ($i == false) {
             return false;
         }
@@ -539,25 +675,48 @@ class MeprRule extends MeprCptModel
         return $i;
     }
 
+    /**
+     * Search for categories based on search term.
+     *
+     * @param  string  $search The search term.
+     * @param  integer $limit  The maximum number of results to return.
+     * @return array
+     */
     public static function search_categories($search, $limit = 25)
     {
         return self::search_terms('category', $search, $limit);
     }
 
+    /**
+     * Get a category based on ID.
+     *
+     * @param  integer $id The category ID.
+     * @return object|false
+     */
     public static function get_category($id)
     {
         return self::get_term('category', $id);
     }
 
+    /**
+     * Check if tags have contents.
+     *
+     * @return boolean
+     */
     public static function tags_have_contents()
     {
         return ( wp_count_terms('post_tag', ['get' => 'all']) > 0 );
     }
 
+    /**
+     * Get an array of tags.
+     *
+     * @return array
+     */
     public static function get_tag_array()
     {
         $tag_contents = get_tags(['get' => 'all']);
-        $contents = [];
+        $contents     = [];
 
         foreach ($tag_contents as $tag) {
             $contents[$tag->term_id] = $tag->name;
@@ -566,24 +725,49 @@ class MeprRule extends MeprCptModel
         return $contents;
     }
 
+    /**
+     * Search for tags based on search term.
+     *
+     * @param  string  $search The search term.
+     * @param  integer $limit  The maximum number of results to return.
+     * @return array
+     */
     public static function search_tags($search, $limit = 25)
     {
         return self::search_terms('post_tag', $search, $limit);
     }
 
+    /**
+     * Get a tag based on ID.
+     *
+     * @param  integer $id The tag ID.
+     * @return object|false
+     */
     public static function get_tag($id)
     {
         return self::get_term('post_tag', $id);
     }
 
+    /**
+     * Check if taxonomies have contents.
+     *
+     * @param  string $tax The taxonomy.
+     * @return boolean
+     */
     public static function taxs_have_contents($tax)
     {
         return ( wp_count_terms($tax, ['get' => 'all']) > 0 );
     }
 
+    /**
+     * Get an array of terms for a given taxonomy.
+     *
+     * @param  string $tax The taxonomy.
+     * @return array
+     */
     public static function get_tax_array($tax)
     {
-        $contents = [];
+        $contents     = [];
         $tax_contents = get_terms($tax, ['get' => 'all']);
 
         if (!is_wp_error($tax_contents)) {
@@ -595,21 +779,44 @@ class MeprRule extends MeprCptModel
         return $contents;
     }
 
+    /**
+     * Search for terms in a taxonomy based on search term.
+     *
+     * @param  string  $tax    The taxonomy.
+     * @param  string  $search The search term.
+     * @param  integer $limit  The maximum number of results to return.
+     * @return array
+     */
     public static function search_taxs($tax, $search, $limit = 25)
     {
         return self::search_terms($tax, $search, $limit);
     }
 
+    /**
+     * Get a term in a taxonomy based on ID.
+     *
+     * @param  string  $tax The taxonomy.
+     * @param  integer $id  The term ID.
+     * @return object|false
+     */
     public static function get_tax($tax, $id)
     {
         return self::get_term($tax, $id);
     }
 
-    // We just assume this will only be called on posts that are the correct type
+    /**
+     * Check if a post is an exception to a rule.
+     * We just assume this will only be called on posts that are the correct type
+     *
+     * @param  WP_Post  $post       The post object.
+     * @param  MeprRule $rule       The rule object.
+     * @param  array    $exceptions The list of exceptions.
+     * @return boolean
+     */
     public static function is_exception_to_rule($post, $rule, $exceptions = [])
     {
         $rule_exceptions = explode(',', preg_replace('#\s#', '', $rule->mepr_content));
-        $exceptions = array_unique(array_merge($rule_exceptions, $exceptions));
+        $exceptions      = array_unique(array_merge($rule_exceptions, $exceptions));
         return in_array($post->ID, $exceptions);
     }
 
@@ -626,6 +833,13 @@ class MeprRule extends MeprCptModel
     // return false;
     // }
     // TODO: Create a convenience function calling this in MeprProduct once it's in place
+
+    /**
+     * Get the rules for a given context.
+     *
+     * @param  mixed $context The context to get rules for.
+     * @return array
+     */
     public static function get_rules($context)
     {
         $post_rules = [];
@@ -670,9 +884,11 @@ class MeprRule extends MeprCptModel
                         }
                     } elseif (preg_match('#^parent_(.*?)$#', $curr_rule->mepr_type, $matches)) {
                         if (
-                            $context->post_type == $matches[1] /*
-                                                                   &&
-                        $context->post_parent == $curr_rule->mepr_content */
+                            $context->post_type == $matches[1]
+
+                            /*
+                                && $context->post_parent == $curr_rule->mepr_content
+                            */
                         ) {
                                           $ancestors = get_post_ancestors($context->ID);
 
@@ -717,12 +933,17 @@ class MeprRule extends MeprCptModel
         return $post_rules;
     }
 
-    // TODO: Move to MeprProduct once it's in place
-    // Returns: ["membership" => [1,2], "member" =>["foo"]]
-    public static function get_access_list($post) /*tested*/
+    /**
+     * Get the access list for a post.
+     * TODO: Move to MeprProduct once it's in place
+     *
+     * @param  WP_Post $post The post object.
+     * @return array
+     */
+    public static function get_access_list($post) // tested
     {
         $access_array = [];
-        $rules = MeprRule::get_rules($post);
+        $rules        = MeprRule::get_rules($post);
 
         foreach ($rules as $rule) {
             foreach ($rule->access_conditions() as $condition) {
@@ -739,6 +960,13 @@ class MeprRule extends MeprCptModel
         return $access_array;
     }
 
+    /**
+     * Check if content is locked for a user.
+     *
+     * @param  WP_User $user    The user object.
+     * @param  mixed   $context The context to check.
+     * @return boolean
+     */
     public static function is_locked_for_user($user, $context)
     {
         // the content is not locked regardless of whether or not
@@ -764,6 +992,12 @@ class MeprRule extends MeprCptModel
         return true;
     }
 
+    /**
+     * Check if a URI is locked.
+     *
+     * @param  string $uri The URI to check.
+     * @return boolean
+     */
     public static function is_uri_locked($uri)
     {
         $mepr_options = MeprOptions::fetch();
@@ -800,7 +1034,7 @@ class MeprRule extends MeprCptModel
         }
 
         if (MeprUtils::is_user_logged_in()) {
-            $user = MeprUtils::get_currentuserinfo();
+            $user                = MeprUtils::get_currentuserinfo();
             $is_locked[$md5_uri] = self::is_locked_for_user($user, $uri);
 
             MeprHooks::do_action('mepr-user-unauthorized'); // This one will be called for all events where the user is blocked by a rule
@@ -818,10 +1052,16 @@ class MeprRule extends MeprCptModel
         }
     }
 
-    // TODO: Move to MeprProduct once it's in place
+    /**
+     * Check if a post is locked.
+     * Move to MeprProduct once it's in place
+     *
+     * @param  WP_Post $post The post object.
+     * @return boolean
+     */
     public static function is_locked($post)
     {
-        /*tested*/
+        // tested
         $mepr_options = MeprOptions::fetch();
         static $is_locked;
 
@@ -855,7 +1095,7 @@ class MeprRule extends MeprCptModel
         }
 
         if (MeprUtils::is_user_logged_in()) {
-            $user = MeprUtils::get_currentuserinfo();
+            $user                 = MeprUtils::get_currentuserinfo();
             $is_locked[$post->ID] = self::is_locked_for_user($user, $post);
 
             MeprHooks::do_action('mepr-user-unauthorized'); // This one will be called for all events where the user is blocked by a rule
@@ -873,9 +1113,15 @@ class MeprRule extends MeprCptModel
         }
     }
 
+    /**
+     * Get the custom unauthorized message from rule IDs.
+     *
+     * @param  array $rule_ids The rule IDs.
+     * @return string
+     */
     public static function get_custom_unauth_message_from_rule_ids($rule_ids)
     {
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options   = MeprOptions::fetch();
         $unauth_message = '<div class="mepr_error">' . wpautop(do_shortcode($mepr_options->unauthorized_message)) . '</div>';
 
         if (empty($rule_ids)) {
@@ -894,6 +1140,12 @@ class MeprRule extends MeprCptModel
         return $unauth_message;
     }
 
+    /**
+     * Check if a rule has dripped for a user.
+     *
+     * @param  integer|false $user_id The user ID.
+     * @return boolean
+     */
     public function has_dripped($user_id = false)
     {
         if (!$user_id) {
@@ -911,7 +1163,7 @@ class MeprRule extends MeprCptModel
         }
 
         if ($this->drip_after == 'fixed' && !empty($this->drip_after_fixed)) {
-            $fixed_ts = strtotime($this->drip_after_fixed);
+            $fixed_ts          = strtotime($this->drip_after_fixed);
             $has_dripped_fixed = $this->has_time_passed($fixed_ts, $this->drip_unit, $this->drip_amount, true);
 
             return MeprHooks::apply_filters('mepr-rule-has-dripped-fixed', $has_dripped_fixed, $this);
@@ -952,7 +1204,13 @@ class MeprRule extends MeprCptModel
         return false; // If we made it here the user doens't have access
     }
 
-    // Returns: ["membership" => [1,2], "member" =>["foo"]]
+    /**
+     * Get the access conditions for a rule.
+     *
+     * @param  string $mgm The method to call.
+     * @param  string $val The value to pass to the method.
+     * @return array
+     */
     public function mgm_mepr_access($mgm, $val = '')
     {
         $access_array = [];
@@ -972,6 +1230,12 @@ class MeprRule extends MeprCptModel
         }
     }
 
+    /**
+     * Check if a rule has expired for a user.
+     *
+     * @param  integer|false $user_id The user ID.
+     * @return boolean
+     */
     public function has_expired($user_id = false)
     {
         if (!$user_id) {
@@ -1030,7 +1294,16 @@ class MeprRule extends MeprCptModel
         return true;
     }
 
-    // Should probably put this in Utils at some point
+    /**
+     * Check if a time has passed.
+     * Should probably put this in Utils at some point
+     *
+     * @param  integer $ts       The timestamp.
+     * @param  string  $unit     The unit of time.
+     * @param  integer $amount   The amount of time.
+     * @param  boolean $is_fixed Whether the time is fixed.
+     * @return boolean
+     */
     public function has_time_passed($ts, $unit, $amount, $is_fixed = false)
     {
         // Convert $ts to the start of the day, so drips/expirations don't come in at odd hours throughout the day
@@ -1039,7 +1312,7 @@ class MeprRule extends MeprCptModel
             // $ts = strtotime($datetime);
             $datetime = gmdate('Y-m-d H:i:s', $ts);
             $datetime = get_date_from_gmt($datetime, 'Y-m-d 00:00:01'); // Convert to local WP timezone
-            $ts = (int) get_gmt_from_date($datetime, 'U'); // Now back to a unix timestamp
+            $ts       = (int) get_gmt_from_date($datetime, 'U'); // Now back to a unix timestamp
         }
 
         switch ($unit) {
@@ -1072,6 +1345,11 @@ class MeprRule extends MeprCptModel
         return false;
     }
 
+    /**
+     * Get the formatted accesses for a rule.
+     *
+     * @return array
+     */
     public function get_formatted_accesses()
     {
         $formatted_array = [];
@@ -1092,6 +1370,11 @@ class MeprRule extends MeprCptModel
         return $formatted_array;
     }
 
+    /**
+     * Get access conditions for a rule.
+     *
+     * @return array
+     */
     public function access_conditions()
     {
         $mepr_db = new MeprDb();
@@ -1099,6 +1382,11 @@ class MeprRule extends MeprCptModel
         return $mepr_db->get_records($mepr_db->rule_access_conditions, ['rule_id' => $this->ID]);
     }
 
+    /**
+     * Delete access conditions for a rule.
+     *
+     * @return boolean
+     */
     public function delete_access_conditions()
     {
         $mepr_db = new MeprDb();
@@ -1106,16 +1394,28 @@ class MeprRule extends MeprCptModel
         return $mepr_db->delete_records($mepr_db->rule_access_conditions, ['rule_id' => $this->ID]);
     }
 
+    /**
+     * Get the available time units.
+     *
+     * @return array
+     */
     public static function get_time_units()
     {
         return [
-            __('day(s)', 'memberpress') => 'days',
-            __('week(s)', 'memberpress') => 'weeks',
+            __('day(s)', 'memberpress')   => 'days',
+            __('week(s)', 'memberpress')  => 'weeks',
             __('month(s)', 'memberpress') => 'months',
-            __('year(s)', 'memberpress') => 'years',
+            __('year(s)', 'memberpress')  => 'years',
         ];
     }
 
+    /**
+     * Get the expiration description for a rule.
+     *
+     * @param  string $type       The expiration type.
+     * @param  string $fixed_date The fixed date.
+     * @return string
+     */
     public static function get_expires_after($type, $fixed_date = null)
     {
         switch ($type) {
@@ -1135,6 +1435,11 @@ class MeprRule extends MeprCptModel
         }
     }
 
+    /**
+     * Store the rule metadata.
+     *
+     * @return void
+     */
     public function store_meta()
     {
         update_post_meta($this->ID, self::$mepr_type_str, $this->mepr_type);
@@ -1160,16 +1465,21 @@ class MeprRule extends MeprCptModel
         update_post_meta($this->ID, self::$auto_gen_title_str, $this->auto_gen_title);
     }
 
-    public static function cleanup_db() /*dontTest*/
+    /**
+     * Clean up the database by removing unused drafts.
+     *
+     * @return void
+     */
+    public static function cleanup_db() // dontTest
     {
         global $wpdb;
 
-        $date = time();
+        $date     = time();
         $last_run = get_option(self::$last_run_str, 0); // Prevents all this code from executing on every page load
 
         if (($date - $last_run) > 86400) {
             update_option(self::$last_run_str, $date);
-            $sq1 = "SELECT ID
+            $sq1     = "SELECT ID
                 FROM {$wpdb->posts}
                 WHERE post_type = '" . self::$cpt . "' AND
                       post_status = 'auto-draft'";
@@ -1193,14 +1503,18 @@ class MeprRule extends MeprCptModel
     }
 
     /**
+     * Get the directory where rule files will be stored.
      * This returns the directory where rule files will be stored
      * for use with the rewrite (via .htaccess) system.
+     *
+     * @param  boolean $escape Whether to escape the directory path.
+     * @return string
      */
     public static function rewrite_rule_file_dir($escape = false)
     {
         $rule_file_path_array = wp_upload_dir();
-        $rule_file_path = $rule_file_path_array['basedir'];
-        $rule_file_dir = "{$rule_file_path}/mepr/rules";
+        $rule_file_path       = $rule_file_path_array['basedir'];
+        $rule_file_dir        = "{$rule_file_path}/mepr/rules";
 
         if (!is_dir($rule_file_dir)) { // Make sure it exists
             @mkdir($rule_file_dir, 0777, true);
@@ -1219,12 +1533,24 @@ class MeprRule extends MeprCptModel
     // THESE TWO FUNCTIONS SHOULD PROBABLY BE DEPRECATED AT SOME POINT
     // IN FAVOR OF THE current_user_can('memberpress-authorized') SYSTEM BLAIR PUT IN PLACE INSTEAD
     // PHP Snippet wrapper (returns opposite of is_protected_by_rule()
+
+    /**
+     * Check if a user is allowed by a rule.
+     *
+     * @param  integer $rule_id The rule ID.
+     * @return boolean
+     */
     public static function is_allowed_by_rule($rule_id)
     {
         return !(self::is_protected_by_rule($rule_id));
     }
 
-    // PHP Snippet Code
+    /**
+     * Check if a rule is protected by a rule.
+     *
+     * @param  integer $rule_id The rule ID.
+     * @return boolean
+     */
     public static function is_protected_by_rule($rule_id)
     {
         $current_post = MeprUtils::get_current_post();
@@ -1257,6 +1583,11 @@ class MeprRule extends MeprCptModel
         return (false === $user->has_access_from_rule($rule->ID));
     }
 
+    /**
+     * Get the global unauthorized settings.
+     *
+     * @return object
+     */
     public static function get_global_unauth_settings()
     {
         $mepr_options = MeprOptions::fetch();
@@ -1273,21 +1604,27 @@ class MeprRule extends MeprCptModel
         ];
     }
 
+    /**
+     * Get the unauthorized settings for a post.
+     *
+     * @param  WP_Post $post The post object.
+     * @return object
+     */
     public static function get_post_unauth_settings($post)
     {
         // Get values
-        $unauth_message_type  = get_post_meta($post->ID, '_mepr_unauthorized_message_type', true);
-        $unauth_message       = get_post_meta($post->ID, '_mepr_unauthorized_message', true);
-        $unauth_login         = get_post_meta($post->ID, '_mepr_unauth_login', true);
-        $unauth_excerpt_type  = get_post_meta($post->ID, '_mepr_unauth_excerpt_type', true);
-        $unauth_excerpt_size  = get_post_meta($post->ID, '_mepr_unauth_excerpt_size', true);
+        $unauth_message_type = get_post_meta($post->ID, '_mepr_unauthorized_message_type', true);
+        $unauth_message      = get_post_meta($post->ID, '_mepr_unauthorized_message', true);
+        $unauth_login        = get_post_meta($post->ID, '_mepr_unauth_login', true);
+        $unauth_excerpt_type = get_post_meta($post->ID, '_mepr_unauth_excerpt_type', true);
+        $unauth_excerpt_size = get_post_meta($post->ID, '_mepr_unauth_excerpt_size', true);
 
         // Get defaults
-        $unauth_message_type  = (($unauth_message_type != '') ? $unauth_message_type : 'default');
-        $unauth_message       = (($unauth_message != '') ? $unauth_message : '');
-        $unauth_login         = (($unauth_login != '') ? $unauth_login : 'default');
-        $unauth_excerpt_type  = (($unauth_excerpt_type != '') ? $unauth_excerpt_type : 'default');
-        $unauth_excerpt_size  = (($unauth_excerpt_size != '') ? $unauth_excerpt_size : 100);
+        $unauth_message_type = (($unauth_message_type != '') ? $unauth_message_type : 'default');
+        $unauth_message      = (($unauth_message != '') ? $unauth_message : '');
+        $unauth_login        = (($unauth_login != '') ? $unauth_login : 'default');
+        $unauth_excerpt_type = (($unauth_excerpt_type != '') ? $unauth_excerpt_type : 'default');
+        $unauth_excerpt_size = (($unauth_excerpt_size != '') ? $unauth_excerpt_size : 100);
 
         return (object)compact(
             'unauth_message_type',
@@ -1298,13 +1635,19 @@ class MeprRule extends MeprCptModel
         );
     }
 
+    /**
+     * Get the unauthorized settings for a post based on rules.
+     *
+     * @param  WP_Post $post The post object.
+     * @return object
+     */
     public static function get_unauth_settings_for($post)
     {
         $mepr_options = MeprOptions::fetch();
 
-        $unauth = (object)[];
+        $unauth          = (object)[];
         $global_settings = self::get_global_unauth_settings();
-        $post_settings = self::get_post_unauth_settings($post);
+        $post_settings   = self::get_post_unauth_settings($post);
 
         $rules = MeprRule::get_rules($post);
 
@@ -1367,7 +1710,7 @@ class MeprRule extends MeprCptModel
             }
         } elseif ($unauth->excerpt_type == 'excerpt') {
             global $wp_filter;
-            $content_filters = $wp_filter['the_content'];
+            $content_filters          = $wp_filter['the_content'];
             $wp_filter['the_content'] = (class_exists('WP_Hook')) ? new WP_Hook() : []; // WP 4.7 adds WP_Hook class
 
             $unauth->excerpt = wpautop(get_the_excerpt($post)); // This calls the_content so we need to remove the filters to prevent eternal loops
@@ -1379,7 +1722,7 @@ class MeprRule extends MeprCptModel
 
         // Autoembed any videos in the excerpt
         if (class_exists('WP_Embed')) {
-            $embed = new WP_Embed();
+            $embed           = new WP_Embed();
             $unauth->excerpt = $embed->autoembed($unauth->excerpt);
         }
 
@@ -1419,8 +1762,13 @@ class MeprRule extends MeprCptModel
     }
 
     /**
-     * This is an instance method that fetches all of
-     *  the current content associated with this rule.
+     * Get the matched content for a rule.
+     *
+     * @param  boolean $count  Whether to count the matched content.
+     * @param  string  $type   The type of content to return.
+     * @param  string  $order  The order of the content.
+     * @param  string  $fields The fields to select.
+     * @return mixed
      */
     public function get_matched_content($count = false, $type = 'objects', $order = 'p.post_date', $fields = 'p.*')
     {
@@ -1555,4 +1903,4 @@ class MeprRule extends MeprCptModel
             return $wpdb->get_results($query);
         }
     }
-} //End class
+}

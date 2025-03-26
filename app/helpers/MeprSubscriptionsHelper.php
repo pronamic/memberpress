@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprSubscriptionsHelper
 {
+    /**
+     * Gets the email vars.
+     *
+     * @return array
+     */
     public static function get_email_vars()
     {
         return MeprHooks::apply_filters(
@@ -56,6 +61,12 @@ class MeprSubscriptionsHelper
         );
     }
 
+    /**
+     * Gets the email params.
+     *
+     * @param  MeprSubscription $sub The subscription.
+     * @return array
+     */
     public static function get_email_params($sub)
     {
         $mepr_options = MeprOptions::fetch();
@@ -70,7 +81,7 @@ class MeprSubscriptionsHelper
             $txn = $sub->first_txn();
             if ($txn) {
                 // Calculate Subs Trial end date.
-                $trial_end_ts   = strtotime($txn->created_at) + MeprUtils::days($sub->trial_days);
+                $trial_end_ts = strtotime($txn->created_at) + MeprUtils::days($sub->trial_days);
                 if ($trial_end_ts) {
                     $trial_end_date = MeprAppHelper::format_date(gmdate('c', $trial_end_ts), '');
                 }
@@ -89,46 +100,46 @@ class MeprSubscriptionsHelper
         $cpn = ($cpn !== false) ? $cpn->post_title : '';
 
         $params = [
-            'user_id'                     => $usr->ID,
-            'user_login'                  => $usr->user_login,
-            'username'                    => $usr->user_login,
-            'user_email'                  => $usr->user_email,
-            'user_first_name'             => $usr->first_name,
-            'user_last_name'              => $usr->last_name,
-            'user_full_name'              => $usr->full_name(),
-            'user_address'                => $usr->formatted_address(),
-            'user_registered'             => $usr->user_registered,
-            'user_remote_addr'            => $_SERVER['REMOTE_ADDR'],
-            'membership_type'             => preg_replace('~\$~', '\\\$', $prd->post_title),
-            'product_name'                => preg_replace('~\$~', '\\\$', $prd->post_title),
-            'coupon_code'                 => $cpn,
-            'signup_url'                  => $prd->url(),
-            'subscr_num'                  => $sub->subscr_id,
-            'subscr_date'                 => $sub_date,
-            'subscr_gateway'              => sprintf(__('%1$s (%2$s)', 'memberpress'), $pm->label, $pm->name),
-            'subscr_next_billing_at'      => MeprAppHelper::format_date($sub->next_billing_at, ''),
-            'subscr_trial_end_date'       => $trial_end_date,
-            'subscr_expires_at'           => $expires_at,
-            'subscr_terms'                => preg_replace('~\$~', '\\\$', MeprSubscriptionsHelper::format_currency($sub)),
-            'subscr_next_billing_amount'  => preg_replace('~\$~', '\\\$', MeprAppHelper::format_currency($next_bill_amt, true, false, true)),
-            'subscr_cc_num'               => $sub->cc_num(),
-            'subscr_cc_month_exp'         => sprintf('%02d', $sub->cc_exp_month),
-            'subscr_cc_year_exp'          => $sub->cc_exp_year,
-            'subscr_renew_url'            => $mepr_options->login_page_url('redirect_to=' . urlencode($prd->url())),
-            'subscr_update_url'           => $mepr_options->login_page_url('redirect_to=' . urlencode($sub->update_url())),
-            'subscr_upgrade_url'          => $mepr_options->login_page_url('redirect_to=' . urlencode($sub->upgrade_url())),
-            'blog_name'                   => MeprUtils::blogname(),
-            'business_name'               => $mepr_options->attr('biz_name'),
-            'biz_name'                    => $mepr_options->attr('biz_name'),
-            'biz_address1'                => $mepr_options->attr('biz_address1'),
-            'biz_address2'                => $mepr_options->attr('biz_address2'),
-            'biz_city'                    => $mepr_options->attr('biz_city'),
-            'biz_state'                   => $mepr_options->attr('biz_state'),
-            'biz_postcode'                => $mepr_options->attr('biz_postcode'),
-            'biz_country'                 => $mepr_options->attr('biz_country'),
-            'login_page'                  => $mepr_options->login_page_url(),
-            'account_url'                 => $mepr_options->account_page_url(),
-            'login_url'                   => $mepr_options->login_page_url(),
+            'user_id'                    => $usr->ID,
+            'user_login'                 => $usr->user_login,
+            'username'                   => $usr->user_login,
+            'user_email'                 => $usr->user_email,
+            'user_first_name'            => $usr->first_name,
+            'user_last_name'             => $usr->last_name,
+            'user_full_name'             => $usr->full_name(),
+            'user_address'               => $usr->formatted_address(),
+            'user_registered'            => $usr->user_registered,
+            'user_remote_addr'           => $_SERVER['REMOTE_ADDR'],
+            'membership_type'            => preg_replace('~\$~', '\\\$', $prd->post_title),
+            'product_name'               => preg_replace('~\$~', '\\\$', $prd->post_title),
+            'coupon_code'                => $cpn,
+            'signup_url'                 => $prd->url(),
+            'subscr_num'                 => $sub->subscr_id,
+            'subscr_date'                => $sub_date,
+            'subscr_gateway'             => sprintf(__('%1$s (%2$s)', 'memberpress'), $pm->label, $pm->name),
+            'subscr_next_billing_at'     => MeprAppHelper::format_date($sub->next_billing_at, ''),
+            'subscr_trial_end_date'      => $trial_end_date,
+            'subscr_expires_at'          => $expires_at,
+            'subscr_terms'               => preg_replace('~\$~', '\\\$', MeprSubscriptionsHelper::format_currency($sub)),
+            'subscr_next_billing_amount' => preg_replace('~\$~', '\\\$', MeprAppHelper::format_currency($next_bill_amt, true, false, true)),
+            'subscr_cc_num'              => $sub->cc_num(),
+            'subscr_cc_month_exp'        => sprintf('%02d', $sub->cc_exp_month),
+            'subscr_cc_year_exp'         => $sub->cc_exp_year,
+            'subscr_renew_url'           => $mepr_options->login_page_url('redirect_to=' . urlencode($prd->url())),
+            'subscr_update_url'          => $mepr_options->login_page_url('redirect_to=' . urlencode($sub->update_url())),
+            'subscr_upgrade_url'         => $mepr_options->login_page_url('redirect_to=' . urlencode($sub->upgrade_url())),
+            'blog_name'                  => MeprUtils::blogname(),
+            'business_name'              => $mepr_options->attr('biz_name'),
+            'biz_name'                   => $mepr_options->attr('biz_name'),
+            'biz_address1'               => $mepr_options->attr('biz_address1'),
+            'biz_address2'               => $mepr_options->attr('biz_address2'),
+            'biz_city'                   => $mepr_options->attr('biz_city'),
+            'biz_state'                  => $mepr_options->attr('biz_state'),
+            'biz_postcode'               => $mepr_options->attr('biz_postcode'),
+            'biz_country'                => $mepr_options->attr('biz_country'),
+            'login_page'                 => $mepr_options->login_page_url(),
+            'account_url'                => $mepr_options->account_page_url(),
+            'login_url'                  => $mepr_options->login_page_url(),
         ];
 
         $ums = MeprUtils::get_formatted_usermeta($usr->ID);
@@ -149,23 +160,30 @@ class MeprSubscriptionsHelper
 
     /**
      * Especially for formatting a subscription's price
+     *
+     * @param  MeprSubscription $sub           The subscription.
+     * @param  boolean          $show_symbol   Whether to show the symbol.
+     * @param  boolean          $show_prorated Whether to show the prorated.
+     * @return string
      */
     public static function format_currency($sub, $show_symbol = true, $show_prorated = true)
     {
         $coupon_code = null;
-        if ($coupon = $sub->coupon()) {
+        $coupon      = $sub->coupon();
+        if ($coupon) {
             $coupon_code = $coupon->post_title;
         }
 
-        $tax_info = [
-            'rate' => $sub->tax_rate,
-            'desc' => $sub->tax_desc,
-        ];
-
-        return MeprAppHelper::format_price_string($sub, $sub->price, $show_symbol, $coupon_code, $show_prorated, $tax_info);
+        return MeprAppHelper::format_price_string($sub, $sub->price, $show_symbol, $coupon_code, $show_prorated);
     }
 
-    // For use in the new/edit subscriptions form
+    /**
+     * For use in the new/edit subscriptions form
+     *
+     * @param  string $field_name The field name.
+     * @param  string $value      The value.
+     * @return void
+     */
     public static function payment_methods_dropdown($field_name, $value = '')
     {
         $mepr_options = MeprOptions::fetch();

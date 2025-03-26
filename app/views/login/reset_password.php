@@ -5,7 +5,7 @@
 <div class="mp_wrapper">
   <h3><?php _ex('Enter your new password', 'ui', 'memberpress'); ?></h3>
   <form name="mepr_reset_password_form" id="mepr_reset_password_form" class="mepr-form" action="" method="post">
-    <?php /* nonce not necessary on this form seeing as the user isn't logged in yet */ ?>
+    <?php // nonce not necessary on this form seeing as the user isn't logged in yet ?>
     <div class="mp-form-row mepr_password">
       <div class="mp-form-label">
         <label for="mepr_user_password"><?php _ex('Password', 'ui', 'memberpress'); ?>:</label>

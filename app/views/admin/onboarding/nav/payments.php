@@ -2,7 +2,7 @@
     die('You are not allowed to call this page directly.');
 } ?>
 <?php
-  $mepr_options = MeprOptions::fetch();
+  $mepr_options     = MeprOptions::fetch();
   $saved_gateway_id = get_option('mepr_onboarding_payment_gateway');
 
 if (!empty($mepr_options->integrations) && empty($saved_gateway_id)) {

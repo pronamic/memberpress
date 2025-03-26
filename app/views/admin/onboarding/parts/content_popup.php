@@ -35,7 +35,7 @@ $courses_plugin_active = is_plugin_active('memberpress-courses/main.php');
     <a target='_blank' class="mepr-wizard-popuphelp" href='<?php echo admin_url('edit.php?post_type=mpcs-course'); ?>' id="mepr-wizard-create-content-course-help" <?php echo ! $courses_plugin_active  ? ' style="display:none;"' : ''; ?>>
       <?php
         printf(
-          /* translators: %1$s: open underline tag, %2$s: close underline tag */
+          // translators: %1$s: open underline tag, %2$s: close underline tag
             esc_html__('More advanced options are available in %1$sMemberPress > Courses%2$s', 'memberpress'),
             '<u>',
             '</u>'

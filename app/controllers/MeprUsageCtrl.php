@@ -2,6 +2,11 @@
 
 class MeprUsageCtrl extends MeprBaseCtrl
 {
+    /**
+     * Loads the hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         if (!get_option('mepr_disable_senddata')) {
@@ -17,16 +22,27 @@ class MeprUsageCtrl extends MeprBaseCtrl
         add_action('mepr-process-options', [$this,'save_options']);
     }
 
+    /**
+     * Intervals.
+     *
+     * @param  array $schedules The schedules.
+     * @return array
+     */
     public function intervals($schedules)
     {
         $schedules['mepr_snapshot_interval'] = [
             'interval' => MeprUtils::weeks(1),
-            'display' => __('MemberPress Snapshot Interval', 'memberpress'),
+            'display'  => __('MemberPress Snapshot Interval', 'memberpress'),
         ];
 
         return $schedules;
     }
 
+    /**
+     * Snapshot.
+     *
+     * @return void
+     */
     public function snapshot()
     {
         if (get_option('mepr_disable_senddata')) {
@@ -49,7 +65,7 @@ class MeprUsageCtrl extends MeprBaseCtrl
         'YXBwLmNvbS9zbmFwc2hvdA==';
 
         $usage = new MeprUsage();
-        $body = wp_json_encode($usage->snapshot());
+        $body  = wp_json_encode($usage->snapshot());
 
         $headers = [
             'Accept'         => 'application/json',
@@ -59,9 +75,9 @@ class MeprUsageCtrl extends MeprBaseCtrl
 
         // Setup variable for wp_remote_request
         $post = [
-            'method'    => 'POST',
-            'headers'   => $headers,
-            'body'      => $body,
+            'method'  => 'POST',
+            'headers' => $headers,
+            'body'    => $body,
         ];
 
         wp_remote_request(base64_decode($ep), $post); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode, Generic.Files.LineLength.TooLong
@@ -70,14 +86,25 @@ class MeprUsageCtrl extends MeprBaseCtrl
         MeprExpiringOption::set('sent_snapshot', 1, MeprUtils::days(6));
     }
 
+    /**
+     * Displays the options.
+     *
+     * @return void
+     */
     public function display_options()
     {
-        $disable_senddata = get_option('mepr_disable_senddata');
+        $disable_senddata   = get_option('mepr_disable_senddata');
         $hide_announcements = get_option('mepr_hide_announcements');
 
         MeprView::render('admin/usage/option', compact('disable_senddata', 'hide_announcements'));
     }
 
+    /**
+     * Saves the options.
+     *
+     * @param  array $params The params.
+     * @return void
+     */
     public function save_options($params)
     {
         update_option('mepr_disable_senddata', !isset($params['mepr_enable_senddata']));

@@ -6,6 +6,9 @@ if (! defined('ABSPATH')) {
 
 abstract class MeprBaseDrm
 {
+    /**
+     * Constructor for the MeprBaseDrm class.
+     */
     public function __construct()
     {
         $this->init();
@@ -15,26 +18,53 @@ abstract class MeprBaseDrm
     protected $event_name = '';
     protected $drm_status = '';
 
+    /**
+     * Checks if the DRM status is locked.
+     *
+     * @return boolean True if locked, false otherwise.
+     */
     public function is_locked()
     {
         return MeprDrmHelper::is_locked($this->drm_status);
     }
 
+    /**
+     * Checks if the DRM status is medium.
+     *
+     * @return boolean True if medium, false otherwise.
+     */
     public function is_medium()
     {
         return MeprDrmHelper::is_medium($this->drm_status);
     }
 
+    /**
+     * Checks if the DRM status is low.
+     *
+     * @return boolean True if low, false otherwise.
+     */
     public function is_low()
     {
         return MeprDrmHelper::is_low($this->drm_status);
     }
 
+    /**
+     * Initializes the DRM status.
+     *
+     * @return void
+     */
     protected function init()
     {
         $this->drm_status = '';
     }
 
+    /**
+     * Sets the DRM status.
+     *
+     * @param string $status The DRM status to set.
+     *
+     * @return void
+     */
     protected function set_status($status)
     {
         $this->drm_status = $status;
@@ -43,6 +73,11 @@ abstract class MeprBaseDrm
         MeprDrmHelper::set_status($status);
     }
 
+    /**
+     * Creates a DRM event.
+     *
+     * @return void
+     */
     public function create_event()
     {
         $drm  = new MeprDrm(1);
@@ -53,6 +88,14 @@ abstract class MeprBaseDrm
         MeprEvent::record($this->event_name, $drm, $data);
     }
 
+    /**
+     * Updates a DRM event with new data.
+     *
+     * @param object $event The event to update.
+     * @param mixed  $data  The data to update the event with.
+     *
+     * @return mixed The result of the update operation.
+     */
     protected function update_event($event, $data)
     {
         if ($event->rec->id == 0) {
@@ -65,6 +108,11 @@ abstract class MeprBaseDrm
         return $event->store();
     }
 
+    /**
+     * Runs the site health DRM check.
+     *
+     * @return array The result of the site health DRM check.
+     */
     public function run_site_health_drm()
     {
 
@@ -83,10 +131,10 @@ abstract class MeprBaseDrm
             'description' => $message,
             'actions'     => sprintf(
                 '<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-                /* translators: Documentation explaining debugging in WordPress. */
+                // translators: Documentation explaining debugging in WordPress.
                 esc_url($support_link),
                 $help_message,
-                /* translators: Accessibility text. */
+                // translators: Accessibility text.
                 __('(opens in a new tab)', 'memberpress')
             ),
             'test'        => 'run_site_health_drm',
@@ -95,6 +143,11 @@ abstract class MeprBaseDrm
         return $result;
     }
 
+    /**
+     * Creates a DRM event if none exists within the last 30 days.
+     *
+     * @return void
+     */
     public function maybe_create_event()
     {
 
@@ -107,6 +160,15 @@ abstract class MeprBaseDrm
         }
     }
 
+    /**
+     * Handles a DRM event.
+     *
+     * @param object  $event      The event to handle.
+     * @param integer $days       The number of days since the event.
+     * @param string  $drm_status The DRM status.
+     *
+     * @return void
+     */
     public function drm_event($event, $days, $drm_status)
     {
 
@@ -140,6 +202,11 @@ abstract class MeprBaseDrm
         }
     }
 
+    /**
+     * Checks if the current page is a MemberPress page.
+     *
+     * @return boolean True if it is a MemberPress page, false otherwise.
+     */
     private function is_mepr_page()
     {
 
@@ -154,6 +221,13 @@ abstract class MeprBaseDrm
         return false;
     }
 
+    /**
+     * Adds custom classes to the admin body tag.
+     *
+     * @param string $classes The current classes.
+     *
+     * @return string The modified classes.
+     */
     public function admin_body_class($classes)
     {
         $classes .= ' mepr-locked';
@@ -163,6 +237,11 @@ abstract class MeprBaseDrm
         return $classes;
     }
 
+    /**
+     * Outputs the admin footer content.
+     *
+     * @return void
+     */
     public function admin_footer()
     {
         $view = MeprView::get_string('/admin/drm/modal');
@@ -170,6 +249,11 @@ abstract class MeprBaseDrm
         echo MeprHooks::apply_filters('mepr_drm_modal', $view);
     }
 
+    /**
+     * Displays admin notices related to DRM.
+     *
+     * @return void
+     */
     public function admin_notices()
     {
 
@@ -184,13 +268,13 @@ abstract class MeprBaseDrm
         $drm_status = MeprDrmHelper::get_status();
 
         if ('' !== $drm_status) {
-            $drm_info               = MeprDrmHelper::get_info($drm_status, $this->event_name, 'admin_notices');
-            $drm_info['notice_key'] = MeprDrmHelper::get_status_key($drm_status);
+            $drm_info                = MeprDrmHelper::get_info($drm_status, $this->event_name, 'admin_notices');
+            $drm_info['notice_key']  = MeprDrmHelper::get_status_key($drm_status);
             $drm_info['notice_view'] = $drm_info['admin_notice_view'];
-            $drm_info['event_name'] = $this->event_name;
+            $drm_info['event_name']  = $this->event_name;
 
             $notice_user_key = MeprDrmHelper::prepare_dismissable_notice_key($drm_info['notice_key']);
-            $event_data = MeprDrmHelper::parse_event_args($this->event->args);
+            $event_data      = MeprDrmHelper::parse_event_args($this->event->args);
 
             $is_dismissed = MeprDrmHelper::is_dismissed($event_data, $notice_user_key);
             if (! $is_dismissed) {
@@ -200,6 +284,13 @@ abstract class MeprBaseDrm
         }
     }
 
+    /**
+     * Sends an email notification based on DRM status.
+     *
+     * @param string $drm_status The DRM status.
+     *
+     * @return void
+     */
     protected function send_email($drm_status)
     {
         $drm_info = MeprDrmHelper::get_info($drm_status, $this->event_name, 'email');
@@ -218,6 +309,13 @@ abstract class MeprBaseDrm
         MeprUtils::wp_mail_to_admin($subject, $message, $headers);
     }
 
+    /**
+     * Creates an in-plugin notification based on DRM status.
+     *
+     * @param string $drm_status The DRM status.
+     *
+     * @return void
+     */
     protected function create_inplugin_notification($drm_status)
     {
 
@@ -249,5 +347,8 @@ abstract class MeprBaseDrm
         );
     }
 
+    /**
+     * Abstract method to run the DRM process.
+     */
     abstract function run();
-} //End class
+}

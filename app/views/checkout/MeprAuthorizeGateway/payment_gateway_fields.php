@@ -17,5 +17,3 @@
         </div>
         <input type="text" name="mepr_zip_post_code" class="mepr-form-input" autocomplete="off" value="" required />
     </div>
-
-<?php MeprHooks::do_action('mepr-authorize-net-payment-form', $txn); ?>

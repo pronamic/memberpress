@@ -19,20 +19,23 @@ class MeprMigratorCtrl extends MeprBaseCtrl
      */
     public static function admin_enqueue_scripts()
     {
-        if (MeprMigratorHelper::is_migrator_page() && ($migrators = MeprMigratorHelper::get_usable_course_migrators())) {
-            wp_enqueue_style('memberpress-migrator', MEPR_CSS_URL . '/migrator.css', [], MEPR_VERSION);
-            wp_enqueue_script('memberpress-migrator', MEPR_JS_URL . '/migrator.js', ['jquery'], MEPR_VERSION, true);
+        if (MeprMigratorHelper::is_migrator_page()) {
+            $migrators = MeprMigratorHelper::get_usable_course_migrators();
+            if ($migrators) {
+                wp_enqueue_style('memberpress-migrator', MEPR_CSS_URL . '/migrator.css', [], MEPR_VERSION);
+                wp_enqueue_script('memberpress-migrator', MEPR_JS_URL . '/migrator.js', ['jquery'], MEPR_VERSION, true);
 
-            if (in_array(MeprMigratorLearnDash::KEY, $migrators, true)) {
-                wp_enqueue_script('memberpress-migrator-learndash', MEPR_JS_URL . '/migrator.learndash.js', ['jquery', 'memberpress-migrator'], MEPR_VERSION, true);
+                if (in_array(MeprMigratorLearnDash::KEY, $migrators, true)) {
+                    wp_enqueue_script('memberpress-migrator-learndash', MEPR_JS_URL . '/migrator.learndash.js', ['jquery', 'memberpress-migrator'], MEPR_VERSION, true);
+                }
+
+                wp_localize_script('memberpress-migrator', 'MeprMigratorL10n', [
+                    'ajax_url'           => admin_url('admin-ajax.php'),
+                    'migrate_nonce'      => wp_create_nonce('mepr_migrator_migrate'),
+                    'leave_are_you_sure' => __('The migration has not yet completed, are you sure you want to leave this page?', 'memberpress'),
+                    'migration_complete' => __('Migration complete', 'memberpress'),
+                ]);
             }
-
-            wp_localize_script('memberpress-migrator', 'MeprMigratorL10n', [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'migrate_nonce' => wp_create_nonce('mepr_migrator_migrate'),
-                'leave_are_you_sure' => __('The migration has not yet completed, are you sure you want to leave this page?', 'memberpress'),
-                'migration_complete' => __('Migration complete', 'memberpress'),
-            ]);
         }
     }
 

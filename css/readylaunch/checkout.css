@@ -19,6 +19,18 @@ body {
   padding: 3em auto;
 }
 
+@media screen and (max-width: 1023px) {
+  .mepr-pro-template #primary > * {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+  .mepr-pro-template #primary > #mepr_signup_form,
+  .mepr-pro-template #primary > .mepr-signup-form {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
 .mepr-checkout-container {
   display: flex;
   flex-direction: column-reverse;

@@ -17,6 +17,11 @@ class MeprAccountLinksWidget extends WP_Widget
         );
     }
 
+    /**
+     * Registers the widget.
+     *
+     * @return void
+     */
     public static function register_widget()
     {
         if (MeprHooks::apply_filters('mepr-enable-legacy-widgets', !current_theme_supports('widgets-block-editor'))) {
@@ -31,6 +36,8 @@ class MeprAccountLinksWidget extends WP_Widget
      *
      * @param array $args     Widget arguments.
      * @param array $instance Saved values from database.
+     *
+     * @return void
      */
     public function widget($args, $instance)
     {
@@ -43,7 +50,7 @@ class MeprAccountLinksWidget extends WP_Widget
 
         if (MeprUtils::is_user_logged_in()) {
             $account_url = $mepr_options->account_page_url();
-            $logout_url = MeprUtils::logout_url();
+            $logout_url  = MeprUtils::logout_url();
             MeprView::render('/account/logged_in_widget', get_defined_vars());
         } else {
             $login_url = MeprUtils::login_url();
@@ -65,7 +72,7 @@ class MeprAccountLinksWidget extends WP_Widget
      */
     public function update($new_instance, $old_instance)
     {
-        $instance = [];
+        $instance          = [];
         $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : __('Login', 'memberpress');
 
         return $instance;
@@ -77,6 +84,8 @@ class MeprAccountLinksWidget extends WP_Widget
      * @see WP_Widget::form()
      *
      * @param array $instance Previously saved values from database.
+     *
+     * @return void
      */
     public function form($instance)
     {
@@ -89,4 +98,4 @@ class MeprAccountLinksWidget extends WP_Widget
     </p>
         <?php
     }
-} // class MeprAccountLinksWidget
+}

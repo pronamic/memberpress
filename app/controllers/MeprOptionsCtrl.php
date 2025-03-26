@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprOptionsCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load hooks for various AJAX actions and admin scripts.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('wp_ajax_mepr_activate_license', 'MeprOptionsCtrl::ajax_activate_license');
@@ -19,6 +24,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         add_action('wp_ajax_mepr_activate_stripe_payment_method', 'MeprOptionsCtrl::activate_stripe_payment_method');
     }
 
+    /**
+     * Show a warning if Stripe Checkout is deprecated.
+     *
+     * @return void
+     */
     public static function maybe_show_stripe_checkout_warning()
     {
         if (MeprUtils::is_get_request() && isset($_GET['page']) && $_GET['page'] == 'memberpress-options') {
@@ -33,6 +43,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Route various actions based on the request.
+     *
+     * @return mixed
+     */
     public static function route()
     {
         $action = (isset($_REQUEST['action']) ? $_REQUEST['action'] : '');
@@ -65,6 +80,14 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Display the options form in the admin panel.
+     *
+     * @param array  $errors  List of errors to display.
+     * @param string $message Message to display.
+     *
+     * @return void
+     */
     public static function display_form($errors = [], $message = '')
     {
         $mepr_options = MeprOptions::fetch();
@@ -83,6 +106,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Process the options form submission.
+     *
+     * @return void
+     */
     public static function process_form()
     {
         $mepr_options = MeprOptions::fetch();
@@ -115,6 +143,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Enqueue footer scripts for the admin panel.
+     *
+     * @return void
+     */
     public static function enqueue_footer_scripts()
     {
         global $hook_suffix;
@@ -125,6 +158,13 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Enqueue scripts and styles for the admin panel.
+     *
+     * @param string $hook The current admin page hook.
+     *
+     * @return void
+     */
     public static function enqueue_scripts($hook)
     {
         if ($hook == 'memberpress_page_memberpress-options') {
@@ -136,47 +176,47 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             wp_enqueue_style('mp-emails', MEPR_CSS_URL . '/admin-emails.css', ['mp-options'], MEPR_VERSION);
 
             $js_helpers = [
-                'nameLabel'         => __('Name:', 'memberpress'),
-                'typeLabel'         => __('Type:', 'memberpress'),
-                'defaultLabel'      => __('Default Value(s):', 'memberpress'),
-                'signupLabel'       => __('Show at Signup', 'memberpress'),
-                'accountLabel'      => __('Show in Account', 'memberpress'),
-                'requiredLabel'     => __('Required', 'memberpress'),
-                'textOption'        => __('Text', 'memberpress'),
-                'textareaOption'    => __('Textarea', 'memberpress'),
-                'checkboxOption'    => __('Checkbox', 'memberpress'),
-                'dropdownOption'    => __('Dropdown', 'memberpress'),
-                'multiselectOption' => __('Multi-Select', 'memberpress'),
-                'emailOption'       => __('Email', 'memberpress'),
-                'urlOption'         => __('URL', 'memberpress'),
-                'phoneOption'       => __('Phone', 'memberpress'),
-                'radiosOption'      => __('Radio Buttons', 'memberpress'),
-                'checkboxesOption'  => __('Checkboxes', 'memberpress'),
-                'fileuploadOption'  => __('File Upload', 'memberpress'),
-                'dateOption'        => __('Date', 'memberpress'),
-                'optionNameLabel'   => __('Option Name:', 'memberpress'),
-                'optionValueLabel'  => __('Option Value:', 'memberpress'),
-                'addOptionLabel'    => __('Add Option', 'memberpress'),
-                'show_fname_lname_id'    => "#{$mepr_options->show_fname_lname_str}",
-                'require_fname_lname_id' => "#{$mepr_options->require_fname_lname_str}",
-                'jsUrl'             => MEPR_JS_URL,
-                'taxRateRemoveStr'  => __('Are you sure you want to delete this Tax Rate?', 'memberpress'),
-                'confirmPMDelete'   => __('WARNING: Do not remove this Payment Method if you have active subscriptions using it. Doing so will prevent you from being notified of recurring payments for those subscriptions, which means your members will lose access to their paid content. Are you sure you want to delete this Payment Method?', 'memberpress'),
-                'wpnonce'           => wp_create_nonce(MEPR_PLUGIN_SLUG),
-                'option_nonce'      => wp_create_nonce('mepr_gateway_form_nonce'),
-                'tax_nonce'         => wp_create_nonce('mepr_taxes'),
-                'activate_license_nonce' => wp_create_nonce('mepr_activate_license'),
-                'activation_error'  => __('An error occurred during activation: %s', 'memberpress'),
-                'invalid_response'        => __('Invalid response.', 'memberpress'),
-                'ajax_error'        => __('Ajax error.', 'memberpress'),
-                'deactivate_license_nonce' => wp_create_nonce('mepr_deactivate_license'),
-                'deactivate_confirm' => sprintf(__('Are you sure? MemberPress will not be functional on %s if this License Key is deactivated.', 'memberpress'), MeprUtils::site_domain()),
-                'deactivation_error'  => __('An error occurred during deactivation: %s', 'memberpress'),
-                'install_license_edition_nonce' => wp_create_nonce('mepr_install_license_edition'),
+                'nameLabel'                             => __('Name:', 'memberpress'),
+                'typeLabel'                             => __('Type:', 'memberpress'),
+                'defaultLabel'                          => __('Default Value(s):', 'memberpress'),
+                'signupLabel'                           => __('Show at Signup', 'memberpress'),
+                'accountLabel'                          => __('Show in Account', 'memberpress'),
+                'requiredLabel'                         => __('Required', 'memberpress'),
+                'textOption'                            => __('Text', 'memberpress'),
+                'textareaOption'                        => __('Textarea', 'memberpress'),
+                'checkboxOption'                        => __('Checkbox', 'memberpress'),
+                'dropdownOption'                        => __('Dropdown', 'memberpress'),
+                'multiselectOption'                     => __('Multi-Select', 'memberpress'),
+                'emailOption'                           => __('Email', 'memberpress'),
+                'urlOption'                             => __('URL', 'memberpress'),
+                'phoneOption'                           => __('Phone', 'memberpress'),
+                'radiosOption'                          => __('Radio Buttons', 'memberpress'),
+                'checkboxesOption'                      => __('Checkboxes', 'memberpress'),
+                'fileuploadOption'                      => __('File Upload', 'memberpress'),
+                'dateOption'                            => __('Date', 'memberpress'),
+                'optionNameLabel'                       => __('Option Name:', 'memberpress'),
+                'optionValueLabel'                      => __('Option Value:', 'memberpress'),
+                'addOptionLabel'                        => __('Add Option', 'memberpress'),
+                'show_fname_lname_id'                   => "#{$mepr_options->show_fname_lname_str}",
+                'require_fname_lname_id'                => "#{$mepr_options->require_fname_lname_str}",
+                'jsUrl'                                 => MEPR_JS_URL,
+                'taxRateRemoveStr'                      => __('Are you sure you want to delete this Tax Rate?', 'memberpress'),
+                'confirmPMDelete'                       => __('WARNING: Do not remove this Payment Method if you have active subscriptions using it. Doing so will prevent you from being notified of recurring payments for those subscriptions, which means your members will lose access to their paid content. Are you sure you want to delete this Payment Method?', 'memberpress'),
+                'wpnonce'                               => wp_create_nonce(MEPR_PLUGIN_SLUG),
+                'option_nonce'                          => wp_create_nonce('mepr_gateway_form_nonce'),
+                'tax_nonce'                             => wp_create_nonce('mepr_taxes'),
+                'activate_license_nonce'                => wp_create_nonce('mepr_activate_license'),
+                'activation_error'                      => __('An error occurred during activation: %s', 'memberpress'),
+                'invalid_response'                      => __('Invalid response.', 'memberpress'),
+                'ajax_error'                            => __('Ajax error.', 'memberpress'),
+                'deactivate_license_nonce'              => wp_create_nonce('mepr_deactivate_license'),
+                'deactivate_confirm'                    => sprintf(__('Are you sure? MemberPress will not be functional on %s if this License Key is deactivated.', 'memberpress'), MeprUtils::site_domain()),
+                'deactivation_error'                    => __('An error occurred during deactivation: %s', 'memberpress'),
+                'install_license_edition_nonce'         => wp_create_nonce('mepr_install_license_edition'),
                 'validate_stripe_payment_methods_nonce' => wp_create_nonce('mepr_validate_stripe_payment_method_types'),
-                'activate_stripe_payment_method_nonce' => wp_create_nonce('mepr_activate_stripe_payment_method'),
-                'validate_stripe_tax_nonce' => wp_create_nonce('mepr_validate_stripe_tax'),
-                'unable_to_verify_stripe_tax' => __('Unable to verify Stripe Tax status', 'memberpress'),
+                'activate_stripe_payment_method_nonce'  => wp_create_nonce('mepr_activate_stripe_payment_method'),
+                'validate_stripe_tax_nonce'             => wp_create_nonce('mepr_validate_stripe_tax'),
+                'unable_to_verify_stripe_tax'           => __('Unable to verify Stripe Tax status', 'memberpress'),
             ];
 
             wp_register_script('memberpress-i18n', MEPR_JS_URL . '/i18n.js', ['jquery'], MEPR_VERSION);
@@ -188,8 +228,8 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             wp_register_script('mepr-tooltipster', MEPR_JS_URL . '/vendor/tooltipster.bundle.min.js', ['jquery'], MEPR_VERSION);
             wp_register_script('mepr-copy-to-clipboard', MEPR_JS_URL . '/copy_to_clipboard.js', ['mepr-clipboard-js','mepr-tooltipster'], MEPR_VERSION);
             wp_localize_script('mepr-copy-to-clipboard', 'MeprClipboard', [
-                'copy_text' => __('Copy to Clipboard', 'memberpress'),
-                'copied_text' => __('Copied!', 'memberpress'),
+                'copy_text'       => __('Copy to Clipboard', 'memberpress'),
+                'copied_text'     => __('Copied!', 'memberpress'),
                 'copy_error_text' => __('Oops, Copy Failed!', 'memberpress'),
             ]);
 
@@ -210,7 +250,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
 
             $email_locals = [
                 'set_email_defaults_nonce' => wp_create_nonce('set_email_defaults'),
-                'send_test_email_nonce' => wp_create_nonce('send_test_email'),
+                'send_test_email_nonce'    => wp_create_nonce('send_test_email'),
             ];
             wp_enqueue_script('mepr-emails-js', MEPR_JS_URL . '/admin_emails.js', ['mepr-options-js'], MEPR_VERSION);
             wp_localize_script('mepr-emails-js', 'MeprEmail', $email_locals);
@@ -218,6 +258,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Render the gateway form via AJAX.
+     *
+     * @return void
+     */
     public static function gateway_form()
     {
         check_ajax_referer('mepr_gateway_form_nonce', 'option_nonce');
@@ -253,10 +298,15 @@ class MeprOptionsCtrl extends MeprBaseCtrl
 
         die(json_encode([
             'form' => $form,
-            'id' => $obj->id,
+            'id'   => $obj->id,
         ]));
     }
 
+    /**
+     * Activate a license via AJAX.
+     *
+     * @return void
+     */
     public static function ajax_activate_license()
     {
         if (!MeprUtils::is_post_request() || !isset($_POST['key']) || !is_string($_POST['key'])) {
@@ -272,11 +322,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
 
         $mepr_options = MeprOptions::fetch();
-        $license_key = sanitize_text_field(wp_unslash($_POST['key']));
+        $license_key  = sanitize_text_field(wp_unslash($_POST['key']));
 
         try {
-            $act = MeprUpdateCtrl::activate_license($license_key);
-            $li = get_site_transient('mepr_license_info');
+            $act        = MeprUpdateCtrl::activate_license($license_key);
+            $li         = get_site_transient('mepr_license_info');
             $onboarding = isset($_POST['onboarding']) && sanitize_text_field(wp_unslash($_POST['onboarding'])) == '1';
 
             if ($onboarding) {
@@ -286,7 +336,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             }
 
             if (is_array($li)) {
-                $editions = MeprUtils::is_incorrect_edition_installed();
+                $editions          = MeprUtils::is_incorrect_edition_installed();
                 $automatic_updates = !empty($mepr_options->auto_updates) ? $mepr_options->auto_updates : 'all';
 
                 if (is_array($editions) && $editions['license']['index'] > $editions['installed']['index'] && $automatic_updates != 'none') {
@@ -323,21 +373,21 @@ class MeprOptionsCtrl extends MeprBaseCtrl
 
                         if (!empty($licenses) && is_array($licenses)) {
                               $highest_edition_index = -1;
-                              $highest_license = null;
+                              $highest_license       = null;
 
                             foreach ($licenses as $license) {
                                 $edition = MeprUtils::get_edition($license['product_slug']);
 
                                 if (is_array($edition) && $edition['index'] > $highest_edition_index) {
                                           $highest_edition_index = $edition['index'];
-                                          $highest_license = $license;
+                                          $highest_license       = $license;
                                 }
                             }
 
                             if (is_array($highest_license)) {
                                 wp_send_json_error(
                                     sprintf(
-                                    /* translators: %1$s: the product name, %2$s: open link tag, %3$s: close link tag */
+                                    // translators: %1$s: the product name, %2$s: open link tag, %3$s: close link tag
                                         esc_html__('This License Key has expired, but you have an active license for %1$s, %2$sclick here%3$s to activate using this license instead.', 'memberpress'),
                                         '<strong>' . esc_html($highest_license['product_name']) . '</strong>',
                                         sprintf('<a href="#" id="mepr-activate-new-license" data-license-key="%s">', esc_attr($highest_license['license_key'])),
@@ -356,6 +406,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Deactivate a license via AJAX.
+     *
+     * @return void
+     */
     public static function ajax_deactivate_license()
     {
         if (!MeprUtils::is_post_request()) {
@@ -371,14 +426,22 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
 
         $mepr_options = MeprOptions::fetch();
-        $act = MeprUpdateCtrl::deactivate_license();
+        $act          = MeprUpdateCtrl::deactivate_license();
 
-        $output = sprintf('<div class="notice notice-success"><p>%s</p></div>', esc_html($act['message']));
+        $output  = sprintf('<div class="notice notice-success"><p>%s</p></div>', esc_html($act['message']));
         $output .= MeprView::get_string('/admin/options/inactive_license', get_defined_vars());
 
         wp_send_json_success($output);
     }
 
+    /**
+     * Silently install a plugin from a given URL.
+     *
+     * @param string $url  The URL of the plugin to install.
+     * @param array  $args Additional arguments for installation.
+     *
+     * @return boolean|WP
+     */
     public static function install_plugin_silently($url, $args)
     {
         require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -387,7 +450,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             require_once ABSPATH . 'wp-admin/includes/file.php';
         }
 
-        $skin = new Automatic_Upgrader_Skin();
+        $skin     = new Automatic_Upgrader_Skin();
         $upgrader = new Plugin_Upgrader($skin);
 
         if (!$skin->request_filesystem_credentials(false, WP_PLUGIN_DIR)) {
@@ -397,6 +460,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         return $upgrader->install($url, $args);
     }
 
+    /**
+     * Install a license edition via AJAX.
+     *
+     * @return void
+     */
     public static function ajax_install_license_edition()
     {
         if (!MeprUtils::is_post_request()) {
@@ -429,6 +497,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         wp_send_json_error(__('License data not found', 'memberpress'));
     }
 
+    /**
+     * Validate Stripe payment method types via AJAX.
+     *
+     * @return void
+     */
     public static function validate_stripe_payment_method_types()
     {
         if (!MeprUtils::is_post_request()) {
@@ -443,7 +516,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             wp_send_json_error(__('Security check failed.', 'memberpress'));
         }
 
-        $gateway_id = isset($_POST['gateway_id']) ? sanitize_text_field(wp_unslash($_POST['gateway_id'])) : '';
+        $gateway_id           = isset($_POST['gateway_id']) ? sanitize_text_field(wp_unslash($_POST['gateway_id'])) : '';
         $payment_method_types = isset($_POST['payment_method_types']) && is_array($_POST['payment_method_types']) ? array_filter(array_map('sanitize_key', array_map('wp_unslash', $_POST['payment_method_types']))) : [];
 
         if (empty($gateway_id) || empty($payment_method_types)) {
@@ -451,7 +524,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
 
         $mepr_options = MeprOptions::fetch();
-        $pm = $mepr_options->payment_method($gateway_id);
+        $pm           = $mepr_options->payment_method($gateway_id);
 
         if (!$pm instanceof MeprStripeGateway) {
             wp_send_json_error(__('Bad request.', 'memberpress'));
@@ -470,6 +543,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Activate a Stripe payment method via AJAX.
+     *
+     * @return void
+     */
     public static function activate_stripe_payment_method()
     {
         if (!MeprUtils::is_post_request()) {
@@ -484,16 +562,16 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             wp_send_json_error(__('Security check failed.', 'memberpress'));
         }
 
-        $gateway_id = isset($_POST['gateway_id']) ? sanitize_text_field(wp_unslash($_POST['gateway_id'])) : '';
+        $gateway_id          = isset($_POST['gateway_id']) ? sanitize_text_field(wp_unslash($_POST['gateway_id'])) : '';
         $payment_method_type = isset($_POST['payment_method_type']) ? sanitize_key(wp_unslash($_POST['payment_method_type'])) : '';
-        $supported_types = ['apple_pay', 'google_pay'];
+        $supported_types     = ['apple_pay', 'google_pay'];
 
         if (empty($gateway_id) || empty($payment_method_type) || !in_array($payment_method_type, $supported_types, true)) {
             wp_send_json_error(__('Bad request.', 'memberpress'));
         }
 
         $mepr_options = MeprOptions::fetch();
-        $pm = $mepr_options->payment_method($gateway_id);
+        $pm           = $mepr_options->payment_method($gateway_id);
 
         if (!$pm instanceof MeprStripeGateway) {
             wp_send_json_error(__('Bad request.', 'memberpress'));
@@ -501,10 +579,10 @@ class MeprOptionsCtrl extends MeprBaseCtrl
 
         try {
             if ($payment_method_type == 'apple_pay') {
-                $root_dir = isset($_SERVER['DOCUMENT_ROOT']) ? wp_unslash($_SERVER['DOCUMENT_ROOT']) : ABSPATH;
+                $root_dir                     = isset($_SERVER['DOCUMENT_ROOT']) ? wp_unslash($_SERVER['DOCUMENT_ROOT']) : ABSPATH;
                 $domain_association_file_name = 'apple-developer-merchantid-domain-association';
-                $well_known_dir = untrailingslashit($root_dir) . '/.well-known';
-                $full_path = "$well_known_dir/$domain_association_file_name";
+                $well_known_dir               = untrailingslashit($root_dir) . '/.well-known';
+                $full_path                    = "$well_known_dir/$domain_association_file_name";
 
                 if (!file_exists($full_path)) {
                     if (!is_dir($well_known_dir) && !@mkdir($well_known_dir, 0755) && !is_dir($well_known_dir)) {
@@ -530,8 +608,8 @@ class MeprOptionsCtrl extends MeprBaseCtrl
      *
      * Checks that the current site is registered as a payment method domain, and that the given payment method is active.
      *
-     * @param  string $payment_method_type The payment method type: 'apple_pay', 'google_pay' or 'link'
-     * @param  string $gateway_id          The ID of the Stripe payment method
+     * @param  string $payment_method_type The payment method type: 'apple_pay', 'google_pay' or 'link'.
+     * @param  string $gateway_id          The ID of the Stripe payment method.
      * @return boolean
      */
     public static function is_payment_method_active($payment_method_type, $gateway_id)
@@ -556,11 +634,13 @@ class MeprOptionsCtrl extends MeprBaseCtrl
      * Registers the current site as a Stripe payment method domain, in both live and test mode, and ensures that the
      * given payment method is active.
      *
-     * @param  string            $payment_method_type
-     * @param  MeprStripeGateway $pm
+     * @param  string            $payment_method_type The payment method type: 'apple_pay', 'google_pay' or 'link'.
+     * @param  MeprStripeGateway $pm                  The Stripe gateway object.
      * @throws Exception If the payment method couldn't be activated
-     * @throws MeprHttpException
-     * @throws MeprRemoteException
+     * @throws MeprHttpException The HTTP exception.
+     * @throws MeprRemoteException The remote exception.
+     *
+     * @return void
      */
     public static function activate_payment_method($payment_method_type, MeprStripeGateway $pm)
     {
@@ -570,7 +650,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
 
         $live = $pm->send_stripe_request('payment_method_domains', [
             'domain_name' => $domain,
-            'enabled' => 'true',
+            'enabled'     => 'true',
         ], 'post');
 
         if ($live[$payment_method_type]['status'] != 'active') {
@@ -596,7 +676,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         try {
             $test = $pm->send_stripe_request('payment_method_domains', [
                 'domain_name' => $domain,
-                'enabled' => 'true',
+                'enabled'     => 'true',
             ], 'post');
 
             if ($test[$payment_method_type]['status'] != 'active') {
@@ -618,4 +698,4 @@ class MeprOptionsCtrl extends MeprBaseCtrl
     {
         return isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : str_replace(['https://', 'http://'], '', get_site_url());
     }
-} //End class
+}

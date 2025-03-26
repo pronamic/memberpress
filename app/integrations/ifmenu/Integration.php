@@ -3,16 +3,26 @@
 if (! defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
-/*
-    Integration of free version of If Menu plugin with MemberPress
-*/
+
+/**
+ * Integration of free version of If Menu plugin with MemberPress
+ */
 class MeprIfMenuIntegration
 {
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         add_filter('if_menu_conditions', [$this, 'add_if_menu_conditions']);
     }
 
+    /**
+     * Add If Menu conditions for MemberPress
+     *
+     * @param  array $conditions Array of menu conditions
+     * @return array Modified array of conditions
+     */
     public function add_if_menu_conditions($conditions)
     {
         $memberships = MeprCptModel::all('MeprProduct');
@@ -66,6 +76,6 @@ class MeprIfMenuIntegration
 
         return $conditions;
     }
-} //End class
+}
 
 new MeprIfMenuIntegration();

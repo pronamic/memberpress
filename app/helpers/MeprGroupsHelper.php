@@ -6,6 +6,12 @@ if (!defined('ABSPATH')) {
 
 class MeprGroupsHelper
 {
+    /**
+     * Get existing products list.
+     *
+     * @param  MeprGroup $group The group.
+     * @return void
+     */
     public static function get_existing_products_list($group)
     {
         $products = $group->products();
@@ -32,6 +38,12 @@ class MeprGroupsHelper
         }
     }
 
+    /**
+     * Theme dropdown.
+     *
+     * @param  string $selected The selected.
+     * @return void
+     */
     public static function theme_dropdown($selected = null)
     {
         $themes = MeprGroup::group_themes();
@@ -39,7 +51,7 @@ class MeprGroupsHelper
     <select name="<?php echo MeprGroup::$group_theme_str; ?>" class="group_theme_dropdown">
         <?php
         foreach ($themes as $theme) {
-            $css = basename($theme);
+            $css  = basename($theme);
             $name = preg_replace('#\.css$#', '', $css);
             $name = ucwords(preg_replace('#_#', ' ', $name));
             ?>
@@ -52,11 +64,17 @@ class MeprGroupsHelper
         <?php
     }
 
+    /**
+     * Get products dropdown.
+     *
+     * @param  string $chosen The chosen.
+     * @return void
+     */
     public static function get_products_dropdown($chosen = null)
     {
         $products = MeprCptModel::all('MeprProduct', false, [
             'orderby' => 'title',
-            'order' => 'ASC',
+            'order'   => 'ASC',
         ]);
         ?>
       <select name="<?php echo MeprGroup::$products_str; ?>[product][]" class="group_products_dropdown">
@@ -67,6 +85,12 @@ class MeprGroupsHelper
         <?php
     }
 
+    /**
+     * Get product fallback dropdown.
+     *
+     * @param  MeprGroup $group The group.
+     * @return void
+     */
     public static function get_product_fallback_dropdown($group)
     {
         $products = $group->products();
@@ -81,6 +105,14 @@ class MeprGroupsHelper
         <?php
     }
 
+    /**
+     * Group page item.
+     *
+     * @param  MeprProduct $product The product.
+     * @param  MeprGroup   $group   The group.
+     * @param  boolean     $preview The preview.
+     * @return void
+     */
     public static function group_page_item($product, $group = null, $preview = false)
     {
         ob_start();
@@ -102,7 +134,7 @@ class MeprGroupsHelper
             $benefits .= '</div>';
         }
 
-        $user = MeprUtils::get_currentuserinfo(); // If not logged in, $user will be false
+        $user   = MeprUtils::get_currentuserinfo(); // If not logged in, $user will be false
         $active = true; // Always true for now - that way users can click the button and see the custom "you don't have access" message now
 
         $group_classes_str = ($product->is_highlighted) ? 'highlighted' : '';
@@ -159,6 +191,14 @@ class MeprGroupsHelper
         echo MeprHooks::apply_filters('mepr-group-page-item-output', $output, $product, $group, $preview);
     }
 
+    /**
+     * Price box button classes.
+     *
+     * @param  MeprGroup   $grp    The group.
+     * @param  MeprProduct $prd    The product.
+     * @param  boolean     $active The active.
+     * @return string
+     */
     public static function price_box_button_classes($grp, $prd, $active)
     {
         $bc = '';
@@ -176,6 +216,15 @@ class MeprGroupsHelper
         return trim($bc);
     }
 
+    /**
+     * Price box button.
+     *
+     * @param  MeprUser    $user    The user.
+     * @param  MeprGroup   $group   The group.
+     * @param  MeprProduct $product The product.
+     * @param  boolean     $active  The active.
+     * @return string
+     */
     public static function price_box_button($user, $group, $product, $active)
     {
         ob_start();
@@ -200,4 +249,4 @@ class MeprGroupsHelper
 
         return ob_get_clean();
     }
-} //End class
+}

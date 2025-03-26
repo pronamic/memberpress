@@ -1,10 +1,7 @@
 <?php if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 } ?>
-<div id="mp-admin-header">
-  <img class="mp-logo" src="<?php echo esc_url(MEPR_BRAND_URL . '/images/logo.svg'); ?>" alt="MemberPress logo" />
-</div>
-<div id="help" class="mepr-support-wrapper">
+<div id="help" class="wrap mepr-support-wrapper">
   <h1 class="mepr-support-heading"><?php _e('Support', 'memberpress');?></h1>
   <h2 class="mepr-support-help"><?php _e('Frequently Asked Questions', 'memberpress');?></h2>
   <div class="mepr-support-help-wrapper">

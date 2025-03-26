@@ -2,12 +2,12 @@
 if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
-$show_welcome_image     = isset($atts['show_welcome_image']) ? $atts['show_welcome_image'] : $mepr_options->design_show_login_welcome_image;
-$welcome_image     = isset($atts['welcome_image']) ? $atts['welcome_image'] : wp_get_attachment_url($mepr_options->design_login_welcome_img);
-$admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
+$show_welcome_image = isset($atts['show_welcome_image']) ? $atts['show_welcome_image'] : $mepr_options->design_show_login_welcome_image;
+$welcome_image      = isset($atts['welcome_image']) ? $atts['welcome_image'] : wp_get_attachment_url($mepr_options->design_login_welcome_img);
+$admin_view         = isset($atts['admin_view']) ? $atts['admin_view'] : false;
 ?>
 
-<div id="mepro-login-hero" class="<?php $show_welcome_image ? esc_attr_e('with-sidebar', 'memberpress') : ''; ?>">
+<div id="mepro-login-hero" class="<?php echo $show_welcome_image ? 'with-sidebar' : ''; ?>">
   <div class="mepro-boxed">
     <div class="mepro-login-contents">
 
@@ -83,20 +83,18 @@ $admin_view = isset($atts['admin_view']) ? $atts['admin_view'] : false;
             <h1><?php echo _x('Login', 'ui', 'memberpress') ?></h1>
 
 
-            <?php /* nonce not necessary on this form seeing as the user isn't logged in yet */ ?>
+            <?php // nonce not necessary on this form seeing as the user isn't logged in yet ?>
             <div class="mp-form-row mepr_username">
               <div class="mp-form-label">
                 <?php $uname_or_email_str = MeprHooks::apply_filters('mepr-login-uname-or-email-str', _x('Username or E-mail', 'ui', 'memberpress')); ?>
                 <?php $uname_str = MeprHooks::apply_filters('mepr-login-uname-str', _x('Username', 'ui', 'memberpress')); ?>
                 <label for="user_login" class="screen-reader-text"><?php echo ($mepr_options->username_is_email) ? $uname_or_email_str : $uname_str; ?></label>
-                <?php /* <span class="cc-error"><?php _ex('Username Required', 'ui', 'memberpress'); ?></span> */ ?>
               </div>
               <input type="text" name="log" placeholder="<?php _ex('Username (email)', 'ui', 'memberpress'); ?>" id="user_login" value="<?php echo (isset($_REQUEST['log']) ? esc_html(stripcslashes($_REQUEST['log'])) : ''); ?>" />
             </div>
             <div class="mp-form-row mepr_password">
               <div class="mp-form-label">
                 <label for="user_pass" class="screen-reader-text"><?php _ex('Password', 'ui', 'memberpress'); ?></label>
-                <?php /* <span class="cc-error"><?php _ex('Password Required', 'ui', 'memberpress'); ?></span> */ ?>
                 <div class="mp-hide-pw">
                   <input type="password" name="pwd" placeholder="<?php _ex('Password', 'ui', 'memberpress'); ?>" id="user_pass" value="" />
                   <button type="button" class="button link mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password', 'memberpress'); ?>">

@@ -13,24 +13,41 @@ class MeprDrmHelper
     const DRM_MEDIUM = 'medium';
     const DRM_LOCKED = 'locked';
 
-    private static $drm_status = '';
-    private static $drm_links  = null;
+    private static $drm_status     = '';
+    private static $drm_links      = null;
     private static $fallback_links = [
         'account' => 'https://memberpress.com/account/',
         'support' => 'https://memberpress.com/support/',
         'pricing' => 'https://memberpress.com/pricing/',
     ];
 
+    /**
+     * Set the DRM status.
+     *
+     * @param string $status The DRM status to set.
+     *
+     * @return void
+     */
     public static function set_status($status)
     {
         self::$drm_status = $status;
     }
 
+    /**
+     * Get the current DRM status.
+     *
+     * @return string The current DRM status.
+     */
     public static function get_status()
     {
         return self::$drm_status;
     }
 
+    /**
+     * Check if a license key exists.
+     *
+     * @return boolean True if a license key exists, false otherwise.
+     */
     public static function has_key()
     {
         $mepr_options = MeprOptions::fetch();
@@ -41,6 +58,11 @@ class MeprDrmHelper
         return ! empty($key);
     }
 
+    /**
+     * Get the license key.
+     *
+     * @return string The license key.
+     */
     public static function get_key()
     {
         $mepr_options = MeprOptions::fetch();
@@ -51,6 +73,11 @@ class MeprDrmHelper
         return $key;
     }
 
+    /**
+     * Check if activation override is valid.
+     *
+     * @return boolean True if activation override is valid, false otherwise.
+     */
     public static function is_aov()
     {
         $aov = get_option('mepr_activation_override');
@@ -62,6 +89,11 @@ class MeprDrmHelper
         return false;
     }
 
+    /**
+     * Check if the license is valid.
+     *
+     * @return boolean True if the license is valid, false otherwise.
+     */
     public static function is_valid()
     {
 
@@ -98,6 +130,13 @@ class MeprDrmHelper
         return false; // invalid license.
     }
 
+    /**
+     * Calculate the number of days elapsed since a given date.
+     *
+     * @param string $created_at The date to calculate from.
+     *
+     * @return integer The number of days elapsed.
+     */
     public static function days_elapsed($created_at)
     {
 
@@ -115,6 +154,13 @@ class MeprDrmHelper
     }
 
 
+    /**
+     * Determine the DRM status, using a default if not provided.
+     *
+     * @param string $drm_status The DRM status to check.
+     *
+     * @return string The determined DRM status.
+     */
     protected static function maybe_drm_status($drm_status = '')
     {
         if (empty($drm_status)) {
@@ -124,21 +170,51 @@ class MeprDrmHelper
         return $drm_status;
     }
 
+    /**
+     * Check if the DRM status is locked.
+     *
+     * @param string $drm_status The DRM status to check.
+     *
+     * @return boolean True if the DRM status is locked, false otherwise.
+     */
     public static function is_locked($drm_status = '')
     {
         return ( self::DRM_LOCKED === self::maybe_drm_status($drm_status) );
     }
 
+    /**
+     * Check if the DRM status is medium.
+     *
+     * @param string $drm_status The DRM status to check.
+     *
+     * @return boolean True if the DRM status is medium, false otherwise.
+     */
     public static function is_medium($drm_status = '')
     {
         return ( self::DRM_MEDIUM === self::maybe_drm_status($drm_status) );
     }
 
+    /**
+     * Check if the DRM status is low.
+     *
+     * @param string $drm_status The DRM status to check.
+     *
+     * @return boolean True if the DRM status is low, false otherwise.
+     */
     public static function is_low($drm_status = '')
     {
         return ( self::DRM_LOW === self::maybe_drm_status($drm_status) );
     }
 
+    /**
+     * Get DRM information based on status, event, and purpose.
+     *
+     * @param string $drm_status The DRM status.
+     * @param string $event_name The event name.
+     * @param string $purpose    The purpose of the information.
+     *
+     * @return array The DRM information.
+     */
     public static function get_info($drm_status, $event_name, $purpose)
     {
 
@@ -149,7 +225,7 @@ class MeprDrmHelper
                 break;
             case self::INVALID_LICENSE_EVENT:
                 $drm_info = self::drm_info_invalid_license($drm_status, $purpose);
-                $out = MeprHooks::apply_filters('mepr_drm_invalid_license_info', $drm_info, $drm_status);
+                $out      = MeprHooks::apply_filters('mepr_drm_invalid_license_info', $drm_info, $drm_status);
                 break;
             default:
         }
@@ -157,6 +233,13 @@ class MeprDrmHelper
         return $out;
     }
 
+    /**
+     * Get the status key for a given DRM status.
+     *
+     * @param string $drm_status The DRM status.
+     *
+     * @return string The status key.
+     */
     public static function get_status_key($drm_status)
     {
 
@@ -177,6 +260,11 @@ class MeprDrmHelper
         return $out;
     }
 
+    /**
+     * Get the DRM links.
+     *
+     * @return array The DRM links.
+     */
     protected static function get_drm_links()
     {
 
@@ -230,6 +318,15 @@ class MeprDrmHelper
         return MeprHooks::apply_filters('mepr_drm_links', self::$drm_links);
     }
 
+    /**
+     * Get a specific DRM link based on status, purpose, and type.
+     *
+     * @param string $drm_status The DRM status.
+     * @param string $purpose    The purpose of the link.
+     * @param string $type       The type of link.
+     *
+     * @return string The DRM link.
+     */
     public static function get_drm_link($drm_status, $purpose, $type)
     {
         $drm_links = self::get_drm_links();
@@ -254,12 +351,20 @@ class MeprDrmHelper
         return '';
     }
 
+    /**
+     * Get DRM information for no license event.
+     *
+     * @param string $drm_status The DRM status.
+     * @param string $purpose    The purpose of the information.
+     *
+     * @return array The DRM information for no license event.
+     */
     protected static function drm_info_no_license($drm_status, $purpose)
     {
 
-        $account_link = self::get_drm_link($drm_status, $purpose, 'account');
-        $support_link = self::get_drm_link($drm_status, $purpose, 'support');
-        $pricing_link = self::get_drm_link($drm_status, $purpose, 'pricing');
+        $account_link            = self::get_drm_link($drm_status, $purpose, 'account');
+        $support_link            = self::get_drm_link($drm_status, $purpose, 'support');
+        $pricing_link            = self::get_drm_link($drm_status, $purpose, 'pricing');
         $additional_instructions = sprintf(
             __('This is an automated message from %s.', 'memberpress'),
             esc_url(home_url())
@@ -314,26 +419,34 @@ class MeprDrmHelper
                 );
                 break;
             default:
-                $heading           = '';
-                $color             = '';
-                $message           = '';
-                $help_message      = '';
-                $label             = '';
-                $activation_link   = '';
-                $admin_notice_view = '';
-                $simple_message    = '';
+                $heading                 = '';
+                $color                   = '';
+                $message                 = '';
+                $help_message            = '';
+                $label                   = '';
+                $activation_link         = '';
+                $admin_notice_view       = '';
+                $simple_message          = '';
                 $additional_instructions = '';
         }
 
         return compact('heading', 'color', 'message', 'simple_message', 'help_message', 'label', 'activation_link', 'account_link', 'support_link', 'pricing_link', 'admin_notice_view', 'additional_instructions');
     }
 
+    /**
+     * Get DRM information for invalid license event.
+     *
+     * @param string $drm_status The DRM status.
+     * @param string $purpose    The purpose of the information.
+     *
+     * @return array The DRM information for invalid license event.
+     */
     protected static function drm_info_invalid_license($drm_status, $purpose)
     {
 
-        $account_link = self::get_drm_link($drm_status, $purpose, 'account');
-        $support_link = self::get_drm_link($drm_status, $purpose, 'support');
-        $pricing_link = self::get_drm_link($drm_status, $purpose, 'pricing');
+        $account_link            = self::get_drm_link($drm_status, $purpose, 'account');
+        $support_link            = self::get_drm_link($drm_status, $purpose, 'support');
+        $pricing_link            = self::get_drm_link($drm_status, $purpose, 'pricing');
         $additional_instructions = sprintf(
             __('This is an automated message from %1$s. If you continue getting these messages, please try deactivating and then re-activating your license key on %2$s.', 'memberpress'),
             esc_url(home_url()),
@@ -374,31 +487,53 @@ class MeprDrmHelper
                 $help_message      = __('We’re here to help you get things back up and running. Let us know if you need assistance.', 'memberpress');
                 break;
             default:
-                $heading           = '';
-                $color             = '';
-                $message           = '';
-                $help_message      = '';
-                $label             = '';
-                $activation_link   = '';
-                $admin_notice_view = '';
-                $simple_message    = '';
+                $heading                 = '';
+                $color                   = '';
+                $message                 = '';
+                $help_message            = '';
+                $label                   = '';
+                $activation_link         = '';
+                $admin_notice_view       = '';
+                $simple_message          = '';
                 $additional_instructions = '';
         }
 
         return compact('heading', 'color', 'message', 'simple_message', 'help_message', 'label', 'activation_link', 'account_link', 'support_link', 'admin_notice_view', 'pricing_link', 'additional_instructions');
     }
 
+    /**
+     * Parse event arguments from a JSON string.
+     *
+     * @param string $args The JSON string of arguments.
+     *
+     * @return array The parsed event arguments.
+     */
     public static function parse_event_args($args)
     {
         return json_decode($args, true);
     }
 
+    /**
+     * Prepare a dismissable notice key for a given notice.
+     *
+     * @param string $notice The notice identifier.
+     *
+     * @return string The dismissable notice key.
+     */
     public static function prepare_dismissable_notice_key($notice)
     {
         $notice = sanitize_key($notice);
         return "{$notice}_u" . get_current_user_id();
     }
 
+    /**
+     * Check if a notice is dismissed based on event data and notice key.
+     *
+     * @param array  $event_data The event data.
+     * @param string $notice_key The notice key.
+     *
+     * @return boolean True if the notice is dismissed, false otherwise.
+     */
     public static function is_dismissed($event_data, $notice_key)
     {
         if (isset($event_data[ $notice_key ])) {
@@ -411,14 +546,19 @@ class MeprDrmHelper
         return false;
     }
 
+    /**
+     * Get DRM transient fee data.
+     *
+     * @return array|false The DRM transient fee data or false if not available.
+     */
     public static function get_drm_transient_fee_data()
     {
-        $transient =  get_transient('mepr_drm_app_fee');
+        $transient      =  get_transient('mepr_drm_app_fee');
         $transient_data = false;
         if (!empty($transient) && strstr($transient, '|')) {
-            $data = explode('|', $transient);
+            $data           = explode('|', $transient);
             $transient_data = [
-                'v' => $data[0],
+                'v'       => $data[0],
                 'a99_f33' => $data[1],
             ];
         }
@@ -426,6 +566,11 @@ class MeprDrmHelper
         return $transient_data;
     }
 
+    /**
+     * Get the DRM application fee version.
+     *
+     * @return integer The DRM application fee version.
+     */
     public static function get_drm_app_fee_version()
     {
         $transient = self::get_drm_transient_fee_data();
@@ -436,6 +581,11 @@ class MeprDrmHelper
         return get_option('mepr_drm_application_fee_version', 0);
     }
 
+    /**
+     * Get the DRM transient application fee.
+     *
+     * @return string|false The DRM transient application fee or false if not available.
+     */
     private static function get_drm_transient_app_fee()
     {
         $transient = self::get_drm_transient_fee_data();
@@ -445,6 +595,13 @@ class MeprDrmHelper
         return false;
     }
 
+    /**
+     * Get the application fee percentage.
+     *
+     * @param boolean $bypass Whether to bypass the transient check.
+     *
+     * @return string The application fee percentage.
+     */
     public static function get_application_fee_percentage($bypass = false)
     {
         $app_fee = self::get_drm_transient_app_fee();
@@ -465,13 +622,14 @@ class MeprDrmHelper
             'MEMBERPRESS-DR7-KEY' => 'BAY074X4F4C8UUARHZMV',
         ], $url);
 
-        $api_response = wp_remote_get($url, $args);
-        $fee_percentage = apply_filters('mepr_drm_application_fee_percentage', 3);
+        $api_response    = wp_remote_get($url, $args);
+        $fee_percentage  = apply_filters('mepr_drm_application_fee_percentage', 3);
         $current_version = get_option('mepr_drm_application_fee_version', 0);
-        $transient_data = $current_version . '|' . $fee_percentage;
+        $transient_data  = $current_version . '|' . $fee_percentage;
 
         if (!is_wp_error($api_response)) {
-            if (null !== ($data = json_decode($api_response['body'], true))) {
+            $data = json_decode($api_response['body'], true);
+            if (null !== $data) {
                 if (isset($data['v'])) {
                     $fee_percentage = base64_decode($data['a99_f33']);
                     $transient_data = $data['v'] . '|' . $fee_percentage;
@@ -485,21 +643,41 @@ class MeprDrmHelper
         return $fee_percentage;
     }
 
+    /**
+     * Check if the application fee is enabled.
+     *
+     * @return boolean True if the application fee is enabled, false otherwise.
+     */
     public static function is_app_fee_enabled()
     {
         return get_option('mepr_drm_app_fee_enabled', false);
     }
 
+    /**
+     * Enable the application fee.
+     *
+     * @return boolean True on success, false on failure.
+     */
     public static function enable_app_fee()
     {
         return update_option('mepr_drm_app_fee_enabled', time(), false);
     }
 
+    /**
+     * Disable the application fee.
+     *
+     * @return boolean True on success, false on failure.
+     */
     public static function disable_app_fee()
     {
         return delete_option('mepr_drm_app_fee_enabled');
     }
 
+    /**
+     * Check if the application fee notice is dismissed.
+     *
+     * @return boolean True if the notice is dismissed, false otherwise.
+     */
     public static function is_app_fee_notice_dismissed()
     {
         $dimissed_time = get_option('mepr_drm_app_fee_notice_dimissed', false);
@@ -514,8 +692,13 @@ class MeprDrmHelper
         return false;
     }
 
+    /**
+     * Dismiss the application fee notice.
+     *
+     * @return boolean True on success, false on failure.
+     */
     public static function dismiss_app_fee_notice()
     {
         return update_option('mepr_drm_app_fee_notice_dimissed', time(), false);
     }
-} //End class
+}

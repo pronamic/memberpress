@@ -6,14 +6,21 @@ if (!defined('ABSPATH')) {
 
 class MeprCouponsHelper
 {
+    /**
+     * Displays the products dropdown.
+     *
+     * @param  string $field_name The field name.
+     * @param  array  $access     The access.
+     * @return void
+     */
     public static function products_dropdown($field_name, $access = [])
     {
-        $access = is_array($access) ? $access : [];
+        $access   = is_array($access) ? $access : [];
         $contents = [];
 
         $posts = MeprCptModel::all('MeprProduct', false, [
             'orderby' => 'title',
-            'order' => 'ASC',
+            'order'   => 'ASC',
         ]);
 
         foreach ($posts as $post) {
@@ -33,6 +40,12 @@ class MeprCouponsHelper
         <?php
     }
 
+    /**
+     * Displays the months options.
+     *
+     * @param  integer $ts The timestamp.
+     * @return void
+     */
     public static function months_options($ts)
     {
         if ($ts <= 0) {
@@ -61,6 +74,12 @@ class MeprCouponsHelper
         endforeach;
     }
 
+    /**
+     * Shows the coupon field link content.
+     *
+     * @param  string $coupon_code The coupon code.
+     * @return string
+     */
     public static function show_coupon_field_link_content($coupon_code)
     {
         $content = '';
@@ -75,13 +94,14 @@ class MeprCouponsHelper
     /**
      * Formats the coupon amount for invoice table
      *
-     * @param  string $amount
+     * @param  string $amount The amount.
      * @return float
      */
     public static function format_coupon_amount($amount)
     {
         return -( $amount );
     }
+
     /**
      * Convert UTC timestamp to coupon selected timestamp.
      *
@@ -93,20 +113,21 @@ class MeprCouponsHelper
     public static function convert_timestamp_to_tz($timestamp, $selected_timezone)
     {
         if (!empty($selected_timezone) && !empty($timestamp)) {
-            $utc_datetime = MeprUtils::ts_to_mysql_date($timestamp);
+            $utc_datetime     = MeprUtils::ts_to_mysql_date($timestamp);
             $is_manual_offset = self::check_if_manual_offset($selected_timezone);
             if ($is_manual_offset) {
                 $selected_timezone = self::convert_offset_to_timezone_string($selected_timezone);
             }
             try {
                 $local_datetime = new DateTime($utc_datetime, new DateTimeZone($selected_timezone));
-                $timestamp = $local_datetime->getTimestamp();
+                $timestamp      = $local_datetime->getTimestamp();
             } catch (Exception $e) {
                 // Ignore, send the GMT timestamp.
             }
         }
         return MeprHooks::apply_filters('mepr_coupon_converted_timestamp_to_tz', $timestamp, $selected_timezone);
     }
+
     /**
      * Check if the passed timezone is a manual offset.
      *
@@ -121,6 +142,7 @@ class MeprCouponsHelper
         }
         return true;
     }
+
     /**
      * Convert offset to PHP accepted timezone.
      *
@@ -137,12 +159,13 @@ class MeprCouponsHelper
         if (empty($offset)) {
             return 'UTC';
         }
-        $sign = ($offset < 0) ? '-' : '+';
+        $sign       = ($offset < 0) ? '-' : '+';
         $abs_offset = abs($offset);
-        $hours = floor($abs_offset);
-        $minutes = round(($abs_offset - $hours) * 60);
+        $hours      = floor($abs_offset);
+        $minutes    = round(($abs_offset - $hours) * 60);
         return sprintf('%s%02d:%02d', $sign, $hours, $minutes);
     }
+
     /**
      * Get WP Selected timezone setting.
      *
@@ -150,7 +173,7 @@ class MeprCouponsHelper
      */
     public static function get_wp_selected_timezone_setting()
     {
-        $current_offset = get_option('gmt_offset');
+        $current_offset       = get_option('gmt_offset');
         $wp_selected_timezone = get_option('timezone_string');
 
         // Remove old Etc mappings. Fallback to gmt_offset.
@@ -168,6 +191,7 @@ class MeprCouponsHelper
         }
         return $wp_selected_timezone;
     }
+
     /**
      * Get time frame condition.
      *
@@ -190,6 +214,7 @@ class MeprCouponsHelper
         }
         return $date_query;
     }
+
     /**
      * List of available time frames.
      */

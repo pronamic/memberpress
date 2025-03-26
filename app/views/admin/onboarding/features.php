@@ -2,7 +2,7 @@
     die('You are not allowed to call this page directly.');
 } ?>
 <?php
-$features = MeprOnboardingHelper::get_selected_features(get_current_user_id());
+$features          = MeprOnboardingHelper::get_selected_features(get_current_user_id());
 $addons_selectable = MeprOnboardingHelper::features_addons_selectable_list();
 ?>
 <h2 class="mepr-wizard-step-title"><?php esc_html_e('What features do you want to enable?', 'memberpress'); ?></h2>

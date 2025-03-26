@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprAddonsCtrl extends MeprBaseCtrl
 {
+    /**
+     * Loads the hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
@@ -16,16 +21,27 @@ class MeprAddonsCtrl extends MeprBaseCtrl
         add_filter('monsterinsights_shareasale_id', [$this, 'monsterinsights_shareasale_id']);
     }
 
+    /**
+     * Routes the request.
+     *
+     * @return void
+     */
     public static function route()
     {
-        $force = isset($_GET['refresh']) && $_GET['refresh'] == 'true';
-        $addons = MeprUpdateCtrl::addons(true, $force, true);
+        $force   = isset($_GET['refresh']) && $_GET['refresh'] == 'true';
+        $addons  = MeprUpdateCtrl::addons(true, $force, true);
         $plugins = get_plugins();
         wp_cache_delete('plugins', 'plugins');
 
         MeprView::render('/admin/addons/ui', get_defined_vars());
     }
 
+    /**
+     * Enqueues the scripts.
+     *
+     * @param  string $hook The hook.
+     * @return void
+     */
     public function enqueue_scripts($hook)
     {
         if (preg_match('/_page_memberpress-addons$/', $hook)) {
@@ -35,13 +51,13 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             wp_enqueue_script('mepr-addons-js', MEPR_JS_URL . '/admin_addons.js', ['list-js', 'jquery-match-height'], MEPR_VERSION);
 
             wp_localize_script('mepr-addons-js', 'MeprAddons', [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('mepr_addons'),
-                'active' => __('Active', 'memberpress'),
-                'inactive' => __('Inactive', 'memberpress'),
-                'activate' => __('Activate', 'memberpress'),
-                'deactivate' => __('Deactivate', 'memberpress'),
-                'install_failed' => __('Could not install add-on. Please download from memberpress.com and install manually.', 'memberpress'),
+                'ajax_url'              => admin_url('admin-ajax.php'),
+                'nonce'                 => wp_create_nonce('mepr_addons'),
+                'active'                => __('Active', 'memberpress'),
+                'inactive'              => __('Inactive', 'memberpress'),
+                'activate'              => __('Activate', 'memberpress'),
+                'deactivate'            => __('Deactivate', 'memberpress'),
+                'install_failed'        => __('Could not install add-on. Please download from memberpress.com and install manually.', 'memberpress'),
                 'plugin_install_failed' => __('Could not install plugin. Please download and install manually.', 'memberpress'),
             ]);
         }
@@ -51,14 +67,19 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             wp_enqueue_script('mepr-sister-plugin-js', MEPR_JS_URL . '/admin_sister_plugin.js', [], MEPR_VERSION);
 
             wp_localize_script('mepr-sister-plugin-js', 'MeprSisterPlugin', [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('mepr_addons'),
-                'install_failed' => __('Could not install plugin. Please download and install manually.', 'memberpress'),
+                'ajax_url'                => admin_url('admin-ajax.php'),
+                'nonce'                   => wp_create_nonce('mepr_addons'),
+                'install_failed'          => __('Could not install plugin. Please download and install manually.', 'memberpress'),
                 'installed_and_activated' => __('Installed & Activated', 'memberpress'),
             ]);
         }
     }
 
+    /**
+     * Ajax addon activate.
+     *
+     * @return void
+     */
     public function ajax_addon_activate()
     {
         if (!isset($_POST['plugin'])) {
@@ -74,7 +95,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
         }
 
         $result = activate_plugins(wp_unslash($_POST['plugin']));
-        $type = isset($_POST['type']) ? sanitize_key($_POST['type']) : 'add-on';
+        $type   = isset($_POST['type']) ? sanitize_key($_POST['type']) : 'add-on';
 
         if (is_wp_error($result)) {
             if ($type == 'plugin') {
@@ -91,6 +112,11 @@ class MeprAddonsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Ajax addon deactivate.
+     *
+     * @return void
+     */
     public function ajax_addon_deactivate()
     {
         if (!isset($_POST['plugin'])) {
@@ -115,6 +141,11 @@ class MeprAddonsCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Ajax addon install.
+     *
+     * @return void
+     */
     public function ajax_addon_install()
     {
         if (!isset($_POST['plugin'])) {
@@ -192,7 +223,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
 
             if (!is_wp_error($activated)) {
                 if (isset($_POST['config']) && is_array($_POST['config'])) {
-                    $slug = isset($_POST['config']['slug']) && is_string($_POST['config']['slug']) ? wp_unslash($_POST['config']['slug']) : '';
+                    $slug        = isset($_POST['config']['slug']) && is_string($_POST['config']['slug']) ? wp_unslash($_POST['config']['slug']) : '';
                     $license_key = isset($_POST['config']['license_key']) && is_string($_POST['config']['license_key']) ? sanitize_text_field(wp_unslash($_POST['config']['license_key'])) : '';
 
                     if (
@@ -203,10 +234,10 @@ class MeprAddonsCtrl extends MeprBaseCtrl
                         class_exists('EasyAffiliate\\Lib\\Utils')
                     ) {
                         try {
-                            $options = \EasyAffiliate\Models\Options::fetch();
+                            $options                     = \EasyAffiliate\Models\Options::fetch();
                             $options->mothership_license = $license_key;
-                            $domain = urlencode(\EasyAffiliate\Lib\Utils::site_domain());
-                            $args = compact('domain');
+                            $domain                      = urlencode(\EasyAffiliate\Lib\Utils::site_domain());
+                            $args                        = compact('domain');
                             \EasyAffiliate\Controllers\UpdateCtrl::send_mothership_request("/license_keys/activate/{$options->mothership_license}", $args, 'post');
                             $options->store();
                             \EasyAffiliate\Controllers\UpdateCtrl::manually_queue_update();
@@ -244,7 +275,8 @@ class MeprAddonsCtrl extends MeprBaseCtrl
     /**
      * Returns current plugin info.
      *
-     * @return string Plugin info
+     * @param  string $main_file The main file.
+     * @return string
      */
     public function curr_plugin_info($main_file)
     {
@@ -266,6 +298,12 @@ class MeprAddonsCtrl extends MeprBaseCtrl
         return '';
     }
 
+    /**
+     * Monsterinsights shareasale id.
+     *
+     * @param  string $id The id.
+     * @return string
+     */
     public function monsterinsights_shareasale_id($id)
     {
         if (get_option('memberpress_installed_monsterinsights')) {
@@ -275,6 +313,12 @@ class MeprAddonsCtrl extends MeprBaseCtrl
         return $id;
     }
 
+    /**
+     * SMTP affiliate link.
+     *
+     * @param  string $link The link.
+     * @return string
+     */
     public function smtp_affiliate_link($link)
     {
         if (get_option('memberpress_installed_wp_mail_smtp')) {
@@ -284,26 +328,31 @@ class MeprAddonsCtrl extends MeprBaseCtrl
         return $link;
     }
 
+    /**
+     * Affiliates.
+     *
+     * @return void
+     */
     public static function affiliates()
     {
         $installer_data = [
             'return_url' => admin_url('admin.php?page=memberpress-affiliates'),
-            'nonce' => wp_create_nonce('mepr_easy_affiliate_installer'),
+            'nonce'      => wp_create_nonce('mepr_easy_affiliate_installer'),
         ];
 
         $installer_data = wp_json_encode($installer_data);
         $installer_data = rtrim(strtr(base64_encode($installer_data), '+/', '-_'), '=');
-        $installer_url = 'https://easyaffiliate.com/installer/' . $installer_data;
+        $installer_url  = 'https://easyaffiliate.com/installer/' . $installer_data;
 
         $plugin = [
-            'active' => defined('ESAF_VERSION'),
-            'installed' => is_dir(WP_PLUGIN_DIR . '/easy-affiliate'),
-            'installer_url' => $installer_url,
-            'auto_install' => false,
-            'url' => '',
-            'license_key' => '',
-            'slug' => 'easy-affiliate/easy-affiliate.php',
-            'activate_button_text' => __('Activate Easy Affiliate', 'memberpress'),
+            'active'                => defined('ESAF_VERSION'),
+            'installed'             => is_dir(WP_PLUGIN_DIR . '/easy-affiliate'),
+            'installer_url'         => $installer_url,
+            'auto_install'          => false,
+            'url'                   => '',
+            'license_key'           => '',
+            'slug'                  => 'easy-affiliate/easy-affiliate.php',
+            'activate_button_text'  => __('Activate Easy Affiliate', 'memberpress'),
             'next_step_button_html' => sprintf(
                 '<a href="%s" class="button button-primary button-hero">%s</a>',
                 esc_url(admin_url('admin.php?page=easy-affiliate-onboarding')),
@@ -318,8 +367,8 @@ class MeprAddonsCtrl extends MeprBaseCtrl
 
             if (is_array($data) && isset($data['license_key'], $data['download_url'], $data['nonce']) && wp_verify_nonce($data['nonce'], 'mepr_easy_affiliate_installer')) {
                 $plugin['auto_install'] = true;
-                $plugin['url'] = $data['download_url'];
-                $plugin['license_key'] = $data['license_key'];
+                $plugin['url']          = $data['download_url'];
+                $plugin['license_key']  = $data['license_key'];
             }
         }
 

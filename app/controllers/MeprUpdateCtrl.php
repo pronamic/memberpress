@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprUpdateCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load hooks for the update controller.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_filter('auto_update_plugin', 'MeprUpdateCtrl::automatic_updates', 10, 2);
@@ -29,6 +34,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         add_action('admin_menu', 'MeprUpdateCtrl::admin_menu', 50);
     }
 
+    /**
+     * Dismiss an admin notice.
+     *
+     * @return void
+     */
     public static function dismiss_admin_notice()
     {
 
@@ -36,13 +46,18 @@ class MeprUpdateCtrl extends MeprBaseCtrl
             die();
         }
 
-        $dismissed_admin_notices = get_option('mp_dismissed_admin_notices', []);
+        $dismissed_admin_notices   = get_option('mp_dismissed_admin_notices', []);
         $dismissed_admin_notices[] = sanitize_text_field($_POST['notice_id']);
 
         update_option('mp_dismissed_admin_notices', $dismissed_admin_notices);
         wp_send_json_success([], 201);
     }
 
+    /**
+     * Display promotional upgrade notices.
+     *
+     * @return void
+     */
     public static function promo_upgrade_notices()
     {
 
@@ -51,7 +66,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         }
 
         // Set an identifier for this notice
-        $notice_id = 'mp_dc_22';
+        $notice_id               = 'mp_dc_22';
         $dismissed_admin_notices = get_option('mp_dismissed_admin_notices', []);
 
         // This notice has already been dismissed
@@ -71,9 +86,9 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         }
 
         // Default
-        $link = '';
-        $heading = 'Monetize & Save!';
-        $message = 'Ready, Set, CONNECT💥Add a Forum to MemberPress 👉 Monetize Your Discord 👉 GROW Your Business w/ This New FREE Add-On';
+        $link        = '';
+        $heading     = 'Monetize & Save!';
+        $message     = 'Ready, Set, CONNECT💥Add a Forum to MemberPress 👉 Monetize Your Discord 👉 GROW Your Business w/ This New FREE Add-On';
         $button_text = '👉 LEARN MORE 👈';
 
         if (empty($link)) {
@@ -83,6 +98,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         MeprView::render('/admin/admin-notification', get_defined_vars());
     }
 
+    /**
+     * Add a custom admin menu item.
+     *
+     * @return void
+     */
     public static function admin_menu()
     {
         // Create an official rollback page in the fashion of WordPress' built in upgrader
@@ -91,16 +111,26 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Display the options for the update controller.
+     *
+     * @return void
+     */
     public function display_options()
     {
         $mepr_options = MeprOptions::fetch();
         MeprView::render('admin/auto-updates/option', get_defined_vars());
     }
 
+    /**
+     * Store the options for the update controller.
+     *
+     * @return void
+     */
     public function store_options()
     {
-        $mepr_options = MeprOptions::fetch();
-        $name = $mepr_options->auto_updates_str;
+        $mepr_options               = MeprOptions::fetch();
+        $name                       = $mepr_options->auto_updates_str;
         $mepr_options->auto_updates = isset($_POST[$name]) ? sanitize_text_field($_POST[$name]) : false;
         $mepr_options->store(false);
     }
@@ -122,11 +152,10 @@ class MeprUpdateCtrl extends MeprBaseCtrl
      * Filters the auto update plugin routine to allow MemberPress to be
      * automatically updated.
      *
-     * @param  bool    $update   Flag to update the plugin or not.
-     * @param  array   $item     Update data about a specific plugin.
-     * @return bool   $update   The new update state.
-     */
-    /**
+     * @param  boolean $update Flag to update the plugin or not.
+     * @param  array   $item   Update data about a specific plugin.
+     * @return boolean   $update   The new update state.
+     *
      * Notes about autoupdater:
      * This runs on the normal WordPress auto-update sequence:
      * 1. In wp-includes/update.php, wp_version_check() is called by the WordPress update cron (every 8 or 12 hours; can be overriden to be faster/long or turned off by plugins)
@@ -167,7 +196,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
         // If the plugin isn't ours, return early.
         $is_memberpress = 'memberpress' === $item['slug'];
-        $is_addon = isset($item['slug']) && 0 === strpos($item['slug'], 'memberpress-'); // see updater class
+        $is_addon      = isset($item['slug']) && 0 === strpos($item['slug'], 'memberpress-'); // see updater class
         if (! $is_memberpress && ! $is_addon) {
             return $update;
         }
@@ -198,6 +227,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         return $update;
     }
 
+    /**
+     * Rollback the MemberPress plugin to a previous version.
+     *
+     * @return void
+     */
     public static function rollback()
     {
         // Ensure the rollback is valid
@@ -225,26 +259,41 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         $plugin  = MEPR_PLUGIN_NAME;
         $version = $info['curr_version'];
 
-        $upgrader = new WP_Rollback_MemberPress_Upgrader(
+        $upgrader = new WPRollbackMembercoreUpgrader(
             new Plugin_Upgrader_Skin(compact('title', 'nonce', 'url', 'plugin', 'version'))
         );
 
         $upgrader->rollback($info);
     }
 
+    /**
+     * Get the URL for the rollback page.
+     *
+     * @return string The rollback URL.
+     */
     public static function rollback_url()
     {
         $nonce = wp_create_nonce('mepr_rollback_nonce');
         return admin_url("index.php?page=mepr-rollback&_wpnonce={$nonce}");
     }
 
+    /**
+     * Check if the MemberPress plugin is activated.
+     *
+     * @return boolean True if activated, false otherwise.
+     */
     public static function is_activated()
     {
         $mepr_options = MeprOptions::fetch();
-        $activated = get_option('mepr_activated');
+        $activated    = get_option('mepr_activated');
         return (!empty($mepr_options->mothership_license) && !empty($activated));
     }
 
+    /**
+     * Check the license activation status.
+     *
+     * @return void
+     */
     public static function check_license_activation()
     {
         $aov = get_option('mepr_activation_override');
@@ -274,7 +323,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         set_site_transient($option_key, true, MeprUtils::hours($check_count > 3 ? 72 : 24));
 
         $domain = urlencode(MeprUtils::site_domain());
-        $args = compact('domain');
+        $args   = compact('domain');
 
         try {
             $act = self::send_mothership_request("/license_keys/check/{$mepr_options->mothership_license}", $args);
@@ -311,6 +360,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Activate the license if not already activated.
+     *
+     * @return void
+     */
     public static function maybe_activate()
     {
         $activated = get_option('mepr_activated');
@@ -320,6 +374,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Activate the license from a defined constant.
+     *
+     * @return void
+     */
     public static function activate_from_define()
     {
         $mepr_options = MeprOptions::fetch();
@@ -332,20 +391,20 @@ class MeprUpdateCtrl extends MeprBaseCtrl
                 }
 
                 // If we're using defines then we have to do this with defines too
-                $mepr_options = MeprOptions::fetch();
+                $mepr_options               = MeprOptions::fetch();
                 $mepr_options->edge_updates = false;
                 $mepr_options->store(false);
 
                 $act = self::activate_license(MEMBERPRESS_LICENSE_KEY);
 
-                $message = $act['message'];
-                $view = '/admin/errors';
+                $message  = $act['message'];
+                $view     = '/admin/errors';
                 $callback = function () use ($view, $message) {
                     return MeprView::render($view, compact('message'));
                 };
             } catch (Exception $e) {
-                $view = '/admin/update/activation_warning';
-                $error = $e->getMessage();
+                $view     = '/admin/update/activation_warning';
+                $error    = $e->getMessage();
                 $callback = function () use ($view, $error) {
                     return MeprView::render($view, compact('error'));
                 };
@@ -367,7 +426,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         $args = [
-            'domain' => urlencode(MeprUtils::site_domain()),
+            'domain'  => urlencode(MeprUtils::site_domain()),
             'product' => MEPR_EDITION,
         ];
 
@@ -403,8 +462,8 @@ class MeprUpdateCtrl extends MeprBaseCtrl
     public static function deactivate_license()
     {
         $mepr_options = MeprOptions::fetch();
-        $license_key = $mepr_options->mothership_license;
-        $act = ['message' => __('License key deactivated', 'memberpress')];
+        $license_key  = $mepr_options->mothership_license;
+        $act          = ['message' => __('License key deactivated', 'memberpress')];
 
         if (!empty($mepr_options->mothership_license)) {
             try {
@@ -444,6 +503,15 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         return $act;
     }
 
+    /**
+     * Queue an update for the MemberPress plugin.
+     *
+     * @param object  $transient The update transient.
+     * @param boolean $force     Optional. Whether to force the update. Default false.
+     * @param boolean $rollback  Optional. Whether to rollback the update. Default false.
+     *
+     * @return object The modified update transient.
+     */
     public static function queue_update($transient, $force = false, $rollback = false)
     {
         if (empty($transient) || !is_object($transient)) {
@@ -472,7 +540,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
             } else {
                 try {
                     $domain = urlencode(MeprUtils::site_domain());
-                    $args = compact('domain');
+                    $args   = compact('domain');
 
                     if ($mepr_options->edge_updates || ( defined('MEMBERPRESS_EDGE') && MEMBERPRESS_EDGE )) {
                         $args['edge'] = 'true';
@@ -480,7 +548,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
                     if ($rollback) {
                         $args['curr_version'] = MEPR_VERSION;
-                        $args['rollback'] = 'true';
+                        $args['rollback']     = 'true';
                     }
 
                     $license_info = self::send_mothership_request("/versions/info/{$mepr_options->mothership_license}", $args, 'post');
@@ -542,12 +610,22 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         return $transient;
     }
 
+    /**
+     * Manually queue an update for the MemberPress plugin.
+     *
+     * @return void
+     */
     public static function manually_queue_update()
     {
         $transient = get_site_transient('update_plugins');
         set_site_transient('update_plugins', self::queue_update($transient, true));
     }
 
+    /**
+     * Display the queue update button.
+     *
+     * @return void
+     */
     public static function queue_button()
     {
         ?>
@@ -555,7 +633,14 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         <?php
     }
 
-    // Return up-to-date addon info for memberpress & its addons
+    /**
+     * Return up-to-date addon info for memberpress & its addons
+     *
+     * @param  object $api    The API object.
+     * @param  string $action The action.
+     * @param  array  $args   The arguments.
+     * @return object The API object.
+     */
     public static function plugin_info($api, $action, $args)
     {
         global $wp_version;
@@ -573,8 +658,8 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
         if ($args->slug === 'memberpress') {
             $mothership_slug = MEPR_EDITION;
-            $display_name = MEPR_DISPLAY_NAME;
-            $description = '
+            $display_name    = MEPR_DISPLAY_NAME;
+            $description     = '
         <h3>The "All-In-One" Membership Plugin for WordPress</h3>
         <p>
           MemberPress will help you build astounding WordPress membership sites, accept credit cards securely, control who sees your content, and sell digital downloads ... all without the difficult setup.
@@ -586,18 +671,18 @@ class MeprUpdateCtrl extends MeprBaseCtrl
           With MemberPress you’ll be able to create powerful and compelling WordPress membership sites that leverage all of the great features of WordPress, WordPress plugins and other 3rd party services including content management, forums, and social communities.
         </p>
       ';
-            $faq = 'You can read more about how to use MemberPress by visiting <a href="https://memberpress.com/user-manual/">the user manual</a>.';
-            $changelog = 'You can read more about the latest changes to MemberPress by visiting <a href="https://memberpress.com/change-log/">the change log</a>';
+            $faq             = 'You can read more about how to use MemberPress by visiting <a href="https://memberpress.com/user-manual/">the user manual</a>.';
+            $changelog       = 'You can read more about the latest changes to MemberPress by visiting <a href="https://memberpress.com/change-log/">the change log</a>';
         } else {
             $mothership_slug = $args->slug;
-            $faq = 'You can read more about MemberPress Add-Ons by visiting <a href="https://docs.memberpress.com/category/19-addons">the user manual</a>.';
-            $addon_info = self::mepr_addon_info($args->slug);
+            $faq             = 'You can read more about MemberPress Add-Ons by visiting <a href="https://docs.memberpress.com/category/19-addons">the user manual</a>.';
+            $addon_info      = self::mepr_addon_info($args->slug);
             if (!empty($addon_info)) {
                 $display_name = $addon_info['Name'];
-                $description = $addon_info['Description'];
+                $description  = $addon_info['Description'];
             } else {
                 $display_name = 'MemberPress Add-On';
-                $description = 'MemberPress Add-On';
+                $description  = 'MemberPress Add-On';
             }
             if (
                 in_array($display_name, [
@@ -610,7 +695,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
                 ])
             ) {
                 $plugin_slug = ($args->slug === 'memberpress-courses') ? 'memberpress-courses' : str_replace('memberpress', '', $addon_info['TextDomain']);
-                $changelog = "You can read more about the latest changes to $display_name by visiting <a href=\"https://memberpress.com/add-ons/$plugin_slug/\">the change log</a>";
+                $changelog   = "You can read more about the latest changes to $display_name by visiting <a href=\"https://memberpress.com/add-ons/$plugin_slug/\">the change log</a>";
             }
         }
 
@@ -626,41 +711,41 @@ class MeprUpdateCtrl extends MeprBaseCtrl
                 $version_info = self::send_mothership_request("/versions/latest/{$mothership_slug}", $mothership_args);
             } else {
                 $mothership_args['domain'] = urlencode(MeprUtils::site_domain());
-                $version_info = self::send_mothership_request("/versions/info/{$mothership_slug}/{$mepr_options->mothership_license}", $mothership_args);
-                $download_url = $version_info['url'];
+                $version_info              = self::send_mothership_request("/versions/info/{$mothership_slug}/{$mepr_options->mothership_license}", $mothership_args);
+                $download_url              = $version_info['url'];
             }
         } catch (Exception $e) {
             MeprUtils::debug_log($e->getMessage());
             $version_info = [
-                'version' => '',
+                'version'      => '',
                 'version_date' => '',
             ];
         }
         $plugin_info = [
-            'slug' => $args->slug,
-            'name' => $display_name,
-            'author' => '<a href="http://blairwilliams.com">Caseproof, LLC</a>',
+            'slug'           => $args->slug,
+            'name'           => $display_name,
+            'author'         => '<a href="http://blairwilliams.com">Caseproof, LLC</a>',
             'author_profile' => 'http://blairwilliams.com',
-            'contributors' => [
+            'contributors'   => [
                 [
                     'display_name' => 'Caseproof',
-                    'profile' => '',
-                    'avatar' => '',
+                    'profile'      => '',
+                    'avatar'       => '',
                 ],
             ],
-            'homepage' => 'https://memberpress.com',
-            'version' => $version_info['version'],
-            'requires' => '3.8',
-            'requires_php' => '5.3',
-            'tested' => $wp_version,
-            'compatibility' => [$wp_version => [$wp_version => [100, 0, 0]]],
-            'last_updated' => $version_info['version_date'],
-            'download_link' => $download_url,
-            'sections' => [
+            'homepage'       => 'https://memberpress.com',
+            'version'        => $version_info['version'],
+            'requires'       => '3.8',
+            'requires_php'   => '5.3',
+            'tested'         => $wp_version,
+            'compatibility'  => [$wp_version => [$wp_version => [100, 0, 0]]],
+            'last_updated'   => $version_info['version_date'],
+            'download_link'  => $download_url,
+            'sections'       => [
                 'description' => $description,
-                'faq' => $faq,
+                'faq'         => $faq,
             ],
-            'banners' => [
+            'banners'        => [
                 'low'  => MEPR_IMAGES_URL . '/banner-772x250.png',
                 'high' => MEPR_IMAGES_URL . '/banner-1544x500.png',
             ],
@@ -673,6 +758,12 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         return (object)$plugin_info;
     }
 
+    /**
+     * Get the addon info.
+     *
+     * @param  string $slug The slug.
+     * @return array The addon info.
+     */
     private static function mepr_addon_info($slug)
     {
         static $curr_plugins;
@@ -694,11 +785,23 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         return '';
     }
 
+    /**
+     * Send a request to the Mothership API.
+     *
+     * @param string  $endpoint The API endpoint.
+     * @param array   $args     Optional. The request arguments. Default empty array.
+     * @param string  $method   Optional. The HTTP method to use. Default 'get'.
+     * @param boolean $blocking Optional. Whether the request should block. Default true.
+     *
+     * @return array|boolean The response array or true if not blocking.
+     *
+     * @throws Exception If there is an error with the request.
+     */
     public static function send_mothership_request($endpoint, $args = [], $method = 'get', $blocking = true)
     {
-        $domain = defined('MEPR_MOTHERSHIP_DOMAIN') ? MEPR_MOTHERSHIP_DOMAIN : 'https://mothership.caseproof.com';
+        $domain       = defined('MEPR_MOTHERSHIP_DOMAIN') ? MEPR_MOTHERSHIP_DOMAIN : 'https://mothership.caseproof.com';
         $mepr_options = MeprOptions::fetch();
-        $uri = "{$domain}{$endpoint}";
+        $uri          = "{$domain}{$endpoint}";
 
         $arg_array = [
             'method'    => strtoupper($method),
@@ -719,7 +822,8 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         if (is_wp_error($resp)) {
             throw new Exception(__('You had an HTTP error connecting to Caseproof\'s Mothership API', 'memberpress'));
         } else {
-            if (null !== ($json_res = json_decode($resp['body'], true))) {
+            $json_res = json_decode($resp['body'], true);
+            if (null !== $json_res) {
                 if (isset($json_res['error'])) {
                     throw new Exception($json_res['error']);
                 } else {
@@ -733,6 +837,13 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         return false;
     }
 
+    /**
+     * Enqueue scripts for the update controller.
+     *
+     * @param string $hook The current admin page hook.
+     *
+     * @return void
+     */
     public static function enqueue_scripts($hook)
     {
         // toplevel_page_memberpress will only be accessible if the plugin is not enabled
@@ -744,6 +855,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Display an activation warning if the license is not activated.
+     *
+     * @return void
+     */
     public static function activation_warning()
     {
         $mepr_options = MeprOptions::fetch();
@@ -758,6 +874,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Handle edge updates for the MemberPress plugin.
+     *
+     * @return void
+     */
     public static function mepr_edge_updates()
     {
         if (!MeprUtils::is_mepr_admin() || !wp_verify_nonce($_POST['wpnonce'], 'wp-edge-updates')) {
@@ -768,7 +889,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
             die(json_encode(['error' => __('Edge updates couldn\'t be updated.', 'memberpress')]));
         }
 
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options               = MeprOptions::fetch();
         $mepr_options->edge_updates = ($_POST['edge'] == 'true');
         $mepr_options->store(false);
 
@@ -778,17 +899,27 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         die(json_encode(['state' => ($mepr_options->edge_updates ? 'true' : 'false')]));
     }
 
+    /**
+     * Get addon information for MemberPress.
+     *
+     * @param boolean $return_object Optional. Whether to return the addons as an object. Default false.
+     * @param boolean $force         Optional. Whether to force a refresh of the addons. Default false.
+     * @param boolean $all           Optional. Whether to get all addons. Default false.
+     *
+     * @return array The addon information.
+     */
     public static function addons($return_object = false, $force = false, $all = false)
     {
         $mepr_options = MeprOptions::fetch();
-        $license = $mepr_options->mothership_license;
-        $transient = $all ? 'mepr_all_addons' : 'mepr_addons';
+        $license      = $mepr_options->mothership_license;
+        $transient    = $all ? 'mepr_all_addons' : 'mepr_addons';
 
         if ($force) {
             delete_site_transient($transient);
         }
 
-        if (($addons = get_site_transient($transient))) {
+        $addons = get_site_transient($transient);
+        if ($addons) {
             $addons = json_decode($addons);
         } else {
             $addons = [];
@@ -796,7 +927,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
             if (!empty($license)) {
                 try {
                     $domain = urlencode(MeprUtils::site_domain());
-                    $args = compact('domain');
+                    $args   = compact('domain');
 
                     if ($all) {
                         $args['all'] = 'true';
@@ -823,11 +954,16 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         return $addons;
     }
 
+    /**
+     * Check if the incorrect edition of MemberPress is installed.
+     *
+     * @return void
+     */
     public static function check_incorrect_edition()
     {
         if (MeprUtils::is_incorrect_edition_installed()) {
             printf(
-            /* translators: %1$s: open link tag, %2$s: close link tag */
+            // translators: %1$s: open link tag, %2$s: close link tag
                 ' <strong>' . esc_html__('To restore automatic updates, %1$sinstall the correct edition%2$s of MemberPress.', 'memberpress') . '</strong>',
                 sprintf('<a href="%s">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-license'))),
                 '</a>'
@@ -835,6 +971,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Clear update transients for the MemberPress plugin.
+     *
+     * @return void
+     */
     public static function clear_update_transients()
     {
         delete_site_transient('update_plugins');
@@ -843,6 +984,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         delete_site_transient('mepr_all_addons');
     }
 
+    /**
+     * Get the license information for the MemberPress plugin.
+     *
+     * @return array|false The license information or false if not available.
+     */
     public static function get_license_info()
     {
         $mepr_options = MeprOptions::fetch();
@@ -850,8 +996,8 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
         if (!$license_info && !empty($mepr_options->mothership_license)) {
             try {
-                $domain = urlencode(MeprUtils::site_domain());
-                $args = compact('domain');
+                $domain       = urlencode(MeprUtils::site_domain());
+                $args         = compact('domain');
                 $license_info = self::send_mothership_request("/versions/info/{$mepr_options->mothership_license}", $args, 'post');
 
                 set_site_transient('mepr_license_info', $license_info, MeprUtils::hours(24));
@@ -862,4 +1008,4 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
         return $license_info;
     }
-} //End class
+}

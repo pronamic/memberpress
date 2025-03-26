@@ -6,15 +6,24 @@ if (!defined('ABSPATH')) {
 
 class MeprPowerPressIntegration
 {
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         add_filter('powerpress_admin_capabilities', [$this,'powerpress_caps']);
     }
 
+    /**
+     * Add MemberPress capabilities to PowerPress
+     *
+     * @param  array $caps Array of capabilities
+     * @return array Modified array of capabilities
+     */
     public function powerpress_caps($caps)
     {
         $products = MeprCptModel::all('MeprProduct');
-        $rules = MeprCptModel::all('MeprRule');
+        $rules    = MeprCptModel::all('MeprRule');
 
         $caps['mepr-active'] = __('MemberPress Active Member', 'memberpress');
 
@@ -34,6 +43,6 @@ class MeprPowerPressIntegration
 
         return $caps;
     }
-} //End class
+}
 
 new MeprPowerPressIntegration();

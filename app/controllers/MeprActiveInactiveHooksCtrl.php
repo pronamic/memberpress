@@ -3,12 +3,19 @@
 if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
-/*
- ** Added in MP 1.7.3
- ** USED FOR OUR AUTORESPONDER ADD-ONS - So we can have the active/inactive logic all in one place
+
+/**
+ * Used for our autoresponder add-ons - So we can have the active/inactive logic all in one place
+ *
+ * @since 1.7.3
  */
 class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
 {
+    /**
+     * Loads the hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
         add_action('mepr-txn-store', [$this, 'handle_txn_store'], 99, 2);
@@ -16,6 +23,13 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
         add_action('delete_user', [$this, 'handle_delete_user']);
     }
 
+    /**
+     * Handles the transaction store.
+     *
+     * @param  MeprTransaction $txn     The transaction.
+     * @param  MeprTransaction $old_txn The old transaction.
+     * @return void
+     */
     public function handle_txn_store($txn, $old_txn)
     {
         // Already been here?
@@ -38,9 +52,9 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
             return;
         }
 
-        $active_status  = [MeprTransaction::$complete_str, MeprTransaction::$confirmed_str];
-        $now            = time();
-        $expires        = 0; // Lifetime
+        $active_status = [MeprTransaction::$complete_str, MeprTransaction::$confirmed_str];
+        $now           = time();
+        $expires       = 0; // Lifetime
 
         if (! empty($txn->expires_at) && $txn->expires_at != MeprUtils::db_lifetime()) {
             $expires = strtotime($txn->expires_at);
@@ -57,6 +71,13 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Handles the transaction expired.
+     *
+     * @param  MeprTransaction $txn        The transaction.
+     * @param  boolean         $sub_status The subscription status.
+     * @return void
+     */
     public function handle_txn_expired($txn, $sub_status = false)
     {
         global $wpdb;
@@ -101,12 +122,18 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Handles the delete user.
+     *
+     * @param  integer $user_id The user ID.
+     * @return void
+     */
     public function handle_delete_user($user_id)
     {
-        $user = new MeprUser($user_id);
-        $transactions  = (array) $user->active_product_subscriptions('transactions', true, true);
+        $user         = new MeprUser($user_id);
+        $transactions = (array) $user->active_product_subscriptions('transactions', true, true);
         foreach ($transactions as $transaction) {
             do_action('mepr-account-is-inactive', $transaction);
         }
     }
-} // End Class
+}

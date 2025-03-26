@@ -13,6 +13,15 @@ class MeprArtificialAuthorizeNetProfileHttpClient
     protected $transaction_key;
     protected $cache = [];
 
+    /**
+     * Constructor for the MeprArtificialAuthorizeNetProfileHttpClient class.
+     *
+     * @param boolean $is_test         Whether the client is in test mode.
+     * @param string  $endpoint        The API endpoint URL.
+     * @param string  $gatewayID       The gateway ID.
+     * @param string  $login_name      The login name for authentication.
+     * @param string  $transaction_key The transaction key for authentication.
+     */
     public function __construct($is_test, $endpoint, $gatewayID, $login_name, $transaction_key)
     {
         $this->is_test         = $is_test;
@@ -22,6 +31,13 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         $this->transaction_key = $transaction_key;
     }
 
+    /**
+     * Logs data to a file if debugging is enabled.
+     *
+     * @param mixed $data The data to log.
+     *
+     * @return void
+     */
     public function log($data)
     {
         if (! defined('WP_MEPR_DEBUG')) {
@@ -32,10 +48,12 @@ class MeprArtificialAuthorizeNetProfileHttpClient
     }
 
     /**
-     * @param MeprTransaction $txn
+     * Processes a refund transaction.
      *
-     * @return mixed
-     * @throws MeprException
+     * @param MeprTransaction $txn The transaction object.
+     *
+     * @return mixed The transaction number or an error.
+     * @throws MeprException If the refund cannot be processed.
      */
     public function refundTransaction($txn)
     {
@@ -50,22 +68,23 @@ class MeprArtificialAuthorizeNetProfileHttpClient
 
         $xml = '<createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
   <merchantAuthentication>
-     <name>' . $this->login_name . '</name>
-     <transactionKey>' . $this->transaction_key . '</transactionKey>
+     <name>' . esc_xml($this->login_name) . '</name>
+     <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
   </merchantAuthentication>
-  <refId>' . $txn->trans_num . '-refund</refId>
+  <refId>' . esc_xml($txn->trans_num) . '-refund</refId>
   <transactionRequest>
     <transactionType>refundTransaction</transactionType>
-    <amount>' . $txn->total . '</amount>
+    <amount>' . esc_xml($txn->total) . '</amount>
     <payment>
       <creditCard>
-        <cardNumber>' . $last4cc . '</cardNumber>
+        <cardNumber>' . esc_xml($last4cc) . '</cardNumber>
         <expirationDate>XXXX</expirationDate>
       </creditCard>
     </payment>
-    <refTransId>' . $txn->trans_num . '</refTransId>
+    <refTransId>' . esc_xml($txn->trans_num) . '</refTransId>
   </transactionRequest>
 </createTransactionRequest>';
+
         $this->log($xml);
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
         $response = wp_remote_retrieve_body($response);
@@ -85,21 +104,27 @@ class MeprArtificialAuthorizeNetProfileHttpClient
     }
 
     /**
-     * @param MeprTransaction $txn
+     * Voids a transaction.
+     *
+     * @param MeprTransaction $txn The transaction object.
+     *
+     * @return mixed The transaction number or an error.
+     * @throws MeprException If the transaction cannot be voided.
      */
     public function voidTransaction($txn)
     {
         $xml = '<createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
   <merchantAuthentication>
-     <name>' . $this->login_name . '</name>
-     <transactionKey>' . $this->transaction_key . '</transactionKey>
+     <name>' . esc_xml($this->login_name) . '</name>
+     <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
     </merchantAuthentication>
-    <refId>v' . $txn->id . '</refId>
+    <refId>v' . esc_xml($txn->id) . '</refId>
   <transactionRequest>
     <transactionType>voidTransaction</transactionType>
-    <refTransId>' . $txn->trans_num . '</refTransId>
+    <refTransId>' . esc_xml($txn->trans_num) . '</refTransId>
    </transactionRequest>
 </createTransactionRequest>';
+
         $this->log($xml);
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
         $response = wp_remote_retrieve_body($response);
@@ -120,17 +145,20 @@ class MeprArtificialAuthorizeNetProfileHttpClient
     }
 
     /**
-     * @param $authorize_net_customer
-     * @param MeprTransaction        $txn
-     * @param boolean                $capture
+     * Charges a customer using the provided payment profile.
      *
-     * @throws Exception
+     * @param array           $authorize_net_customer The Authorize.net customer profile data.
+     * @param MeprTransaction $txn                    The transaction object.
+     * @param boolean         $capture                Whether to capture the payment immediately.
+     * @param string|null     $cvc_code               The CVC code for the card.
+     *
+     * @throws Exception If the charge cannot be processed.
+     * @return string The transaction number.
      */
-    public function chargeCustomer($authorize_net_customer, $txn, $capture = true)
+    public function chargeCustomer($authorize_net_customer, $txn, $capture = true, $cvc_code = null)
     {
         $this->log($authorize_net_customer);
         $paymentProfile = '';
-        $captureMode = $capture ? 'final' : 'pre';
 
         if (isset($authorize_net_customer['paymentProfiles']['customerPaymentProfileId'])) {
             $paymentProfile = $authorize_net_customer['paymentProfiles']['customerPaymentProfileId'];
@@ -146,29 +174,31 @@ class MeprArtificialAuthorizeNetProfileHttpClient
 
         $xml = '<createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
     <merchantAuthentication>
-     <name>' . $this->login_name . '</name>
-     <transactionKey>' . $this->transaction_key . '</transactionKey>
+     <name>' . esc_xml($this->login_name) . '</name>
+     <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
     </merchantAuthentication>
-    <refId>' . $txn->id . '</refId>
+    <refId>' . esc_xml($txn->id) . '</refId>
     <transactionRequest>
         <transactionType>authCaptureTransaction</transactionType>
-        <amount>' . $txn->total . '</amount>
+        <amount>' . esc_xml($txn->total) . '</amount>
         <profile>
-           <customerProfileId>' . $authorize_net_customer['customerProfileId'] . '</customerProfileId>
+           <customerProfileId>' . esc_xml($authorize_net_customer['customerProfileId']) . '</customerProfileId>
           <paymentProfile>
-            <paymentProfileId>' . $paymentProfile . '</paymentProfileId>
-          </paymentProfile>
+            <paymentProfileId>' . esc_xml($paymentProfile) . '</paymentProfileId>'
+            . ($cvc_code ? '<cardCode>' . esc_xml($cvc_code) . '</cardCode>' : '') .
+          '</paymentProfile>
         </profile>
-        <poNumber>' . $txn->id . '</poNumber>
+        <poNumber>' . esc_xml($txn->id) . '</poNumber>
         <customer>
-            <id>' . $authorize_net_customer['customerProfileId'] . '</id>
+            <id>' . esc_xml($authorize_net_customer['customerProfileId']) . '</id>
         </customer>
-        <customerIP>' . $_SERVER['REMOTE_ADDR'] . '</customerIP>
+        <customerIP>' . esc_xml($_SERVER['REMOTE_ADDR']) . '</customerIP>
         <authorizationIndicatorType>
-            <authorizationIndicator>' . $captureMode . '</authorizationIndicator>
+            <authorizationIndicator>' . ($capture ? 'final' : 'pre') . '</authorizationIndicator>
         </authorizationIndicatorType>
     </transactionRequest>
 </createTransactionRequest>';
+
         $this->log($xml);
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
         $response = wp_remote_retrieve_body($response);
@@ -194,6 +224,16 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         }
     }
 
+    /**
+     * Creates a customer payment profile.
+     *
+     * @param WP_User $user                  The WordPress user object.
+     * @param array   $authorizenet_customer The Authorize.net customer profile data.
+     * @param string  $dataValue             The data value for the payment profile.
+     * @param string  $dataDesc              The data descriptor for the payment profile.
+     *
+     * @return string|null The customer payment profile ID or null on failure.
+     */
     public function createCustomerPaymentProfile($user, $authorizenet_customer, $dataValue, $dataDesc)
     {
         if (empty($dataValue) || empty($dataDesc)) {
@@ -210,25 +250,25 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         ];
         $xml     = '<createCustomerPaymentProfileRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
     <merchantAuthentication>
-        <name>' . $this->login_name . '</name>
-        <transactionKey>' . $this->transaction_key . '</transactionKey>
+        <name>' . esc_xml($this->login_name) . '</name>
+        <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
     </merchantAuthentication>
-    <customerProfileId>' . $authorizenet_customer['customerProfileId'] . '</customerProfileId>
+    <customerProfileId>' . esc_xml($authorizenet_customer['customerProfileId']) . '</customerProfileId>
     <paymentProfile>
         <billTo>
-          <firstName>' . $user->first_name . '</firstName>
-          <lastName>' . $user->last_name . '</lastName>
+          <firstName>' . esc_xml($user->first_name) . '</firstName>
+          <lastName>' . esc_xml($user->last_name) . '</lastName>
           <company></company>
-          <address>' . $address['line1'] . '</address>
-          <city>' . $address['city'] . '</city>
-          <state>' . $address['state'] . '</state>
-          <zip>' . $address['postal_code'] . '</zip>
-          <country>' . $address['country'] . '</country>
+          <address>' . esc_xml($address['line1']) . '</address>
+          <city>' . esc_xml($address['city']) . '</city>
+          <state>' . esc_xml($address['state']) . '</state>
+          <zip>' . esc_xml($address['postal_code']) . '</zip>
+          <country>' . esc_xml($address['country']) . '</country>
         </billTo>
         <payment>
           <opaqueData>
-            <dataDescriptor>' . $dataDesc . '</dataDescriptor>
-            <dataValue>' . $dataValue . '</dataValue>
+            <dataDescriptor>' . esc_xml($dataDesc) . '</dataDescriptor>
+            <dataValue>' . esc_xml($dataValue) . '</dataValue>
           </opaqueData>
          </payment>
         <defaultPaymentProfile>true</defaultPaymentProfile>
@@ -263,15 +303,23 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         }
     }
 
+    /**
+     * Cancels a subscription.
+     *
+     * @param string $subscription_id The ID of the subscription to cancel.
+     *
+     * @return string The subscription ID.
+     * @throws MeprException If the subscription cannot be canceled.
+     */
     public function cancelSubscription($subscription_id)
     {
         $xml = '<ARBCancelSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
     <merchantAuthentication>
-        <name>' . $this->login_name . '</name>
-        <transactionKey>' . $this->transaction_key . '</transactionKey>
+        <name>' . esc_xml($this->login_name) . '</name>
+        <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
     </merchantAuthentication>
-    <refId>' . $subscription_id . '-cancel</refId>
-    <subscriptionId>' . $subscription_id . '</subscriptionId>
+    <refId>' . esc_xml($subscription_id) . '-cancel</refId>
+    <subscriptionId>' . esc_xml($subscription_id) . '</subscriptionId>
 </ARBCancelSubscriptionRequest>';
 
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
@@ -288,14 +336,17 @@ class MeprArtificialAuthorizeNetProfileHttpClient
     }
 
     /**
-     * @param SimpleXMLElement $simpleXml
-     * @param $array
+     * Converts an array to XML.
+     *
+     * @param  SimpleXMLElement $simpleXml The SimpleXMLElement object.
+     * @param  array            $array     The array to convert.
+     * @return SimpleXMLElement The updated SimpleXMLElement object.
      */
     public function array2Xml($simpleXml, $array)
     {
         foreach ($array as $key => $item) {
             if (!is_array($item)) {
-                $simpleXml->addChild($key, $item);
+                $simpleXml->addChild($key, esc_xml($item));
             } else {
                 $child = $simpleXml->addChild($key);
                 $this->array2Xml($child, $item);
@@ -304,18 +355,25 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         return $simpleXml;
     }
 
+    /**
+     * Updates a subscription.
+     *
+     * @param  array $args The arguments for updating the subscription.
+     * @return mixed The response from the API.
+     * @throws MeprException If the subscription cannot be updated.
+     */
     public function updateSubscription($args)
     {
-        $xmlStr = <<<XML
+        $xmlStr    = <<<XML
 <ARBUpdateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
 </ARBUpdateSubscriptionRequest>
 XML;
         $simpleXml = @new SimpleXMLElement($xmlStr);
-        $auth = $simpleXml->addChild('merchantAuthentication');
-        $auth->addChild('name', $this->login_name);
-        $auth->addChild('transactionKey', $this->transaction_key);
+        $auth      = $simpleXml->addChild('merchantAuthentication');
+        $auth->addChild('name', esc_xml($this->login_name));
+        $auth->addChild('transactionKey', esc_xml($this->transaction_key));
         $this->array2Xml($simpleXml, $args);
-        $xml = $simpleXml->asXML();
+        $xml      = $simpleXml->asXML();
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
         $response = wp_remote_retrieve_body($response);
         $response = $this->parseAuthnetResponse($response);
@@ -329,6 +387,16 @@ XML;
         }
     }
 
+    /**
+     * Creates a subscription from a customer profile.
+     *
+     * @param array            $authorizenet_customer The Authorize.net customer profile data.
+     * @param MeprTransaction  $txn                   The transaction object.
+     * @param MeprSubscription $sub                   The subscription object.
+     *
+     * @return string The subscription ID.
+     * @throws MeprException If the subscription cannot be created.
+     */
     public function createSubscriptionFromCustomer($authorizenet_customer, $txn, $sub)
     {
         $this->log('Creating sub');
@@ -354,14 +422,14 @@ XML;
 
         if ($sub->trial == 1) {
             $txn->set_subtotal($sub->trial_amount);
-            $txn->total = $sub->trial_total;
-            $txn->expires_at      = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days));
+            $txn->total      = $sub->trial_total;
+            $txn->expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days));
             $this->log($txn);
             $txn->store();
 
             if (empty((float) $txn->total)) {
-                $txn_num = $txn->trans_num;
-                $txn->txn_type = \MeprTransaction::$subscription_confirmation_str;
+                $txn_num        = $txn->trans_num;
+                $txn->txn_type  = \MeprTransaction::$subscription_confirmation_str;
                 $txn->status    = MeprTransaction::$confirmed_str;
                 $txn->trans_num = $txn_num;
                 $txn->store();
@@ -369,7 +437,7 @@ XML;
                 $txn_num = $this->chargeCustomer($authorizenet_customer, $txn);
 
                 if ($txn_num) {
-                    $txn->txn_type = \MeprTransaction::$payment_str;
+                    $txn->txn_type  = \MeprTransaction::$payment_str;
                     $txn->status    = MeprTransaction::$complete_str;
                     $txn->trans_num = $txn_num;
                     $txn->store();
@@ -395,24 +463,24 @@ XML;
 
         $xml = '<ARBCreateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
   <merchantAuthentication>
-   <name>' . $this->login_name . '</name>
-   <transactionKey>' . $this->transaction_key . '</transactionKey>
+   <name>' . esc_xml($this->login_name) . '</name>
+   <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
   </merchantAuthentication>
-  <refId>mpsub' . $sub->id . '-' . $txn->id . '</refId>
+  <refId>mpsub' . esc_xml($sub->id . '-' . $txn->id) . '</refId>
   <subscription>
-    <name>' . $sub->product()->post_title . '</name>
+    <name>' . esc_xml($sub->product()->post_title) . '</name>
     <paymentSchedule>
       <interval>
-        <length>' . $length . '</length>
-        <unit>' . $type . '</unit>
+        <length>' . esc_xml($length) . '</length>
+        <unit>' . esc_xml($type) . '</unit>
       </interval>
-      <startDate>' . $start_date . '</startDate>
-      <totalOccurrences>' . $total_cycles . '</totalOccurrences>
+      <startDate>' . esc_xml($start_date) . '</startDate>
+      <totalOccurrences>' . esc_xml($total_cycles) . '</totalOccurrences>
     </paymentSchedule>
-    <amount>' . $amount . '</amount>
+    <amount>' . esc_xml($amount) . '</amount>
     <profile>
-      <customerProfileId>' . $authorizenet_customer['customerProfileId'] . '</customerProfileId>
-      <customerPaymentProfileId>' . $payment_profile_id . '</customerPaymentProfileId>
+      <customerProfileId>' . esc_xml($authorizenet_customer['customerProfileId']) . '</customerProfileId>
+      <customerPaymentProfileId>' . esc_xml($payment_profile_id) . '</customerPaymentProfileId>
     </profile>
   </subscription>
 </ARBCreateSubscriptionRequest>';
@@ -426,10 +494,10 @@ XML;
             return $response['subscriptionId'];
         } else {
             $message_code = $response['messages']['message']['code'] ?? '';
-            $message = $response['messages']['message']['text'] ?? '';
+            $message      = $response['messages']['message']['text'] ?? '';
 
             if ($message_code == 'E00012') {
-                throw new MeprException(__('You have subscribed to a membership which has the same pricing term. Subscription can not be created with Authorize', 'memberpress'));
+                throw new MeprException(__('You have subscribed to a membership which has the same pricing term. Subscription can not be created with Authorize.net', 'memberpress'));
             }
 
             throw new MeprException(__($message, 'memberpress'));
@@ -439,10 +507,15 @@ XML;
     }
 
     /**
-     * @param $authorize_net_customer
-     * @param MeprTransaction        $txn
+     * Charges a customer using the provided card details.
      *
-     * @throws Exception
+     * @param array           $authorize_net_customer The Authorize.net customer profile data.
+     * @param MeprTransaction $txn                    The transaction object.
+     * @param string          $dataDesc               The data descriptor for the card.
+     * @param string          $dataValue              The data value for the card.
+     *
+     * @return string The transaction number.
+     * @throws MeprException If the charge cannot be processed.
      */
     public function chargeCustomerCard($authorize_net_customer, $txn, $dataDesc, $dataValue)
     {
@@ -458,34 +531,34 @@ XML;
         $this->log($authorize_net_customer);
         $xml = '<createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
     <merchantAuthentication>
-     <name>' . $this->login_name . '</name>
-     <transactionKey>' . $this->transaction_key . '</transactionKey>
+     <name>' . esc_xml($this->login_name) . '</name>
+     <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
     </merchantAuthentication>
-    <refId>' . $txn->id . '</refId>
+    <refId>' . esc_xml($txn->id) . '</refId>
     <transactionRequest>
         <transactionType>authCaptureTransaction</transactionType>
-        <amount>' . $txn->total . '</amount>
+        <amount>' . esc_xml($txn->total) . '</amount>
         <payment>
           <opaqueData>
-            <dataDescriptor>' . $dataDesc . '</dataDescriptor>
-            <dataValue>' . $dataValue . '</dataValue>
+            <dataDescriptor>' . esc_xml($dataDesc) . '</dataDescriptor>
+            <dataValue>' . esc_xml($dataValue) . '</dataValue>
           </opaqueData>
          </payment>
-        <poNumber>' . $txn->id . '</poNumber>
+        <poNumber>' . esc_xml($txn->id) . '</poNumber>
         <customer>
-            <id>' . $authorize_net_customer['customerProfileId'] . '</id>
+            <id>' . esc_xml($authorize_net_customer['customerProfileId']) . '</id>
         </customer>
         <billTo>
-          <firstName>' . $user->first_name . '</firstName>
-          <lastName>' . $user->last_name . '</lastName>
+          <firstName>' . esc_xml($user->first_name) . '</firstName>
+          <lastName>' . esc_xml($user->last_name) . '</lastName>
           <company></company>
-          <address>' . $address['line1'] . '</address>
-          <city>' . $address['city'] . '</city>
-          <state>' . $address['state'] . '</state>
-          <zip>' . $address['postal_code'] . '</zip>
-          <country>' . $address['country'] . '</country>
+          <address>' . esc_xml($address['line1']) . '</address>
+          <city>' . esc_xml($address['city']) . '</city>
+          <state>' . esc_xml($address['state']) . '</state>
+          <zip>' . esc_xml($address['postal_code']) . '</zip>
+          <country>' . esc_xml($address['country']) . '</country>
         </billTo>
-        <customerIP>' . $_SERVER['REMOTE_ADDR'] . '</customerIP>
+        <customerIP>' . esc_xml($_SERVER['REMOTE_ADDR']) . '</customerIP>
         <authorizationIndicatorType>
             <authorizationIndicator>final</authorizationIndicator>
         </authorizationIndicatorType>
@@ -515,6 +588,15 @@ XML;
         }
     }
 
+    /**
+     * Creates a customer profile.
+     *
+     * @param WP_User $user      The WordPress user object.
+     * @param string  $dataValue The data value for the customer profile.
+     * @param string  $dataDesc  The data descriptor for the customer profile.
+     *
+     * @return array|null The response from the API or null on failure.
+     */
     public function createCustomerProfile($user, $dataValue, $dataDesc)
     {
         $address = [
@@ -529,32 +611,32 @@ XML;
         // First name and last name are required for recurring payment so if they are disabled
         // in MP we need a placeholder
         $first_name = empty($user->first_name) ? 'Customer' : $user->first_name;
-        $last_name = empty($user->last_name) ? 'Customer' : $user->last_name;
-        $xml = '<createCustomerProfileRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
+        $last_name  = empty($user->last_name) ? 'Customer' : $user->last_name;
+        $xml        = '<createCustomerProfileRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
    <merchantAuthentication>
-     <name>' . $this->login_name . '</name>
-     <transactionKey>' . $this->transaction_key . '</transactionKey>
+     <name>' . esc_xml($this->login_name) . '</name>
+     <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
     </merchantAuthentication>
    <profile>
-     <merchantCustomerId>' . $user->ID . '</merchantCustomerId>
+     <merchantCustomerId>' . esc_xml($user->ID) . '</merchantCustomerId>
      <description>MemberPress Customer</description>
-     <email>' . $user->user_email . '</email>
+     <email>' . esc_xml($user->user_email) . '</email>
      <paymentProfiles>
        <customerType>individual</customerType>
         <billTo>
-          <firstName>' . $first_name . '</firstName>
-          <lastName>' . $last_name . '</lastName>
+          <firstName>' . esc_xml($first_name) . '</firstName>
+          <lastName>' . esc_xml($last_name) . '</lastName>
           <company></company>
-          <address>' . $address['line1'] . '</address>
-          <city>' . $address['city'] . '</city>
-          <state>' . $address['state'] . '</state>
-          <zip>' . $address['postal_code'] . '</zip>
-          <country>' . $address['country'] . '</country>
+          <address>' . esc_xml($address['line1']) . '</address>
+          <city>' . esc_xml($address['city']) . '</city>
+          <state>' . esc_xml($address['state']) . '</state>
+          <zip>' . esc_xml($address['postal_code']) . '</zip>
+          <country>' . esc_xml($address['country']) . '</country>
         </billTo>
         <payment>
           <opaqueData>
-            <dataDescriptor>' . $dataDesc . '</dataDescriptor>
-            <dataValue>' . $dataValue . '</dataValue>
+            <dataDescriptor>' . esc_xml($dataDesc) . '</dataDescriptor>
+            <dataValue>' . esc_xml($dataValue) . '</dataValue>
           </opaqueData>
          </payment>
       </paymentProfiles>
@@ -581,6 +663,14 @@ XML;
         }
     }
 
+    /**
+     * Parses the Authorize.net response.
+     *
+     * @param string  $response The XML response from the API.
+     * @param boolean $object   Whether to return the response as an object.
+     *
+     * @return array|object The parsed response.
+     */
     protected function parseAuthnetResponse($response, $object = false)
     {
         $response = @simplexml_load_string($response);
@@ -600,15 +690,22 @@ XML;
         return $this->getTransactionDetails($transactionId);
     }
 
+    /**
+     * Retrieves transaction details.
+     *
+     * @param string $transactionId The ID of the transaction.
+     *
+     * @return object|null The transaction details or null on failure.
+     */
     public function getTransactionDetails($transactionId)
     {
         $xml = '
 <getTransactionDetailsRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
       <merchantAuthentication>
-         <name>' . $this->login_name . '</name>
-         <transactionKey>' . $this->transaction_key . '</transactionKey>
+         <name>' . esc_xml($this->login_name) . '</name>
+         <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
       </merchantAuthentication>
-      <transId>' . $transactionId . '</transId>
+      <transId>' . esc_xml($transactionId) . '</transId>
 </getTransactionDetailsRequest>';
 
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
@@ -623,6 +720,13 @@ XML;
         }
     }
 
+    /**
+     * Retrieves a customer profile.
+     *
+     * @param integer $userID The ID of the WordPress user.
+     *
+     * @return array|null The customer profile data or null on failure.
+     */
     public function getCustomerProfile($userID)
     {
         $meta = get_user_meta($userID, 'mepr_authorizenet_profile_id_' . $this->gatewayID, true);
@@ -633,12 +737,13 @@ XML;
 
         $xml = '<getCustomerProfileRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
   <merchantAuthentication>
-    <name>' . $this->login_name . '</name>
-    <transactionKey>' . $this->transaction_key . '</transactionKey>
+    <name>' . esc_xml($this->login_name) . '</name>
+    <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
   </merchantAuthentication>
-  <customerProfileId>' . $meta . '</customerProfileId>
+  <customerProfileId>' . esc_xml($meta) . '</customerProfileId>
   <includeIssuerInfo>true</includeIssuerInfo>
 </getCustomerProfileRequest>';
+
         $cacheKey = md5(serialize($xml));
 
         if (isset($this->cache[ $cacheKey ])) {
@@ -661,9 +766,15 @@ XML;
         }
     }
 
+    /**
+     * Prepares options for the HTTP request.
+     *
+     * @param string $args The XML string to send in the request body.
+     *
+     * @return array The prepared options for the request.
+     */
     protected function prepareOptions($args)
     {
-        // $body    = json_encode( $args );
         $options = [
             'body'        => $args,
             'headers'     => [

@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprStripeConnectCtrl extends MeprBaseCtrl
 {
+    /**
+     * Load hooks.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
 
@@ -41,12 +46,22 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         $site_uuid = get_option('mepr_authenticator_site_uuid');
 
         /*
+         * If no scheduled check exists and we have a site UUID,
+         * schedule a daily check of the stripe connect domain
+         *
+            <<<<<<< HEAD
+         * if ( ! wp_next_scheduled ( 'mepr_stripe_connect_check_domain' ) && ! empty( $site_uuid ) ) {
+         * wp_schedule_event( time(), 'daily', 'mepr_stripe_connect_check_domain' );
+         * }
+            =======
             if ( ! wp_next_scheduled ( 'mepr_stripe_connect_check_domain' ) && ! empty( $site_uuid ) ) {
             wp_schedule_event( time(), 'daily', 'mepr_stripe_connect_check_domain' );
-        }*/
+            }
+         */
 
         // Remove wp-cron Stripe Connect job
-        if ($timestamp = wp_next_scheduled('mepr_stripe_connect_check_domain')) {
+        $timestamp = wp_next_scheduled('mepr_stripe_connect_check_domain');
+        if ($timestamp) {
             wp_unschedule_event($timestamp, 'mepr_stripe_connect_check_domain');
         }
     }
@@ -70,7 +85,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
      * @param string $new_url New setting
      * @param string $option  Option name
      *
-     * @return string
+     * @return void
      */
     public function url_changed($old_url, $new_url, $option)
     {
@@ -96,20 +111,20 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         }
 
         $mepr_options = MeprOptions::fetch();
-        $site_uuid = get_option('mepr_authenticator_site_uuid');
+        $site_uuid    = get_option('mepr_authenticator_site_uuid');
 
         $payload = [
             'site_uuid' => $site_uuid,
         ];
 
-        $jwt = MeprAuthenticatorCtrl::generate_jwt($payload);
+        $jwt    = MeprAuthenticatorCtrl::generate_jwt($payload);
         $domain = parse_url(get_site_url(), PHP_URL_HOST);
 
         // Request to change the domain with the auth service (site.domain)
         $response = wp_remote_post(MEPR_AUTH_SERVICE_URL . '/api/domains/update', [
             'sslverify' => false,
-            'headers' => MeprUtils::jwt_header($jwt, MEPR_AUTH_SERVICE_DOMAIN),
-            'body' => [
+            'headers'   => MeprUtils::jwt_header($jwt, MEPR_AUTH_SERVICE_DOMAIN),
+            'body'      => [
                 'domain' => $domain,
             ],
         ]);
@@ -120,9 +135,9 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         $webhooks = [];
         foreach ($mepr_options->integrations as $id => $integration) {
             if ('connected' === $integration['connect_status']) {
-                $pm = $mepr_options->payment_method($id);
+                $pm            = $mepr_options->payment_method($id);
                 $webhooks[$id] = [
-                    'webhook_url' => $pm->notify_url('whk'),
+                    'webhook_url'         => $pm->notify_url('whk'),
                     'service_webhook_url' => $pm->notify_url('stripe-service-whk'),
                 ];
             }
@@ -130,8 +145,8 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         $response = wp_remote_post(MEPR_STRIPE_SERVICE_URL . '/api/webhooks/update', [
             'sslverify' => false,
-            'headers' => MeprUtils::jwt_header($jwt, MEPR_STRIPE_SERVICE_DOMAIN),
-            'body' => compact('webhooks'),
+            'headers'   => MeprUtils::jwt_header($jwt, MEPR_STRIPE_SERVICE_DOMAIN),
+            'body'      => compact('webhooks'),
         ]);
 
         $body = wp_remote_retrieve_body($response);
@@ -170,12 +185,12 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
      */
     public function mp_disconnect_notice()
     {
-        $mepr_options = MeprOptions::fetch();
-        $account_email = get_option('mepr_authenticator_account_email');
-        $secret = get_option('mepr_authenticator_secret_token');
-        $site_uuid = get_option('mepr_authenticator_site_uuid');
+        $mepr_options    = MeprOptions::fetch();
+        $account_email   = get_option('mepr_authenticator_account_email');
+        $secret          = get_option('mepr_authenticator_secret_token');
+        $site_uuid       = get_option('mepr_authenticator_site_uuid');
         $payment_methods = $mepr_options->payment_methods();
-        $using_stripe = false;
+        $using_stripe    = false;
 
         if (is_array($payment_methods)) {
             foreach ($payment_methods as $pm) {
@@ -270,34 +285,34 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     {
 
         $result = [
-            'label'   => __('MemberPress is securely connected to Stripe', 'memberpress'),
-            'status'  => 'good',
-            'badge'   => [
-                'label'   => __('Security', 'memberpress'),
-                'color'   => 'blue',
+            'label'       => __('MemberPress is securely connected to Stripe', 'memberpress'),
+            'status'      => 'good',
+            'badge'       => [
+                'label' => __('Security', 'memberpress'),
+                'color' => 'blue',
             ],
             'description' => sprintf(
                 '<p>%s</p>',
                 __('Your MemberPress Stripe connection is complete and secure.', 'memberpress')
             ),
-            'actions' => '',
-            'test'    => 'run_site_health_test',
+            'actions'     => '',
+            'test'        => 'run_site_health_test',
         ];
 
         if (class_exists('MeprStripeGateway') && MeprStripeGateway::has_method_with_connect_status('not-connected')) {
             $result = [
-                'label'   => __('MemberPress is not securely connected to Stripe', 'memberpress'),
-                'status'  => 'critical',
-                'badge'   => [
-                    'label'   => __('Security', 'memberpress'),
-                    'color'   => 'red',
+                'label'       => __('MemberPress is not securely connected to Stripe', 'memberpress'),
+                'status'      => 'critical',
+                'badge'       => [
+                    'label' => __('Security', 'memberpress'),
+                    'color' => 'red',
                 ],
                 'description' => sprintf(
                     '<p>%s</p>',
                     __('Your current Stripe payment connection is out of date and may become insecure or stop working. Please click the button below to re-connect your Stripe payment method now.', 'memberpress')
                 ),
-                'actions' => '<a href="' . admin_url('admin.php?page=memberpress-options#mepr-integration') . '" class="button button-primary">' . __('Re-connect Stripe Payments to Fix this Error Now', 'memberpress') . '</a>',
-                'test'    => 'run_site_health_test',
+                'actions'     => '<a href="' . admin_url('admin.php?page=memberpress-options#mepr-integration') . '" class="button button-primary">' . __('Re-connect Stripe Payments to Fix this Error Now', 'memberpress') . '</a>',
+                'test'        => 'run_site_health_test',
             ];
         }
 
@@ -359,7 +374,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         $method_id = sanitize_text_field($_GET['pmt']);
-        $pm = $mepr_options->payment_method($method_id);
+        $pm        = $mepr_options->payment_method($method_id);
 
         if (!($pm instanceof MeprStripeGateway)) {
             wp_die(__('Sorry, this only works with Stripe.', 'memberpress'));
@@ -375,13 +390,13 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         if ($onboarding == 'true') {
             $redirect_url = add_query_arg([
-                'page' => 'memberpress-onboarding',
-                'step' => '6',
+                'page'          => 'memberpress-onboarding',
+                'step'          => '6',
                 'stripe-action' => $stripe_action,
             ], admin_url('admin.php'));
         } else {
             $redirect_url = add_query_arg([
-                'page' => 'memberpress-options',
+                'page'          => 'memberpress-options',
                 'stripe-action' => $stripe_action,
             ], admin_url('admin.php')) . '#mepr-integration';
         }
@@ -443,7 +458,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
                 isset($mepr_options->integrations[$method_id]['service_account_id']) &&
                 $mepr_options->integrations[$method_id]['service_account_id'] == sanitize_text_field($body['service_account_id'])
             ) {
-                $mepr_options->integrations[$method_id]['service_account_name'] = sanitize_text_field($body['service_account_name']);
+                $mepr_options->integrations[$method_id]['service_account_name']       = sanitize_text_field($body['service_account_name']);
                 $mepr_options->integrations[$method_id]['api_keys']['test']['public'] = sanitize_text_field($body['test_publishable_key']);
                 $mepr_options->integrations[$method_id]['api_keys']['test']['secret'] = sanitize_text_field($body['test_secret_key']);
                 $mepr_options->integrations[$method_id]['api_keys']['live']['public'] = sanitize_text_field($body['live_publishable_key']);
@@ -457,7 +472,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         }
 
         $redirect_url = add_query_arg([
-            'page' => 'memberpress-options',
+            'page'          => 'memberpress-options',
             'stripe-action' => 'refreshed',
         ], admin_url('admin.php')) . '#mepr-integration';
 
@@ -497,7 +512,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         }
 
         $redirect_url = add_query_arg([
-            'page' => 'memberpress-options',
+            'page'          => 'memberpress-options',
             'stripe-action' => 'disconnected',
         ], admin_url('admin.php')) . '#mepr-integration';
 
@@ -508,13 +523,15 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     /**
      * Disconnect ALL stripe connected payment methods
      *
+     * @param  string $site_uuid  The site UUID.
+     * @param  string $site_email The site email.
      * @return void
      */
     public function disconnect_all($site_uuid, $site_email)
     {
         MeprUtils::debug_log('********** IN disconnect_all!');
         $mepr_options = MeprOptions::fetch();
-        $pms = $mepr_options->payment_methods(false);
+        $pms          = $mepr_options->payment_methods(false);
         foreach ($pms as $method_id => $pm) {
             MeprUtils::debug_log("********** disconnect_all: $method_id");
             if ($pm instanceof MeprStripeGateway && MeprStripeGateway::is_stripe_connect($method_id)) {
@@ -525,13 +542,20 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         }
     }
 
+    /**
+     * Disconnect a payment method
+     *
+     * @param  string $method_id       The method ID.
+     * @param  string $disconnect_type The disconnect type.
+     * @return boolean
+     */
     public function disconnect($method_id, $disconnect_type = 'full')
     {
 
         if ($disconnect_type === 'full') {
             // Update connection data
-            $mepr_options = MeprOptions::fetch();
-            $integ = $mepr_options->integrations[$method_id];
+            $mepr_options            = MeprOptions::fetch();
+            $integ                   = $mepr_options->integrations[$method_id];
             $integ['connect_status'] = 'disconnected';
             unset($integ['service_account_id']);
             unset($integ['service_account_name']);
@@ -552,7 +576,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         // Send request to Connect service
         $response = wp_remote_request(MEPR_STRIPE_SERVICE_URL . "/api/disconnect/{$method_id}", [
-            'method' => 'DELETE',
+            'method'  => 'DELETE',
             'headers' => MeprUtils::jwt_header($jwt, MEPR_STRIPE_SERVICE_DOMAIN),
         ]);
 
@@ -577,12 +601,12 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         $pm = [];
         parse_str($form_data, $pm);
 
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options               = MeprOptions::fetch();
         $mepr_options->integrations = array_merge($mepr_options->integrations, $pm['mepr-integrations']);
         $mepr_options->store(false);
 
         echo json_encode([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => __('You successfully stored a new payment method yo.', 'memberpress'),
         ]);
         exit;
@@ -591,6 +615,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     /**
      * When connected payment method is deleted, it should be disconnected.
      *
+     * @param  array $params The params.
      * @return void
      */
     public function disconnect_deleted_methods($params)

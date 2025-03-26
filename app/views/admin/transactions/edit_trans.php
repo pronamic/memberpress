@@ -12,7 +12,7 @@
     if (!is_object($pm)) {
         $pm = (object)[
             'label' => __('Unknown', 'memberpress'),
-            'name' => __('Deleted Gateway', 'memberpress'),
+            'name'  => __('Deleted Gateway', 'memberpress'),
         ];
     }
     ?>

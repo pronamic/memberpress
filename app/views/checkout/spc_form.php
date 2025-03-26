@@ -59,7 +59,7 @@
         </div>
         <input type="text" name="user_last_name" id="user_last_name<?php echo $unique_suffix; ?>" class="mepr-form-input" value="<?php echo esc_attr($last_name_value); ?>" <?php echo ($mepr_options->require_fname_lname) ? 'required' : ''; ?> />
       </div>
-    <?php else : /* this is here to avoid validation issues */ ?>
+    <?php else : // this is here to avoid validation issues ?>
       <input type="hidden" name="user_first_name" value="<?php echo esc_attr($first_name_value); ?>" />
       <input type="hidden" name="user_last_name" value="<?php echo esc_attr($last_name_value); ?>" />
     <?php endif; ?>
@@ -204,7 +204,9 @@
       </div>
     <?php endif; ?>
 
-    <?php if ($mepr_options->require_privacy_policy && $privacy_page_link = MeprAppHelper::privacy_policy_page_link()) : ?>
+    <?php
+        $privacy_page_link = MeprAppHelper::privacy_policy_page_link();
+    if ($mepr_options->require_privacy_policy && $privacy_page_link) :?>
       <div class="mp-form-row">
         <label for="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>" class="mepr-checkbox-field mepr-form-input" required>
           <input type="checkbox" name="mepr_agree_to_privacy_policy" id="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>" />

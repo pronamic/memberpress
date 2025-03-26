@@ -120,9 +120,9 @@
               __('It is highly recommended that "template_redirect" should be your default redirect method.<br/><br/>However, this does not work with all WordPress themes. If you find that the unauthorized redirection is not happening when enabled try switching this to "init" instead.', 'memberpress')
           ); ?>
           <select name="<?php echo $mepr_options->redirect_method_str; ?>" id="<?php echo $mepr_options->redirect_method_str; ?>">
-            <option value="template_redirect" <?php selected($mepr_options->redirect_method, 'template_redirect'); ?>><?php _e('template_redirect (recommended)', 'memberpress'); ?></option>
-            <option value="init" <?php selected($mepr_options->redirect_method, 'init'); ?>><?php _e('init', 'memberpress'); ?></option>
-            <option value="send_headers" <?php selected($mepr_options->redirect_method, 'send_headers'); ?>><?php _e('send_headers', 'memberpress'); ?></option>
+            <option value="template_redirect" <?php selected($mepr_options->redirect_method, 'template_redirect'); ?>>template_redirect <?php _e('(recommended)', 'memberpress'); ?></option>
+            <option value="init" <?php selected($mepr_options->redirect_method, 'init'); ?>>init</option>
+            <option value="send_headers" <?php selected($mepr_options->redirect_method, 'send_headers'); ?>>send_headers</option>
           </select>
           <br/><br/>
           <input type="checkbox" name="<?php echo $mepr_options->redirect_non_singular_str; ?>" id="<?php echo $mepr_options->redirect_non_singular_str; ?>" <?php checked($mepr_options->redirect_non_singular); ?> />
@@ -357,7 +357,9 @@
             </div>
             <div class="mp-col-4">
               <span>
-                <?php if ($privacy_page_link = MeprAppHelper::privacy_policy_page_link()) : ?>
+                <?php
+                $privacy_page_link = MeprAppHelper::privacy_policy_page_link();
+                if ($privacy_page_link) : ?>
                   <a href="<?php echo $privacy_page_link; ?>"><?php echo $privacy_page_link; ?></a>
                 <?php else : ?>
                     <?php _e(sprintf('Please create your %s.', '<a href="' . MeprOptionsHelper::admin_privacy_settings_link() . '">' . __('Privacy Policy Page', 'memberpress') . '</a>'), 'memberpress'); ?>
@@ -482,7 +484,7 @@
       <h3><?php _e('Payment Methods', 'memberpress'); ?></h3>
       <div id="integrations-list">
         <?php
-        $objs = $mepr_options->payment_methods(true, true);
+        $objs      = $mepr_options->payment_methods(true, true);
         $no_method = true;
         foreach ($objs as $pm_id => $obj) {
             if ($obj instanceof MeprBaseRealGateway) {
@@ -846,7 +848,7 @@
             <?php MeprAppHelper::info_tooltip(
                 'mepr-hide-mp-top-menu',
                 esc_html__('Hide MemberPress Menu in Admin Bar', 'memberpress'),
-                esc_html__('Enabling this option will hide the MemberPress menu with MemberPress sections in the admin bar', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
+                esc_html__('Enabling this option will hide the MemberPress admin bar menu', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
             ); ?>
           </th>
           <td>

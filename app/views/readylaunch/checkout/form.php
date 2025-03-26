@@ -91,7 +91,7 @@
 
     <!-- </div> -->
     </div>
-    <?php else : /* this is here to avoid validation issues */ ?>
+    <?php else : // this is here to avoid validation issues ?>
     <input type="hidden" name="user_first_name" value="<?php echo esc_attr($first_name_value); ?>" />
     <input type="hidden" name="user_last_name" value="<?php echo esc_attr($last_name_value); ?>" />
     <?php endif; ?>
@@ -236,15 +236,17 @@
     </div>
     <?php endif; ?>
 
-    <?php if ($mepr_options->require_privacy_policy && $privacy_page_link = MeprAppHelper::privacy_policy_page_link()) : ?>
-    <div class="mp-form-row">
-    <label for="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>"
-      class="mepr-checkbox-field mepr-form-input" required>
-      <input type="checkbox" name="mepr_agree_to_privacy_policy"
-      id="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>" />
-        <?php echo preg_replace('/%(.*)%/', '<a href="' . $privacy_page_link . '" target="_blank">$1</a>', wp_kses_post(__($mepr_options->privacy_policy_title, 'memberpress'))); ?>
-    </label>
-    </div>
+    <?php
+    $privacy_page_link = MeprAppHelper::privacy_policy_page_link();
+    if ($mepr_options->require_privacy_policy && $privacy_page_link) : ?>
+        <div class="mp-form-row">
+        <label for="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>"
+        class="mepr-checkbox-field mepr-form-input" required>
+        <input type="checkbox" name="mepr_agree_to_privacy_policy"
+        id="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>" />
+            <?php echo preg_replace('/%(.*)%/', '<a href="' . $privacy_page_link . '" target="_blank">$1</a>', wp_kses_post(__($mepr_options->privacy_policy_title, 'memberpress'))); ?>
+        </label>
+        </div>
     <?php endif; ?>
 
     <?php MeprHooks::do_action('mepr-user-signup-fields'); // Deprecated ?>

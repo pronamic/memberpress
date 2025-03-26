@@ -124,10 +124,6 @@
   height: auto;
   max-width: 100%;
 }
-.mepr-account-container svg {
-  width: 1rem;
-  height: 1rem;
-}
 .mepr-account-container figure {
   margin: 1em 0;
 }
