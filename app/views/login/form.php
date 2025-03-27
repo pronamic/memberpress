@@ -29,14 +29,12 @@
           <?php $uname_or_email_str = MeprHooks::apply_filters('mepr-login-uname-or-email-str', _x('Username or E-mail', 'ui', 'memberpress')); ?>
           <?php $uname_str = MeprHooks::apply_filters('mepr-login-uname-str', _x('Username', 'ui', 'memberpress')); ?>
           <label for="user_login"><?php echo ($mepr_options->username_is_email) ? $uname_or_email_str : $uname_str; ?></label>
-          <?php // <span class="cc-error"><?php _ex('Username Required', 'ui', 'memberpress'); ?></span> ?>
         </div>
         <input type="text" name="log" id="user_login" value="<?php echo (isset($_REQUEST['log']) ? esc_html(stripcslashes($_REQUEST['log'])) : ''); ?>" />
       </div>
       <div class="mp-form-row mepr_password">
         <div class="mp-form-label">
           <label for="user_pass"><?php _ex('Password', 'ui', 'memberpress'); ?></label>
-          <?php // <span class="cc-error"><?php _ex('Password Required', 'ui', 'memberpress'); ?></span> ?>
           <div class="mp-hide-pw">
             <input type="password" name="pwd" id="user_pass" value="" />
             <button type="button" class="button mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password', 'memberpress'); ?>">

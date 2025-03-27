@@ -19,6 +19,16 @@
       var $button = $(this),
         $pass = $button.siblings('#user_pass');
 
+      // Detect alternative password field if the default one is not found.
+      if( ! $pass.length ){
+        $pass = $button.siblings('input.mepr-password');
+      }
+
+      // Bailout if the password field is not found.
+      if( ! $pass.length ){
+        return;
+      }
+
       if ( 'password' === $pass.attr( 'type' ) ) {
         $pass.attr( 'type', 'text' );
         resetToggle( $button, false );
