@@ -513,6 +513,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         } else {
             if (isset($unauth->modern_paywall) && true === $unauth->modern_paywall && ! MeprAppHelper::is_memberpress_page($post)) {
                 wp_enqueue_script('mepr-modern-paywall', MEPR_JS_URL . '/modern_paywall.js', ['jquery'], MEPR_VERSION, true);
+                MeprView::render('/shared/modern_paywall_inline_css', get_defined_vars());
                 MeprView::render('/shared/unauthorized_message_modern_paywall', get_defined_vars());
             } else {
                 MeprView::render('/shared/unauthorized_message', get_defined_vars());

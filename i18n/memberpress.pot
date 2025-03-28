@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the MemberPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.12.1\n"
+"Project-Id-Version: MemberPress 1.12.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-03-26T17:44:57+00:00\n"
+"POT-Creation-Date: 2025-03-27T11:53:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: memberpress\n"
@@ -999,7 +999,7 @@ msgid "Coupon Options"
 msgstr ""
 
 #: app/controllers/MeprCouponsCtrl.php:395
-#: app/controllers/MeprRulesCtrl.php:763
+#: app/controllers/MeprRulesCtrl.php:764
 msgid "Please select at least one Membership before saving."
 msgstr ""
 
@@ -1307,7 +1307,7 @@ msgstr ""
 
 #: app/controllers/MeprLoginCtrl.php:47
 #: app/controllers/MeprRulesCtrl.php:507
-#: app/controllers/MeprRulesCtrl.php:977
+#: app/controllers/MeprRulesCtrl.php:978
 #: app/helpers/MeprOnboardingHelper.php:595
 #: app/lib/activation.php:19
 #: app/lib/MeprAccountLinksWidget.php:76
@@ -2452,23 +2452,23 @@ msgstr ""
 msgid "--"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:535
+#: app/controllers/MeprRulesCtrl.php:536
 msgid "Content & Access"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:536
+#: app/controllers/MeprRulesCtrl.php:537
 msgid "Drip / Expiration"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:537
+#: app/controllers/MeprRulesCtrl.php:538
 #: app/views/admin/options/form.php:105
 #: js/blocks/protected-content/index.js:93
 #: js/build/blocks.js:1
 msgid "Unauthorized Access"
 msgstr ""
 
-#: app/controllers/MeprRulesCtrl.php:686
-#: app/controllers/MeprRulesCtrl.php:706
+#: app/controllers/MeprRulesCtrl.php:687
+#: app/controllers/MeprRulesCtrl.php:707
 msgid "Error"
 msgstr ""
 

@@ -21,7 +21,7 @@
 
       // Detect alternative password field if the default one is not found.
       if( ! $pass.length ){
-        $pass = $button.siblings('input.mepr-password');
+        $pass = $button.parent('div.mp-hide-pw').find('input');
       }
 
       // Bailout if the password field is not found.

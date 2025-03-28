@@ -9,10 +9,9 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
     /**
      * Validate PayPal IPN request
      *
-     * @param  array $ipn_data The IPN data to validate
      * @return boolean True if valid, false otherwise
      */
-    public function validate_ipn($ipn_data)
+    public function validate_ipn()
     {
         // Set the command that is used to validate the message
         $_POST['cmd'] = '_notify-validate';
@@ -73,10 +72,12 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
     /**
      * Process thank you URL redirect
      *
-     * @param  MeprTransaction $txn The transaction object
+     * @param array           $query_params The query parameters
+     * @param MeprTransaction $txn          The transaction object
+     *
      * @return string The thank you URL
      */
-    public function do_thankyou_url($txn)
+    public function do_thankyou_url($query_params, $txn)
     {
         $mepr_options                   = MeprOptions::fetch();
         $query_params['transaction_id'] = $txn->id;
