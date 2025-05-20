@@ -48,7 +48,7 @@
         <div class="mepr-wizard-license-value">
           <?php
             printf(
-              // translators: %1$s: open b tag, %2$d: activation count, %3$s: max activations, %4$s close b tag
+              // Translators: %1$s: open b tag, %2$d: activation count, %3$s: max activations, %4$s close b tag.
                 esc_html__('%1$s%2$d of %3$s%4$s sites have been activated with this license key', 'memberpress'),
                 '<b>',
                 esc_html($li['activation_count']),

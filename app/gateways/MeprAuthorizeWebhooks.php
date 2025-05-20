@@ -9,6 +9,11 @@ require_once(__DIR__ . '/../jobs/MeprAuthorizeRetryJob.php');
 
 class MeprAuthorizeWebhooks
 {
+    /**
+     * The gateway settings.
+     *
+     * @var object
+     */
     private $gateway_settings;
     /**
      * The HTTP client for Authorize.net profile.
@@ -33,7 +38,7 @@ class MeprAuthorizeWebhooks
     /**
      * Validate and process select Authorize.net webhooks
      *
-     * @throws MeprGatewayException When webhook validation fails or processing encounters an error
+     * @throws MeprGatewayException When webhook validation fails or processing encounters an error.
      * @return object|false MeprTransaction or false
      */
     public function process_webhook()
@@ -65,7 +70,7 @@ class MeprAuthorizeWebhooks
                               MeprUtils::debug_log('Authorize.net Webhook not processed: ' . $request_json->eventType);
                     }
                 } else {
-                    // Transaction details are null
+                    // Transaction details are null.
                     throw new MeprGatewayException(__('MeprAuthorizeAPI Error: Unable to retrieve transaction details. Check your logs for errors.', 'memberpress'));
                 }
             } elseif ($request_json && $request_json->eventType == 'net.authorize.customer.subscription.failed') {
@@ -97,7 +102,7 @@ class MeprAuthorizeWebhooks
     /**
      * Validate the webhook signature from Authorize.net
      *
-     * @param  string $request_body Raw HTTP request body
+     * @param  string $request_body Raw HTTP request body.
      * @return boolean
      */
     private function validate_webhook($request_body)
@@ -117,7 +122,7 @@ class MeprAuthorizeWebhooks
      * net.authorize.payment.capture.created
      * net.authorize.payment.fraud.approved
      *
-     * @param  object  $auth_transaction JSON transaction object
+     * @param  object  $auth_transaction JSON transaction object.
      * @param  boolean $setup_job        Set to true to enqueue a job to retry if subscription data is not yet available.
      * @return object|false MeprTransaction or false
      */
@@ -183,19 +188,19 @@ class MeprAuthorizeWebhooks
      * net.authorize.payment.capture.created
      * net.authorize.payment.fraud.approved
      *
-     * @param  object  $auth_transaction JSON transaction object
+     * @param  object  $auth_transaction JSON transaction object.
      * @param  boolean $setup_job        Optional. Set to true to enqueue a job to retry if subscription data is not yet available.
      * @return object|false MeprTransaction or false
      */
     public function record_subscription_payment($auth_transaction, $setup_job = true)
     {
         if ($setup_job && !isset($auth_transaction->subscription)) {
-            // Enqueue a job to try again in 30 minutes
+            // Enqueue a job to try again in 30 minutes.
             $job                   = new MeprAuthorizeRetryJob();
             $job->gateway_settings = $this->gateway_settings;
             $job->transaction_data = json_encode($auth_transaction);
             $job->payment_failed   = false;
-            $job->enqueue_in('10m'); // Try again in 10 minutes. Then it will retry every 30 minutes after
+            $job->enqueue_in('10m'); // Try again in 10 minutes. Then it will retry every 30 minutes after.
             return false;
         }
 
@@ -209,7 +214,7 @@ class MeprAuthorizeWebhooks
         $txn = $this->insert_transaction($sub, $auth_transaction, MeprTransaction::$complete_str);
 
         $sub->status   = MeprSubscription::$active_str;
-        $sub->cc_last4 = substr($auth_transaction->payment->creditCard->cardNumber, -4); // Don't get the XXXX part of the string
+        $sub->cc_last4 = substr($auth_transaction->payment->creditCard->cardNumber, -4); // Don't get the XXXX part of the string.
         $sub->gateway  = $this->gateway_settings->id;
         $sub->store();
         $sub->limit_payment_cycles();
@@ -226,7 +231,7 @@ class MeprAuthorizeWebhooks
      * Only used for recurring payments through ARB
      * net.authorize.payment.refund.created
      *
-     * @param  object $auth_transaction JSON transaction object
+     * @param  object $auth_transaction JSON transaction object.
      * @return object|false MeprTransaction or false
      */
     private function record_refund($auth_transaction)
@@ -256,8 +261,8 @@ class MeprAuthorizeWebhooks
     /**
      * Create a MeprTransaction from the Authorize.net transaction
      *
-     * @param  object $sub              MeprSubscription
-     * @param  object $auth_transaction AuthorizeNet transaction object
+     * @param  object $sub              MeprSubscription.
+     * @param  object $auth_transaction AuthorizeNet transaction object.
      * @param  string $status           The status of the transaction.
      * @return object MeprTransaction
      */

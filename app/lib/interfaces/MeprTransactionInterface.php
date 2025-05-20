@@ -52,7 +52,7 @@ interface MeprTransactionInterface
     /**
      * Set the gross amount for this transaction
      *
-     * @param  float $gross The gross amount
+     * @param  float $gross The gross amount.
      * @return void
      */
     public function set_gross($gross);
@@ -60,7 +60,7 @@ interface MeprTransactionInterface
     /**
      * Set the subtotal amount for this transaction
      *
-     * @param  float $subtotal The subtotal amount
+     * @param  float $subtotal The subtotal amount.
      * @return void
      */
     public function set_subtotal($subtotal);

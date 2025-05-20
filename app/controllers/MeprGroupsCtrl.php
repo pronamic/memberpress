@@ -32,7 +32,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
 
         MeprHooks::add_shortcode('mepr-group-price-boxes', 'MeprGroupsCtrl::shortcode_group_price_boxes');
 
-        // Cleanup list view
+        // Cleanup list view.
         add_filter('views_edit-' . MeprGroup::$cpt, 'MeprAppCtrl::cleanup_list_view');
     }
 
@@ -61,7 +61,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
                     'parent_item_colon'  => __('Parent Group:', 'memberpress'),
                 ],
                 'public'               => true,
-                'show_ui'              => true, // MeprUpdateCtrl::is_activated(),
+                'show_ui'              => true, // MeprUpdateCtrl::is_activated().
                 'show_in_menu'         => 'memberpress',
                 'capability_type'      => 'page',
                 'hierarchical'         => true,
@@ -87,12 +87,12 @@ class MeprGroupsCtrl extends MeprCptCtrl
     {
         $current_post = MeprUtils::get_current_post();
 
-        // This isn't a post? Just return the content then
+        // This isn't a post? Just return the content then.
         if ($current_post === false) {
             return $content;
         }
 
-        // Stop rendering pricing box on Admin side
+        // Stop rendering pricing box on Admin side.
         if (is_admin()) {
             return $content;
         }
@@ -103,14 +103,14 @@ class MeprGroupsCtrl extends MeprCptCtrl
         static $already_run    = [];
         static $new_content    = [];
         static $content_length = [];
-        // Init this posts static values
+        // Init this posts static values.
         if (!isset($new_content[$current_post->ID]) || empty($new_content[$current_post->ID])) {
             $already_run[$current_post->ID]    = false;
             $new_content[$current_post->ID]    = '';
             $content_length[$current_post->ID] = -1;
         }
 
-        if ($already_run[$current_post->ID] && strlen($content) == $content_length[$current_post->ID] && !$manual) { // shortcode may pass
+        if ($already_run[$current_post->ID] && strlen($content) == $content_length[$current_post->ID] && !$manual) { // Shortcode may pass.
             return $new_content[$current_post->ID];
         }
 
@@ -120,13 +120,13 @@ class MeprGroupsCtrl extends MeprCptCtrl
         if (isset($current_post) && is_a($current_post, 'WP_Post') && $current_post->post_type == MeprGroup::$cpt) {
             $group = new MeprGroup($current_post->ID);
 
-            // Short circuiting for any of the following reasons
+            // Short circuiting for any of the following reasons.
             if (
-                $group->ID === null || // Bad group for some reason
-                (!$manual && $group->manual_append_price_boxes()) || // the_content filter and show manually is enabled
+                $group->ID === null || // Bad group for some reason.
+                (!$manual && $group->manual_append_price_boxes()) || // Show manually and the_content filter are enabled.
                 ($manual && !$group->manual_append_price_boxes())
-            ) { // do_shortcode and show manually is disabled
-                // See notes above
+            ) { // Show manually and do_shortcode are disabled
+                // See notes above.
                 $new_content[$current_post->ID] = $content;
                 return $new_content[$current_post->ID];
             }
@@ -136,7 +136,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
             $content .= ob_get_clean();
         }
 
-        // See notes above
+        // See notes above.
         $new_content[$current_post->ID] = $content;
         return $new_content[$current_post->ID];
     }
@@ -198,7 +198,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
     }
 
-    // Template selection
+    // Template selection.
     /**
      * Template selection
      *
@@ -259,7 +259,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
         $fallback_state = 'unchanged';
 
         if (!wp_verify_nonce((isset($_POST[MeprGroup::$nonce_str])) ? $_POST[MeprGroup::$nonce_str] : '', MeprGroup::$nonce_str . wp_salt())) {
-            return $post_id; // Nonce prevents meta data from being wiped on move to trash
+            return $post_id; // Nonce prevents meta data from being wiped on move to trash.
         }
 
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
@@ -291,22 +291,22 @@ class MeprGroupsCtrl extends MeprCptCtrl
 
             if (empty($_POST[MeprGroup::$fallback_membership_str])) {
                 if (!empty($orig_fallback_membership)) {
-                    // Fallback changed to default or none
+                    // Fallback changed to default or none.
                     $fallback_state = 'deleted';
                 }
             } else {
                 if (!empty($orig_fallback_membership) && $orig_fallback_membership != $fallback_membership) {
-                    // Fallback changed to a new product/membership
+                    // Fallback changed to a new product/membership.
                     $fallback_state = 'changed';
                 }
             }
 
             $group->fallback_membership = $fallback_membership;
             $group->store_meta();
-            // Let's handle the $fallback_state changes through hooks
+            // Let's handle the $fallback_state changes through hooks.
             MeprHooks::do_action("mepr-group-fallback-membership-{$fallback_state}", $orig_fallback_membership, $group);
 
-            // Some themes rely on this meta key to be set to use the custom template, and they don't use locate_template
+            // Some themes rely on this meta key to be set to use the custom template, and they don't use locate_template.
             if ($group->use_custom_template && !empty($group->custom_template)) {
                 update_post_meta($group->ID, '_wp_page_template', $group->custom_template);
             } else {
@@ -330,6 +330,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
         $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key = '" . MeprProduct::$group_id_str . "' AND meta_value = '{$id}'");
     }
 
+    // It's not used anywhere
     // public static function get_style_options_array() {
     // $styles = array();
     // $styles['layout']       = $_POST[MeprGroup::$group_page_layout_str];
@@ -340,7 +341,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
     // $styles['font_size']    = $_POST[MeprGroup::$group_page_font_size_str];
     // $styles['button_color'] = $_POST[MeprGroup::$group_page_button_color_str];
     // return $styles;
-    // }
+    // }.
     /**
      * Store chosen products for the group.
      *
@@ -350,7 +351,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
     public static function store_chosen_products($group_id)
     {
         if (isset($_POST[MeprGroup::$products_str]['product'])) {
-            // Zero out old memberships before assigning the new ones
+            // Zero out old memberships before assigning the new ones.
             self::zero_out_old_products($group_id);
 
             for ($index = 0; $index < (count($_POST[MeprGroup::$products_str]['product']) - 1); $index++) {
@@ -395,7 +396,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
      */
     public static function group_meta_box($post, $args)
     {
-        // Don't use $post here, it is null on new group - use args instead
+        // Don't use $post here, it is null on new group - use args instead.
         $group        = $args['args']['group'];
         $mepr_options = MeprOptions::fetch();
 
@@ -429,7 +430,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
         if ($current_screen->post_type == MeprGroup::$cpt) {
             wp_enqueue_style('mepr-groups-css', MEPR_CSS_URL . '/admin-groups.css', ['mepr-settings-table-css'], MEPR_VERSION);
 
-            wp_dequeue_script('autosave'); // Disable auto-saving
+            wp_dequeue_script('autosave'); // Disable auto-saving.
 
             wp_enqueue_script('mepr-groups-js', MEPR_JS_URL . '/admin_groups.js', ['jquery','jquery-ui-sortable','mepr-settings-table-js'], MEPR_VERSION);
 
@@ -471,7 +472,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
             }
         }
 
-        die(); // No matches so let's kill this thing
+        die(); // No matches so let's kill this thing.
     }
 
     /**
@@ -543,21 +544,24 @@ class MeprGroupsCtrl extends MeprCptCtrl
         $user    = $txn->user();
         $group   = $product->group();
 
-        // Return if product doesn't belong to a group
+        // Return if product doesn't belong to a group.
         if ($group === false) {
             return;
         }
 
         $fallback_membership = $group->fallback_membership();
 
+        // No fallback for product or the transaction product is the fallback.
         if ($fallback_membership !== false && $product->ID != $fallback_membership->ID) {
+            // No active subscription found for the group.
             if (($user->subscription_in_group($group)) || ($user->lifetime_subscription_in_group($group, [MeprTransaction::$fallback_str]))) {
                 $fallback_txn = $user->fallback_txn($fallback_membership->ID);
+                // No fallback transaction exists.
                 if ($fallback_txn !== false) {
                     $fallback_txn->expire();
-                } // No fallback transaction exists
-            } // No active subscription found for the group
-        } // No fallback for product or the transaction product is the fallback
+                }
+            }
+        }
     }
 
     /**
@@ -574,19 +578,21 @@ class MeprGroupsCtrl extends MeprCptCtrl
         $product = $txn->product();
         $group   = $product->group();
 
-        // Return if product doesn't belong to a group
+        // Return if product doesn't belong to a group.
         if ($group === false) {
             return;
         }
 
         $fallback_membership = $group->fallback_membership();
 
+        // No fallback for product or the transaction product is the fallback.
         if ($fallback_membership !== false && $product->ID != $fallback_membership->ID) {
+            // User still has an active subscription in the group.
             if ((!$user->is_already_subscribed_to($fallback_membership->ID)) && (!$user->subscription_in_group($group)) && (!$user->lifetime_subscription_in_group($group, [MeprTransaction::$fallback_str]))) {
                 $fallback_txn_id = $txn->create_fallback_transaction();
                 MeprEvent::record('subscription-changed', $txn, $fallback_txn_id);
-            } // User still has an active subscription in the group
-        } // No fallback for product or the transaction product is the fallback
+            }
+        }
     }
 
     /**
@@ -610,7 +616,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
 
         // No validation needed here as the below function does it all
-        // This is just a wrapper
+        // This is just a wrapper.
         return self::render_pricing_boxes('', true);
     }
 }

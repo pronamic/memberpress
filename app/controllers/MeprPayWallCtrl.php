@@ -9,7 +9,13 @@ if (!defined('ABSPATH')) {
  */
 class MeprPayWallCtrl extends MeprBaseCtrl
 {
-    public static $cookie_name = 'mp3pi141592pw'; // CDN's and caching plugins/varnish etc should NOT cache any pages where this cookie is set
+    /**
+     * Cookie name for tracking paywall views.
+     * CDN's and caching plugins/varnish etc should NOT cache any pages where this cookie is set.
+     *
+     * @var string
+     */
+    public static $cookie_name = 'mp3pi141592pw'; // CDN's and caching plugins/varnish etc should NOT cache any pages where this cookie is set.
 
     /**
      * Load the hooks.
@@ -22,7 +28,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         add_filter('mepr-pre-run-rule-redirection', 'MeprPayWallCtrl::allow_search_engines_redirection', 15, 3);
         add_action('wp_head', 'MeprPayWallCtrl::add_noarchive_to_wp_head');
 
-        // Same hooks, different purpose and priority
+        // Same hooks, different purpose and priority.
         add_filter('mepr-pre-run-rule-content', 'MeprPayWallCtrl::paywall_allow_through_content', 10, 3);
         add_filter('mepr-pre-run-rule-redirection', 'MeprPayWallCtrl::paywall_allow_through_redirection', 10, 3);
         add_action('template_redirect', 'MeprPayWallCtrl::paywall_update_cookie');
@@ -72,7 +78,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         // Check the URI and post first to see if this is even a locked page
         // TODO:
         // Ugh should probably check for non-singular page types and make sure
-        // none of them are protected here as well eventually
+        // none of them are protected here as well eventually.
         if (!MeprRule::is_uri_locked($uri) && ($post === false || !MeprRule::is_locked($post))) {
             return;
         }
@@ -101,12 +107,12 @@ class MeprPayWallCtrl extends MeprBaseCtrl
     {
         $post = MeprUtils::get_current_post();
 
-        // Do nothing if the member is logged in or this is excluded from the PayWall or this is an archive view
+        // Do nothing if the member is logged in or this is excluded from the PayWall or this is an archive view.
         if (MeprUtils::is_user_logged_in() || ($post !== false && self::is_excluded($post)) || !is_singular()) {
             return;
         }
 
-        // If no post, or post is not protected let's bail
+        // If no post, or post is not protected let's bail.
         if ($post === false || !MeprRule::is_locked($post)) {
             return;
         }
@@ -124,7 +130,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
             ;
 
             setcookie(self::$cookie_name, base64_encode(($num_views + 1)), $cookie_time, '/');
-            $_COOKIE[self::$cookie_name] = base64_encode(($num_views + 1)); // Update the COOKIE global too for use later downstream
+            $_COOKIE[self::$cookie_name] = base64_encode(($num_views + 1)); // Update the COOKIE global too for use later downstream.
         }
     }
 
@@ -139,7 +145,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
     public static function paywall_allow_through_content($protect, $post, $uri)
     {
         if (self::paywall_allow_through()) {
-            return false; // Need to return false to allow them through the blocks
+            return false; // Need to return false to allow them through the blocks.
         }
 
         return $protect;
@@ -156,7 +162,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
     public static function paywall_allow_through_redirection($protect, $uri, $delim)
     {
         if (self::paywall_allow_through('uri')) {
-            return false; // Need to return false to allow them through the blocks
+            return false; // Need to return false to allow them through the blocks.
         }
 
         return $protect;
@@ -172,12 +178,12 @@ class MeprPayWallCtrl extends MeprBaseCtrl
     {
         $post = MeprUtils::get_current_post();
 
-        // Do nothing if the member is logged in, or if this is a bot (bots might be allowed through later down the chain)
+        // Do nothing if the member is logged in, or if this is a bot (bots might be allowed through later down the chain).
         if (MeprUtils::is_user_logged_in() || self::verify_bot()) {
             return false;
         }
 
-        // check if Post is excluded from the PayWall - if so do NOT allow them through
+        // Check if the Post is excluded from the PayWall - if so do NOT allow them through.
         if ($post !== false && self::is_excluded($post)) {
             return false;
         }
@@ -191,7 +197,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
                 $num_views = base64_decode($num_views);
             }
 
-            // There's a race condition happening here, so we need to add one to the uri's
+            // There's a race condition happening here, so we need to add one to the uri's.
             if ($type == 'uri') {
                 $num_views += 1;
             }
@@ -213,7 +219,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
     public static function allow_search_engines_content($protect, $post, $uri)
     {
         if (self::allow_search_engines_through()) {
-            return false; // Need to return false here to allow SE through the blocks
+            return false; // Need to return false here to allow SE through the blocks.
         }
 
         $hide_comments = $protect ? '__return_true' : '__return_false';
@@ -233,7 +239,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
     public static function allow_search_engines_redirection($protect, $uri, $delim)
     {
         if (self::allow_search_engines_through()) {
-            return false; // Need to return false here to allow SE through the blocks
+            return false; // Need to return false here to allow SE through the blocks.
         }
 
         return $protect;
@@ -248,7 +254,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
     {
         $post = MeprUtils::get_current_post();
 
-        // check if Post is excluded from the PayWall
+        // Check if the Post is excluded from the PayWall.
         if ($post !== false && self::is_excluded($post)) {
             return false;
         }
@@ -269,7 +275,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
      */
     public static function verify_bot()
     {
-        // If the user is logged in, then bail
+        // If the user is logged in, then bail.
         if (MeprUtils::is_user_logged_in()) {
             return false;
         }
@@ -291,7 +297,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
             if (strpos($agent, $engine) !== false) {
                 $ip_to_check = $_SERVER['REMOTE_ADDR'];
 
-                // Lookup the host by this IP address
+                // Lookup the host by this IP address.
                 $hostname = gethostbyaddr($ip_to_check);
 
                 if ($engine == 'google' && !preg_match('#^.*\.googlebot\.com$#', $hostname)) {
@@ -306,13 +312,13 @@ class MeprPayWallCtrl extends MeprBaseCtrl
                     break;
                 }
 
-                // Even though yahoo is contracted with bingbot, they do still send out slurp to update some entries etc
+                // Even though yahoo is contracted with bingbot, they do still send out slurp to update some entries etc.
                 if (($engine == 'yahoo' || $engine == 'slurp') && !preg_match('#^.*\.crawl\.yahoo\.net$#', $hostname)) {
                     break;
                 }
 
                 if ($hostname !== false && $hostname != $ip_to_check) {
-                    // Do the reverse lookup
+                    // Do the reverse lookup.
                     $ip_to_verify = gethostbyname($hostname);
 
                     if ($ip_to_verify != $hostname && $ip_to_verify == $ip_to_check) {
@@ -323,7 +329,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
             }
         }
 
-        // Otherwise return false
+        // Otherwise return false.
         $returned = false;
         return $returned;
     }

@@ -219,7 +219,7 @@
   <?php MeprHooks::do_action('mepr-product-registration-metabox', $product); ?>
 
   <div id="mepr-product-manually-place-form">
-    <?php // Manually place the registration form on the page ?>
+    <?php // Manually place the registration form on the page. ?>
     <a href="#" data-target="#mepr-product-shortcodes" class="mepr-slide-toggle"><?php _e('Membership Shortcodes', 'memberpress'); ?></a><br/><br/>
     <div id="mepr-product-shortcodes" class="mepr-radius-border mepr-hidden">
       <p class="description"><?php _e('You can use this shortcode anywhere on your site to quickly display a link to this membership page. If the text inbetween the shortcode is not present, MemberPress will use the membership title as the link text instead.', 'memberpress'); ?></p>

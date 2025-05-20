@@ -13,7 +13,7 @@ class MeprAvalaraTaxRateIntegration
      */
     public function __construct()
     {
-        // Filter for MP Options page (field to enable VAT and collect VAT country & VAT ID)
+        // Filter for MP Options page (field to enable VAT and collect VAT country & VAT ID).
         add_action('mepr_tax_rate_options', [$this,'options']);
         add_action('mepr-process-options', [$this,'store_options']);
 
@@ -21,7 +21,7 @@ class MeprAvalaraTaxRateIntegration
         $tax_avalara_enabled = get_option('mepr_tax_avalara_enabled');
 
         if ($calculate_taxes && $tax_avalara_enabled) {
-            // Filter for tax calculation
+            // Filter for tax calculation.
             add_filter('mepr_found_tax_rate', [$this,'find_rate'], 10, 6);
         }
     }
@@ -71,8 +71,8 @@ class MeprAvalaraTaxRateIntegration
     {
         $mepr_options = MeprOptions::fetch();
         $apikey       = $mepr_options->attr('tax_avalara_key');
-        $accountID    = $mepr_options->attr('tax_avalara_account_id');
-        $auth         = base64_encode($accountID . ':' . $apikey);
+        $account_id   = $mepr_options->attr('tax_avalara_account_id');
+        $auth         = base64_encode($account_id . ':' . $apikey);
         $street       = urlencode($street);
         $city         = urlencode($city);
         $postcode     = urlencode($postcode);
@@ -90,7 +90,7 @@ class MeprAvalaraTaxRateIntegration
                 $response_body = json_decode($response['body']);
 
                 if (isset($response_body->totalRate)) {
-                    $tax_rate->tax_rate = $response_body->totalRate * 100; // MP expects a percent
+                    $tax_rate->tax_rate = $response_body->totalRate * 100; // MP expects a percent.
                     $tax_rate->tax_desc = __('Tax', 'memberpress');
                 }
             }

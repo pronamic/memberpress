@@ -1,7 +1,7 @@
 <?php
 
 // The minimum amount that can be charged per-currency in the checkout
-// Based on https://stripe.com/docs/currencies#minimum-and-maximum-charge-amounts
+// Based on https://stripe.com/docs/currencies#minimum-and-maximum-charge-amounts.
 return MeprHooks::apply_filters('mepr_minimum_charge_amounts', [
     'USD' => 0.50,
     'AED' => 2.00,

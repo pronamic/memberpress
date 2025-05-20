@@ -6,22 +6,102 @@ if (!defined('ABSPATH')) {
 
 class MeprReminder extends MeprCptModel
 {
+    /**
+     * Meta key for the trigger length.
+     *
+     * @var string
+     */
     public static $trigger_length_str   = 'mepr_trigger_length';
+
+    /**
+     * Meta key for the trigger interval.
+     *
+     * @var string
+     */
     public static $trigger_interval_str = 'mepr_trigger_interval';
+
+    /**
+     * Meta key for the trigger timing.
+     *
+     * @var string
+     */
     public static $trigger_timing_str   = 'mepr_trigger_timing';
+
+    /**
+     * Meta key for the trigger event.
+     *
+     * @var string
+     */
     public static $trigger_event_str    = 'mepr_trigger_event';
+
+    /**
+     * Meta key for the product filter flag.
+     *
+     * @var string
+     */
     public static $filter_products_str  = '_mepr_reminder_filter_products_str';
+
+    /**
+     * Meta key for the products list.
+     *
+     * @var string
+     */
     public static $products_str         = '_mepr_reminder_products';
+
+    /**
+     * Meta key for the emails list.
+     *
+     * @var string
+     */
     public static $emails_str           = '_mepr_emails';
 
+    /**
+     * Nonce string for reminders form.
+     *
+     * @var string
+     */
     public static $nonce_str    = 'mepr_reminders_nonce';
+
+    /**
+     * Option name for the last cleanup run timestamp.
+     *
+     * @var string
+     */
     public static $last_run_str = 'mepr_reminders_db_cleanup_last_run';
 
+    /**
+     * Custom post type for reminders.
+     *
+     * @var string
+     */
     public static $cpt = 'mp-reminder';
 
+    /**
+     * Available trigger intervals.
+     *
+     * @var array
+     */
     public $trigger_intervals;
+
+    /**
+     * Available trigger timings (before/after).
+     *
+     * @var array
+     */
     public $trigger_timings;
+
+    /**
+     * Available trigger events.
+     *
+     * @var array
+     */
     public $trigger_events;
+
+    /**
+     * Compiled list of event actions.
+     *
+     * @var array
+     */
     public $event_actions;
 
     /**
@@ -40,7 +120,7 @@ class MeprReminder extends MeprCptModel
                 'trigger_timing'   => 'before',
                 'trigger_event'    => 'sub-expires',
                 'filter_products'  => false, // Send only for specific memberships?
-                'products'         => [], // Empty array means ALL memberships
+                'products'         => [], // Empty array means ALL memberships.
                 'emails'           => [],
             ]
         );
@@ -149,7 +229,7 @@ class MeprReminder extends MeprCptModel
             );
 
             // Direct SQL so we don't issue any actions / filters
-            // in WP itself that could get us in an infinite loop
+            // in WP itself that could get us in an infinite loop.
             $sql = "UPDATE {$wpdb->posts} SET post_title=%s WHERE ID=%d";
             $sql = $wpdb->prepare($sql, $title, $id);
             $wpdb->query($sql);
@@ -164,7 +244,11 @@ class MeprReminder extends MeprCptModel
         update_post_meta($id, self::$emails_str, $this->emails);
     }
 
-    // Singularize and capitalize
+    /**
+     * Convert the trigger interval to database format.
+     *
+     * @return string Uppercase singular form of the interval.
+     */
     private function db_trigger_interval()
     {
         return strtoupper(substr($this->trigger_interval, 0, -1));
@@ -187,7 +271,7 @@ class MeprReminder extends MeprCptModel
                     $formatted_array[] = $product->post_title;
                 }
             }
-        } else { // If empty, then All products
+        } else { // If empty, then All products.
             $formatted_array[] = __('All Memberships', 'memberpress');
         }
 
@@ -224,21 +308,21 @@ class MeprReminder extends MeprCptModel
         $op   = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
-        // If $this->products is empty, then we should send for all product_id's
+        // If $this->products is empty, then we should send for all product_id's.
         $and_products = $this->get_query_products('tr.product_id');
 
         $query = $wpdb->prepare(
-        // Get all info about expiring transactions
+        // Get all info about expiring transactions.
             "SELECT tr.* FROM {$mepr_db->transactions} AS tr\n" .
 
-            // Lifetimes don't expire
+            // Lifetimes don't expire.
             "WHERE tr.expires_at <> %s\n" .
 
-            // Make sure only real users are grabbed
+            // Make sure only real users are grabbed.
             "AND tr.user_id > 0\n" .
 
             // Make sure that only transactions that are
-            // complete or (confirmed and in a free trial) get picked up
+            // complete or (confirmed and in a free trial) get picked up.
             "AND ( tr.status = %s
                 OR ( tr.status = %s
                      AND ( SELECT sub.trial
@@ -246,13 +330,13 @@ class MeprReminder extends MeprCptModel
                             WHERE sub.id = tr.subscription_id AND sub.trial_amount = 0.00 ) = 1 ) )\n" .
 
             // Determine if expiration is accurate based on the subscription
-            // If sub_id is 0 then treat as expiration
+            // If sub_id is 0 then treat as expiration.
             "AND ( tr.subscription_id = 0 OR
                      ( SELECT sub.status
                          FROM {$mepr_db->subscriptions} AS sub
                         WHERE sub.id = tr.subscription_id ) IN (%s, %s) )\n" .
 
-            // Ensure that we're in the 2 day window after the expiration / trigger
+            // Ensure that we're in the 2 day window after the expiration / trigger.
             "AND {$op}( tr.expires_at, INTERVAL {$this->trigger_length} {$unit} ) <= %s
           AND DATE_ADD(
                 {$op}( tr.expires_at, INTERVAL {$this->trigger_length} {$unit} ),
@@ -260,11 +344,11 @@ class MeprReminder extends MeprCptModel
               ) >= %s\n" .
 
             // Make sure that if our timing is beforehand
-            // then we don't send after the expiration
+            // then we don't send after the expiration.
             ( $this->trigger_timing == 'before' ? $wpdb->prepare("AND tr.expires_at >= %s\n", MeprUtils::db_now()) : '' ) .
 
             // Let's make sure the reminder event hasn't already fired ...
-            // This will ensure that we don't send a second reminder
+            // This will ensure that we don't send a second reminder.
             "AND ( SELECT ev.id
                   FROM {$mepr_db->events} AS ev
                  WHERE ev.evt_id=tr.id
@@ -274,7 +358,7 @@ class MeprReminder extends MeprCptModel
                  LIMIT 1 ) IS NULL\n" .
 
             // Let's make sure we're not sending expire reminders
-            // when your subscription is being upgraded or downgraded
+            // when your subscription is being upgraded or downgraded.
             "AND ( SELECT ev2.id
                   FROM {$mepr_db->events} AS ev2
                  WHERE ev2.evt_id=tr.id
@@ -283,7 +367,7 @@ class MeprReminder extends MeprCptModel
                  LIMIT 1 ) IS NULL\n" .
 
             // Let's make sure this is the latest transaction for the subscription
-            // in case there is a more recent transaction that expires later
+            // in case there is a more recent transaction that expires later.
             "AND ( tr.subscription_id = 0
                 OR tr.id = ( SELECT tr2.id
                              FROM {$mepr_db->transactions} AS tr2
@@ -293,7 +377,7 @@ class MeprReminder extends MeprCptModel
 
             "{$and_products} " .
 
-            // We're just getting one of these at a time ... we need the oldest one first
+            // We're just getting one of these at a time ... we need the oldest one first.
             "ORDER BY tr.expires_at
         LIMIT 1\n",
             MeprUtils::db_lifetime(),
@@ -325,35 +409,35 @@ class MeprReminder extends MeprCptModel
         $unit = $this->db_trigger_interval();
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
-        // If $this->products is empty, then we should send for all product_id's
+        // If $this->products is empty, then we should send for all product_id's.
         $and_products = $this->get_query_products('tr.product_id');
 
         $query = $wpdb->prepare(
-        // Get all info about renewing transactions
+        // Get all info about renewing transactions.
             "SELECT tr.* FROM {$mepr_db->transactions} AS tr\n" .
 
-            // Lifetimes don't renew
+            // Lifetimes don't renew.
             "WHERE tr.expires_at <> %s\n" .
 
-            // Make sure it's recurring
+            // Make sure it's recurring.
             "AND tr.subscription_id > 0\n" .
 
-            // Make sure only real users are grabbed
+            // Make sure only real users are grabbed.
             "AND tr.user_id > 0\n" .
 
             // Make sure that only transactions that are
-            // complete get picked up
+            // complete get picked up.
             "AND tr.status = %s \n" .
 
             // Ensure that we're defined timeframe
-            // Giving it a 2 days buffer to the past
+            // Giving it a 2 days buffer to the past.
             "AND DATE_ADD( tr.created_at, INTERVAL {$this->trigger_length} {$unit} ) <= %s AND DATE_ADD(
         DATE_ADD( tr.created_at, INTERVAL {$this->trigger_length} {$unit} ), INTERVAL 2 DAY) >= %s\n" .
 
             "AND tr.created_at <= %s\n " .
 
             // Let's make sure the reminder event hasn't already fired ...
-            // This will ensure that we don't send a second reminder
+            // This will ensure that we don't send a second reminder.
             "AND ( SELECT ev.id
                   FROM {$mepr_db->events} AS ev
                  WHERE ev.evt_id=tr.id
@@ -364,7 +448,7 @@ class MeprReminder extends MeprCptModel
 
             "{$and_products} " .
 
-            // We're just getting one of these at a time ... we need the oldest one first
+            // We're just getting one of these at a time ... we need the oldest one first.
             "ORDER BY tr.created_at
         LIMIT 1\n",
             MeprUtils::db_lifetime(),
@@ -393,36 +477,36 @@ class MeprReminder extends MeprCptModel
         $unit = $this->db_trigger_interval();
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
-        // If $this->products is empty, then we should send for all product_id's
+        // If $this->products is empty, then we should send for all product_id's.
         $and_products = $this->get_query_products('tr.product_id');
 
         $query = $wpdb->prepare(
-        // Get all info about renewing transactions
+        // Get all info about renewing transactions.
             "SELECT tr.* FROM {$mepr_db->transactions} AS tr\n" .
 
-            // Lifetimes don't renew
+            // Lifetimes don't renew.
             "WHERE tr.expires_at <> %s\n" .
 
-            // Make sure it's recurring
+            // Make sure it's recurring.
             "AND tr.subscription_id <> 0\n" .
 
-            // Make sure only real users are grabbed
+            // Make sure only real users are grabbed.
             "AND tr.user_id > 0\n" .
 
             // Make sure that only transactions that are
-            // complete or (confirmed and in a free trial) get picked up
+            // complete or (confirmed and in a free trial) get picked up.
             "AND ( tr.status = %s
                 OR ( tr.status = %s
                      AND ( SELECT sub.trial
                              FROM {$mepr_db->subscriptions} AS sub
                             WHERE sub.id = tr.subscription_id AND sub.trial_amount = 0.00 ) = 1 ) )\n" .
 
-            // Determine if renewal is accurate based on the subscription
+            // Determine if renewal is accurate based on the subscription.
             "AND ( SELECT sub.status
                   FROM {$mepr_db->subscriptions} AS sub
                   WHERE sub.id = tr.subscription_id ) = %s\n" .
 
-            // Ensure that we're in the 2 day window after the renewal / trigger
+            // Ensure that we're in the 2 day window after the renewal / trigger.
             "AND DATE_SUB( tr.expires_at, INTERVAL {$this->trigger_length} {$unit} ) <= %s
           AND DATE_ADD(
                 DATE_SUB( tr.expires_at, INTERVAL {$this->trigger_length} {$unit} ),
@@ -430,11 +514,11 @@ class MeprReminder extends MeprCptModel
               ) >= %s\n" .
 
             // Make sure that if our timing is beforehand
-            // then we don't send after the renewal
+            // then we don't send after the renewal.
             "AND tr.expires_at >= %s\n" .
 
             // Let's make sure the reminder event hasn't already fired ...
-            // This will ensure that we don't send a second reminder
+            // This will ensure that we don't send a second reminder.
             "AND ( SELECT ev.id
                   FROM {$mepr_db->events} AS ev
                  WHERE ev.evt_id=tr.id
@@ -444,7 +528,7 @@ class MeprReminder extends MeprCptModel
                  LIMIT 1 ) IS NULL\n" .
 
             // Let's make sure we're not sending renewal reminders
-            // when your subscription is being upgraded or downgraded
+            // when your subscription is being upgraded or downgraded.
             "AND ( SELECT ev2.id
                   FROM {$mepr_db->events} AS ev2
                  WHERE ev2.evt_id=tr.id
@@ -453,7 +537,7 @@ class MeprReminder extends MeprCptModel
                  LIMIT 1 ) IS NULL\n" .
 
             // Let's make sure this is the latest transaction for the subscription
-            // in case there is a more recent transaction that expires later
+            // in case there is a more recent transaction that expires later.
             "AND tr.id = ( SELECT tr2.id
                         FROM {$mepr_db->transactions} AS tr2
                         WHERE tr2.subscription_id = tr.subscription_id
@@ -462,7 +546,7 @@ class MeprReminder extends MeprCptModel
 
             "{$and_products} " .
 
-            // We're just getting one of these at a time ... we need the oldest one first
+            // We're just getting one of these at a time ... we need the oldest one first.
             "ORDER BY tr.expires_at
         LIMIT 1\n",
             MeprUtils::db_lifetime(),
@@ -493,39 +577,39 @@ class MeprReminder extends MeprCptModel
 
         $unit = $this->db_trigger_interval();
 
-        // Sorry, don't want to incur any temporal paradoxes here
+        // Sorry, don't want to incur any temporal paradoxes here.
         if ($this->trigger_timing === 'before') {
             return false;
         }
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
-        // If $this->products is empty, then we should send for all product_id's
+        // If $this->products is empty, then we should send for all product_id's.
         $and_products = $this->get_query_products('txn.product_id');
 
         // Find transactions where
         // status = complete or confirmed
-        // no other complete & unexpired txns for this user
+        // no other complete & unexpired txns for this user.
         $query = $wpdb->prepare(
-        // Just select the actual transaction id
+        // Just select the actual transaction id.
             "SELECT txn.id FROM {$mepr_db->transactions} AS txn " .
 
             // Make sure that only transactions that are
-            // complete or (confirmed and in a free trial) get picked up
+            // complete or (confirmed and in a free trial) get picked up.
             "WHERE ( txn.status = %s
                 OR ( txn.status = %s
                      AND ( SELECT sub.trial
                              FROM {$mepr_db->subscriptions} AS sub
                             WHERE sub.id = txn.subscription_id AND sub.trial_amount = 0.00 ) = 1 ) ) " .
 
-            // We don't send on fallback txn
+            // We don't send on fallback txn.
             ' AND txn.txn_type <> %s ' .
-            // Ensure we grab transactions that are after the trigger period
+            // Ensure we grab transactions that are after the trigger period.
             "AND DATE_ADD(
                 txn.created_at,
                 INTERVAL {$this->trigger_length} {$unit}
               ) <= %s " .
 
-            // Give it a 2 day buffer period so we don't send for really old transactions
+            // Give it a 2 day buffer period so we don't send for really old transactions.
             "AND DATE_ADD(
                 DATE_ADD(
                   txn.created_at,
@@ -534,7 +618,7 @@ class MeprReminder extends MeprCptModel
                 INTERVAL 2 DAY
               ) >= %s " .
 
-            // Make sure this is the *first* complete transaction
+            // Make sure this is the *first* complete transaction.
             "AND ( SELECT txn2.id
                   FROM {$mepr_db->transactions} AS txn2
                  WHERE txn2.user_id = txn.user_id
@@ -548,7 +632,7 @@ class MeprReminder extends MeprCptModel
                  LIMIT 1
               ) IS NULL ' .
 
-            // Don't send this twice yo ... for this user
+            // Don't send this twice yo ... for this user.
             "AND ( SELECT ev.id
                   FROM {$mepr_db->events} AS ev
                  WHERE ev.evt_id=txn.id
@@ -560,7 +644,7 @@ class MeprReminder extends MeprCptModel
 
             "{$and_products} " .
 
-            // Select the oldest transaction
+            // Select the oldest transaction.
             'ORDER BY txn.created_at ASC LIMIT 1',
             MeprTransaction::$complete_str,
             MeprTransaction::$confirmed_str,
@@ -588,33 +672,33 @@ class MeprReminder extends MeprCptModel
 
         $unit = $this->db_trigger_interval();
 
-        // Sorry, don't want to incur any temporal paradoxes here
+        // Sorry, don't want to incur any temporal paradoxes here.
         if ($this->trigger_timing === 'before') {
             return false;
         }
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
-        // If $this->products is empty, then we should send for all product_id's
+        // If $this->products is empty, then we should send for all product_id's.
         $and_products = $this->get_query_products('txn.product_id');
 
         // Find transactions where
         // status = pending
-        // no other complete & unexpired membership for this user
+        // no other complete & unexpired membership for this user.
         $query = $wpdb->prepare(
-        // Just grab the transaction id
+        // Just grab the transaction id.
             "SELECT txn.id FROM {$mepr_db->transactions} AS txn " .
 
-            // Ensure that we only select 'pending' transactions
+            // Ensure that we only select 'pending' transactions.
             'WHERE txn.status=%s ' .
 
             // Make sure the alotted time has passed
-            // before allowing to be selected
+            // before allowing to be selected.
             "AND DATE_ADD(
                 txn.created_at,
                 INTERVAL {$this->trigger_length} {$unit}
               ) <= %s " .
 
-            // Add in the 2 day buffer period
+            // Add in the 2 day buffer period.
             "AND DATE_ADD(
                 DATE_ADD(
                   txn.created_at,
@@ -625,7 +709,7 @@ class MeprReminder extends MeprCptModel
 
             // Ensure that there's no completed or confirmed transaction that
             // was created after the pending one ... if they came back and
-            // completed their transaction then it's not abandoned ... hahaha
+            // completed their transaction then it's not abandoned ... hahaha.
             "AND ( SELECT txn2.id
                   FROM {$mepr_db->transactions} AS txn2
                  WHERE txn2.user_id = txn.user_id
@@ -636,14 +720,14 @@ class MeprReminder extends MeprCptModel
                  LIMIT 1
               ) IS NULL ' .
 
-            // Ensure that this reminder is only sent for the primary transaction for multi-item purchases
+            // Ensure that this reminder is only sent for the primary transaction for multi-item purchases.
             "AND (
            txn.order_id = 0 OR
            txn.id = ( SELECT ord.primary_transaction_id FROM {$mepr_db->orders} AS ord WHERE ord.id = txn.order_id )
          )" .
 
             // Don't want to send this reminder twice so make sure there's no
-            // reminder that has already been sent for this bro
+            // reminder that has already been sent for this bro.
             "AND ( SELECT ev.id
                   FROM {$mepr_db->events} AS ev
                  WHERE ev.evt_id=txn.id
@@ -655,7 +739,7 @@ class MeprReminder extends MeprCptModel
 
             "{$and_products} " .
 
-            // Get the *oldest* applicable transaction
+            // Get the *oldest* applicable transaction.
             'ORDER BY txn.created_at ASC LIMIT 1',
             MeprTransaction::$pending_str,
             MeprUtils::db_now(),
@@ -666,8 +750,6 @@ class MeprReminder extends MeprCptModel
             $this->ID
         );
 
-        // echo "User Abandoned Query:\n\n";
-        // echo $query . "\n\n";
         $res = $wpdb->get_var($query);
         return $res;
     }
@@ -685,19 +767,19 @@ class MeprReminder extends MeprCptModel
         $unit = $this->db_trigger_interval();
         $op   = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
 
-        // We want to get expiring subscriptions
+        // We want to get expiring subscriptions.
         $not = ( ( $this->trigger_event == 'sub-expires' ) ? ' ' : ' NOT ' );
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
-        // If $this->products is empty, then we should send for all product_id's
+        // If $this->products is empty, then we should send for all product_id's.
         $and_products = $this->get_query_products('sub.product_id');
 
-        // Expiring Transactions
+        // Expiring Transactions.
         $query =
-        // Just grab the sub.id for any subscription with an expiring transaction
+        // Just grab the sub.id for any subscription with an expiring transaction.
         "SELECT sub.id FROM {$mepr_db->subscriptions} AS sub " .
 
-         // Make sure we only send out reminders for folks with ACTIVE subscriptions
+         // Make sure we only send out reminders for folks with ACTIVE subscriptions.
          'WHERE sub.status = %s ' .
 
          // Subtract or add if the reminder is before or after
@@ -705,7 +787,7 @@ class MeprReminder extends MeprCptModel
          // The add_date is because we actually want the first
          // day of the month *after* the expiration month
          // LPAD is just there to ensure the month is a
-         // 2 digit zero padded number
+         // 2 digit zero padded number.
          "AND {$op}(
                 DATE_ADD(
                   CONCAT(
@@ -737,8 +819,8 @@ class MeprReminder extends MeprCptModel
                 INTERVAL 1 MONTH
               ) >= %s " .
 
-         // check that we haven't already sent a reminder for this
-         // subscription *and* specific expiration date
+         // Check that we haven't already sent a reminder for this
+         // subscription *and* specific expiration date.
          "AND ( SELECT ev.id
                   FROM {$mepr_db->events} AS ev
                  WHERE ev.evt_id=sub.id
@@ -750,14 +832,14 @@ class MeprReminder extends MeprCptModel
 
          "{$and_products} " .
 
-         // Just ignore subs with no cc_exp date
+         // Just ignore subs with no cc_exp date.
          'AND sub.cc_exp_month IS NOT NULL
           AND sub.cc_exp_month <> ""
           AND sub.cc_exp_year IS NOT NULL
           AND sub.cc_exp_year <> ""
          ';
 
-         // Get the *oldest* valid cc expiration first
+         // Get the *oldest* valid cc expiration first.
          'ORDER BY CAST(sub.cc_exp_year AS UNSIGNED) ASC,
                  CAST(sub.cc_exp_month AS UNSIGNED) ASC
         LIMIT 1';
@@ -771,7 +853,6 @@ class MeprReminder extends MeprCptModel
             $this->ID
         );
 
-        // echo "{$query}\n";
         $res = $wpdb->get_var($query);
 
         return $res;
@@ -787,7 +868,7 @@ class MeprReminder extends MeprCptModel
         global $wpdb;
 
         if ($this->trigger_length < 0) {
-            return false; // bail out.
+            return false; // Bail out.
         }
 
         $mepr_db = new MeprDb();
@@ -796,19 +877,19 @@ class MeprReminder extends MeprCptModel
         $op   = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
-        // If $this->products is empty, then we should send for all product_id's
+        // If $this->products is empty, then we should send for all product_id's.
         $and_products = $this->get_query_products('sub.product_id');
 
-        // Make sure we only send out reminders for folks with the following status:
+        // Make sure we only send out reminders for folks with the following status:.
         $subs_statuses = [MeprSubscription::$active_str, MeprSubscription::$cancelled_str, MeprSubscription::$suspended_str];
         $in_sub_status = implode("','", $subs_statuses);
 
-        // Expiring Trial Subscriptions
+        // Expiring Trial Subscriptions.
         $query =
-        // Just grab the trial_days sub.id for any subscription with an expiring transaction
+        // Just grab the trial_days sub.id for any subscription with an expiring transaction.
         "SELECT sub.id FROM {$mepr_db->subscriptions} AS sub " .
 
-        // Calculate trial end date with trial days for comparison
+        // Calculate trial end date with trial days for comparison.
         "WHERE sub.status IN ('{$in_sub_status}') " .
 
         // Ensure that we're in the 2 day window.
@@ -818,11 +899,11 @@ class MeprReminder extends MeprCptModel
         ) >= %s" .
         "AND {$op}( DATE_ADD( sub.created_at, INTERVAL trial_days DAY), INTERVAL {$this->trigger_length} {$unit} ) <= %s " .
 
-        // Trials not expired yet
+        // Trials not expired yet.
         'AND DATE_ADD( sub.created_at, INTERVAL trial_days DAY) >= %s ' .
 
-         // check that we haven't already sent a reminder for this
-         // subscription *and* specific expiration date
+         // Check that we haven't already sent a reminder for this
+         // subscription *and* specific expiration date.
          "AND ( SELECT ev.id
                   FROM {$mepr_db->events} AS ev
                  WHERE ev.evt_id=sub.id
@@ -834,10 +915,10 @@ class MeprReminder extends MeprCptModel
 
          "{$and_products} " .
 
-         // Just trials subs
+         // Just trials subs.
          'AND sub.trial = 1 AND sub.trial_days > 0 AND sub.prorated_trial = 0 ' .
 
-        // Get the *oldest* valid trial subs first
+        // Get the *oldest* valid trial subs first.
         'ORDER BY sub.created_at ASC
         LIMIT 1';
 
@@ -895,5 +976,5 @@ class MeprReminder extends MeprCptModel
     // $res = $wpdb->get_row($query);
     //
     // return $res;
-    // }
+    // }.
 }

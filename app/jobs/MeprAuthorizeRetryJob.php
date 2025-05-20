@@ -19,7 +19,7 @@ class MeprAuthorizeRetryJob extends MeprBaseJob
     /**
      * Perform this job.
      *
-     * @throws Exception When subscription data is missing or Authorize.net API request fails
+     * @throws Exception When subscription data is missing or Authorize.net API request fails.
      */
     public function perform()
     {

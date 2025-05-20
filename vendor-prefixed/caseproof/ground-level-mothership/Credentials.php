@@ -72,7 +72,12 @@ class Credentials implements StaticContainerAwareness
     public static function storeLicenseKey(string $licenseKey): void
     {
         if (self::isCredentialSetInEnvironmentOrConstants(MothershipService::LICENSE_KEY_BASENAME)) {
-            throw new \Exception(esc_html__('Cannot store credentials in database; found in environment variables or constants.', 'memberpress'));
+            throw new \Exception(
+                esc_html__(
+                    'Cannot store credentials in database; found in environment variables or constants.',
+                    'memberpress'
+                )
+            );
         }
         self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->updateLicenseKey($licenseKey);
     }
@@ -92,13 +97,17 @@ class Credentials implements StaticContainerAwareness
         }
         switch ($credentialName) {
             case MothershipService::LICENSE_KEY_BASENAME:
-                return (string) self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getLicenseKey();
+                return (string) self::getContainer()
+                ->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)
+                ->getLicenseKey();
             case MothershipService::DOMAIN_BASENAME:
                 return (string) self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getDomain();
             case MothershipService::EMAIL_BASENAME:
                 return (string) self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getEmail();
             case MothershipService::API_TOKEN_BASENAME:
-                return (string) self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getApiToken();
+                return (string) self::getContainer()
+                ->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)
+                ->getApiToken();
             default:
                 return '';
         }

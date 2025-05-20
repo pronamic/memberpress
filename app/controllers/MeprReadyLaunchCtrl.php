@@ -21,9 +21,9 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         add_action('admin_head', 'MeprReadyLaunchCtrl::theme_style');
 
         add_filter('mepr-validate-options', 'MeprReadyLaunchCtrl::validate_settings_fields');
-        add_filter('template_include', [$this, 'override_page_templates'], 999999); // High priority so we have the last say here
+        add_filter('template_include', [$this, 'override_page_templates'], 999999); // High priority so we have the last say here.
         add_filter('the_content', [$this, 'thankyou_page_content'], 99);
-        add_filter('mepr_render_address_fields', [$this, 'placeholders_to_address_fields']); // High priority so we have the last say here
+        add_filter('mepr_render_address_fields', [$this, 'placeholders_to_address_fields']); // High priority so we have the last say here.
         add_filter('show_admin_bar', [$this, 'remove_admin_bar']);
         add_filter('mepr-membership-cant-purchase-string', [$this, 'cant_purchase_message']);
         add_filter('mepr-validate-account-ajax', [$this, 'validate_account_fields'], 10, 3);
@@ -50,12 +50,12 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         $show_welcome_image = 0;
         $welcome_image      = 0;
 
-        // Show welcome image
+        // Show welcome image.
         if (isset($atts['show_welcome_image'])) {
             $show_welcome_image = filter_var($atts['show_welcome_image'], FILTER_VALIDATE_BOOLEAN);
         }
 
-        // Get welcome image
+        // Get welcome image.
         if (isset($atts['welcome_image']) && ! empty($atts['welcome_image'])) {
             $welcome_image = $atts['welcome_image'];
         }
@@ -69,7 +69,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Render pricing table shortcode
      *
-     * @param  array $atts shortcode args.
+     * @param  array $atts Shortcode args.
      * @return string
      */
     public function pricing_table_shortcode($atts = [])
@@ -96,7 +96,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Render pricing table shortcode
      *
-     * @param  array $atts shortcode args.
+     * @param  array $atts Shortcode args.
      * @return string
      */
     public function account_shortcode($atts = [])
@@ -113,12 +113,12 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Show welcome image
+        // Show welcome image.
         if (isset($atts['show_welcome_image'])) {
             $show_welcome_image = filter_var($atts['show_welcome_image'], FILTER_VALIDATE_BOOLEAN);
         }
 
-        // Get welcome image
+        // Get welcome image.
         $welcome_image = '';
         if (isset($atts['welcome_image']) && ! empty($atts['welcome_image'])) {
             $welcome_image = $atts['welcome_image'];
@@ -137,7 +137,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Checkout Shortcode
      *
-     * @param  array $atts array of attributes.
+     * @param  array $atts Array of attributes.
      * @return string
      */
     public function checkout_shortcode($atts = [])
@@ -171,7 +171,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Override default template with the courses page template
      *
-     * @param  string $template current template
+     * @param  string $template Current template.
      * @return string $template modified template
      */
     public function override_page_templates($template)
@@ -211,7 +211,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             exit;
         }
 
-        // Checkout Page Template
+        // Checkout Page Template.
         if (self::template_enabled('checkout')) {
             $template = MeprView::file('/readylaunch/layout/app');
             include $template;
@@ -266,7 +266,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
                             $subscription = $transaction->subscription();
 
                             if ($subscription instanceof MeprSubscription) {
-                                // Subs can have both a payment txn and confirmation txn, make sure we don't process a sub twice
+                                // Subs can have both a payment txn and confirmation txn, make sure we don't process a sub twice.
                                 if (in_array((int) $subscription->id, $processed_sub_ids, true)) {
                                         continue;
                                 }
@@ -314,7 +314,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Enqueues scripts for admin view
      *
-     * @param  string $hook current page hook.
+     * @param  string $hook Current page hook.
      * @return void
      */
     public static function enqueue_admin_scripts($hook)
@@ -332,10 +332,10 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
                 ],
                 'multi_selection'  => false, // Limit selection to just one.
 
-                // additional post data to send to our ajax hook.
+                // Additional post data to send to our ajax hook.
                 'multipart_params' => [
                     '_wpnonce' => wp_create_nonce('media-form'),
-                    'action'   => 'upload-attachment',            // the ajax action name.
+                    'action'   => 'upload-attachment',            // The ajax action name.
                 ],
             ];
             wp_enqueue_style('wp-color-picker');
@@ -359,19 +359,19 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
 
         $handles = ['dashicons', 'jquery-ui-timepicker-addon', 'jquery-magnific-popup'];
 
-        // Login Scripts
+        // Login Scripts.
         if (self::template_enabled('login')) {
             static::remove_styles($handles);
             static::add_template_scripts('login');
         }
 
-        // Account Scripts
+        // Account Scripts.
         if (self::template_enabled('account')) {
             static::remove_styles($handles);
             static::add_template_scripts('account');
         }
 
-        // Pricing Scripts
+        // Pricing Scripts.
         if (self::template_enabled('pricing')) {
             if (
                 isset($post) &&
@@ -383,7 +383,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             }
         }
 
-        // Checkout Scripts
+        // Checkout Scripts.
         if (self::template_enabled('checkout') || self::template_enabled('thankyou')) {
             static::remove_styles($handles);
             static::add_template_scripts('checkout');
@@ -534,7 +534,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Add scripts to full page template
      *
-     * @param  string $page the template page.
+     * @param  string $page The template page.
      * @return void
      */
     public static function add_template_scripts($page = '')
@@ -620,7 +620,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             self::template_enabled('account') ||
             self::template_enabled('checkout') ||
             self::template_enabled('thankyou')
-        ) { // full page templates
+        ) { // Full page templates.
             $show = false;
         }
 
@@ -630,7 +630,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Change the cant purchase message template
      *
-     * @param  string $str purchase message
+     * @param  string $str Purchase message.
      * @return string
      */
     public function cant_purchase_message($str)
@@ -648,7 +648,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Checks if we should override the page template
      *
-     * @param  string $template template name.
+     * @param  string $template Template name.
      * @return boolean
      */
     public static function template_enabled($template)
@@ -680,7 +680,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Determines if the given template is active.
      *
-     * @param string $template the template name (e.g. 'pricing', 'checkout', etc.)
+     * @param string $template The template name (e.g. 'pricing', 'checkout', etc.).
      *
      * @return boolean
      */
@@ -730,7 +730,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
 
         $errors = MeprUsersCtrl::validate_extra_profile_fields(null, true, $user, false, false, $field_key);
 
-        // validate first name and last name
+        // Validate first name and last name.
         if (isset($_POST['first_name']) || isset($_POST['last_name'])) {
             if ($mepr_options->require_fname_lname && (empty($_POST['first_name']) || empty($_POST['last_name']))) {
                 $errors[] = __('You must enter both your First and Last name', 'memberpress');
@@ -743,7 +743,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             }
 
             // Old email is not the same as the new, so let's make sure no else has it
-            // $user = MeprUtils::get_currentuserinfo(); //Old user info is here since we haven't stored the new stuff yet
+            // $user = MeprUtils::get_currentuserinfo(); //Old user info is here since we haven't stored the new stuff yet.
             if ($user !== false && $user->user_email != stripslashes($_POST['user_email']) && email_exists(stripslashes($_POST['user_email']))) {
                 $errors[] = __('This email is already in use by another member', 'memberpress');
             }
@@ -850,7 +850,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             self::template_enabled('checkout') ||
             self::template_enabled('thankyou') ||
             $is_block_editor
-        ) { // full page templates
+        ) { // Full page templates.
             $html  = '<style type="text/css">';
             $html .= sprintf('body.mepr-guest-layout{background:%s!important}', $primary_color);
             $html .= sprintf('.app-layout .site-header, .guest-layout .site-header{background:%s!important}', $primary_color);
@@ -878,49 +878,49 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     /**
      * Get the contrast color.
      *
-     * @param  string $hexColor The hex color.
+     * @param  string $hex_color The hex color.
      * @return string
      */
-    public static function getContrastColor($hexColor)
+    public static function getContrastColor($hex_color)
     {
-        $hexColor     = trim($hexColor);
-        $tmp_hexColor = trim($hexColor, '#');
-        if (! ctype_xdigit($tmp_hexColor)) { // Validate HEX code.
-            $hexColor = '#FFFFFF'; // Fallback to white color.
+        $hex_color     = trim($hex_color);
+        $tmp_hex_color = trim($hex_color, '#');
+        if (! ctype_xdigit($tmp_hex_color)) { // Validate HEX code.
+            $hex_color = '#FFFFFF'; // Fallback to white color.
         }
 
-        // hexColor RGB
-        $R1 = hexdec(substr($hexColor, 1, 2));
-        $G1 = hexdec(substr($hexColor, 3, 2));
-        $B1 = hexdec(substr($hexColor, 5, 2));
+        // HexColor RGB.
+        $r1 = hexdec(substr($hex_color, 1, 2));
+        $g1 = hexdec(substr($hex_color, 3, 2));
+        $b1 = hexdec(substr($hex_color, 5, 2));
 
-        // Black RGB
-        $blackColor   = '#000000';
-        $R2BlackColor = hexdec(substr($blackColor, 1, 2));
-        $G2BlackColor = hexdec(substr($blackColor, 3, 2));
-        $B2BlackColor = hexdec(substr($blackColor, 5, 2));
+        // Black RGB.
+        $black_color    = '#000000';
+        $r2_black_color = hexdec(substr($black_color, 1, 2));
+        $g2_black_color = hexdec(substr($black_color, 3, 2));
+        $b2_black_color = hexdec(substr($black_color, 5, 2));
 
-        // Calc contrast ratio
-        $L1 = 0.2126 * pow($R1 / 255, 2.2) +
-        0.7152 * pow($G1 / 255, 2.2) +
-        0.0722 * pow($B1 / 255, 2.2);
+        // Calc contrast ratio.
+        $l1 = 0.2126 * pow($r1 / 255, 2.2) +
+        0.7152 * pow($g1 / 255, 2.2) +
+        0.0722 * pow($b1 / 255, 2.2);
 
-        $L2 = 0.2126 * pow($R2BlackColor / 255, 2.2) +
-        0.7152 * pow($G2BlackColor / 255, 2.2) +
-        0.0722 * pow($B2BlackColor / 255, 2.2);
+        $l2 = 0.2126 * pow($r2_black_color / 255, 2.2) +
+        0.7152 * pow($g2_black_color / 255, 2.2) +
+        0.0722 * pow($b2_black_color / 255, 2.2);
 
-        $contrastRatio = 0;
-        if ($L1 > $L2) {
-            $contrastRatio = (int) ( ( $L1 + 0.05 ) / ( $L2 + 0.05 ) );
+        $contrast_ratio = 0;
+        if ($l1 > $l2) {
+            $contrast_ratio = (int) ( ( $l1 + 0.05 ) / ( $l2 + 0.05 ) );
         } else {
-            $contrastRatio = (int) ( ( $L2 + 0.05 ) / ( $L1 + 0.05 ) );
+            $contrast_ratio = (int) ( ( $l2 + 0.05 ) / ( $l1 + 0.05 ) );
         }
 
-        // If contrast is more than 5, return black color
-        if ($contrastRatio > 5) {
+        // If contrast is more than 5, return black color.
+        if ($contrast_ratio > 5) {
             return '#000000';
         } else {
-            // if not, return white color.
+            // If not, return white color.
             return '#FFFFFF';
         }
     }

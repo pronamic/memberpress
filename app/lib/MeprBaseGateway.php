@@ -11,48 +11,86 @@ abstract class MeprBaseGateway
 {
     /**
      * Used in the view to identify the payment method
+     *
+     * @var string
      */
     public $name;
 
     /**
      * Used in the view to label the payment method
+     *
+     * @var string
      */
     public $label;
+
+    /**
+     * Used in the view to check if the label should be shown
+     *
+     * @var boolean
+     */
     public $use_label;
 
     /**
      * Used in the view to render an icon for each payment method
+     *
+     * @var string
      */
     public $icon;
+
+    /**
+     * Used in the view to check if the icon should be shown
+     *
+     * @var boolean
+     */
     public $use_icon;
 
     /**
      * Used in the view to render a description for each payment method
+     *
+     * @var string
      */
     public $desc;
+
+    /**
+     * Used in the view to check if the description should be shown
+     *
+     * @var boolean
+     */
     public $use_desc;
 
     /**
      * The public id of the payment method
-     **/
+     *
+     * @var string
+     */
     public $id;
 
-    // Used to render the SPC form
+    /**
+     * Used to render the SPC form
+     *
+     * @var boolean
+     */
     public $has_spc_form;
 
     /**
      * The recurrence type of the payment method 'manual' or 'automatic'
+     *
+     * @var string
      */
-    // public $recurrence_type;
+    public $recurrence_type;
 
     /**
      * This will be where the gateway interface will store its settings
+     *
+     * @var array
      */
     public $settings;
 
     /**
      * Important to determine what this gateway is capable of
-     **/
+     *
+     * @var array
+     */
     public $capabilities;
 
     /**
@@ -66,6 +104,8 @@ abstract class MeprBaseGateway
      * An example of this is:
      *
      *  array( 'ipn' => 'listener' )
+     *
+     * @var array
      */
     protected $notifiers;
 
@@ -73,6 +113,8 @@ abstract class MeprBaseGateway
      * This works just like the notifiers but is rendered as a page for the end user.
      * This can be used to render cancellation, error and any other kind of page the
      * specific gateway we're working with at the time requires.
+     *
+     * @var array
      */
     protected $message_pages;
 
@@ -454,13 +496,14 @@ abstract class MeprBaseGateway
      * @param MeprTransaction $txn The transaction to process.
      *
      * @return void
+     * @throws Exception If the transaction is not a valid MeprTransaction object.
      */
     public function process_payment_form($txn)
     {
         $mepr_options = MeprOptions::fetch();
 
         // Back button fix for IE and Edge
-        // Make sure they haven't just completed the subscription signup and clicked the back button
+        // Make sure they haven't just completed the subscription signup and clicked the back button.
         if ($txn->status != MeprTransaction::$pending_str) {
             throw new Exception(sprintf(_x('You already completed your payment to this subscription. %1$sClick here to view your subscriptions%2$s.', 'ui', 'memberpress'), '<a href="' . $mepr_options->account_page_url('action=subscriptions') . '">', '</a>'));
         }
@@ -493,7 +536,7 @@ abstract class MeprBaseGateway
 
         if ($txn->gateway == $this->id) {
             if (!$prd->is_one_time_payment()) {
-                // Trial pmt is included in the Subscription profile at gateway (PayPal mostly)
+                // Trial pmt is included in the Subscription profile at gateway (PayPal mostly).
                 $sub = $txn->subscription();
                 if (!$this->can('subscription-trial-payment') && $sub !== false && $sub->trial && $sub->trial_amount > 0.00) {
                     $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
@@ -567,7 +610,7 @@ abstract class MeprBaseGateway
         $product = new MeprProduct($subscription->product_id);
 
         // Assume we're either on the account page or some
-        // page that is using the [mepr-account-form] shortcode
+        // page that is using the [mepr-account-form] shortcode.
         $account_url = MeprUtils::get_account_url();
 
         if (wp_doing_ajax()) {
@@ -586,7 +629,7 @@ abstract class MeprBaseGateway
 
             <?php
             $grp = $product->group();
-            if ($grp && count($grp->products('ids')) > 1 && count($grp->buyable_products()) >= 1) : // Can't upgrade to no other options ?>
+            if ($grp && count($grp->products('ids')) > 1 && count($grp->buyable_products()) >= 1) : // Can't upgrade to no other options. ?>
           <div id="mepr-upgrade-sub-<?php echo $subscription->id; ?>" class="mepr-white-popup mfp-hide">
             <center>
               <div class="mepr-upgrade-sub-text">
@@ -737,11 +780,9 @@ abstract class MeprBaseGateway
     {
         if ($debug) {
             // Send notification email to admin user (to and from the admin user)
-            // translators: In this string, %1$s is the Blog Name/Title and %2$s is the Name of the Payment Method
+            // Translators: In this string, %1$s is the Blog Name/Title and %2$s is the Name of the Payment Method.
             $subject = sprintf(__('[%1$s] %2$s Debug Email', 'memberpress'), MeprUtils::blogname(), $this->name);
             MeprUtils::wp_mail_to_admin($subject, $message);
-
-            // error_log('************* MEMBERPRESS ERROR: '.$message);
         }
     }
 
@@ -754,33 +795,33 @@ abstract class MeprBaseGateway
      */
     protected function is_credit_card_valid($number)
     {
-        // short circuit if the cc# doesn't match any of the credit card types
+        // Short circuit if the cc# doesn't match any of the credit card types
         // if( $this->credit_card_type($number) ) //Need to add discover first
         // return false;
-        // Strip any non-digits (useful for credit card numbers with spaces and hyphens)
+        // Strip any non-digits (useful for credit card numbers with spaces and hyphens).
         $number = preg_replace('/\D/', '', $number);
 
-        // Set the string length and parity
+        // Set the string length and parity.
         $number_length = strlen($number);
         $parity        = $number_length % 2;
 
-        // Loop through each digit and do the maths
+        // Loop through each digit and do the maths.
         $total = 0;
         for ($i = 0; $i < $number_length; $i++) {
             $digit = $number[$i];
-            // Multiply alternate digits by two
+            // Multiply alternate digits by two.
             if ($i % 2 == $parity) {
                 $digit *= 2;
-                // If the sum is two digits, add them together (in effect)
+                // If the sum is two digits, add them together (in effect).
                 if ($digit > 9) {
                     $digit -= 9;
                 }
             }
-            // Total up the digits
+            // Total up the digits.
             $total += $digit;
         }
 
-        // If the total mod 10 equals 0, the number is valid
+        // If the total mod 10 equals 0, the number is valid.
         return ( ( $total % 10 ) == 0 );
     }
 
@@ -882,7 +923,7 @@ abstract class MeprBaseGateway
 
     // Currently used for both PayPal gateways
     // Determines if the payment being recorded should be a paid trial period payment
-    // If so, it should be a confirmation txn that we can convert to a payment txn
+    // If so, it should be a confirmation txn that we can convert to a payment txn.
     /**
      * Determines if a subscription trial payment is being recorded.
      *
@@ -895,18 +936,18 @@ abstract class MeprBaseGateway
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        // If no trial period, or trial period is free, then we don't want to record the first txn as a regular payment
+        // If no trial period, or trial period is free, then we don't want to record the first txn as a regular payment.
         if (!$sub->trial || ($sub->trial && $sub->trial_amount <= 0.00)) {
             return false;
         }
 
-        // Let's also make sure the first txn is still a confirmation type
+        // Let's also make sure the first txn is still a confirmation type.
         $first_txn = $sub->first_txn();
         if ($first_txn == false || !($first_txn instanceof MeprTransaction) || $first_txn->txn_type != MeprTransaction::$subscription_confirmation_str) {
             return false;
         }
 
-        // Making sure this is in fact the first real payment
+        // Making sure this is in fact the first real payment.
         $q = $wpdb->prepare(
             "
         SELECT COUNT(*)

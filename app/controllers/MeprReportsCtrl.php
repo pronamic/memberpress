@@ -598,7 +598,7 @@ class MeprReportsCtrl extends MeprBaseCtrl
         for ($i = 0; $i < count($txns); $i++) {
             $csv[$i] = [];
 
-            // Go through the columns that have txn and amt columns
+            // Go through the columns that have txn and amt columns.
             foreach ($txns[$i] as $label => $value) {
                 if (in_array($label, $valid_cols)) {
                     $csv[$i][$tmap[$label]] = $value ? $value : 0;
@@ -609,7 +609,7 @@ class MeprReportsCtrl extends MeprBaseCtrl
                 }
             }
 
-            // Pickup all the amount only variables
+            // Pickup all the amount only variables.
             foreach ($a_cols as $index => $label) {
                 if (in_array($label, $ta_cols)) {
                     $csv[$i][$amap[$label]] = $amts[$i]->{$label} ? $amts[$i]->{$label} : 0.00;

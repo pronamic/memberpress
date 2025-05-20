@@ -9,7 +9,7 @@ class MeprAdminNewOneOffEmail extends MeprBaseOptionsAdminEmail
     /**
      * Set the default enabled, title, subject & body
      *
-     * @param  array $args Email arguments
+     * @param  array $args Email arguments.
      * @return void
      */
     public function set_defaults($args = [])

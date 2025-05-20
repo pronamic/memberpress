@@ -25,7 +25,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
 
         add_action('wp_ajax_mepr_refund_txn_and_cancel_sub', [$this, 'refund_txn_and_cancel_sub']);
 
-        // Screen Options
+        // Screen Options.
         $hook = 'memberpress_page_memberpress-trans';
         add_action("load-{$hook}", [$this,'add_screen_options']);
         add_filter('set_screen_option_mp_transactions_perpage', [$this,'setup_screen_options'], 10, 3);
@@ -34,7 +34,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         add_filter('cron_schedules', [$this,'intervals']);
 
         if (!defined('MEMBERPRESS_DISABLE_TXN_EXPIRE_EVENTS') || false == MEMBERPRESS_DISABLE_TXN_EXPIRE_EVENTS) {
-            // Set a wp-cron
+            // Set a wp-cron.
             add_action('mepr_send_txn_expire_events', [$this,'send_expired_txn_events']);
 
             if (!wp_next_scheduled('mepr_send_txn_expire_events')) {
@@ -48,7 +48,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
         add_action('mepr_table_controls_search', [$this, 'table_search_box']);
 
-        // Capture complete and refunded events for offline gateway
+        // Capture complete and refunded events for offline gateway.
         add_action('mepr-txn-store', 'MeprArtificialGateway::capture_txn_status_for_events');
     }
 
@@ -62,7 +62,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
     public function intervals($schedules)
     {
         $schedules['mepr_send_txn_expire_events_interval'] = [
-            'interval' => MeprUtils::hours(1), // Every hour
+            'interval' => MeprUtils::hours(1), // Every hour.
             'display'  => __('MemberPress Send Transaction Expire Events', 'memberpress'),
         ];
 
@@ -201,25 +201,25 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
 
         if (isset($_POST['created_at']) && ($_POST['created_at'] == '' || is_null($_POST['created_at']))) {
-            $txn->created_at = MeprUtils::ts_to_mysql_date(time()); // This crap is due to mysql craziness
+            $txn->created_at = MeprUtils::ts_to_mysql_date(time()); // This crap is due to mysql craziness.
         } else {
             $txn->created_at = MeprUtils::ts_to_mysql_date(strtotime($_POST['created_at']));
         }
 
         if (isset($_POST['expires_at']) && ($_POST['expires_at'] == '' || is_null($_POST['expires_at']))) {
-            $txn->expires_at = MeprUtils::db_lifetime(); // This crap is due to mysql craziness
+            $txn->expires_at = MeprUtils::db_lifetime(); // This crap is due to mysql craziness.
         } else {
             $txn->expires_at = MeprUtils::ts_to_mysql_date(strtotime($_POST['expires_at']), 'Y-m-d 23:59:59');
         }
 
-        // Only save to the database if there aren't any errors
+        // Only save to the database if there aren't any errors.
         if (empty($errors)) {
             $txn->store();
 
             if ($txn->status == MeprTransaction::$complete_str) {
                 MeprEvent::record('transaction-completed', $txn);
 
-                // This is a recurring payment
+                // This is a recurring payment.
                 $sub = $txn->subscription();
                 if ($sub && $sub->txn_count > 1) {
                     MeprEvent::record('recurring-transaction-completed', $txn);
@@ -229,21 +229,21 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             }
 
             if (empty($txn->subscription_id)) {
-                // If the transaction is not part of a subscription (stand-alone transaction)
+                // If the transaction is not part of a subscription (stand-alone transaction).
                 MeprHooks::do_action('mepr-signup', $txn);
             } elseif (
                 isset($sub) &&
                 count($sub->transactions()) <= 1 &&
                 $txn->status == MeprTransaction::$complete_str
             ) {
-                // If the transaction is the only completed transaction of a recurring subscription
+                // If the transaction is the only completed transaction of a recurring subscription.
                 MeprHooks::do_action('mepr-signup', $txn);
             }
 
             $message = __('A transaction was created successfully.', 'memberpress');
 
             $_REQUEST['action'] = 'edit';
-            $txn                = new MeprTransaction($txn->id); // refresh the txn obj to get all generated fields
+            $txn                = new MeprTransaction($txn->id); // Refresh the txn obj to get all generated fields.
             MeprView::render('/admin/transactions/edit_trans', get_defined_vars());
         } else {
             $this->new_trans($errors);
@@ -290,18 +290,18 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         }
 
         if (isset($_POST['created_at']) && ($_POST['created_at'] == '' || is_null($_POST['created_at']))) {
-            $txn->created_at = MeprUtils::ts_to_mysql_date(time()); // This crap is due to mysql craziness
+            $txn->created_at = MeprUtils::ts_to_mysql_date(time()); // This crap is due to mysql craziness.
         } else {
             $txn->created_at = MeprUtils::ts_to_mysql_date(strtotime($_POST['created_at']));
         }
 
         if (isset($_POST['expires_at']) && ($_POST['expires_at'] == '' || is_null($_POST['expires_at']))) {
-            $txn->expires_at = MeprUtils::db_lifetime(); // This crap is due to mysql craziness
+            $txn->expires_at = MeprUtils::db_lifetime(); // This crap is due to mysql craziness.
         } else {
             $txn->expires_at = MeprUtils::ts_to_mysql_date(strtotime($_POST['expires_at']));
         }
 
-        // Only save to the database if there aren't any errors
+        // Only save to the database if there aren't any errors.
         if (empty($errors)) {
             $txn->store();
             $message = __('The transaction was successfully updated.', 'memberpress');
@@ -327,7 +327,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
 
             if (!$usr->ID) {
                 $errors[] = __('You must enter a valid username or email address', 'memberpress');
-            } else { // For use downstream in create and update transaction methods
+            } else { // For use downstream in create and update transaction methods.
                 $_POST['user_login'] = $usr->user_login;
             }
         } else {
@@ -338,7 +338,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             }
         }
 
-        // Simple validation here
+        // Simple validation here.
         if (!isset($_POST['amount']) || empty($_POST['amount'])) {
             $errors[] = __('The amount must be set.', 'memberpress');
         }
@@ -476,7 +476,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         if (!empty($tdata)) {
             $txn = new MeprTransaction();
             $txn->load_data($tdata);
-            $txn->status = esc_sql($value); // escape the input this way since $wpdb->escape() is depracated
+            $txn->status = esc_sql($value); // Escape the input this way since $wpdb->escape() is deprecated.
             $txn->store();
             die($txn->status);
         } else {
@@ -509,7 +509,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             die($e->getMessage());
         }
 
-        die('true'); // don't localize this string
+        die('true'); // Don't localize this string.
     }
 
     /**
@@ -542,7 +542,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             die($e->getMessage());
         }
 
-        die('true'); // don't localize this string
+        die('true'); // Don't localize this string.
     }
 
     /**
@@ -565,7 +565,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $txn = new MeprTransaction($_POST['id']);
         $txn->destroy();
 
-        die('true'); // don't localize this string
+        die('true'); // Don't localize this string.
     }
 
     /**
@@ -700,7 +700,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
 
         $filename = 'transactions-' . time();
 
-        // Since we're running WP_List_Table headless we need to do this
+        // Since we're running WP_List_Table headless we need to do this.
         $GLOBALS['hook_suffix'] = false;
 
         $screen = get_current_screen();
@@ -809,7 +809,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                 MeprEvent::record('non-recurring-transaction-expired', $txn);
             }
 
-            MeprHooks::do_action('mepr-txn-expired', $txn, $row->sub_status); // DEPRECATED
+            MeprHooks::do_action('mepr-txn-expired', $txn, $row->sub_status); // DEPRECATED.
             MeprHooks::do_action('mepr-transaction-expired', $txn, $row->sub_status);
         }
     }

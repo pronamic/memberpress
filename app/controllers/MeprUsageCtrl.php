@@ -73,7 +73,7 @@ class MeprUsageCtrl extends MeprBaseCtrl
             'Content-Length' => strlen($body),
         ];
 
-        // Setup variable for wp_remote_request
+        // Setup variable for wp_remote_request.
         $post = [
             'method'  => 'POST',
             'headers' => $headers,

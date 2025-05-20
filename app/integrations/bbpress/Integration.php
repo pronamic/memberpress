@@ -16,23 +16,23 @@ class MeprBbPressIntegration
      */
     public function __construct()
     {
-        // Used to hide forums & topics
+        // Used to hide forums & topics.
         add_filter('bbp_get_forum_visibility', 'MeprBbPressIntegration::hide_forums', 11, 2);
         add_filter('bbp_get_hidden_forum_ids', 'MeprBbPressIntegration::hide_threads');
-        // Do not redirect if in sidebar
+        // Do not redirect if in sidebar.
         add_action('dynamic_sidebar_before', 'MeprBbPressIntegration::in_sidebar', 11, 2);
         add_action('dynamic_sidebar_after', 'MeprBbPressIntegration::out_sidebar', 11, 2);
 
-        // We're only allowing blocking by forum
+        // We're only allowing blocking by forum.
         add_filter('mepr-rules-cpts', 'MeprBbPressIntegration::filter_rules_cpts');
 
         add_action('mepr_account_nav', 'MeprBbPressIntegration::mepr_account_page_links');
 
-        // Don't override bbPress the_content - this is needed when using the forum shortcodes
+        // Don't override bbPress the_content - this is needed when using the forum shortcodes.
         add_filter('mepr-pre-run-rule-content', 'MeprBbPressIntegration::dont_block_the_content', 11, 3);
         add_filter('is_bbpress', 'MeprBbPressIntegration::dont_redirect_on_shortcode');
 
-        // Hide the content of replies
+        // Hide the content of replies.
         add_filter('bbp_get_reply_content', 'MeprBbPressIntegration::bbpress_rule_content', 999999, 2);
     }
 
@@ -46,7 +46,7 @@ class MeprBbPressIntegration
     public static function bbpress_rule_content($content, $id)
     {
         // We only allow restriction on a per-forum basis currently
-        // So let's get the current forum's id and check if it's protected
+        // So let's get the current forum's id and check if it's protected.
         $forum_id = bbp_get_reply_forum_id($id);
 
         if (!$forum_id) {
@@ -77,7 +77,7 @@ class MeprBbPressIntegration
         }
 
         if (strpos($wp_query->queried_object->post_content, '[bbp-forum-index') !== false) {
-            $_REQUEST['mepr_is_bbp_shortcode'] = true; // Set this so we can later check for it in hide_forums
+            $_REQUEST['mepr_is_bbp_shortcode'] = true; // Set this so we can later check for it in hide_forums.
         }
 
         return $bool;
@@ -143,7 +143,7 @@ class MeprBbPressIntegration
         }
 
         foreach ($call as $c) {
-            // We only want to hide in indexes or searches for now
+            // We only want to hide in indexes or searches for now.
             if (
                 $c['function'] == 'display_topic_index' ||
                 $c['function'] == 'display_search'
@@ -209,12 +209,12 @@ class MeprBbPressIntegration
         $actual_forum_id = bbp_get_forum_id();
         $forum           = get_post($actual_forum_id);
 
-        // Not a singular view, then let's bail
+        // Not a singular view, then let's bail.
         if (!is_singular()) {
             return $status;
         }
 
-        // Let moderators and keymasters see everything
+        // Let moderators and keymasters see everything.
         if (current_user_can('edit_others_topics')) {
             return $status;
         }

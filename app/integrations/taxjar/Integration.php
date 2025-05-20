@@ -6,10 +6,39 @@ if (!defined('ABSPATH')) {
 
 class MeprTaxJarIntegration
 {
+    /**
+     * TaxJar API key.
+     *
+     * @var string
+     */
     public static $api_key;
+
+    /**
+     * TaxJar API endpoint base URL.
+     *
+     * @var string
+     */
     public static $endpoint_base;
+
+    /**
+     * Whether TaxJar integration is enabled.
+     *
+     * @var boolean
+     */
     public static $tax_taxjar_enabled;
+
+    /**
+     * Whether sandbox mode is enabled.
+     *
+     * @var boolean
+     */
     public static $sandbox_enabled;
+
+    /**
+     * Whether tax calculation is enabled.
+     *
+     * @var boolean
+     */
     public static $calculate_taxes;
 
     /**
@@ -30,18 +59,18 @@ class MeprTaxJarIntegration
         self::$calculate_taxes    = get_option('mepr_calculate_taxes');
         self::$tax_taxjar_enabled = get_option('mepr_tax_taxjar_enabled');
 
-        // Filter for tax calculation
+        // Filter for tax calculation.
         if (self::$calculate_taxes && self::$tax_taxjar_enabled && self::$api_key) {
             add_filter('mepr_found_tax_rate', [$this,'find_rate'], 10, 6);
         }
 
-        // Push order/refund data when TaxJar is enabled
+        // Push order/refund data when TaxJar is enabled.
         if (self::$tax_taxjar_enabled && self::$api_key) {
             add_action('mepr-event-transaction-completed', [$this, 'send_order']);
             add_action('mepr-event-transaction-refunded', [$this, 'send_refund']);
         }
 
-        // Admin notice when business state is not 2-character code
+        // Admin notice when business state is not 2-character code.
         if (self::$calculate_taxes && self::$tax_taxjar_enabled && 2 !== strlen(get_option('mepr_biz_state'))) {
             add_action('mepr_before_options_form', [$this, 'edit_business_state_notice']);
         }
@@ -51,8 +80,8 @@ class MeprTaxJarIntegration
      * Sends a POST request to TaxJar API at the given endpoint (considers whether sandbox is enabled)
      * For available endpoints, see https://developers.taxjar.com/api/reference/
      *
-     * @param string $endpoint API endpoint
-     * @param array  $args     Request args
+     * @param string $endpoint API endpoint.
+     * @param array  $args     Request args.
      *
      * @return mixed  Response from API if successful, or WP_Error
      */
@@ -68,14 +97,14 @@ class MeprTaxJarIntegration
             'body'    => json_encode($args),
         ]);
 
-        // Log any error
+        // Log any error.
         if (is_wp_error($response)) {
             MeprUtils::debug_log(print_r($response, true));
         }
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
 
-        // Alert admin about bad requests related to from_* parameters
+        // Alert admin about bad requests related to from_* parameters.
         if (isset($body['status']) && 400 === $body['status'] && false !== strpos($body['detail'], 'from_')) {
             $message  = __('The TaxJar API returned the following error after a recent request: ', 'memberpress');
             $message .= sprintf('<pre>%s</pre>', $body['detail']);
@@ -104,7 +133,7 @@ class MeprTaxJarIntegration
       <p>
         <?php
           printf(
-            // translators: %1$s: open link tag, %2$s: close link tag
+            // Translators: %1$s: open link tag, %2$s: close link tag.
               esc_html__('You must use a valid 2-character state code as your %1$sBusiness Address%2$s state field for TaxJar to work properly.', 'memberpress'),
               '<a id="mp-taxjar-update-state" href="' . esc_url(admin_url('admin.php?page=memberpress-options#mepr-info')) . '">',
               '</a>'
@@ -152,7 +181,7 @@ class MeprTaxJarIntegration
     /**
      * Determine the tax rate for the customer.
      *
-     * @param  string $tax_rate The current tax rate object.
+     * @param  object $tax_rate The current tax rate object.
      * @param  string $country  The customer's country.
      * @param  string $state    The customer's state.
      * @param  string $postcode The customer's postal code.
@@ -163,7 +192,7 @@ class MeprTaxJarIntegration
     public function find_rate($tax_rate, $country, $state, $postcode, $city, $street)
     {
 
-        // Zero out tax if user provided a valid VAT #
+        // Zero out tax if user provided a valid VAT.
         if (! empty($_POST['mepr_vat_number'])) {
             $vat_ctrl = new MeprVatTaxCtrl();
             if ($vat_ctrl->vat_number_is_valid(sanitize_text_field($_POST['mepr_vat_number']), sanitize_text_field($_POST['mepr-address-country']))) {
@@ -172,7 +201,7 @@ class MeprTaxJarIntegration
             }
         }
 
-        // For available and required parameters, see https://developers.taxjar.com/api/reference/?shell#post-calculate-sales-tax-for-an-order
+        // For available and required parameters, see https://developers.taxjar.com/api/reference/?shell#post-calculate-sales-tax-for-an-order.
         $args = MeprHooks::apply_filters('mepr_taxjar_api_find_rate_args', [
             'to_country'   => sanitize_text_field($country),
             'to_state'     => sanitize_text_field($state),
@@ -181,28 +210,28 @@ class MeprTaxJarIntegration
             'to_zip'       => sanitize_text_field($postcode),
             'from_country' => sanitize_text_field(get_option('mepr_biz_country')),
             'from_zip'     => sanitize_text_field(get_option('mepr_biz_postcode')),
-            'from_state'   => sanitize_text_field(get_option('mepr_biz_state')), // This has to be two-letter ISO state code
+            'from_state'   => sanitize_text_field(get_option('mepr_biz_state')), // This has to be two-letter ISO state code.
             'from_city'    => sanitize_text_field(get_option('mepr_biz_city')),
             'from_street'  => sanitize_text_field(get_option('mepr_biz_address1')),
             'shipping'     => 0.00,
             'amount'       => 1.00,
         ], $tax_rate);
 
-        // Hit the TaxJar API taxes endpoint for fetching the tax rate
+        // Hit the TaxJar API taxes endpoint for fetching the tax rate.
         $response = self::request('taxes', $args);
 
         if (! is_wp_error($response)) {
             $response_body = json_decode(wp_remote_retrieve_body($response), true);
 
-            // Check for bad requests
+            // Check for bad requests.
             if (isset($response_body['error'])) {
                 MeprUtils::debug_log(print_r($response_body, true));
                 return $tax_rate;
             }
 
-            // Get the rate
+            // Get the rate.
             if (isset($response_body['tax']['rate'])) {
-                $tax_rate->tax_rate = $response_body['tax']['rate'] * 100; // MP expects a percent
+                $tax_rate->tax_rate = $response_body['tax']['rate'] * 100; // MP expects a percent.
                 $tax_rate->tax_desc = __('tax', 'memberpress');
             }
         }
@@ -223,9 +252,9 @@ class MeprTaxJarIntegration
         $user        = $transaction->user();
         $should_send = isset($transaction->tax_amount) && $transaction->tax_amount > 0.00;
 
-        // Only push to TaxJar if transaction has tax
+        // Only push to TaxJar if transaction has tax.
         if (apply_filters('mepr_taxjar_should_send_txn', $should_send, $event)) {
-            // For available and required parameters, see https://developers.taxjar.com/api/reference/#post-create-an-order-transaction
+            // For available and required parameters, see https://developers.taxjar.com/api/reference/#post-create-an-order-transaction.
             $args = MeprHooks::apply_filters('mepr_taxjar_api_create_order_args', [
                 'to_country'       => sanitize_text_field(get_user_meta($user->ID, 'mepr-address-country', true)),
                 'to_state'         => sanitize_text_field(get_user_meta($user->ID, 'mepr-address-state', true)),
@@ -234,7 +263,7 @@ class MeprTaxJarIntegration
                 'to_zip'           => sanitize_text_field(get_user_meta($user->ID, 'mepr-address-zip', true)),
                 'from_country'     => sanitize_text_field(get_option('mepr_biz_country')),
                 'from_zip'         => sanitize_text_field(get_option('mepr_biz_postcode')),
-                'from_state'       => sanitize_text_field(get_option('mepr_biz_state')), // This has to be two-letter ISO state code
+                'from_state'       => sanitize_text_field(get_option('mepr_biz_state')), // This has to be two-letter ISO state code.
                 'from_city'        => sanitize_text_field(get_option('mepr_biz_city')),
                 'from_street'      => sanitize_text_field(get_option('mepr_biz_address1')),
                 'shipping'         => 0.00,
@@ -244,13 +273,13 @@ class MeprTaxJarIntegration
                 'transaction_date' => $transaction->created_at,
             ], $transaction);
 
-            // Send request
+            // Send request.
             $response = self::request('transactions/orders', $args);
 
             if (! is_wp_error($response)) {
                   $response_body = json_decode(wp_remote_retrieve_body($response), true);
 
-                  // Check for bad requests
+                  // Check for bad requests.
                 if (isset($response_body['error'])) {
                     MeprUtils::debug_log(print_r($response_body, true));
                     return;
@@ -275,9 +304,9 @@ class MeprTaxJarIntegration
         $user        = $transaction->user();
         $should_send = isset($transaction->tax_amount) && $transaction->tax_amount > 0.00;
 
-        // Only push to TaxJar if transaction has tax
+        // Only push to TaxJar if transaction has tax.
         if (apply_filters('mepr_taxjar_should_refund_txn', $should_send, $event)) {
-            // For available and required parameters, see https://developers.taxjar.com/api/reference/#post-create-a-refund-transaction
+            // For available and required parameters, see https://developers.taxjar.com/api/reference/#post-create-a-refund-transaction.
             $args = MeprHooks::apply_filters('mepr_taxjar_api_create_refund_args', [
                 'to_country'               => sanitize_text_field(get_user_meta($user->ID, 'mepr-address-country', true)),
                 'to_state'                 => sanitize_text_field(get_user_meta($user->ID, 'mepr-address-state', true)),
@@ -297,13 +326,13 @@ class MeprTaxJarIntegration
                 'transaction_date'         => $transaction->created_at,
             ], $transaction);
 
-            // Send request
+            // Send request.
             $response = self::request('transactions/refunds', $args);
 
             if (! is_wp_error($response)) {
                   $response_body = json_decode(wp_remote_retrieve_body($response), true);
 
-                  // Check for bad requests
+                  // Check for bad requests.
                 if (isset($response_body['error'])) {
                     MeprUtils::debug_log(print_r($response_body, true));
                     return;

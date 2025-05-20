@@ -1,7 +1,7 @@
 <?php if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 } ?>
-<?php // Business VAT Country ?>
+<?php // Business VAT Country. ?>
 <tr valign="top">
   <th scope="row">
     <label for="mepr_vat_enabled"><?php _e('Enable VAT', 'memberpress'); ?></label>

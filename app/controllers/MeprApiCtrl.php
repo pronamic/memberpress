@@ -38,9 +38,9 @@ class MeprApiCtrl extends MeprBaseCtrl
 
         foreach ($txns as $txn) {
             $txn_struct = (array)$txn->rec;
-            unset($txn_struct['response']); // exclude for security
-            unset($txn_struct['gateway']); // exclude for security
-            unset($txn_struct['user_id']); // redundant
+            unset($txn_struct['response']); // Exclude for security.
+            unset($txn_struct['gateway']); // Exclude for security.
+            unset($txn_struct['user_id']); // Redundant.
             $struct['transactions'][] = $txn_struct;
         }
 
@@ -176,50 +176,48 @@ class MeprApiCtrl extends MeprBaseCtrl
      * Pass in a multi dimensional array and this recrusively loops through and builds up an XML document.
      *
      * @param array            $data             The data.
-     * @param string           $root_node_name   - what you want the root node to be - defaultsto data.
-     * @param SimpleXMLElement $xml              - should only be used recursively
-     * @param string           $parent_node_name - the parent node name
+     * @param string           $root_node_name   What you want the root node to be - defaultsto data.
+     * @param SimpleXMLElement $xml              Should only be used recursively.
+     * @param string           $parent_node_name The parent node name.
      *
      * @return string XML
      */
     protected function to_xml($data, $root_node_name = 'memberpressData', $xml = null, $parent_node_name = '')
     {
-        // turn off compatibility mode as simple xml throws a wobbly if you don't.
+        // Turn off compatibility mode as simple xml throws a wobbly if you don't.
         // DEPRECATED IN PHP 5.3
         // if(ini_get('zend.ze1_compatibility_mode') == 1)
-        // ini_set('zend.ze1_compatibility_mode', 0);
+        // ini_set('zend.ze1_compatibility_mode', 0);.
         if (is_null($xml)) {
             $xml = simplexml_load_string("<?xml version='1.0' encoding='utf-8'?><{$root_node_name} />");
         }
 
-        // loop through the data passed in.
+        // Loop through the data passed in.
         foreach ($data as $key => $value) {
-            // no numeric keys in our xml please!
+            // No numeric keys in our XML please!
             if (is_numeric($key)) {
                 if (empty($parent_node_name)) {
-                    $key = 'unknownNode_' . (string)$key; // make string key...
+                    $key = 'unknownNode_' . (string)$key; // Make string key...
                 } else {
                     $key = preg_replace('/s$/', '', $parent_node_name); // We assume that there's an 's' at the end of the string?
                 }
             }
 
-            // replace anything not alpha numeric
-            // $key = preg_replace('/[^a-z]/i', '', $key);
             $key = $this->camelize($key);
 
-            // if there is another array found recrusively call this function
+            // If there is another array found recursively call this function.
             if (is_array($value)) {
                 $node = $xml->addChild($key);
-                // recrusive call.
+                // Recursive call.
                 $this->to_xml($value, $root_node_name, $node, $key);
             } else {
-                // add single node.
+                // Add single node.
                 $value = htmlentities($value);
                 $xml->addChild($key, $value);
             }
         }
 
-        // pass back as string. or simple xml object if you want!
+        // Pass back as string. Or simple xml object if you want!
         return $xml->asXML();
     }
 
@@ -255,7 +253,7 @@ class MeprApiCtrl extends MeprBaseCtrl
                     continue;
                 }
 
-                // Enclose fields containing $delimiter, $enclosure or whitespace
+                // Enclose fields containing $delimiter, $enclosure or whitespace.
                 if ($enclose_all or preg_match("/(?:{$delimiter_esc}|{$enclosure_esc}|\s)/", $field)) {
                     $output[] = $enclosure . str_replace($enclosure, $enclosure . $enclosure, $field) . $enclosure;
                 } else {
@@ -278,15 +276,15 @@ class MeprApiCtrl extends MeprBaseCtrl
      */
     protected function camelize($str)
     {
-        // Level the playing field
+        // Level the playing field.
         $str = strtolower($str);
-        // Replace dashes and/or underscores with spaces to prepare for ucwords
+        // Replace dashes and/or underscores with spaces to prepare for ucwords.
         $str = preg_replace('/[-_]/', ' ', $str);
-        // Ucwords bro ... uppercase the first letter of every word
+        // Ucwords bro ... uppercase the first letter of every word.
         $str = ucwords($str);
-        // Now get rid of the spaces
+        // Now get rid of the spaces.
         $str = preg_replace('/ /', '', $str);
-        // Lowercase the first character of the string
+        // Lowercase the first character of the string.
         $str[0] = strtolower($str[0]);
 
         return $str;

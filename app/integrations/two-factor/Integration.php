@@ -32,7 +32,7 @@ class MeprTwoFactorIntegration
             $account_url  = $mepr_options->account_page_url();
             $delim        = MeprAppCtrl::get_param_delimiter_char($account_url);
 
-            // Delete the usermeta for the secret key, then redirect to the account page page
+            // Delete the usermeta for the secret key, then redirect to the account page page.
             delete_user_meta(get_current_user_id(), Two_Factor_Totp::SECRET_META_KEY);
             MeprUtils::wp_redirect($account_url . $delim . 'action=2fa');
         }
@@ -90,7 +90,7 @@ class MeprTwoFactorIntegration
     {
         add_action('bp_template_content', [$this, 'bp_twofactor_content']);
 
-        // Enqueue the account page scripts here yo
+        // Enqueue the account page scripts here yo.
         $acct_ctrl = new MeprAccountCtrl();
         $acct_ctrl->enqueue_scripts(true);
 
@@ -212,9 +212,9 @@ class MeprTwoFactorIntegration
                 }
             }
 
-            // Destroy other sessions if setup 2FA for the first time, or deactivated a provider
+            // Destroy other sessions if setup 2FA for the first time, or deactivated a provider.
             if (
-                // No providers, enabling one (or more)
+                // No providers, enabling one (or more).
                 (!$existing_providers && $enabled_providers) ||
                 // Has providers, and is disabling one (or more), but remaining with 2FA.
                 ($existing_providers && $enabled_providers && array_diff($existing_providers, $enabled_providers))
@@ -238,7 +238,7 @@ class MeprTwoFactorIntegration
     /**
      * Display the Two Factor options form.
      *
-     * @param WP_User $user
+     * @param WP_User $user The user instance.
      */
     public static function user_two_factor_options(WP_User $user)
     {
@@ -261,7 +261,7 @@ class MeprTwoFactorIntegration
             );
 
             printf(
-                // translators: %1$s: open link tag, %2$s: close link tag.
+                // Translators: %1$s: open link tag, %2$s: close link tag.
                 esc_html__('To update your Two-Factor options, you must first %1$srevalidate your session%2$s.', 'memberpress'),
                 sprintf('<a href="%s">', esc_url($url)),
                 '</a>'
@@ -375,7 +375,7 @@ class MeprTwoFactorIntegration
 
         if (isset($providers['Two_Factor_FIDO_U2F'])) {
             // Remove this as it causes problem on frontend. The problem? it's using
-            // WP_List_Table and this class doesn't fully work on frontpage
+            // WP_List_Table and this class doesn't fully work on frontpage.
             unset($providers['Two_Factor_FIDO_U2F']);
         }
 

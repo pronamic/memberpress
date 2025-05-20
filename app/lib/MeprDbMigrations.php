@@ -8,13 +8,18 @@ if (!defined('ABSPATH')) {
 
 class MeprDbMigrations
 {
+    /**
+     * Array of database migrations indexed by version number.
+     *
+     * @var array
+     */
     private $migrations;
 
     /**
      * Runs the database migrations.
      *
-     * @param string $from_version The starting version number
-     * @param string $to_version   The ending version number
+     * @param string $from_version The starting version number.
+     * @param string $to_version   The ending version number.
      *
      * @return void
      */
@@ -33,7 +38,7 @@ class MeprDbMigrations
             $config = $mig->get_migration($migration_version);
             foreach ($config['migrations'] as $callbacks) {
                 // Store current migration config in the database so the
-                // progress AJAX endpoint can see what's going on
+                // progress AJAX endpoint can see what's going on.
                 set_transient('mepr_current_migration', $callbacks, MeprUtils::hours(4));
                 call_user_func([$mig, $callbacks['migration']]);
                 delete_transient('mepr_current_migration');
@@ -44,8 +49,8 @@ class MeprDbMigrations
     /**
      * Displays the upgrade UI for database migrations.
      *
-     * @param string $from_version The starting version number
-     * @param string $to_version   The ending version number
+     * @param string $from_version The starting version number.
+     * @param string $to_version   The ending version number.
      *
      * @return boolean|void True if the UI is displayed, false otherwise
      */
@@ -77,7 +82,7 @@ class MeprDbMigrations
      */
     public function __construct()
     {
-        // ensure migration versions are sequential when adding new migration callbacks
+        // Ensure migration versions are sequential when adding new migration callbacks.
         $this->migrations = [
             '1.3.0'    => [
                 'show_ui'    => false,
@@ -215,8 +220,8 @@ class MeprDbMigrations
     /**
      * Gets an array of all available migration versions.
      *
-     * @param string $from_version The starting version number
-     * @param string $to_version   The ending version number
+     * @param string $from_version The starting version number.
+     * @param string $to_version   The ending version number.
      *
      * @return array Array of migration versions
      */
@@ -227,7 +232,7 @@ class MeprDbMigrations
         $versions = [];
         foreach ($mig_versions as $mig_version) {
             if (version_compare($from_version, $mig_version, '<')) {
-                 // version_compare($to_version, $mig_version, '>='))
+                 // The version_compare($to_version, $mig_version, '>=')).
                 $versions[] = $mig_version;
             }
         }
@@ -238,7 +243,7 @@ class MeprDbMigrations
     /**
      * Gets a specific migration by version number.
      *
-     * @param  string $version The version number of the migration
+     * @param  string $version The version number of the migration.
      * @return array|false Migration details or false if not found
      */
     public function get_migration($version)
@@ -262,7 +267,7 @@ class MeprDbMigrations
         $max_sub_id = $wpdb->get_var("SELECT max(ID) FROM {$wpdb->posts} WHERE post_type='mepr-subscriptions'");
 
         if (!empty($max_sub_id)) {
-            $max_sub_id = (int)$max_sub_id + 1; // Just in case
+            $max_sub_id = (int)$max_sub_id + 1; // Just in case.
             $wpdb->query("ALTER TABLE {$mepr_db->subscriptions} AUTO_INCREMENT={$max_sub_id}");
         }
     }
@@ -313,7 +318,7 @@ class MeprDbMigrations
         global $wpdb;
         $mepr_db = MeprDb::fetch();
 
-        // Gimme all the transactions since 2017-07-15 with trials
+        // Gimme all the transactions since 2017-07-15 with trials.
         $query = $wpdb->prepare(
             "
       SELECT t.id
@@ -331,13 +336,13 @@ class MeprDbMigrations
         foreach ($transactions as $transaction_id) {
             $transaction  = new MeprTransaction($transaction_id->id);
             $subscription = $transaction->subscription();
-            // Get the expiratoin with the bug fix
+            // Get the expiratoin with the bug fix.
             $txn_created_at      = strtotime($transaction->created_at);
             $expected_expiration = $subscription->get_expires_at($txn_created_at);
             $expires_at          = MeprUtils::ts_to_mysql_date($expected_expiration);
             // Do we actually need to fix anything?
             if ($expires_at != $transaction->expires_at) {
-                // We're just going to do this via SQL to skip hooks
+                // We're just going to do this via SQL to skip hooks.
                 MeprUtils::debug_log("Found transaction {$transaction->id} to update from {$transaction->expires_at} to {$expires_at}");
                 $wpdb->update($mepr_db->transactions, ['expires_at' => $expires_at], ['id' => $transaction->id]);
             }
@@ -365,7 +370,7 @@ class MeprDbMigrations
 
         foreach ($post_rules as $post) {
             // No longer a mepr_access attribute on the rule
-            // model so we do it the old fashioned way here
+            // model so we do it the old fashioned way here.
             $access_rules = get_post_meta($post->ID, '_mepr_rules_access');
 
             foreach ($access_rules as $ids) {
@@ -450,7 +455,7 @@ class MeprDbMigrations
 
         foreach ($coupons as $c) {
             $trial = get_post_meta($c->ID, '_mepr_coupons_trial', true);
-            if ($trial !== '') { // Empty string indicates not found
+            if ($trial !== '') { // Empty string indicates not found.
                 if ($trial) {
                     update_post_meta($c->ID, MeprCoupon::$discount_mode_str, 'trial-override');
                 }
@@ -491,7 +496,7 @@ class MeprDbMigrations
 
             if ($c->discount_mode == 'first-payment') {
                 MeprUtils::debug_log('Migrating Coupon (first-payment): ' . $c->post_title);
-                if ($c->discount_amount > 0 && empty($c->first_payment_discount_amount)) { // Prevent duplicate runs
+                if ($c->discount_amount > 0 && empty($c->first_payment_discount_amount)) { // Prevent duplicate runs.
                     $c->first_payment_discount_amount = $c->discount_amount;
                     $c->first_payment_discount_type   = $c->discount_type;
                     $c->discount_amount               = 0;
@@ -525,13 +530,13 @@ class MeprDbMigrations
 
         MeprUtils::debug_log('Migrating Coupons to use on upgrades');
 
-        // Check to see if this migration has already run
+        // Check to see if this migration has already run.
         if (get_option('mepr_db_migration_013_ran')) {
             MeprUtils::debug_log('Migrating Coupons to use on upgrades already ran ... aborting migration 013');
             return;
         }
 
-        // All the coupons
+        // All the coupons.
         $coupons = get_posts(
             [
                 'numberposts' => -1,
@@ -553,7 +558,7 @@ class MeprDbMigrations
             $c->store();
         }
 
-        // Flag that this migration has run
+        // Flag that this migration has run.
         update_option('mepr_db_migration_013_ran', time());
     }
 
@@ -568,7 +573,7 @@ class MeprDbMigrations
         $mepr_db = new MeprDb();
 
         // For transactions between 01 Mar 2019 and 31 Dec 2019 that expire in 365 days, set them to expire in 366 days
-        // to account for the leap day
+        // to account for the leap day.
         $wpdb->query(
             "UPDATE {$mepr_db->transactions}
       SET expires_at = DATE_ADD(expires_at, INTERVAL 1 DAY)
@@ -582,7 +587,7 @@ class MeprDbMigrations
         );
 
         // For transactions between 01 Mar 2020 and 31 Dec 2020 that expire in 366 days, set them to expire in 365 days
-        // since there is no leap day in the period
+        // since there is no leap day in the period.
         $wpdb->query(
             "UPDATE {$mepr_db->transactions}
       SET expires_at = DATE_SUB(expires_at, INTERVAL 1 DAY)
@@ -596,24 +601,23 @@ class MeprDbMigrations
         );
     }
 
-    /*
-     * This script populates both the membership and inactive_membership columns in the
-     * members table now that the inactive_membership column has been added.
+    /**
+     * Populates the memberships and inactive_memberships columns in the members table.
      *
      * The memberships column is update because a previous "fix" populated it with both
-     * active and inactive memberships.
+     * active and inactive memberships. It runs in batches on a cron job to reduce load on customer sites.
      *
-     * Runs in batches on a cron job to reduce load on customer sites.
+     * @return void
      */
     public static function populate_inactive_memberships_col_015()
     {
-        // scheduled in
+        // Scheduled in.
         global $wpdb;
         $mepr_db = new MeprDb();
 
         // Large member base may take days to update. So setting thet start date
         // And only updating ones that haven't been updated since then
-        // Store as transient so it can be accesses/won't change between cron job executions
+        // Store as transient so it can be accesses/won't change between cron job executions.
         $started = get_transient('mepr_members_migrate_start');
         if (!isset($started) || !$started) {
             $started = MeprUtils::ts_to_mysql_date(time());
@@ -622,26 +626,26 @@ class MeprDbMigrations
 
         // Get the next 100 user ids that have not been updated since the migration started
         // Note: If the member data was already updated by some other process since the migration started
-        // that is okay, it will have the correct data and will be skipped here
+        // that is okay, it will have the correct data and will be skipped here.
         $batch_query = 'SELECT user_id FROM ' . $mepr_db->members . ' WHERE updated_at < %s LIMIT 25';
         $batch_query = $wpdb->prepare($batch_query, $started);
 
         $batch_ids = $wpdb->get_col($batch_query);
 
         if (empty($batch_ids)) {
-            // Nothing left to update so remove transient and cancel cron job
+            // Nothing left to update so remove transient and cancel cron job.
             delete_transient('mepr_members_migrate_start');
 
             $timestamp = wp_next_scheduled('mepr_migrate_members_table_015');
             wp_unschedule_event($timestamp, 'mepr_migrate_members_table_015');
             wp_clear_scheduled_hook('mepr_migrate_members_table_015');
         } else {
-            // Loop through all the ids
+            // Loop through all the ids.
             foreach ($batch_ids as $uid) {
                 $u = new MeprUser();
 
                 // We just set the ID here to avoid looking up the ID and
-                // it's the only thing we care about in updat_member_data
+                // it's the only thing we care about in updat_member_data.
                 $u->ID = $uid;
                 $u->update_member_data(['memberships', 'inactive_memberships']);
             }

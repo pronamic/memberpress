@@ -19,7 +19,7 @@
   <tbody>
     <?php
     $records   = MeprReports::get_monthly_dataset('transactions', $curr_month, $curr_year, $curr_product);
-    $pTotal    = $fTotal = $cTotal = $rTotal = $revTotal = $refTotal = $taxTotal = 0;
+    $p_total   = $f_total = $c_total = $r_total = $rev_total = $ref_total = $tax_total = 0;
     $row_index = 0;
 
     $revenue_dataset = MeprReports::get_revenue_dataset($curr_month, $curr_year, $curr_product);
@@ -43,67 +43,67 @@
         <td>
           <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=memberpress-trans&membership=' . $curr_product . '&month=' . $curr_month . '&day=' . $r->day . '&year=' . $curr_year . '&status=pending'), 'customize_transactions', 'mepr_transactions_nonce'); ?>">
             <?php echo $r->p;
-            $pTotal += $r->p; ?>
+            $p_total += $r->p; ?>
           </a>
         </td>
         <td>
           <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=memberpress-trans&membership=' . $curr_product . '&month=' . $curr_month . '&day=' . $r->day . '&year=' . $curr_year . '&status=failed'), 'customize_transactions', 'mepr_transactions_nonce'); ?>">
             <?php echo $r->f;
-            $fTotal += $r->f; ?>
+            $f_total += $r->f; ?>
           </a>
         </td>
         <td>
           <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=memberpress-trans&membership=' . $curr_product . '&month=' . $curr_month . '&day=' . $r->day . '&year=' . $curr_year . '&status=complete'), 'customize_transactions', 'mepr_transactions_nonce'); ?>">
             <?php echo $r->c;
-            $cTotal += $r->c; ?>
+            $c_total += $r->c; ?>
           </a>
         </td>
         <td>
           <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=memberpress-trans&membership=' . $curr_product . '&month=' . $curr_month . '&day=' . $r->day . '&year=' . $curr_year . '&status=refunded'), 'customize_transactions', 'mepr_transactions_nonce'); ?>">
             <?php echo $r->r;
-            $rTotal += $r->r; ?>
+            $r_total += $r->r; ?>
           </a>
         </td>
         <td <?php if (!empty($all)) {
             echo 'style="color:green;font-weight:bold;"';
             } ?>><?php echo MeprAppHelper::format_currency(($all), true, false);
-$revTotal += $revenue; ?></td>
+$rev_total += $revenue; ?></td>
         <td <?php if (!empty($refunds)) {
             echo 'style="color:red;font-weight:bold;"';
             } ?>><?php echo MeprAppHelper::format_currency($refunds, true, false);
-$refTotal += $refunds; ?></td>
+$ref_total += $refunds; ?></td>
         <td <?php if (!empty($taxes)) {
             echo 'style="color:orange;font-weight:bold;"';
             } ?>><?php echo MeprAppHelper::format_currency($taxes, true, false);
-$taxTotal += $taxes; ?></td>
+$tax_total += $taxes; ?></td>
         <td <?php if (!empty($revenue)) {
             echo 'style="color:navy;font-weight:bold;"';
             } ?>><?php echo MeprAppHelper::format_currency($revenue, true, false); ?></td>
       </tr>
         <?php
     }
-    $allTotal = (float)($revTotal + $refTotal + $taxTotal);
+    $all_total = (float)($rev_total + $ref_total + $tax_total);
     ?>
     </tbody>
     <tfoot>
       <tr>
         <th><?php _e('Totals', 'memberpress'); ?></th>
-        <th><?php echo $pTotal; ?></th>
-        <th><?php echo $fTotal; ?></th>
-        <th><?php echo $cTotal; ?></th>
-        <th><?php echo $rTotal; ?></th>
-        <th <?php if (!empty($allTotal)) {
+        <th><?php echo $p_total; ?></th>
+        <th><?php echo $f_total; ?></th>
+        <th><?php echo $c_total; ?></th>
+        <th><?php echo $r_total; ?></th>
+        <th <?php if (!empty($all_total)) {
             echo 'style="color:green;font-weight:bold;"';
-            } ?>><?php echo MeprAppHelper::format_currency($allTotal, true, false); ?></th>
-        <th <?php if (!empty($refTotal)) {
+            } ?>><?php echo MeprAppHelper::format_currency($all_total, true, false); ?></th>
+        <th <?php if (!empty($ref_total)) {
             echo 'style="color:red;font-weight:bold;"';
-            } ?>><?php echo MeprAppHelper::format_currency($refTotal, true, false); ?></th>
-        <th <?php if (!empty($taxTotal)) {
+            } ?>><?php echo MeprAppHelper::format_currency($ref_total, true, false); ?></th>
+        <th <?php if (!empty($tax_total)) {
             echo 'style="color:orange;font-weight:bold;"';
-            } ?>><?php echo MeprAppHelper::format_currency($taxTotal, true, false); ?></th>
-        <th <?php if (!empty($revTotal)) {
+            } ?>><?php echo MeprAppHelper::format_currency($tax_total, true, false); ?></th>
+        <th <?php if (!empty($rev_total)) {
             echo 'style="color:navy;font-weight:bold;"';
-            } ?>><?php echo MeprAppHelper::format_currency($revTotal, true, false); ?></th>
+            } ?>><?php echo MeprAppHelper::format_currency($rev_total, true, false); ?></th>
       </tr>
   </tfoot>
 </table>

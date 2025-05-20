@@ -20,7 +20,7 @@ class MeprIfMenuIntegration
     /**
      * Add If Menu conditions for MemberPress
      *
-     * @param  array $conditions Array of menu conditions
+     * @param  array $conditions Array of menu conditions.
      * @return array Modified array of conditions
      */
     public function add_if_menu_conditions($conditions)

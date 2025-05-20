@@ -193,6 +193,16 @@ class View extends Service implements LoadableDependency
                 createApp({
                     el: document.getElementById('<?php echo $this->getRootElementId(); ?>'),
                     namespace: '<?php echo $namespace; ?>',
+                    i18n: {
+                        'Dismiss': "<?php esc_html_e('Dismiss', 'memberpress'); ?>",
+                        'Dismiss All': "<?php esc_html_e('Dismiss All', 'memberpress'); ?>",
+                        'All': "<?php esc_html_e('All', 'memberpress'); ?>",
+                        'Unread': "<?php esc_html_e('Unread', 'memberpress'); ?>",
+                        'Inbox': "<?php esc_html_e('Inbox', 'memberpress'); ?>",
+                        'Close': "<?php esc_html_e('Close', 'memberpress'); ?>",
+                        'You are all caught up!': "<?php esc_html_e('You are all caught up!', 'memberpress'); ?>",
+                        'ago': "<?php esc_html_e('ago', 'memberpress'); ?>"
+                    },
                     notifications: <?php echo $this->getNotifications(); ?>,
                     onDismiss: (id) => {
                         window.fetch(

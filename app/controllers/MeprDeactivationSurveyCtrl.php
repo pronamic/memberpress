@@ -27,10 +27,10 @@ class MeprDeactivationSurveyCtrl extends MeprBaseCtrl
         $url          = network_site_url('/');
         $is_local_url = false;
 
-        // Trim it up
+        // Trim it up.
         $url = strtolower(trim($url));
 
-        // Need to get the host...so let's add the scheme so we can use parse_url
+        // Need to get the host...so let's add the scheme so we can use parse_url.
         if (false === strpos($url, 'http://') && false === strpos($url, 'https://')) {
             $url = 'http://' . $url;
         }
@@ -83,7 +83,7 @@ class MeprDeactivationSurveyCtrl extends MeprBaseCtrl
         wp_enqueue_script('mepr-deactivation-survey', MEPR_JS_URL . '/admin_deactivation_survey.js', ['jquery'], MEPR_VERSION, true);
 
         wp_localize_script('mepr-deactivation-survey', 'MeprDeactivationSurvey', [
-            'slug'                 => MEPR_PLUGIN_NAME,
+            'slug'                 => MEPR_PLUGIN_SLUG,
             'pleaseSelectAnOption' => __('Please select an option', 'memberpress'),
             'siteUrl'              => site_url(),
             'apiUrl'               => 'https://hooks.zapier.com/hooks/catch/43914/otu86c9/silent/',

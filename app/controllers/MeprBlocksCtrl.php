@@ -14,7 +14,6 @@ class MeprBlocksCtrl extends MeprBaseCtrl
      */
     public function load_hooks()
     {
-
         // Only load block stuff when Gutenberg is active (e.g. WordPress 5.0+).
         if (function_exists('register_block_type')) {
             add_action('init', [$this, 'register_block_types_serverside']);
@@ -32,9 +31,10 @@ class MeprBlocksCtrl extends MeprBaseCtrl
      */
     public function register_block_types_serverside()
     {
-        $mepr_options = MeprOptions::fetch();
+        $mepr_options    = MeprOptions::fetch();
+        $disabled_blocks = MeprHooks::apply_filters('mepr_disabled_blocks', []);
 
-        // Membership signup form block
+        // Membership signup form block.
         register_block_type(
             'memberpress/membership-signup',
             [
@@ -48,7 +48,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Account form block
+        // Account form block.
         register_block_type(
             'memberpress/account-form',
             [
@@ -57,7 +57,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Login form block
+        // Login form block.
         register_block_type(
             'memberpress/login-form',
             [
@@ -71,29 +71,31 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Protected content block
-        register_block_type(
-            'memberpress/protected-content',
-            [
-                'attributes'      => [
-                    'rule'           => [
-                        'type' => 'number',
+        if (!in_array('protected-content', $disabled_blocks, true)) {
+            // Protected content block.
+            register_block_type(
+                'memberpress/protected-content',
+                [
+                    'attributes'      => [
+                        'rule'           => [
+                            'type' => 'number',
+                        ],
+                        'ifallowed'      => [
+                            'type' => 'string',
+                        ],
+                        'unauth'         => [
+                            'type' => 'string',
+                        ],
+                        'unauth_message' => [
+                            'type' => 'string',
+                        ],
                     ],
-                    'ifallowed'      => [
-                        'type' => 'string',
-                    ],
-                    'unauth'         => [
-                        'type' => 'string',
-                    ],
-                    'unauth_message' => [
-                        'type' => 'string',
-                    ],
-                ],
-                'render_callback' => [$this, 'render_protected_content_block'],
-            ]
-        );
+                    'render_callback' => [$this, 'render_protected_content_block'],
+                ]
+            );
+        }
 
-        // Pro Login Form
+        // Pro Login Form.
         register_block_type(
             'memberpress/pro-login-form',
             [
@@ -116,7 +118,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Pricing Columns for Pro Template
+        // Pricing Columns for Pro Template.
         register_block_type(
             'memberpress/pro-pricing-table',
             [
@@ -139,7 +141,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Accounts Tab
+        // Accounts Tab.
         register_block_type(
             'memberpress/pro-account-tabs',
             [
@@ -159,7 +161,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Checkout
+        // Checkout.
         register_block_type(
             'memberpress/checkout',
             [
@@ -178,7 +180,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Account Links
+        // Account Links.
         register_block_type(
             'memberpress/account-links',
             [
@@ -188,7 +190,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Subscriptions
+        // Subscriptions.
         register_block_type(
             'memberpress/subscriptions',
             [
@@ -224,7 +226,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ]
         );
 
-        // Accounts Info
+        // Accounts Info.
         register_block_type(
             'memberpress/account-info',
             [
@@ -243,7 +245,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Renders a membership's signup form
      *
-     * @param array $props Properties/data from the block
+     * @param array $props Properties/data from the block.
      *
      * @return string
      */
@@ -276,7 +278,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Renders the MP login form
      *
-     * @param array $props Properties/data from the block
+     * @param array $props Properties/data from the block.
      *
      * @return string
      */
@@ -291,8 +293,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Render the "dynamic" block
      *
-     * @param array  $attributes Properties/data from the block
-     * @param string $content    Block content
+     * @param array  $attributes Properties/data from the block.
+     * @param string $content    Block content.
      *
      * @return string
      */
@@ -420,7 +422,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Renders the MP account links
      *
-     * @param array $atts Properties/data from the block
+     * @param array $atts Properties/data from the block.
      *
      * @return string
      */
@@ -442,7 +444,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Renders the MP subscriptions
      *
-     * @param array $atts Properties/data from the block
+     * @param array $atts Properties/data from the block.
      *
      * @return string
      */
@@ -475,7 +477,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Renders the MP account info
      *
-     * @param array $props Properties/data from the block
+     * @param array $props Properties/data from the block.
      *
      * @return string
      */
@@ -504,7 +506,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
                     'wp-blocks',
                     'wp-i18n',
                     'wp-editor',
-                ], // legacy dependencies
+                ], // Legacy dependencies.
                 (array) $asset_file['dependencies']
             )
         );
@@ -520,7 +522,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         $membership_options = [];
         $rule_options       = [];
 
-        // Assemble MP Products into an options array
+        // Assemble MP Products into an options array.
         foreach (MeprCptModel::all('MeprProduct') as $membership) {
             $membership_options[] = [
                 'label' => $membership->post_title,
@@ -528,7 +530,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ];
         }
 
-        // Assemble MP Rules into an options array
+        // Assemble MP Rules into an options array.
         foreach (MeprCptModel::all('MeprRule') as $rule) {
             $rule_options[] = [
                 'label'    => $rule->post_title,
@@ -537,7 +539,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ];
         }
 
-        // Assemble MP Groups into an options array
+        // Assemble MP Groups into an options array.
         $groups = [];
         foreach (MeprCptModel::all('MeprGroup') as $group) {
             $groups[] = [
@@ -546,7 +548,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             ];
         }
 
-        // Assemble custom fields into an options array
+        // Assemble custom fields into an options array.
         $mepr_options  = MeprOptions::fetch();
         $custom_fields = [];
         if (!empty($mepr_options->custom_fields)) {
@@ -558,7 +560,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             }
         }
 
-        // Make the data available to the script
+        // Make the data available to the script.
         wp_localize_script(
             'memberpress/blocks',
             'memberpressBlocks',
@@ -568,6 +570,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
                 'groups'                   => $groups,
                 'custom_fields'            => $custom_fields,
                 'redirect_url_setting_url' => menu_page_url('memberpress-options', false) . '#mepr-accounts',
+                'disabled_blocks'          => MeprHooks::apply_filters('mepr_disabled_blocks', []),
             ]
         );
 
@@ -582,15 +585,15 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     public function enqueue_block_scripts()
     {
 
-        // Register account scripts
+        // Register account scripts.
         wp_register_style('mp-pro-fonts', MEPR_CSS_URL . '/readylaunch/fonts.css', null, MEPR_VERSION);
         wp_register_style('mp-pro-login', MEPR_CSS_URL . '/readylaunch/login.css', null, MEPR_VERSION);
         wp_register_style('mp-pro-account', MEPR_CSS_URL . '/readylaunch/account.css', ['mp-pro-fonts', 'mp-pro-login'], MEPR_VERSION);
 
-        // Register pricing scripts
+        // Register pricing scripts.
         wp_register_style('mp-pro-pricing', MEPR_CSS_URL . '/readylaunch/pricing.css', null, MEPR_VERSION);
 
-        // Register checkout scripts
+        // Register checkout scripts.
         $prereqs = MeprHooks::apply_filters('mepr-signup-styles', []);
         wp_register_style('mp-signup', MEPR_CSS_URL . '/signup.css', $prereqs, MEPR_VERSION);
         wp_register_style('mp-pro-checkout', MEPR_CSS_URL . '/readylaunch/checkout.css', ['mp-signup'], MEPR_VERSION);
@@ -599,8 +602,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Filter to add the necessary frontend enqueues for Membership Signup block
      *
-     * @param mixed  $return MeprProduct object if scripts will be enqueued, else false
-     * @param object $post   WP_Post
+     * @param mixed  $return MeprProduct object if scripts will be enqueued, else false.
+     * @param object $post   WP_Post.
      *
      * @return boolean
      */
@@ -611,11 +614,11 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             return $return;
         }
 
-        // We don't want to mess with enqueues on MemberPress products since the files are already properly enqueued there
+        // We don't want to mess with enqueues on MemberPress products since the files are already properly enqueued there.
         if (! is_object($return) || ! is_a($return, 'MeprProduct')) {
             $membership = false;
 
-            // Check that the signup form block is added
+            // Check that the signup form block is added.
             $match = preg_match('/(?:wp:memberpress\/membership-signup\s)(\{(?:[^{}]|(?R))*\})/', $post->post_content, $matches);
 
             if (1 === $match && isset($matches[1]) && isset(json_decode($matches[1], true)['membership'])) {
@@ -630,9 +633,9 @@ class MeprBlocksCtrl extends MeprBaseCtrl
                 $membership = new MeprProduct($m[1]);
             }
 
-            // Valid membership
+            // Valid membership.
             if (isset($membership->ID) && $membership->ID > 0) {
-                $return = $membership; // Return the MeprProduct instead of just boolean true (backward compatibility)
+                $return = $membership; // Return the MeprProduct instead of just boolean true (backward compatibility).
             }
         }
 
@@ -642,8 +645,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     /**
      * Filter to add the necessary frontend enqueues for the Account Form block
      *
-     * @param boolean $return Whether the page is an "Account" page
-     * @param object  $post   WP_Post
+     * @param boolean $return Whether the page is an "Account" page.
+     * @param object  $post   WP_Post.
      *
      * @return boolean
      */
@@ -654,7 +657,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             return $return;
         }
 
-        // Post is an "Account" page if it has the Account Form block
+        // Post is an "Account" page if it has the Account Form block.
         if (has_block('memberpress/account-form', $post) || MeprAppHelper::block_template_has_block('account-form')) {
             $return = true;
         }

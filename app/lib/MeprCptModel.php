@@ -9,7 +9,13 @@ if (!defined('ABSPATH')) {
  */
 abstract class MeprCptModel extends MeprBaseModel
 {
-    // All inheriting classes should set -- public static $cpt (custom post type)
+    // All inheriting classes should set -- public static $cpt (custom post type).
+    /**
+     * Custom post type identifier.
+     * All inheriting classes should set this property.
+     *
+     * @var string
+     */
     public static $cpt = '';
 
     /**
@@ -30,14 +36,14 @@ abstract class MeprCptModel extends MeprBaseModel
             'post_excerpt' => '',
             'post_name'    => null,
             'post_date'    => null,
-            'post_status'  => 'publish', // We'll assume this is published if not coming through the post editor
+            'post_status'  => 'publish', // We'll assume this is published if not coming through the post editor.
             'post_parent'  => 0,
             'menu_order'   => 0,
             'post_type'    => MeprUtils::get_property($whos_calling, 'cpt'),
         ];
 
         // Initialize postmeta variables
-        // Backwards compatible in case attrs has no default values
+        // Backwards compatible in case attrs has no default values.
         if (MeprUtils::is_associative_array($this->attrs)) {
             foreach ($this->attrs as $var => $default) {
                 $r[$var] = $default;
@@ -87,11 +93,11 @@ abstract class MeprCptModel extends MeprBaseModel
 
         $rec = [];
 
-        // Unserialize and set appropriately
+        // Unserialize and set appropriately.
         foreach ($this->attrs as $akey => $aval) {
             $rclass = new ReflectionClass($this);
             // This requires that the static variable have the same name
-            // as the attribute key with "_str" appended
+            // as the attribute key with "_str" appended.
             $rkey = $rclass->getStaticPropertyValue("{$akey}_str");
             if (isset($metas[$rkey])) {
                 if (count($metas[$rkey]) > 1) {
@@ -117,6 +123,7 @@ abstract class MeprCptModel extends MeprBaseModel
      * Stores the model.
      *
      * @return integer
+     * @throws MeprCreateException If the model couldn't be saved.
      */
     public function store()
     {
@@ -158,6 +165,7 @@ abstract class MeprCptModel extends MeprBaseModel
      * Destroys the model.
      *
      * @return boolean
+     * @throws MeprCreateException If the model couldn't be deleted.
      */
     public function destroy()
     {
@@ -222,12 +230,12 @@ abstract class MeprCptModel extends MeprBaseModel
         if ($use_transient_cache === true) {
             $cached = get_transient($transient);
 
-            if (!empty($cached) && !$reset_transients && !function_exists('pll_current_language')) { // Need to check for PolyLang plugin before returning the cache
-                return $cached; // Return the transient cached data
+            if (!empty($cached) && !$reset_transients && !function_exists('pll_current_language')) { // Need to check for PolyLang plugin before returning the cache.
+                return $cached; // Return the transient cached data.
             }
         }
 
-        // Not cached? Let's load up the posts with get_posts then
+        // Not cached? Let's load up the posts with get_posts then.
         $posts = get_posts(MeprHooks::apply_filters('mepr_cpt_all_args', $args, $cpt));
 
         foreach ($posts as $post) {
@@ -238,7 +246,7 @@ abstract class MeprCptModel extends MeprBaseModel
 
         delete_transient($transient);
         if ($use_transient_cache === true) {
-            set_transient($transient, $models, YEAR_IN_SECONDS); // Set a long expiration (so transients are not autoloaded) - we'll update this during MeprCptCtrl->save_post() calls
+            set_transient($transient, $models, YEAR_IN_SECONDS); // Set a long expiration (so transients are not autoloaded) - we'll update this during MeprCptCtrl->save_post() calls.
         }
 
         return $models;
@@ -259,7 +267,7 @@ abstract class MeprCptModel extends MeprBaseModel
      * @return array
      */
     public static function get_all_data(
-        $class, // get_class relies on $this so we have to pass the name in
+        $class, // The get_class relies on $this so we have to pass the name in.
         $type = OBJECT,
         $orderby = 'ID',
         $order = 'ASC',
@@ -274,7 +282,7 @@ abstract class MeprCptModel extends MeprBaseModel
         $rc  = new ReflectionClass($class);
         $obj = $rc->newInstance();
 
-        // Account for associative or numeric arrays
+        // Account for associative or numeric arrays.
         if (MeprUtils::is_associative_array($obj->attrs)) {
             $meta_keys = array_keys($obj->attrs);
         } else {
@@ -295,7 +303,7 @@ abstract class MeprCptModel extends MeprBaseModel
         }
 
         foreach ($meta_keys as $meta_key) {
-            // Static var for every attr convention
+            // Static var for every attr convention.
             $meta_key_str = $rc->getStaticPropertyValue("{$meta_key}_str");
 
             if ($fill_selects) {
@@ -322,7 +330,7 @@ abstract class MeprCptModel extends MeprBaseModel
 
         $res = $wpdb->get_results($q, $type);
 
-        // two layer maybe_unserialize
+        // Two layer maybe_unserialize.
         for ($i = 0; $i < count($res); $i++) {
             foreach ($res[$i] as $k => $val) {
                 $res[$i][$k] = maybe_unserialize($val);

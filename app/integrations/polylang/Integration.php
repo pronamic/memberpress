@@ -38,14 +38,14 @@ class MeprPolylangIntegration
      */
     public function maybe_get_and_set_user_locale($obj)
     {
-        // Make sure we have the right object type
+        // Make sure we have the right object type.
         if (!is_null($obj) && ($obj instanceof MeprTransaction || $obj instanceof MeprSubscription)) {
-            // Make sure we have a user
+            // Make sure we have a user.
             if (isset($obj->user_id) && $obj->user_id > 0 && !MeprUtils::is_user_logged_in()) {
-                // Check that Polylang plugin is installed and activated
+                // Check that Polylang plugin is installed and activated.
                 if (function_exists('pll_current_language')) {
                     @switch_to_locale(get_user_locale($obj->user_id));
-                    MeprOptions::fetch(true); // Force refresh MeprOptions singleton
+                    MeprOptions::fetch(true); // Force refresh MeprOptions singleton.
                 }
             }
         }

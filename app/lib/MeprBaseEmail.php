@@ -6,15 +6,60 @@ if (!defined('ABSPATH')) {
 
 abstract class MeprBaseEmail
 {
-    // It's a requirement for base classes to define these
+    // It's a requirement for base classes to define these.
+    /**
+     * The email title.
+     *
+     * @var string
+     */
     public $title;
+    /**
+     * The email description.
+     *
+     * @var string
+     */
     public $description;
+    /**
+     * The default email variables.
+     *
+     * @var array
+     */
     public $defaults;
+    /**
+     * The email variables.
+     *
+     * @var array
+     */
     public $variables;
+    /**
+     * The list of email recipients.
+     *
+     * @var array
+     */
     public $to;
+    /**
+     * The email headers.
+     *
+     * @var array
+     */
     public $headers;
+    /**
+     * Whether to show the email form.
+     *
+     * @var boolean
+     */
     public $show_form;
+    /**
+     * The UI order.
+     *
+     * @var integer
+     */
     public $ui_order;
+    /**
+     * The test vars.
+     *
+     * @var array
+     */
     public $test_vars;
 
     /**
@@ -173,10 +218,11 @@ abstract class MeprBaseEmail
      * @param string  $content_type The content type (e.g., 'html').
      *
      * @return void
+     * @throws MeprEmailToException When no email recipient has been set.
      */
     public function send($values = [], $subject = false, $body = false, $use_template = null, $content_type = 'html')
     {
-        // Used to filter parameters to be searched and replaced in the email subject & body
+        // Used to filter parameters to be searched and replaced in the email subject & body.
         $values      = MeprHooks::apply_filters('mepr_email_send_params', $values, $this, $subject, $body);
         $body        = MeprHooks::apply_filters('mepr_email_send_body', $body, $this, $subject, $values);
         $subject     = MeprHooks::apply_filters('mepr_email_send_subject', $subject, $this, $body, $values);
@@ -232,24 +278,31 @@ abstract class MeprBaseEmail
      */
     public function set_html_content_type($content_type = 'text/html')
     {
-        // return 'text/html;charset="UTF-8"'; //UTF-8 is breaking internal WP checks
+        // UTF-8 is breaking internal WP checks
+        // return 'text/html;charset="UTF-8"';.
         return 'text/html';
     }
 
-    // This is for some severe multipart mailing
+    /**
+     * Initializes the PHPMailer object for email sending.
+     *
+     * @param PHPMailer $phpmailer The PHPMailer object.
+     *
+     * @return void
+     */
     public function mailer_init($phpmailer)
     {
         // Plain text
-        // Decode body
+        // Decode body.
         $phpmailer->AltBody = wp_specialchars_decode($phpmailer->Body, ENT_QUOTES);
         $phpmailer->AltBody = MeprUtils::convert_to_plain_text($phpmailer->AltBody);
 
-        // Replace variables in email
+        // Replace variables in email.
         $phpmailer->AltBody = MeprHooks::apply_filters('mepr-email-plaintext-body', $phpmailer->AltBody);
 
         if ($phpmailer->ContentType == 'text/html') {
             // HTML
-            // Replace variables in email
+            // Replace variables in email.
             $phpmailer->Body = MeprHooks::apply_filters('mepr-email-html-body', $phpmailer->Body);
         }
     }
@@ -318,7 +371,13 @@ abstract class MeprBaseEmail
         return MeprUtils::replace_vals($text, $values);
     }
 
-    // This is the most important part here to determine the content of the default email
+    /**
+     * Retrieves the body partial for the email.
+     *
+     * @param array $vars The variables to pass to the view.
+     *
+     * @return string The body partial.
+     */
     public function body_partial($vars = [])
     {
         return MeprView::get_string('/emails/' . $this->view_name(), $vars);

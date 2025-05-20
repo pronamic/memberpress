@@ -47,7 +47,7 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
      */
     public static function get_i18n_array()
     {
-        // Weak is actually still relatively strong, so we're going to alter the mapping a bit
+        // Weak is actually still relatively strong, so we're going to alter the mapping a bit.
         return  [
             'script_url'  => MEPR_JS_URL . '/vendor/zxcvbn.js',
             'very_weak'   => __('Weak', 'memberpress'),
@@ -138,13 +138,13 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         $txt          = '';
 
         switch ($mepr_options->enforce_strong_password) {
-            case 'weak': // Mapped as "Medium"
+            case 'weak': // Mapped as "Medium".
                 $txt = __('Password must be "Medium" or stronger', 'memberpress');
                 break;
-            case 'medium': // Mapped as "Strong"
+            case 'medium': // Mapped as "Strong".
                 $txt = __('Password must be "Strong" or stronger', 'memberpress');
                 break;
-            case 'strong': // Mapped as "Very Strong"
+            case 'strong': // Mapped as "Very Strong".
                 $txt = __('Password must be "Very Strong" or stronger', 'memberpress');
                 break;
         }
@@ -162,15 +162,15 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         switch ($mepr_options->enforce_strong_password) {
-            case 'weak': // Mapped as "Medium"
+            case 'weak': // Mapped as "Medium".
                 return 1;
-            case 'medium': // Mapped as "Strong"
+            case 'medium': // Mapped as "Strong".
                 return 2;
             break;
-            case 'strong': // Mapped as "Very Strong"
+            case 'strong': // Mapped as "Very Strong".
                 return 3;
             default:
-                return 0; // Not required
+                return 0; // Not required.
         }
     }
 }

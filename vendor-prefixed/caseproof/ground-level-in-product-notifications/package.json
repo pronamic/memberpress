@@ -5,7 +5,7 @@
   "author": "Team Caseproof <developers@caseproof.com>",
   "license": "GPL-3.0",
   "dependencies": {
-    "@caseproof/ipn-inbox": "github:caseproof/ipn-inbox#semver:^0.0.4"
+    "@caseproof/ipn-inbox": "github:caseproof/ipn-inbox#semver:^0.0.5"
   },
   "scripts": {
     "build": "cp ./node_modules/@caseproof/ipn-inbox/dist/ipn-inbox.umd.js ./assets/ipn-inbox.js",

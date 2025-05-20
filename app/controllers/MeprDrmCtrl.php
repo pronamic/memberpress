@@ -43,11 +43,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         wp_clear_scheduled_hook('mepr_drm_app_fee_reversal');
         wp_clear_scheduled_hook('mepr_drm_app_fee_revision');
 
-        // delete DRM notices
+        // Delete DRM notices.
         $notiications = new MeprNotifications();
         $notiications->dismiss_events('mepr-drm');
 
-        // Undo DRM Fee
+        // Undo DRM Fee.
         $drm_app_fee = new MeprDrmAppFee();
         $drm_app_fee->undo_app_fee();
     }
@@ -68,7 +68,7 @@ class MeprDrmCtrl extends MeprBaseCtrl
         if (! $drm_no_license) {
             delete_option('mepr_drm_invalid_license');
 
-            // set no license.
+            // Set no license.
             update_option('mepr_drm_no_license', true);
 
             $drm = new MeprDrmNokey();
@@ -88,7 +88,7 @@ class MeprDrmCtrl extends MeprBaseCtrl
         if (! $drm_invalid_license) {
             delete_option('mepr_drm_no_license');
 
-            // set invalid license.
+            // Set invalid license.
             update_option('mepr_drm_invalid_license', true);
 
             $drm = new MeprDrmInvalid();
@@ -143,7 +143,7 @@ class MeprDrmCtrl extends MeprBaseCtrl
     {
 
         if (MeprDrmHelper::is_valid()) {
-            return; // bail.
+            return; // Bail.
         }
 
         if (MeprDrmHelper::is_app_fee_enabled()) {
@@ -153,7 +153,7 @@ class MeprDrmCtrl extends MeprBaseCtrl
             $drm_app_fee = new MeprDrmAppFee();
             $drm_app_fee->init_crons();
 
-            return; // bail.
+            return; // Bail.
         }
 
         $drm_no_license      = get_option('mepr_drm_no_license', false);
@@ -182,7 +182,7 @@ class MeprDrmCtrl extends MeprBaseCtrl
 
         if (MeprDrmHelper::is_locked()) {
             if (MeprDrmHelper::is_app_fee_enabled()) {
-                return; // bail.
+                return; // Bail.
             }
 
             $page = isset($_GET['page']) ? $_GET['page'] : ''; // phpcs:ignore WordPress.Security.NonceVerification
@@ -283,14 +283,23 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
 
         try {
-            if (! MeprStripeGateway::has_method_with_connect_status()) {
+            $pm_id = MeprStripeGateway::has_method_with_connect_status('connected', true);
+            if (! $pm_id) {
                 wp_send_json_error(__('Invalid request.', 'memberpress'));
             }
 
-            // is it already enabled?
+            // Is it already enabled?
             if (MeprDrmHelper::is_app_fee_enabled()) {
                 wp_send_json_success(['redirect_to' => admin_url('admin.php?page=memberpress-members')]);
                 return;
+            }
+
+            // Check if the app fee is enabled for the country.
+            $country = MeprStripeGateway::get_account_country($pm_id);
+            $is_valid_country = MeprDrmHelper::is_country_unlockable_by_fee($country);
+
+            if (! $is_valid_country) {
+                wp_send_json_error(__('Invalid request.', 'memberpress'));
             }
 
             if (true !== MeprHooks::apply_filters('mepr_do_app_fee', true)) {
@@ -318,7 +327,7 @@ class MeprDrmCtrl extends MeprBaseCtrl
     {
 
         if (! MeprDrmHelper::is_locked($status)) {
-            return; // bail.
+            return; // Bail.
         }
 
         if (! MeprStripeGateway::has_method_with_connect_status()) {
@@ -403,7 +412,7 @@ class MeprDrmCtrl extends MeprBaseCtrl
     public function drm_app_fee_mapper()
     {
         if (! MeprDrmHelper::is_app_fee_enabled()) {
-            return; // bail.
+            return; // Bail.
         }
 
         $api_version        = MeprDrmHelper::get_drm_app_fee_version();
@@ -415,7 +424,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         $meprdrm->process_subscriptions_fee($subscriptions, $api_version, $current_percentage);
 
         // --Update fee--
-        $subscriptions = $meprdrm->get_all_active_subs(['mepr_app_not_fee_version' => $api_version]);
+        $args = [
+            'mepr_app_not_fee_version' => true,
+            'drm_fee_api_version'  => $api_version,
+        ];
+        $subscriptions = $meprdrm->get_all_active_subs($args);
         $meprdrm->process_subscriptions_fee($subscriptions, $api_version, $current_percentage);
     }
 
@@ -428,13 +441,13 @@ class MeprDrmCtrl extends MeprBaseCtrl
     {
 
         if (! MeprDrmHelper::is_valid()) {
-            return; // bail.
+            return; // Bail.
         }
 
         $meprdrm            = new MeprDrmAppFee();
         $api_version        = MeprDrmHelper::get_drm_app_fee_version();
         $current_percentage = MeprDrmHelper::get_application_fee_percentage();
-        $subscriptions      = $meprdrm->get_all_active_subs(['mepr_app_fee_applied' => MeprDrmHelper::get_drm_app_fee_version()]);
+        $subscriptions      = $meprdrm->get_all_active_subs(['mepr_app_fee_applied' => true]);
         $meprdrm->process_subscriptions_fee($subscriptions, $api_version, 0, true);
     }
 

@@ -24,7 +24,7 @@ class MeprRemindersHelper
             'reminder_description',
         ];
 
-        // DEPRECATED
+        // DEPRECATED.
         $params = MeprHooks::apply_filters('mepr_reminder_notification_vars', $vars, $reminder);
 
         return MeprHooks::apply_filters('mepr_reminder_email_vars', $vars, $reminder);
@@ -48,7 +48,7 @@ class MeprRemindersHelper
             'reminder_description'      => self::get_reminder_info($reminder, 'description'),
         ];
 
-        // DEPRECATED
+        // DEPRECATED.
         $params = MeprHooks::apply_filters('mepr_reminder_notification_params', $params, $reminder);
 
         return MeprHooks::apply_filters('mepr_reminder_email_params', $params, $reminder);
@@ -184,7 +184,7 @@ class MeprRemindersHelper
             $formatted[$prd->ID] = $prd->post_title;
         }
 
-        // Empty array means ALL products should be selected for backwards compat
+        // Empty array means ALL products should be selected for backwards compat.
         if (!is_array($selected) || empty($selected)) {
             $selected = [];
         }

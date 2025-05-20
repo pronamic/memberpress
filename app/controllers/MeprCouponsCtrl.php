@@ -25,10 +25,10 @@ class MeprCouponsCtrl extends MeprCptCtrl
         add_action('mepr-txn-store', 'MeprCouponsCtrl::update_coupon_usage_count');
         add_action('mepr-subscr-store', 'MeprCouponsCtrl::update_coupon_usage_count');
 
-        // Cleanup list view
+        // Cleanup list view.
         add_filter('views_edit-' . MeprCoupon::$cpt, 'MeprAppCtrl::cleanup_list_view');
 
-        // Ajax coupon validation
+        // Ajax coupon validation.
         add_action('wp_ajax_mepr_validate_coupon', 'MeprCouponsCtrl::validate_coupon_ajax');
         add_action('wp_ajax_nopriv_mepr_validate_coupon', 'MeprCouponsCtrl::validate_coupon_ajax');
     }
@@ -55,7 +55,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
                 'parent_item_colon'  => __('Parent Coupon:', 'memberpress'),
             ],
             'public'               => false,
-            'show_ui'              => true, // MeprUpdateCtrl::is_activated(),
+            'show_ui'              => true, // MeprUpdateCtrl::is_activated().
             'show_in_menu'         => 'memberpress',
             'capability_type'      => 'page',
             'hierarchical'         => false,
@@ -108,12 +108,12 @@ class MeprCouponsCtrl extends MeprCptCtrl
                     break;
                 case 'coupon-discount':
                     if ($coupon->discount_mode == 'first-payment') {
-                        echo $coupon->first_payment_discount_amount; // Update this to show proper currency symbol later
+                        echo $coupon->first_payment_discount_amount; // Update this to show proper currency symbol later.
                         echo ($coupon->first_payment_discount_type == 'percent') ? __('%', 'memberpress') : $mepr_options->currency_code;
                         echo ' → ';
                     }
 
-                    echo $coupon->discount_amount; // Update this to show proper currency symbol later
+                    echo $coupon->discount_amount; // Update this to show proper currency symbol later.
                     echo ($coupon->discount_type == 'percent') ? __('%', 'memberpress') : $mepr_options->currency_code;
                     break;
                 case 'coupon-starts':
@@ -124,7 +124,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
                               _e('Immediately', 'memberpress');
                         }
                     } else {
-                        _e('Expired', 'memberpress'); // They've moved this to trash so show it as expired
+                        _e('Expired', 'memberpress'); // They've moved this to trash so show it as expired.
                     }
                     break;
                 case 'coupon-expires':
@@ -135,7 +135,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
                               _e('Never', 'memberpress');
                         }
                     } else {
-                        _e('Expired', 'memberpress'); // They've moved this to trash so show it as expired
+                        _e('Expired', 'memberpress'); // They've moved this to trash so show it as expired.
                     }
                     break;
                 case 'coupon-count':
@@ -220,7 +220,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
         $post = get_post($post_id);
 
         if (!wp_verify_nonce((isset($_POST[MeprCoupon::$nonce_str])) ? $_POST[MeprCoupon::$nonce_str] : '', MeprCoupon::$nonce_str . wp_salt())) {
-            return $post_id; // Nonce prevents meta data from being wiped on move to trash
+            return $post_id; // Nonce prevents meta data from being wiped on move to trash.
         }
 
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
@@ -245,7 +245,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
                 if (!empty($coupon->starts_on)) {
                      $minimum_start_date = new DateTime();
 
-                     // get datetime object of coupon starts_on : DateTime
+                     // Get datetime object of coupon starts_on : DateTime.
                      $coupon_start_date = new DateTime();
                      $coupon_start_ts   = MeprCouponsHelper::convert_timestamp_to_tz($coupon->starts_on, $coupon->start_timezone); // Convert UTC timestamp to selected timezone timestamp.
                      $coupon_start_date->setTimestamp($coupon_start_ts);
@@ -282,14 +282,14 @@ class MeprCouponsCtrl extends MeprCptCtrl
             $coupon->discount_amount = isset($_POST[MeprCoupon::$discount_amount_str]) ? (float)sanitize_text_field($_POST[MeprCoupon::$discount_amount_str]) : 0;
 
             if ($coupon->discount_type == 'percent' && $coupon->discount_amount > 100) {
-                $coupon->discount_amount = 100; // Make sure percent is never > 100
+                $coupon->discount_amount = 100; // Make sure percent is never > 100.
             }
 
             $coupon->first_payment_discount_type   = isset($_POST[MeprCoupon::$first_payment_discount_type_str]) ? sanitize_text_field($_POST[MeprCoupon::$first_payment_discount_type_str]) : 'percent';
             $coupon->first_payment_discount_amount = isset($_POST[MeprCoupon::$first_payment_discount_amount_str]) ? (float)sanitize_text_field($_POST[MeprCoupon::$first_payment_discount_amount_str]) : 0;
 
             if ($coupon->first_payment_discount_type == 'percent' && $coupon->first_payment_discount_amount > 100) {
-                $coupon->first_payment_discount_amount = 100; // Make sure percent is never > 100
+                $coupon->first_payment_discount_amount = 100; // Make sure percent is never > 100.
             }
 
             $coupon->use_on_upgrades = isset($_POST[MeprCoupon::$use_on_upgrades_str]);
@@ -323,17 +323,17 @@ class MeprCouponsCtrl extends MeprCptCtrl
         global $wpdb;
 
         if ($data['post_type'] == MeprCoupon::$cpt) {
-            // Get rid of invalid chars
+            // Get rid of invalid chars.
             $data['post_title'] = preg_replace(['/ +/', '/[^A-Za-z0-9_-]/'], ['-', ''], $data['post_title']);
 
-            // Begin duplicate titles handling
+            // Begin duplicate titles handling.
             $q1    = "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type = %s AND ID <> %d LIMIT 1";
             $q2    = $wpdb->prepare($q1, $data['post_title'], MeprCoupon::$cpt, $postarr['ID']);
             $count = 0;
 
             if (is_admin()) {
                 while ($wpdb->get_var($q2)) {
-                    ++$count; // Want to increment before running the query, so when we exit the loop $data['post_title'] . "-{$count}" is stil valid
+                    ++$count; // Want to increment before running the query, so when we exit the loop $data['post_title'] . "-{$count}" is stil valid.
                     $q2 = $wpdb->prepare($q1, $data['post_title'] . "-{$count}", MeprCoupon::$cpt, $postarr['ID']);
                 }
             }
@@ -341,7 +341,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
             if ($count > 0) {
                 $data['post_title'] .= "-{$count}";
             }
-            // End duplicate titles handling
+            // End duplicate titles handling.
         }
 
         return $data;
@@ -362,8 +362,8 @@ class MeprCouponsCtrl extends MeprCptCtrl
             return $actions;
         }
 
-        unset($actions['inline hide-if-no-js']); // Hides quick-edit
-        unset($actions['delete']); // Hides permanantely delete
+        unset($actions['inline hide-if-no-js']); // Hides quick-edit.
+        unset($actions['delete']); // Hides permanantely delete.
 
         return $actions;
     }
@@ -376,8 +376,8 @@ class MeprCouponsCtrl extends MeprCptCtrl
      */
     public static function disable_bulk($actions)
     {
-        unset($actions['delete']); // disables permanent delete bulk action
-        unset($actions['edit']); // disables bulk edit
+        unset($actions['delete']); // Disables permanent delete bulk action.
+        unset($actions['edit']); // Disables bulk edit.
 
         return $actions;
     }
@@ -399,7 +399,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
             wp_enqueue_style('mepr-coupons-css', MEPR_CSS_URL . '/admin-coupons.css', ['mepr-settings-table-css'], MEPR_VERSION);
 
             wp_register_script('mepr-settings-table-js', MEPR_JS_URL . '/settings_table.js', ['jquery'], MEPR_VERSION);
-            wp_dequeue_script('autosave'); // Disable auto-saving
+            wp_dequeue_script('autosave'); // Disable auto-saving.
             wp_enqueue_script('mepr-coupons-js', MEPR_JS_URL . '/admin_coupons.js', ['jquery','mepr-settings-table-js'], MEPR_VERSION);
             wp_localize_script('mepr-coupons-js', 'MeprCoupon', $l10n);
 

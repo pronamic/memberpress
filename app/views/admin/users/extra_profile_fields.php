@@ -58,7 +58,7 @@
   <?php
     MeprUsersHelper::render_editable_custom_fields($user);
 
-    if (MeprUtils::is_mepr_admin()) { // Allow admins to see
+    if (MeprUtils::is_mepr_admin()) { // Allow admins to see.
         ?>
       <tr>
         <td colspan="2">

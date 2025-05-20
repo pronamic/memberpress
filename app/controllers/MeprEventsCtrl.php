@@ -48,7 +48,7 @@ class MeprEventsCtrl extends MeprBaseCtrl
     {
         if (!empty($user_id)) {
             // Since the 'delete_user' action fires just before the user is deleted
-            // we should still have access to the full MeprUser object for them
+            // we should still have access to the full MeprUser object for them.
             MeprEvent::record('member-deleted', (new MeprUser($user_id)));
         }
     }
@@ -65,7 +65,7 @@ class MeprEventsCtrl extends MeprBaseCtrl
     public function txn_expired($txn, $sub_status)
     {
         // Assume the txn is expired (otherwise this action wouldn't fire)
-        // Then ensure the subscription is expired before sending a sub expired event
+        // Then ensure the subscription is expired before sending a sub expired event.
         if (
             !empty($txn) &&
             $txn instanceof MeprTransaction &&

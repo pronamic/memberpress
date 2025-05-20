@@ -13,10 +13,10 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
      */
     public function validate_ipn()
     {
-        // Set the command that is used to validate the message
+        // Set the command that is used to validate the message.
         $_POST['cmd'] = '_notify-validate';
 
-        // We need to send the message back to PayPal just as we received it
+        // We need to send the message back to PayPal just as we received it.
         $params = [
             'method'      => 'POST',
             'body'        => stripslashes_deep($_POST),
@@ -35,10 +35,10 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
 
         $resp = wp_remote_post($this->settings->url, $params);
 
-        // Put the $_POST data back to how it was so we can pass it to the action
+        // Put the $_POST data back to how it was so we can pass it to the action.
         unset($_POST['cmd']);
 
-        // If the response was valid, check to see if the request was valid
+        // If the response was valid, check to see if the request was valid.
         if (
             !is_wp_error($resp) &&
             $resp['response']['code'] >= 200 &&
@@ -58,12 +58,18 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
         return false;
     }
 
-    // Special method for formatting zero decimal currencies for PayPal (only used in PayPal Standard currently)
+    /**
+     * Format currency amount for PayPal (only used in PayPal Standard currently)
+     *
+     * @param float $amount The amount to format.
+     *
+     * @return string Formatted amount
+     */
     public function format_currency($amount)
     {
         if (MeprUtils::is_zero_decimal_currency()) {
             $amount = MeprAppHelper::format_currency($amount, false, false);
-            return str_replace([',','.'], ['',''], $amount); // Strip out all formatting
+            return str_replace([',','.'], ['',''], $amount); // Strip out all formatting.
         }
 
         return MeprUtils::format_float($amount);
@@ -72,8 +78,8 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
     /**
      * Process thank you URL redirect
      *
-     * @param array           $query_params The query parameters
-     * @param MeprTransaction $txn          The transaction object
+     * @param array           $query_params The query parameters.
+     * @param MeprTransaction $txn          The transaction object.
      *
      * @return string The thank you URL
      */

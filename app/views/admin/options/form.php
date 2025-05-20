@@ -230,9 +230,9 @@
             <select name="<?php echo $mepr_options->enforce_strong_password_str; ?>" id="<?php echo $mepr_options->enforce_strong_password_str; ?>">
               <option value="0" <?php selected($mepr_options->enforce_strong_password, 0); ?>><?php _e('Hide', 'memberpress'); ?></option>
               <option value="show" <?php selected($mepr_options->enforce_strong_password, 'show'); ?>><?php _e('Show', 'memberpress'); ?></option>
-              <option value="weak" <?php selected($mepr_options->enforce_strong_password, 'weak'); // Mapped as "Medium" ?>><?php _e('Show &amp; Require Medium Password or Stronger (Recommended)', 'memberpress'); ?></option>
-              <option value="medium" <?php selected($mepr_options->enforce_strong_password, 'medium'); // Mapped as "Strong" ?>><?php _e('Show &amp; Require Strong Password or Stronger', 'memberpress'); ?></option>
-              <option value="strong" <?php selected($mepr_options->enforce_strong_password, 'strong'); // Mapped as "Very Strong" ?>><?php _e('Show &amp; Require Very Strong Password', 'memberpress'); ?></option>
+              <option value="weak" <?php selected($mepr_options->enforce_strong_password, 'weak'); // Mapped as "Medium". ?>><?php _e('Show &amp; Require Medium Password or Stronger (Recommended)', 'memberpress'); ?></option>
+              <option value="medium" <?php selected($mepr_options->enforce_strong_password, 'medium'); // Mapped as "Strong". ?>><?php _e('Show &amp; Require Strong Password or Stronger', 'memberpress'); ?></option>
+              <option value="strong" <?php selected($mepr_options->enforce_strong_password, 'strong'); // Mapped as "Very Strong". ?>><?php _e('Show &amp; Require Very Strong Password', 'memberpress'); ?></option>
             </select>
           </div>
         </div>
@@ -498,8 +498,6 @@
         <p><?php _e('A gateway is required to accept payments.Click the (+) below to add your first payment gateway.', 'memberpress'); ?></p>
       <?php } ?>
       <a href="" id="mepr-add-integration" title="<?php _e('Add a Payment Method', 'memberpress'); ?>"><i class="mp-icon mp-icon-plus-circled mp-24"></i> <?php _e('Add Payment Method', 'memberpress'); ?></a>
-      <?php // MeprHooks::do_action('mepr-integration-options'); ?>
-      <?php // MeprOptionsHelper::gateways_dropdown('gateway[' . time() . ']', ''); ?>
       <?php unset($objs['free']);
         unset($objs['manual']); ?>
       <div id="no_saved_pms" data-value="<?php echo (empty($objs)) ? 'true' : 'false'; ?>"></div>
@@ -842,19 +840,32 @@
       <h3><?php esc_html_e('Misc', 'memberpress'); ?></h3>
       <table class="form-table">
         <tbody>
-        <tr valign="top">
-          <th scope="row">
-            <label for="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>"><?php esc_html_e('Hide MemberPress Menu in Admin Bar', 'memberpress'); ?></label>
-            <?php MeprAppHelper::info_tooltip(
-                'mepr-hide-mp-top-menu',
-                esc_html__('Hide MemberPress Menu in Admin Bar', 'memberpress'),
-                esc_html__('Enabling this option will hide the MemberPress admin bar menu', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
-            ); ?>
-          </th>
-          <td>
-            <input type="checkbox" name="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" id="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" <?php checked($mepr_options->hide_admin_bar_menu); ?> />
-          </td>
-        </tr>
+          <tr valign="top">
+            <th scope="row">
+              <label for="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>"><?php esc_html_e('Hide MemberPress Menu in Admin Bar', 'memberpress'); ?></label>
+              <?php MeprAppHelper::info_tooltip(
+                  'mepr-hide-mp-top-menu',
+                  esc_html__('Hide MemberPress Menu in Admin Bar', 'memberpress'),
+                  esc_html__('Enabling this option will hide the MemberPress admin bar menu', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
+              ); ?>
+            </th>
+            <td>
+              <input type="checkbox" name="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" id="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" <?php checked($mepr_options->hide_admin_bar_menu); ?> />
+            </td>
+          </tr>
+          <tr valign="top">
+            <th scope="row">
+              <label for="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>"><?php esc_html_e('Enable WP Rest API search discovery protection', 'memberpress'); ?></label>
+              <?php MeprAppHelper::info_tooltip(
+                  'mepr-enable-wp-rest-api-protection',
+                  esc_html__('Enable WP Rest API search discovery protection', 'memberpress'),
+                  esc_html__('Enabling this option will protect your WP Rest API search discovery', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
+              ); ?>
+            </th>
+            <td>
+              <input type="checkbox" name="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>" id="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>" <?php checked($mepr_options->enable_wp_rest_api_protection); ?> />
+            </td>
+          </tr>
         </tbody>
       </table>
       <br/>

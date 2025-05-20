@@ -39,7 +39,7 @@ class MeprBaseStaticGateway extends MeprBaseGateway
         // 'send-cc-expirations'
         ];
 
-        // Setup the notification actions for this gateway
+        // Setup the notification actions for this gateway.
         $this->notifiers = [];
     }
 

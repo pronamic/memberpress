@@ -7,7 +7,7 @@
   <p>
     <?php
       printf(
-        // translators: %1$s: open italics tag, %2$s: close italics tag
+        // Translators: %1$s: open italics tag, %2$s: close italics tag.
           esc_html__('%1$sTurn every sale into an upsell opportunity!%2$s Don\'t miss the chance to skyrocket your revenue with MemberPress Order Bumps – the game-changing tool that lets you automatically offer tempting add-ons to your customers right at checkout.', 'memberpress'),
           '<i>',
           '</i>'
@@ -20,7 +20,7 @@
   <p>
     <?php
       printf(
-        // translators: %1$s: open bold tag, %2$s: close bold tag
+        // Translators: %1$s: open bold tag, %2$s: close bold tag.
           esc_html__('Level up your earning potential with the %1$sPro-exclusive Order Bumps%2$s feature today!', 'memberpress'),
           '<strong>',
           '</strong>'

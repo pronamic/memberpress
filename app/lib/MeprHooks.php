@@ -106,7 +106,7 @@ class MeprHooks
      */
     private static function tags($tag)
     {
-        // Prepend mepr if it doesn't exist already
+        // Prepend mepr if it doesn't exist already.
         if (!preg_match('/^mepr[-_]/i', $tag)) {
             $tag = 'mepr_' . $tag;
         }
@@ -116,7 +116,7 @@ class MeprHooks
             '_' => preg_replace('/[-_]/', '_', $tag),
         ];
 
-        // in case the original tag has mixed dashes and underscores
+        // In case the original tag has mixed dashes and underscores.
         if (!in_array($tag, array_values($tags))) {
             $tags['*'] = $tag;
         }

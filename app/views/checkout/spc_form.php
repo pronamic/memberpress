@@ -59,7 +59,7 @@
         </div>
         <input type="text" name="user_last_name" id="user_last_name<?php echo $unique_suffix; ?>" class="mepr-form-input" value="<?php echo esc_attr($last_name_value); ?>" <?php echo ($mepr_options->require_fname_lname) ? 'required' : ''; ?> />
       </div>
-    <?php else : // this is here to avoid validation issues ?>
+    <?php else : // This is here to avoid validation issues. ?>
       <input type="hidden" name="user_first_name" value="<?php echo esc_attr($first_name_value); ?>" />
       <input type="hidden" name="user_last_name" value="<?php echo esc_attr($last_name_value); ?>" />
     <?php endif; ?>
@@ -97,7 +97,7 @@
       </div>
       <div class="mp-form-row mepr_email_stripe mepr-field-required mepr-hidden">
       </div>
-        <?php MeprHooks::do_action('mepr-after-email-field'); // Deprecated ?>
+        <?php MeprHooks::do_action('mepr-after-email-field'); // Deprecated. ?>
         <?php MeprHooks::do_action('mepr-checkout-after-email-field', $product->ID); ?>
         <?php if ($mepr_options->disable_checkout_password_fields === false) : ?>
         <div class="mp-form-row mepr_password mepr-field-required">
@@ -124,12 +124,12 @@
             </button>
           </div>
         </div>
-            <?php MeprHooks::do_action('mepr-after-password-fields'); // Deprecated ?>
+            <?php MeprHooks::do_action('mepr-after-password-fields'); // Deprecated. ?>
             <?php MeprHooks::do_action('mepr-checkout-after-password-fields', $product->ID); ?>
         <?php endif; ?>
     <?php endif; ?>
 
-    <?php MeprHooks::do_action('mepr-before-coupon-field'); // Deprecated ?>
+    <?php MeprHooks::do_action('mepr-before-coupon-field'); // Deprecated. ?>
     <?php MeprHooks::do_action('mepr-checkout-before-coupon-field', $product->ID); ?>
 
     <?php MeprHooks::do_action('mepr_render_order_bumps', $product); ?>
@@ -215,13 +215,13 @@
       </div>
     <?php endif; ?>
 
-    <?php MeprHooks::do_action('mepr-user-signup-fields'); // Deprecated ?>
+    <?php MeprHooks::do_action('mepr-user-signup-fields'); // Deprecated. ?>
     <?php MeprHooks::do_action('mepr-checkout-before-submit', $product->ID); ?>
 
     <div class="mepr_spacer">&nbsp;</div>
 
     <div class="mp-form-submit">
-      <?php // This mepr_no_val needs to be hidden in order for this to work so we do it explicitly as a style ?>
+      <?php // This mepr_no_val needs to be hidden in order for this to work so we do it explicitly as a style. ?>
       <label for="mepr_no_val" class="mepr-visuallyhidden"><?php _ex('No val', 'ui', 'memberpress'); ?></label>
       <input type="text" id="mepr_no_val" name="mepr_no_val" class="mepr-form-input mepr-visuallyhidden mepr_no_val mepr-hidden" autocomplete="off" />
 

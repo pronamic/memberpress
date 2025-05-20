@@ -13,11 +13,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
      */
     public function load_hooks()
     {
-        // Admin User Profile login meta box
+        // Admin User Profile login meta box.
         add_action('add_meta_boxes', 'MeprUsersCtrl::login_page_meta_box');
         add_action('save_post', 'MeprUsersCtrl::save_postdata');
 
-        // Admin User Profile customizations
+        // Admin User Profile customizations.
         add_action('admin_init', 'MeprUsersCtrl::maybe_redirect_member_from_admin');
         add_action('register_post', 'MeprUsersCtrl::maybe_disable_wp_registration_form', 10, 3);
         add_action('init', 'MeprUsersCtrl::maybe_disable_admin_bar', 3);
@@ -25,22 +25,22 @@ class MeprUsersCtrl extends MeprBaseCtrl
         add_action('delete_user', 'MeprUsersCtrl::nullify_records_on_delete');
         add_action('admin_enqueue_scripts', 'MeprUsersCtrl::enqueue_scripts');
 
-        // bbPress profiles apparently pull this in on the front-end, so let's stop that
+        // The bbPress profiles apparently pull this in on the front-end, so let's stop that.
         if (is_admin()) {
-            // Profile fields show/save
+            // Profile fields show/save.
             add_action('show_user_profile', 'MeprUsersCtrl::extra_profile_fields');
             add_action('edit_user_profile', 'MeprUsersCtrl::extra_profile_fields');
             add_action('personal_options_update', 'MeprUsersCtrl::save_extra_profile_fields');
             add_action('edit_user_profile_update', 'MeprUsersCtrl::save_extra_profile_fields');
 
-            // Purely for showing the errors in the users profile when saving -- it doesn't prevent the saving
+            // Purely for showing the errors in the users profile when saving -- it doesn't prevent the saving.
             add_action('user_profile_update_errors', 'MeprUsersCtrl::validate_extra_profile_fields', 10, 3);
 
-            // Phone input script
+            // Phone input script.
             add_action('admin_enqueue_scripts', 'MeprUsersCtrl::enqueue_admin_scripts');
         }
 
-        // User page extra columns
+        // User page extra columns.
         add_filter('manage_users_columns', 'MeprUsersCtrl::add_extra_user_columns');
         add_filter('manage_users_sortable_columns', 'MeprUsersCtrl::sortable_extra_user_columns');
         add_filter('manage_users_custom_column', 'MeprUsersCtrl::manage_extra_user_columns', 10, 3);
@@ -48,7 +48,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
         add_action('wp_ajax_mepr_user_search', 'MeprUsersCtrl::user_search');
         add_filter('wp_privacy_personal_data_erasers', [$this, 'register_mepr_data_eraser'], 10);
 
-        // Shortcodes
+        // Shortcodes.
         MeprHooks::add_shortcode('mepr-list-subscriptions', 'MeprUsersCtrl::list_users_subscriptions');
         MeprHooks::add_shortcode('mepr-user-file', 'MeprUsersCtrl::show_user_file');
         MeprHooks::add_shortcode('mepr-user-active-membership-titles', 'MeprUsersCtrl::get_user_active_membership_titles');
@@ -57,7 +57,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
     /**
      * Admin scripts for the user profile page
      *
-     * @param string $hook Page hook
+     * @param string $hook Page hook.
      *
      * @return void
      */
@@ -81,7 +81,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             }
         }
 
-        // Check if there's a phone field
+        // Check if there's a phone field.
         if ($has_phone) {
             wp_enqueue_style('mepr-phone-css', MEPR_CSS_URL . '/vendor/intlTelInput.min.css', [], '16.0.0');
             wp_enqueue_style('mepr-tel-config-css', MEPR_CSS_URL . '/tel_input.css', [], MEPR_VERSION);
@@ -170,7 +170,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             if (MeprUtils::is_logged_in_and_an_admin()) {
                 $usr = new MeprUser($_REQUEST['uid']);
 
-                // Get the most recent transaction
+                // Get the most recent transaction.
                 $txns = MeprTransaction::get_all_complete_by_user_id(
                     $usr->ID,
                     'created_at DESC', // $order_by=''
@@ -226,11 +226,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return MeprUser::email_users_with_expiring_transactions();
     }
 
+    // Not needed
     // public static function unschedule_email_users_with_expiring_transactions()
     // {
     // if($t = wp_next_scheduled('mepr_schedule_renew_emails'))
     // wp_unschedule_event($t, 'mepr_schedule_renew_emails');
-    // }
+    // }.
 
     /**
      * Enqueue scripts for the user profile page.
@@ -286,8 +287,8 @@ class MeprUsersCtrl extends MeprBaseCtrl
             update_user_meta($user_id, MeprUser::$user_message_str, (string)wp_kses_post($_POST[MeprUser::$user_message_str]));
         }
 
-        // Get the right custom fields
-        if (is_admin() && MeprUtils::is_mepr_admin()) { // An admin is editing the user's profile, so let's save all fields
+        // Get the right custom fields.
+        if (is_admin() && MeprUtils::is_mepr_admin()) { // An admin is editing the user's profile, so let's save all fields.
             $custom_fields = $mepr_options->custom_fields;
         } elseif ($product !== false) {
             if ($product->customize_profile_fields) {
@@ -299,7 +300,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             $custom_fields = $user->custom_profile_fields();
         }
 
-        // Since we use user_* for these, we need to artifically set the $_POST keys correctly for this to work
+        // Since we use user_* for these, we need to artifically set the $_POST keys correctly for this to work.
         if (!isset($_POST['first_name']) || empty($_POST['first_name'])) {
             $_POST['first_name'] = (isset($_POST['user_first_name'])) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
         }
@@ -334,13 +335,13 @@ class MeprUsersCtrl extends MeprBaseCtrl
         // Even though the validate_extra_profile_fields function will show an error on the
         // dashboard profile. It doesn't prevent the profile from saved because
         // user_profile_update_errors is called after the account has been saved which is really lame
-        // So let's take care of that here. $validated should ALWAYS be true, except in this one case
+        // So let's take care of that here. $validated should ALWAYS be true, except in this one case.
         if (!$validated) {
             $errors = self::validate_extra_profile_fields();
         }
 
         if (empty($errors)) {
-            // TODO: move this somewhere it makes more sense
+            // TODO: move this somewhere it makes more sense.
             if (isset($_POST['mepr-geo-country'])) {
                 update_user_meta($user_id, 'mepr-geo-country', sanitize_text_field($_POST['mepr-geo-country']));
             }
@@ -351,11 +352,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
                     continue;
                 }
 
-                // Don't do anything if this field isn't shown during signup, and this is a signup
+                // Don't do anything if this field isn't shown during signup, and this is a signup.
                 if ($is_signup && isset($line->show_on_signup) && !$line->show_on_signup) {
                     continue;
                 }
-                // Only allow admin to update if it is not shown in account
+                // Only allow admin to update if it is not shown in account.
                 if (!is_admin() && !$is_signup && isset($line->show_in_account) && !$line->show_in_account) {
                     continue;
                 }
@@ -415,8 +416,19 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return false;
     }
 
-    // Should be moved to the Model eventually
-    // This should be run before MeprUsersCtrl::save_extra_profile_fields is run
+    /**
+     * Validate extra profile fields for a user.
+     * Should be moved to the Model eventually
+     * This should be run before MeprUsersCtrl::save_extra_profile_fields is run
+     *
+     * @param  WP_Error|null  $errors    WP_Error object to add errors to.
+     * @param  boolean|null   $update    Whether this is an update or a new user.
+     * @param  WP_User|null   $user      The user object.
+     * @param  boolean        $is_signup Whether this is during signup.
+     * @param  object|boolean $product   The product object.
+     * @param  array          $selected  The selected fields to validate.
+     * @return array                     Array of validation errors.
+     */
     public static function validate_extra_profile_fields(
         $errors = null,
         $update = null,
@@ -429,12 +441,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
         $errs         = [];
 
         // Prevent checking when adding a new user via WP's New User system
-        // or if an admin is editing the profile in the dashboard
+        // or if an admin is editing the profile in the dashboard.
         if ($update === false || ($update !== false && MeprUtils::is_mepr_admin() && is_admin())) {
             return $errs;
         }
 
-        // Get the right custom fields
+        // Get the right custom fields.
         if ($is_signup && $product !== false) {
             if ($product->customize_profile_fields) {
                 $custom_fields = $product->custom_profile_fields();
@@ -448,7 +460,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             $custom_fields = $mepr_options->custom_fields;
         }
 
-        // If the address line is set in POST then we should validate it
+        // If the address line is set in POST then we should validate it.
         if (isset($_POST['mepr-address-one'])) {
             $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
         }
@@ -460,18 +472,18 @@ class MeprUsersCtrl extends MeprBaseCtrl
             }
 
             // If we're processing a signup and the custom field is not set
-            // to show on signup we need to make sure it isn't required
+            // to show on signup we need to make sure it isn't required.
             if ($is_signup && $line->required && !$line->show_on_signup) {
                 $line->required = false;
             } elseif (!$is_signup && !is_admin() && isset($line->show_in_account) && !$line->show_in_account) {
-                // Account page shouldn't show errors if the fields have been hidden from the account page
+                // Account page shouldn't show errors if the fields have been hidden from the account page.
                 $line->required = false;
             }
 
             if ((!isset($_POST[$line->field_key]) || (empty($_POST[$line->field_key]) && $_POST[$line->field_key] != '0')) && $line->required && 'file' != $line->field_type) {
                 $errs[$line->field_key] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
 
-                // This allows us to run this on dashboard profile fields as well as front end
+                // This allows us to run this on dashboard profile fields as well as front end.
                 if (is_object($errors)) {
                     $errors->add($line->field_key, sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name)));
                 }
@@ -481,7 +493,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 $file_provided = isset($_FILES[$line->field_key]['error']) && $_FILES[$line->field_key]['error'] != UPLOAD_ERR_NO_FILE;
 
                 if ($file_provided) {
-                    // Validate new file upload
+                    // Validate new file upload.
                     $file = $_FILES[$line->field_key];
 
                     if (empty($file['tmp_name']) || empty($file['name']) || empty($file['size'])) {
@@ -500,7 +512,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
                         $errs[$line->field_key] = sprintf(__('%s could not be uploaded.', 'memberpress'), stripslashes($line->field_name));
                     }
                 } else {
-                    // Validate existing file
+                    // Validate existing file.
                     if ($line->required) {
                         $file = get_user_meta(get_current_user_id(), $line->field_key, true);
 
@@ -544,12 +556,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
             die('-1');
         }
 
-        // jQuery suggest plugin has already trimmed and escaped user input (\ becomes \\)
-        // so we just need to sanitize the username
+        // The jQuery suggest plugin has already trimmed and escaped user input (\ becomes \\)
+        // so we just need to sanitize the username.
         $s = sanitize_user($_GET['q']);
 
         if (strlen($s) < 2) {
-            die; // require 2 chars for matching
+            die; // Require 2 characters for matching.
         }
 
         $users = get_users(['search' => "*$s*"]);
@@ -558,7 +570,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
         die();
     }
 
-    // Add extra columns to the Users list table
+    /**
+     * Add extra columns to the WordPress Users list table.
+     *
+     * @param  array $columns The existing columns.
+     * @return array          The modified columns.
+     */
     public static function add_extra_user_columns($columns)
     {
         $columns['mepr_products']   = __('Active Memberships', 'memberpress');
@@ -569,7 +586,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return $columns;
     }
 
-    // Tells WP which columns should be sortable
+    /**
+     * Define which columns should be sortable in the Users list table.
+     *
+     * @param  array $cols The sortable columns.
+     * @return array       The modified sortable columns.
+     */
     public static function sortable_extra_user_columns($cols)
     {
         $cols['mepr_registered'] = 'user_registered';
@@ -579,7 +601,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
         return $cols;
     }
 
-    // This allows us to sort the column properly behind the scenes
+    /**
+     * Modify the user query to enable sorting by custom columns.
+     *
+     * @param  WP_User_Query $query The user query object.
+     * @return void
+     */
     public static function extra_user_columns_query_override($query)
     {
         global $wpdb;
@@ -597,7 +624,14 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
     }
 
-    // This actually shows the content in the table HTML output
+    /**
+     * Display the content for the custom columns in the Users list table.
+     *
+     * @param  string  $value       The column value.
+     * @param  string  $column_name The name of the column.
+     * @param  integer $user_id     The user ID.
+     * @return string               The column content.
+     */
     public static function manage_extra_user_columns($value, $column_name, $user_id)
     {
         $user = new MeprUser($user_id);
@@ -643,12 +677,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
 
-        // Don't mess up AJAX requests
+        // Don't mess up AJAX requests.
         if (defined('DOING_AJAX')) {
             return;
         }
 
-        // Don't mess up admin_post.php requests
+        // Don't mess up admin_post.php requests.
         if (strpos($_SERVER['REQUEST_URI'], 'admin-post.php') !== false && isset($_REQUEST['action'])) {
             return;
         }
@@ -740,7 +774,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         if (!wp_verify_nonce((isset($_POST[MeprUser::$nonce_str])) ? $_POST[MeprUser::$nonce_str] : '', MeprUser::$nonce_str . wp_salt())) {
-            return $post_id; // Nonce prevents meta data from being wiped on move to trash
+            return $post_id; // Nonce prevents meta data from being wiped on move to trash.
         }
 
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
@@ -777,7 +811,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         $status = (isset($atts['status'])) ? $atts['status'] : 'all';
 
-        $all_ids    = $user->current_and_prior_subscriptions(); // returns an array of Product ID's the user has ever been subscribed to
+        $all_ids    = $user->current_and_prior_subscriptions(); // Returns an array of Product ID's the user has ever been subscribed to.
         $active_ids = $user->active_product_subscriptions('ids');
 
         foreach ($all_ids as $id) {
@@ -810,7 +844,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             }
         }
 
-        // Sorting active subs
+        // Sorting active subs.
         if (!empty($active_rows) && isset($atts['orderby']) && in_array($atts['orderby'], ['date', 'title'])) {
             if ($atts['orderby'] == 'date') {
                 if ($atts['order'] == 'asc') {
@@ -836,7 +870,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             }
         }
 
-        // Sorting inactive subs
+        // Sorting inactive subs.
         if (!empty($inactive_rows) && isset($atts['orderby']) && in_array($atts['orderby'], ['date', 'title'])) {
             if ($atts['orderby'] == 'date') {
                 if ($atts['order'] == 'asc') {

@@ -12,14 +12,6 @@
 
 
   <div class="form-wrapper">
-    <?php
-
-    if (isset($errors) and ! empty($errors)) {
-        // MeprView::render( '/shared/errors', get_defined_vars() );
-    }
-
-
-    ?>
     <input type="hidden" name="mepr_process_signup_form"
     value="<?php echo isset($_GET['mepr_process_signup_form']) ? esc_attr($_GET['mepr_process_signup_form']) : 1; ?>" />
     <input type="hidden" name="mepr_product_id" value="<?php echo esc_attr($product->ID); ?>" />
@@ -66,32 +58,12 @@
       " <?php echo ( $mepr_options->require_fname_lname ) ? 'required' : ''; ?> />
     </div>
 
-    <!-- <div class="mp-form-row mepr_first_name<?php // echo ($mepr_options->require_fname_lname) ? ' mepr-field-required' : ''; ?>"> -->
-    <!-- <div class="mp-form-label"> -->
-    <!-- <label for="user_first_name<?php // echo $unique_suffix; ?>">
-        <?php
-        _ex('First Name:', 'ui', 'memberpress');
-        echo ( $mepr_options->require_fname_lname ) ? '*' : '';
-        ?>
-    </label> -->
     <span class="cc-error"><?php _ex('First Name Required', 'ui', 'memberpress'); ?></span>
-    <!-- </div> -->
 
-    <!-- </div> -->
-    <!-- <div class="mp-form-row mepr_last_name<?php echo ( $mepr_options->require_fname_lname ) ? ' mepr-field-required' : ''; ?>"> -->
-    <!-- <div class="mp-form-label"> -->
-    <!-- <label for="user_last_name<?php echo $unique_suffix; ?>">
-                          <?php
-                            _ex('Last Name:', 'ui', 'memberpress');
-                            echo ( $mepr_options->require_fname_lname ) ? '*' : '';
-                            ?>
-    </label> -->
     <span class="cc-error"><?php _ex('Last Name Required', 'ui', 'memberpress'); ?></span>
-    <!-- </div> -->
 
-    <!-- </div> -->
     </div>
-    <?php else : // this is here to avoid validation issues ?>
+    <?php else : // This is here to avoid validation issues. ?>
     <input type="hidden" name="user_first_name" value="<?php echo esc_attr($first_name_value); ?>" />
     <input type="hidden" name="user_last_name" value="<?php echo esc_attr($last_name_value); ?>" />
     <?php endif; ?>
@@ -142,7 +114,7 @@
     </div>
     <div class="mp-form-row mepr_email_stripe mepr-field-required mepr-hidden">
     </div>
-        <?php MeprHooks::do_action('mepr-after-email-field'); // Deprecated ?>
+        <?php MeprHooks::do_action('mepr-after-email-field'); // Deprecated. ?>
         <?php MeprHooks::do_action('mepr-checkout-after-email-field', $product->ID); ?>
         <?php if ($mepr_options->disable_checkout_password_fields === false) : ?>
     <div class="mp-form-row mepr_password mepr-field-required">
@@ -179,12 +151,12 @@
       </button>
     </div>
     </div>
-            <?php MeprHooks::do_action('mepr-after-password-fields'); // Deprecated ?>
+            <?php MeprHooks::do_action('mepr-after-password-fields'); // Deprecated. ?>
             <?php MeprHooks::do_action('mepr-checkout-after-password-fields', $product->ID); ?>
         <?php endif; ?>
     <?php endif; ?>
 
-    <?php MeprHooks::do_action('mepr-before-coupon-field'); // Deprecated ?>
+    <?php MeprHooks::do_action('mepr-before-coupon-field'); // Deprecated. ?>
     <?php MeprHooks::do_action('mepr-checkout-before-coupon-field', $product->ID); ?>
 
     <?php MeprHooks::do_action('mepr_render_order_bumps', $product); ?>
@@ -249,13 +221,13 @@
         </div>
     <?php endif; ?>
 
-    <?php MeprHooks::do_action('mepr-user-signup-fields'); // Deprecated ?>
+    <?php MeprHooks::do_action('mepr-user-signup-fields'); // Deprecated. ?>
     <?php MeprHooks::do_action('mepr-checkout-before-submit', $product->ID); ?>
 
     <div class="mepr_spacer">&nbsp;</div>
 
     <div class="mp-form-submit">
-    <?php // This mepr_no_val needs to be hidden in order for this to work so we do it explicitly as a style ?>
+    <?php // This mepr_no_val needs to be hidden in order for this to work so we do it explicitly as a style. ?>
     <label for="mepr_no_val" class="mepr-visuallyhidden"><?php _ex('No val', 'ui', 'memberpress'); ?></label>
     <input type="text" id="mepr_no_val" name="mepr_no_val"
       class="mepr-form-input mepr-visuallyhidden mepr_no_val mepr-hidden" autocomplete="off" />
@@ -287,7 +259,6 @@
     </a>
     <div class="mp-form-row mepr_coupon mepr_coupon_<?php echo $product->ID; ?> mepr-hidden">
       <div class="mp-form-label">
-      <!-- <label for="mepr_coupon_code<?php // echo $unique_suffix; ?>"><?php // _ex( 'Coupon Code:', 'ui', 'memberpress' ); ?></label> -->
       <span class="mepr-coupon-loader mepr-hidden">
         <img src="<?php echo includes_url('js/thickbox/loadingAnimation.gif'); ?>"
         alt="<?php _e('Loading...', 'memberpress'); ?>"

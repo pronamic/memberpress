@@ -2,8 +2,25 @@
 
 class MeprPopupCtrl extends MeprBaseCtrl
 {
+    /**
+     * The popup CSS URL.
+     *
+     * @var string
+     */
     public $popup_css;
+
+    /**
+     * The popup JS URL.
+     *
+     * @var string
+     */
     public $popup_js;
+
+    /**
+     * The popups.
+     *
+     * @var array
+     */
     public $popups;
 
     /**
@@ -38,7 +55,7 @@ class MeprPopupCtrl extends MeprBaseCtrl
     public function load_hooks()
     {
         // This is a hidden option to help support in case
-        // there's a problem stopping or delaying a popup
+        // there's a problem stopping or delaying a popup.
         $dap = get_option('mepr_disable_all_popups');
         if ($dap) {
             return;
@@ -141,7 +158,7 @@ class MeprPopupCtrl extends MeprBaseCtrl
             $this->delay_popup($popup);
             $message = __('The popup was successfully delayed', 'memberpress');
         } else {
-            $this->stop_popup($popup); // TODO: Error handling
+            $this->stop_popup($popup); // TODO: Error handling.
             $message = __('The popup was successfully stopped', 'memberpress');
         }
 
@@ -217,7 +234,7 @@ class MeprPopupCtrl extends MeprBaseCtrl
         }
 
         if ($this->popups[$popup]['user_popup']) {
-            // check if it's been delayed or stopped
+            // Check if it's been delayed or stopped.
             $user_id = MeprUtils::get_current_user_id();
             return get_transient($this->popup_delay_key($popup));
         }
@@ -306,7 +323,7 @@ class MeprPopupCtrl extends MeprBaseCtrl
             return false;
         }
 
-        // If we're not yet past the delay threshold for the last viewed popup then don't show it
+        // If we're not yet past the delay threshold for the last viewed popup then don't show it.
         $last_viewed = $this->get_popup_last_viewed_timestamp();
         if (
             !empty($last_viewed) &&
@@ -316,10 +333,10 @@ class MeprPopupCtrl extends MeprBaseCtrl
             return false;
         }
 
-        // This is for popups that should be displayed and resolved for each individual admin user
+        // This is for popups that should be displayed and resolved for each individual admin user.
         $delayed = $this->is_popup_delayed($popup);
 
-        // Popups displayed and resolved for any admin user in the system
+        // Popups displayed and resolved for any admin user in the system.
         $stopped = $this->is_popup_stopped($popup);
 
         return (!$delayed && !$stopped);

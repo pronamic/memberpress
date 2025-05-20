@@ -36,13 +36,13 @@ $mepr_filename      = basename($mepr_uri);
 $from_abspath_uri   = substr(str_replace($subdir, '', $mepr_uri), 1);
 $mepr_full_filename = ABSPATH . $from_abspath_uri;
 
-// Redirecting unless the correct home_url is used
+// Redirecting unless the correct home_url is used.
 if ($mepr_full_uri != $full_uri) {
     wp_safe_redirect($mepr_full_uri);
     exit;
 }
 
-// Figure out the rule hash for this uri
+// Figure out the rule hash for this uri.
 $user = MeprUtils::get_currentuserinfo();
 if ($user) {
     $rule_hash = md5($mepr_uri . $user->ID . wp_salt());
@@ -50,21 +50,21 @@ if ($user) {
     $rule_hash = md5($mepr_uri . wp_salt());
 }
 
-// Make sure expired files are cleaned out
+// Make sure expired files are cleaned out.
 mepr_clean_rule_files();
 
-// Handle when a URI is locked
+// Handle when a URI is locked.
 if (MeprRule::is_uri_locked($mepr_uri)) {
     $mepr_options = MeprOptions::fetch();
     $delim        = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
 
-    if ($mepr_options->redirect_on_unauthorized) { // Send to unauth page
+    if ($mepr_options->redirect_on_unauthorized) { // Send to unauth page.
         $redirect_url = $mepr_options->unauthorized_redirect_url . $delim . 'action=mepr_unauthorized&redirect_to=' . urlencode($mepr_full_uri);
-    } else { // Send to login page
+    } else { // Send to login page.
         $redirect_url = $mepr_options->login_page_url('action=mepr_unauthorized&redirect_to=' . urlencode($mepr_full_uri));
     }
 
-    // Handle SSL
+    // Handle SSL.
     $redirect_url = ($is_ssl ? str_replace('http:', 'https:', $redirect_url) : $redirect_url);
 
     MeprUtils::wp_redirect($redirect_url);
@@ -73,7 +73,7 @@ if (MeprRule::is_uri_locked($mepr_uri)) {
 
 // Handle php files & directories
 // At this point in the script the user has access
-// so all we need to do is redirect them to the right place
+// so all we need to do is redirect them to the right place.
 if (preg_match('/\.(php|phtml)/', $mepr_uri)) {
     mepr_redirect_locked_uri($mepr_uri, $rule_hash);
 } elseif (is_dir($mepr_full_filename)) {
@@ -87,23 +87,40 @@ if (preg_match('/\.(php|phtml)/', $mepr_uri)) {
         mepr_render_locked_file($mepr_full_filename . '/index.html');
     }
 } else {
-    // Handle all other static file types
+    // Handle all other static file types.
     mepr_redirect_locked_uri($mepr_uri, $rule_hash);
 }
-  // mepr_render_locked_file($mepr_full_filename);
+
+/**
+ * Redirects user to a locked URI after creating a temporary rule file.
+ *
+ * Creates a rule file to grant temporary access and redirects the user
+ * to the protected content.
+ *
+ * @since 1.0.0
+ * @param string $mepr_uri  The URI being accessed.
+ * @param string $rule_hash The hash value used to create the rule file.
+ */
 function mepr_redirect_locked_uri($mepr_uri, $rule_hash)
 {
     $rule_dir = MeprRule::rewrite_rule_file_dir();
-    @touch($rule_dir . '/' . $rule_hash); // Store off the rule file
+    @touch($rule_dir . '/' . $rule_hash); // Store off the rule file.
     setcookie('mplk', $rule_hash, (time() + 5));
     MeprUtils::wp_redirect($mepr_uri);
     exit;
 }
 
-// Render the locked file
+/**
+ * Renders a protected file to the browser.
+ *
+ * Determines the file's mime type and outputs the file content with appropriate headers.
+ *
+ * @since 1.0.0
+ * @param string $filename Path to the file being rendered.
+ */
 function mepr_render_locked_file($filename)
 {
-    // Trim any params from the filename
+    // Trim any params from the filename.
     $filename      = preg_replace('#\?.*$#', '', $filename);
     $info          = wp_check_filetype($filename);
     $file_contents = file_get_contents($filename);
@@ -112,7 +129,13 @@ function mepr_render_locked_file($filename)
     exit;
 }
 
-// Demolish rule files if they're older than 60 seconds
+/**
+ * Removes expired rule files.
+ *
+ * Cleans up temporary rule files that are older than 60 seconds.
+ *
+ * @return void
+ */
 function mepr_clean_rule_files()
 {
     $filenames = @glob(MeprRule::rewrite_rule_file_dir() . '/*', GLOB_NOSORT);

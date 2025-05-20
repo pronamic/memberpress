@@ -11,9 +11,9 @@ class MeprSubscriptionsWidget extends WP_Widget
     public function __construct()
     {
         parent::__construct(
-            'mepr_subscriptions_widget', // Base ID
-            'MemberPress Subscriptions', // Name
-            ['description' => __('Show a list of the current member\'s Subscriptions with optional links to each Membership\'s "Membership Access URL" setting.', 'memberpress')] // Args
+            'mepr_subscriptions_widget', // Base ID.
+            'MemberPress Subscriptions', // Name.
+            ['description' => __('Show a list of the current member\'s Subscriptions with optional links to each Membership\'s "Membership Access URL" setting.', 'memberpress')] // Args.
         );
     }
 
@@ -32,8 +32,8 @@ class MeprSubscriptionsWidget extends WP_Widget
     /**
      * Widget
      *
-     * @param  array $args     The arguments
-     * @param  array $instance The instance
+     * @param  array $args     The arguments.
+     * @param  array $instance The instance.
      * @return void
      */
     public function widget($args, $instance)
@@ -96,8 +96,8 @@ class MeprSubscriptionsWidget extends WP_Widget
     /**
      * Update the widget
      *
-     * @param  array $new_instance The new instance
-     * @param  array $old_instance The old instance
+     * @param  array $new_instance The new instance.
+     * @param  array $old_instance The old instance.
      * @return array The instance
      */
     public function update($new_instance, $old_instance)
@@ -116,7 +116,7 @@ class MeprSubscriptionsWidget extends WP_Widget
     /**
      * Form for the widget
      *
-     * @param  array $instance The instance
+     * @param  array $instance The instance.
      * @return void
      */
     public function form($instance)

@@ -6,33 +6,179 @@ if (!defined('ABSPATH')) {
 
 class MeprGroup extends MeprCptModel
 {
+    /**
+     * Meta key for pricing page disabled setting.
+     *
+     * @var string
+     */
     public static $pricing_page_disabled_str         = '_mepr_group_pricing_page_disabled';
+
+    /**
+     * Meta key for disabling change plan popup.
+     *
+     * @var string
+     */
     public static $disable_change_plan_popup_str     = '_mepr_group_disable_change_plan_popup';
+
+    /**
+     * Meta key for upgrade path setting.
+     *
+     * @var string
+     */
     public static $is_upgrade_path_str               = '_mepr_group_is_upgrade_path';
+
+    /**
+     * Meta key for upgrade path reset period.
+     *
+     * @var string
+     */
     public static $upgrade_path_reset_period_str     = '_mepr_group_upgrade_path_reset_period';
+
+    /**
+     * Meta key for group theme.
+     *
+     * @var string
+     */
     public static $group_theme_str                   = '_mepr_group_theme';
+
+    /**
+     * Meta key for page button class.
+     *
+     * @var string
+     */
     public static $page_button_class_str             = '_mepr_page_button_class';
+
+    /**
+     * Meta key for highlighted button class.
+     *
+     * @var string
+     */
     public static $page_button_highlighted_class_str = '_mepr_page_button_highlighted_class';
+
+    /**
+     * Meta key for disabled button class.
+     *
+     * @var string
+     */
     public static $page_button_disabled_class_str    = '_mepr_page_button_disabled_class';
+
+    /**
+     * Meta key for products.
+     *
+     * @var string
+     */
     public static $products_str                      = '_mepr_products';
+
+    /**
+     * Meta key for group page style options.
+     *
+     * @var string
+     */
     public static $group_page_style_options_str      = '_mepr_group_page_style_options';
+
+    /**
+     * Option name for group page layout.
+     *
+     * @var string
+     */
     public static $group_page_layout_str             = 'mepr-group-page-layout';
+
+    /**
+     * Option name for group page style.
+     *
+     * @var string
+     */
     public static $group_page_style_str              = 'mepr-group-page-style';
+
+    /**
+     * Option name for group page button size.
+     *
+     * @var string
+     */
     public static $group_page_button_size_str        = 'mepr-group-page-button-size';
+
+    /**
+     * Option name for group page bullet style.
+     *
+     * @var string
+     */
     public static $group_page_bullet_style_str       = 'mepr-group-page-bullet-style';
+
+    /**
+     * Option name for group page font style.
+     *
+     * @var string
+     */
     public static $group_page_font_style_str         = 'mepr-group-page-font-style';
+
+    /**
+     * Option name for group page font size.
+     *
+     * @var string
+     */
     public static $group_page_font_size_str          = 'mepr-group-page-font-size';
+
+    /**
+     * Option name for group page button color.
+     *
+     * @var string
+     */
     public static $group_page_button_color_str       = 'mepr-group-page-button-color';
+
+    /**
+     * Meta key for alternate group URL.
+     *
+     * @var string
+     */
     public static $alternate_group_url_str           = '_mepr-alternate-group-url';
+
+    /**
+     * Meta key for using custom template.
+     *
+     * @var string
+     */
     public static $use_custom_template_str           = '_mepr_use_custom_template';
+
+    /**
+     * Meta key for custom template.
+     *
+     * @var string
+     */
     public static $custom_template_str               = '_mepr_custom_template';
+
+    /**
+     * Meta key for fallback membership.
+     *
+     * @var string
+     */
     public static $fallback_membership_str           = '_mepr_fallback_membership';
 
+    /**
+     * Nonce string for group operations.
+     *
+     * @var string
+     */
     public static $nonce_str    = 'mepr_groups_nonce';
+
+    /**
+     * Option name for database cleanup last run timestamp.
+     *
+     * @var string
+     */
     public static $last_run_str = 'mepr_groups_db_cleanup_last_run';
 
+    /**
+     * Custom post type slug for groups.
+     *
+     * @var string
+     */
     public static $cpt = 'memberpressgroup';
 
+    /**
+     * Default style options for the group.
+     *
+     * @var array
+     */
     public $default_style_options;
 
     /**
@@ -72,7 +218,7 @@ class MeprGroup extends MeprCptModel
             ]
         );
 
-        // Ensure defaults get folded in
+        // Ensure defaults get folded in.
         $this->group_page_style_options = array_merge(
             $this->default_style_options,
             $this->group_page_style_options
@@ -113,7 +259,7 @@ class MeprGroup extends MeprCptModel
         // No need to validate these at this point
         // 'page_button_class' => '',
         // 'page_button_highlighted_class' => '',
-        // 'page_button_disabled_class' => '',
+        // 'page_button_disabled_class' => '',.
     }
 
     /**
@@ -214,8 +360,11 @@ class MeprGroup extends MeprCptModel
         return (array) $products;
     }
 
-
-    // Returns the product associated through fallback group
+    /**
+     * Returns the product associated through fallback group.
+     *
+     * @return MeprProduct|false The fallback membership product or false if not found.
+     */
     public function fallback_membership()
     {
         global $wpdb;
@@ -240,8 +389,16 @@ class MeprGroup extends MeprCptModel
             return false;
         }
     }
-    // Gets the transaction related to a lifetime membership in a group
-    // For use during upgrades from lifetime to subscriptions
+
+    /**
+     * Gets the transaction related to a lifetime membership in a group.
+     * For use during upgrades from lifetime to subscriptions.
+     *
+     * @param integer $new_prd_id The ID of the new product.
+     * @param integer $user_id    The ID of the user.
+     *
+     * @return MeprTransaction|false The transaction object or false if not found.
+     */
     public function get_old_lifetime_txn($new_prd_id, $user_id)
     {
         $txn_id   = false;
@@ -249,7 +406,7 @@ class MeprGroup extends MeprCptModel
         $usr_txns = MeprTransaction::get_all_by_user_id($user_id, '', '', true);
 
         // Try and find the old txn and make sure it's not one belonging
-        // to the membership the user just signed up for
+        // to the membership the user just signed up for.
         foreach ($usr_txns as $txn) {
             if (in_array($txn->product_id, $grp_prds) && $txn->product_id != $new_prd_id) {
                 $txn_id = $txn->id;
@@ -272,9 +429,9 @@ class MeprGroup extends MeprCptModel
     {
         global $wpdb;
         $date     = time();
-        $last_run = get_option(self::$last_run_str, 0); // Prevents all this code from executing on every page load
+        $last_run = get_option(self::$last_run_str, 0); // Prevents all this code from executing on every page load.
 
-        if (($date - $last_run) > 86400) { // Runs at most once a day
+        if (($date - $last_run) > 86400) { // Runs at most once a day.
             update_option(self::$last_run_str, $date);
             $sq1     = "SELECT ID
                 FROM {$wpdb->posts}
@@ -324,6 +481,11 @@ class MeprGroup extends MeprCptModel
                 'index.php'
             );
         }
+     */
+    /**
+     * Checks if price boxes should be manually appended.
+     *
+     * @return boolean True if price boxes should be manually appended, false otherwise.
      */
     public function manual_append_price_boxes()
     {

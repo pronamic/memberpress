@@ -31,7 +31,7 @@ class MeprTransactionsHelper
             $obj               = $txn->product();
             $obj->expire_fixed = $txn->expires_at;
 
-            // If the txn is expired -- don't check for pro-rations
+            // If the txn is expired -- don't check for pro-rations.
             if ($txn->is_expired()) {
                 $obj->group_id = null;
             }
@@ -47,7 +47,14 @@ class MeprTransactionsHelper
         return MeprAppHelper::format_price_string($obj, $price, $show_symbol, $coupon_code, $show_prorated, $tax_info);
     }
 
-    // For use in the new/edit transactions form
+    /**
+     * Retrieves the payment methods dropdown for the new/edit transactions form.
+     *
+     * @param string $field_name The name of the field.
+     * @param string $value      The value of the field.
+     *
+     * @return void The payment methods dropdown.
+     */
     public static function payment_methods_dropdown($field_name, $value = 'manual')
     {
         $mepr_options = MeprOptions::fetch();
@@ -147,7 +154,7 @@ class MeprTransactionsHelper
         } elseif ($txn->expires_at == MeprUtils::db_lifetime()) {
             $expires_at = __('Never', 'memberpress');
         } else {
-            // Confirmation txn? Let's guess what the expires at will be then
+            // Confirmation txn? Let's guess what the expires at will be then.
             if ($txn->status == MeprTransaction::$confirmed_str) {
                 $sub = $txn->subscription();
 
@@ -179,7 +186,7 @@ class MeprTransactionsHelper
             $tax_amount       = preg_replace('~\$~', '\\\$', sprintf('%s' . MeprUtils::format_currency_float($unformatted_payment_tax_amount), stripslashes($mepr_options->currency_symbol)));
         }
 
-        // Coupon title
+        // Coupon title.
         $cpn = ($cpn !== false) ? $cpn->post_title : '';
 
         $params = [
@@ -221,11 +228,11 @@ class MeprTransactionsHelper
             'login_url'        => $mepr_options->login_page_url(),
         ];
 
-        // When lifetime, include these subscription vars too
+        // When lifetime, include these subscription vars too.
         $sub = $txn->subscription();
         if ($sub) {
             $sub_params = MeprSubscriptionsHelper::get_email_params($sub);
-        } else { // Get as much info out there as we can
+        } else { // Get as much info out there as we can.
             $cc = (object)[
                 'cc_last4'     => '****',
                 'cc_exp_month' => '',
@@ -259,12 +266,12 @@ class MeprTransactionsHelper
             }
         }
 
-        // You know we're just going to lump the user record fields in here no problem
+        // You know we're just going to lump the user record fields in here no problem.
         foreach ((array)$usr->rec as $ukey => $uval) {
             $params["usermeta:{$ukey}"] = $uval;
         }
 
-        // This filter is DEPRECATED ... please use mepr-transaction-email-params instead
+        // This filter is DEPRECATED ... please use mepr-transaction-email-params instead.
         $params = MeprHooks::apply_filters('mepr_gateway_notification_params', $params, $txn);
 
         return MeprHooks::apply_filters('mepr_transaction_email_params', $params, $txn);
@@ -827,14 +834,14 @@ class MeprTransactionsHelper
 
             if (!empty($gateway)) {
                 $tooltip_text = sprintf(
-                  // translators: %1$s: gateway name, %2$s: transaction ID
+                    // Translators: %1$s: gateway name, %2$s: transaction ID.
                     __('%1$s Transaction ID: %2$s', 'memberpress'),
                     $gateway,
                     $rec->order_trans_num
                 );
             } else {
                 $tooltip_text = sprintf(
-                // translators: %s: transaction ID
+                    // Translators: %s: transaction ID.
                     __('Transaction ID: %s', 'memberpress'),
                     $rec->order_trans_num
                 );

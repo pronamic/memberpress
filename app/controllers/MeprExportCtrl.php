@@ -47,7 +47,7 @@ class MeprExportCtrl extends MeprBaseCtrl
         $mepr_user = new MeprUser($user->ID);
         $mepr_data = [];
 
-        // Export address fields
+        // Export address fields.
         if ($mepr_user->address_is_set()) {
             $address     = $mepr_user->formatted_address();
             $mepr_data[] = [
@@ -63,7 +63,7 @@ class MeprExportCtrl extends MeprBaseCtrl
             ];
         }
 
-        // Export VAT data
+        // Export VAT data.
         $vat_number = get_user_meta($user->ID, 'mepr_vat_number', true);
         if (!empty($vat_number)) {
             $mepr_data[] = [
@@ -79,7 +79,7 @@ class MeprExportCtrl extends MeprBaseCtrl
             ];
         }
 
-        // Export Geo located country
+        // Export Geo located country.
         $geo_country = get_user_meta($user->ID, 'mepr-geo-country', true);
         if (!empty($geo_country)) {
             $mepr_data[] = [
@@ -116,7 +116,7 @@ class MeprExportCtrl extends MeprBaseCtrl
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        if (!MeprUtils::is_mepr_admin()) { // Make sure we're an admin
+        if (!MeprUtils::is_mepr_admin()) { // Make sure we're an admin.
             return;
         }
 
@@ -144,14 +144,14 @@ class MeprExportCtrl extends MeprBaseCtrl
                 LEFT JOIN {$wpdb->posts} AS cp
                   ON t.coupon_id = cp.ID";
 
-            // output headers so that the file is downloaded rather than displayed
+            // Output headers so that the file is downloaded rather than displayed.
             header('Content-Type: text/csv; charset=utf-8');
             header('Content-Disposition: attachment; filename=active_customers.csv');
 
-            // create a file pointer connected to the output stream
+            // Create a file pointer connected to the output stream.
             $output = fopen('php://output', 'w');
 
-            // output the column headings
+            // Output the column headings.
             fputcsv($output, [
                 'User_ID',
                 'Username',
@@ -170,31 +170,37 @@ class MeprExportCtrl extends MeprBaseCtrl
                 'Coupon',
             ]);
 
-            // fetch the data
+            // Fetch the data.
             $wpdb->query('SET SQL_BIG_SELECTS=1');
             $rows = $wpdb->get_results($q, ARRAY_A);
 
-            // loop over the rows, outputting them
+            // Loop over the rows, outputting them.
             foreach ($rows as $row) {
                 fputcsv($output, $row);
             }
 
-            // close the file and exit
+            // Close the file and exit.
             fclose($output);
             exit;
         }
     }
 
-    // This will need a major overhaul eventually, but we needed a quick fix for some clients
-    // So this is the quick fix. It can only be accessed via
-    // /wp-admin/admin.php?page=memberpress-options&mepr-export-inactive-users-csv currently.
-    // If we change this, we definitely need to let the folks at theballstonjournal.com know
+    /**
+     * Exports inactive users to a CSV file.
+     *
+     * This will need a major overhaul eventually, but we needed a quick fix for some clients
+     * So this is the quick fix. It can only be accessed via
+     * /wp-admin/admin.php?page=memberpress-options&mepr-export-inactive-users-csv currently.
+     * If we change this, we definitely need to let the folks at theballstonjournal.com know
+     *
+     * @return void
+     */
     public static function export_inactive_users_csv()
     {
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        if (!MeprUtils::is_mepr_admin()) { // Make sure we're an admin
+        if (!MeprUtils::is_mepr_admin()) { // Make sure we're an admin.
             return;
         }
 
@@ -233,14 +239,14 @@ class MeprExportCtrl extends MeprBaseCtrl
                   ON t.coupon_id = cp.ID
             GROUP BY u.ID";
 
-            // output headers so that the file is downloaded rather than displayed
+            // Output headers so that the file is downloaded rather than displayed.
             header('Content-Type: text/csv; charset=utf-8');
             header('Content-Disposition: attachment; filename=inactive_customers.csv');
 
-            // create a file pointer connected to the output stream
+            // Create a file pointer connected to the output stream.
             $output = fopen('php://output', 'w');
 
-            // output the column headings
+            // Output the column headings.
             fputcsv($output, [
                 'User_ID',
                 'Username',
@@ -259,16 +265,16 @@ class MeprExportCtrl extends MeprBaseCtrl
                 'Coupon',
             ]);
 
-            // fetch the data
+            // Fetch the data.
             $wpdb->query('SET SQL_BIG_SELECTS=1');
             $rows = $wpdb->get_results($q, ARRAY_A);
 
-            // loop over the rows, outputting them
+            // Loop over the rows, outputting them.
             foreach ($rows as $row) {
                 fputcsv($output, $row);
             }
 
-            // close the file and exit
+            // Close the file and exit.
             fclose($output);
             exit;
         }

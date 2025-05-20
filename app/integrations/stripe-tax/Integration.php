@@ -129,7 +129,7 @@ class MeprStripeTaxIntegration
      */
     private function get_state($state, $country)
     {
-        // Countries that have valid ISO 3166-2 states in MEPR_I18N_PATH
+        // Countries that have valid ISO 3166-2 states in MEPR_I18N_PATH.
         $iso_3166_2_countries = ['AU', 'BG', 'BR', 'CA', 'DE', 'ES', 'HU', 'ID', 'IN', 'IT', 'JP', 'PE', 'TH', 'TR', 'US', 'ZA'];
 
         if (preg_match('/^[A-Z][A-Z]$/', $country) && in_array($country, $iso_3166_2_countries, true)) {
@@ -538,7 +538,7 @@ class MeprStripeTaxIntegration
       <p>
         <?php
           printf(
-            // translators: %1$s open link tag, %2$s: close link tag
+            // Translators: %1$s open link tag, %2$s: close link tag.
               esc_html__('The connection between MemberPress and Stripe Tax is not correctly configured. To fix this issue, %1$sclick here%2$s to visit the MemberPress Tax settings, where you can select a Stripe payment method to use for Stripe Tax.', 'memberpress'),
               '<a href="' . esc_url(admin_url('admin.php?page=memberpress-options#mepr-taxes')) . '">',
               '</a>'
@@ -617,7 +617,7 @@ class MeprStripeTaxIntegration
           <p class="mepr-stripe-tax-fine-print">
             <?php
               printf(
-                // translators: %1$s: open link tag, %2$s: close link tag
+                // Translators: %1$s: open link tag, %2$s: close link tag.
                   esc_html__('Stripe Tax API pricing starts at 0.50 USD for each transaction calculated within your registered tax location (includes 10 calculation API calls per transaction; 0.05 USD per additional call). To learn more visit the %1$sStripe Tax pricing page%2$s.', 'memberpress'),
                   '<a href="https://stripe.com/tax#pricing" target="_blank">',
                   '</a>'
@@ -639,7 +639,7 @@ class MeprStripeTaxIntegration
       <p class="mepr-text-align-center">
           <?php
             printf(
-            // translators: %1$s: open link tag, %2$s: close link tag
+            // Translators: %1$s: open link tag, %2$s: close link tag.
                 esc_html__('In the Stripe dashboard, please ensure that a %1$sRegistration is added%2$s for each location where tax should be collected.', 'memberpress'),
                 '<a href="https://dashboard.stripe.com/tax/registrations" target="_blank">',
                 '</a>'
@@ -652,7 +652,7 @@ class MeprStripeTaxIntegration
       <p class="mepr-text-align-center">
         <?php
           printf(
-            // translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag
+            // Translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag.
               esc_html__('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
               '<a href="https://dashboard.stripe.com/tax" target="_blank">',
               '</a>',
@@ -687,7 +687,7 @@ class MeprStripeTaxIntegration
       <p>
         <?php
           printf(
-            // translators: %1$s open link tag, %2$s: close link tag, %3$s open link tag, %4$s: close link tag
+            // Translators: %1$s open link tag, %2$s: close link tag, %3$s open link tag, %4$s: close link tag.
               esc_html__('Stripe Tax was deactivated because it is not enabled in the Stripe dashboard. Please ensure that %1$sStripe Tax is enabled%2$s at Stripe, then go to %3$sMemberPress &rarr; Settings &rarr; Taxes%4$s to reactivate Stripe Tax.', 'memberpress'),
               '<a href="https://dashboard.stripe.com/tax" target="_blank">',
               '</a>',

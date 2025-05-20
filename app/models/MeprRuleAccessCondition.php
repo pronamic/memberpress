@@ -127,7 +127,7 @@ class MeprRuleAccessCondition extends MeprBaseModel
      */
     public static function create($rule_access_condition)
     {
-        // Ensure no duplicate rule access conditions get created
+        // Ensure no duplicate rule access conditions get created.
         $id = self::rule_access_condition_exists($rule_access_condition);
         if (!empty($id)) {
             return $id;

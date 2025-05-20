@@ -13,8 +13,25 @@ class MeprDrmHelper
     const DRM_MEDIUM = 'medium';
     const DRM_LOCKED = 'locked';
 
+    /**
+     * Stores the current DRM status.
+     *
+     * @var string
+     */
     private static $drm_status     = '';
+
+    /**
+     * Stores the DRM links for different statuses and purposes.
+     *
+     * @var array|null
+     */
     private static $drm_links      = null;
+
+    /**
+     * Fallback links to use when DRM links aren't available.
+     *
+     * @var array
+     */
     private static $fallback_links = [
         'account' => 'https://memberpress.com/account/',
         'support' => 'https://memberpress.com/support/',
@@ -98,7 +115,7 @@ class MeprDrmHelper
     {
 
         if (self::is_aov() || MeprUpdateCtrl::is_activated()) {
-            return true; // Valid license
+            return true; // Valid license.
         }
 
         if (! self::has_key()) {
@@ -108,26 +125,26 @@ class MeprDrmHelper
         $license = get_site_transient('mepr_license_info');
 
         if (! isset($license['license_key'])) {
-            return false;  // invalid license.
+            return false;  // Invalid license.
         }
 
         if ('enabled' != $license['license_key']['status']) {
-            return false; // invalid license.
+            return false; // Invalid license.
         }
 
         // Expiry is not set. It is unlimited.
         if (is_null($license['license_key']['expires_at'])) {
-            return true; // valid license.
+            return true; // Valid license.
         }
 
         $expiry_stamp = strtotime($license['license_key']['expires_at']);
 
         // License has a valid expiry date and it is in future?
         if ($expiry_stamp && $expiry_stamp >= strtotime('Y-m-d')) {
-            return true; // valid license.
+            return true; // Valid license.
         }
 
-        return false; // invalid license.
+        return false; // Invalid license.
     }
 
     /**
@@ -143,7 +160,7 @@ class MeprDrmHelper
         $timestamp = strtotime($created_at);
 
         if (false === $timestamp) {
-            return 0; // invalid timestamp.
+            return 0; // Invalid timestamp.
         }
 
         $start_date = new DateTime(date('Y-m-d'));
@@ -343,7 +360,7 @@ class MeprDrmHelper
             }
         }
 
-        // fallback links.
+        // Fallback links.
         if (isset(self::$fallback_links[$type])) {
             return self::$fallback_links[$type];
         }
@@ -700,5 +717,31 @@ class MeprDrmHelper
     public static function dismiss_app_fee_notice()
     {
         return update_option('mepr_drm_app_fee_notice_dimissed', time(), false);
+    }
+
+    /**
+     * Check if the application fee is allowed for a country.
+     *
+     * @param string $country The country code.
+     *
+     * @return boolean
+     */
+    public static function is_country_unlockable_by_fee($country)
+    {
+        if (empty($country)) {
+            return false; // No country provided, disallow by default.
+        }
+
+        $country = strtoupper($country);
+        $disallowed_countries = [
+            'BR', // Brazil.
+            'IN', // India.
+            'MX', // Mexico.
+            'MY', // Malaysia.
+            'SG', // Singapore.
+            'TH', // Thailand.
+        ];
+
+        return !in_array($country, $disallowed_countries, true);
     }
 }

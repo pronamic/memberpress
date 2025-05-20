@@ -19,7 +19,7 @@ if (!$mepr_options->setup_complete) {
         $mepr_options->login_page_id = MeprAppHelper::auto_add_page(__('Login', 'memberpress'));
     }
 
-    // Enable Pro Mode Templates
+    // Enable Pro Mode Templates.
     if (! filter_var($mepr_options->design_enable_checkout_template, FILTER_VALIDATE_BOOLEAN)) {
         $mepr_options->design_enable_checkout_template = true;
     }

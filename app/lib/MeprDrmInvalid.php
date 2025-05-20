@@ -56,7 +56,7 @@ class MeprDrmInvalid extends MeprBaseDrm
         $drm_status = MeprDrmHelper::get_status();
 
         if ($drm_status == '') {
-            return $tests; // bail.
+            return $tests; // Bail.
         }
 
         $tests['direct']['memberpress_drm_invalid_key'] = [

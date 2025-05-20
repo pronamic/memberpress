@@ -74,7 +74,7 @@ $admin_view         = isset($atts['admin_view']) ? $atts['admin_view'] : false;
                 <?php echo $message; ?>
             <!-- mp-login-form-start -->
                 <?php
-                // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING
+                // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING.
                 ?>
             <?php endif ?>
             <?php MeprHooks::do_action('mepr-before-login-form', $atts ?? []); ?>
@@ -83,7 +83,7 @@ $admin_view         = isset($atts['admin_view']) ? $atts['admin_view'] : false;
             <h1><?php echo _x('Login', 'ui', 'memberpress') ?></h1>
 
 
-            <?php // nonce not necessary on this form seeing as the user isn't logged in yet ?>
+            <?php // Nonce not necessary on this form seeing as the user isn't logged in yet. ?>
             <div class="mp-form-row mepr_username">
               <div class="mp-form-label">
                 <?php $uname_or_email_str = MeprHooks::apply_filters('mepr-login-uname-or-email-str', _x('Username or E-mail', 'ui', 'memberpress')); ?>
@@ -124,7 +124,7 @@ $admin_view         = isset($atts['admin_view']) ? $atts['admin_view'] : false;
             <?php MeprHooks::do_action('mepr-login-form-after-submit', $atts ?? []); ?>
           <!-- mp-login-form-end -->
             <?php
-            // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING
+            // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING.
             ?>
 
         <?php endif; ?>

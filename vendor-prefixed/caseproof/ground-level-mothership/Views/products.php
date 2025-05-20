@@ -30,10 +30,10 @@ declare(strict_types=1);
                     $statusLabel = '';
                     $actionClass = 'mosh-product-action';
                     // Get base folder directory.
-                    $directory = dirname($product->main_file);
+                    $directory = dirname($product->main_file); // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
 
                     $installed = isset($directory) && is_dir(WP_PLUGIN_DIR . '/' . $directory);
-                    $active    = isset($product->main_file) && is_plugin_active($product->main_file);
+                    $active    = isset($product->main_file) && is_plugin_active($product->main_file); // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
 
                     if ($installed && $active) {
                         $status      = 'active';
@@ -53,7 +53,9 @@ declare(strict_types=1);
                         <div class="mosh-product-details">
                             <div class="mosh-product-image">
                                 <img src="<?php echo esc_url($product->image); ?>"
-                                    alt="<?php echo esc_attr($product->list_name); ?>"
+                                    alt="<?php
+                                        echo esc_attr($product->list_name); // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
+                                    ?>" 
                                 >
                             </div>
                             <div class="mosh-product-info">
@@ -85,7 +87,9 @@ declare(strict_types=1);
                             <div class="<?php echo esc_attr($actionClass); ?>">
                                     <?php if ('active' === $status) : ?>
                                         <button type="button"
-                                            data-plugin="<?php echo esc_attr($product->main_file); ?>"
+                                            data-plugin="<?php
+                                                echo esc_attr($product->main_file); // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
+                                            ?>"
                                             data-type="add-on"
                                         >
                                             <i class="dashicons dashicons-no-alt"></i>
@@ -93,7 +97,9 @@ declare(strict_types=1);
                                         </button>
                                     <?php elseif ('inactive' === $status) : ?>
                                         <button type="button"
-                                            data-plugin="<?php echo esc_attr($product->main_file); ?>"
+                                            data-plugin="<?php
+                                                echo esc_attr($product->main_file); // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
+                                            ?>"
                                             data-type="add-on"
                                         >
                                             <i class="dashicons dashicons-yes-alt"></i>

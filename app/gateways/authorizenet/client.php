@@ -6,11 +6,41 @@ if (! defined('ABSPATH')) {
 
 class MeprArtificialAuthorizeNetProfileHttpClient
 {
+    /**
+     * Whether the client is in test mode.
+     *
+     * @var boolean
+     */
     protected $is_test;
+    /**
+     * The API endpoint URL.
+     *
+     * @var string
+     */
     protected $endpoint;
+    /**
+     * The gateway ID.
+     *
+     * @var string
+     */
     protected $gatewayID;
+    /**
+     * The login name for authentication.
+     *
+     * @var string
+     */
     protected $login_name;
+    /**
+     * The transaction key for authentication.
+     *
+     * @var string
+     */
     protected $transaction_key;
+    /**
+     * The cache for the customer profiles.
+     *
+     * @var array
+     */
     protected $cache = [];
 
     /**
@@ -18,15 +48,15 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      *
      * @param boolean $is_test         Whether the client is in test mode.
      * @param string  $endpoint        The API endpoint URL.
-     * @param string  $gatewayID       The gateway ID.
+     * @param string  $gateway_id      The gateway ID.
      * @param string  $login_name      The login name for authentication.
      * @param string  $transaction_key The transaction key for authentication.
      */
-    public function __construct($is_test, $endpoint, $gatewayID, $login_name, $transaction_key)
+    public function __construct($is_test, $endpoint, $gateway_id, $login_name, $transaction_key)
     {
         $this->is_test         = $is_test;
         $this->endpoint        = $endpoint;
-        $this->gatewayID       = $gatewayID;
+        $this->gatewayID       = $gateway_id;
         $this->login_name      = $login_name;
         $this->transaction_key = $transaction_key;
     }
@@ -152,23 +182,23 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      * @param boolean         $capture                Whether to capture the payment immediately.
      * @param string|null     $cvc_code               The CVC code for the card.
      *
-     * @throws Exception If the charge cannot be processed.
      * @return string The transaction number.
+     * @throws MeprException If the charge cannot be processed.
      */
     public function chargeCustomer($authorize_net_customer, $txn, $capture = true, $cvc_code = null)
     {
         $this->log($authorize_net_customer);
-        $paymentProfile = '';
+        $payment_profile = '';
 
         if (isset($authorize_net_customer['paymentProfiles']['customerPaymentProfileId'])) {
-            $paymentProfile = $authorize_net_customer['paymentProfiles']['customerPaymentProfileId'];
+            $payment_profile = $authorize_net_customer['paymentProfiles']['customerPaymentProfileId'];
         }
 
         if (isset($authorize_net_customer['newCustomerPaymentProfileId'])) {
-            $paymentProfile = $authorize_net_customer['newCustomerPaymentProfileId'];
+            $payment_profile = $authorize_net_customer['newCustomerPaymentProfileId'];
         }
 
-        if (empty($paymentProfile)) {
+        if (empty($payment_profile)) {
             throw new MeprException(__('Profile does not have a payment source', 'memberpress'));
         }
 
@@ -184,7 +214,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         <profile>
            <customerProfileId>' . esc_xml($authorize_net_customer['customerProfileId']) . '</customerProfileId>
           <paymentProfile>
-            <paymentProfileId>' . esc_xml($paymentProfile) . '</paymentProfileId>'
+            <paymentProfileId>' . esc_xml($payment_profile) . '</paymentProfileId>'
             . ($cvc_code ? '<cardCode>' . esc_xml($cvc_code) . '</cardCode>' : '') .
           '</paymentProfile>
         </profile>
@@ -229,14 +259,14 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      *
      * @param WP_User $user                  The WordPress user object.
      * @param array   $authorizenet_customer The Authorize.net customer profile data.
-     * @param string  $dataValue             The data value for the payment profile.
-     * @param string  $dataDesc              The data descriptor for the payment profile.
+     * @param string  $data_value            The data value for the payment profile.
+     * @param string  $data_desc             The data descriptor for the payment profile.
      *
      * @return string|null The customer payment profile ID or null on failure.
      */
-    public function createCustomerPaymentProfile($user, $authorizenet_customer, $dataValue, $dataDesc)
+    public function createCustomerPaymentProfile($user, $authorizenet_customer, $data_value, $data_desc)
     {
-        if (empty($dataValue) || empty($dataDesc)) {
+        if (empty($data_value) || empty($data_desc)) {
             return null;
         }
 
@@ -267,18 +297,18 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         </billTo>
         <payment>
           <opaqueData>
-            <dataDescriptor>' . esc_xml($dataDesc) . '</dataDescriptor>
-            <dataValue>' . esc_xml($dataValue) . '</dataValue>
+            <dataDescriptor>' . esc_xml($data_desc) . '</dataDescriptor>
+            <dataValue>' . esc_xml($data_value) . '</dataValue>
           </opaqueData>
          </payment>
         <defaultPaymentProfile>true</defaultPaymentProfile>
     </paymentProfile>
 </createCustomerPaymentProfileRequest>';
 
-        $cacheKey = md5(serialize($xml));
+        $cache_key = md5(serialize($xml));
 
-        if (isset($this->cache[ $cacheKey ])) {
-            return $this->cache[ $cacheKey ];
+        if (isset($this->cache[ $cache_key ])) {
+            return $this->cache[ $cache_key ];
         }
 
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
@@ -288,17 +318,17 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         $this->log($response);
 
         if (isset($response['messages']['resultCode']) && $response['messages']['resultCode'] == 'Ok') {
-            $this->cache[ $cacheKey ] = $response['customerPaymentProfileId'];
+            $this->cache[ $cache_key ] = $response['customerPaymentProfileId'];
 
             return $response['customerPaymentProfileId'];
         } elseif (isset($response['messages']['message']['code']) && $response['messages']['message']['code'] == 'E00039') {
             if ($response['messages']['message']['text'] == 'A duplicate customer payment profile already exists.') {
-                $this->cache[ $cacheKey ] = $response['customerPaymentProfileId'];
+                $this->cache[ $cache_key ] = $response['customerPaymentProfileId'];
 
                 return $response['customerPaymentProfileId'];
             }
 
-            $this->cache[ $cacheKey ] = null;
+            $this->cache[ $cache_key ] = null;
             return null;
         }
     }
@@ -338,21 +368,21 @@ class MeprArtificialAuthorizeNetProfileHttpClient
     /**
      * Converts an array to XML.
      *
-     * @param  SimpleXMLElement $simpleXml The SimpleXMLElement object.
-     * @param  array            $array     The array to convert.
+     * @param  SimpleXMLElement $simple_xml The SimpleXMLElement object.
+     * @param  array            $array      The array to convert.
      * @return SimpleXMLElement The updated SimpleXMLElement object.
      */
-    public function array2Xml($simpleXml, $array)
+    public function array2Xml($simple_xml, $array)
     {
         foreach ($array as $key => $item) {
             if (!is_array($item)) {
-                $simpleXml->addChild($key, esc_xml($item));
+                $simple_xml->addChild($key, esc_xml($item));
             } else {
-                $child = $simpleXml->addChild($key);
+                $child = $simple_xml->addChild($key);
                 $this->array2Xml($child, $item);
             }
         }
-        return $simpleXml;
+        return $simple_xml;
     }
 
     /**
@@ -364,16 +394,16 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      */
     public function updateSubscription($args)
     {
-        $xmlStr    = <<<XML
+        $xml_str    = <<<XML
 <ARBUpdateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
 </ARBUpdateSubscriptionRequest>
 XML;
-        $simpleXml = @new SimpleXMLElement($xmlStr);
-        $auth      = $simpleXml->addChild('merchantAuthentication');
+        $simple_xml = @new SimpleXMLElement($xml_str);
+        $auth       = $simple_xml->addChild('merchantAuthentication');
         $auth->addChild('name', esc_xml($this->login_name));
         $auth->addChild('transactionKey', esc_xml($this->transaction_key));
-        $this->array2Xml($simpleXml, $args);
-        $xml      = $simpleXml->asXML();
+        $this->array2Xml($simple_xml, $args);
+        $xml      = $simple_xml->asXML();
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
         $response = wp_remote_retrieve_body($response);
         $response = $this->parseAuthnetResponse($response);
@@ -511,13 +541,13 @@ XML;
      *
      * @param array           $authorize_net_customer The Authorize.net customer profile data.
      * @param MeprTransaction $txn                    The transaction object.
-     * @param string          $dataDesc               The data descriptor for the card.
-     * @param string          $dataValue              The data value for the card.
+     * @param string          $data_desc              The data descriptor for the card.
+     * @param string          $data_value             The data value for the card.
      *
      * @return string The transaction number.
      * @throws MeprException If the charge cannot be processed.
      */
-    public function chargeCustomerCard($authorize_net_customer, $txn, $dataDesc, $dataValue)
+    public function chargeCustomerCard($authorize_net_customer, $txn, $data_desc, $data_value)
     {
         $user    = $txn->user();
         $address = [
@@ -540,8 +570,8 @@ XML;
         <amount>' . esc_xml($txn->total) . '</amount>
         <payment>
           <opaqueData>
-            <dataDescriptor>' . esc_xml($dataDesc) . '</dataDescriptor>
-            <dataValue>' . esc_xml($dataValue) . '</dataValue>
+            <dataDescriptor>' . esc_xml($data_desc) . '</dataDescriptor>
+            <dataValue>' . esc_xml($data_value) . '</dataValue>
           </opaqueData>
          </payment>
         <poNumber>' . esc_xml($txn->id) . '</poNumber>
@@ -591,13 +621,14 @@ XML;
     /**
      * Creates a customer profile.
      *
-     * @param WP_User $user      The WordPress user object.
-     * @param string  $dataValue The data value for the customer profile.
-     * @param string  $dataDesc  The data descriptor for the customer profile.
+     * @param WP_User $user       The WordPress user object.
+     * @param string  $data_value The data value for the customer profile.
+     * @param string  $data_desc  The data descriptor for the customer profile.
      *
      * @return array|null The response from the API or null on failure.
+     * @throws MeprGatewayException If the email is already registered on the gateway.
      */
-    public function createCustomerProfile($user, $dataValue, $dataDesc)
+    public function createCustomerProfile($user, $data_value, $data_desc)
     {
         $address = [
             'line1'       => get_user_meta($user->ID, 'mepr-address-one', true),
@@ -609,7 +640,7 @@ XML;
         ];
 
         // First name and last name are required for recurring payment so if they are disabled
-        // in MP we need a placeholder
+        // in MP we need a placeholder.
         $first_name = empty($user->first_name) ? 'Customer' : $user->first_name;
         $last_name  = empty($user->last_name) ? 'Customer' : $user->last_name;
         $xml        = '<createCustomerProfileRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
@@ -635,8 +666,8 @@ XML;
         </billTo>
         <payment>
           <opaqueData>
-            <dataDescriptor>' . esc_xml($dataDesc) . '</dataDescriptor>
-            <dataValue>' . esc_xml($dataValue) . '</dataValue>
+            <dataDescriptor>' . esc_xml($data_desc) . '</dataDescriptor>
+            <dataValue>' . esc_xml($data_value) . '</dataValue>
           </opaqueData>
          </payment>
       </paymentProfiles>
@@ -682,22 +713,26 @@ XML;
         return @json_decode(json_encode((array) $response), true);
     }
 
-    /*
-     * Alias to getTransactionDetails
+    /**
+     * Alias to getTransactionDetails.
+     *
+     * @param string $transaction_id The ID of the transaction.
+     *
+     * @return object|null The transaction details or null on failure.
      */
-    public function get_transaction_details($transactionId)
+    public function get_transaction_details($transaction_id)
     {
-        return $this->getTransactionDetails($transactionId);
+        return $this->getTransactionDetails($transaction_id);
     }
 
     /**
      * Retrieves transaction details.
      *
-     * @param string $transactionId The ID of the transaction.
+     * @param string $transaction_id The ID of the transaction.
      *
      * @return object|null The transaction details or null on failure.
      */
-    public function getTransactionDetails($transactionId)
+    public function getTransactionDetails($transaction_id)
     {
         $xml = '
 <getTransactionDetailsRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
@@ -705,7 +740,7 @@ XML;
          <name>' . esc_xml($this->login_name) . '</name>
          <transactionKey>' . esc_xml($this->transaction_key) . '</transactionKey>
       </merchantAuthentication>
-      <transId>' . esc_xml($transactionId) . '</transId>
+      <transId>' . esc_xml($transaction_id) . '</transId>
 </getTransactionDetailsRequest>';
 
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
@@ -723,13 +758,13 @@ XML;
     /**
      * Retrieves a customer profile.
      *
-     * @param integer $userID The ID of the WordPress user.
+     * @param integer $user_id The ID of the WordPress user.
      *
      * @return array|null The customer profile data or null on failure.
      */
-    public function getCustomerProfile($userID)
+    public function getCustomerProfile($user_id)
     {
-        $meta = get_user_meta($userID, 'mepr_authorizenet_profile_id_' . $this->gatewayID, true);
+        $meta = get_user_meta($user_id, 'mepr_authorizenet_profile_id_' . $this->gatewayID, true);
 
         if (empty($meta)) {
             return null;
@@ -744,10 +779,10 @@ XML;
   <includeIssuerInfo>true</includeIssuerInfo>
 </getCustomerProfileRequest>';
 
-        $cacheKey = md5(serialize($xml));
+        $cache_key = md5(serialize($xml));
 
-        if (isset($this->cache[ $cacheKey ])) {
-            return $this->cache[ $cacheKey ];
+        if (isset($this->cache[ $cache_key ])) {
+            return $this->cache[ $cache_key ];
         }
 
         $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
@@ -758,7 +793,7 @@ XML;
         $data = $this->parseAuthnetResponse($response);
 
         if (isset($data['profile'])) {
-            $this->cache[ $cacheKey ] = $data['profile'];
+            $this->cache[ $cache_key ] = $data['profile'];
 
             return $data['profile'];
         } else {

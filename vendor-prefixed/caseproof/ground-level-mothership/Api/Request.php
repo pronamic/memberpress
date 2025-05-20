@@ -135,7 +135,9 @@ class Request implements StaticContainerAwareness
         if ($email && $apiToken) {
             // Email/API Token authentication.
             if (!empty(self::getContainer()->get(MothershipService::class)->getProxyLicenseKey())) {
-                $headers['X-Proxy-License-Key'] = self::getContainer()->get(MothershipService::class)->getProxyLicenseKey();
+                $headers['X-Proxy-License-Key'] = self::getContainer()->get(
+                    MothershipService::class
+                )->getProxyLicenseKey();
             }
             $headers['Authorization'] = 'Basic ' . base64_encode("$email:$apiToken");
         }

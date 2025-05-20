@@ -11,10 +11,10 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
      *
      * Also sets up the grace period confirmation transaction (if enabled).
      *
-     * @param MeprTransaction  $txn            The MemberPress transaction
-     * @param MeprSubscription $sub            The MemberPress subscription
-     * @param boolean          $set_trans_num  Whether to set the txn trans_num to the sub subscr_id
-     * @param boolean          $set_created_at Whether to set the created_at timestamp
+     * @param MeprTransaction  $txn            The MemberPress transaction.
+     * @param MeprSubscription $sub            The MemberPress subscription.
+     * @param boolean          $set_trans_num  Whether to set the txn trans_num to the sub subscr_id.
+     * @param boolean          $set_created_at Whether to set the created_at timestamp.
      */
     public function activate_subscription(MeprTransaction $txn, MeprSubscription $sub, $set_trans_num = true, $set_created_at = true)
     {
@@ -28,7 +28,7 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
 
         $sub->store();
 
-        // If trial amount is zero then we've got to make sure the confirmation txn lasts through the trial
+        // If trial amount is zero then we've got to make sure the confirmation txn lasts through the trial.
         if ($sub->trial && $sub->trial_amount <= 0.00) {
             $trial_days = $sub->trial_days;
 
@@ -40,7 +40,7 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
         } elseif (!$mepr_options->disable_grace_init_days && $mepr_options->grace_init_days > 0) {
             $expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($mepr_options->grace_init_days), 'Y-m-d 23:59:59');
         } else {
-            $expires_at = $txn->created_at; // Expire immediately
+            $expires_at = $txn->created_at; // Expire immediately.
         }
 
         if ($set_trans_num) {
@@ -50,9 +50,9 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
         $txn->status     = MeprTransaction::$confirmed_str;
         $txn->txn_type   = MeprTransaction::$subscription_confirmation_str;
         $txn->expires_at = $expires_at;
-        $txn->set_subtotal(0.00); // Just a confirmation txn
+        $txn->set_subtotal(0.00); // Just a confirmation txn.
 
-        // Ensure that the `mepr-txn-store` hook is called with an active subscription
+        // Ensure that the `mepr-txn-store` hook is called with an active subscription.
         $txn->store(true);
     }
 
@@ -62,10 +62,10 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
      * If there is an order bump, an order will be created and a transaction created for each order bump.
      * If no payment is due, it will redirect to the thank-you page.
      *
-     * @param  MeprTransaction $txn                 The transaction for the main product being purchased
-     * @param  MeprProduct[]   $order_bump_products The array of order bump products
+     * @param  MeprTransaction $txn                 The transaction for the main product being purchased.
+     * @param  MeprProduct[]   $order_bump_products The array of order bump products.
      * @return MeprTransaction[]                    The array of order bump transactions
-     * @throws Exception When order processing fails or validation errors occur with any transaction
+     * @throws Exception When order processing fails or validation errors occur with any transaction.
      */
     public function process_order(MeprTransaction $txn, array $order_bump_products = [])
     {

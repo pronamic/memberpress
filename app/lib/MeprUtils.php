@@ -33,7 +33,7 @@ class MeprUtils
      */
     public static function format_stripe_currency($amount)
     {
-        // Handle zero decimal currencies in Stripe
+        // Handle zero decimal currencies in Stripe.
         $amount = (MeprStripeGateway::is_zero_decimal_currency())
             ? MeprUtils::format_float($amount, 0)
             : MeprUtils::format_float(($amount * 100), 0);
@@ -144,15 +144,15 @@ class MeprUtils
      */
     public static function period_type_from_days($days)
     {
-        // maybe Convert to years
-        // For now we don't care about leap year
+        // Maybe convert to years
+        // For now we don't care about leap year.
         if ($days % 365 === 0) {
             return ['years', (int) round($days / 365)];
         } elseif ($days % 30 === 0) {
-            // not as exact as we'd like but as close as it's gonna get for now
+            // Not as exact as we'd like but as close as it's gonna get for now.
             return ['months', (int) round($days / 30)];
         } elseif ($days % 7 === 0) {
-            // Of course this is exact ... easy peasy
+            // Of course this is exact ... easy peasy.
             return ['weeks', (int) round($days / 7)];
         } else {
             return ['days', $days];
@@ -353,7 +353,7 @@ class MeprUtils
         $second_num = gmdate('s', $base_ts);
 
         // We're going to use the FIRST DAY of month for our calc date, then adjust the day of month when we're done
-        // This allows us to get the correct target month first, then set the right day of month afterwards
+        // This allows us to get the correct target month first, then set the right day of month afterwards.
         try {
             $calc_date = new DateTime("{$year_num}-{$month_num}-1 {$hour_num}:{$minute_num}:{$second_num}", new DateTimeZone('UTC'));
         } catch (Exception $e) {
@@ -368,7 +368,7 @@ class MeprUtils
 
         $days_in_new_month = $calc_date->format('t');
 
-        // Now that we have the right month, let's get the right day of month
+        // Now that we have the right month, let's get the right day of month.
         if ($days_in_new_month < $day_num) {
             $calc_date->modify('last day of this month');
         } elseif ($day_num > 1) {
@@ -377,7 +377,7 @@ class MeprUtils
             $calc_date->modify("+{$add_days} day");
         }
 
-        // If $backwards is true, this will most likely be a negative number so we'll use abs()
+        // If $backwards is true, this will most likely be a negative number so we'll use abs().
         return abs($calc_date->getTimestamp() - $base_ts);
     }
 
@@ -416,12 +416,12 @@ class MeprUtils
         }
 
         // If we're counting from Feb 29th on a Leap Year to a non-leap year we need to minus 1 day
-        // or we'll end up with a March 1st date
+        // or we'll end up with a March 1st date.
         if ($day_num == 29 && $month_num == 2 && $calc_date->format('L') == 0) {
             $calc_date->modify('-1 day');
         }
 
-        // If $backwards is true, this will most likely be a negative number so we'll use abs()
+        // If $backwards is true, this will most likely be a negative number so we'll use abs().
         return abs($calc_date->getTimestamp() - $base_ts);
     }
 
@@ -657,20 +657,20 @@ class MeprUtils
         $patterns     = array_map($callback, array_keys($params));
         $replacements = array_values($params);
 
-        // Make sure all replacements can be converted to a string yo
+        // Make sure all replacements can be converted to a string yo.
         foreach ($replacements as $i => $val) {
-            // The method_exists below causes a fatal error for incomplete classes
+            // The method_exists below causes a fatal error for incomplete classes.
             if ($val instanceof __PHP_Incomplete_Class) {
                 $replacements[$i] = '';
                 continue;
             }
 
-            // Numbers and strings and objects with __toString are fine as is
+            // Numbers and strings and objects with __toString are fine as is.
             if (is_string($val) || is_numeric($val) || (is_object($val) && method_exists($val, '__toString'))) {
                 continue;
             }
 
-            // Datetime's
+            // Datetime's.
             if ($val instanceof DateTime && isset($val->date)) {
                 $replacements[$i] = $val->date;
                 continue;
@@ -682,7 +682,7 @@ class MeprUtils
 
         $result = preg_replace($patterns, $replacements, $content);
 
-        // Remove unreplaced tags
+        // Remove unreplaced tags.
         return preg_replace('({\$.*?})', '', $result);
     }
 
@@ -695,7 +695,7 @@ class MeprUtils
      */
     public static function format_tax_percent_for_display($number)
     {
-        $number = self::format_float($number, 3) + 0; // Number with period as decimal point - adding 0 will truncate insignificant 0's at the end
+        $number = self::format_float($number, 3) + 0; // Number with period as decimal point - adding 0 will truncate insignificant 0's at the end.
 
         // How many decimal places are left?
         $num_remain_dec = strlen(substr(strrchr($number, '.'), 1));
@@ -763,7 +763,7 @@ class MeprUtils
         }
 
         if (function_exists('number_format_i18n')) {
-            return number_format_i18n($number, $num_decimals); // The wp way
+            return number_format_i18n($number, $num_decimals); // The wp way.
         }
 
         return self::format_float($number, $num_decimals);
@@ -788,18 +788,18 @@ class MeprUtils
         $decimal_point = $wp_locale->number_format['decimal_point'];
         $thousands_sep = $wp_locale->number_format['thousands_sep'];
 
-        // Remove thousand separator
+        // Remove thousand separator.
         $number = str_replace($thousands_sep, '', $number);
 
         // Fix for locales where the thousand seperator is a space -
         // need to check for the html code, (above) as well as the actual space (handled with preg_replace below) and ascii 160 (str_replace below)
-        // and for some reason str_replace doesn't always work on spaces but the preg_replace does
+        // and for some reason str_replace doesn't always work on spaces but the preg_replace does.
         if ($thousands_sep == '&nbsp;' || $thousands_sep == ' ' || $thousands_sep == "\xc2\xa0") {
             $number = preg_replace('/\s+/', '', $number);
             $number = str_replace("\xc2\xa0", '', $number);
         }
 
-        // Replaces decimal separator
+        // Replaces decimal separator.
         $index = strrpos($number, $decimal_point);
         if ($index !== false) {
             $number[ $index ] = '.';
@@ -865,7 +865,7 @@ class MeprUtils
     {
         if (
             is_ssl() ||
-            ( defined('MEPR_SECURE_PROXY') && // USER must define this in wp-config.php if they're doing HTTPS between the proxy
+            ( defined('MEPR_SECURE_PROXY') && // USER must define this in wp-config.php if they're doing HTTPS between the proxy.
             isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
             strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https' )
         ) {
@@ -889,21 +889,21 @@ class MeprUtils
     /**
      * Get a property value from a class.
      *
-     * @param string $className The class name.
-     * @param string $property  The property name.
+     * @param string $class_name The class name.
+     * @param string $property   The property name.
      *
      * @return mixed|null The property value or null if not found.
      */
-    public static function get_property($className, $property)
+    public static function get_property($class_name, $property)
     {
-        if (!class_exists($className)) {
+        if (!class_exists($class_name)) {
             return null;
         }
-        if (!property_exists($className, $property)) {
+        if (!property_exists($class_name, $property)) {
             return null;
         }
 
-        $vars = get_class_vars($className);
+        $vars = get_class_vars($class_name);
 
         return $vars[$property];
     }
@@ -943,7 +943,7 @@ class MeprUtils
      */
     public static function sanitize_string($string)
     {
-        // Converts "Hey there buddy-boy!" to "hey_there_buddy_boy"
+        // Converts "Hey there buddy-boy!" to "hey_there_buddy_boy".
         return str_replace('-', '_', sanitize_title($string));
     }
 
@@ -954,7 +954,7 @@ class MeprUtils
      */
     public static function flush_rewrite_rules()
     {
-        // Load our controllers
+        // Load our controllers.
         $controllers = @glob(MEPR_CTRLS_PATH . '/Mepr*Ctrl.php', GLOB_NOSORT);
 
         foreach ($controllers as $controller) {
@@ -963,7 +963,7 @@ class MeprUtils
             if (preg_match('#Mepr.*Ctrl#', $class)) {
                 $obj = new $class();
 
-                // Only act on MeprCptCtrls
+                // Only act on MeprCptCtrls.
                 if ($obj instanceof MeprCptCtrl) {
                     $obj->register_post_type();
                 }
@@ -982,7 +982,7 @@ class MeprUtils
      */
     public static function cc_num($last4 = '****')
     {
-        // If a full cc num happens to get here then it gets reduced to the last4 here
+        // If a full cc num happens to get here then it gets reduced to the last4 here.
         $last4 = substr($last4, -4);
 
         return "**** **** **** {$last4}";
@@ -997,7 +997,7 @@ class MeprUtils
      */
     public static function calculate_proration_by_subs($old_sub, $new_sub, $reset_period = false)
     {
-        // If no money has changed hands yet then no proration
+        // If no money has changed hands yet then no proration.
         if ($old_sub->trial && $old_sub->trial_amount <= 0.00 && $old_sub->txn_count < 1) {
             return (object)[
                 'proration' => 0.00,
@@ -1006,9 +1006,9 @@ class MeprUtils
         }
 
         // If the subscription has a trial and we're in that first trial payment use trial amount
-        // Otherwise use regular price
+        // Otherwise use regular price.
         if ($old_sub->trial && $old_sub->trial_amount > 0.00 && $old_sub->txn_count == 1) {
-            $old_price = $old_sub->trial_amount; // May need to be updated to trial_total when taxes in paid trials feature is in place
+            $old_price = $old_sub->trial_amount; // May need to be updated to trial_total when taxes in paid trials feature is in place.
         } else {
             $old_price = $old_sub->price;
         }
@@ -1060,18 +1060,18 @@ class MeprUtils
         $new_period = 'lifetime',
         $old_days_left = 'lifetime',
         $reset_period = false,
-        $old_sub = false, // These will be false on non auto-recurring
-        $new_sub = false  // These will be false on non auto-recurring
+        $old_sub = false, // These will be false on non auto-recurring.
+        $new_sub = false  // These will be false on non auto-recurring.
     ) {
-        // By default days left in the new sub are equal to the days left in the old
+        // By default days left in the new sub are equal to the days left in the old.
         $new_days_left = $old_days_left;
 
         if (is_numeric($old_period) && is_numeric($new_period) && $new_sub !== false && $old_amount > 0) {
-            // recurring to recurring
+            // Recurring to recurring.
             if ($old_days_left > $new_period || $reset_period) {
                 // What if the days left exceed the $new_period?
                 // And the new outstanding amount is greater?
-                // Days left should be reset to the new period
+                // Days left should be reset to the new period.
                 $new_days_left = $new_period;
             }
 
@@ -1094,33 +1094,33 @@ class MeprUtils
                 }
             }
         } elseif (is_numeric($old_period) && is_numeric($old_days_left) && ($new_period == 'lifetime' || $new_sub === false) && $old_amount > 0) {
-            // recurring to lifetime
-            // apply outstanding amount to lifetime purchase
-            // calculate amount of money left on old sub
+            // Recurring to lifetime
+            // Apply outstanding amount to lifetime purchase
+            // Calculate amount of money left on old sub.
             $old_outstanding_amount = (($old_amount / $old_period) * $old_days_left);
 
             $proration = max($new_amount - $old_outstanding_amount, 0.00);
-            $days      = 0; // we just do this thing
+            $days      = 0; // We just do this thing.
         } elseif ($old_period == 'lifetime' && is_numeric($new_period) && $old_amount > 0) {
-            // lifetime to recurring
+            // Lifetime to recurring.
             $proration = max($new_amount - $old_amount, 0.00);
             $days      = $new_period; // (is_numeric($old_days_left) && !$reset_period)?$old_days_left:$new_period;
         } elseif ($old_period == 'lifetime' && $new_period == 'lifetime' && $old_amount > 0) {
-            // lifetime to lifetime
+            // Lifetime to lifetime.
             $proration = max(($new_amount - $old_amount), 0.00);
-            $days      = 0; // We be lifetime brah
+            $days      = 0; // We be lifetime brah.
         } else {
-            // Default
+            // Default.
             $proration = 0;
             $days      = 0;
         }
 
-        // Don't allow amounts that are less than a dollar but greater than zero
+        // Don't allow amounts that are less than a dollar but greater than zero.
         $proration = (($proration > 0.00 && $proration < 1.00) ? 1.00 : $proration);
         $days      = ceil($days);
         $proration = self::format_float($proration);
 
-        // Make sure we don't do more than 1 year on days
+        // Make sure we don't do more than 1 year on days.
         if ($days > 365) {
             $days = 365;
         }
@@ -1158,7 +1158,7 @@ class MeprUtils
         if (($single and $var == '') or (!$single and $var == [])) {
             // Since false bools are stored as empty string ('') we need
             // to see if the meta_key is actually stored in the db and
-            // it's a bool value before we blindly return default
+            // it's a bool value before we blindly return default.
             if (isset($pms[$meta_key]) and is_bool($default)) {
                 return false;
             } else {
@@ -1202,8 +1202,8 @@ class MeprUtils
         $text = preg_replace('~<style[^>]*>[^<]*</style>~', '', $text);
         $text = strip_tags($text);
         $text = trim($text);
-        $text = preg_replace("~\r~", '', $text); // Make sure we're only dealint with \n's here
-        $text = preg_replace("~\n\n+~", "\n\n", $text); // reduce 1 or more blank lines to 1
+        $text = preg_replace("~\r~", '', $text); // Make sure we're only dealing with \n's here.
+        $text = preg_replace("~\n\n+~", "\n\n", $text); // Reduce 1 or more blank lines to 1.
 
         return $text;
     }
@@ -1275,15 +1275,15 @@ class MeprUtils
         global $post;
 
         if (in_the_loop()) {
-            $post_id = get_the_ID(); // returns false or ID
+            $post_id = get_the_ID(); // Returns false or ID.
 
             if ($post_id !== false && $post_id > 0) {
-                $new_post = get_post($post_id); // Returns WP_Post or null
+                $new_post = get_post($post_id); // Returns WP_Post or null.
             }
         }
 
         if (!isset($new_post) && isset($post) && $post instanceof WP_Post && $post->ID > 0) {
-            $new_post = get_post($post->ID); // Returns WP_Post or null
+            $new_post = get_post($post->ID); // Returns WP_Post or null.
         }
 
         return (isset($new_post)) ? $new_post : false;
@@ -1372,50 +1372,48 @@ class MeprUtils
      * Pass in a multi dimensional array and this recrusively loops through and builds up an XML document.
      *
      * @param  array            $data             The data to convert.
-     * @param  string           $root_node_name   - what you want the root node to be - defaults to data.
-     * @param  SimpleXMLElement $xml              - should only be used recursively
+     * @param  string           $root_node_name   What you want the root node to be - defaults to data.
+     * @param  SimpleXMLElement $xml              Should only be used recursively.
      * @param  string           $parent_node_name The parent node name.
      * @return string XML
      */
     public static function to_xml($data, $root_node_name = 'memberpressData', $xml = null, $parent_node_name = '')
     {
-        // turn off compatibility mode as simple xml throws a wobbly if you don't.
+        // Turn off compatibility mode as simple xml throws a wobbly if you don't.
         // Deprecated as of PHP 5.3
         // if(ini_get('zend.ze1_compatibility_mode') == 1) {
         // ini_set('zend.ze1_compatibility_mode', 0);
-        // }
+        // }.
         if (is_null($xml)) {
             $xml = simplexml_load_string('<?xml version=\'1.0\' encoding=\'utf-8\'?' . '><' . $root_node_name . ' />');
         }
 
-        // loop through the data passed in.
+        // Loop through the data passed in.
         foreach ($data as $key => $value) {
-            // no numeric keys in our xml please!
+            // No numeric keys in our XML please!
             if (is_numeric($key)) {
                 if (empty($parent_node_name)) {
-                    $key = 'unknownNode_' . (string)$key; // make string key...
+                    $key = 'unknownNode_' . (string)$key; // Make string key...
                 } else {
                     $key = preg_replace('/s$/', '', $parent_node_name); // We assume that there's an 's' at the end of the string?
                 }
             }
 
-            // replace anything not alpha numeric
-            // $key = preg_replace('/[^a-z]/i', '', $key);
             $key = self::camelcase($key);
 
-            // if there is another array found recrusively call this function
+            // If there is another array found recursively call this function.
             if (is_array($value)) {
                 $node = $xml->addChild($key);
-                // recrusive call.
+                // Recursive call.
                 self::to_xml($value, $root_node_name, $node, $key);
             } else {
-                // add single node.
+                // Add single node.
                 $value = htmlentities($value);
                 $xml->addChild($key, $value);
             }
         }
 
-        // pass back as string. or simple xml object if you want!
+        // Pass back as string. Or simple xml object if you want!
         return $xml->asXML();
     }
 
@@ -1452,7 +1450,7 @@ class MeprUtils
         $lines   = [];
 
         foreach ($struct as $row) {
-            $last_path = ''; // tracking for the header
+            $last_path = ''; // Tracking for the header.
             $lines[]   = self::process_csv_row(
                 $row,
                 $headers,
@@ -1466,7 +1464,7 @@ class MeprUtils
             );
         }
 
-        // Always enclose headers
+        // Always enclose headers.
         $csv .= $enclosure . implode($enclosure . $delimiter . $enclosure, array_keys($headers)) . $enclosure . "\n";
 
         foreach ($lines as $line) {
@@ -1528,7 +1526,7 @@ class MeprUtils
                 $headers       = self::header_insert($headers, $new_path, $last_path);
                 $last_path     = $new_path;
 
-                // Enclose fields containing $delimiter, $enclosure or whitespace
+                // Enclose fields containing $delimiter, $enclosure or whitespace.
                 if ($enclose_all or preg_match("/(?:{$delimiter_esc}|{$enclosure_esc}|\s)/", $field)) {
                           $output[$new_path] = $enclosure . str_replace($enclosure, $enclosure . $enclosure, $field) . $enclosure;
                 } else {
@@ -1589,17 +1587,17 @@ class MeprUtils
      */
     public static function camelcase($str, $type = 'lower')
     {
-        // Level the playing field
+        // Level the playing field.
         $str = strtolower($str);
-        // Replace dashes and/or underscores with spaces to prepare for ucwords
+        // Replace dashes and/or underscores with spaces to prepare for ucwords.
         $str = preg_replace('/[-_]/', ' ', $str);
-        // Ucwords bro ... uppercase the first letter of every word
+        // Ucwords bro ... uppercase the first letter of every word.
         $str = ucwords($str);
-        // Now get rid of the spaces
+        // Now get rid of the spaces.
         $str = preg_replace('/ /', '', $str);
 
         if ($type == 'lower') {
-            // Lowercase the first character of the string
+            // Lowercase the first character of the string.
             $str[0] = strtolower($str[0]);
         }
 
@@ -1640,10 +1638,10 @@ class MeprUtils
      */
     public static function snakecase($str, $delim = '_')
     {
-        // Search for '_-' then just lowercase and ensure correct delim
+        // Search for '_-' then just lowercase and ensure correct delim.
         if (preg_match('/[-_]/', $str)) {
             $str = preg_replace('/[-_]/', $delim, $str);
-        } else { // assume camel case
+        } else { // Assume camel case.
             $str = preg_replace('/([A-Z])/', $delim . '$1', $str);
             $str = preg_replace('/^' . preg_quote($delim) . '/', '', $str);
         }
@@ -1754,6 +1752,7 @@ class MeprUtils
      * @param array  $mappings    The mappings.
      *
      * @return array The associative array.
+     * @throws Exception If the CSV file is missing required columns.
      */
     public static function parse_csv_file($filepath, $validations = [], $mappings = [])
     {
@@ -1764,9 +1763,9 @@ class MeprUtils
         $handle = fopen($filepath, 'r');
         if ($handle !== false) {
             $delimiter = self::get_file_delimiter($filepath);
-            // Check for BOM - Byte Order Mark
+            // Check for BOM - Byte Order Mark.
             $bom = "\xef\xbb\xbf";
-            // Move pointer to the 4th byte to check if we have a BOM
+            // Move pointer to the 4th byte to check if we have a BOM.
             if (fgets($handle, 4) !== $bom) {
                 // BOM not found - rewind pointer to start of file.
                 rewind($handle);
@@ -1850,7 +1849,7 @@ class MeprUtils
             }
         }
 
-        return ','; // Default to comma
+        return ','; // Default to comma.
     }
 
     /**
@@ -1995,10 +1994,10 @@ class MeprUtils
      */
     public static function compress_css($buffer)
     {
-        // remove comments
+        // Remove comments.
         $buffer = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $buffer);
 
-        // remove tabs, spaces, newlines, etc.
+        // Remove tabs, spaces, newlines, etc.
         $buffer = str_replace(["\r\n", "\r", "\n", "\t", '  ', '    ', '    '], '', $buffer);
 
         return $buffer;
@@ -2037,7 +2036,7 @@ class MeprUtils
                 $url    = "https://freegeoip.net/json/{$ip}";
                 $cindex = 'country_code';
                 $sindex = 'region_code';
-            } else { // geoplugin
+            } else { // Geoplugin.
                 $url    = "http://www.geoplugin.net/json.gp?ip={$ip}";
                 $cindex = 'geoplugin_countryCode';
                 $sindex = 'geoplugin_regionCode';
@@ -2049,7 +2048,7 @@ class MeprUtils
             $state   = (isset($obj->{$sindex}) ? $obj->{$sindex} : '');
             $country = (isset($obj->{$cindex}) ? $obj->{$cindex} : '');
 
-            // If the state is goofy then just blank it out
+            // If the state is goofy then just blank it out.
             if (file_exists(MEPR_I18N_PATH . '/states/' . $country . '.php')) {
                 $states = [];
                 require(MEPR_I18N_PATH . '/states/' . $country . '.php');
@@ -2074,7 +2073,6 @@ class MeprUtils
      */
     public static function is_ip($ip)
     {
-        // return preg_match('#^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$#',$ip);
         return ((bool)filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) || (bool)filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6));
     }
 
@@ -2141,14 +2139,14 @@ class MeprUtils
             return false;
         }
 
-        // Validate date formats: YYYY-MM-DD HH:MM:SS or YYYY-MM-DD
+        // Validate date formats: YYYY-MM-DD HH:MM:SS or YYYY-MM-DD.
         if (preg_match('/\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?/', $str)) {
             return strtotime($str) !== false;
         }
 
         $date_format = get_option('date_format');
 
-        // Replace d/m/Y with m/d/Y and validate
+        // Replace d/m/Y with m/d/Y and validate.
         if ('d/m/Y' === $date_format) {
             $str = preg_replace('/(\d{1,2})\/(\d{1,2})\/(\d{4})/', '$2/$1/$3', $str);
 
@@ -2158,7 +2156,7 @@ class MeprUtils
         $locale          = get_locale();
         $locale_date_map = require MEPR_I18N_PATH . '/locale_date_map.php';
 
-        // Validate date formats for non-US locales
+        // Validate date formats for non-US locales.
         if (array_key_exists($locale, $locale_date_map)) {
             return MeprUtils::validate_international_date($str, $date_format, $locale_date_map[$locale]);
         }
@@ -2181,7 +2179,7 @@ class MeprUtils
     {
         $date_str = strtolower($date_str);
 
-        // Try to detect the locale based on month/day names
+        // Try to detect the locale based on month/day names.
         foreach ($locale_map['months'] as $non_english => $english) {
             if (stripos($date_str, $non_english) !== false) {
                 $date_str = str_ireplace($non_english, $english, $date_str);
@@ -2342,7 +2340,7 @@ class MeprUtils
      */
     public static function debug_log($message)
     {
-        // Getting some complaints about using WP_DEBUG here
+        // Getting some complaints about using WP_DEBUG here.
         if (defined('WP_MEPR_DEBUG') && WP_MEPR_DEBUG) {
             error_log(sprintf(__('*** MemberPress Debug: %s', 'memberpress'), $message));
         }
@@ -2413,7 +2411,7 @@ class MeprUtils
                 }
             }
         } catch (Exception $e) {
-            // Fail silently for now
+            // Fail silently for now.
         }
     }
 
@@ -2434,14 +2432,14 @@ class MeprUtils
 
         $prd_sent = self::maybe_send_product_welcome_notices($txn, $user, false);
 
-        // If this is a one-off send that email too
+        // If this is a one-off send that email too.
         if (empty($txn->subscription_id)) {
             self::send_notices($txn, null, $admin_one_off_class, $force);
         }
 
         // Send New Signup Emails?
         if (!$user->signup_notice_sent) {
-            // Don't send the MemberPress Welcome Email if the Product Welcome Email was sent instead
+            // Don't send the MemberPress Welcome Email if the Product Welcome Email was sent instead.
             if ($prd_sent) {
                 self::send_notices($txn, null, $admin_class, $force);
             } else {
@@ -2452,8 +2450,8 @@ class MeprUtils
             $user->store();
 
             // Maybe move this to the bottom of this method outside of an if statement?
-            // Not sure if this should happen on each new signup, or only on a member's first signup
-            MeprEvent::record('member-signup-completed', $user, (object)$txn->rec); // have to use ->rec here for some reason
+            // Not sure if this should happen on each new signup, or only on a member's first signup.
+            MeprEvent::record('member-signup-completed', $user, (object)$txn->rec); // Have to use ->rec here for some reason.
         }
     }
 
@@ -2484,7 +2482,7 @@ class MeprUtils
 */
         MeprEvent::record('transaction-completed', $txn);
 
-        // This is a recurring payment
+        // This is a recurring payment.
         $sub = $txn->subscription();
         if ($sub) {
             MeprEvent::record('recurring-transaction-completed', $txn);
@@ -2596,7 +2594,7 @@ class MeprUtils
         MeprEvent::record('subscription-upgraded', $obj);
 
         if ($event_txn instanceof MeprTransaction) {
-            MeprEvent::record('subscription-changed', $event_txn, $obj->first_txn_id); // first_txn_id works best here for Corporate Accounts
+            MeprEvent::record('subscription-changed', $event_txn, $obj->first_txn_id); // The first_txn_id works best here for Corporate Accounts.
         }
 
         if ($obj instanceof MeprTransaction) {
@@ -2647,7 +2645,7 @@ class MeprUtils
         MeprEvent::record('subscription-downgraded', $obj);
 
         if ($event_txn instanceof MeprTransaction) {
-            MeprEvent::record('subscription-changed', $event_txn, $obj->first_txn_id); // first_txn_id works best here for Corporate Accounts
+            MeprEvent::record('subscription-changed', $event_txn, $obj->first_txn_id); // The first_txn_id works best here for Corporate Accounts.
         }
 
         if ($obj instanceof MeprTransaction) {
@@ -2675,7 +2673,7 @@ class MeprUtils
 
         MeprEvent::record('transaction-refunded', $txn, $args);
 
-        // This is a recurring payment
+        // This is a recurring payment.
         $sub = $txn->subscription();
         if ($sub && $sub->txn_count > 0) {
             MeprEvent::record('recurring-transaction-refunded', $txn, $args);
@@ -2699,7 +2697,7 @@ class MeprUtils
 
         MeprEvent::record('transaction-failed', $txn);
 
-        // This is a recurring payment
+        // This is a recurring payment.
         $sub = $txn->subscription();
         if ($sub && $sub->txn_count > 0) {
             MeprEvent::record('recurring-transaction-failed', $txn);
@@ -2758,7 +2756,7 @@ class MeprUtils
             if (isset($uemail->product->emails['MeprUserProductWelcomeEmail'])) {
                   $email = $uemail->product->emails['MeprUserProductWelcomeEmail'];
                 if (MeprHooks::apply_filters('mepr_user_product_welcome_email_enabled', $email['enabled'], $txn, $user, $uemail)) {
-                    // Don't resend the product welcome email if the subscription is resumed
+                    // Don't resend the product welcome email if the subscription is resumed.
                     if ($txn->subscription_id > 0 && MeprEvent::get_count_by_event_and_evt_id_and_evt_id_type('subscription-resumed', $txn->subscription_id, 'subscriptions') > 0) {
                         return false;
                     }
@@ -2771,7 +2769,7 @@ class MeprUtils
                     );
 
                     $sent = true;
-                } elseif ($force_global) { // Send global Welcome
+                } elseif ($force_global) { // Send global Welcome.
                     $uemail     = MeprEmailFactory::fetch('MeprUserWelcomeEmail');
                     $uemail->to = $user->formatted_email();
                     $uemail->send($params);
@@ -2779,7 +2777,7 @@ class MeprUtils
                 }
             }
         } catch (Exception $e) {
-            // Fail silently for now
+            // Fail silently for now.
         }
 
         return $sent;
@@ -2837,11 +2835,11 @@ class MeprUtils
         if ($include_query_string) {
             $uri = urldecode($uri);
         } else {
-            // Remove query string and decode
+            // Remove query string and decode.
             $uri = preg_replace('#(\?.*)?$#', '', urldecode($uri));
         }
 
-        // Resolve WP installs in sub-directories
+        // Resolve WP installs in sub-directories.
         preg_match('!^https?://[^/]*?(/.*)$!', site_url(), $m);
 
         $subdir = ( isset($m[1]) ? $m[1] : '' );
@@ -2940,7 +2938,7 @@ class MeprUtils
     ) {
         $delim = MeprUtils::get_delim($path);
 
-        // Automatically exclude the nonce if it's present
+        // Automatically exclude the nonce if it's present.
         if (!empty($add_nonce)) {
             $nonce_action     = $add_nonce[0];
             $nonce_name       = (isset($add_nonce[1]) ? $add_nonce[1] : '_wpnonce');
@@ -3040,7 +3038,12 @@ class MeprUtils
         return false;
     }
 
-    // PLUGGABLE FUNCTIONS AS TO NOT STEP ON OTHER PLUGINS' CODE
+    // PLUGGABLE FUNCTIONS AS TO NOT STEP ON OTHER PLUGINS' CODE.
+    /**
+     * Get the current user info.
+     *
+     * @return MeprUser|false The current user object or false if not logged in.
+     */
     public static function get_currentuserinfo()
     {
         self::include_pluggables('wp_get_current_user');
@@ -3079,7 +3082,7 @@ class MeprUtils
         return get_user_by($field, $value);
     }
 
-    // Just sends to the emails configured in the plugin settings
+    // Just sends to the emails configured in the plugin settings.
     /**
      * Send email to the emails configured in the plugin settings.
      *
@@ -3109,14 +3112,14 @@ class MeprUtils
     {
         self::include_pluggables('wp_mail');
 
-        // Parse shortcodes in the message body
+        // Parse shortcodes in the message body.
         $message = do_shortcode($message);
 
         add_filter('wp_mail_from_name', 'MeprUtils::set_mail_from_name');
         add_filter('wp_mail_from', 'MeprUtils::set_mail_from_email');
         add_action('phpmailer_init', 'MeprUtils::reset_alt_body', 5);
 
-        // We just send individual emails
+        // We just send individual emails.
         $recipients = explode(',', $recipient);
         $recipients = MeprHooks::apply_filters('mepr-wp-mail-recipients', $recipients, $subject, $message, $headers);
         $subject    = MeprHooks::apply_filters('mepr-wp-mail-subject', $subject, $recipients, $message, $headers);
@@ -3245,7 +3248,7 @@ class MeprUtils
      *
      * @return string The password.
      */
-    public static function wp_generate_password($length, $special_chars) // dontTest
+    public static function wp_generate_password($length, $special_chars) // Don't test.
     {
         self::include_pluggables('wp_generate_password');
 
@@ -3285,7 +3288,7 @@ class MeprUtils
     /**
      * Get account page URL
      *
-     * @param  WP_Post $post The post object
+     * @param  WP_Post $post The post object.
      * @return string
      */
     public static function get_account_url($post = null)
@@ -3294,7 +3297,7 @@ class MeprUtils
             global $post;
         }
 
-        // Permalink is empty when set to Plain (default)
+        // Permalink is empty when set to Plain (default).
         $pretty_permalink = get_option('permalink_structure');
 
         if (empty($pretty_permalink) && isset($post->ID) && $post->ID > 0) {
@@ -3318,9 +3321,8 @@ class MeprUtils
 
         // Don't cache redirects YO!
         header('Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate, proxy-revalidate');
-        // header("Cache-Control: post-check=0, pre-check=0", false);
         header('Pragma: no-cache');
-        header('Expires: Fri, 01 Jan 2016 00:00:01 GMT', true); // Some date in the past
+        header('Expires: Fri, 01 Jan 2016 00:00:01 GMT', true); // Some date in the past.
         wp_redirect($location, $status);
 
         exit;
@@ -3490,40 +3492,40 @@ class MeprUtils
 
         if (!empty($ums)) {
             foreach ($ums as $umkey => $um) {
-                // Only support first val for now and yes some of these will be serialized values
+                // Only support first val for now and yes some of these will be serialized values.
                 $val    = maybe_unserialize($um[0]);
                 $strval = $val;
 
-                if (is_array($val)) { // Handle array type custom fields like multi-select, checkboxes etc we'll unsanitize the vals
+                if (is_array($val)) { // Handle array type custom fields like multi-select, checkboxes etc we'll unsanitize the vals.
                     if (!empty($val)) {
                         foreach ($val as $i => $k) {
-                            if (is_int($i)) { // Multiselects (indexed array)
+                            if (is_int($i)) { // Multiselects (indexed array).
                                 if (!$return_ugly_val) {
                                     $k = self::unsanitize_title($k);
                                 }
                                   $strval = (is_array($strval)) ? "{$k}" : $strval . ", {$k}";
-                            } else { // Checkboxes (associative array)
+                            } else { // Checkboxes (associative array).
                                 if (!$return_ugly_val) {
                                     $i = self::unsanitize_title($i);
                                 }
                                 $strval = (is_array($strval)) ? "{$i}" : $strval . ", {$i}";
                             }
                         }
-                    } else { // convert empty array to empty string
+                    } else { // Convert empty array to empty string.
                         $strval = '';
                     }
-                } elseif ($val == 'on') { // Single checkbox
+                } elseif ($val == 'on') { // Single checkbox.
                     $strval = _x('Checked', 'ui', 'memberpress');
-                } elseif ($return_ugly_val) { // Return the ugly value
+                } elseif ($return_ugly_val) { // Return the ugly value.
                     $strval = $val;
-                } else { // We need to check for checkboxes and radios and match them up with MP custom fields
+                } else { // We need to check for checkboxes and radios and match them up with MP custom fields.
                     $mepr_field = $mepr_options->get_custom_field($umkey);
 
                     if (!is_null($mepr_field) && !empty($mepr_field->options)) {
                         foreach ($mepr_field->options as $option) {
                             if ($option->option_value == $val) {
                                 $strval = stripslashes($option->option_name);
-                                break; // Found a match, so stop here
+                                break; // Found a match, so stop here.
                             }
                         }
                     }
@@ -3546,14 +3548,14 @@ class MeprUtils
     {
         $txn    = MeprTransaction::get_one_by_trans_num($params['trans_num']);
         $txn    = new MeprTransaction($txn->id);
-        $params = MeprTransactionsHelper::get_email_params($txn); // Yeah, re-set these
+        $params = MeprTransactionsHelper::get_email_params($txn); // Yeah, re-set these.
         $usr    = $txn->user();
 
         try {
             $aemail = MeprEmailFactory::fetch('MeprAdminSignupEmail');
             $aemail->send($params);
         } catch (Exception $e) {
-            // Fail silently for now
+            // Fail silently for now.
         }
     }
 
@@ -3566,7 +3568,7 @@ class MeprUtils
     {
         $txn    = MeprTransaction::get_one_by_trans_num($params['trans_num']);
         $txn    = new MeprTransaction($txn->id);
-        $params = MeprTransactionsHelper::get_email_params($txn); // Yeah, re-set these
+        $params = MeprTransactionsHelper::get_email_params($txn); // Yeah, re-set these.
         $usr    = $txn->user();
 
         try {
@@ -3574,7 +3576,7 @@ class MeprUtils
             $uemail->to = $usr->formatted_email();
             $uemail->send($params);
         } catch (Exception $e) {
-            // Fail silently for now
+            // Fail silently for now.
         }
     }
 
@@ -3587,7 +3589,7 @@ class MeprUtils
     {
         $txn    = MeprTransaction::get_one_by_trans_num($params['trans_num']);
         $txn    = new MeprTransaction($txn->id);
-        $params = MeprTransactionsHelper::get_email_params($txn); // Yeah, re-set these
+        $params = MeprTransactionsHelper::get_email_params($txn); // Yeah, re-set these.
         $usr    = $txn->user();
 
         try {
@@ -3598,7 +3600,7 @@ class MeprUtils
             $aemail = MeprEmailFactory::fetch('MeprAdminReceiptEmail');
             $aemail->send($params);
         } catch (Exception $e) {
-            // Fail silently for now
+            // Fail silently for now.
         }
     }
 
@@ -3621,9 +3623,9 @@ class MeprUtils
     /**
      * Formats and translates a date or time
      *
-     * @param  string            $format   The format of the returned date
-     * @param  DateTimeInterface $date     The DateTime or DateTimeImmutable instance representing the moment of time in UTC, or null to use the current time
-     * @param  DateTimeZone      $timezone The timezone of the returned date, will default to the WP timezone if omitted
+     * @param  string            $format   The format of the returned date.
+     * @param  DateTimeInterface $date     The DateTime or DateTimeImmutable instance representing the moment of time in UTC, or null to use the current time.
+     * @param  DateTimeZone      $timezone The timezone of the returned date, will default to the WP timezone if omitted.
      * @return string|false                The formatted date or false if there was an error
      */
     public static function date($format, DateTimeInterface $date = null, DateTimeZone $timezone = null)
@@ -3683,33 +3685,33 @@ class MeprUtils
      * Matches each symbol of PHP date format standard
      * with datepicker format
      *
-     * @param  string $format php date format
+     * @param  string $format PHP date format.
      * @return string reformatted string
      */
     public static function datepicker_format($format)
     {
         $supported_options = [
-            'd'   => 'dd',  // Day, leading 0
-            'j'   => 'd',   // Day, no 0
+            'd'   => 'dd',  // Day, leading 0.
+            'j'   => 'd',   // Day, no 0.
             'z'   => 'o',   // Day of the year, no leading zeroes,
-            // 'D' => 'D',   // Day name short, not sure how it'll work with translations
-            'l '  => 'DD ',  // Day name full, idem before
-            'l, ' => 'DD, ',  // Day name full, idem before
-            'm'   => 'mm',  // Month of the year, leading 0
-            'n'   => 'm',   // Month of the year, no leading 0
-            // 'M' => 'M',   // Month, Short name
-            'F '  => 'MM ',  // Month, full name,
-            'F, ' => 'MM, ',  // Month, full name,
-            'y'   => 'y',   // Year, two digit
-            'Y'   => 'yy',  // Year, full
-            'H'   => 'HH',  // Hour with leading 0 (24 hour)
-            'G'   => 'H',   // Hour with no leading 0 (24 hour)
-            'h'   => 'hh',  // Hour with leading 0 (12 hour)
-            'g'   => 'h',   // Hour with no leading 0 (12 hour),
-            'i'   => 'mm',  // Minute with leading 0,
-            's'   => 'ss',  // Second with leading 0,
-            'a'   => 'tt',  // am/pm
-            'A'   => 'TT',// AM/PM
+            // 'D' => 'D',   // Day name short, not sure how it'll work with translations.
+            'l '  => 'DD ',  // Day name full, idem before.
+            'l, ' => 'DD, ',  // Day name full, idem before.
+            'm'   => 'mm',  // Month of the year, leading 0.
+            'n'   => 'm',   // Month of the year, no leading 0.
+            // 'M' => 'M',   // Month, Short name.
+            'F '  => 'MM ',  // Month, full name.
+            'F, ' => 'MM, ',  // Month, full name.
+            'y'   => 'y',   // Year, two digit.
+            'Y'   => 'yy',  // Year, full.
+            'H'   => 'HH',  // Hour with leading 0 (24 hour).
+            'G'   => 'H',   // Hour with no leading 0 (24 hour).
+            'h'   => 'hh',  // Hour with leading 0 (12 hour).
+            'g'   => 'h',   // Hour with no leading 0 (12 hour).
+            'i'   => 'mm',  // Minute with leading 0.
+            's'   => 'ss',  // Second with leading 0.
+            'a'   => 'tt',  // An am/pm.
+            'A'   => 'TT', // AM/PM.
         ];
 
         foreach ($supported_options as $php => $js) {
@@ -3717,8 +3719,8 @@ class MeprUtils
         }
 
         $supported_options = [
-            'l' => 'DD',  // Day name full, idem before
-            'F' => 'MM',  // Month, full name,
+            'l' => 'DD',  // Day name full, idem before.
+            'F' => 'MM',  // Month, full name.
         ];
 
         if (isset($supported_options[ $format ])) {
@@ -3758,7 +3760,7 @@ class MeprUtils
      */
     public static function is_black_friday_time()
     {
-        // Currently runs between November 22 and December 3, 2021
+        // Currently runs between November 22 and December 3, 2021.
         return time() > strtotime('2021-11-22 00:00:00 America/Denver') && time() < strtotime('2021-12-04 00:00:00 America/Denver');
     }
 
@@ -3769,7 +3771,7 @@ class MeprUtils
      */
     public static function is_promo_time()
     {
-        // Start date - end date
+        // Start date - end date.
         return time() < strtotime('2022-08-30 00:00:00 America/Denver');
     }
 
@@ -4021,7 +4023,7 @@ class MeprUtils
     /**
      * Validate a JSON request
      *
-     * @param string $nonce_action The nonce action to verify
+     * @param string $nonce_action The nonce action to verify.
      */
     public static function validate_json_request($nonce_action)
     {
@@ -4041,7 +4043,7 @@ class MeprUtils
     /**
      * Get the request data from a JSON request
      *
-     * @param  string $nonce_action The nonce action to verify
+     * @param  string $nonce_action The nonce action to verify.
      * @return array
      */
     public static function get_json_request_data($nonce_action)

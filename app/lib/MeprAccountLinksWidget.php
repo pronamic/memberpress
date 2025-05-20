@@ -11,9 +11,9 @@ class MeprAccountLinksWidget extends WP_Widget
     public function __construct()
     {
         parent::__construct(
-            'mepr_account_links_widget', // Base ID
-            'MemberPress Account Links', // Name
-            ['description' => __('Place account links on any page with a sidebar region', 'memberpress')] // Args
+            'mepr_account_links_widget', // Base ID.
+            'MemberPress Account Links', // Name.
+            ['description' => __('Place account links on any page with a sidebar region', 'memberpress')] // Args.
         );
     }
 

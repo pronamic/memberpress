@@ -13,14 +13,14 @@ class MeprMembersCtrl extends MeprBaseCtrl
      */
     public function load_hooks()
     {
-        // Screen Options
+        // Screen Options.
         $hook = 'memberpress_page_memberpress-members';
         add_action("load-{$hook}", [$this,'add_screen_options']);
         add_filter('set_screen_option_mp_members_perpage', [$this,'setup_screen_options'], 10, 3);
         add_filter("manage_{$hook}_columns", [$this, 'get_columns'], 0);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 
-        // Update listing meta
+        // Update listing meta.
         add_action('mepr_txn_store', [$this, 'update_txn_meta']);
         add_action('mepr_txn_destroy', [$this, 'update_txn_meta']);
         add_action('mepr_event_store', [$this, 'update_event_meta']);
@@ -41,11 +41,11 @@ class MeprMembersCtrl extends MeprBaseCtrl
             add_action('remove_user_from_blog', [$this, 'delete_member_meta']);
         }
 
-        // Export members
+        // Export members.
         add_action('wp_ajax_mepr_members', [$this, 'csv']);
         add_action('mepr_control_table_footer', [$this, 'export_footer_link'], 10, 3);
 
-        // Keeping members up to date
+        // Keeping members up to date.
         add_filter('cron_schedules', [$this,'intervals']);
         add_action('mepr_member_data_updater_worker', [$this,'updater']);
 
@@ -53,9 +53,6 @@ class MeprMembersCtrl extends MeprBaseCtrl
         if (!$member_data_timestamp) {
             wp_schedule_event(time() + MeprUtils::hours(6), 'mepr_member_data_updater_interval', 'mepr_member_data_updater_worker');
         }
-        // else {
-        // wp_unschedule_event($member_data_timestamp, 'mepr_member_data_updater_worker');
-        // }
     }
 
     /**
@@ -68,7 +65,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
     public function intervals($schedules)
     {
         $schedules['mepr_member_data_updater_interval'] = [
-            'interval' => MeprUtils::hours(6), // Run four times a day
+            'interval' => MeprUtils::hours(6), // Run four times a day.
             'display'  => __('MemberPress Member Data Update Interval', 'memberpress'),
         ];
 
@@ -85,10 +82,6 @@ class MeprMembersCtrl extends MeprBaseCtrl
         MeprUtils::debug_log('Start Updating Missing Members');
         MeprUser::update_all_member_data(true, 100);
         MeprUtils::debug_log('End Updating Missing Members');
-
-        // MeprUtils::debug_log('Start Updating Existing Member Data');
-        // MeprUser::update_existing_member_data(100);
-        // MeprUtils::debug_log('End Updating Existing Member Data');
     }
 
     /**
@@ -211,7 +204,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
 
         if (empty($transaction)) {
             $transaction               = new MeprTransaction();
-            $transaction->status       = MeprTransaction::$complete_str; // Default this to complete in this case
+            $transaction->status       = MeprTransaction::$complete_str; // Default this to complete in this case.
             $transaction->send_welcome = true;
         }
 
@@ -235,16 +228,16 @@ class MeprMembersCtrl extends MeprBaseCtrl
         $member->load_from_array($_POST['member']);
         $member->send_notification = isset($_POST['member']['send_notification']);
 
-        // Just here in case things fail so we can show the same password when the new_member page is re-displayed
+        // Just here in case things fail so we can show the same password when the new_member page is re-displayed.
         $member->password   = $_POST['member']['user_pass'];
         $member->user_email = sanitize_email($_POST['member']['user_email']);
 
         $transaction = new MeprTransaction();
         $transaction->load_from_array($_POST['transaction']);
         $transaction->send_welcome      = isset($_POST['transaction']['send_welcome']);
-        $_POST['transaction']['amount'] = MeprUtils::format_currency_us_float($_POST['transaction']['amount']); // Don't forget this, or the members page and emails will have $0.00 for amounts
+        $_POST['transaction']['amount'] = MeprUtils::format_currency_us_float($_POST['transaction']['amount']); // Don't forget this, or the members page and emails will have $0.00 for amounts.
         if ($transaction->total <= 0) {
-            $transaction->total = $_POST['transaction']['amount']; // Don't forget this, or the members page and emails will have $0.00 for amounts
+            $transaction->total = $_POST['transaction']['amount']; // Don't forget this, or the members page and emails will have $0.00 for amounts.
         }
 
         if (count($errors) <= 0) {
@@ -252,7 +245,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
                 $member->set_password($_POST['member']['user_pass']);
                 $member->store();
 
-                // Needed for autoresponders - call before storing txn
+                // Needed for autoresponders - call before storing txn.
                 MeprHooks::do_action('mepr-signup-user-loaded', $member);
 
                 if ($member->send_notification) {
@@ -262,18 +255,18 @@ class MeprMembersCtrl extends MeprBaseCtrl
                 $transaction->user_id = $member->ID;
                 $transaction->store();
 
-                // Trigger the right events here yo
+                // Trigger the right events here yo.
                 MeprEvent::record('transaction-completed', $transaction);
                 MeprEvent::record('non-recurring-transaction-completed', $transaction);
 
-                // Run the signup hooks
+                // Run the signup hooks.
                 MeprHooks::do_action('mepr-non-recurring-signup', $transaction);
                 MeprHooks::do_action('mepr-signup', $transaction);
 
                 if ($transaction->send_welcome) {
                     MeprUtils::send_signup_notices($transaction);
-                } else { // Trigger the event for this yo, as it's normally triggered in send_signup_notices
-                    MeprEvent::record('member-signup-completed', $member, (object)$transaction->rec); // have to use ->rec here for some reason
+                } else { // Trigger the event for this yo, as it's normally triggered in send_signup_notices.
+                    MeprEvent::record('member-signup-completed', $member, (object)$transaction->rec); // Have to use ->rec here for some reason.
                 }
 
                 $message = __('Your new member was created successfully.', 'memberpress');
@@ -428,7 +421,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
             $errors[] = __('A valid email must be entered.', 'memberpress');
         }
 
-        // Simple validation here
+        // Simple validation here.
         if (!isset($_POST['transaction']['amount']) || empty($_POST['transaction']['amount'])) {
             $errors[] = __('The transaction amount must be set.', 'memberpress');
         }
@@ -473,7 +466,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
 
         $filename = 'members-' . time();
 
-        // Since we're running WP_List_Table headless we need to do this
+        // Since we're running WP_List_Table headless we need to do this.
         $GLOBALS['hook_suffix'] = false;
 
         $screen = get_current_screen();
@@ -515,7 +508,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
 
-        // Pull out our serialized custom field values
+        // Pull out our serialized custom field values.
         if (is_serialized($field)) {
             $field_settings = $mepr_options->get_custom_field($label);
 

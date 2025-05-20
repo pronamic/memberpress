@@ -131,7 +131,7 @@ class MeprCouponsHelper
     /**
      * Check if the passed timezone is a manual offset.
      *
-     * @param string $selected_timezone timezone string.
+     * @param string $selected_timezone Timezone string.
      *
      * @return boolean
      */

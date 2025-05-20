@@ -6,39 +6,215 @@ if (!defined('ABSPATH')) {
 
 class MeprCoupon extends MeprCptModel
 {
+    /**
+     * Meta key for storing whether the coupon can be used on upgrades.
+     *
+     * @var string
+     */
     public static $use_on_upgrades_str                = '_mepr_coupons_use_on_upgrades';
+
+    /**
+     * Meta key for storing whether the coupon has a start date.
+     *
+     * @var string
+     */
     public static $should_start_str                   = '_mepr_coupons_should_start';
+
+    /**
+     * Meta key for storing whether the coupon has an expiry date.
+     *
+     * @var string
+     */
     public static $should_expire_str                  = '_mepr_coupons_should_expire';
+
+    /**
+     * Meta key for storing the coupon start date timestamp.
+     *
+     * @var string
+     */
     public static $starts_on_str                      = '_mepr_coupons_starts_on';
+
+    /**
+     * Meta key for storing the coupon expiry date timestamp.
+     *
+     * @var string
+     */
     public static $expires_on_str                     = '_mepr_coupons_expires_on';
+
+    /**
+     * Meta key for storing the coupon usage count.
+     *
+     * @var string
+     */
     public static $usage_count_str                    = '_mepr_coupons_usage_count';
+
+    /**
+     * Meta key for storing the maximum usage amount for the coupon.
+     *
+     * @var string
+     */
     public static $usage_amount_str                   = '_mepr_coupons_usage_amount';
+
+    /**
+     * Meta key for storing the coupon discount type.
+     *
+     * @var string
+     */
     public static $discount_type_str                  = '_mepr_coupons_discount_type';
+
+    /**
+     * Meta key for storing the coupon discount mode.
+     *
+     * @var string
+     */
     public static $discount_mode_str                  = '_mepr_coupons_discount_mode';
+
+    /**
+     * Meta key for storing the coupon discount amount.
+     *
+     * @var string
+     */
     public static $discount_amount_str                = '_mepr_coupons_discount_amount';
+
+    /**
+     * Meta key for storing the products the coupon is valid.
+     *
+     * @var string
+     */
     public static $valid_products_str                 = '_mepr_coupons_valid_products';
+
+    /**
+     * Meta key for storing the trial period days for the coupon.
+     *
+     * @var string
+     */
     public static $trial_days_str                     = '_mepr_coupons_trial_days';
+
+    /**
+     * Meta key for storing the trial amount for the coupon.
+     *
+     * @var string
+     */
     public static $trial_amount_str                   = '_mepr_coupons_trial_amount';
+
+    /**
+     * Meta key for storing the last run time of coupon expiration check.
+     *
+     * @var string
+     */
     public static $last_run_str                       = 'mepr_coupons_expire_last_run';
+
+    /**
+     * Meta key for the coupon nonce.
+     *
+     * @var string
+     */
     public static $nonce_str                          = 'mepr_coupons_nonce';
+
+    /**
+     * Meta key for storing the start month of the coupon.
+     *
+     * @var string
+     */
     public static $starts_on_month_str                = 'mepr_coupons_start_month';
+
+    /**
+     * Meta key for storing the start day of the coupon.
+     *
+     * @var string
+     */
     public static $starts_on_day_str                  = 'mepr_coupons_start_day';
+
+    /**
+     * Meta key for storing the start year of the coupon.
+     *
+     * @var string
+     */
     public static $starts_on_year_str                 = 'mepr_coupons_start_year';
+
+    /**
+     * Meta key for storing the expiry month of the coupon.
+     *
+     * @var string
+     */
     public static $expires_on_month_str               = 'mepr_coupons_ex_month';
+
+    /**
+     * Meta key for storing the expiry day of the coupon.
+     *
+     * @var string
+     */
     public static $expires_on_day_str                 = 'mepr_coupons_ex_day';
+
+    /**
+     * Meta key for storing the expiry year of the coupon.
+     *
+     * @var string
+     */
     public static $expires_on_year_str                = 'mepr_coupons_ex_year';
+
+    /**
+     * Meta key for storing the expiry timezone of the coupon.
+     *
+     * @var string
+     */
     public static $expires_on_timezone_str            = '_mepr_coupons_expire_timezone';
+
+    /**
+     * Meta key for storing the start timezone of the coupon.
+     *
+     * @var string
+     */
     public static $start_on_timezone_str              = '_mepr_coupons_start_timezone';
+
+    /**
+     * Meta key for storing the first payment discount type.
+     *
+     * @var string
+     */
     public static $first_payment_discount_type_str    = '_mepr_coupons_first_payment_discount_type';
+
+    /**
+     * Meta key for storing the first payment discount amount.
+     *
+     * @var string
+     */
     public static $first_payment_discount_amount_str  = '_mepr_coupons_first_payment_discount_amount';
+
+    /**
+     * Meta key for storing the per-user usage count limit.
+     *
+     * @var string
+     */
     public static $usage_per_user_count_str           = '_mepr_coupons_usage_per_user_count';
+
+    /**
+     * Meta key for storing the per-user usage count timeframe.
+     *
+     * @var string
+     */
     public static $usage_per_user_count_timeframe_str = '_mepr_coupons_usage_per_user_count_timeframe';
 
+    /**
+     * Custom post type name for coupons.
+     *
+     * @var string
+     */
     public static $cpt = 'memberpresscoupon';
 
+    /**
+     * Available discount types for coupons.
+     *
+     * @var array
+     */
     public $discount_types;
-    public $timeframe_types;
 
+    /**
+     * Available timeframe types for per-user coupon usage.
+     *
+     * @var array
+     */
+    public $timeframe_types;
 
     /**
      * Constructor for the MeprCoupon class.
@@ -193,7 +369,7 @@ class MeprCoupon extends MeprCptModel
      */
     public function is_valid($product_id, $user_id = 0)
     {
-        // Coupon has reached its usage limit (remember 0 = unlimited)
+        // Coupon has reached its usage limit (remember 0 = unlimited).
         if ($this->usage_amount > 0 and $this->usage_count >= $this->usage_amount) {
             return false;
         }
@@ -211,24 +387,24 @@ class MeprCoupon extends MeprCptModel
 
         // Coupon has expired
         // This doesn't really need to be here but will be more accurate
-        // than waiting every 12 hours for the expiring cron to run
+        // than waiting every 12 hours for the expiring cron to run.
         if ($this->should_expire and $expire_timestamp <= time()) {
             return false;
         }
 
         $start_timestamp = MeprCouponsHelper::convert_timestamp_to_tz($this->starts_on, $this->start_on_timezone); // Converted start UTC timestamp to selected timezone stamp.
 
-        // Coupon hasn't started
+        // Coupon hasn't started.
         if ($this->should_start and $start_timestamp > time()) {
             return false;
         }
 
-        // Coupon code is not valid for this membership
+        // Coupon code is not valid for this membership.
         if (!in_array($product_id, $this->valid_products)) {
             return false;
         }
 
-        // Can't be used on upgrades, so make sure we're not trying to apply to an upgrade
+        // Can't be used on upgrades, so make sure we're not trying to apply to an upgrade.
         if (MeprUtils::is_user_logged_in() && ! $this->can_use_on_upgrades()) {
             $prd = new MeprProduct($product_id);
             if ($prd->is_upgrade_or_downgrade_for(get_current_user_id())) {
@@ -236,7 +412,7 @@ class MeprCoupon extends MeprCptModel
             }
         }
 
-        return apply_filters('mepr_coupon_is_valid', true, $this, $product_id); // If we made it here, the coupon is good
+        return apply_filters('mepr_coupon_is_valid', true, $this, $product_id); // If we made it here, the coupon is good.
     }
 
     /**
@@ -251,7 +427,7 @@ class MeprCoupon extends MeprCptModel
     {
         $c = self::get_one_from_code($code);
 
-        // Coupon does not exist or has expired
+        // Coupon does not exist or has expired.
         if ($c === false) {
             return false;
         }
@@ -310,7 +486,7 @@ class MeprCoupon extends MeprCptModel
             $value = ($price - $discount_amount);
         }
 
-        return MeprUtils::format_float(max($value, 0)); // must only be precise to 2 points
+        return MeprUtils::format_float(max($value, 0)); // Must only be precise to 2 points.
     }
 
     /**
@@ -363,9 +539,9 @@ class MeprCoupon extends MeprCptModel
     {
         global $wpdb;
         $date     = time();
-        $last_run = get_option(self::$last_run_str, 0); // Prevents all this code from executing on every page load
+        $last_run = get_option(self::$last_run_str, 0); // Prevents all this code from executing on every page load.
 
-        if (($date - $last_run) > 43200) { // Runs twice a day just to be sure
+        if (($date - $last_run) > 43200) { // Runs twice a day just to be sure.
             update_option(self::$last_run_str, $date);
             $coupons = self::get_all_active_coupons();
 
@@ -378,7 +554,7 @@ class MeprCoupon extends MeprCptModel
                 }
             }
 
-            // While we're in here we should consider deleting auto-draft coupons, waste of db space
+            // While we're in here we should consider deleting auto-draft coupons, waste of db space.
             $sq1     = "SELECT ID
                 FROM {$wpdb->posts}
                 WHERE post_type = '" . self::$cpt . "' AND
@@ -441,7 +617,7 @@ class MeprCoupon extends MeprCptModel
             $tcount += $sqcount;
         }
 
-        // Query one-time payments next
+        // Query one-time payments next.
         $lq = "
       SELECT COUNT(*)
         FROM {$mepr_db->transactions}
@@ -458,7 +634,7 @@ class MeprCoupon extends MeprCptModel
             $tcount += $lqcount;
         }
 
-        // Update and store
+        // Update and store.
         $this->usage_count = $tcount;
         $this->store();
     }
@@ -537,7 +713,7 @@ class MeprCoupon extends MeprCptModel
      *
      * If this hash changes then a different Stripe Coupon will be created.
      *
-     * @param  string $discount_amount The coupon discount amount
+     * @param  string $discount_amount The coupon discount amount.
      * @return string
      */
     private function terms_hash($discount_amount)
@@ -558,8 +734,8 @@ class MeprCoupon extends MeprCptModel
     /**
      * Delete the Stripe Coupon ID
      *
-     * @param string $gateway_id The gateway ID
-     * @param string $coupon_id  The Stripe Coupon ID
+     * @param string $gateway_id The gateway ID.
+     * @param string $coupon_id  The Stripe Coupon ID.
      */
     public static function delete_stripe_coupon_id($gateway_id, $coupon_id)
     {
@@ -626,7 +802,7 @@ class MeprCoupon extends MeprCptModel
             $total_count += $subscription_query_count;
         }
 
-        // Query one-time payments next
+        // Query one-time payments next.
         $lifetime_query = "
       SELECT COUNT(*)
         FROM {$mepr_db->transactions}

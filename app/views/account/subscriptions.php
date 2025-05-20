@@ -32,7 +32,7 @@ if (!empty($subscriptions)) {
                 $group   = $prd->group();
                 $default = _x('Never', 'ui', 'memberpress');
                 if ($txn->txn_type == MeprTransaction::$fallback_str && $mepr_current_user->subscription_in_group($group)) {
-                    // Skip fallback transactions when user has an active sub in the fallback group
+                    // Skip fallback transactions when user has an active sub in the fallback group.
                     continue;
                 }
             } else {
@@ -53,7 +53,7 @@ if (!empty($subscriptions)) {
             }
 
             $mepr_options = MeprOptions::fetch();
-            $alt          = !$alt; // Facilitiates the alternating lines
+            $alt          = !$alt; // Facilitiates the alternating lines.
             ?>
           <tr id="mepr-subscription-row-<?php echo esc_attr($s->id); ?>" class="mepr-subscription-row <?php echo (isset($alt) && !$alt) ? 'mepr-alt-row' : ''; ?>">
             <td data-label="<?php _ex('Membership', 'ui', 'memberpress'); ?>">
@@ -96,7 +96,7 @@ if (!empty($subscriptions)) {
                         MeprHooks::do_action('mepr_account_subscriptions_sub_account_terms', $txn);
                     } else {
                         if ($prd->register_price_action == 'custom' && !empty($prd->register_price)) {
-                            // Add coupon in if one was used eh
+                            // Add coupon in if one was used eh.
                             $coupon_str = '';
                             if ($is_sub) {
                                 $subscr = new MeprSubscription($s->id);
@@ -146,7 +146,7 @@ if (!empty($subscriptions)) {
                     if ($exp_mo && $exp_yr) : ?>
                           <?php $cc_class = (($sub->cc_expiring_before_next_payment()) ? ' mepr-inactive' : ''); ?>
                   <div class="mepr-account-cc-exp<?php echo esc_attr($cc_class); ?>"><?php echo esc_html(sprintf(_x('%1$02d-%2$d', 'ui', 'memberpress'), $exp_mo, $exp_yr)); ?></div>
-                    <?php else : // Need a placeholder for responsive ?>
+                    <?php else : // Need a placeholder for responsive. ?>
                   <div>&zwnj;</div>
                     <?php endif; ?>
               <?php endif; ?>
@@ -165,7 +165,7 @@ if (!empty($subscriptions)) {
                         ) {
                             $subscription = new MeprSubscription($s->id);
 
-                            if (!$subscription->in_grace_period()) { // Don't let people change shiz until a payment has come through yo
+                            if (!$subscription->in_grace_period()) { // Don't let people change shiz until a payment has come through yo.
                                 $pm->print_user_account_subscription_row_actions($subscription);
                             }
                         } elseif (!$is_sub && !empty($prd->ID)) {

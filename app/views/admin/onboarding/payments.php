@@ -88,7 +88,7 @@ if (empty($onboarding_gateway) && $existing_gateway instanceof MeprBaseGateway) 
     <p class="mepr-wizard-stripe-tax-fine-print">
       <?php
         printf(
-          // translators: %1$s: open link tag, %2$s: close link tag
+          // Translators: %1$s: open link tag, %2$s: close link tag.
             esc_html__('* Pricing for Stripe Tax API starts at 0.50 USD per transaction, where you\'re registered to collect taxes. This includes 10 calculation API calls per transaction and is priced at 0.05 USD per additional calculation API call beyond 10. To learn more, visit the %1$sStripe Tax pricing page%2$s.', 'memberpress'),
             '<a href="https://stripe.com/tax#pricing" target="_blank">',
             '</a>'
@@ -101,7 +101,7 @@ if (empty($onboarding_gateway) && $existing_gateway instanceof MeprBaseGateway) 
     <p class="mepr-wizard-step-description mepr-text-align-center">
       <?php
         printf(
-          // translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag
+          // Translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag.
             __('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
             '<a href="https://dashboard.stripe.com/tax" target="_blank">',
             '</a>',
@@ -116,7 +116,7 @@ if (empty($onboarding_gateway) && $existing_gateway instanceof MeprBaseGateway) 
     <p class="mepr-wizard-step-description mepr-text-align-center">
       <?php
         printf(
-          // translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag
+          // Translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag.
             esc_html__('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
             '<a href="https://dashboard.stripe.com/tax" target="_blank">',
             '</a>',

@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 abstract class MeprCptCtrl extends MeprBaseCtrl
 {
+    /**
+     * Custom Post Type object
+     *
+     * @var object
+     */
     public $cpt;
 
     /**
@@ -32,7 +37,7 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
     /**
      * Update all models for class transient
      *
-     * @param  integer $post_id The post ID
+     * @param  integer $post_id The post ID.
      * @return void
      */
     public function update_all_models_for_class_transient($post_id)
@@ -46,16 +51,16 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
         }
 
         if (wp_is_post_revision($post_id) !== false) {
-            return; // Don't bother if it's a revision
+            return; // Don't bother if it's a revision.
         }
 
         if (!is_admin()) {
-            return; // Don't run this on front-end stuff
+            return; // Don't run this on front-end stuff.
         }
 
         $post = get_post($post_id);
 
-        // Only do this for our own CPT's
+        // Only do this for our own CPT's.
         switch ($post->post_type) {
             case 'memberpresscoupon':
                 $use_transient_cache = MeprHooks::apply_filters('mepr-cpt-all-use-transient-cache', true, $post->post_type, 'MeprCoupon');
@@ -98,7 +103,7 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
     /**
      * Used to ensure we don't see any references to 'post' or a link when.
      *
-     * @param  array $messages The messages
+     * @param  array $messages The messages.
      * @return array The modified messages
      */
     public function post_updated_messages($messages)
@@ -181,8 +186,8 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
     /**
      * Modify the bulk update messages for the cpt associated with this controller
      *
-     * @param  array $messages The messages
-     * @param  array $counts   The counts
+     * @param  array $messages The messages.
+     * @param  array $counts   The counts.
      * @return array The modified messages
      */
     public function bulk_post_updated_messages($messages, $counts)

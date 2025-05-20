@@ -168,10 +168,10 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             $error = esc_html__('Could not install add-on. Please download from memberpress.com and install manually.', 'memberpress');
         }
 
-        // Set the current screen to avoid undefined notices
+        // Set the current screen to avoid undefined notices.
         set_current_screen('memberpress_page_memberpress-addons');
 
-        // Prepare variables
+        // Prepare variables.
         $url = esc_url_raw(
             add_query_arg(
                 [
@@ -183,7 +183,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
 
         $creds = request_filesystem_credentials($url, '', false, false, null);
 
-        // Check for file system permissions
+        // Check for file system permissions.
         if (false === $creds) {
             wp_send_json_error($error);
         }
@@ -192,13 +192,13 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             wp_send_json_error($error);
         }
 
-        // We do not need any extra credentials if we have gotten this far, so let's install the plugin
+        // We do not need any extra credentials if we have gotten this far, so let's install the plugin.
         require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-        // Do not allow WordPress to search/download translations, as this will break JS output
+        // Do not allow WordPress to search/download translations, as this will break JS output.
         remove_action('upgrader_process_complete', ['Language_Pack_Upgrader', 'async_upgrade'], 20);
 
-        // Create the plugin upgrader with our custom skin
+        // Create the plugin upgrader with our custom skin.
         $installer = new Plugin_Upgrader(new MeprAddonInstallSkin());
 
         $plugin = wp_unslash($_POST['plugin']);
@@ -212,13 +212,13 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             update_option('memberpress_installed_wp_mail_smtp', true);
         }
 
-        // Flush the cache and return the newly installed plugin basename
+        // Flush the cache and return the newly installed plugin basename.
         wp_cache_flush();
 
         if ($installer->plugin_info()) {
             $plugin_basename = $installer->plugin_info();
 
-            // Activate the plugin silently
+            // Activate the plugin silently.
             $activated = activate_plugin($plugin_basename);
 
             if (!is_wp_error($activated)) {
@@ -242,11 +242,11 @@ class MeprAddonsCtrl extends MeprBaseCtrl
                             $options->store();
                             \EasyAffiliate\Controllers\UpdateCtrl::manually_queue_update();
 
-                            // Clear the add-ons cache
+                            // Clear the add-ons cache.
                             delete_site_transient('esaf_addons');
                             delete_site_transient('esaf_all_addons');
                         } catch (Exception $e) {
-                            // Ignore license activation failure
+                            // Ignore license activation failure.
                         }
                     }
                 }

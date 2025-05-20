@@ -198,11 +198,11 @@ class MeprProductsHelper
      * Render a dropdown for selecting products.
      *
      * @param string|null  $chosen The chosen product ID.
-     * @param integer|null $my_ID  The current product ID.
+     * @param integer|null $my_id  The current product ID.
      *
      * @return void
      */
-    public static function get_products_dropdown($chosen = null, $my_ID = null)
+    public static function get_products_dropdown($chosen = null, $my_id = null)
     {
         $products = MeprCptModel::all('MeprProduct');
 
@@ -214,11 +214,11 @@ class MeprProductsHelper
         <option value="not-subscribed-before" <?php selected($chosen, 'not-subscribed-before'); ?>><?php _e('NOT subscribed to this membership before', 'memberpress'); ?></option>
         <option value="not-subscribed-any-before" <?php selected($chosen, 'not-subscribed-any-before'); ?>><?php _e('NOT subscribed to any membership before', 'memberpress'); ?></option>
         <?php foreach ($products as $p) : ?>
-            <?php if ($p->ID != $my_ID) : ?>
+            <?php if ($p->ID != $my_id) : ?>
             <option value="<?php echo $p->ID; ?>" <?php selected($p->ID, $chosen) ?>><?php echo $p->post_title; ?></option>
             <?php endif; ?>
         <?php endforeach; ?>
-        <?php MeprHooks::do_action('mepr-get-products-dropdown-options', $chosen, $my_ID, $products); ?>
+        <?php MeprHooks::do_action('mepr-get-products-dropdown-options', $chosen, $my_id, $products); ?>
       </select>
         <?php
     }
@@ -291,7 +291,7 @@ class MeprProductsHelper
                 echo esc_html($product->post_title) . ': ';
             }
 
-            if (empty($coupon_code)) { // We've already validated the coupon before including signup_form.php
+            if (empty($coupon_code)) { // We've already validated the coupon before including signup_form.php.
                 if ($product->register_price_action == 'custom') {
                     echo stripslashes($product->register_price);
                 } else {
@@ -301,12 +301,12 @@ class MeprProductsHelper
                 echo MeprAppHelper::format_price_string($tmp_txn, $tmp_txn->amount, true, $coupon_code);
             }
 
-            echo self::renewal_str($product); // possibly print out the renewal string
+            echo self::renewal_str($product); // Possibly print out the renewal string.
         } else {
             $current_user = MeprUtils::get_currentuserinfo();
             MeprUtils::get_currentuserinfo();
 
-            // Setup to possibly do a proration without actually creating a subscription record
+            // Setup to possibly do a proration without actually creating a subscription record.
             $tmp_sub          = new MeprSubscription();
             $tmp_sub->id      = 0;
             $tmp_sub->user_id = (isset($current_user->ID)) ? $current_user->ID : 0;
@@ -349,7 +349,7 @@ class MeprProductsHelper
         $tmp_sub = '';
 
         if (!$product->is_one_time_payment() && $product->is_payment_required($coupon_code)) {
-            // Setup to possibly do a proration without actually creating a subscription record
+            // Setup to possibly do a proration without actually creating a subscription record.
             $tmp_sub          = new MeprSubscription();
             $tmp_sub->id      = 0;
             $tmp_sub->user_id = (isset($current_user->ID)) ? $current_user->ID : 0;
@@ -374,7 +374,7 @@ class MeprProductsHelper
                 $order_bumps[] = [$product, $transaction, $subscription];
             }
         } catch (Exception $e) {
-            // ignore exception
+            // Ignore exception.
         }
 
         if (count($order_bumps)) {
@@ -406,7 +406,7 @@ class MeprProductsHelper
                 $terms = MeprProductsHelper::format_currency($product, true, $mepr_coupon_code);
             }
         } else {
-            // Setup to possibly do a proration without actually creating a subscription record
+            // Setup to possibly do a proration without actually creating a subscription record.
             $tmp_sub          = new MeprSubscription();
             $tmp_sub->id      = 0;
             $tmp_sub->user_id = ($user === false) ? 0 : $user->ID;
@@ -431,15 +431,39 @@ class MeprProductsHelper
         $renewal_str = '';
         $user        = MeprUtils::get_currentuserinfo();
 
-        // Handle renewals
+        // Handle renewals.
         if ($product && $product->is_renewal()) {
             $last_txn = $product->get_last_active_txn($user->ID);
             if ($last_txn) {
+                global $post;
+                $is_thankyou_page = MeprAppHelper::is_thankyou_page($post);
+
                 $new_created_at = $last_txn->expires_at;
                 $new_expires_at = $product->get_expires_at();
 
                 $new_created_at = MeprAppHelper::format_date($new_created_at);
                 $new_expires_at = MeprAppHelper::format_date(gmdate('Y-m-d H:i:s', $new_expires_at));
+
+                // RL Thank you special case.
+                if ($is_thankyou_page && !empty($_GET['transaction_id'])) {
+                    $txn_id = sanitize_text_field($_GET['transaction_id']);
+                    $renewal_txn = new MeprTransaction($txn_id);
+                    $active_txns = $user->transactions_for_product($product->ID);
+
+                    // Ensure active txns larger than 1 and it's not an offline gateway renewal pending txn.
+                    if (
+                        !empty($active_txns) &&
+                        $renewal_txn->id > 0 &&
+                        $renewal_txn->status != MeprTransaction::$pending_str
+                    ) {
+                        if (count($active_txns) > 1) {
+                            $new_created_at = MeprAppHelper::format_date($active_txns[1]->expires_at);
+                            $new_expires_at = MeprAppHelper::format_date($renewal_txn->expires_at);
+                        } else {
+                            return ''; // No early renewal string.
+                        }
+                    }
+                }
 
                 $renewal_str .= sprintf(__(' (renewal for %1$s to %2$s)', 'memberpress'), $new_created_at, $new_expires_at);
             }

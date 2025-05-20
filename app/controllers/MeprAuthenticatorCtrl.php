@@ -31,7 +31,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
     public function clear_connection_data()
     {
         if (isset($_GET['mp-clear-connection-data'])) {
-            // Admins only
+            // Admins only.
             if (current_user_can('manage_options')) {
                 delete_option('mepr_authenticator_site_uuid');
                 delete_option('mepr_authenticator_account_email');
@@ -48,17 +48,17 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
     public function process_connect()
     {
 
-        // Make sure we've entered our Authenticator process
+        // Make sure we've entered our Authenticator process.
         if (! isset($_GET['mepr-connect']) || 'true' !== $_GET['mepr-connect']) {
             return;
         }
 
-        // Validate the nonce on the WP side of things
+        // Validate the nonce on the WP side of things.
         if (! isset($_GET['nonce']) || ! wp_verify_nonce($_GET['nonce'], 'mepr-connect')) {
             return;
         }
 
-        // Make sure the user is authorized
+        // Make sure the user is authorized.
         if (! MeprUtils::is_mepr_admin()) {
             return;
         }
@@ -66,7 +66,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         $site_uuid = sanitize_text_field($_GET['site_uuid']);
         $auth_code = sanitize_text_field($_GET['auth_code']);
 
-        // GET request to obtain token
+        // GET request to obtain token.
         $response = wp_remote_get(MEPR_AUTH_SERVICE_URL . "/api/tokens/{$site_uuid}", [
             'sslverify' => false,
             'headers'   => [
@@ -124,17 +124,17 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
     public function process_disconnect()
     {
 
-        // Make sure we've entered our Authenticator process
+        // Make sure we've entered our Authenticator process.
         if (! isset($_GET['mepr-disconnect']) || 'true' !== $_GET['mepr-disconnect']) {
             return;
         }
 
-        // Validate the nonce on the WP side of things
+        // Validate the nonce on the WP side of things.
         if (! isset($_GET['nonce']) || ! wp_verify_nonce($_GET['nonce'], 'mepr-disconnect')) {
             return;
         }
 
-        // Make sure the user is authorized
+        // Make sure the user is authorized.
         if (! MeprUtils::is_mepr_admin()) {
             return;
         }
@@ -144,16 +144,16 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
 
         MeprHooks::do_action('mepr_memberpress_com_pre_disconnect', $site_uuid, $site_email);
 
-        // Create token payload
+        // Create token payload.
         $payload = [
             'email'     => $site_email,
             'site_uuid' => $site_uuid,
         ];
 
-        // Create JWT
+        // Create JWT.
         $jwt = self::generate_jwt($payload);
 
-        // DELETE request to obtain token
+        // DELETE request to obtain token.
         $response = wp_remote_request(MEPR_AUTH_SERVICE_URL . '/api/disconnect/memberpress', [
             'method'    => 'DELETE',
             'sslverify' => false,
@@ -175,8 +175,8 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
     /**
      * Generates a JWT, signed by the stored secret token
      *
-     * @param array $payload Payload data
-     * @param sring $secret  Used to sign the JWT
+     * @param array $payload Payload data.
+     * @param sring $secret  Used to sign the JWT.
      *
      * @return string
      */
@@ -187,7 +187,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
             $secret = get_option('mepr_authenticator_secret_token');
         }
 
-        // Create token header
+        // Create token header.
         $header = [
             'typ' => 'JWT',
             'alg' => 'HS256',
@@ -195,16 +195,16 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         $header = json_encode($header);
         $header = self::base64url_encode($header);
 
-        // Create token payload
+        // Create token payload.
         $payload = json_encode($payload);
         $payload = self::base64url_encode($payload);
 
-        // Create Signature Hash
+        // Create Signature Hash.
         $signature = hash_hmac('sha256', "{$header}.{$payload}", $secret);
         $signature = json_encode($signature);
         $signature = self::base64url_encode($signature);
 
-        // Create JWT
+        // Create JWT.
         $jwt = "{$header}.{$payload}.{$signature}";
         return $jwt;
     }
@@ -224,7 +224,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
     /**
      * Assembles a URL for connecting to our Authentication service
      *
-     * @param boolean     $stripe_connect    Will add a query string that is used to redirect to Stripe Connect after returning from Auth service
+     * @param boolean     $stripe_connect    Will add a query string that is used to redirect to Stripe Connect after returning from Auth service.
      * @param string|null $payment_method_id The payment method ID.
      * @param array       $additional_params Additional parameters to add to the URL.
      * @param string|null $return_url        The return URL.

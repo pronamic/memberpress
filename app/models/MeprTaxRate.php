@@ -6,8 +6,18 @@ if (!defined('ABSPATH')) {
 
 class MeprTaxRate extends MeprBaseModel
 {
+    /**
+     * The customer type.
+     *
+     * @var string
+     */
     public $customer_type = 'customer';
 
+    /**
+     * The tax reversal.
+     *
+     * @var boolean
+     */
     public $reversal = false;
 
     /**
@@ -97,7 +107,7 @@ class MeprTaxRate extends MeprBaseModel
 
         $mepr_db = new MeprDb();
 
-        // Get product ID if there is data from webhook
+        // Get product ID if there is data from webhook.
         $prd_id = !empty($args['prd_id']) ? (int) $args['prd_id'] : 0;
 
         if (empty($prd_id) && !empty($_POST['mepr_product_id'])) {
@@ -124,15 +134,15 @@ class MeprTaxRate extends MeprBaseModel
 
         extract($args, EXTR_SKIP);
 
-        // Just return defaults
+        // Just return defaults.
         if (!$country) {
             return new MeprTaxRate();
         }
 
-        // Handle postcodes
+        // Handle postcodes.
         $valid_postcodes = ['*', strtoupper(MeprUtils::clean($postcode))];
 
-        // Work out possible valid wildcard postcodes
+        // Work out possible valid wildcard postcodes.
         $postcode_length   = strlen($postcode);
         $wildcard_postcode = strtoupper(MeprUtils::clean($postcode));
 
@@ -141,7 +151,7 @@ class MeprTaxRate extends MeprBaseModel
             $valid_postcodes[] = $wildcard_postcode . '*';
         }
 
-        // Attempt to cache the rate for a day using transients
+        // Attempt to cache the rate for a day using transients.
         $rate_transient_key = 'mepr_tax_rate_id_' . md5(sprintf('%s+%s+%s+%s+%s', $country, $state, $city, implode(',', $valid_postcodes), $tax_class));
         $tax_rate           = get_transient($rate_transient_key);
 
@@ -317,7 +327,14 @@ class MeprTaxRate extends MeprBaseModel
         return MeprHooks::apply_filters('mepr-tax-rate-store', $this->id, $vals);
     }
 
-    // country code, state code, postcodes, cities, rate, tax name, #priority, #compound, #shipping, #tax class
+    /**
+     * Imports tax rates from an array of rows.
+     * country code, state code, postcodes, cities, rate, tax name, #priority, #compound, #shipping, #tax class
+     *
+     * @param array $rows The rows to import.
+     *
+     * @return void
+     */
     public static function import($rows)
     {
         if (!empty($rows) && is_array($rows)) {
@@ -327,7 +344,14 @@ class MeprTaxRate extends MeprBaseModel
         }
     }
 
-    // TODO: Throw some exceptions on error
+    // TODO: Throw some exceptions on error.
+    /**
+     * Imports a tax rate row.
+     *
+     * @param array $row The row to import.
+     *
+     * @return void
+     */
     private static function import_row($row)
     {
         $tax_rate_info = [

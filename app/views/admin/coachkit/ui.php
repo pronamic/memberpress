@@ -53,19 +53,19 @@ if (!defined('ABSPATH')) {
             class="mepr-sister-plugin-step mepr-sister-plugin-step-no-number mepr-sister-plugin-step-current mepr-clearfix">
             <div class="mepr-sister-plugin-step-detail">
                 <div class="mepr-sister-plugin-step-title">
-                    <?php if (!empty($plugins['memberpress-coachkit/main.php'])) : // Installed but not active ?>
+                    <?php if (!empty($plugins['memberpress-coachkit/main.php'])) : // Installed but not active. ?>
                         <?php esc_html_e('Enable MemberPress CoachKit™', 'memberpress'); ?>
-                    <?php elseif (false !== $coachkit_addon) : // Not installed and available for install ?>
+                    <?php elseif (false !== $coachkit_addon) : // Not installed and available for install. ?>
                         <?php esc_html_e('Install and Activate MemberPress CoachKit™', 'memberpress'); ?>
                     <?php else : ?>
                         <?php esc_html_e('MemberPress CoachKit™', 'memberpress'); ?>
                     <?php endif; ?>
                 </div>
                 <div class="mepr-sister-plugin-step-button">
-                    <?php if (!empty($plugins['memberpress-coachkit/main.php'])) : // Installed but not active ?>
+                    <?php if (!empty($plugins['memberpress-coachkit/main.php'])) : // Installed but not active. ?>
                         <button type="button" class="mepr-courses-action button button-primary button-hero"
                                 data-action="activate"><?php esc_html_e('Activate MemberPress CoachKit™ Add-On', 'memberpress'); ?></button>
-                    <?php elseif (false !== $coachkit_addon) : // Not installed and available for install ?>
+                    <?php elseif (false !== $coachkit_addon) : // Not installed and available for install. ?>
                         <button type="button" class="mepr-courses-action button button-primary button-hero"
                                 data-action="install-activate"><?php esc_html_e('Install & Activate MemberPress CoachKit™ Add-On', 'memberpress'); ?></button>
                     <?php else : ?>

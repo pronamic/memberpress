@@ -59,12 +59,55 @@ class Products
      *
      * @param string $slug    The product slug.
      * @param string $version The product version.
+     * @param array  $args    Additional arguments for the request.
      *
      * @return Response The response from the API.
      */
-    public static function getVersion(string $slug, string $version): Response
+    public static function getVersion(string $slug, string $version, array $args = []): Response
     {
         $endpoint = 'products/' . $slug . '/versions/' . $version;
-        return Request::get($endpoint);
+        return Request::get($endpoint, $args);
+    }
+
+    /**
+     * Get all versions for a product.
+     *
+     * @param string $slug The product slug.
+     * @param array  $args Additional arguments for the request.
+     *
+     * @return Response The response from the API.
+     */
+    public static function getVersions(string $slug, array $args = []): Response
+    {
+        $endpoint = 'products/' . $slug . '/versions';
+        return Request::get($endpoint, $args);
+    }
+
+    /**
+     * Get relations for a product.
+     *
+     * @param string $slug The product slug.
+     * @param array  $args Additional arguments for the request.
+     *
+     * @return Response The response from the API.
+     */
+    public static function getRelations(string $slug, array $args = []): Response
+    {
+        $endpoint = 'products/' . $slug . '/relations';
+        return Request::get($endpoint, $args);
+    }
+
+    /**
+     * Deploy a version of a product.
+     *
+     * @param string $slug    The product slug.
+     * @param string $version The product version.
+     *
+     * @return Response The response from the API.
+     */
+    public static function deployVersion(string $slug, string $version): Response
+    {
+        $endpoint = 'products/' . $slug . '/versions/' . $version . '/deploy';
+        return Request::post($endpoint);
     }
 }

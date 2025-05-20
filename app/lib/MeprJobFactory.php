@@ -12,6 +12,7 @@ class MeprJobFactory
      * @param  string  $class The class.
      * @param  boolean $db    The db.
      * @return MeprBaseJob
+     * @throws MeprInvalidJobException When the job class doesn't exist or is not a valid job object.
      */
     public static function fetch($class, $db = false)
     {
@@ -20,7 +21,7 @@ class MeprJobFactory
         }
 
         // We'll let the autoloader in memberpress.php
-        // handle including files containing these classes
+        // handle including files containing these classes.
         $r   = new ReflectionClass($class);
         $job = $r->newInstanceArgs([$db]);
 

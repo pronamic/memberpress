@@ -10,6 +10,11 @@ if (!defined('ABSPATH')) {
 #[AllowDynamicProperties]
 class MeprOptions
 {
+    /**
+     * The dynamic attributes.
+     *
+     * @var array
+     */
     public $dynamic_attrs;
 
     /**
@@ -23,13 +28,13 @@ class MeprOptions
         $this->set_from_array($options);
         $this->set_defaults();
         $this->set_dynamic_attrs();
-        $this->wpml_custom_fields(); // Need to store as an array for WPML - this converts back to objects :)
+        $this->wpml_custom_fields(); // Need to store as an array for WPML - this converts back to objects :).
     }
 
     /**
      * Fetch the MeprOptions instance
      *
-     * @param  boolean $force Force a fresh instance
+     * @param  boolean $force Force a fresh instance.
      * @return self
      */
     public static function fetch($force = false)
@@ -40,20 +45,20 @@ class MeprOptions
             $mepr_options_array = get_option(MEPR_OPTIONS_SLUG);
 
             if (!$mepr_options_array) {
-                $mepr_options = new MeprOptions(); // Just grab the defaults
+                $mepr_options = new MeprOptions(); // Just grab the defaults.
             } elseif (is_object($mepr_options_array) and is_a($mepr_options_array, 'MeprOptions')) {
                 $mepr_options = $mepr_options_array;
                 $mepr_options->set_defaults();
-                $mepr_options->store(false); // store will convert this back into an array
+                $mepr_options->store(false); // Store will convert this back into an array.
             } elseif (!is_array($mepr_options_array)) {
-                $mepr_options = new MeprOptions(); // Just grab the defaults
+                $mepr_options = new MeprOptions(); // Just grab the defaults.
             } else {
-                $mepr_options = new MeprOptions($mepr_options_array); // Sets defaults for unset options
+                $mepr_options = new MeprOptions($mepr_options_array); // Sets defaults for unset options.
             }
         }
 
-        $mepr_options->set_strings(); // keep strings fresh (not db cached)
-        $mepr_options->wpml_custom_fields();  // Need to store as an array for WPML - this converts back to objects :)
+        $mepr_options->set_strings(); // Keep strings fresh (not db cached).
+        $mepr_options->wpml_custom_fields();  // Need to store as an array for WPML - this converts back to objects :).
         return MeprHooks::apply_filters('mepr_fetch_options', $mepr_options);
     }
 
@@ -67,12 +72,12 @@ class MeprOptions
         if (!empty($this->custom_fields)) {
             $new_fields = [];
             foreach ($this->custom_fields as $row) {
-                $row = (object)$row; // Convert rows back to objects
+                $row = (object)$row; // Convert rows back to objects.
 
                 $new_options = [];
                 if (!empty($row->options)) {
                     foreach ($row->options as $option) {
-                        $new_options[] = (object)$option; // Convert options back into objects
+                        $new_options[] = (object)$option; // Convert options back into objects.
                     }
 
                     $row->options = $new_options;
@@ -97,8 +102,11 @@ class MeprOptions
         delete_option(MEPR_OPTIONS_SLUG);
     }
 
-    // This is used to allow permalinks to be retrieved
-    // Early on in the game
+    /**
+     * Populates the WordPress rewrite global to allow permalinks to be retrieved early.
+     *
+     * @return void
+     */
     public function populate_rewrite()
     {
         if (empty($GLOBALS['wp_rewrite'])) {
@@ -113,7 +121,7 @@ class MeprOptions
      */
     public function set_dynamic_attrs()
     {
-        // TODO: We will want to migrate everything to using these dynamic type variables as we continue
+        // TODO: We will want to migrate everything to using these dynamic type variables as we continue.
         $json                = file_get_contents(MEPR_DATA_PATH . '/options/dynamic_attrs.json');
         $attrs               = json_decode($json, true);
         $this->dynamic_attrs = MeprHooks::apply_filters('mepr-options-dynamic-attrs', $attrs);
@@ -148,7 +156,7 @@ class MeprOptions
             $this->coaching_page_id = 0;
         }
 
-        if (!isset($this->force_login_page_url)) { // Forces wp's login_url filter to be overridden with MP login page permalink
+        if (!isset($this->force_login_page_url)) { // Forces wp's login_url filter to be overridden with MP login page permalink.
             $this->force_login_page_url = false;
         }
 
@@ -169,6 +177,10 @@ class MeprOptions
             $this->hide_admin_bar_menu = false;
         }
 
+        if (!isset($this->enable_wp_rest_api_protection)) {
+            $this->enable_wp_rest_api_protection = false;
+        }
+
         if (!isset($this->anti_card_testing_enabled)) {
             $this->anti_card_testing_enabled = true;
         }
@@ -184,7 +196,7 @@ class MeprOptions
         if (!isset($this->emails)) {
             $this->emails = [];
 
-            // This is all for Backwards compatibility
+            // This is all for Backwards compatibility.
             $this->emails['MeprAdminSignupEmail']  = [];
             $this->emails['MeprAdminReceiptEmail'] = [];
             $this->emails['MeprUserWelcomeEmail']  = [];
@@ -240,7 +252,7 @@ class MeprOptions
             }
         }
 
-        // Account CSS Settings
+        // Account CSS Settings.
         if (!isset($this->account_css_width)) {
             $this->account_css_width = 500;
         }
@@ -331,7 +343,7 @@ class MeprOptions
         }
 
         if (!isset($this->tos_title)) {
-            $this->tos_title = _x('I have read and agree to the Terms Of Service', 'ui', 'memberpress'); // This string is also below, so if we change this wording, we need to change it below also
+            $this->tos_title = _x('I have read and agree to the Terms Of Service', 'ui', 'memberpress'); // This string is also below, so if we change this wording, we need to change it below also.
         }
 
         if (!isset($this->privacy_policy_title)) {
@@ -367,12 +379,12 @@ class MeprOptions
         }
 
         if (!isset($this->show_fields_logged_in_purchases)) {
-            $this->show_fields_logged_in_purchases = true; // Changing this to true as we get way too many emails about this in support
+            $this->show_fields_logged_in_purchases = true; // Changing this to true as we get way too many emails about this in support.
         }
 
         $this->set_address_fields();
 
-        if (!isset($this->custom_fields)) { // should be an array of objects but we store as just arrays in the DB for WPML compatibility - see $this->wpml_custom_fields()
+        if (!isset($this->custom_fields)) { // Should be an array of objects but we store as just arrays in the DB for WPML compatibility - see $this->wpml_custom_fields().
             $this->custom_fields = [];
         }
 
@@ -397,16 +409,16 @@ class MeprOptions
         }
 
         if (!isset($this->admin_email_addresses)) {
-            $this->admin_email_addresses = get_option('admin_email'); // default to admin_email
+            $this->admin_email_addresses = get_option('admin_email'); // Default to admin_email.
         }
 
         if (!isset($this->unauthorized_message)) {
             $this->unauthorized_message = MeprHooks::apply_filters('mepr-unauthorized-message', __('You are unauthorized to view this page.', 'memberpress'));
         }
 
-        // For backwards compatibility
+        // For backwards compatibility.
         if (!isset($this->redirect_on_unauthorized)) {
-            // For backwards compatibility
+            // For backwards compatibility.
             if (
                 isset($this->unauthorized_page_id) and
                 is_numeric($this->unauthorized_page_id) and
@@ -469,13 +481,13 @@ class MeprOptions
             $this->disable_summary_email = false;
         }
 
-        // Option to disable the grace days (Account tab of MP Options now)
+        // Option to disable the grace days (Account tab of MP Options now).
         if (!isset($this->disable_grace_init_days)) {
             $this->disable_grace_init_days = false;
         }
 
         // How many days will the users get free access before their first
-        // payment trial days in the membership will override this value
+        // payment trial days in the membership will override this value.
         if (isset($this->disable_grace_init_days) && $this->disable_grace_init_days) {
             $this->grace_init_days = MeprHooks::apply_filters('mepr-grace-init-days', 0);
         } else {
@@ -615,6 +627,7 @@ class MeprOptions
         $this->account_css_width_str                    = 'mepr-account-css-width';
         $this->disable_mod_rewrite_str                  = 'mepr-disable-mod-rewrite';
         $this->hide_admin_bar_menu_str                  = 'mepr-hide-admin-bar-menu';
+        $this->enable_wp_rest_api_protection_str        = 'mepr-enable-wp-rest-api-protection';
         $this->anti_card_testing_enabled_str            = 'mepr-anti-card-testing-enabled';
         $this->anti_card_testing_ip_method_str          = 'mepr-anti-card-testing-ip-method';
         $this->anti_card_testing_blocked_str            = 'mepr-anti-card-testing-blocked';
@@ -775,7 +788,7 @@ class MeprOptions
         // Temporarily killing  this validation - causing too many support reqs
         // if(!$biz_address_is_set) {
         // $errors[] = __('You must enter your full Merchant Business Address (found on the Info tab).', 'memberpress');
-        // }
+        // }.
         if (isset($params['mepr_biz_state'])) {
             $params['mepr_biz_state'] = strtoupper($params['mepr_biz_state']);
         }
@@ -785,7 +798,7 @@ class MeprOptions
         // ($states = MeprUtils::states()) && isset($states[$params['mepr_biz_country']]) &&
         // !isset($states[$params['mepr_biz_country']][$params['mepr_biz_state']])) {
         // $errors[] = __('You must enter a valid state code with your Merchant Business Address (found on the Info tab).', 'memberpress');
-        // }
+        // }.
         return $errors;
     }
 
@@ -802,10 +815,10 @@ class MeprOptions
             $params['mepr_biz_state'] = strtoupper($params['mepr_biz_state']);
         }
 
-        // Set dynamic variables (we should migrate all attrs to use this soon)
+        // Set dynamic variables (we should migrate all attrs to use this soon).
         $this->set_attrs_from_slugs($params);
 
-        // Page Settings
+        // Page Settings.
         if (
             !is_numeric($params[$this->account_page_id_str]) and
             preg_match('#^__auto_page:(.*?)$#', $params[$this->account_page_id_str], $matches)
@@ -850,7 +863,7 @@ class MeprOptions
 
         $this->logout_redirect_url = (isset($params[$this->logout_redirect_url_str]) && !empty($params[$this->logout_redirect_url_str])) ? trim(stripslashes($params[$this->logout_redirect_url_str])) : '';
 
-        // Notification Settings
+        // Notification Settings.
         $this->emails = [];
 
         foreach ($params[$this->emails_str] as $email => $vals) {
@@ -862,11 +875,12 @@ class MeprOptions
             ];
         }
 
-        $this->disable_mod_rewrite         = isset($params[$this->disable_mod_rewrite_str]);
-        $this->hide_admin_bar_menu         = isset($params[$this->hide_admin_bar_menu_str]);
-        $this->anti_card_testing_enabled   = isset($params[$this->anti_card_testing_enabled_str]);
-        $this->anti_card_testing_ip_method = isset($params[$this->anti_card_testing_ip_method_str]) ? sanitize_text_field(wp_unslash($params[$this->anti_card_testing_ip_method_str])) : '';
-        $this->anti_card_testing_blocked   = isset($params[$this->anti_card_testing_blocked_str]) && is_string($params[$this->anti_card_testing_blocked_str]) ? array_unique(array_filter(array_map('trim', explode("\n", $params[$this->anti_card_testing_blocked_str])))) : [];
+        $this->disable_mod_rewrite           = isset($params[$this->disable_mod_rewrite_str]);
+        $this->hide_admin_bar_menu           = isset($params[$this->hide_admin_bar_menu_str]);
+        $this->enable_wp_rest_api_protection = isset($params[$this->enable_wp_rest_api_protection_str]);
+        $this->anti_card_testing_enabled     = isset($params[$this->anti_card_testing_enabled_str]);
+        $this->anti_card_testing_ip_method   = isset($params[$this->anti_card_testing_ip_method_str]) ? sanitize_text_field(wp_unslash($params[$this->anti_card_testing_ip_method_str])) : '';
+        $this->anti_card_testing_blocked     = isset($params[$this->anti_card_testing_blocked_str]) && is_string($params[$this->anti_card_testing_blocked_str]) ? array_unique(array_filter(array_map('trim', explode("\n", $params[$this->anti_card_testing_blocked_str])))) : [];
 
         $this->custom_message        = wp_kses_post(stripslashes($params[$this->custom_message_str]));
         $currency_code               = stripslashes($params[$this->currency_code_str]);
@@ -914,7 +928,7 @@ class MeprOptions
         $this->show_fname_lname                 = isset($params[$this->show_fname_lname_str]);
 
         // This happens on the activate screen't do this here
-        // $this->mothership_license                 = stripslashes($params[$this->mothership_license_str]);
+        // $this->mothership_license                 = stripslashes($params[$this->mothership_license_str]);.
         $this->product_pages_slug                = sanitize_title(stripslashes($params[$this->product_pages_slug_str]), 'register');
         $this->group_pages_slug                  = sanitize_title(stripslashes($params[$this->group_pages_slug_str]), 'plans');
         $this->admin_email_addresses             = $params[$this->admin_email_addresses_str];
@@ -940,21 +954,21 @@ class MeprOptions
         $this->global_styles                     = isset($params[$this->global_styles_str]);
         $this->include_email_privacy_link        = isset($params[$this->include_email_privacy_link_str]);
 
-        // Signup fields stuff
+        // Signup fields stuff.
         $this->username_is_email               = isset($params[$this->username_is_email_str]);
         $this->require_fname_lname             = isset($params[$this->require_fname_lname_str]);
         $this->show_fname_lname                = (isset($params[$this->show_fname_lname_str]) || isset($params[$this->require_fname_lname_str]));
         $this->show_fields_logged_in_purchases = isset($params[$this->show_fields_logged_in_purchases_str]);
 
-        // Always show and require address fields when tax calculations are enabled
+        // Always show and require address fields when tax calculations are enabled.
         $this->show_address_fields    = (isset($params[$this->show_address_fields_str]) || isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
         $this->require_address_fields = (isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
 
-        // We now support address being required -- handle that here
+        // We now support address being required -- handle that here.
         $this->address_fields = $this->update_address_fields_required();
         $this->custom_fields  = $this->update_custom_fields($params);
 
-        // design
+        // Design.
         $this->design_logo_img                    = absint($params[$this->design_logo_img_str]);
         $this->design_primary_color               = sanitize_text_field($params[$this->design_primary_color_str]);
         $this->design_enable_checkout_template    = isset($params[$this->design_enable_checkout_template_str]);
@@ -989,7 +1003,7 @@ class MeprOptions
         $new_address_fields = [];
 
         foreach ($this->address_fields as $line) {
-            if ($line->field_key != 'mepr-address-two') { // Don't set address 2 to required ever
+            if ($line->field_key != 'mepr-address-two') { // Don't set address 2 to required ever.
                 $line->required = $this->require_address_fields;
             }
 
@@ -1057,23 +1071,23 @@ class MeprOptions
 
             foreach ($indexes as $i) {
                 $name = isset($params[$this->custom_fields_str][$i]['name']) ? $params[$this->custom_fields_str][$i]['name'] : '';
-                $slug = ($params[$this->custom_fields_str][$i]['slug'] == 'mepr_none') ? substr(MeprUtils::sanitize_string('mepr_' . $name), 0, 240) : substr($params[$this->custom_fields_str][$i]['slug'], 0, 240); // Need to check that this key doesn't already exist in usermeta table
+                $slug = ($params[$this->custom_fields_str][$i]['slug'] == 'mepr_none') ? substr(MeprUtils::sanitize_string('mepr_' . $name), 0, 240) : substr($params[$this->custom_fields_str][$i]['slug'], 0, 240); // Need to check that this key doesn't already exist in usermeta table.
 
-                // Prevent duplicate slugs
+                // Prevent duplicate slugs.
                 if (in_array($slug, $used)) {
                     do {
                         $slug_parts = explode('-', $slug);
-                        if (is_array($slug_parts)) { // We may have a number appended already
+                        if (is_array($slug_parts)) { // We may have a number appended already.
                             $number = array_pop($slug_parts);
-                            if (is_numeric($number)) { // Increment the existing number
+                            if (is_numeric($number)) { // Increment the existing number.
                                   $append                   = (int) $number + 1;
                                   $last_index               = count($slug_parts) - 1;
                                   $slug_parts[$last_index] .= "-{$append}";
                                   $slug                     = implode('-', $slug_parts);
-                            } else { // Append 1
+                            } else { // Append 1.
                                 $slug .= '-1';
                             }
-                        } else { // Append 1
+                        } else { // Append 1.
                             $slug .= '-1';
                         }
                     } while (in_array($slug, $used));
@@ -1093,7 +1107,7 @@ class MeprOptions
 
                     foreach ($options as $key => $value) {
                         if (!empty($value)) {
-                                // Due to WPML compat - we're no longer storing these as forced (object)'s - see $this->wpml_custom_fields()
+                                // Due to WPML compat - we're no longer storing these as forced (object)'s - see $this->wpml_custom_fields().
                                 $option_value = sanitize_title($values[$key], sanitize_title($options[$key]));
                                 $option_value = MeprHooks::apply_filters('mepr-custom-field-option-value', $option_value, $values[$key], $options[$key]);
 
@@ -1105,12 +1119,12 @@ class MeprOptions
                     }
 
                     if (empty($dropdown_ops)) {
-                        $name = ''; // if no dropdown options were entered let's not save this line
+                        $name = ''; // If no dropdown options were entered let's not save this line.
                     }
                 }
 
                 if ($name != '') { // If no name was left let's not save this line
-                    // Due to WPML compat - we're no longer storing these as forced (object)'s - see $this->wpml_custom_fields()
+                    // Due to WPML compat - we're no longer storing these as forced (object)'s - see $this->wpml_custom_fields().
                     $fields[] = [
                         'field_key'       => $slug,
                         'field_name'      => $name,
@@ -1140,7 +1154,7 @@ class MeprOptions
     {
         if ($post_array) {
             $this->update($post_array);
-        } else { // Set values from array
+        } else { // Set values from array.
             foreach ($options as $key => $value) {
                 $this->$key = $value;
             }
@@ -1157,10 +1171,10 @@ class MeprOptions
     public function store($validate = true)
     {
         $options = (array)$this;
-        // Don't want to store any dynamic attributes
+        // Don't want to store any dynamic attributes.
         unset($options['dynamic_attrs']);
 
-        // This is where we store our dynamic_attrs
+        // This is where we store our dynamic_attrs.
         $this->store_attrs();
 
         if ($validate) {
@@ -1240,7 +1254,7 @@ class MeprOptions
                     try {
                         $pmt_methods[$intg_id] = MeprGatewayFactory::fetch($intg_array['gateway'], $intg_array);
                     } catch (Exception $e) {
-                        // Just do nothing for now
+                        // Just do nothing for now.
                     }
                 }
             }
@@ -1323,7 +1337,7 @@ class MeprOptions
             }
         }
 
-        return home_url(); // default to the home url
+        return home_url(); // Default to the home url.
     }
 
     /**
@@ -1342,14 +1356,14 @@ class MeprOptions
         if (isset($args_array['membership_id'])) {
             $product = new MeprProduct($args_array['membership_id']);
             if ($product->thank_you_page_enabled && $product->thank_you_page_type == 'page') {
-                // Returns the custom thank you page for the product
+                // Returns the custom thank you page for the product.
                 $thank_you_page_id = $product->thank_you_page_id;
             } elseif (isset($this->thankyou_page_id)) {
-                // Returns the default thank you page from the options
+                // Returns the default thank you page from the options.
                 $thank_you_page_id = $this->thankyou_page_id;
             }
         } elseif (isset($this->thankyou_page_id)) {
-            // Returns the default thank you page from the options
+            // Returns the default thank you page from the options.
             $thank_you_page_id = $this->thankyou_page_id;
         }
 
@@ -1481,13 +1495,13 @@ class MeprOptions
         $mepr_options = MeprOptions::fetch();
 
         if (!isset($mepr_options->unauthorized_page_id) || (int)$mepr_options->unauthorized_page_id <= 0) {
-            return; // Short circuit ... only migrate if we need to
+            return; // Short circuit ... only migrate if we need to.
         }
 
         $page = get_post($mepr_options->unauthorized_page_id);
 
         if (!($page instanceof WP_Post)) {
-            $mepr_options->unauthorized_page_id     = 0; // Set the page to 0 so we don't end up here again
+            $mepr_options->unauthorized_page_id     = 0; // Set the page to 0 so we don't end up here again.
             $mepr_options->redirect_on_unauthorized = false;
             $mepr_options->store(false);
             return;
@@ -1496,14 +1510,14 @@ class MeprOptions
         $content = stripslashes($page->post_content); // $page->post_content is raw, so let's strip slashes
 
         // It's either empty or there's something on this page - and it's not the unauth shortcode
-        // so let's put the shortcode on this page, and setup the unauth message
+        // so let's put the shortcode on this page, and setup the unauth message.
         if (empty($content) || (!empty($content) && strstr($content, 'mepr-unauthorized-message') === false)) {
             $page->post_content                      = '[mepr-unauthorized-message]';
             $mepr_options->redirect_on_unauthorized  = true;
             $mepr_options->unauthorized_redirect_url = MeprUtils::get_permalink($page->ID);
-            $mepr_options->unauthorized_page_id      = 0; // Set the page to 0 so we don't end up here again
+            $mepr_options->unauthorized_page_id      = 0; // Set the page to 0 so we don't end up here again.
 
-            if (!empty($content)) { // Only change the unauth message if the user had one on this page already
+            if (!empty($content)) { // Only change the unauth message if the user had one on this page already.
                 $mepr_options->unauthorized_message = $content;
             }
 
@@ -1515,8 +1529,8 @@ class MeprOptions
 
         // If we made it here the user has already configured this shiz
         // (probably running a beta of 1.1.0 or something) so let's
-        // just set the unauthorized_page_id to 0 to prevent getting here again
-        $mepr_options->unauthorized_page_id = 0; // Set the page to 0 so we don't end up here again
+        // just set the unauthorized_page_id to 0 to prevent getting here again.
+        $mepr_options->unauthorized_page_id = 0; // Set the page to 0 so we don't end up here again.
         $mepr_options->store(false);
     }
 
@@ -1558,7 +1572,7 @@ class MeprOptions
             }
         }
 
-        $value = stripslashes($value); // single quotes etc causing escape chars to appear when output
+        $value = stripslashes($value); // Single quotes etc causing escape chars to appear when output.
 
         return MeprHooks::apply_filters('mepr-options-get-dynamic-attribute-' . $attr, $value, $this);
     }
@@ -1607,7 +1621,7 @@ class MeprOptions
      */
     private function set_attrs_from_slugs($slugs)
     {
-        // Build slug to attr lookup array
+        // Build slug to attr lookup array.
         $slugs_lookup = [];
         foreach ($this->dynamic_attrs as $attr => $info) {
             $slugs_lookup[$this->attr_slug($attr)] = $attr;
@@ -1749,7 +1763,7 @@ class MeprOptions
     {
         $str_array = (array)$this;
 
-        // add dynamic attrs
+        // Add dynamic attrs.
         foreach ($this->dynamic_attrs as $attr => $config) {
             $str_array[$attr] = $this->get_attr($attr);
         }

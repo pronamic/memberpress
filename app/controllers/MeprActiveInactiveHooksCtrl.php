@@ -37,24 +37,24 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
             return;
         }
 
-        // Allow third party plugins to stop the running of the method
+        // Allow third party plugins to stop the running of the method.
         if (MeprHooks::apply_filters('mepr-active-inactive-hooks-skip', false, $txn)) {
             return;
         }
 
-        // Bail if no id's
+        // Bail if no id's.
         if (!isset($txn->id) || $txn->id <= 0 || !isset($txn->user_id) || $txn->user_id <= 0) {
             return;
         }
 
-        // Ignore "pending" txns
+        // Ignore "pending" txns.
         if (!isset($txn->status) || empty($txn->status) || $txn->status == MeprTransaction::$pending_str) {
             return;
         }
 
         $active_status = [MeprTransaction::$complete_str, MeprTransaction::$confirmed_str];
         $now           = time();
-        $expires       = 0; // Lifetime
+        $expires       = 0; // Lifetime.
 
         if (! empty($txn->expires_at) && $txn->expires_at != MeprUtils::db_lifetime()) {
             $expires = strtotime($txn->expires_at);
@@ -82,22 +82,22 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
     {
         global $wpdb;
 
-        // Part of an Enabled subscription, so let's bail
+        // Part of an Enabled subscription, so let's bail.
         if ($sub_status == MeprSubscription::$active_str) {
             return;
         }
 
-        // Allow third party plugins to stop the running of the method
+        // Allow third party plugins to stop the running of the method.
         if (MeprHooks::apply_filters('mepr-active-inactive-hooks-skip', false, $txn)) {
             return;
         }
 
-        // Bail if no id's
+        // Bail if no id's.
         if (!isset($txn->id) || $txn->id <= 0 || !isset($txn->user_id) || $txn->user_id <= 0) {
             return;
         }
 
-        // Go directly to the database and maybe flush caches beforehand
+        // Go directly to the database and maybe flush caches beforehand.
         if (MeprHooks::apply_filters('mepr-autoresponder-flush-caches', true)) {
             wp_cache_flush();
             $wpdb->flush();

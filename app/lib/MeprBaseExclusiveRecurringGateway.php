@@ -39,7 +39,7 @@ abstract class MeprBaseExclusiveRecurringGateway extends MeprBaseRealGateway
     public function process_payment_form($txn)
     {
         // We're ready to create the subscription
-        // One time payments are handled as subscriptions
+        // One time payments are handled as subscriptions.
         $this->process_create_subscription($txn);
     }
 

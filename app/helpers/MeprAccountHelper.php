@@ -60,7 +60,7 @@ class MeprAccountHelper
         ?>
         <?php
         $grp = $product->group();
-        if ($grp && $grp->is_upgrade_path && count($grp->products('ids')) > 1 && count($grp->buyable_products()) >= 1) : // Can't upgrade to no other options ?>
+        if ($grp && $grp->is_upgrade_path && count($grp->products('ids')) > 1 && count($grp->buyable_products()) >= 1) : // Can't upgrade to no other options. ?>
         <div id="mepr-upgrade-txn-<?php echo $txn->id; ?>" class="mepr-white-popup mfp-hide">
           <center>
             <div class="mepr-upgrade-txn-text">

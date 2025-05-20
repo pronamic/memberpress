@@ -7,8 +7,25 @@ if (!defined('ABSPATH')) {
 #[AllowDynamicProperties]
 abstract class MeprBaseModel
 {
+    /**
+     * The record object
+     *
+     * @var object
+     */
     protected $rec;
+
+    /**
+     * The attributes
+     *
+     * @var array
+     */
     protected $attrs;
+
+    /**
+     * The defaults
+     *
+     * @var array
+     */
     protected $defaults;
 
     /**
@@ -38,7 +55,7 @@ abstract class MeprBaseModel
             }
         }
 
-        // Alternative way to filter results through an sub class method
+        // Alternative way to filter results through an sub class method.
         $extend_fn = "get_extend_{$name}";
         if (method_exists($this, $extend_fn)) {
             $value = call_user_func([$this,$extend_fn], $value);
@@ -58,7 +75,7 @@ abstract class MeprBaseModel
     {
         $value = MeprHooks::apply_filters('mepr-set-model-attribute-' . $name, $value, $this);
 
-        // Alternative way to filter results through an sub class method
+        // Alternative way to filter results through an sub class method.
         $extend_fn = "set_extend_{$name}";
         if (method_exists($this, $extend_fn)) {
             $value = call_user_func([$this,$extend_fn], $value);
@@ -223,7 +240,7 @@ abstract class MeprBaseModel
         $defaults            = (array)$this->defaults;
 
         foreach ($values as $key => $value) {
-            // Try to detect the type appropriately
+            // Try to detect the type appropriately.
             if (isset($defaults[$key])) {
                 if (is_bool($defaults[$key])) {
                     $value = (bool)$value;
@@ -333,6 +350,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is null.
      */
     protected function validate_not_null($var, $field = '')
     {
@@ -347,6 +365,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is empty.
      */
     protected function validate_not_empty($var, $field = '')
     {
@@ -361,6 +380,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not a boolean.
      */
     protected function validate_is_bool($var, $field = '')
     {
@@ -375,6 +395,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not an array.
      */
     protected function validate_is_array($var, $field = '')
     {
@@ -390,6 +411,7 @@ abstract class MeprBaseModel
      * @param  string $lookup The lookup.
      * @param  string $field  The field.
      * @return void
+     * @throws MeprCreateException If the variable is not in the lookup array.
      */
     protected function validate_is_in_array($var, $lookup, $field = '')
     {
@@ -404,6 +426,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not a valid URL.
      */
     protected function validate_is_url($var, $field = '')
     {
@@ -420,6 +443,7 @@ abstract class MeprBaseModel
      * @param  string $max   The maximum.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not a valid currency.
      */
     protected function validate_is_currency($var, $min = 0.00, $max = null, $field = '')
     {
@@ -436,6 +460,7 @@ abstract class MeprBaseModel
      * @param  string $max   The maximum.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not a valid number.
      */
     protected function validate_is_numeric($var, $min = 0, $max = null, $field = '')
     {
@@ -450,6 +475,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not a valid email.
      */
     protected function validate_is_email($var, $field = '')
     {
@@ -464,6 +490,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not a valid phone number.
      */
     protected function validate_is_phone($var, $field = '')
     {
@@ -478,6 +505,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not a valid IP address.
      */
     protected function validate_is_ip_addr($var, $field = '')
     {
@@ -492,6 +520,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not a valid date.
      */
     protected function validate_is_date($var, $field = '')
     {
@@ -506,6 +535,7 @@ abstract class MeprBaseModel
      * @param  string $var   The variable.
      * @param  string $field The field.
      * @return void
+     * @throws MeprCreateException If the variable is not a valid timestamp.
      */
     protected function validate_is_timestamp($var, $field = '')
     {
@@ -521,6 +551,7 @@ abstract class MeprBaseModel
      * @param  string $var     The variable.
      * @param  string $field   The field.
      * @return void
+     * @throws MeprCreateException If the variable doesn't match the regex pattern.
      */
     protected function validate_regex($pattern, $var, $field = '')
     {

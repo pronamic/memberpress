@@ -35,7 +35,7 @@ if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys
                           <p>
                             <?php
                               printf(
-                                // translators: %1$s: open link tag, %2$s: close link tag
+                                // Translators: %1$s: open link tag, %2$s: close link tag.
                                   esc_html__('Some of these payment methods have limitations. %1$sClick here%2$s to learn more.', 'memberpress'),
                                   '<a href="https://docs.memberpress.com/article/35-stripe" target="_blank">',
                                   '</a>'

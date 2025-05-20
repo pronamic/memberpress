@@ -21,16 +21,14 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         add_action('admin_enqueue_scripts', 'MeprUpdateCtrl::enqueue_scripts');
         add_action('admin_notices', 'MeprUpdateCtrl::activation_warning');
         add_action('admin_notices', 'MeprUpdateCtrl::promo_upgrade_notices');
-        // add_action('mepr_display_options', 'MeprUpdateCtrl::queue_button');
         add_action('admin_init', 'MeprUpdateCtrl::activate_from_define');
         add_action('admin_init', 'MeprUpdateCtrl::maybe_activate');
         add_action('wp_ajax_mepr_edge_updates', 'MeprUpdateCtrl::mepr_edge_updates');
         add_action('wp_ajax_mepr_dismiss_ip_admin_notice', 'MeprUpdateCtrl::dismiss_admin_notice');
-        // add_action('wp_ajax_mepr_rollback', 'MeprUpdateCtrl::rollback');
         add_action('mepr_display_general_options', [$this,'display_options'], 99);
         add_action('mepr-process-options', [$this, 'store_options']);
 
-        // Add a custom admin menu item
+        // Add a custom admin menu item.
         add_action('admin_menu', 'MeprUpdateCtrl::admin_menu', 50);
     }
 
@@ -65,11 +63,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
             return;
         }
 
-        // Set an identifier for this notice
+        // Set an identifier for this notice.
         $notice_id               = 'mp_dc_22';
         $dismissed_admin_notices = get_option('mp_dismissed_admin_notices', []);
 
-        // This notice has already been dismissed
+        // This notice has already been dismissed.
         if (in_array($notice_id, $dismissed_admin_notices)) {
             return;
         }
@@ -85,7 +83,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
             }
         }
 
-        // Default
+        // Default.
         $link        = '';
         $heading     = 'Monetize & Save!';
         $message     = 'Ready, Set, CONNECT💥Add a Forum to MemberPress 👉 Monetize Your Discord 👉 GROW Your Business w/ This New FREE Add-On';
@@ -105,7 +103,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
      */
     public static function admin_menu()
     {
-        // Create an official rollback page in the fashion of WordPress' built in upgrader
+        // Create an official rollback page in the fashion of WordPress' built in upgrader.
         if (isset($_GET['page']) && $_GET['page'] == 'mepr-rollback') {
             add_dashboard_page(__('Rollback MemberPress', 'memberpress'), __('Rollback MemberPress', 'memberpress'), 'update_plugins', 'mepr-rollback', 'MeprUpdateCtrl::rollback');
         }
@@ -138,7 +136,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
     /**
      * Gets major version
      *
-     * @param string $version Version
+     * @param string $version Version.
      *
      * @return string
      */
@@ -196,7 +194,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
         // If the plugin isn't ours, return early.
         $is_memberpress = 'memberpress' === $item['slug'];
-        $is_addon      = isset($item['slug']) && 0 === strpos($item['slug'], 'memberpress-'); // see updater class
+        $is_addon      = isset($item['slug']) && 0 === strpos($item['slug'], 'memberpress-'); // See updater class.
         if (! $is_memberpress && ! $is_addon) {
             return $update;
         }
@@ -213,13 +211,13 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         $new_major         = self::get_major_version($item['new_version']);
 
         // Major update available
-        // If major update are enabled, run the update, else bail
+        // If major update are enabled, run the update, else bail.
         if ($current_major < $new_major) {
             return 'all' === $automatic_updates ? true : $update;
         }
 
         // Minor update available
-        // If minor (or major) updates are enabled, run the update, else bail
+        // If minor (or major) updates are enabled, run the update, else bail.
         if ($current_major === $new_major && version_compare(mepr_plugin_info('Version'), $item['new_version'], '<')) {
             return 'all' === $automatic_updates || 'minor' === $automatic_updates ? true : $update;
         }
@@ -234,10 +232,10 @@ class MeprUpdateCtrl extends MeprBaseCtrl
      */
     public static function rollback()
     {
-        // Ensure the rollback is valid
+        // Ensure the rollback is valid.
         check_admin_referer('mepr_rollback_nonce');
 
-        // Permissions check
+        // Permissions check.
         if (!current_user_can('update_plugins')) {
             wp_die(__('You don\'t have sufficient permissions to rollback MemberPress.', 'memberpress'));
         }
@@ -247,7 +245,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
         $info = get_site_transient('mepr_update_info');
 
-        // Get the necessary class
+        // Get the necessary class.
         include_once(ABSPATH . 'wp-admin/includes/class-wp-upgrader.php');
         include_once(MEPR_LIB_PATH . '/class-rollback-memberpress-upgrader.php');
 
@@ -310,7 +308,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
             return;
         }
 
-        // Only check the key once per day
+        // Only check the key once per day.
         $option_key = "mepr_license_check_{$mepr_options->mothership_license}";
 
         if (get_site_transient($option_key)) {
@@ -386,11 +384,11 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         if (defined('MEMBERPRESS_LICENSE_KEY') && $mepr_options->mothership_license != MEMBERPRESS_LICENSE_KEY) {
             try {
                 if (!empty($mepr_options->mothership_license)) {
-                    // Deactivate the old license key
+                    // Deactivate the old license key.
                     self::deactivate_license();
                 }
 
-                // If we're using defines then we have to do this with defines too
+                // If we're using defines then we have to do this with defines too.
                 $mepr_options               = MeprOptions::fetch();
                 $mepr_options->edge_updates = false;
                 $mepr_options->store(false);
@@ -417,9 +415,9 @@ class MeprUpdateCtrl extends MeprBaseCtrl
     /**
      * Activate the license with the given key
      *
-     * @param  string $license_key The license key
+     * @param  string $license_key The license key.
      * @return array The license data
-     * @throws Exception If there was an error activating the license
+     * @throws Exception If there was an error activating the license.
      */
     public static function activate_license($license_key)
     {
@@ -445,7 +443,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
         self::manually_queue_update();
 
-        // Clear the cache of add-ons
+        // Clear the cache of add-ons.
         delete_site_transient('mepr_addons');
         delete_site_transient('mepr_all_addons');
 
@@ -473,7 +471,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
                 $act = self::send_mothership_request("/license_keys/deactivate/{$mepr_options->mothership_license}", $args, 'post');
             } catch (Exception $e) {
-                // Catching here to allow invalid license keys to be deactivated
+                // Catching here to allow invalid license keys to be deactivated.
             }
         }
 
@@ -490,10 +488,10 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
         self::manually_queue_update();
 
-        // Don't need to check the mothership for this one ... we just deactivated
+        // Don't need to check the mothership for this one ... we just deactivated.
         update_option('mepr_activated', false);
 
-        // Clear the cache of the license and add-ons
+        // Clear the cache of the license and add-ons.
         delete_site_transient('mepr_license_info');
         delete_site_transient('mepr_addons');
         delete_site_transient('mepr_all_addons');
@@ -524,7 +522,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
 
         if ($force || (false === $update_info)) {
             if (empty($mepr_options->mothership_license)) {
-                // Just here to query for the current version
+                // Just here to query for the current version.
                 $args = [];
                 if ($mepr_options->edge_updates || ( defined('MEMBERPRESS_EDGE') && MEMBERPRESS_EDGE )) {
                     $args['edge'] = 'true';
@@ -562,7 +560,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
                     }
                 } catch (Exception $e) {
                     try {
-                        // Just here to query for the current version
+                        // Just here to query for the current version.
                         $args = [];
                         if ($mepr_options->edge_updates || ( defined('MEMBERPRESS_EDGE') && MEMBERPRESS_EDGE )) {
                               $args['edge'] = 'true';
@@ -648,7 +646,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         if (!isset($action) || $action != 'plugin_information') {
             return $api;
         } elseif (isset($args->slug) && preg_match('#^(affiliate-royale)#', $args->slug)) {
-            // If AR is installed we allow it to take care of updates
+            // If AR is installed we allow it to take care of updates.
             if (is_plugin_active('affiliate-royale/affiliate-royale.php')) {
                 return $api;
             }
@@ -846,7 +844,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
      */
     public static function enqueue_scripts($hook)
     {
-        // toplevel_page_memberpress will only be accessible if the plugin is not enabled
+        // The toplevel_page_memberpress will only be accessible if the plugin is not enabled.
         if (
             $hook == 'memberpress_page_memberpress-options' ||
             (!MeprUpdateCtrl::is_activated() && $hook == 'toplevel_page_memberpress')
@@ -893,7 +891,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         $mepr_options->edge_updates = ($_POST['edge'] == 'true');
         $mepr_options->store(false);
 
-        // Re-queue updates when this is checked
+        // Re-queue updates when this is checked.
         self::manually_queue_update();
 
         die(json_encode(['state' => ($mepr_options->edge_updates ? 'true' : 'false')]));
@@ -938,7 +936,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
                     }
                     $addons = self::send_mothership_request('/versions/addons/' . MEPR_EDITION . "/{$license}", $args);
                 } catch (Exception $e) {
-                    // fail silently
+                    // Fail silently.
                     MeprUtils::debug_log(MeprUtils::object_to_string($e));
                 }
             }
@@ -963,7 +961,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
     {
         if (MeprUtils::is_incorrect_edition_installed()) {
             printf(
-            // translators: %1$s: open link tag, %2$s: close link tag
+            // Translators: %1$s: open link tag, %2$s: close link tag.
                 ' <strong>' . esc_html__('To restore automatic updates, %1$sinstall the correct edition%2$s of MemberPress.', 'memberpress') . '</strong>',
                 sprintf('<a href="%s">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-license'))),
                 '</a>'

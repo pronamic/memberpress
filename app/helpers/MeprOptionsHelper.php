@@ -167,18 +167,17 @@ class MeprOptionsHelper
         $gateways    = MeprGatewayFactory::all();
         $field_value = isset($_POST[$field_name]) ? $_POST[$field_name] : '';
 
-        // Move Stripe Gateway to the top of the list
+        // Move Stripe Gateway to the top of the list.
         if (isset($gateways['MeprStripeGateway'])) {
-            $gateways = array_merge(['MeprPayPalCommerceGateway' => $gateways['MeprPayPalCommerceGateway']], $gateways);
             $gateways = array_merge(['MeprStripeGateway' => $gateways['MeprStripeGateway']], $gateways);
         }
         ?>
       <select name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" data-id="<?php echo $obj_id; ?>" class="mepr-dropdown mepr-gateways-dropdown">
         <?php
         foreach ($gateways as $gateway => $gateway_name) {
-            if ($gateway == 'MeprPayPalProGateway') {
+            if ($gateway == 'MeprPayPalProGateway') { // Don't show PayPal Pro any more to new users.
                 continue;
-            } //Don't show PayPal Pro any more to new users
+            }
 
             if ($gateway == 'MeprPayPalGateway') {
                 continue;
@@ -269,7 +268,7 @@ class MeprOptionsHelper
         foreach ($payment_methods as $payment_method) {
             $label = self::payment_method_label($payment_method, $first);
 
-            // This will ensure that the first pm is checked by default
+            // This will ensure that the first pm is checked by default.
             if ($first) {
                 if (!isset($_POST[$field_name])) {
                     $_POST[$field_name] = $payment_method->id;
@@ -368,7 +367,7 @@ class MeprOptionsHelper
             $first = true;
             $icon  = $payment_method->icon;
             $name  = $payment_method->name;
-            // Ensure icons are unique
+            // Ensure icons are unique.
             if (in_array($icon, $icons)) {
                 continue;
             }
@@ -480,7 +479,7 @@ foreach ($pms as $pm_id) :
     $label = esc_html(trim($obj->label));
     $desc  = wpautop(trim(stripslashes($obj->desc)));
 
-    // This will ensure that the first pm is checked by default
+    // This will ensure that the first pm is checked by default.
     if ($first) {
             $first = false;
         if (!isset($_POST[$field_name])) {
@@ -556,7 +555,7 @@ endforeach;
      */
     public static function format_plaintext_email($text)
     {
-        // Don't be alarmed, inline styles are required in emails
+        // Don't be alarmed, inline styles are required in emails.
         return '<div id="body" style="width: 600px; background: white; padding: 40px; margin: 0 auto; text-align: left;">' . wpautop(make_clickable($text), true) . '</div>';
     }
 

@@ -21,9 +21,9 @@
   <?php else : ?>
       <?php echo $message; ?>
       <?php MeprHooks::do_action('mepr-before-login-form', $atts ?? []); ?>
-    <!-- mp-login-form-start --> <?php // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING ?>
+    <!-- mp-login-form-start --> <?php // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING. ?>
     <form name="mepr_loginform" id="mepr_loginform" class="mepr-form" action="<?php echo esc_url($login_url); ?>" method="post">
-      <?php // nonce not necessary on this form seeing as the user isn't logged in yet ?>
+      <?php // Nonce not necessary on this form seeing as the user isn't logged in yet. ?>
       <div class="mp-form-row mepr_username">
         <div class="mp-form-label">
           <?php $uname_or_email_str = MeprHooks::apply_filters('mepr-login-uname-or-email-str', _x('Username or E-mail', 'ui', 'memberpress')); ?>
@@ -62,7 +62,7 @@
 
       <?php MeprHooks::do_action('mepr-login-form-after-submit', $atts ?? []); ?>
 
-    <!-- mp-login-form-end --> <?php // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING ?>
+    <!-- mp-login-form-end --> <?php // DON'T GET RID OF THIS HTML COMMENT PLEASE IT'S USEFUL FOR SOME REGEX WE'RE DOING. ?>
 
   <?php endif; ?>
 </div>

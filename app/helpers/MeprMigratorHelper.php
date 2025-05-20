@@ -45,7 +45,7 @@ class MeprMigratorHelper
     /**
      * Has the given migration completed on this site?
      *
-     * @param  string $migrator The migrator key, e.g. 'learndash'
+     * @param  string $migrator The migrator key, e.g. 'learndash'.
      * @return boolean
      */
     public static function has_completed_migration($migrator)

@@ -19,7 +19,7 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
                 $date = new DateTime('next monday 00:05:00', new DateTimeZone('UTC'));
                 wp_schedule_event($date->getTimestamp(), 'mepr_summary_email_interval', 'mepr_summary_email');
             } catch (Exception $e) {
-                // Fail silently for now
+                // Fail silently for now.
             }
         }
     }
@@ -33,7 +33,7 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
     public function add_cron_schedule($schedules)
     {
         $schedules['mepr_summary_email_interval'] = [
-            'interval' => 604800, // weekly
+            'interval' => 604800, // Weekly.
             'display'  => __('MemberPress Summary Email', 'memberpress'),
         ];
 
@@ -106,7 +106,7 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
             }
 
             if ($last_week['revenue'] + $previous_week['revenue'] <= 0.00) {
-                // Do not send the email if there has been no revenue for the last two weeks
+                // Do not send the email if there has been no revenue for the last two weeks.
                 return;
             }
 
@@ -127,7 +127,7 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
 
             MeprUtils::wp_mail_to_admin($subject, $message, $headers);
         } catch (Exception $e) {
-            // Fail silently for now
+            // Fail silently for now.
         }
     }
 
@@ -161,9 +161,9 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
     /**
      * Get the HTML representing the percentage difference between two values
      *
-     * @param  integer|float $new_value             The new value
-     * @param  integer|float $previous_value        The previous value
-     * @param  boolean       $positive_is_favorable Whether a positive change is favorable
+     * @param  integer|float $new_value             The new value.
+     * @param  integer|float $previous_value        The previous value.
+     * @param  boolean       $positive_is_favorable Whether a positive change is favorable.
      * @return string
      */
     public static function get_change_percent($new_value, $previous_value, $positive_is_favorable = true)

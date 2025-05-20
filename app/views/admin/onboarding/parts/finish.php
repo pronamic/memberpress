@@ -27,7 +27,7 @@ if ($upgrade_type === 'memberpress-elite') {
 }
 
 if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition != $current_license) {
-    // The user upgraded to another edition, but it has not processed yet
+    // The user upgraded to another edition, but it has not processed yet.
     ?>
   <h2 class="mepr-wizard-step-title"><?php esc_html_e('Processing upgrade', 'memberpress'); ?></h2>
   <p class="mepr-wizard-step-description">
@@ -118,7 +118,7 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
         }
     }
 
-    // if license mismatched and upgrade still required, show them the upgrade CTA interface.
+    // If the license mismatched and upgrade still required, show them the upgrade CTA interface.
     if ($pricing_url != '' && $current_license != $upgrade_type) : ?>
     <h2 class="mepr-wizard-step-title"><?php esc_html_e('Finish setup', 'memberpress'); ?></h2>
     <p class="mepr-wizard-step-description"><?php echo esc_html($finish_description); ?></p>
@@ -179,7 +179,7 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
         <?php endif; ?>
 
         <?php
-        // lets run the upgrade.
+        // Lets run the upgrade.
     else :
         echo '<input type="hidden" id="mepr_wizard_finalize_setup" value="1" />';
         $editions = MeprUtils::is_incorrect_edition_installed();

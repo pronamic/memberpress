@@ -36,7 +36,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
                   $mepr_options->anti_card_testing_enabled_str,
                   __('Enable Card Testing Protection', 'memberpress'),
                   sprintf(
-                  // translators: %1$s: br tag
+                  // Translators: %1$s: br tag.
                       __('Card testing is a type of fraudulent activity where someone tries to determine if stolen card information can be used to make purchases, by repeatedly attempting a purchase with different card numbers until one succeeds.%1$s%1$sBy enabling this protection, MemberPress will permanently block any further payment attempts by any user that has had 5 failed payments in a 2 hour window.', 'memberpress'),
                       '<br>'
                   )
@@ -61,7 +61,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
                     $mepr_options->anti_card_testing_ip_method_str,
                     __('How To Get Visitor IP?', 'memberpress'),
                     sprintf(
-                    // translators: %1$s: br tag, %2$s: open link tag, %3$s: close link tag
+                    // Translators: %1$s: br tag, %2$s: open link tag, %3$s: close link tag.
                         __('Which method should MemberPress use to retrieve the visitor\'s IP address?%1$s%1$sIt\'s important to use a method that is compatible with your site. The REMOTE_ADDR method is the most secure but may not be correct if your site is using a front-end proxy.%1$s%1$sCompare the displayed detected IP address with what is displayed on %2$sthis site%3$s to find the correct method for your site.', 'memberpress'),
                         '<br>',
                         '<a href="https://whatismyipaddress.com/" target="_blank">',
@@ -76,7 +76,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
                 <label for="<?php echo esc_attr($mepr_options->anti_card_testing_ip_method_str); ?>_default">
                   <?php
                     printf(
-                      // translators: %1$s: open strong tag, %2$s: close strong tag
+                      // Translators: %1$s: open strong tag, %2$s: close strong tag.
                         esc_html__('%1$sDefault%2$s - Compatible with most sites, but not as secure as the methods below.', 'memberpress'),
                         '<strong>',
                         '</strong>'
@@ -89,7 +89,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
                 <label for="<?php echo esc_attr($mepr_options->anti_card_testing_ip_method_str); ?>_remote_addr">
                     <?php
                     printf(
-                      // translators: %1$s: open strong tag, %2$s: close strong tag
+                      // Translators: %1$s: open strong tag, %2$s: close strong tag.
                         esc_html__('%1$sUse PHP\'s built-in REMOTE_ADDR%2$s - The most secure method if this is compatible with your site.', 'memberpress'),
                         '<strong>',
                         '</strong>'
@@ -102,7 +102,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
                 <label for="<?php echo esc_attr($mepr_options->anti_card_testing_ip_method_str); ?>_x_forwarded_for">
                     <?php
                     printf(
-                      // translators: %1$s: open strong tag, %2$s: close strong tag
+                      // Translators: %1$s: open strong tag, %2$s: close strong tag.
                         esc_html__('%1$sUse the X-Forwarded-For HTTP header%2$s - Only use this if you\'re using a front-end proxy or spoofing may result.', 'memberpress'),
                         '<strong>',
                         '</strong>'
@@ -115,7 +115,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
                 <label for="<?php echo esc_attr($mepr_options->anti_card_testing_ip_method_str); ?>_x_real_ip">
                     <?php
                     printf(
-                      // translators: %1$s: open strong tag, %2$s: close strong tag
+                      // Translators: %1$s: open strong tag, %2$s: close strong tag.
                         esc_html__('%1$sUse the X-Real-IP HTTP header%2$s - Only use this if you\'re using a front-end proxy or spoofing may result.', 'memberpress'),
                         '<strong>',
                         '</strong>'
@@ -128,7 +128,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
                 <label for="<?php echo esc_attr($mepr_options->anti_card_testing_ip_method_str); ?>_cf_connecting_ip">
                     <?php
                     printf(
-                      // translators: %1$s: open strong tag, %2$s: close strong tag
+                      // Translators: %1$s: open strong tag, %2$s: close strong tag.
                         esc_html__('%1$sUse the CF-Connecting-IP HTTP header%2$s - Only use this if you\'re using Cloudflare.', 'memberpress'),
                         '<strong>',
                         '</strong>'
@@ -147,7 +147,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
                     $mepr_options->anti_card_testing_blocked_str,
                     __('Blocked IP Addresses', 'memberpress'),
                     sprintf(
-                    // translators: %1$s: br tag
+                    // Translators: %1$s: br tag.
                         __('The IP addresses listed here are currently banned from making purchases.%1$s%1$sYou can add a new IP address (one per line) to block it, or remove an IP address to unblock it.', 'memberpress'),
                         '<br>'
                     )
@@ -167,7 +167,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
     /**
      * Get the visitor's IP address
      *
-     * @param  string|null $method The IP retrieval method to use or null to use the saved method
+     * @param  string|null $method The IP retrieval method to use or null to use the saved method.
      * @return string
      */
     public static function get_ip($method = null)
@@ -210,7 +210,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
     /**
      * Get the first valid public IP from the given array
      *
-     * @param  array $ips The array of IP addresses to check
+     * @param  array $ips The array of IP addresses to check.
      * @return string|null
      */
     private static function get_client_ip_from_ips($ips)
@@ -237,7 +237,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
             }
 
             if ($skip_to_next) {
-                continue; // this one had a delimiter and we didn't find anything
+                continue; // This one had a delimiter and we didn't find anything.
             }
 
             if (self::is_valid_ip_address($ip) && !self::is_private_ip_address($ip)) {
@@ -372,7 +372,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
                 $blocked_ips = [];
             }
 
-            // If there have been 5 or more failed payments, add to permanently banned IPs
+            // If there have been 5 or more failed payments, add to permanently banned IPs.
             if ($failed >= MeprHooks::apply_filters('mepr_card_testing_failure_limit', 5) && !in_array($ip, $blocked_ips, true)) {
                 $blocked_ips[]                           = $ip;
                 $mepr_options->anti_card_testing_blocked = $blocked_ips;

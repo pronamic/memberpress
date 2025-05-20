@@ -13,9 +13,32 @@
  */
 class MeprOrder extends MeprBaseMetaModel
 {
+    /**
+     * Status string for pending orders.
+     *
+     * @var string
+     */
     public static $pending_str  = 'pending';
+
+    /**
+     * Status string for failed orders.
+     *
+     * @var string
+     */
     public static $failed_str   = 'failed';
+
+    /**
+     * Status string for complete orders.
+     *
+     * @var string
+     */
     public static $complete_str = 'complete';
+
+    /**
+     * Status string for refunded orders.
+     *
+     * @var string
+     */
     public static $refunded_str = 'refunded';
 
     /**
@@ -130,7 +153,7 @@ class MeprOrder extends MeprBaseMetaModel
     /**
      * Get an order by ID
      *
-     * @param  integer $id          The order ID
+     * @param  integer $id          The order ID.
      * @param  string  $return_type Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
      *                             correspond to an stdClass object, an associative array, or a numeric array,
      *                             respectively. Default OBJECT.

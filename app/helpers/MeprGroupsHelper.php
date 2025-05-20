@@ -134,8 +134,8 @@ class MeprGroupsHelper
             $benefits .= '</div>';
         }
 
-        $user   = MeprUtils::get_currentuserinfo(); // If not logged in, $user will be false
-        $active = true; // Always true for now - that way users can click the button and see the custom "you don't have access" message now
+        $user   = MeprUtils::get_currentuserinfo(); // If not logged in, $user will be false.
+        $active = true; // Always true for now - that way users can click the button and see the custom "you don't have access" message now.
 
         $group_classes_str = ($product->is_highlighted) ? 'highlighted' : '';
         $group_classes_str = MeprHooks::apply_filters('mepr-group-css-classes-string', $group_classes_str, $product, $group, $preview);
@@ -233,7 +233,7 @@ class MeprGroupsHelper
     <div class="mepr-price-box-button">
         <?php
         // All this logic is for showing a "VIEW" button instead of "Buy Now" if the member has already purchased it
-        // and the membership access URL is set for that membership - and you can't buy the same membership more than once
+        // and the membership access URL is set for that membership - and you can't buy the same membership more than once.
         if (
             $user && !$product->simultaneous_subscriptions &&
             $user->is_already_subscribed_to($product->ID) &&

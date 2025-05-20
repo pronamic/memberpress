@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprJobs
 {
+    /**
+     * The job configuration.
+     *
+     * @var object
+     */
     public $config;
 
     /**
@@ -14,7 +19,7 @@ class MeprJobs
      */
     public function __construct()
     {
-        // Setup job configuration
+        // Setup job configuration.
         $this->config = MeprHooks::apply_filters('mepr-jobs-config', (object)[
             'status'  => (object)[
                 'pending'  => 'pending',
@@ -24,22 +29,22 @@ class MeprJobs
             ],
             'worker'  => (object)[
                 'interval'    => MeprUtils::minutes(1),
-                'retry_after' => MeprUtils::minutes(30), // Standard retries after a failure
+                'retry_after' => MeprUtils::minutes(30), // Standard retries after a failure.
             ],
             'cleanup' => (object)[
-                'num_retries'            => 5, // "num_retries" before transactions fail
+                'num_retries'            => 5, // "num_retries" before transactions fail.
                 'interval'               => MeprUtils::hours(1),
-                'retry_after'            => MeprUtils::hours(1), // Purely for zombie jobs left in a bad state
+                'retry_after'            => MeprUtils::hours(1), // Purely for zombie jobs left in a bad state.
                 'delete_completed_after' => MeprUtils::days(2),
                 'delete_failed_after'    => MeprUtils::days(30),
             ],
         ]);
 
-        // Setup the options page
+        // Setup the options page.
         add_action('mepr_display_general_options', [$this,'display_option_fields']);
         add_action('mepr-process-options', [$this,'store_option_fields']);
 
-        // Set a wp-cron
+        // Set a wp-cron.
         add_filter('cron_schedules', [$this,'intervals']);
         add_action('mepr_jobs_worker', [$this,'worker']);
         add_action('mepr_jobs_cleanup', [$this,'cleanup']);
@@ -85,7 +90,7 @@ class MeprJobs
         $max_run_time = 45;
         $start_time   = time();
 
-        // We want to allow for at least 15 seconds of buffer
+        // We want to allow for at least 15 seconds of buffer.
         while (( time() - $start_time ) <= $max_run_time) {
             $job = $this->next_job();
             if (!$job) {
@@ -97,9 +102,9 @@ class MeprJobs
                 if (isset($job->class)) {
                     $obj = MeprJobFactory::fetch($job->class, $job);
                     MeprUtils::debug_log(sprintf(__('Starting Job - %1$s (%2$s): %3$s', 'memberpress'), $job->id, $job->class, MeprUtils::object_to_string($obj)));
-                    $obj->perform(); // Run the job's perform method
+                    $obj->perform(); // Run the job's perform method.
                     MeprUtils::debug_log(sprintf(__('Job Completed - %1$s (%2$s)', 'memberpress'), $job->id, $job->class));
-                    $this->complete($job); // When we're successful we complete the job
+                    $this->complete($job); // When we're successful we complete the job.
                 } else {
                     $this->fail($job, __('No class was specified in the job config', 'memberpress'));
                     MeprUtils::debug_log(__('Job Failed: No class', 'memberpress'));
@@ -121,7 +126,7 @@ class MeprJobs
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        // Retry lingering jobs
+        // Retry lingering jobs.
         $query = "UPDATE {$mepr_db->jobs}
                  SET status = %s
                WHERE status IN (%s,%s)
@@ -129,12 +134,12 @@ class MeprJobs
                  AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d";
         $query = $wpdb->prepare(
             $query,
-            $this->config->status->pending, // Set status to pending
-            $this->config->status->working, // if status = working or
-            $this->config->status->failed, // status = failed and
-            $this->config->cleanup->num_retries, // number of tries <= num_retries
+            $this->config->status->pending, // Set status to pending.
+            $this->config->status->working, // If status = working or.
+            $this->config->status->failed, // The status = failed and.
+            $this->config->cleanup->num_retries, // Number of tries <= num_retries.
             MeprUtils::db_now(),
-            $this->config->cleanup->retry_after // and the correct number of seconds since lastrun has elapsed
+            $this->config->cleanup->retry_after // And the correct number of seconds since lastrun has elapsed.
         );
         $wpdb->query($query);
 
@@ -143,22 +148,22 @@ class MeprJobs
                WHERE status = %s
                  AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d";
         $query = $wpdb->prepare(
-            $query, // Delete jobs
-            $this->config->status->complete, // which have a status = complete
+            $query, // Delete jobs.
+            $this->config->status->complete, // Which have a status = complete.
             MeprUtils::db_now(),
-            $this->config->cleanup->delete_completed_after // and the correct number of seconds since lastrun has elapsed
+            $this->config->cleanup->delete_completed_after // And the correct number of seconds since lastrun has elapsed.
         );
         $wpdb->query($query);
 
-        // Delete jobs that have been retried and are still in a working state
+        // Delete jobs that have been retried and are still in a working state.
         $query = "DELETE FROM {$mepr_db->jobs}
                WHERE tries > %d
                  AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d";
         $query = $wpdb->prepare(
-            $query, // Delete jobs
-            $this->config->cleanup->num_retries, // which have only been 'n' retries
+            $query, // Delete jobs.
+            $this->config->cleanup->num_retries, // Which have only been 'n' retries.
             MeprUtils::db_now(),
-            $this->config->cleanup->delete_failed_after // and the correct number of seconds since lastrun has elapsed
+            $this->config->cleanup->delete_failed_after // And the correct number of seconds since lastrun has elapsed.
         );
         $wpdb->query($query);
     }
@@ -269,7 +274,7 @@ class MeprJobs
             'lastrun'  => MeprUtils::db_now(),
         ];
 
-        // returns the job id to dequeue later if necessary
+        // Returns the job id to dequeue later if necessary.
         return $mepr_db->create_record($mepr_db->jobs, $config, true);
     }
 
@@ -369,7 +374,7 @@ class MeprJobs
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        // We fail and then re-enqueue for an hour later 5 times before giving up
+        // We fail and then re-enqueue for an hour later 5 times before giving up.
         if ($job->tries >= $this->config->cleanup->num_retries) {
             $args = [
                 'status' => $this->config->status->failed,
@@ -475,7 +480,7 @@ class MeprJobs
      */
     public function validate_option_fields($errors)
     {
-        // Nothing to validate yet -- if ever
+        // Nothing to validate yet -- if ever.
     }
 
     /**
@@ -485,7 +490,7 @@ class MeprJobs
      */
     public function update_option_fields()
     {
-        // Nothing to do yet -- if ever
+        // Nothing to do yet -- if ever.
     }
 
     /**

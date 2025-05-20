@@ -8,12 +8,12 @@ if (!empty($records)) {
     foreach ($records as $rec) {
         $alternate = ( $row_index++ % 2 ? '' : 'alternate' );
 
-        // Open the line
+        // Open the line.
         ?>
     <tr id="record_<?php echo $rec->ID; ?>" class="<?php echo $alternate; ?>">
         <?php
         foreach ($columns as $column_name => $column_display_name) {
-            // Style attributes for each col
+            // Style attributes for each col.
             $class = "class=\"{$column_name} column-{$column_name}\"";
             $style = '';
             if (in_array($column_name, $hidden)) {
@@ -26,7 +26,7 @@ if (!empty($records)) {
             $deletelink = wp_nonce_url("users.php?action=delete&amp;user={$rec->ID}", 'bulk-users');
             $editlink   = esc_url(add_query_arg('wp_http_referer', urlencode(wp_unslash($_SERVER['REQUEST_URI'])), get_edit_user_link($rec->ID)));
 
-            // Display the cell
+            // Display the cell.
             switch ($column_name) {
                 case 'col_id':
                     ?>
@@ -236,5 +236,5 @@ if (!empty($records)) {
         ?>
     </tr>
         <?php
-    } //End foreach
-} //End if
+    }//end foreach
+}//end if

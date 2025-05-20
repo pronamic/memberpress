@@ -39,21 +39,29 @@ class AddonsManager implements StaticContainerAwareness
      */
     public static function addonsUpdatePlugins($transient)
     {
-
         // If the license key is not set, return the transient.
         if (! self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getLicenseKey()) {
             return $transient;
         }
 
         // If the license is not active, return the transient.
-        if (! self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getLicenseActivationStatus()) {
+        if (
+            ! self::getContainer()->get(
+                MothershipService::CONNECTION_PLUGIN_SERVICE_ID
+            )->getLicenseActivationStatus()
+        ) {
             return $transient;
         }
 
-        // Only continue if the transient is expired or doesn't exist. This is run every 30 minutes.
-        $updateCheck = get_transient(self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId . '-mosh-addons-update-check');
-        if ($updateCheck !== false) {
-            return $transient;
+        $transientCheck = self::checkAddonsUpdateTransient();
+        if ($transientCheck !== false) {
+            $productsTransient = get_transient(
+                self::getContainer()->get(
+                    MothershipService::CONNECTION_PLUGIN_SERVICE_ID
+                )->pluginId . '-mosh-products'
+            );
+            return ($productsTransient->products ?? false) ?
+                self::getTransientWithAddonsUpdates($productsTransient->products, $transient) : $transient;
         }
 
         if (! is_object($transient)) {
@@ -64,53 +72,95 @@ class AddonsManager implements StaticContainerAwareness
             $transient->response = [];
         }
 
-        $products = self::getAddons(true);
+        $products = self::getAddons(false);
 
         if ($products instanceof Response && $products->isError()) {
             // Set transient to expire in 30 minutes so we don't keep checking..
-            set_transient(self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId . '-mosh-addons-update-check', null, 30 * MINUTE_IN_SECONDS);
+            set_transient(
+                self::getContainer()->get(
+                    MothershipService::CONNECTION_PLUGIN_SERVICE_ID
+                )->pluginId . '-mosh-addons-update-check',
+                null,
+                30 * MINUTE_IN_SECONDS
+            );
             return $transient;
         }
 
-        if (empty($products) || ! is_array($products)) {
+        if (! is_array($products->products ?? null)) {
             return $transient;
         }
 
-        foreach ($products->products ?? [] as $product) {
-            if (! isset($transient->checked[$product->main_file])) {
+        $transient = self::getTransientWithAddonsUpdates($products->products, $transient);
+
+        // Create a transient that expires every 30 minutes. We only want this to run once every 30 minutes.
+        set_transient(
+            self::getContainer()->get(
+                MothershipService::CONNECTION_PLUGIN_SERVICE_ID
+            )->pluginId . '-mosh-addons-update-check',
+            null,
+            30 * MINUTE_IN_SECONDS
+        );
+
+        return $transient;
+    }
+
+    /**
+     * Check if the add-ons update transient is available which expires every 30 minutes.
+     *
+     * @return boolean True if the transient is available, false otherwise.
+     */
+    public static function checkAddonsUpdateTransient(): bool
+    {
+        $updateCheck = get_transient(
+            self::getContainer()->get(
+                MothershipService::CONNECTION_PLUGIN_SERVICE_ID
+            )->pluginId . '-mosh-addons-update-check'
+        );
+        if ($updateCheck !== false) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns the modified transient with add-ons updates.
+     *
+     * @param  array  $products  The products to check.
+     * @param  object $transient The transient to update.
+     * @return object The modified transient.
+     */
+    public static function getTransientWithAddonsUpdates(array $products, object $transient)
+    {
+        foreach ($products ?? [] as $product) {
+            if (! isset($transient->checked[$product->main_file])) { // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
                 continue;
             }
 
+            $versionLatest = $product->_embedded->{'version-latest'}->number ?? '';
+            $urlLatest     = $product->_embedded->{'version-latest'}->url ?? '';
+
             $item = (object) [
-                'id'          => $product->main_file,
+                'id'          => $product->main_file,  // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
                 'slug'        => $product->slug,
-                'plugin'      => $product->main_file,
-                'new_version' => $product->_embedded->{'version-latest'}->number,
-                'package'     => $product->_embedded->{'version-latest'}->url,
+                'plugin'      => $product->main_file, // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
+                'new_version' => $versionLatest,
+                'package'     => $urlLatest,
                 'icons'       => [
                     'png' => $product->image,
                 ],
             ];
             if (
                 version_compare(
-                    $transient->checked[$product->main_file],
-                    $product->_embedded->{'version-latest'}->number,
+                    $transient->checked[$product->main_file], // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
+                    $versionLatest,
                     '>='
                 )
             ) {
-                $transient->no_update[$product->main_file] = $item;
+                $transient->no_update[$product->main_file] = $item; // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
             } else {
-                $transient->response[$product->main_file] = $item;
+                $transient->response[$product->main_file] = $item; // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
             }
         }
-
-        // Create a transient that expires every 30 minutes. We only want this to run once every 30 minutes.
-        set_transient(
-            self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId . '-mosh-addons-update-check',
-            null,
-            30 * MINUTE_IN_SECONDS
-        );
-
         return $transient;
     }
 
@@ -288,12 +338,16 @@ class AddonsManager implements StaticContainerAwareness
      * Get the add-ons from the API.
      *
      * @param  boolean $cached Whether to use the cached products or not.
-     * @return array The add-ons.
+     * @return object The add-ons.
      */
     public static function getAddons(bool $cached = false)
     {
         if ($cached) {
-            $addons = get_transient(self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId . '-mosh-products');
+            $addons = get_transient(
+                self::getContainer()->get(
+                    MothershipService::CONNECTION_PLUGIN_SERVICE_ID
+                )->pluginId . '-mosh-products'
+            );
             if (false !== $addons) {
                 return $addons;
             }
@@ -304,7 +358,13 @@ class AddonsManager implements StaticContainerAwareness
 
         // If the response is not an error, set the transient.
         if ($resp instanceof Response && ! $resp->isError()) {
-            set_transient(self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId . '-mosh-products', $resp, HOUR_IN_SECONDS);
+            set_transient(
+                self::getContainer()->get(
+                    MothershipService::CONNECTION_PLUGIN_SERVICE_ID
+                )->pluginId . '-mosh-products',
+                $resp,
+                HOUR_IN_SECONDS
+            );
         }
         return $resp;
     }
@@ -317,12 +377,17 @@ class AddonsManager implements StaticContainerAwareness
     public static function generateAddonsHtml(): string
     {
         if (! self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getLicenseKey()) {
-            return '<div class="notice notice-error is-dismissible"><p>' . esc_html__('Please enter your license key to access add-ons.', 'memberpress') . '</p></div>';
+            return '<div class="notice notice-error is-dismissible"><p>' . esc_html__(
+                'Please enter your license key to access add-ons.',
+                'memberpress'
+            ) . '</p></div>';
         }
 
         // Refresh the add-ons if the button is clicked.
         if (isset($_POST['submit-button-mosh-refresh-addon'])) {
-            delete_transient(self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId . '-mosh-products');
+            delete_transient(
+                self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId . '-mosh-products'
+            );
         }
 
         $addons = self::getAddons(true);

@@ -70,8 +70,13 @@ class Hook
      *
      * @throws ValueError Throws a ValueError when an invalid $type is supplied.
      */
-    public function __construct(string $type, string $hook, callable $callback, int $priority = 10, int $acceptedArgs = 1)
-    {
+    public function __construct(
+        string $type,
+        string $hook,
+        callable $callback,
+        int $priority = 10,
+        int $acceptedArgs = 1
+    ) {
         $validTypes = [self::TYPE_ACTION, self::TYPE_FILTER];
         if (!in_array($type, $validTypes, true)) {
             throw new ValueError(

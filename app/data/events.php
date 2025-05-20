@@ -81,7 +81,7 @@ return MeprHooks::apply_filters('mepr_events', [
     'offline-payment-refunded'             => (object) [
         'unique' => true,
     ],
-    // Recurring Transactions
+    // Recurring Transactions.
     'recurring-transaction-completed'      => (object) [
         'unique' => true,
     ],
@@ -94,7 +94,7 @@ return MeprHooks::apply_filters('mepr_events', [
     'recurring-transaction-expired'        => (object) [
         'unique' => true,
     ],
-    // Non-Recurring Transactions
+    // Non-Recurring Transactions.
     'non-recurring-transaction-completed'  => (object) [
         'unique' => true,
     ],

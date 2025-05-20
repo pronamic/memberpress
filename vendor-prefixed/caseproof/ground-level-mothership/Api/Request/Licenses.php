@@ -10,7 +10,7 @@ use MemberPress\GroundLevel\Mothership\Api\Response;
 /**
  * This class is used to interact with the licenses API.
  *
- * @see https://licenses.caseproof.com/docs/api#licenses
+ * @see https://licenses.caseproof.com/help/api-reference#licenses
  */
 class Licenses
 {
@@ -28,21 +28,36 @@ class Licenses
     /**
      * Get all licenses.
      *
+     * @param  array $params The parameters to pass to the API.
      * @return Response
      */
-    public static function list(): Response
+    public static function list(array $params = []): Response
     {
-        return Request::get('licenses');
+        return Request::get('licenses', $params);
     }
 
     /**
      * Get a license by license key.
      *
-     * @param  string $licenseKey The license key.
+     * @param string $licenseKey The license key.
+     * @param array  $params     Additional parameters for the request.
+     *
      * @return Response
      */
-    public static function get(string $licenseKey): Response
+    public static function get(string $licenseKey, array $params = []): Response
     {
-        return Request::get('licenses/' . $licenseKey);
+        return Request::get('licenses/' . $licenseKey, $params);
+    }
+
+    /**
+     * Update a license by license key.
+     *
+     * @param  string $licenseKey  The license key.
+     * @param  array  $licenseData The data to update the license with.
+     * @return Response
+     */
+    public static function update(string $licenseKey, array $licenseData): Response
+    {
+        return Request::patch('licenses/' . $licenseKey, $licenseData);
     }
 }

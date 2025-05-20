@@ -160,8 +160,12 @@ class Time
      * @return mixed Returns the result of the callback if supplied.
      * @throws TimeTravelError Throws exception when time traveling is disabled.
      */
-    public static function advanceFrom($startTimestamp, int $ticks, string $units = self::UNIT_SECONDS, ?callable $callback = null)
-    {
+    public static function advanceFrom(
+        $startTimestamp,
+        int $ticks,
+        string $units = self::UNIT_SECONDS,
+        ?callable $callback = null
+    ) {
         return self::travelTo(
             strtotime("+{$ticks} {$units}", self::toTimestamp($startTimestamp)),
             $callback
@@ -343,8 +347,12 @@ class Time
      * @return mixed Returns the result of the callback if supplied.
      * @throws TimeTravelError Throws exception when time traveling is disabled.
      */
-    public static function rewindFrom($startTimestamp, int $ticks, string $units = self::UNIT_SECONDS, ?callable $callback = null)
-    {
+    public static function rewindFrom(
+        $startTimestamp,
+        int $ticks,
+        string $units = self::UNIT_SECONDS,
+        ?callable $callback = null
+    ) {
         return self::travelTo(
             strtotime("-{$ticks} {$units}", self::toTimestamp($startTimestamp)),
             $callback
@@ -533,8 +541,13 @@ class Time
      * @param  boolean|integer $monthNum  The month of the year.
      * @return integer
      */
-    public static function years(int $n, $baseTs = false, bool $backwards = false, $dayNum = false, $monthNum = false): int
-    {
+    public static function years(
+        int $n,
+        $baseTs = false,
+        bool $backwards = false,
+        $dayNum = false,
+        $monthNum = false
+    ): int {
         $baseTs = empty($baseTs) ? self::now() : $baseTs;
 
         $dayNum    = ((int) $dayNum < 1 || (int) $dayNum > 31) ? gmdate('j', $baseTs) : $dayNum;

@@ -263,7 +263,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         if (!empty($features)) {
             $license_addons = MeprUpdateCtrl::addons(true, true, true);
 
-            // lets try to install and activate add-on.
+            // Let's try to install and activate add-on.
             foreach ($features as $addon_slug) {
                 $response = self::maybe_install_activate_addons($license_addons, $addon_slug);
                 if (-1 === (int) $response) {
@@ -297,9 +297,9 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             $installed = isset($addon_info->extra_info->directory) && is_dir(WP_PLUGIN_DIR . '/' . $addon_info->extra_info->directory);
             $active    = isset($addon_info->extra_info->main_file) && is_plugin_active($addon_info->extra_info->main_file);
 
-            if ($installed && $active) { // already installed and active.
+            if ($installed && $active) { // Already installed and active.
                 return 1;
-            } elseif ($installed && !$active) { // already installed and inactive.
+            } elseif ($installed && !$active) { // Already installed and inactive.
                 if (isset($addon_info->extra_info->main_file)) {
                     self::maybe_install_dependent_plugin($addon_slug);
                     $result = activate_plugins(wp_unslash($addon_info->extra_info->main_file));
@@ -317,9 +317,9 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             $installed = is_dir(WP_PLUGIN_DIR . '/easy-affiliate');
             $active    = is_plugin_active('easy-affiliate/easy-affiliate.php');
 
-            if ($installed && $active) { // already installed and active.
+            if ($installed && $active) { // Already installed and active.
                 return 1;
-            } elseif ($installed && !$active) { // already installed and inactive.
+            } elseif ($installed && !$active) { // Already installed and inactive.
                 $result = activate_plugins('easy-affiliate/easy-affiliate.php');
                 return (int) is_wp_error($result);
             } else {
@@ -348,7 +348,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
                     if (isset($data['success']) && is_bool($data['success'])) {
                         if ($data['success']) {
-                            // Install Easy Affiliate
+                            // Install Easy Affiliate.
                             $result = self::download_and_activate_plugin($data['data']['download_url']);
 
                             if ($result && class_exists('EasyAffiliate\\Lib\\CtrlFactory')) {
@@ -356,7 +356,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                                     $ctrl = EasyAffiliate\Lib\CtrlFactory::fetch('UpdateCtrl');
                                     $ctrl->activate_license($data['data']['license_key']);
                                 } catch (Exception $e) {
-                                    // ignore
+                                    // Ignore.
                                 }
                             }
 
@@ -390,7 +390,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                 return 1;
             }
 
-            // if buddyboss is installed but not active, let's activate.
+            // If BuddyBoss is installed but not active, let's activate.
             if ($bboss_installed && !$bboss_active) {
                 $result = activate_plugins(wp_unslash($buddyboss_main_file));
                 delete_transient('_bp_activation_redirect');
@@ -439,7 +439,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
         $post_id = wp_insert_post([
             'post_type'   => $type == 'course' ? 'mpcs-course' : 'page',
-            'post_title'  => wp_slash($title), // post_title is expected to be slashed
+            'post_title'  => wp_slash($title), // The post_title is expected to be slashed.
             'post_status' => 'publish',
         ], true);
 
@@ -544,7 +544,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         MeprOnboardingHelper::maybe_set_steps_completed(1);
 
         if ('memberpress-onboarding' === (string) $_GET['page'] && 1 === (int) $_GET['step']) {
-            // to rebuild the mepr_license_info transient.
+            // To rebuild the mepr_license_info transient.
             MeprUpdateCtrl::manually_queue_update();
 
             $editions = MeprUtils::is_incorrect_edition_installed();
@@ -626,7 +626,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
     private static function download_and_activate_plugin($plugin_url)
     {
 
-        // Prepare variables
+        // Prepare variables.
         $url = esc_url_raw(
             add_query_arg(
                 [
@@ -639,7 +639,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
         $creds = request_filesystem_credentials($url, '', false, false, null);
 
-        // Check for file system permissions
+        // Check for file system permissions.
         if (false === $creds) {
             return false;
         }
@@ -648,25 +648,25 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             return false;
         }
 
-        // We do not need any extra credentials if we have gotten this far, so let's install the plugin
+        // We do not need any extra credentials if we have gotten this far, so let's install the plugin.
         require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-        // Do not allow WordPress to search/download translations, as this will break JS output
+        // Do not allow WordPress to search/download translations, as this will break JS output.
         remove_action('upgrader_process_complete', ['Language_Pack_Upgrader', 'async_upgrade'], 20);
 
-        // Create the plugin upgrader with our custom skin
+        // Create the plugin upgrader with our custom skin.
         $installer = new Plugin_Upgrader(new MeprAddonInstallSkin());
 
         $plugin = wp_unslash($plugin_url);
         $installer->install($plugin);
 
-        // Flush the cache and return the newly installed plugin basename
+        // Flush the cache and return the newly installed plugin basename.
         wp_cache_flush();
 
         if ($installer->plugin_info()) {
             $plugin_basename = $installer->plugin_info();
 
-            // Activate the plugin silently
+            // Activate the plugin silently.
             $activated = activate_plugin($plugin_basename);
 
             if (!is_wp_error($activated)) {
@@ -691,10 +691,10 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
     {
 
         if (!$addon_info->installable) {
-            return -1; // upgrade required.
+            return -1; // Upgrade required.
         }
 
-        // Prepare variables
+        // Prepare variables.
         $url = esc_url_raw(
             add_query_arg(
                 [
@@ -707,7 +707,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
         $creds = request_filesystem_credentials($url, '', false, false, null);
 
-        // Check for file system permissions
+        // Check for file system permissions.
         if (false === $creds) {
             return false;
         }
@@ -716,19 +716,19 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             return false;
         }
 
-        // We do not need any extra credentials if we have gotten this far, so let's install the plugin
+        // We do not need any extra credentials if we have gotten this far, so let's install the plugin.
         require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-        // Do not allow WordPress to search/download translations, as this will break JS output
+        // Do not allow WordPress to search/download translations, as this will break JS output.
         remove_action('upgrader_process_complete', ['Language_Pack_Upgrader', 'async_upgrade'], 20);
 
-        // Create the plugin upgrader with our custom skin
+        // Create the plugin upgrader with our custom skin.
         $installer = new Plugin_Upgrader(new MeprAddonInstallSkin());
 
         $plugin = wp_unslash($plugin_url);
         $installer->install($plugin);
 
-        // Flush the cache and return the newly installed plugin basename
+        // Flush the cache and return the newly installed plugin basename.
         wp_cache_flush();
 
         if ($installer->plugin_info()) {
@@ -736,7 +736,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
             self::maybe_install_dependent_plugin($addon_slug);
 
-            // Activate the plugin silently
+            // Activate the plugin silently.
             $activated = activate_plugin($plugin_basename);
 
             if (!is_wp_error($activated)) {
@@ -877,7 +877,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
         $post_id = wp_insert_post([
             'post_type'   => 'memberpressproduct',
-            'post_title'  => wp_slash($title), // post_title is expected to be slashed
+            'post_title'  => wp_slash($title), // The post_title is expected to be slashed.
             'post_status' => 'publish',
         ], true);
 
@@ -1094,7 +1094,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         if (!empty($mepr_options->integrations)) {
-            // Bail successfully if we already have a payment method
+            // Bail successfully if we already have a payment method.
             wp_send_json_success();
         }
 
@@ -1154,7 +1154,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             wp_send_json_error(__('Bad request.', 'memberpress'));
         }
 
-        // Don't delete a gateway that has a transaction or subscription
+        // Don't delete a gateway that has a transaction or subscription.
         $mepr_db            = MeprDb::fetch();
         $transaction_count  = (int) $mepr_db->get_count($mepr_db->transactions, ['gateway' => $gateway_id]);
         $subscription_count = (int) $mepr_db->get_count($mepr_db->subscriptions, ['gateway' => $gateway_id]);
@@ -1173,7 +1173,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                 $ctrl = MeprCtrlFactory::fetch('MeprStripConnectCtrl');
                 $ctrl->disconnect($gateway->id, 'remote');
             } catch (Exception $e) {
-                // ignore
+                // Ignore.
             }
         } elseif ($gateway instanceof MeprPayPalCommerceGateway) {
             $jwt = MeprAuthenticatorCtrl::generate_jwt([
@@ -1309,10 +1309,10 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         $rule->mepr_content = sanitize_text_field($rule_data['content_id']);
         $rule->store_meta();
 
-        // Delete rules first then add them back below
+        // Delete rules first then add them back below.
         MeprRuleAccessCondition::delete_all_by_rule($post_id);
 
-        // Let's store the access rules
+        // Let's store the access rules.
         $rule_access_condition                   = new MeprRuleAccessCondition(0);
         $rule_access_condition->rule_id          = $post_id;
         $rule_access_condition->access_type      = 'membership';
@@ -1432,7 +1432,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             if (in_array($data['addon_slug'], $features_data['addons_not_installed'], true)) {
                 $license_addons = MeprUpdateCtrl::addons(true, true, true);
 
-                // lets try to install and activate add-on.
+                // Let's try to install and activate add-on.
                 foreach ($features_data['addons_not_installed'] as $i => $addon_slug) {
                     if ($addon_slug == $data['addon_slug']) {
                         $response   = self::maybe_install_activate_addons($license_addons, $addon_slug);
@@ -1615,7 +1615,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
       <p>
         <?php
         printf(
-          // translators: %1$s open link tag, %2$s: close link tag
+            // Translators: %1$s open link tag, %2$s: close link tag.
             esc_html__("Hey, it looks like you started setting up MemberPress but didn't finish, %1\$sclick here to continue%2\$s.", 'memberpress'),
             '<a href="' . esc_url(admin_url('admin.php?page=memberpress-onboarding&step=1')) . '">',
             '</a>'

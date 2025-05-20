@@ -14,9 +14,9 @@ abstract class MeprMigrator implements MeprMigratorInterface
      *
      * Creates a new instance of the given $class and stores it.
      *
-     * @param  string  $class       The class name of the model to create
-     * @param  integer $existing_id The existing ID, if numeric and > 0, the model will be updated rather than created
-     * @param  array   $data        The array of properties to set on the model instance
+     * @param  string  $class       The class name of the model to create.
+     * @param  integer $existing_id The existing ID, if numeric and > 0, the model will be updated rather than created.
+     * @param  array   $data        The array of properties to set on the model instance.
      * @return mixed                 Returns an instance of $class
      * @throws Exception             If there was an issue creating the model. The caller should handle the exception
      *                               (log failure, continue processing for example).
@@ -73,7 +73,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
     {
         global $wpdb, $wp_object_cache;
 
-        // Empty the query log, this can grow constantly if SAVEQUERIES is enabled
+        // Empty the query log, this can grow constantly if SAVEQUERIES is enabled.
         $wpdb->queries = [];
 
         if ($wp_object_cache instanceof \WP_Object_Cache) {
@@ -88,8 +88,8 @@ abstract class MeprMigrator implements MeprMigratorInterface
     /**
      * Send a JSON success response.
      *
-     * @param array $data     The data for the current request
-     * @param array $response Additional data to add to the response
+     * @param array $data     The data for the current request.
+     * @param array $response Additional data to add to the response.
      */
     protected function send_success_response(array $data, array $response)
     {
@@ -107,16 +107,16 @@ abstract class MeprMigrator implements MeprMigratorInterface
     /**
      * Build the log message for a model migration failure.
      *
-     * @param  string         $class   The PHP class of the model
-     * @param  string         $title   The title of the model to identify it
-     * @param  integer|string $id      The ID of the model
-     * @param  string         $message The error message to display
+     * @param  string         $class   The PHP class of the model.
+     * @param  string         $title   The title of the model to identify it.
+     * @param  integer|string $id      The ID of the model.
+     * @param  string         $message The error message to display.
      * @return string
      */
     protected function model_migration_failed_log(string $class, string $title, $id, string $message): string
     {
         return sprintf(
-            // translators: %1$s: the model type, %2$s: the model title, %3$s: the model ID, %4$s: the error message
+            // Translators: %1$s: the model type, %2$s: the model title, %3$s: the model ID, %4$s: the error message.
             __('Failed to migrate %1$s "%2$s" [ID: %3$s]: %4$s', 'memberpress'),
             basename($class),
             $title,

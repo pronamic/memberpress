@@ -13,7 +13,7 @@ class MeprDbCtrl extends MeprBaseCtrl
      */
     public function load_hooks()
     {
-        // DB upgrades will happen here, as a non-blocking process hopefully
+        // DB upgrades will happen here, as a non-blocking process hopefully.
         add_action('init', [$this,'upgrade_needed'], 1);
         add_action('wp_ajax_mepr_db_upgrade', [$this,'ajax_db_upgrade']);
         add_action('wp_ajax_mepr_db_upgrade_success', [$this,'ajax_db_upgrade_success']);
@@ -25,7 +25,7 @@ class MeprDbCtrl extends MeprBaseCtrl
         add_action('mepr_migrate_members_table_015', 'MeprDbMigrations::populate_inactive_memberships_col_015');
 
         // Cleanup soft db migrate for now
-        // TODO: Remove soon
+        // TODO: Remove soon.
         $timestamp = wp_next_scheduled('mepr_migration_worker');
         if ($timestamp) {
             wp_unschedule_event($timestamp, 'mepr_migration_worker');
@@ -41,7 +41,7 @@ class MeprDbCtrl extends MeprBaseCtrl
     public function intervals($schedules)
     {
         $schedules['mepr_migrate_members_table_015_interval'] = [
-            'interval' => MeprUtils::minutes(10), // Run every 10 minutes
+            'interval' => MeprUtils::minutes(10), // Run every 10 minutes.
             'display'  => __('MemberPress Member Data Migrate Interval', 'memberpress'),
         ];
 
@@ -66,7 +66,7 @@ class MeprDbCtrl extends MeprBaseCtrl
             delete_transient('mepr_migration_error');
             delete_transient('mepr_current_migration');
             update_option('mepr_db_version', MEPR_VERSION);
-            // wp_redirect(admin_url('index.php'));
+
             return;
         }
 
@@ -77,7 +77,7 @@ class MeprDbCtrl extends MeprBaseCtrl
             exit;
         } else {
             try {
-                delete_transient('mepr_migration_error'); // Reset migration error transient
+                delete_transient('mepr_migration_error'); // Reset migration error transient.
                 $this->upgrade();
             } catch (MeprDbMigrationException $e) {
                 // We just log the error?
@@ -94,7 +94,7 @@ class MeprDbCtrl extends MeprBaseCtrl
     {
         check_ajax_referer('db_upgrade', 'mepr_db_upgrade_nonce');
 
-        // Network super admin and non-network admins will be the only ones dealing with upgrades
+        // Network super admin and non-network admins will be the only ones dealing with upgrades.
         if (!MeprUtils::is_mepr_admin()) {
             header('HTTP/1.1 403 Forbidden');
             exit(json_encode(['error' => __('You\'re unauthorized to access this resource.', 'memberpress')]));
@@ -106,7 +106,7 @@ class MeprDbCtrl extends MeprBaseCtrl
 
         if ($mepr_db->do_upgrade()) {
             try {
-                delete_transient('mepr_migration_error'); // Reset migration error transient
+                delete_transient('mepr_migration_error'); // Reset migration error transient.
                 $this->upgrade();
                 exit(json_encode([
                     'status'  => 'complete',
@@ -138,7 +138,7 @@ class MeprDbCtrl extends MeprBaseCtrl
 
         $mig = new MeprDbMigrations();
 
-        // Network super admin and non-network admins will be the only ones dealing with upgrades
+        // Network super admin and non-network admins will be the only ones dealing with upgrades.
         if (!MeprUtils::is_mepr_admin()) {
             header('HTTP/1.1 403 Forbidden');
             exit(json_encode(['error' => __('You\'re unauthorized to access this resource.', 'memberpress')]));
@@ -248,7 +248,7 @@ class MeprDbCtrl extends MeprBaseCtrl
         global $wpdb;
         $mepr_db = MeprDb::fetch();
 
-        // This is Async now so if we're already migrating this version then let's bail
+        // This is Async now so if we're already migrating this version then let's bail.
         $already_migrating = get_transient('mepr_migrating');
         if (!empty($already_migrating)) {
             return;
@@ -261,11 +261,11 @@ class MeprDbCtrl extends MeprBaseCtrl
             set_transient('mepr_migrating', MEPR_VERSION, MeprUtils::hours(4));
 
             // Leave this up to the individual migrations now
-            // $wpdb->query('START TRANSACTION');
+            // $wpdb->query('START TRANSACTION');.
             if (is_multisite()) {
                 global $blog_id;
 
-                // If we're on the root blog then let's upgrade every site on the network
+                // If we're on the root blog then let's upgrade every site on the network.
                 if ($blog_id == 1) {
                     $mepr_db->upgrade_multisite();
                 } else {

@@ -4,11 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "78ad7eeb080081aa6ce29118fac0246d",
+    "content-hash": "6ff534e6d1d7863a9d9b20180911a6f1",
     "packages": [
         {
             "name": "caseproof/ground-level-container",
-            "version": "0.14.2",
+            "version": "0.19.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:caseproof/ground-level-container.git",
@@ -44,28 +44,28 @@
             ],
             "description": "The GroundLevel Container package.",
             "support": {
-                "source": "https://github.com/caseproof/ground-level-container/tree/0.15.0"
+                "source": "https://github.com/caseproof/ground-level-container/tree/0.19.0"
             },
             "time": "2024-07-26T16:46:52+00:00"
         },
         {
             "name": "caseproof/ground-level-in-product-notifications",
-            "version": "0.15.0",
+            "version": "0.19.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:caseproof/ground-level-in-product-notifications.git",
-                "reference": "3a2233c09d7725c313d8b61a5e4318ac86f723ec"
+                "reference": "a7459239aa59b3978f527f87e0c682d6d4a422dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/caseproof/ground-level-in-product-notifications/zipball/3a2233c09d7725c313d8b61a5e4318ac86f723ec",
-                "reference": "3a2233c09d7725c313d8b61a5e4318ac86f723ec",
+                "url": "https://api.github.com/repos/caseproof/ground-level-in-product-notifications/zipball/a7459239aa59b3978f527f87e0c682d6d4a422dc",
+                "reference": "a7459239aa59b3978f527f87e0c682d6d4a422dc",
                 "shasum": ""
             },
             "require": {
-                "caseproof/ground-level-container": "^0.14.2",
-                "caseproof/ground-level-mothership": "^0.14.2",
-                "caseproof/ground-level-support": "^0.14.2",
+                "caseproof/ground-level-container": "^0.19.0",
+                "caseproof/ground-level-mothership": "^0.19.0",
+                "caseproof/ground-level-support": "^0.19.0",
                 "php": ">=7.4"
             },
             "type": "library",
@@ -85,27 +85,27 @@
             ],
             "description": "The GroundLevel In-Product Notifications package.",
             "support": {
-                "source": "https://github.com/caseproof/ground-level-in-product-notifications/tree/0.15.0"
+                "source": "https://github.com/caseproof/ground-level-in-product-notifications/tree/0.19.0"
             },
-            "time": "2024-12-10T22:02:30+00:00"
+            "time": "2025-04-23T21:30:16+00:00"
         },
         {
             "name": "caseproof/ground-level-mothership",
-            "version": "0.14.2",
+            "version": "0.19.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:caseproof/ground-level-mothership.git",
-                "reference": "3c90801f0a636e96ce9cecd721c2791ee4800f6f"
+                "reference": "4486b4497108cc8772e14ac4bf2015dcb29ab692"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/caseproof/ground-level-mothership/zipball/3c90801f0a636e96ce9cecd721c2791ee4800f6f",
-                "reference": "3c90801f0a636e96ce9cecd721c2791ee4800f6f",
+                "url": "https://api.github.com/repos/caseproof/ground-level-mothership/zipball/4486b4497108cc8772e14ac4bf2015dcb29ab692",
+                "reference": "4486b4497108cc8772e14ac4bf2015dcb29ab692",
                 "shasum": ""
             },
             "require": {
-                "caseproof/ground-level-container": "^0.14.2",
-                "caseproof/ground-level-support": "^0.14.2",
+                "caseproof/ground-level-container": "^0.19.0",
+                "caseproof/ground-level-support": "^0.19.0",
                 "php": ">=7.4"
             },
             "type": "library",
@@ -125,22 +125,22 @@
             ],
             "description": "The GroundLevel Mothership package.",
             "support": {
-                "source": "https://github.com/caseproof/ground-level-mothership/tree/0.15.0"
+                "source": "https://github.com/caseproof/ground-level-mothership/tree/0.19.0"
             },
-            "time": "2024-12-10T22:02:30+00:00"
+            "time": "2025-04-23T21:30:16+00:00"
         },
         {
             "name": "caseproof/ground-level-support",
-            "version": "0.14.2",
+            "version": "0.19.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:caseproof/ground-level-support.git",
-                "reference": "f47ed44f5742fdbb14f17329fe2f90503ea457da"
+                "reference": "3c5893901568367847d4a572ccd66d350e8b2ae8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/caseproof/ground-level-support/zipball/f47ed44f5742fdbb14f17329fe2f90503ea457da",
-                "reference": "f47ed44f5742fdbb14f17329fe2f90503ea457da",
+                "url": "https://api.github.com/repos/caseproof/ground-level-support/zipball/3c5893901568367847d4a572ccd66d350e8b2ae8",
+                "reference": "3c5893901568367847d4a572ccd66d350e8b2ae8",
                 "shasum": ""
             },
             "require": {
@@ -163,22 +163,22 @@
             ],
             "description": "The GroundLevel Support package.",
             "support": {
-                "source": "https://github.com/caseproof/ground-level-support/tree/0.15.0"
+                "source": "https://github.com/caseproof/ground-level-support/tree/0.19.0"
             },
-            "time": "2024-11-15T00:45:15+00:00"
+            "time": "2025-02-05T11:24:25+00:00"
         },
         {
             "name": "caseproof/growth-tools",
-            "version": "1.4.0",
+            "version": "1.4.1",
             "source": {
                 "type": "git",
                 "url": "git@github.com:caseproof/growth-tools.git",
-                "reference": "02a067eebaf6499785a0c82124fe93f18c4beed9"
+                "reference": "fe272c4bfde8bf2ca583cffa684ae068790ddbeb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/caseproof/growth-tools/zipball/02a067eebaf6499785a0c82124fe93f18c4beed9",
-                "reference": "02a067eebaf6499785a0c82124fe93f18c4beed9",
+                "url": "https://api.github.com/repos/caseproof/growth-tools/zipball/fe272c4bfde8bf2ca583cffa684ae068790ddbeb",
+                "reference": "fe272c4bfde8bf2ca583cffa684ae068790ddbeb",
                 "shasum": ""
             },
             "require-dev": {
@@ -190,6 +190,9 @@
             "suggest": {
                 "caseproof/ground-level-console": "A simple command line interface (CLI) based on the Symfony Console Component"
             },
+            "bin": [
+                "bin/cspf-gt-i18n-replace"
+            ],
             "type": "wordpress-plugin",
             "autoload": {
                 "psr-4": {
@@ -251,10 +254,10 @@
             ],
             "description": "Feature plugin to provide Growth Tools to Caseproof distributed plugins.",
             "support": {
-                "source": "https://github.com/caseproof/growth-tools/tree/1.4.0",
+                "source": "https://github.com/caseproof/growth-tools/tree/1.4.1",
                 "issues": "https://github.com/caseproof/growth-tools/issues"
             },
-            "time": "2025-02-20T14:55:31+00:00"
+            "time": "2025-02-21T11:29:37+00:00"
         },
         {
             "name": "psr/container",
@@ -431,16 +434,16 @@
         },
         {
             "name": "brianhenryie/strauss",
-            "version": "0.21.0",
+            "version": "0.21.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BrianHenryIE/strauss.git",
-                "reference": "e8617ada33b3a3a2ab804539336ddac1cfcb1894"
+                "reference": "df9c86a9ef52d5fb091e3287a7b2d4c294b9b770"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BrianHenryIE/strauss/zipball/e8617ada33b3a3a2ab804539336ddac1cfcb1894",
-                "reference": "e8617ada33b3a3a2ab804539336ddac1cfcb1894",
+                "url": "https://api.github.com/repos/BrianHenryIE/strauss/zipball/df9c86a9ef52d5fb091e3287a7b2d4c294b9b770",
+                "reference": "df9c86a9ef52d5fb091e3287a7b2d4c294b9b770",
                 "shasum": ""
             },
             "require": {
@@ -491,9 +494,9 @@
             "description": "Composes all dependencies as a package inside a WordPress plugin",
             "support": {
                 "issues": "https://github.com/BrianHenryIE/strauss/issues",
-                "source": "https://github.com/BrianHenryIE/strauss/tree/0.21.0"
+                "source": "https://github.com/BrianHenryIE/strauss/tree/0.21.1"
             },
-            "time": "2025-01-04T04:12:14+00:00"
+            "time": "2025-01-10T15:42:56+00:00"
         },
         {
             "name": "caseproof/coding-standards-php",
@@ -560,16 +563,16 @@
         },
         {
             "name": "caseproof/core-cli",
-            "version": "1.1.2",
+            "version": "1.2.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:caseproof/core-cli.git",
-                "reference": "1577cbd0f9cdf79c648d7378d7dd5fd251bd2803"
+                "reference": "97923b409f12ce34dccdb1b3e7a0fa04a6a46e58"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/caseproof/core-cli/zipball/1577cbd0f9cdf79c648d7378d7dd5fd251bd2803",
-                "reference": "1577cbd0f9cdf79c648d7378d7dd5fd251bd2803",
+                "url": "https://api.github.com/repos/caseproof/core-cli/zipball/97923b409f12ce34dccdb1b3e7a0fa04a6a46e58",
+                "reference": "97923b409f12ce34dccdb1b3e7a0fa04a6a46e58",
                 "shasum": ""
             },
             "require": {
@@ -618,23 +621,23 @@
             },
             "description": "A CLI application to build branded versions of Membership Core.",
             "support": {
-                "source": "https://github.com/caseproof/core-cli/tree/1.1.2",
+                "source": "https://github.com/caseproof/core-cli/tree/1.2.0",
                 "issues": "https://github.com/caseproof/core-cli/issues"
             },
-            "time": "2025-01-28T19:24:36+00:00"
+            "time": "2025-05-13T16:42:53+00:00"
         },
         {
             "name": "caseproof/ground-level-console",
-            "version": "0.15.1",
+            "version": "0.19.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:caseproof/ground-level-console.git",
-                "reference": "e6e7d1ad538f1754e8f45e649b17b2185c49aa1c"
+                "reference": "8289cff8873a95c6fa1ad13efc0155b75a8eb60a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/caseproof/ground-level-console/zipball/e6e7d1ad538f1754e8f45e649b17b2185c49aa1c",
-                "reference": "e6e7d1ad538f1754e8f45e649b17b2185c49aa1c",
+                "url": "https://api.github.com/repos/caseproof/ground-level-console/zipball/8289cff8873a95c6fa1ad13efc0155b75a8eb60a",
+                "reference": "8289cff8873a95c6fa1ad13efc0155b75a8eb60a",
                 "shasum": ""
             },
             "require": {
@@ -661,22 +664,22 @@
             ],
             "description": "The GroundLevel Console package.",
             "support": {
-                "source": "https://github.com/caseproof/ground-level-console/tree/0.15.1"
+                "source": "https://github.com/caseproof/ground-level-console/tree/0.19.0"
             },
-            "time": "2025-01-10T23:10:50+00:00"
+            "time": "2025-04-22T15:18:10+00:00"
         },
         {
             "name": "caseproof/ground-level-php-tests",
-            "version": "0.8.3",
+            "version": "0.8.6",
             "source": {
                 "type": "git",
                 "url": "git@github.com:caseproof/ground-level-php-tests.git",
-                "reference": "a572d119acd1d65b18cfd498eed320affff300d3"
+                "reference": "f85f4d81e79fa734e41cc39e2ef7917b7b21372a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/caseproof/ground-level-php-tests/zipball/a572d119acd1d65b18cfd498eed320affff300d3",
-                "reference": "a572d119acd1d65b18cfd498eed320affff300d3",
+                "url": "https://api.github.com/repos/caseproof/ground-level-php-tests/zipball/f85f4d81e79fa734e41cc39e2ef7917b7b21372a",
+                "reference": "f85f4d81e79fa734e41cc39e2ef7917b7b21372a",
                 "shasum": ""
             },
             "require": {
@@ -733,23 +736,23 @@
             ],
             "description": "Testing library for Caseproof PHP projects.",
             "support": {
-                "source": "https://github.com/caseproof/ground-level-php-tests/tree/0.8.3",
+                "source": "https://github.com/caseproof/ground-level-php-tests/tree/0.8.6",
                 "issues": "https://github.com/caseproof/ground-level-php-tests/issues"
             },
-            "time": "2024-12-20T10:48:12+00:00"
+            "time": "2025-03-07T17:48:40+00:00"
         },
         {
             "name": "composer/ca-bundle",
-            "version": "1.5.5",
+            "version": "1.5.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/ca-bundle.git",
-                "reference": "08c50d5ec4c6ced7d0271d2862dec8c1033283e6"
+                "reference": "f65c239c970e7f072f067ab78646e9f0b2935175"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/ca-bundle/zipball/08c50d5ec4c6ced7d0271d2862dec8c1033283e6",
-                "reference": "08c50d5ec4c6ced7d0271d2862dec8c1033283e6",
+                "url": "https://api.github.com/repos/composer/ca-bundle/zipball/f65c239c970e7f072f067ab78646e9f0b2935175",
+                "reference": "f65c239c970e7f072f067ab78646e9f0b2935175",
                 "shasum": ""
             },
             "require": {
@@ -796,7 +799,7 @@
             "support": {
                 "irc": "irc://irc.freenode.org/composer",
                 "issues": "https://github.com/composer/ca-bundle/issues",
-                "source": "https://github.com/composer/ca-bundle/tree/1.5.5"
+                "source": "https://github.com/composer/ca-bundle/tree/1.5.6"
             },
             "funding": [
                 {
@@ -812,20 +815,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-01-08T16:17:16+00:00"
+            "time": "2025-03-06T14:30:56+00:00"
         },
         {
             "name": "composer/class-map-generator",
-            "version": "1.5.0",
+            "version": "1.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/class-map-generator.git",
-                "reference": "4b0a223cf5be7c9ee7e0ef1bc7db42b4a97c9915"
+                "reference": "134b705ddb0025d397d8318a75825fe3c9d1da34"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/class-map-generator/zipball/4b0a223cf5be7c9ee7e0ef1bc7db42b4a97c9915",
-                "reference": "4b0a223cf5be7c9ee7e0ef1bc7db42b4a97c9915",
+                "url": "https://api.github.com/repos/composer/class-map-generator/zipball/134b705ddb0025d397d8318a75825fe3c9d1da34",
+                "reference": "134b705ddb0025d397d8318a75825fe3c9d1da34",
                 "shasum": ""
             },
             "require": {
@@ -869,7 +872,7 @@
             ],
             "support": {
                 "issues": "https://github.com/composer/class-map-generator/issues",
-                "source": "https://github.com/composer/class-map-generator/tree/1.5.0"
+                "source": "https://github.com/composer/class-map-generator/tree/1.6.1"
             },
             "funding": [
                 {
@@ -885,20 +888,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-11-25T16:11:06+00:00"
+            "time": "2025-03-24T13:50:44+00:00"
         },
         {
             "name": "composer/composer",
-            "version": "2.8.4",
+            "version": "2.8.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "112e37d1dca22b3fdb81cf3524ab4994f47fdb8c"
+                "reference": "85ff84d6c5260ba21740a7c5c9a111890805d6e7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/112e37d1dca22b3fdb81cf3524ab4994f47fdb8c",
-                "reference": "112e37d1dca22b3fdb81cf3524ab4994f47fdb8c",
+                "url": "https://api.github.com/repos/composer/composer/zipball/85ff84d6c5260ba21740a7c5c9a111890805d6e7",
+                "reference": "85ff84d6c5260ba21740a7c5c9a111890805d6e7",
                 "shasum": ""
             },
             "require": {
@@ -909,7 +912,7 @@
                 "composer/semver": "^3.3",
                 "composer/spdx-licenses": "^1.5.7",
                 "composer/xdebug-handler": "^2.0.2 || ^3.0.3",
-                "justinrainbow/json-schema": "^5.3",
+                "justinrainbow/json-schema": "^6.3.1",
                 "php": "^7.2.5 || ^8.0",
                 "psr/log": "^1.0 || ^2.0 || ^3.0",
                 "react/promise": "^2.11 || ^3.2",
@@ -983,7 +986,7 @@
                 "irc": "ircs://irc.libera.chat:6697/composer",
                 "issues": "https://github.com/composer/composer/issues",
                 "security": "https://github.com/composer/composer/security/policy",
-                "source": "https://github.com/composer/composer/tree/2.8.4"
+                "source": "https://github.com/composer/composer/tree/2.8.8"
             },
             "funding": [
                 {
@@ -999,7 +1002,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-12-11T10:57:47+00:00"
+            "time": "2025-04-04T14:56:46+00:00"
         },
         {
             "name": "composer/metadata-minifier",
@@ -1728,16 +1731,16 @@
         },
         {
             "name": "gettext/languages",
-            "version": "2.10.0",
+            "version": "2.12.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-gettext/Languages.git",
-                "reference": "4d61d67fe83a2ad85959fe6133d6d9ba7dddd1ab"
+                "reference": "0b0b0851c55168e1dfb14305735c64019732b5f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-gettext/Languages/zipball/4d61d67fe83a2ad85959fe6133d6d9ba7dddd1ab",
-                "reference": "4d61d67fe83a2ad85959fe6133d6d9ba7dddd1ab",
+                "url": "https://api.github.com/repos/php-gettext/Languages/zipball/0b0b0851c55168e1dfb14305735c64019732b5f1",
+                "reference": "0b0b0851c55168e1dfb14305735c64019732b5f1",
                 "shasum": ""
             },
             "require": {
@@ -1747,7 +1750,8 @@
                 "phpunit/phpunit": "^4.8 || ^5.7 || ^6.5 || ^7.5 || ^8.4"
             },
             "bin": [
-                "bin/export-plural-rules"
+                "bin/export-plural-rules",
+                "bin/import-cldr-data"
             ],
             "type": "library",
             "autoload": {
@@ -1786,7 +1790,7 @@
             ],
             "support": {
                 "issues": "https://github.com/php-gettext/Languages/issues",
-                "source": "https://github.com/php-gettext/Languages/tree/2.10.0"
+                "source": "https://github.com/php-gettext/Languages/tree/2.12.1"
             },
             "funding": [
                 {
@@ -1798,7 +1802,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-10-18T15:00:10+00:00"
+            "time": "2025-03-19T11:14:02+00:00"
         },
         {
             "name": "hamcrest/hamcrest-php",
@@ -1853,16 +1857,16 @@
         },
         {
             "name": "json-mapper/json-mapper",
-            "version": "2.22.2",
+            "version": "2.24.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JsonMapper/JsonMapper.git",
-                "reference": "cffe898d9fa034f8e633d7146a1f93bf7be52f2e"
+                "reference": "82752af438c5b83f35e651eff7e67b80864b3b02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JsonMapper/JsonMapper/zipball/cffe898d9fa034f8e633d7146a1f93bf7be52f2e",
-                "reference": "cffe898d9fa034f8e633d7146a1f93bf7be52f2e",
+                "url": "https://api.github.com/repos/JsonMapper/JsonMapper/zipball/82752af438c5b83f35e651eff7e67b80864b3b02",
+                "reference": "82752af438c5b83f35e651eff7e67b80864b3b02",
                 "shasum": ""
             },
             "require": {
@@ -1918,34 +1922,44 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-05-14T09:24:45+00:00"
+            "time": "2025-04-08T09:50:03+00:00"
         },
         {
             "name": "justinrainbow/json-schema",
-            "version": "5.3.0",
+            "version": "6.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jsonrainbow/json-schema.git",
-                "reference": "feb2ca6dd1cebdaf1ed60a4c8de2e53ce11c4fd8"
+                "reference": "35d262c94959571e8736db1e5c9bc36ab94ae900"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/feb2ca6dd1cebdaf1ed60a4c8de2e53ce11c4fd8",
-                "reference": "feb2ca6dd1cebdaf1ed60a4c8de2e53ce11c4fd8",
+                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/35d262c94959571e8736db1e5c9bc36ab94ae900",
+                "reference": "35d262c94959571e8736db1e5c9bc36ab94ae900",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.1"
+                "ext-json": "*",
+                "marc-mabe/php-enum": "^4.0",
+                "php": "^7.2 || ^8.0"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "~2.2.20||~2.15.1",
+                "friendsofphp/php-cs-fixer": "3.3.0",
                 "json-schema/json-schema-test-suite": "1.2.0",
-                "phpunit/phpunit": "^4.8.35"
+                "marc-mabe/php-enum-phpstan": "^2.0",
+                "phpspec/prophecy": "^1.19",
+                "phpstan/phpstan": "^1.12",
+                "phpunit/phpunit": "^8.5"
             },
             "bin": [
                 "bin/validate-json"
             ],
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "6.x-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "JsonSchema\\": "src/JsonSchema/"
@@ -1974,16 +1988,16 @@
                 }
             ],
             "description": "A library to validate a json schema.",
-            "homepage": "https://github.com/justinrainbow/json-schema",
+            "homepage": "https://github.com/jsonrainbow/json-schema",
             "keywords": [
                 "json",
                 "schema"
             ],
             "support": {
                 "issues": "https://github.com/jsonrainbow/json-schema/issues",
-                "source": "https://github.com/jsonrainbow/json-schema/tree/5.3.0"
+                "source": "https://github.com/jsonrainbow/json-schema/tree/6.4.1"
             },
-            "time": "2024-07-06T21:00:26+00:00"
+            "time": "2025-04-04T13:08:07+00:00"
         },
         {
             "name": "league/flysystem",
@@ -2128,17 +2142,90 @@
             "time": "2024-09-21T08:32:55+00:00"
         },
         {
-            "name": "mck89/peast",
-            "version": "v1.16.3",
+            "name": "marc-mabe/php-enum",
+            "version": "v4.7.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/mck89/peast.git",
-                "reference": "645ec21b650bc2aced18285c85f220d22afc1430"
+                "url": "https://github.com/marc-mabe/php-enum.git",
+                "reference": "7159809e5cfa041dca28e61f7f7ae58063aae8ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mck89/peast/zipball/645ec21b650bc2aced18285c85f220d22afc1430",
-                "reference": "645ec21b650bc2aced18285c85f220d22afc1430",
+                "url": "https://api.github.com/repos/marc-mabe/php-enum/zipball/7159809e5cfa041dca28e61f7f7ae58063aae8ed",
+                "reference": "7159809e5cfa041dca28e61f7f7ae58063aae8ed",
+                "shasum": ""
+            },
+            "require": {
+                "ext-reflection": "*",
+                "php": "^7.1 | ^8.0"
+            },
+            "require-dev": {
+                "phpbench/phpbench": "^0.16.10 || ^1.0.4",
+                "phpstan/phpstan": "^1.3.1",
+                "phpunit/phpunit": "^7.5.20 | ^8.5.22 | ^9.5.11",
+                "vimeo/psalm": "^4.17.0 | ^5.26.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-3.x": "3.2-dev",
+                    "dev-master": "4.7-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MabeEnum\\": "src/"
+                },
+                "classmap": [
+                    "stubs/Stringable.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Marc Bennewitz",
+                    "email": "dev@mabe.berlin",
+                    "homepage": "https://mabe.berlin/",
+                    "role": "Lead"
+                }
+            ],
+            "description": "Simple and fast implementation of enumerations with native PHP",
+            "homepage": "https://github.com/marc-mabe/php-enum",
+            "keywords": [
+                "enum",
+                "enum-map",
+                "enum-set",
+                "enumeration",
+                "enumerator",
+                "enummap",
+                "enumset",
+                "map",
+                "set",
+                "type",
+                "type-hint",
+                "typehint"
+            ],
+            "support": {
+                "issues": "https://github.com/marc-mabe/php-enum/issues",
+                "source": "https://github.com/marc-mabe/php-enum/tree/v4.7.1"
+            },
+            "time": "2024-11-28T04:54:44+00:00"
+        },
+        {
+            "name": "mck89/peast",
+            "version": "v1.17.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mck89/peast.git",
+                "reference": "3a752d39bd7d8dc1e19bcf424f3d5ac1a1ca6ad5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mck89/peast/zipball/3a752d39bd7d8dc1e19bcf424f3d5ac1a1ca6ad5",
+                "reference": "3a752d39bd7d8dc1e19bcf424f3d5ac1a1ca6ad5",
                 "shasum": ""
             },
             "require": {
@@ -2151,7 +2238,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.16.3-dev"
+                    "dev-master": "1.17.0-dev"
                 }
             },
             "autoload": {
@@ -2172,9 +2259,9 @@
             "description": "Peast is PHP library that generates AST for JavaScript code",
             "support": {
                 "issues": "https://github.com/mck89/peast/issues",
-                "source": "https://github.com/mck89/peast/tree/v1.16.3"
+                "source": "https://github.com/mck89/peast/tree/v1.17.0"
             },
-            "time": "2024-07-23T14:00:32+00:00"
+            "time": "2025-03-07T19:44:14+00:00"
         },
         {
             "name": "mockery/mockery",
@@ -2311,16 +2398,16 @@
         },
         {
             "name": "myclabs/deep-copy",
-            "version": "1.12.1",
+            "version": "1.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/DeepCopy.git",
-                "reference": "123267b2c49fbf30d78a7b2d333f6be754b94845"
+                "reference": "024473a478be9df5fdaca2c793f2232fe788e414"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/123267b2c49fbf30d78a7b2d333f6be754b94845",
-                "reference": "123267b2c49fbf30d78a7b2d333f6be754b94845",
+                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/024473a478be9df5fdaca2c793f2232fe788e414",
+                "reference": "024473a478be9df5fdaca2c793f2232fe788e414",
                 "shasum": ""
             },
             "require": {
@@ -2359,7 +2446,7 @@
             ],
             "support": {
                 "issues": "https://github.com/myclabs/DeepCopy/issues",
-                "source": "https://github.com/myclabs/DeepCopy/tree/1.12.1"
+                "source": "https://github.com/myclabs/DeepCopy/tree/1.13.0"
             },
             "funding": [
                 {
@@ -2367,20 +2454,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-11-08T17:47:46+00:00"
+            "time": "2025-02-12T12:17:51+00:00"
         },
         {
             "name": "myclabs/php-enum",
-            "version": "1.8.4",
+            "version": "1.8.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/php-enum.git",
-                "reference": "a867478eae49c9f59ece437ae7f9506bfaa27483"
+                "reference": "e7be26966b7398204a234f8673fdad5ac6277802"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/php-enum/zipball/a867478eae49c9f59ece437ae7f9506bfaa27483",
-                "reference": "a867478eae49c9f59ece437ae7f9506bfaa27483",
+                "url": "https://api.github.com/repos/myclabs/php-enum/zipball/e7be26966b7398204a234f8673fdad5ac6277802",
+                "reference": "e7be26966b7398204a234f8673fdad5ac6277802",
                 "shasum": ""
             },
             "require": {
@@ -2390,7 +2477,7 @@
             "require-dev": {
                 "phpunit/phpunit": "^9.5",
                 "squizlabs/php_codesniffer": "1.*",
-                "vimeo/psalm": "^4.6.2"
+                "vimeo/psalm": "^4.6.2 || ^5.2"
             },
             "type": "library",
             "autoload": {
@@ -2412,13 +2499,13 @@
                 }
             ],
             "description": "PHP Enum implementation",
-            "homepage": "http://github.com/myclabs/php-enum",
+            "homepage": "https://github.com/myclabs/php-enum",
             "keywords": [
                 "enum"
             ],
             "support": {
                 "issues": "https://github.com/myclabs/php-enum/issues",
-                "source": "https://github.com/myclabs/php-enum/tree/1.8.4"
+                "source": "https://github.com/myclabs/php-enum/tree/1.8.5"
             },
             "funding": [
                 {
@@ -2430,7 +2517,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-08-04T09:53:51+00:00"
+            "time": "2025-01-14T11:49:03+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -2670,22 +2757,22 @@
         },
         {
             "name": "phpcsstandards/phpcsextra",
-            "version": "1.2.1",
+            "version": "1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPCSStandards/PHPCSExtra.git",
-                "reference": "11d387c6642b6e4acaf0bd9bf5203b8cca1ec489"
+                "reference": "46d08eb86eec622b96c466adec3063adfed280dd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPCSStandards/PHPCSExtra/zipball/11d387c6642b6e4acaf0bd9bf5203b8cca1ec489",
-                "reference": "11d387c6642b6e4acaf0bd9bf5203b8cca1ec489",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHPCSExtra/zipball/46d08eb86eec622b96c466adec3063adfed280dd",
+                "reference": "46d08eb86eec622b96c466adec3063adfed280dd",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.4",
                 "phpcsstandards/phpcsutils": "^1.0.9",
-                "squizlabs/php_codesniffer": "^3.8.0"
+                "squizlabs/php_codesniffer": "^3.12.1"
             },
             "require-dev": {
                 "php-parallel-lint/php-console-highlighter": "^1.0",
@@ -2742,9 +2829,13 @@
                 {
                     "url": "https://opencollective.com/php_codesniffer",
                     "type": "open_collective"
+                },
+                {
+                    "url": "https://thanks.dev/u/gh/phpcsstandards",
+                    "type": "thanks_dev"
                 }
             ],
-            "time": "2023-12-08T16:49:07+00:00"
+            "time": "2025-04-20T23:35:32+00:00"
         },
         {
             "name": "phpcsstandards/phpcsutils",
@@ -4685,16 +4776,16 @@
         },
         {
             "name": "squizlabs/php_codesniffer",
-            "version": "3.11.2",
+            "version": "3.12.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
-                "reference": "1368f4a58c3c52114b86b1abe8f4098869cb0079"
+                "reference": "6d4cf6032d4b718f168c90a96e36c7d0eaacb2aa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/1368f4a58c3c52114b86b1abe8f4098869cb0079",
-                "reference": "1368f4a58c3c52114b86b1abe8f4098869cb0079",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/6d4cf6032d4b718f168c90a96e36c7d0eaacb2aa",
+                "reference": "6d4cf6032d4b718f168c90a96e36c7d0eaacb2aa",
                 "shasum": ""
             },
             "require": {
@@ -4759,9 +4850,13 @@
                 {
                     "url": "https://opencollective.com/php_codesniffer",
                     "type": "open_collective"
+                },
+                {
+                    "url": "https://thanks.dev/u/gh/phpcsstandards",
+                    "type": "thanks_dev"
                 }
             ],
-            "time": "2024-12-11T16:04:26+00:00"
+            "time": "2025-04-13T04:10:18+00:00"
         },
         {
             "name": "symfony/cache",
@@ -6788,16 +6883,16 @@
         },
         {
             "name": "yoast/phpunit-polyfills",
-            "version": "1.1.3",
+            "version": "1.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Yoast/PHPUnit-Polyfills.git",
-                "reference": "0b31ce834facf03b8b44b6587e65b3cf1d7cfb94"
+                "reference": "e6faedf5e34cea4438e341f660e2f719760c531d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Yoast/PHPUnit-Polyfills/zipball/0b31ce834facf03b8b44b6587e65b3cf1d7cfb94",
-                "reference": "0b31ce834facf03b8b44b6587e65b3cf1d7cfb94",
+                "url": "https://api.github.com/repos/Yoast/PHPUnit-Polyfills/zipball/e6faedf5e34cea4438e341f660e2f719760c531d",
+                "reference": "e6faedf5e34cea4438e341f660e2f719760c531d",
                 "shasum": ""
             },
             "require": {
@@ -6812,7 +6907,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "3.x-dev"
+                    "dev-main": "4.x-dev"
                 }
             },
             "autoload": {
@@ -6847,7 +6942,7 @@
                 "security": "https://github.com/Yoast/PHPUnit-Polyfills/security/policy",
                 "source": "https://github.com/Yoast/PHPUnit-Polyfills"
             },
-            "time": "2025-01-08T16:58:34+00:00"
+            "time": "2025-02-09T18:13:44+00:00"
         }
     ],
     "aliases": [],

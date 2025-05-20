@@ -10,12 +10,46 @@ if (!class_exists('WP_List_Table')) {
 
 class MeprMembersTable extends WP_List_Table
 {
+    /**
+     * Screen object.
+     *
+     * @var \WP_Screen
+     */
     public $_screen;
+
+    /**
+     * Columns for the table.
+     *
+     * @var array
+     */
     public $_columns;
+
+    /**
+     * Sortable columns.
+     *
+     * @var array
+     */
     public $_sortable;
 
+    /**
+     * Searchable fields.
+     *
+     * @var array
+     */
     public $_searchable;
+
+    /**
+     * Database search columns mapping.
+     *
+     * @var array
+     */
     public $db_search_cols;
+
+    /**
+     * Total number of items.
+     *
+     * @var integer
+     */
     public $totalitems;
 
     /**
@@ -55,9 +89,9 @@ class MeprMembersTable extends WP_List_Table
 
         parent::__construct(
             [
-                'singular' => 'wp_list_mepr_members', // Singular label
-                'plural'   => 'wp_list_mepr_members', // plural label, also this will be one of the table css class
-                'ajax'     => true, // false //We won't support Ajax for this table
+                'singular' => 'wp_list_mepr_members', // Singular label.
+                'plural'   => 'wp_list_mepr_members', // Plural label, also this will be one of the table css class.
+                'ajax'     => true, // It's false as we won't support Ajax for this table.
             ]
         );
     }
@@ -72,7 +106,7 @@ class MeprMembersTable extends WP_List_Table
         $columns = get_column_headers($this->_screen);
         $hidden  = get_hidden_columns($this->_screen);
 
-        // Bypass MeprHooks to call built-in filter
+        // Bypass MeprHooks to call built-in filter.
         $sortable = apply_filters("manage_{$this->_screen->id}_sortable_columns", $this->get_sortable_columns());
 
         $primary = 'col_id';
@@ -150,7 +184,7 @@ class MeprMembersTable extends WP_List_Table
             $perpage = !empty($option) ? get_user_meta($user_id, $option, true) : 10;
             $perpage = !empty($perpage) && !is_array($perpage) ? $perpage : 10;
 
-            // Specifically for the CSV export to work properly
+            // Specifically for the CSV export to work properly.
             $_SERVER['QUERY_STRING'] = ( empty($_SERVER['QUERY_STRING']) ? '?' : "{$_SERVER['QUERY_STRING']}&" ) . "perpage={$perpage}";
         } else {
             $perpage = !empty($_GET['perpage']) ? esc_sql($_GET['perpage']) : 10;
@@ -182,7 +216,7 @@ class MeprMembersTable extends WP_List_Table
         if (isset($screen) && is_object($screen)) {
             $this->_column_headers = $this->get_column_info();
         } else {
-            // For CSV to work properly
+            // For CSV to work properly.
             $this->_column_headers = [
                 $this->get_columns(),
                 [],
@@ -203,10 +237,10 @@ class MeprMembersTable extends WP_List_Table
      */
     public function display_rows()
     {
-        // Get the records registered in the prepare_items method
+        // Get the records registered in the prepare_items method.
         $records = $this->items;
 
-        // Get the columns registered in the get_columns and get_sortable_columns methods
+        // Get the columns registered in the get_columns and get_sortable_columns methods.
         list( $columns, $hidden ) = $this->get_column_info();
 
         MeprView::render('/admin/members/row', get_defined_vars());

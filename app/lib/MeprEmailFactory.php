@@ -16,6 +16,7 @@ class MeprEmailFactory
      * @param  string $etype The etype.
      * @param  array  $args  The args.
      * @return mixed
+     * @throws MeprInvalidEmailException When class doesn't exist or is not a valid email object.
      */
     public static function fetch($class, $etype = 'MeprBaseEmail', $args = [])
     {
@@ -24,7 +25,7 @@ class MeprEmailFactory
         }
 
         // We'll let the autoloader in memberpress.php
-        // handle including files containing these classes
+        // handle including files containing these classes.
         $r   = new ReflectionClass($class);
         $obj = $r->newInstanceArgs($args);
 
@@ -62,12 +63,12 @@ class MeprEmailFactory
                         $obj                  = self::fetch($class, $etype, $args);
                         $objs[$etype][$class] = $obj;
                     } catch (Exception $e) {
-                        continue; // For now we do nothing if an exception is thrown
+                        continue; // For now we do nothing if an exception is thrown.
                     }
                 }
             }
 
-            // order based on the ui_order
+            // Order based on the ui_order.
             uasort($objs[$etype], function ($a, $b) {
                 if ($a->ui_order == $b->ui_order) {
                     return 0;

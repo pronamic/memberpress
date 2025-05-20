@@ -47,23 +47,88 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         );
     }
 
-    // Transaction Types
+    // Transaction Types.
+    /**
+     * Payment transaction type.
+     *
+     * @var string
+     */
     public static $payment_str                   = 'payment';
+    /**
+     * Subscription confirmation transaction type.
+     *
+     * @var string
+     */
     public static $subscription_confirmation_str = 'subscription_confirmation';
+    /**
+     * Sub-account transaction type.
+     *
+     * @var string
+     */
     public static $sub_account_str               = 'sub_account';
+    /**
+     * WooCommerce transaction type.
+     *
+     * @var string
+     */
     public static $woo_txn_str                   = 'wc_transaction';
+    /**
+     * Fallback transaction type.
+     *
+     * @var string
+     */
     public static $fallback_str                  = 'fallback';
 
-    // Statuses
+    // Statuses.
+    /**
+     * Pending transaction status.
+     *
+     * @var string
+     */
     public static $pending_str   = 'pending';
+    /**
+     * Failed transaction status.
+     *
+     * @var string
+     */
     public static $failed_str    = 'failed';
+    /**
+     * Complete transaction status.
+     *
+     * @var string
+     */
     public static $complete_str  = 'complete';
+    /**
+     * Confirmed transaction status.
+     *
+     * @var string
+     */
     public static $confirmed_str = 'confirmed';
+    /**
+     * Refunded transaction status.
+     *
+     * @var string
+     */
     public static $refunded_str  = 'refunded';
 
-    // Static Gateways
+    // Static Gateways.
+    /**
+     * Free gateway identifier.
+     *
+     * @var string
+     */
     public static $free_gateway_str     = 'free';
+    /**
+     * Manual gateway identifier.
+     *
+     * @var string
+     */
     public static $manual_gateway_str   = 'manual';
+    /**
+     * Fallback gateway identifier.
+     *
+     * @var string
+     */
     public static $fallback_gateway_str = 'fallback';
 
     /**
@@ -138,9 +203,10 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         }
 
         $args = (array)$txn->get_values();
+        // Let the DB default these to 0000-00-00 00:00:00.
         if (empty($txn->expires_at)) {
             unset($args['expires_at']);
-        } // Let the DB default these to 0000-00-00 00:00:00
+        }
 
         return MeprHooks::apply_filters('mepr_create_transaction', $mepr_db->create_record($mepr_db->transactions, $args, false), $args, $txn->user_id);
     }
@@ -192,7 +258,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         MeprHooks::do_action('mepr_post_delete_transaction', $id, $user, $result, $this);
 
         if ($user && $user->ID > 0) {
-            $user->update_member_data(['txn_count', 'active_txn_count', 'memberships', 'inactive_memberships']);
+            $user->update_member_data(['txn_count', 'active_txn_count', 'memberships', 'inactive_memberships', 'expired_txn_count']);
         }
 
         return $result;
@@ -279,8 +345,8 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     /**
      * Get all transactions with the given order ID
      *
-     * @param  integer      $order_id       The order ID
-     * @param  integer|null $exclude_txn_id Optionally exclude this transaction ID
+     * @param  integer      $order_id       The order ID.
+     * @param  integer|null $exclude_txn_id Optionally exclude this transaction ID.
      * @return MeprTransaction[]
      */
     public static function get_all_by_order_id($order_id, $exclude_txn_id = null)
@@ -315,9 +381,9 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     /**
      * Get all transactions with the given order ID and gateway
      *
-     * @param  integer      $order_id       The order ID
-     * @param  string       $gateway        The gateway ID
-     * @param  integer|null $exclude_txn_id Optionally exclude this transaction ID
+     * @param  integer      $order_id       The order ID.
+     * @param  string       $gateway        The gateway ID.
+     * @param  integer|null $exclude_txn_id Optionally exclude this transaction ID.
      * @return MeprTransaction[]
      */
     public static function get_all_by_order_id_and_gateway($order_id, $gateway, $exclude_txn_id = null)
@@ -479,7 +545,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         $where = $exclude_expired ? "AND (t.expires_at > '" . date('c') . "' OR t.expires_at = '" . MeprUtils::db_lifetime() . "' OR t.expires_at IS NULL) " : '';
 
         if ($include_confirmations) {
-            // Also include sub_account transactions if there are any
+            // Also include sub_account transactions if there are any.
             $where .= $wpdb->prepare(
                 'AND (( t.txn_type IN (%s,%s,%s,%s) AND t.status=%s ) OR ( t.txn_type=%s AND t.status=%s )) ',
                 self::$payment_str,
@@ -616,12 +682,12 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         $old_txn = new self($this->id);
 
-        // TODO - Add real validation here
+        // TODO - Add real validation here.
         if ((int)$this->user_id <= 0) {
             return $this->id;
         }
 
-        // Force 23:59:59 to help cover some overlaps
+        // Force 23:59:59 to help cover some overlaps.
         if (!$keep_expires_at_time && isset($this->expires_at) && !empty($this->expires_at) && $this->expires_at != MeprUtils::db_lifetime()) {
             $this->expires_at = MeprUtils::ts_to_mysql_date(strtotime($this->expires_at), 'Y-m-d 23:59:59');
         }
@@ -637,13 +703,13 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             ($this->status == self::$failed_str || $this->status == self::$refunded_str) && $sub
         ) {
             // If we have a failure or refund before the confirmation period
-            // is over then we expire the subscription confirmation transaction
+            // is over then we expire the subscription confirmation transaction.
             $sub->expire_confirmation_txn();
         }
 
-        // This should happen after everything is done processing including the subscr txn_count
+        // This should happen after everything is done processing including the subscr txn_count.
         MeprHooks::do_action('mepr-txn-transition-status', $old_txn->status, $this->status, $this);
-        MeprHooks::do_action('mepr-txn-store', $this, $old_txn); // 2018-03-10 BW: now including old_txn to allow for comparisons
+        MeprHooks::do_action('mepr-txn-store', $this, $old_txn); // 2018-03-10 BW: now including old_txn to allow for comparisons.
         MeprHooks::do_action('mepr-txn-status-' . $this->status, $this);
 
         return $this->id;
@@ -765,9 +831,6 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             $args[] = $wpdb->prepare('YEAR(tr.created_at) = %s', $params['year']);
         }
 
-        // if(isset($params['product']) && $params['product'] != 'all' && is_numeric($params['product'])) {
-        // $args[] = $wpdb->prepare("tr.product_id = %d",$params['product']);
-        // }
         if (isset($params['prd_id']) && $params['prd_id'] != 'all' && is_numeric($params['prd_id'])) {
             $args[] = $wpdb->prepare('tr.product_id = %d', $params['prd_id']);
         }
@@ -800,7 +863,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             $args[] = $wpdb->prepare('tr.coupon_id = %s', $params['coupon_id']);
         }
 
-        // Don't include any subscription confirmation or sub account transactions in the list table
+        // Don't include any subscription confirmation or sub account transactions in the list table.
         if (!isset($params['include-confirmations'])) {
             $args[] = $wpdb->prepare('tr.txn_type = %s', self::$payment_str);
             $args[] = $wpdb->prepare('tr.status <> %s', self::$confirmed_str);
@@ -880,7 +943,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                 return [self::$complete_str, self::$confirmed_str];
             case MeprSubscription::$suspended_str:
             case MeprSubscription::$cancelled_str:
-                return false; // These don't have an equivalent
+                return false; // These don't have an equivalent.
         }
     }
 
@@ -907,12 +970,12 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function is_expired($offset = 0)
     {
-        // Check for a lifetime first
+        // Check for a lifetime first.
         if (is_null($this->expires_at) || $this->expires_at == MeprUtils::db_lifetime()) {
             return false;
         }
 
-        $todays_ts  = time() + $offset; // use the offset to check when a txn will expire
+        $todays_ts  = time() + $offset; // Use the offset to check when a txn will expire.
         $expires_ts = strtotime($this->expires_at);
 
         return ($this->status == 'complete' && $expires_ts < $todays_ts);
@@ -925,7 +988,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function product()
     {
-        // Don't do static caching stuff here
+        // Don't do static caching stuff here.
         return MeprHooks::apply_filters('mepr_transaction_product', new MeprProduct($this->product_id), $this);
     }
 
@@ -950,7 +1013,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function user($force = false)
     {
-        // Don't do static caching stuff here
+        // Don't do static caching stuff here.
         return new MeprUser($this->user_id);
     }
 
@@ -961,14 +1024,14 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function subscription()
     {
-        // Don't do static caching stuff here
+        // Don't do static caching stuff here.
         if (!isset($this->subscription_id) || empty($this->subscription_id)) {
             return false;
         }
 
         // For some reason when the free gateway is invoked a subscription is temporarily created
         // then stored with the txn, then deleted, this causes issues so we need to check here
-        // that the $sub actually still exists
+        // that the $sub actually still exists.
         $sub = new MeprSubscription($this->subscription_id);
 
         if (!isset($sub->id) || (int)$sub->id <= 0) {
@@ -985,7 +1048,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function order()
     {
-        // Don't do static caching stuff here
+        // Don't do static caching stuff here.
         if (empty($this->order_id)) {
             return false;
         }
@@ -1006,7 +1069,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function coupon()
     {
-        // Don't do static caching stuff here
+        // Don't do static caching stuff here.
         if (!isset($this->coupon_id) || (int)$this->coupon_id <= 0) {
             return false;
         }
@@ -1101,15 +1164,15 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         $mepr_options = MeprOptions::fetch();
 
-        // Just short circuit if the transaction has already completed
+        // Just short circuit if the transaction has already completed.
         if ($txn->status == self::$complete_str) {
             return;
         }
 
         $product = new MeprProduct($txn->product_id);
 
-        // Expires at is now more difficult to calculate with our new membership terms
-        if ($product->period_type != 'lifetime') { // A free recurring subscription? Nope - let's make it lifetime for free here folks
+        // Expires at is now more difficult to calculate with our new membership terms.
+        if ($product->period_type != 'lifetime') { // A free recurring subscription? Nope - let's make it lifetime for free here folks.
             $expires_at = MeprUtils::db_lifetime();
         } else {
             $product_expiration = $product->get_expires_at(strtotime($txn->created_at));
@@ -1122,30 +1185,30 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         }
 
         $txn->trans_num  = is_null($trans_num) ? MeprTransaction::generate_trans_num() : $trans_num;
-        $txn->status     = self::$pending_str; // This needs to remain as "pending" until we've called maybe_cancel_old_subscription() below
+        $txn->status     = self::$pending_str; // This needs to remain as "pending" until we've called maybe_cancel_old_subscription() below.
         $txn->txn_type   = self::$payment_str;
         $txn->gateway    = self::$free_gateway_str;
         $txn->expires_at = $expires_at;
 
-        // This will only work before maybe_cancel_old_sub is run
+        // This will only work before maybe_cancel_old_sub is run.
         $upgrade   = $txn->is_upgrade();
         $downgrade = $txn->is_downgrade();
 
         // No such thing as a free subscription in MemberPress
-        // So let's clean up this mess right now
+        // So let's clean up this mess right now.
         if (!empty($txn->subscription_id) && (int)$txn->subscription_id > 0) {
             MeprHooks::do_action('mepr-before-subscription-destroy-create-free-transaction', $txn);
 
             $sub = new MeprSubscription($txn->subscription_id);
 
             $txn->subscription_id = 0;
-            $txn->store(); // Store txn here, otherwise it will get deleted during $sub->destroy()
+            $txn->store(); // Store txn here, otherwise it will get deleted during $sub->destroy().
 
             $sub->destroy();
         }
 
         // This needs to happen below the $sub destroy or maybe_cancel_old_sub() will fail
-        // $txn->store(); //Force store a "pending" status
+        // $txn->store(); //Force store a "pending" status.
         $event_txn   = $txn->maybe_cancel_old_sub();
         $txn->status = self::$complete_str;
         $txn->store();
@@ -1160,8 +1223,8 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
         MeprUtils::send_signup_notices($txn);
         // $free_gateway->send_transaction_receipt_notices($txn); //Maybe don't need to send a receipt for a free txn
-        MeprEvent::record('transaction-completed', $txn); // Delete this if we use $free_gateway->send_transaction_receipt_notices later
-        MeprEvent::record('non-recurring-transaction-completed', $txn); // Delete this if we use $free_gateway->send_transaction_receipt_notices later
+        MeprEvent::record('transaction-completed', $txn); // Delete this if we use $free_gateway->send_transaction_receipt_notices later.
+        MeprEvent::record('non-recurring-transaction-completed', $txn); // Delete this if we use $free_gateway->send_transaction_receipt_notices later.
 
         if ($redirect) {
             $sanitized_title = sanitize_title($product->post_title);
@@ -1251,7 +1314,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                 $pm = $this->payment_method();
                 if (!$force_cancel_artificial && $pm instanceof MeprArtificialGateway && $pm->settings->manually_complete && $pm->settings->no_cancel_up_down_grade) {
                     // If this is an artifical gateway and admin must manually approve and do not cancel when admin must manually approve
-                    // then don't cancel
+                    // then don't cancel.
                     return false;
                 }
 
@@ -1267,9 +1330,9 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
                     if (!$override_default_behavior) {
                         $evt_txn = $old_sub->latest_txn();
-                        $old_sub->expire_txns(); // Expire associated transactions for the old subscription
-                        $_REQUEST['silent'] = true; // Don't want to send cancellation notices
-                        // PT #157053195 skip cancelled subs
+                        $old_sub->expire_txns(); // Expire associated transactions for the old subscription.
+                        $_REQUEST['silent'] = true; // Don't want to send cancellation notices.
+                        // PT #157053195 skip cancelled subs.
                         if ($old_sub->status !== MeprSubscription::$cancelled_str) {
                                 $old_sub->cancel();
                         }
@@ -1291,7 +1354,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                 }
             }
         } catch (Exception $e) {
-            // Nothing for now
+            // Nothing for now.
         }
 
         if (!empty($evt_txn)) {
@@ -1311,7 +1374,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function can($cap)
     {
-        // if the status isn't complete then the refund can't happen
+        // If the status isn't complete then the refund can't happen.
         if ($cap == 'process-refunds' && $this->status != MeprTransaction::$complete_str) {
             return false;
         }
@@ -1383,7 +1446,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             return 0;
         }
 
-        // round and provide an integer ... lest we screw everything up
+        // Round and provide an integer ... lest we screw everything up.
         return intval(round((($expires_at - $now) / MeprUtils::days(1))));
     }
 
@@ -1430,7 +1493,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        // Expiring Transactions
+        // Expiring Transactions.
         $query = $wpdb->prepare(
             "
       SELECT tr.id, IF(tr.subscription_id = 0, 'none', sub.status) AS sub_status
@@ -1484,12 +1547,12 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         $prd             = $this->product();
         $calculate_taxes = get_option('mepr_calculate_taxes');
 
-        // Now try to calculate tax info from the user info
-        if ($prd->tax_exempt) { // don't do taxes here yo
+        // Now try to calculate tax info from the user info.
+        if ($prd->tax_exempt) { // Don't do taxes here yo.
             list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class, $this->tax_reversal_amount) = [$gross, $gross, 0.00, 0.00, '', 'standard', 0.00];
         } elseif ($calculate_taxes) {
             list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class, $this->tax_reversal_amount) = $usr->calculate_tax($subtotal, $num_decimals, $prd->ID);
-        } else { // If all else fails, let's blank out the tax info
+        } else { // If all else fails, let's blank out the tax info.
             list($this->amount, $this->total, $this->tax_rate, $this->tax_amount, $this->tax_desc, $this->tax_class, $this->tax_reversal_amount) = [$subtotal, $subtotal, 0.00, 0.00, '', 'standard', 0.00];
         }
 
@@ -1687,7 +1750,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             return (int)$wpdb->get_var($q);
         }
 
-        // If this is not a subscription payment then this value is irrelevant
+        // If this is not a subscription payment then this value is irrelevant.
         return false;
     }
 

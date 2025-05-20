@@ -6,7 +6,18 @@ if (!defined('ABSPATH')) {
 
 abstract class MeprBaseJob
 {
+    /**
+     * The record object
+     *
+     * @var object
+     */
     public $rec;
+
+    /**
+     * The database object
+     *
+     * @var object
+     */
     public $db;
 
     /**
@@ -128,7 +139,6 @@ abstract class MeprBaseJob
 
         if (in_array($name, $object_vars)) {
             $this->$name = $value;
-            // else if(array_key_exists($name, $rec_array))
         } else {
             if (is_array($this->rec)) {
                 $this->rec[$name] = $value;

@@ -14,8 +14,25 @@ abstract class MeprBaseDrm
         $this->init();
     }
 
+    /**
+     * The DRM event object.
+     *
+     * @var object|null
+     */
     protected $event      = null;
+
+    /**
+     * The name of the DRM event.
+     *
+     * @var string
+     */
     protected $event_name = '';
+
+    /**
+     * The current DRM status.
+     *
+     * @var string
+     */
     protected $drm_status = '';
 
     /**
@@ -69,7 +86,7 @@ abstract class MeprBaseDrm
     {
         $this->drm_status = $status;
 
-        // set global value.
+        // Set global value.
         MeprDrmHelper::set_status($status);
     }
 
@@ -131,10 +148,10 @@ abstract class MeprBaseDrm
             'description' => $message,
             'actions'     => sprintf(
                 '<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-                // translators: Documentation explaining debugging in WordPress.
+                // Translators: Documentation explaining debugging in WordPress.
                 esc_url($support_link),
                 $help_message,
-                // translators: Accessibility text.
+                // Translators: Accessibility text.
                 __('(opens in a new tab)', 'memberpress')
             ),
             'test'        => 'run_site_health_drm',
@@ -154,7 +171,7 @@ abstract class MeprBaseDrm
         // Check if wp_mepr_events has an entry within the last 30 days, if not, insert.
         $event = MeprEvent::latest_by_elapsed_days($this->event_name, 30);
 
-        // make sure we always have an event within last 30 days.
+        // Make sure we always have an event within the last 30 days.
         if (! $event) {
             $this->create_event();
         }
@@ -177,15 +194,15 @@ abstract class MeprBaseDrm
         $event_data    = MeprDrmHelper::parse_event_args($event->args, true);
         $drm_event_key = MeprDrmHelper::get_status_key($drm_status);
 
-        // just make sure we run this once.
+        // Just make sure we run this once.
         if (! isset($event_data[ $drm_event_key ])) {
-            // send email
+            // Send email.
             $this->send_email($drm_status);
 
-            // create in-plugin notification
+            // Create in-plugin notification.
             $this->create_inplugin_notification($drm_status);
 
-            // mark event complete.
+            // Mark event complete.
             $event_data[ $drm_event_key ] = MeprUtils::db_now();
 
             $this->update_event($event, $event_data);
@@ -350,5 +367,5 @@ abstract class MeprBaseDrm
     /**
      * Abstract method to run the DRM process.
      */
-    abstract function run();
+    abstract public function run();
 }

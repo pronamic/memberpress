@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprDb
 {
+    /**
+     * The list of database tables.
+     *
+     * @var array
+     */
     private $tables;
 
     /**
@@ -31,7 +36,7 @@ class MeprDb
      */
     public function __construct()
     {
-        // MemberPress tables
+        // MemberPress tables.
         $this->tables = MeprHooks::apply_filters(
             'mepr_db_tables',
             [
@@ -95,7 +100,7 @@ class MeprDb
 
         include_once(ABSPATH . 'wp-admin/includes/plugin.php');
 
-        // Must not name instance vars blog_id ... reserved by multisite apparently
+        // Must not name instance vars blog_id ... reserved by multisite apparently.
         foreach ($bids as $bid) {
             switch_to_blog($bid);
 
@@ -120,15 +125,15 @@ class MeprDb
         // This line makes it safe to check this code during admin_init action.
         if ($this->do_upgrade()) {
             // Ensure our big queries can run in an upgrade
-            // $wpdb->hide_errors(); //Errors will still be logged correctly
-            $wpdb->query('SET SQL_BIG_SELECTS=1'); // This may be getting set back to 0 when SET MAX_JOIN_SIZE is executed
+            // $wpdb->hide_errors(); //Errors will still be logged correctly.
+            $wpdb->query('SET SQL_BIG_SELECTS=1'); // This may be getting set back to 0 when SET MAX_JOIN_SIZE is executed.
             $wpdb->query('SET MAX_JOIN_SIZE=18446744073709551615');
             // $wpdb->query('SET GLOBAL innodb_large_prefix=1'); //Will fail on some installs without proper privileges still
             $old_db_version = get_option('mepr_db_version', 0);
             $this->before_upgrade($old_db_version);
 
             // This was introduced in WordPress 3.5
-            // $char_col = $wpdb->get_charset_collate(); //This doesn't work for most non english setups
+            // $char_col = $wpdb->get_charset_collate(); //This doesn't work for most non english setups.
             $char_col  = '';
             $collation = $wpdb->get_row("SHOW FULL COLUMNS FROM {$wpdb->posts} WHERE field = 'post_content'");
 
@@ -136,19 +141,19 @@ class MeprDb
                 $charset = explode('_', $collation->Collation);
 
                 if (is_array($charset) && count($charset) > 1) {
-                    $charset  = $charset[0]; // Get the charset from the collation
+                    $charset  = $charset[0]; // Get the charset from the collation.
                     $char_col = "DEFAULT CHARACTER SET {$charset} COLLATE {$collation->Collation}";
                 }
             }
 
-            // Fine we'll try it your way this time
+            // Fine we'll try it your way this time.
             if (empty($char_col)) {
                 $char_col = $wpdb->get_charset_collate();
             }
 
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
-            // Create/Upgrade Board Posts Table
+            // Create/Upgrade Board Posts Table.
             $txns =
             "CREATE TABLE {$this->transactions} (
           id bigint(20) NOT NULL auto_increment,
@@ -204,7 +209,7 @@ class MeprDb
 
             dbDelta($txns);
 
-            // Create/Upgrade Transaction Meta Table
+            // Create/Upgrade Transaction Meta Table.
             $txnmeta =
             "CREATE TABLE {$this->transaction_meta} (
           id bigint(20) NOT NULL auto_increment,
@@ -290,7 +295,7 @@ class MeprDb
 
             dbDelta($tax_rates);
 
-            // This is purely so we can lump multiple cities and zips into the same rate
+            // This is purely so we can lump multiple cities and zips into the same rate.
             $tax_rate_locations =
             "CREATE TABLE {$this->tax_rate_locations} (
           id bigint(20) NOT NULL auto_increment,
@@ -370,7 +375,7 @@ class MeprDb
 
             dbDelta($subscriptions);
 
-            // Create/Upgrade Subscription Meta Table
+            // Create/Upgrade Subscription Meta Table.
             $submeta =
             "CREATE TABLE {$this->subscription_meta} (
           id bigint(20) NOT NULL auto_increment,
@@ -479,16 +484,16 @@ class MeprDb
             try {
                 $this->after_upgrade($old_db_version);
 
-                // Update the version in the DB now that we've run the upgrade
+                // Update the version in the DB now that we've run the upgrade.
                 update_option('mepr_db_version', MEPR_VERSION);
             } catch (Exception $e) {
-                // Do nothing
+                // Do nothing.
             }
 
-            // Ensure that the rewrite rules are flushed & in place
+            // Ensure that the rewrite rules are flushed & in place.
             MeprUtils::flush_rewrite_rules();
 
-            // Clear the column info transient in case schemas changed
+            // Clear the column info transient in case schemas changed.
             delete_transient('_mepr_table_columns_info');
         }
     }
@@ -505,7 +510,7 @@ class MeprDb
         global $wpdb;
 
         // TODO: We should delete this at some point in the future when we're
-        // confident that no members are still using version 1.0.6 of MemberPress
+        // confident that no members are still using version 1.0.6 of MemberPress.
         MeprOptions::migrate_to_new_unauth_system();
     }
 
@@ -641,7 +646,7 @@ class MeprDb
         foreach ($args as $key => $value) {
             if ($key == 'id' && empty($value)) {
                 // To prevent issue with SQL MODE NO_AUTO_VALUE_ON_ZERO
-                // https://github.com/caseproof/memberpress/commit/55d2f9d69a6adc73ced127d226fd6cba6cca0b9c
+                // https://github.com/caseproof/memberpress/commit/55d2f9d69a6adc73ced127d226fd6cba6cca0b9c.
                 continue;
             }
 
@@ -681,7 +686,7 @@ class MeprDb
         $query = $wpdb->prepare($query, $values);
 
         // This will fail to insert the row if NO_AUTO_VALUE_ON_ZERO is set in the database SQL_MODE
-        // See notes on this commit: https://github.com/caseproof/memberpress/commit/55d2f9d69a6adc73ced127d226fd6cba6cca0b9c
+        // See notes on this commit: https://github.com/caseproof/memberpress/commit/55d2f9d69a6adc73ced127d226fd6cba6cca0b9c.
         $query_results = $wpdb->query($query);
 
         if ($query_results) {
@@ -852,7 +857,14 @@ class MeprDb
         return $wpdb->get_row($query, $return_type);
     }
 
-    // Same as get_records but will return an array of MeprBaseModel objects
+    /**
+     * Gets a model instance from the database based on conditions.
+     *
+     * @param string $model_name The name of the model class.
+     * @param array  $args       An associative array of conditions to find the model.
+     *
+     * @return MeprBaseModel|false The model instance, or false if not found.
+     */
     public function get_model($model_name, $args = [])
     {
         if (!$this->is_model_class($model_name)) {
@@ -905,7 +917,17 @@ class MeprDb
         return $wpdb->get_results($query, $return_type);
     }
 
-    // Same as get_records but will return an array of MeprBaseModel objects
+    // Same as get_records but will return an array of MeprBaseModel objects.
+    /**
+     * Retrieves multiple records from a table as MeprBaseModel objects.
+     *
+     * @param string $model_name The name of the model class.
+     * @param array  $args       An associative array of conditions.
+     * @param string $order_by   The column to order by.
+     * @param string $limit      The limit of records to return.
+     *
+     * @return array An array of MeprBaseModel objects.
+     */
     public function get_models($model_name, $args = [], $order_by = '', $limit = '')
     {
         if (!$this->is_model_class($model_name)) {
@@ -963,7 +985,25 @@ class MeprDb
         return $wpdb->get_col($query);
     }
 
-    // Built to work with WordPress' built in WP_List_Table class
+    // Built to work with WordPress' built in WP_List_Table class.
+    /**
+     * Retrieves a list of records from a table based on conditions.
+     *
+     * @param array   $cols         The columns to select.
+     * @param string  $from         The table to select from.
+     * @param array   $joins        The joins to use.
+     * @param array   $args         The arguments to use.
+     * @param string  $order_by     The column to order by.
+     * @param string  $order        The order to use.
+     * @param integer $paged        The page number to use.
+     * @param string  $search       The search term to use.
+     * @param string  $search_field The field to search.
+     * @param integer $perpage      The number of records per page.
+     * @param boolean $countonly    Whether to count only.
+     * @param boolean $queryonly    Whether to query only.
+     *
+     * @return array The list of records.
+     */
     public static function list_table(
         $cols,
         $from,
@@ -983,7 +1023,7 @@ class MeprDb
         $joins = MeprHooks::apply_filters('mepr-list-table-joins', $joins);
         $args  = MeprHooks::apply_filters('mepr-list-table-args', $args);
 
-        // Setup selects
+        // Setup selects.
         $col_str_array = [];
         foreach ($cols as $col => $code) {
             $col_str_array[] = "{$code} AS `{$col}`";
@@ -991,7 +1031,7 @@ class MeprDb
 
         $col_str = implode(', ', $col_str_array);
 
-        // Setup Joins
+        // Setup Joins.
         $important_joins = $normal_joins = [];
 
         if (!empty($joins)) {
@@ -1012,7 +1052,7 @@ class MeprDb
         /*
             -- Ordering parameters --
         */
-        // Parameters that are going to be used to order the result
+        // Parameters that are going to be used to order the result.
         if (!(empty($order_by) && empty($order))) {
             $order_by_str = ' ORDER BY ';
             if (preg_match('/^`[\w\.]+`$/', $order_by)) {
@@ -1030,24 +1070,24 @@ class MeprDb
             $order_by_str = '';
         }
 
-        // Page Number
+        // Page Number.
         if (empty($paged) or !is_numeric($paged) or $paged <= 0) {
             $paged = 1;
         }
 
         $limit = '';
-        // adjust the query to take pagination into account
+        // Adjust the query to take pagination into account.
         if (!empty($paged) and !empty($perpage)) {
             $offset = ($paged - 1) * $perpage;
             $limit  = ' LIMIT ' . (int)$offset . ',' . (int)$perpage;
         }
 
-        // Searching
+        // Searching.
         $search_str = '';
         $searches   = [];
         if (!empty($search)) {
             if ($search_field == 'any' || empty($search_field)) {
-                $terms = explode(' ', $search); // BOOM, much more robust search now
+                $terms = explode(' ', $search); // BOOM, much more robust search now.
 
                 foreach ($terms as $term) {
                     foreach ($cols as $col => $code) {
@@ -1059,7 +1099,7 @@ class MeprDb
                     $search_str = implode(' OR ', $searches);
                 }
 
-                // If we're doing a search we need all the joins in place or we get errors
+                // If we're doing a search we need all the joins in place or we get errors.
                 $important_join_str = $join_str;
             } else {
                 $search_fields = explode(',', $search_field);
@@ -1068,10 +1108,10 @@ class MeprDb
                     $search_join     = explode('.', trim($search_field));
                     $search_join_str = $search_join[0];
                     if (strpos($important_join_str, "AS {$search_join_str}") === false) {
-                        // we know we have find the join
+                        // We know we have find the join.
                         foreach ($normal_joins as $join) {
                             if (strpos($join, $search_join_str) !== false) {
-                                // include it in importants
+                                // Include it in importants.
                                 $important_joins[] = $join;
                             }
                         }
@@ -1089,7 +1129,7 @@ class MeprDb
 
         $conditions = '';
 
-        // Pull Searching into where
+        // Pull Searching into where.
         if (!empty($args)) {
             if (!empty($searches)) {
                 $conditions = " WHERE $args_str AND ({$search_str})";
@@ -1111,7 +1151,7 @@ class MeprDb
         if ($queryonly) {
             return compact('query', 'total_query');
         } else {
-            // Allows us to run the bazillion JOINS we use on the list tables
+            // Allows us to run the bazillion JOINS we use on the list tables.
             $wpdb->query('SET SQL_BIG_SELECTS=1');
 
             $st      = microtime(true);
@@ -1149,7 +1189,7 @@ class MeprDb
         global $wpdb;
 
         $name  = MeprUtils::snakecase($class_name);
-        $name .= 's'; // eyeah at some point we may want a more sophisticated way to pluralize
+        $name .= 's'; // At some point we may want a more sophisticated way to pluralize.
 
         return $wpdb->prefix . $name;
     }
@@ -1330,10 +1370,10 @@ class MeprDb
      * Mimics the behavior of 'get_{type}_meta'
      *
      * @param string  $table      Tablename of the meta table.
-     * @param string  $object_col Column containing the foreign id of the associated object
-     * @param integer $object_id  Foreign id of the associated object
-     * @param string  $meta_key   Meta key
-     * @param boolean $single     Return a single value or not
+     * @param string  $object_col Column containing the foreign id of the associated object.
+     * @param integer $object_id  Foreign id of the associated object.
+     * @param string  $meta_key   Meta key.
+     * @param boolean $single     Return a single value or not.
      */
     public function get_metadata($table, $object_col, $object_id, $meta_key, $single = false)
     {
@@ -1376,11 +1416,11 @@ class MeprDb
      * Mimics the behavior of 'add_{type}_meta'
      *
      * @param  string  $table      Tablename of the meta table.
-     * @param  string  $object_col Column containing the foreign id of the associated object
-     * @param  integer $object_id  Foreign id of the associated object
-     * @param  string  $meta_key   Meta key
+     * @param  string  $object_col Column containing the foreign id of the associated object.
+     * @param  integer $object_id  Foreign id of the associated object.
+     * @param  string  $meta_key   Meta key.
      * @param  string  $meta_value Meta value. Will be serialized if an object or an array.
-     * @param  string  $unique     Value should be unique for the meta_key/object_id
+     * @param  string  $unique     Value should be unique for the meta_key/object_id.
      * @return integer|false The meta ID on success, false on failure.
      */
     public function add_metadata($table, $object_col, $object_id, $meta_key, $meta_value, $unique = false)
@@ -1402,7 +1442,7 @@ class MeprDb
             return false;
         }
 
-        // expected_slashed ($meta_key)
+        // The expected_slashed ($meta_key).
         $meta_key   = wp_unslash($meta_key);
         $meta_value = wp_unslash($meta_value);
         $meta_value = maybe_serialize($meta_value);
@@ -1428,9 +1468,9 @@ class MeprDb
      * Mimics the behavior of 'update_{type}_meta'
      *
      * @param  string  $table      Tablename of the meta table.
-     * @param  string  $object_col Column containing the foreign id of the associated object
-     * @param  integer $object_id  Foreign id of the associated object
-     * @param  string  $meta_key   Meta key
+     * @param  string  $object_col Column containing the foreign id of the associated object.
+     * @param  integer $object_id  Foreign id of the associated object.
+     * @param  string  $meta_key   Meta key.
      * @param  string  $meta_value Meta value. Will be serialized if an object or an array.
      * @param  string  $prev_value Prev value.
      * @return integer|boolean Meta ID if the key didn't exist, true on successful update, false on failure.
@@ -1443,7 +1483,7 @@ class MeprDb
             return false;
         }
 
-        // expected_slashed ($meta_key)
+        // The expected_slashed ($meta_key).
         $raw_meta_key = $meta_key;
         $meta_key     = wp_unslash($meta_key);
         $passed_value = $meta_value;
@@ -1482,15 +1522,15 @@ class MeprDb
      *
      * @global wpdb $wpdb WordPress database abstraction object.
      *
-     * @param  string  $table      Tablename of the metadata object we're deleting
-     * @param  string  $object_col Column of the object foreign id
-     * @param  integer $object_id  ID of the object metadata is for
-     * @param  string  $meta_key   Metadata key
+     * @param  string  $table      Tablename of the metadata object we're deleting.
+     * @param  string  $object_col Column of the object foreign id.
+     * @param  integer $object_id  ID of the object metadata is for.
+     * @param  string  $meta_key   Metadata key.
      * @param  mixed   $meta_value Optional. Metadata value. Must be serializable if non-scalar. If specified, only delete
      *                            metadata entries with this value. Otherwise, delete all entries with the specified meta_key.
      *                            Pass `null, `false`, or an empty string to skip this check. (For backward compatibility,
      *                            it is not possible to pass an empty string to delete those entries with an empty string
-     *                            for a value.)
+     *                            for a value.).
      * @param  boolean $delete_all Optional, default is false. If true, delete matching metadata entries for all objects,
      *                            ignoring the specified object_id. Otherwise, only delete matching metadata entries for
      *                            the specified object_id.
@@ -1509,7 +1549,7 @@ class MeprDb
             return false;
         }
 
-        // expected_slashed ($meta_key)
+        // The expected_slashed ($meta_key).
         $meta_key   = wp_unslash($meta_key);
         $meta_value = wp_unslash($meta_value);
 
@@ -1544,9 +1584,11 @@ class MeprDb
         return !empty($count);
     }
 
-    /*
-     * Conditionally schedule cron jobs for database migration
-     * - If inactive_memberships column does not exist before upgrade, then schedule the cron job to populate the column in the members table
+    /**
+     * Conditionally schedules cron jobs for database migration.
+     * If inactive_memberships column does not exist before upgrade, then schedule the cron job to populate the column in the members table
+     *
+     * @return void
      */
     public function before_do_upgrade()
     {

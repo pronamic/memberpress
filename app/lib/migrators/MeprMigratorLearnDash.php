@@ -101,8 +101,8 @@ class MeprMigratorLearnDash extends MeprMigrator
             if (!$mepr_db->table_exists($table)) {
                 wp_send_json_error(
                     sprintf(
-                        // translators: %s: the table name
-                        __('Migration not started: table `%s` not found, try updating LearnDash to the latest version first.', 'memberpress'), // phpcs:ignore Generic.Files.LineLength.TooLong
+                        // Translators: %s: the table name.
+                        __('Migration not started: table `%s` not found, try updating LearnDash to the latest version first.', 'memberpress'),
                         $table
                     )
                 );
@@ -782,7 +782,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                             break;
                         case 'free_answer':
                         case 'essay':
-                            // No additional processing required
+                            // No additional processing required.
                             break;
                         case 'sort_answer':
                             $question_data['options'] = [];
@@ -860,7 +860,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                 $content = [];
 
                 if ($quiz->post_content !== '' && count($questions)) {
-                    $content[] = ''; // adds two newlines below, after existing content.
+                    $content[] = ''; // Adds two newlines below, after existing content.
                 }
 
                 foreach ($questions as $question) {
@@ -933,7 +933,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                     }
                 }
 
-                // Sort sections in the order they appear
+                // Sort sections in the order they appear.
                 ksort($sections);
 
                 if (key($sections) !== 0) {
@@ -945,7 +945,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                         break;
                     }
 
-                    // Re-sort sections after changing the key
+                    // Re-sort sections after changing the key.
                     ksort($sections);
                 }
             }
@@ -982,31 +982,31 @@ class MeprMigratorLearnDash extends MeprMigrator
 
         $lessons = isset($steps['sfwd-lessons']) && is_array($steps['sfwd-lessons']) ? $steps['sfwd-lessons'] : [];
 
-        // Add the section dividers into the list of lessons
+        // Add the section dividers into the list of lessons.
         foreach ($sections as $order => $section) {
             $lessons = array_slice($lessons, 0, $order, true) +
             ["section-$order" => $order] +
             array_slice($lessons, $order, null, true);
         }
 
-        // Flatten the course structure into the two-level structure supported by MemberPress
+        // Flatten the course structure into the two-level structure supported by MemberPress.
         $key = 0;
 
         foreach ($lessons as $lesson_post_id => $ld_lesson) {
             if (is_string($lesson_post_id) && preg_match('/section-\d+/', $lesson_post_id)) {
-                $key = $ld_lesson; // This is a section divider, move to the next section
+                $key = $ld_lesson; // This is a section divider, move to the next section.
                 continue;
             }
 
             $sections[$key]['children'][] = $lesson_post_id;
 
-            // Topic that is a child of this ld_lesson
+            // Topic that is a child of this ld_lesson.
             if (isset($ld_lesson['sfwd-topic']) && is_array($ld_lesson['sfwd-topic'])) {
                 foreach ($ld_lesson['sfwd-topic'] as $topic_post_id => $topic) {
                     $sections[$key]['children'][] = $topic_post_id;
 
                     if ($this->is_course_quizzes_addon_active()) {
-                        // Quiz that is a child of this topic
+                        // Quiz that is a child of this topic.
                         if (isset($topic['sfwd-quiz']) && is_array($topic['sfwd-quiz'])) {
                             foreach ($topic['sfwd-quiz'] as $quiz_post_id => $quiz) {
                                 $sections[$key]['children'][] = $quiz_post_id;
@@ -1017,7 +1017,7 @@ class MeprMigratorLearnDash extends MeprMigrator
             }
 
             if ($this->is_course_quizzes_addon_active()) {
-                // Quiz that is a child of this ld_lesson
+                // Quiz that is a child of this ld_lesson.
                 if (isset($ld_lesson['sfwd-quiz']) && is_array($ld_lesson['sfwd-quiz'])) {
                     foreach ($ld_lesson['sfwd-quiz'] as $quiz_post_id => $quiz) {
                         $sections[$key]['children'][] = $quiz_post_id;
@@ -1027,7 +1027,7 @@ class MeprMigratorLearnDash extends MeprMigrator
         }
 
         if ($this->is_course_quizzes_addon_active()) {
-            // End of course quiz(zes)
+            // End of course quiz(zes).
             $quizzes = isset($steps['sfwd-quiz']) && is_array($steps['sfwd-quiz']) ? $steps['sfwd-quiz'] : [];
 
             foreach ($quizzes as $quiz_post_id => $quiz) {
@@ -1114,13 +1114,13 @@ class MeprMigratorLearnDash extends MeprMigrator
             if (preg_match_all('#\[(.*?)]#im', $text, $multi_matches)) {
                 foreach ($multi_matches[1] as $multi_text) {
                     if (strpos($multi_text, '|') !== false) {
-                        list($multi_text) = explode('|', $multi_text); // Ignore per-answer points
+                        list($multi_text) = explode('|', $multi_text); // Ignore per-answer points.
                     }
 
                     $answers[] = trim(html_entity_decode($multi_text, ENT_QUOTES));
                 }
             } elseif (strpos($text, '|') !== false) {
-                list($text) = explode('|', $text); // Ignore per-answer points
+                list($text) = explode('|', $text); // Ignore per-answer points.
 
                 $answers[] = trim(html_entity_decode($text, ENT_QUOTES));
             } else {

@@ -22,7 +22,7 @@ class MeprUsage
 
         if ($regenerate || empty($uuid)) {
             // Definitely not cryptographically secure but
-            // close enough to provide an unique id
+            // close enough to provide an unique id.
             $uuid = md5(uniqid() . site_url());
             update_option($uuid_key, $uuid);
         }
@@ -225,7 +225,7 @@ class MeprUsage
     /**
      * Returns a comma-separated list of user types who can purchase the given product
      *
-     * @param  MeprProduct $product The product to check
+     * @param  MeprProduct $product The product to check.
      * @return string
      */
     private function who_can_purchase($product)
@@ -371,6 +371,7 @@ class MeprUsage
             'paywall_num_free_views'             => $mepr_options->paywall_num_free_views,
             'disable_mod_rewrite'                => $mepr_options->disable_mod_rewrite,
             'hide_admin_bar_menu'                => $mepr_options->hide_admin_bar_menu,
+            'enable_wp_rest_api_protection'      => $mepr_options->enable_wp_rest_api_protection,
             'asynchronous_emails'                => (bool) get_option('mp-bkg-email-jobs-enabled'),
             'calculate_taxes'                    => (bool) get_option('mepr_calculate_taxes'),
             'tax_calc_type'                      => (string) get_option('mepr_tax_calc_type'),

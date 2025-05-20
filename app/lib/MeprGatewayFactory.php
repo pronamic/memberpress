@@ -15,6 +15,7 @@ class MeprGatewayFactory
      * @param  string $class    The class.
      * @param  mixed  $settings The settings.
      * @return mixed
+     * @throws MeprInvalidGatewayException When the gateway class doesn't exist or is not a valid gateway object.
      */
     public static function fetch($class, $settings = null)
     {
@@ -23,7 +24,7 @@ class MeprGatewayFactory
         }
 
         // We'll let the autoloader in memberpress.php
-        // handle including files containing these classes
+        // handle including files containing these classes.
         $obj = new $class();
 
         if (!is_a($obj, 'MeprBaseRealGateway')) {
@@ -58,7 +59,7 @@ class MeprGatewayFactory
                           $obj              = self::fetch($class);
                           $gateways[$class] = $obj->name;
                     } catch (Exception $e) {
-                        continue; // For now we do nothing if an exception is thrown
+                        continue; // For now we do nothing if an exception is thrown.
                     }
                 }
             }

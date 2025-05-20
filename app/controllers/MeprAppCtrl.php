@@ -47,17 +47,15 @@ class MeprAppCtrl extends MeprBaseCtrl
         add_action('in_admin_header', 'MeprAppCtrl::admin_header', 0);
         add_action('init', 'MeprAppCtrl::maybe_auto_log_in', 5);
 
-        // add_action('wp_ajax_mepr_load_css', 'MeprAppCtrl::load_css');
-        // add_action('wp_ajax_nopriv_mepr_load_css', 'MeprAppCtrl::load_css');
         add_action('plugins_loaded', 'MeprAppCtrl::load_css');
 
-        // Load language - must be done after plugins are loaded to work with PolyLang/WPML
+        // Load language - must be done after plugins are loaded to work with PolyLang/WPML.
         add_action('after_setup_theme', 'MeprAppCtrl::load_language');
         add_action('init', [$this, 'load_translations']);
 
         add_filter('months_dropdown_results', [$this, 'cleanup_list_table_month_dropdown'], 10, 2);
 
-        // Integrate with WP Debugging plugin - https://github.com/afragen/wp-debugging/issues/6
+        // Integrate with WP Debugging plugin - https://github.com/afragen/wp-debugging/issues/6.
         add_filter('wp_debugging_add_constants', 'MeprAppCtrl::integrate_wp_debugging');
 
         add_action('activated_plugin', 'MeprAppCtrl::activated_plugin');
@@ -85,7 +83,7 @@ class MeprAppCtrl extends MeprBaseCtrl
      */
     public static function wrap_oembed_html($cached_html)
     {
-        $length = rand(1, 100); // Random length, this is the key to all of this
+        $length = rand(1, 100); // Random length, this is the key to all of this.
         $class  = substr(str_shuffle(str_repeat($x = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length / strlen($x)))), 1, $length);
         return '<span class="' . $class . '">' . $cached_html . '</span>';
     }
@@ -114,7 +112,7 @@ class MeprAppCtrl extends MeprBaseCtrl
             ['post', 'page']
         );
 
-        // This meta box shouldn't appear on the new/edit membership screen
+        // This meta box shouldn't appear on the new/edit membership screen.
         $pos = array_search(MeprProduct::$cpt, $screens);
         if (isset($screens[$pos])) {
             unset($screens[$pos]);
@@ -261,10 +259,10 @@ class MeprAppCtrl extends MeprBaseCtrl
                 $cpt = get_post_type_object($_GET['post_type']);
             } elseif (!empty($post_type)) {
                 $cpt = get_post_type_object($post_type);
-            } elseif (!empty($post->post_type)) { // Try individual post last
+            } elseif (!empty($post->post_type)) { // Try individual post last.
                 $cpt = get_post_type_object($post->post_type);
             } else {
-                return $columns; // Just give up trying
+                return $columns; // Just give up trying.
             }
 
             if (in_array($cpt->name, $except) || !$cpt->public) {
@@ -366,7 +364,7 @@ class MeprAppCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
 
-        // Only show to users who have access, and those who haven't already dismissed it
+        // Only show to users who have access, and those who haven't already dismissed it.
         if (!MeprUtils::is_mepr_admin() || get_user_meta(get_current_user_id(), 'mepr_dismiss_notice_get_started')) {
             return;
         }
@@ -375,7 +373,7 @@ class MeprAppCtrl extends MeprBaseCtrl
         $has_product        = MeprProduct::count() > 0;
         $has_rule           = MeprRule::count() > 0;
 
-        // Don't show if a payment method, membership and rule already exist
+        // Don't show if a payment method, membership and rule already exist.
         if ($has_payment_method && $has_product && $has_rule) {
             return;
         }
@@ -468,7 +466,7 @@ class MeprAppCtrl extends MeprBaseCtrl
 
         $unauth_excerpt_type = get_post_meta($post->ID, '_mepr_unauth_excerpt_type', true);
 
-        // Backwards compatibility here people
+        // Backwards compatibility here people.
         if ($unauthorized_message_type == 'excerpt') {
             $unauthorized_message_type = 'hide';
             if (empty($unauth_excerpt_type)) {
@@ -489,7 +487,7 @@ class MeprAppCtrl extends MeprBaseCtrl
         $unauth_login = get_post_meta($post->ID, '_mepr_unauth_login', true);
 
         if ($unauth_login == '') {
-            // backwards compatibility
+            // Backwards compatibility.
             $hide_login   = get_post_meta($post->ID, '_mepr_hide_login_form', true);
             $unauth_login = (empty($hide_login) ? 'default' : 'show');
         }
@@ -506,7 +504,7 @@ class MeprAppCtrl extends MeprBaseCtrl
      */
     public static function save_meta_boxes($post_id)
     {
-        // Verify the Nonce First
+        // Verify the Nonce First.
         if (!isset($_REQUEST['mepr_custom_unauthorized_nonce']) || !wp_verify_nonce($_REQUEST['mepr_custom_unauthorized_nonce'], 'mepr_unauthorized')) {
             return $post_id;
         }
@@ -526,7 +524,7 @@ class MeprAppCtrl extends MeprBaseCtrl
             }
         }
 
-        // if saving in a custom table, get post_ID
+        // If saving in a custom table, get post_ID.
         $post_ID = $_REQUEST['post_ID'];
 
         update_post_meta($post_ID, '_mepr_unauthorized_message_type', $_REQUEST['_mepr_unauthorized_message_type']);
@@ -544,7 +542,7 @@ class MeprAppCtrl extends MeprBaseCtrl
     public static function setup_menus()
     {
         add_action('admin_menu', 'MeprAppCtrl::menu');
-        // Admin Menu Bar
+        // Admin Menu Bar.
         add_action('admin_bar_menu', 'MeprAppCtrl::admin_bar_menu', 100);
     }
 
@@ -696,7 +694,7 @@ class MeprAppCtrl extends MeprBaseCtrl
     /**
      * Move our custom separator above our admin menu
      *
-     * @param  array $menu_order Menu Order
+     * @param  array $menu_order Menu Order.
      * @return array Modified menu order
      */
     public static function admin_menu_order($menu_order)
@@ -705,41 +703,41 @@ class MeprAppCtrl extends MeprBaseCtrl
             return $menu_order;
         }
 
-        // Initialize our custom order array
+        // Initialize our custom order array.
         $new_menu_order = [];
 
-        // Menu values
+        // Menu values.
         $first_sep    = 'separator1';
         $custom_menus = ['memberpress'];
 
-        // Loop through menu order and do some rearranging
+        // Loop through menu order and do some rearranging.
         foreach ($menu_order as $item) {
-            // Position MemberPress menus below Dashboard
+            // Position MemberPress menus below Dashboard.
             if ($first_sep == $item) {
-                // Add our custom menus
+                // Add our custom menus.
                 foreach ($custom_menus as $custom_menu) {
                     if (array_search($custom_menu, $menu_order)) {
                         $new_menu_order[] = $custom_menu;
                     }
                 }
 
-                // Add the dashboard separator
+                // Add the dashboard separator.
                 $new_menu_order[] = $first_sep;
 
-                // Skip our menu items down below
+                // Skip our menu items down below.
             } elseif (!in_array($item, $custom_menus)) {
                 $new_menu_order[] = $item;
             }
         }
 
-        // Return our custom order
+        // Return our custom order.
         return $new_menu_order;
     }
 
     /**
      * Organize the CPT's in our submenu
      *
-     * @param  array $menu_order Menu Order
+     * @param  array $menu_order Menu Order.
      * @return array Modified menu order
      */
     public static function admin_submenu_order($menu_order)
@@ -748,12 +746,12 @@ class MeprAppCtrl extends MeprBaseCtrl
 
         static $run = false;
 
-        // no sense in running this everytime the hook gets called
+        // No sense in running this everytime the hook gets called.
         if ($run) {
             return $menu_order;
         }
 
-        // just return if there's no memberpress menu available for the current screen
+        // Just return if there's no memberpress menu available for the current screen.
         if (!isset($submenu['memberpress'])) {
             return $menu_order;
         }
@@ -883,7 +881,7 @@ class MeprAppCtrl extends MeprBaseCtrl
     {
         $current_post = MeprUtils::get_current_post();
 
-        // This isn't a post? Just return the content then
+        // This isn't a post? Just return the content then.
         if ($current_post === false) {
             return $content;
         }
@@ -895,7 +893,7 @@ class MeprAppCtrl extends MeprBaseCtrl
         static $new_content    = [];
         static $content_length = [];
 
-        // Init this posts static values
+        // Init this posts static values.
         if (!isset($new_content[$current_post->ID]) || empty($new_content[$current_post->ID])) {
             $already_run[$current_post->ID]    = false;
             $new_content[$current_post->ID]    = '';
@@ -949,7 +947,7 @@ class MeprAppCtrl extends MeprBaseCtrl
                             $resource       = isset($_REQUEST['redirect_to']) ? esc_url(urldecode($_REQUEST['redirect_to'])) : __('the requested resource.', 'memberpress');
                             $unauth_message = $mepr_options->unauthorized_message;
 
-                            // Maybe override the message if a page id is set
+                            // Maybe override the message if a page id is set.
                             if (isset($_GET['mepr-unauth-page'])) {
                                 $unauth_post    = get_post((int)$_GET['mepr-unauth-page']);
                                 $unauth         = MeprRule::get_unauth_settings_for($unauth_post);
@@ -980,28 +978,28 @@ class MeprAppCtrl extends MeprBaseCtrl
                 }
 
                 // Some crazy trickery here to prevent from having to completely rewrite a lot of crap
-                // This is a fix for https://github.com/Caseproof/memberpress/issues/609
-                if (!$manual_login_form || ($action && $action == 'bpnoaccess')) { // BuddyPress fix
+                // This is a fix for https://github.com/Caseproof/memberpress/issues/609.
+                if (!$manual_login_form || ($action && $action == 'bpnoaccess')) { // BuddyPress fix.
                     $content .= ob_get_clean();
                 } elseif ($action) {
                     $match_str = '#' . preg_quote('<!-- mp-login-form-start -->') . '.*' . preg_quote('<!-- mp-login-form-end -->') . '#s';
-                    // preg_quote below helps fix an issue with the math captcha add-on when using a shortcode for login
+                    // The preg_quote below helps fix an issue with the math captcha add-on when using a shortcode for login.
                     $content = stripslashes(preg_replace($match_str, ob_get_clean(), preg_quote($content)));
-                } else { // do nothing really
+                } else { // Do nothing really.
                     ob_end_clean();
                 }
                 break;
             case $mepr_options->thankyou_page_id:
                 $message = MeprProductsCtrl::maybe_get_thank_you_page_message();
 
-                // If a custom message is set, only show that message
+                // If a custom message is set, only show that message.
                 if ($message != '') {
                     $content = $message;
                 }
                 break;
         }
 
-        // See above notes
+        // See above notes.
         $new_content[$current_post->ID] = $content;
         return $new_content[$current_post->ID];
     }
@@ -1025,7 +1023,7 @@ class MeprAppCtrl extends MeprBaseCtrl
 
         MeprHooks::do_action('mepr_enqueue_scripts', $is_product_page, $is_group_page, $is_account_page);
 
-        // Yeah we enqueue this globally all the time so the login form will work on any page
+        // Yeah we enqueue this globally all the time so the login form will work on any page.
         wp_enqueue_style('mp-theme', MEPR_CSS_URL . '/ui/theme.css', null, MEPR_VERSION);
 
         if (($global_styles || $is_account_page) && ! has_block('memberpress/pro-account-tabs')) {
@@ -1104,7 +1102,7 @@ class MeprAppCtrl extends MeprBaseCtrl
 
             wp_localize_script('mp-signup', 'MeprSignup', $local_data);
 
-            // For Show hide password
+            // For Show hide password.
             wp_enqueue_style('dashicons');
             wp_enqueue_style('mp-login-css', MEPR_CSS_URL . '/ui/login.css', null, MEPR_VERSION);
 
@@ -1201,7 +1199,7 @@ class MeprAppCtrl extends MeprBaseCtrl
             'enable_stripe_tax_nonce' => wp_create_nonce('mepr_enable_stripe_tax'),
         ]);
 
-        // Widget in the dashboard stuff
+        // Widget in the dashboard stuff.
         if ($hook == 'index.php') {
             $local_data = [
                 'report_nonce' => wp_create_nonce('mepr_reports'),
@@ -1228,7 +1226,7 @@ class MeprAppCtrl extends MeprBaseCtrl
 
         $request_uri = $_SERVER['REQUEST_URI'];
 
-        // Pretty Mepr Notifier ... prevents POST vars from being mangled
+        // Pretty Mepr Notifier ... prevents POST vars from being mangled.
         $notify_url_pattern = MeprUtils::gateway_notify_url_regex_pattern();
         if (MeprUtils::match_uri($notify_url_pattern, $request_uri, $m)) {
             $plugin          = 'mepr';
@@ -1254,7 +1252,7 @@ class MeprAppCtrl extends MeprBaseCtrl
             } elseif ($action === 'checkout' && isset($_REQUEST['txn'])) {
                 $_REQUEST['txn'] = MeprUtils::base36_decode($_REQUEST['txn']);
 
-                // Back button fix
+                // Back button fix.
                 $txn = new MeprTransaction((int)$_REQUEST['txn']);
                 if (strpos($txn->trans_num, 'mp-txn-') === false || $txn->status != MeprTransaction::$pending_str) {
                     $prd = new MeprProduct($txn->product_id);
@@ -1285,6 +1283,7 @@ class MeprAppCtrl extends MeprBaseCtrl
                 if ($obj && ( $obj instanceof MeprBaseRealGateway )) {
                     $notifiers = $obj->notifiers();
                     if (isset($notifiers[$action])) {
+                        nocache_headers();
                         call_user_func([$obj,$notifiers[$action]]);
                         exit;
                     }
@@ -1298,7 +1297,14 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
     }
 
-    // Routes for standalone / ajax requests
+    /**
+     * Routes for standalone / ajax requests.
+     *
+     * @param string $controller The controller to route to.
+     * @param string $action     The action to perform.
+     *
+     * @return void
+     */
     public static function standalone_route($controller, $action)
     {
         if ($controller == 'coupons') {
@@ -1333,7 +1339,7 @@ class MeprAppCtrl extends MeprBaseCtrl
         if (MeprHooks::apply_filters('mepr-remove-traduttore', false)) {
             return;
         }
-        // Load Traduttore
+        // Load Traduttore.
         require_once(MEPR_I18N_PATH . '/namespace.php');
 
         \MemberPress\Traduttore_Registry\add_project(
@@ -1379,21 +1385,21 @@ class MeprAppCtrl extends MeprBaseCtrl
 
         wp_add_dashboard_widget('mepr_weekly_stats_widget', 'MemberPress Weekly Stats', 'MeprAppCtrl::weekly_stats_widget');
 
-        // Globalize the metaboxes array, this holds all the widgets for wp-admin
+        // Globalize the metaboxes array, this holds all the widgets for wp-admin.
         global $wp_meta_boxes;
 
         // Get the regular dashboard widgets array
-        // (which has our new widget already but at the end)
+        // (which has our new widget already but at the end).
         $normal_dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
 
-        // Backup and delete our new dashbaord widget from the end of the array
+        // Backup and delete our new dashbaord widget from the end of the array.
         $mepr_weekly_stats_widget_backup = ['mepr_weekly_stats_widget' => $normal_dashboard['mepr_weekly_stats_widget']];
         unset($normal_dashboard['mepr_weekly_stats_widget']);
 
-        // Merge the two arrays together so our widget is at the beginning
+        // Merge the two arrays together so our widget is at the beginning.
         $sorted_dashboard = array_merge($mepr_weekly_stats_widget_backup, $normal_dashboard);
 
-        // Save the sorted array back into the original metaboxes
+        // Save the sorted array back into the original metaboxes.
         $wp_meta_boxes['dashboard']['normal']['core'] = $sorted_dashboard;
     }
 
@@ -1536,7 +1542,7 @@ class MeprAppCtrl extends MeprBaseCtrl
      */
     public static function load_css()
     {
-        // IF WE MOVE BACK TO admin-ajax.php method, then this conditional needs to go
+        // IF WE MOVE BACK TO admin-ajax.php method, then this conditional needs to go.
         if (
             !isset($_GET['plugin']) ||
             $_GET['plugin'] != 'mepr' ||
@@ -1560,10 +1566,10 @@ class MeprAppCtrl extends MeprBaseCtrl
             if (!$css_files) {
                 $css_files = [];
 
-                // Enqueue plan templates
+                // Enqueue plan templates.
                 $css_files = array_merge($css_files, MeprGroup::group_theme_templates(true));
 
-                // Enqueue plans
+                // Enqueue plans.
                 $css_files = array_merge($css_files, MeprGroup::group_themes(true));
 
                 set_transient($csskey, $css_files, DAY_IN_SECONDS);
@@ -1619,7 +1625,7 @@ class MeprAppCtrl extends MeprBaseCtrl
     public static function integrate_wp_debugging($user_defined_constants)
     {
         if (!defined('WP_MEPR_DEBUG') || WP_MEPR_DEBUG === false) {
-            // if raw is true, then value will be converted to boolean
+            // If raw is true, then value will be converted to boolean.
             $user_defined_constants['WP_MEPR_DEBUG'] = [
                 'value' => 'true',
                 'raw'   => true,
@@ -1665,7 +1671,7 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
 
         add_submenu_page('memberpress', __('Subscriptions', 'memberpress'), __('Subscriptions', 'memberpress'), $capability, 'memberpress-subscriptions', [$sub_ctrl, 'listing']);
-        // Specifically for subscriptions listing
+        // Specifically for subscriptions listing.
         add_submenu_page('memberpress', __('Non-Recurring Subscriptions', 'memberpress'), __('Subscriptions', 'memberpress'), $capability, 'memberpress-lifetimes', [$sub_ctrl, 'listing']);
         add_submenu_page('memberpress', __('Transactions', 'memberpress'), __('Transactions', 'memberpress'), $capability, 'memberpress-trans', [$txn_ctrl, 'listing']);
         add_submenu_page('memberpress', __('Reports', 'memberpress'), __('Reports', 'memberpress'), $capability, 'memberpress-reports', 'MeprReportsCtrl::main');
@@ -1723,7 +1729,7 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
 
         if (MeprUtils::is_post_request() && (isset($_POST['action']) || isset($_POST['action2']))) {
-            return; // don't redirect on bulk activation
+            return; // Don't redirect on bulk activation.
         }
 
         global $wpdb;
@@ -1775,7 +1781,7 @@ class MeprAppCtrl extends MeprBaseCtrl
                                 wp_set_current_user($logged_in_user->ID);
                             }
                         } catch (Exception $e) {
-                            // ignore
+                            // Ignore.
                         }
                     }
                 }

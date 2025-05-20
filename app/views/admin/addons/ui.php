@@ -9,7 +9,7 @@
   <p>
     <?php
       printf(
-        // translators: %1$s: open link tag, %2$s: close link tag
+        // Translators: %1$s: open link tag, %2$s: close link tag.
           esc_html__('Improve your memberships with our premium add-ons. Missing an add-on that you think you should be able to see? Click the %1$sRefresh Add-ons%2$s button above.', 'memberpress'),
           sprintf('<a href="%s">', esc_url(admin_url('admin.php?page=memberpress-addons&refresh=true'))),
           '</a>'
@@ -62,7 +62,7 @@
                     <strong>
                       <?php
                         printf(
-                          // translators: %s: add-on status label
+                          // Translators: %s: add-on status label.
                             esc_html__('Status: %s', 'memberpress'),
                             sprintf(
                                 '<span class="mepr-addon-status-label">%s</span>',

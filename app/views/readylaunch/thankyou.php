@@ -40,10 +40,6 @@
 
     <div class="mp-form-row mepr_bold mepr_price">
     <div class="mepr_price_cell invoice-amount">
-
-        <?php
-        // echo MeprUtils::format_float($txn->amount)
-        ?>
         <?php echo $amount; ?>
     </div>
     </div>

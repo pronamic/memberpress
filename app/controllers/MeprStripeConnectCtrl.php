@@ -25,7 +25,6 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         }
 
         add_action('admin_init', [$this, 'persist_display_keys']);
-        // add_action( 'mepr_stripe_connect_check_domain', array( $this, 'maybe_update_domain' ) );
         add_action('update_option_home', [$this, 'url_changed'], 10, 3);
         add_action('update_option_siteurl', [$this, 'url_changed'], 10, 3);
         add_action('admin_notices', [$this, 'upgrade_notice']);
@@ -59,7 +58,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
             }
          */
 
-        // Remove wp-cron Stripe Connect job
+        // Remove wp-cron Stripe Connect job.
         $timestamp = wp_next_scheduled('mepr_stripe_connect_check_domain');
         if ($timestamp) {
             wp_unschedule_event($timestamp, 'mepr_stripe_connect_check_domain');
@@ -81,9 +80,9 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     /**
      * Run the process for updating a webhook when a site's home or site URL changes
      *
-     * @param string $old_url Old setting (URL)
-     * @param string $new_url New setting
-     * @param string $option  Option name
+     * @param string $old_url Old setting (URL).
+     * @param string $new_url New setting.
+     * @param string $option  Option name.
      *
      * @return void
      */
@@ -105,7 +104,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         $old_site_url = get_option('mepr_old_site_url', get_site_url());
 
-        // Exit if the home URL hasn't changed
+        // Exit if the home URL hasn't changed.
         if ($old_site_url == get_site_url()) {
             return;
         }
@@ -120,7 +119,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         $jwt    = MeprAuthenticatorCtrl::generate_jwt($payload);
         $domain = parse_url(get_site_url(), PHP_URL_HOST);
 
-        // Request to change the domain with the auth service (site.domain)
+        // Request to change the domain with the auth service (site.domain).
         $response = wp_remote_post(MEPR_AUTH_SERVICE_URL . '/api/domains/update', [
             'sslverify' => false,
             'headers'   => MeprUtils::jwt_header($jwt, MEPR_AUTH_SERVICE_DOMAIN),
@@ -131,7 +130,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
 
-        // Request to change the notification/webhook URL on the Stripe Connect service (account.webhook_url)
+        // Request to change the notification/webhook URL on the Stripe Connect service (account.webhook_url).
         $webhooks = [];
         foreach ($mepr_options->integrations as $id => $integration) {
             if ('connected' === $integration['connect_status']) {
@@ -153,7 +152,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         MeprUtils::debug_log('maybe_update_webhooks recived this from Stripe Service: ' . print_r($body, true));
 
-        // Store for next time
+        // Store for next time.
         update_option('mepr_old_site_url', get_site_url());
     }
 
@@ -261,7 +260,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     /**
      * Add a site health test callback
      *
-     * @param array $tests Array of tests to be run
+     * @param array $tests Array of tests to be run.
      *
      * @return array
      */
@@ -351,22 +350,22 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     public function process_update_creds()
     {
 
-        // Security check
+        // Security check.
         if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce($_GET['_wpnonce'], 'stripe-update-creds')) {
             wp_die(__('Sorry, updating your credentials failed. (security)', 'memberpress'));
         }
 
-        // Check for the existence of any errors passed back from the service
+        // Check for the existence of any errors passed back from the service.
         if (isset($_GET['error'])) {
             wp_die(sanitize_text_field(urldecode($_GET['error'])));
         }
 
-        // Make sure we have a method ID
+        // Make sure we have a method ID.
         if (! isset($_GET['pmt'])) {
             wp_die(__('Sorry, updating your credentials failed. (pmt)', 'memberpress'));
         }
 
-        // Make sure the user is authorized
+        // Make sure the user is authorized.
         if (! MeprUtils::is_mepr_admin()) {
             wp_die(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
@@ -413,17 +412,17 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     public function process_refresh_tokens()
     {
 
-        // Security check
+        // Security check.
         if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce($_GET['_wpnonce'], 'stripe-refresh')) {
             wp_die(__('Sorry, the refresh failed.', 'memberpress'));
         }
 
-        // Make sure we have a method ID
+        // Make sure we have a method ID.
         if (! isset($_GET['method-id'])) {
             wp_die(__('Sorry, the refresh failed.', 'memberpress'));
         }
 
-        // Make sure the user is authorized
+        // Make sure the user is authorized.
         if (! MeprUtils::is_mepr_admin()) {
             wp_die(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
@@ -437,7 +436,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         $jwt = MeprAuthenticatorCtrl::generate_jwt($payload);
 
-        // Send request to Connect service
+        // Send request to Connect service.
         $response = wp_remote_post(MEPR_STRIPE_SERVICE_URL . "/api/refresh/{$method_id}", [
             'headers' => MeprUtils::jwt_header($jwt, MEPR_STRIPE_SERVICE_DOMAIN),
         ]);
@@ -453,7 +452,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         $integration_updated_count = 0;
 
         foreach ($mepr_options->integrations as $method_id => $integ) {
-            // Update ALL of the payment methods connected to this account
+            // Update ALL of the payment methods connected to this account.
             if (
                 isset($mepr_options->integrations[$method_id]['service_account_id']) &&
                 $mepr_options->integrations[$method_id]['service_account_id'] == sanitize_text_field($body['service_account_id'])
@@ -488,17 +487,17 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     public function process_disconnect()
     {
 
-        // Security check
+        // Security check.
         if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce($_GET['_wpnonce'], 'stripe-disconnect')) {
             wp_die(__('Sorry, the disconnect failed.', 'memberpress'));
         }
 
-        // Make sure we have a method ID
+        // Make sure we have a method ID.
         if (! isset($_GET['method-id'])) {
             wp_die(__('Sorry, the disconnect failed.', 'memberpress'));
         }
 
-        // Make sure the user is authorized
+        // Make sure the user is authorized.
         if (! MeprUtils::is_mepr_admin()) {
             wp_die(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
@@ -553,7 +552,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     {
 
         if ($disconnect_type === 'full') {
-            // Update connection data
+            // Update connection data.
             $mepr_options            = MeprOptions::fetch();
             $integ                   = $mepr_options->integrations[$method_id];
             $integ['connect_status'] = 'disconnected';
@@ -566,7 +565,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         $site_uuid = get_option('mepr_authenticator_site_uuid');
 
-        // Attempt to disconnect at the service
+        // Attempt to disconnect at the service.
         $payload = [
             'method_id' => $method_id,
             'site_uuid' => $site_uuid,
@@ -574,7 +573,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         $jwt = MeprAuthenticatorCtrl::generate_jwt($payload);
 
-        // Send request to Connect service
+        // Send request to Connect service.
         $response = wp_remote_request(MEPR_STRIPE_SERVICE_URL . "/api/disconnect/{$method_id}", [
             'method'  => 'DELETE',
             'headers' => MeprUtils::jwt_header($jwt, MEPR_STRIPE_SERVICE_DOMAIN),
@@ -622,7 +621,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
 
-        // Bail early if no payment methods have been deleted
+        // Bail early if no payment methods have been deleted.
         if (empty($params['mepr_deleted_payment_methods'])) {
             return;
         }

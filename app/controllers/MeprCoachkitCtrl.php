@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprCoachkitCtrl extends MeprBaseCtrl
 {
+    /**
+     * The plugin slug for CoachKit.
+     *
+     * @var string
+     */
     private $coachkit_slug = 'memberpress-coachkit/main.php';
 
     /**
@@ -48,7 +53,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
 
         $coachkit_addon = false;
         if (empty($plugins['memberpress-coachkit/main.php'])) {
-            // only query addons if CoachKit™ is not installed.
+            // Only query addons if CoachKit™ is not installed.
             $addons         = (array) MeprUpdateCtrl::addons(true, true, true);
             $coachkit_addon = ! empty($addons['memberpress-coachkit']) ? $addons['memberpress-coachkit'] : false;
         }
@@ -92,13 +97,13 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
         $message   = '';
         $result    = 'error';
         switch ($type) {
-            case 'install-activate': // Install and activate courses
+            case 'install-activate': // Install and activate courses.
                 $installed = $this->install_coachkit(true);
                 $activated = $installed ? $installed : $activated;
                 $result    = $installed ? 'success' : 'error';
                 $message   = $installed ? esc_html__('CoachKit™ has been installed and activated successfully. Enjoy!', 'memberpress') : esc_html__('CoachKit™ could not be installed. Please check your license settings, or contact MemberPress support for help.', 'memberpress');
                 break;
-            case 'activate': // Just activate (already installed)
+            case 'activate': // Just activate (already installed).
                 $activated = is_null(activate_plugin($this->coachkit_slug));
                 $result    = 'success';
                 $message   = esc_html__('CoachKit™ has been activated successfully. Enjoy!', 'memberpress');
@@ -112,7 +117,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
         $redirect = '';
 
         if ($activated) {
-            // redirect to Programs page.
+            // Redirect to the Programs page.
             $redirect = add_query_arg([
                 'post_type'          => 'mpch-program',
                 'coachkit_activated' => 'true',
@@ -131,7 +136,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
     /**
      * Install the MemberPress CoachKit™ addon
      *
-     * @param boolean $activate Whether to activate after installing
+     * @param boolean $activate Whether to activate after installing.
      *
      * @return boolean Whether the plugin was installed
      */
@@ -147,10 +152,10 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
             return false;
         }
 
-        // Set the current screen to avoid undefined notices
+        // Set the current screen to avoid undefined notices.
         set_current_screen("memberpress_page_{$this->coachkit_slug}");
 
-        // Prepare variables
+        // Prepare variables.
         $url = esc_url_raw(
             add_query_arg(
                 [
@@ -162,7 +167,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
 
         $creds = request_filesystem_credentials($url, '', false, false, null);
 
-        // Check for file system permissions
+        // Check for file system permissions.
         if (false === $creds) {
             wp_send_json_error(esc_html('File system credentials failed.', 'memberpress'));
         }
@@ -170,19 +175,19 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
             wp_send_json_error(esc_html('File system credentials failed.', 'memberpress'));
         }
 
-        // We do not need any extra credentials if we have gotten this far, so let's install the plugin
+        // We do not need any extra credentials if we have gotten this far, so let's install the plugin.
         require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-        // Do not allow WordPress to search/download translations, as this will break JS output
+        // Do not allow WordPress to search/download translations, as this will break JS output.
         remove_action('upgrader_process_complete', ['Language_Pack_Upgrader', 'async_upgrade'], 20);
 
-        // Create the plugin upgrader with our custom skin
+        // Create the plugin upgrader with our custom skin.
         $installer = new Plugin_Upgrader(new MeprAddonInstallSkin());
 
         $plugin = wp_unslash($coachkit_addon->url);
         $installer->install($plugin);
 
-        // Flush the cache and return the newly installed plugin basename
+        // Flush the cache and return the newly installed plugin basename.
         wp_cache_flush();
 
         if ($installer->plugin_info() && true === $activate) {

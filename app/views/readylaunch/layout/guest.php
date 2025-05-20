@@ -27,7 +27,6 @@
     </header><!-- #masthead -->
     <!-- ../assets/logo.svg -->
     <main id="primary" class="site-main">
-      <?php // echo $content ?>
       <?php the_content() ?>
 
       <?php

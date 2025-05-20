@@ -10,27 +10,89 @@ if (!class_exists('WP_List_Table')) {
 
 class MeprSubscriptionsTable extends WP_List_Table
 {
+    /**
+     * Flag indicating if this is a lifetime subscription table
+     *
+     * @var boolean
+     */
     public $lifetime;
+
+    /**
+     * Count of recurring subscriptions
+     *
+     * @var integer
+     */
     public $periodic_count;
+
+    /**
+     * Count of lifetime subscriptions
+     *
+     * @var integer
+     */
     public $lifetime_count;
 
+    /**
+     * The current screen object
+     *
+     * @var WP_Screen
+     */
     public $_screen;
+
+    /**
+     * The columns to be displayed in the table
+     *
+     * @var array
+     */
     public $_columns;
+
+    /**
+     * The sortable columns
+     *
+     * @var array
+     */
     public $_sortable;
 
+    /**
+     * Searchable fields for non-recurring subscriptions
+     *
+     * @var array
+     */
     public $_non_recurring_searchable;
+
+    /**
+     * Searchable fields for recurring subscriptions
+     *
+     * @var array
+     */
     public $_recurring_searchable;
+
+    /**
+     * Database columns for non-recurring subscription searches
+     *
+     * @var array
+     */
     public $non_recurring_db_search_cols;
+
+    /**
+     * Database columns for recurring subscription searches
+     *
+     * @var array
+     */
     public $recurring_db_search_cols;
 
+    /**
+     * Total number of items
+     *
+     * @var integer
+     */
     public $totalitems;
 
     /**
      * Constructor.
      *
-     * @param  string  $screen   The screen.
-     * @param  array   $columns  The columns.
-     * @param  boolean $lifetime The lifetime.
+     * @param  string|WP_Screen $screen   The screen object or screen name.
+     * @param  array            $columns  The columns to display in the table.
+     * @param  boolean          $lifetime Whether this is a lifetime subscription table.
      * @return void
      */
     public function __construct($screen, $columns, $lifetime = false)
@@ -83,9 +145,9 @@ class MeprSubscriptionsTable extends WP_List_Table
 
         parent::__construct(
             [
-                'singular' => $label, // Singular label
-                'plural'   => "{$label}s", // plural label, also this well be one of the table css class
-                'ajax'     => true, // false //We won't support Ajax for this table
+                'singular' => $label, // Singular label.
+                'plural'   => "{$label}s", // Plural label, also this well be one of the table css class.
+                'ajax'     => true, // It is not false as we won't support Ajax for this table.
             ]
         );
     }
@@ -93,14 +155,14 @@ class MeprSubscriptionsTable extends WP_List_Table
     /**
      * Get the column info.
      *
-     * @return array
+     * @return array Array of column information including columns, hidden columns, sortable columns, and primary column.
      */
     public function get_column_info()
     {
         $columns = get_column_headers($this->_screen);
         $hidden  = get_hidden_columns($this->_screen);
 
-        // Bypass MeprHooks to call built-in filter
+        // Bypass MeprHooks to call built-in filter.
         $sortable = apply_filters("manage_{$this->_screen->id}_sortable_columns", $this->get_sortable_columns());
 
         $primary = 'col_id';
@@ -110,7 +172,7 @@ class MeprSubscriptionsTable extends WP_List_Table
     /**
      * Extra table nav.
      *
-     * @param  string $which The which.
+     * @param  string $which The location of the extra table nav markup: 'top' or 'bottom'.
      * @return void
      */
     public function extra_tablenav($which)
@@ -148,7 +210,7 @@ class MeprSubscriptionsTable extends WP_List_Table
     /**
      * Get the columns.
      *
-     * @return array
+     * @return array Array of column headers.
      */
     public function get_columns()
     {
@@ -158,7 +220,7 @@ class MeprSubscriptionsTable extends WP_List_Table
     /**
      * Get the sortable columns.
      *
-     * @return array
+     * @return array Array of sortable columns.
      */
     public function get_sortable_columns()
     {
@@ -202,7 +264,7 @@ class MeprSubscriptionsTable extends WP_List_Table
             $perpage = get_user_meta($user_id, $option, true);
             $perpage = !empty($perpage) && !is_array($perpage) ? $perpage : 10;
 
-            // Specifically for the CSV export to work properly
+            // Specifically for the CSV export to work properly.
             $_SERVER['QUERY_STRING'] = ( empty($_SERVER['QUERY_STRING']) ? '?' : "{$_SERVER['QUERY_STRING']}&" ) . "perpage={$perpage}";
         } else {
             $perpage = !empty($_GET['perpage']) ? esc_sql($_GET['perpage']) : 10;
@@ -240,7 +302,7 @@ class MeprSubscriptionsTable extends WP_List_Table
         if (isset($screen) && is_object($screen)) {
             $this->_column_headers = $this->get_column_info();
         } else {
-            // For CSV to work properly
+            // For CSV to work properly.
             $this->_column_headers = [
                 $this->get_columns(),
                 [],
@@ -263,10 +325,10 @@ class MeprSubscriptionsTable extends WP_List_Table
     {
         $mepr_options = MeprOptions::fetch();
 
-        // Get the records registered in the prepare_items method
+        // Get the records registered in the prepare_items method.
         $records = $this->items;
 
-        // Get the columns registered in the get_columns and get_sortable_columns methods
+        // Get the columns registered in the get_columns and get_sortable_columns methods.
         list($columns, $hidden) = $this->get_column_info();
 
         $table = $this;
@@ -276,7 +338,7 @@ class MeprSubscriptionsTable extends WP_List_Table
     /**
      * Get the items.
      *
-     * @return array
+     * @return array Array of table items.
      */
     public function get_items()
     {

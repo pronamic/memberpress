@@ -24,7 +24,7 @@ class MeprView
         }
 
         // Since we're including our default path, the file will be
-        // found so we're not doing any validation for that here
+        // found so we're not doing any validation for that here.
         foreach ($paths as $path) {
             if (file_exists($path . $find)) {
                 return $path . $find;
@@ -54,7 +54,7 @@ class MeprView
         $template_part_slug = 'memberpress/' . dirname($slug);
         $template_part_name = basename($slug);
 
-        do_action("get_template_part_{$template_part_slug}", $template_part_slug, $template_part_name); // bypass MeprHooks for this one
+        do_action("get_template_part_{$template_part_slug}", $template_part_slug, $template_part_name); // Bypass MeprHooks for this one.
 
         extract($vars, EXTR_SKIP);
 
@@ -68,8 +68,8 @@ class MeprView
         require($file);
         $view = ob_get_clean();
 
-        $view = MeprHooks::apply_filters('mepr_view_get_string_' . $slug, $view, $vars); // Slug specific filter
-        $view = MeprHooks::apply_filters('mepr_view_get_string', $view, $slug, $vars); // General filter
+        $view = MeprHooks::apply_filters('mepr_view_get_string_' . $slug, $view, $vars); // Slug specific filter.
+        $view = MeprHooks::apply_filters('mepr_view_get_string', $view, $slug, $vars); // General filter.
 
         return $view;
     }
@@ -107,7 +107,7 @@ class MeprView
         $template_path   = get_template_directory();
         $stylesheet_path = get_stylesheet_directory();
 
-        // Put child theme's first if one's being used
+        // Put child theme's first if one's being used.
         if ($stylesheet_path !== $template_path) {
             $paths[] = "{$stylesheet_path}/memberpress";
         }

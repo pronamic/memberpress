@@ -8,8 +8,18 @@ require_once(MEPR_GATEWAYS_PATH . '/authorizenet/client.php');
 
 class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
 {
+    /**
+     * String used for storing order invoice information in order meta
+     *
+     * @var string
+     */
     public static $order_invoice_str = '_mepr_authnet_order_invoice';
 
+    /**
+     * Gateway identifier key
+     *
+     * @var string
+     */
     public $key;
 
     /**
@@ -50,7 +60,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             'subscription-trial-payment',
         ];
 
-        // Setup the notification actions for this gateway
+        // Setup the notification actions for this gateway.
         $this->notifiers     = [
             'whk' => 'webhook_listener',
         ];
@@ -60,7 +70,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Load the settings
      *
-     * @param array $settings The settings
+     * @param array $settings The settings.
      *
      * @return void
      */
@@ -120,7 +130,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             $this->settings->arbUrl = 'https://api2.authorize.net/xml/v1/request.api';
         }
 
-        // An attempt to correct people who paste in spaces along with their credentials
+        // An attempt to correct people who paste in spaces along with their credentials.
         $this->settings->login_name      = trim($this->settings->login_name);
         $this->settings->transaction_key = trim($this->settings->transaction_key);
         $this->settings->signature_key   = trim($this->settings->signature_key);
@@ -130,7 +140,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Log the data
      *
-     * @param mixed $data The data
+     * @param mixed $data The data.
      *
      * @return void
      */
@@ -236,7 +246,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Process the payment form
      *
-     * @param MeprTransaction $transaction The transaction
+     * @param MeprTransaction $transaction The transaction.
      *
      * @return void
      */
@@ -258,7 +268,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Process the refund
      *
-     * @param MeprTransaction $txn The transaction
+     * @param MeprTransaction $txn The transaction.
      *
      * @return void
      */
@@ -301,7 +311,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Process the trial payment
      *
-     * @param MeprTransaction $transaction The transaction
+     * @param MeprTransaction $transaction The transaction.
      *
      * @return void
      */
@@ -313,7 +323,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Record the trial payment
      *
-     * @param MeprTransaction $transaction The transaction
+     * @param MeprTransaction $transaction The transaction.
      *
      * @return void
      */
@@ -325,7 +335,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Process the create subscription
      *
-     * @param MeprTransaction $transaction The transaction
+     * @param MeprTransaction $transaction The transaction.
      *
      * @return void
      */
@@ -357,7 +367,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Process the cancel subscription
      *
-     * @param integer $subscription_id The subscription ID
+     * @param integer $subscription_id The subscription ID.
      *
      * @return void
      */
@@ -428,14 +438,14 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Process the single order
      *
-     * @param MeprTransaction $txn            The transaction
-     * @param string          $dataValue      The data value
-     * @param string          $dataDescriptor The data descriptor
-     * @param string          $cvcCode        The CVC code
+     * @param MeprTransaction $txn             The transaction.
+     * @param string          $data_value      The data value.
+     * @param string          $data_descriptor The data descriptor.
+     * @param string          $cvc_code        The CVC code.
      *
      * @return void
      */
-    public function process_single_order($txn, $dataValue, $dataDescriptor, $cvcCode)
+    public function process_single_order($txn, $data_value, $data_descriptor, $cvc_code)
     {
         $user                  = $txn->user();
         $client                = $this->getHttpClient();
@@ -443,31 +453,31 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
 
         if ($authorizenet_customer) {
             $is_new_user       = false;
-            $newPaymentProfile = $client->createCustomerPaymentProfile(
+            $new_payment_profile = $client->createCustomerPaymentProfile(
                 $user,
                 $authorizenet_customer,
-                $dataValue,
-                $dataDescriptor
+                $data_value,
+                $data_descriptor
             );
 
-            if ($newPaymentProfile) {
-                $authorizenet_customer['newCustomerPaymentProfileId'] = $newPaymentProfile;
+            if ($new_payment_profile) {
+                $authorizenet_customer['newCustomerPaymentProfileId'] = $new_payment_profile;
             }
         } else {
             $is_new_user = true;
-            $client->createCustomerProfile($user, $dataValue, $dataDescriptor);
+            $client->createCustomerProfile($user, $data_value, $data_descriptor);
             $authorizenet_customer = $client->getCustomerProfile($user->ID);
         }
 
         $this->log($authorizenet_customer);
 
-        if ($is_new_user || empty($dataDescriptor) || empty($dataValue)) {
-            // wait some time for the customer to occupy on authorizenet server
+        if ($is_new_user || empty($data_descriptor) || empty($data_value)) {
+            // Wait some time for the customer to occupy on authorizenet server.
             sleep(14);
         }
 
         if ($txn->is_one_time_payment()) {
-            $txn_num = $client->chargeCustomer($authorizenet_customer, $txn, true, $cvcCode);
+            $txn_num = $client->chargeCustomer($authorizenet_customer, $txn, true, $cvc_code);
 
             if (!empty($txn)) {
                 $txn->status    = MeprTransaction::$complete_str;
@@ -488,7 +498,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         } else {
             $sub = $txn->subscription();
 
-            // This will only work before maybe_cancel_old_sub is run
+            // This will only work before maybe_cancel_old_sub is run.
             $upgrade   = $sub->is_upgrade();
             $downgrade = $sub->is_downgrade();
 
@@ -502,23 +512,23 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
                 $this->new_sub($sub, true);
             }
 
-            // Charge a 1 dollar to validate payment source
+            // Charge a 1 dollar to validate payment source.
             if (apply_filters('mepr_authorize_profile_validation_txn_enabled', false) && $this->payment_validated !== true) {
-                $validationTxn = clone $txn;
-                $validationTxn->set_subtotal(1);
-                $validationTxn->trans_num = $client->chargeCustomer($authorizenet_customer, $validationTxn, false, $cvcCode);
+                $validation_txn = clone $txn;
+                $validation_txn->set_subtotal(1);
+                $validation_txn->trans_num = $client->chargeCustomer($authorizenet_customer, $validation_txn, false, $cvc_code);
             }
 
             $subscr_id = $client->createSubscriptionFromCustomer(
                 $authorizenet_customer,
                 $txn,
                 $sub,
-                $dataDescriptor,
-                $dataValue
+                $data_descriptor,
+                $data_value
             );
 
-            if (isset($validationTxn)) {
-                $client->voidTransaction($validationTxn);
+            if (isset($validation_txn)) {
+                $client->voidTransaction($validation_txn);
                 $this->payment_validated = true;
             }
 
@@ -568,16 +578,16 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         $order_bumps            = $this->process_order($txn, $order_bump_products);
         array_unshift($order_bumps, $txn);
         unset($_POST['mepr_order_bumps']);
-        $dataValue      = sanitize_text_field(wp_unslash($_POST['dataValue']));
-        $dataDescriptor = sanitize_text_field(wp_unslash($_POST['dataDescriptor']));
-        $cvcCode        = isset($_POST['cvc-code']) ? sanitize_text_field(wp_unslash($_POST['cvc-code'])) : null;
-        $this->log('data value' . $dataValue);
-        $this->log('data descriptor' . $dataDescriptor);
+        $data_value      = sanitize_text_field(wp_unslash($_POST['dataValue']));
+        $data_descriptor = sanitize_text_field(wp_unslash($_POST['dataDescriptor']));
+        $cvc_code        = isset($_POST['cvc-code']) ? sanitize_text_field(wp_unslash($_POST['cvc-code'])) : null;
+        $this->log('data value' . $data_value);
+        $this->log('data descriptor' . $data_descriptor);
 
         foreach ($order_bumps as $bump) {
-            $this->process_single_order($bump, $dataValue, $dataDescriptor, $cvcCode);
-            $dataValue      = null;
-            $dataDescriptor = null;
+            $this->process_single_order($bump, $data_value, $data_descriptor, $cvc_code);
+            $data_value      = null;
+            $data_descriptor = null;
         }
 
         if (isset($_POST['mepr_payment_method'])) {
@@ -588,7 +598,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Display the payment page
      *
-     * @param  MeprTransaction $txn The transaction
+     * @param  MeprTransaction $txn The transaction.
      * @return string
      */
     public function display_payment_page($txn)
@@ -623,10 +633,10 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Display the payment form
      *
-     * @param  float    $amount         The amount
-     * @param  MeprUser $user           The user
-     * @param  integer  $product_id     The product ID
-     * @param  integer  $transaction_id The transaction ID
+     * @param  float    $amount         The amount.
+     * @param  MeprUser $user           The user.
+     * @param  integer  $product_id     The product ID.
+     * @param  integer  $transaction_id The transaction ID.
      * @return void
      */
     public function display_payment_form($amount, $user, $product_id, $transaction_id)
@@ -642,7 +652,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         $order_bump_product_ids = isset($_REQUEST['obs']) && is_array($_REQUEST['obs']) ? array_map('intval', $_REQUEST['obs']) : [];
         $txn                    = new MeprTransaction($transaction_id);
 
-        // Artifically set the price of the $prd in case a coupon was used
+        // Artifically set the price of the $prd in case a coupon was used.
         if ($prd->price != $amount) {
             $coupon     = true;
             $prd->price = $amount;
@@ -655,9 +665,9 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             <input type="hidden" name="mepr_process_payment_form" value="Y" />
             <input type="hidden" name="mepr_transaction_id" value="<?php echo esc_attr($txn->id); ?>" />
             <?php
-            foreach ($order_bump_product_ids as $orderId) {
+            foreach ($order_bump_product_ids as $order_id) {
                 ?>
-                <input type="hidden" name="mepr_order_bumps[]" value="<?php echo intval($orderId); ?>" />
+                <input type="hidden" name="mepr_order_bumps[]" value="<?php echo intval($order_id); ?>" />
                 <?php
             }
             ?>
@@ -678,7 +688,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Validate the payment form
      *
-     * @param  array $errors The errors
+     * @param  array $errors The errors.
      * @return void
      */
     public function validate_payment_form($errors)
@@ -689,7 +699,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Validate the options form
      *
-     * @param  array $errors The errors
+     * @param  array $errors The errors.
      * @return void
      */
     public function validate_options_form($errors)
@@ -704,6 +714,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
      *
      * @param  integer $sub_id The subscription ID.
      * @return mixed
+     * @throws MeprGatewayException When payment details are invalid.
      */
     public function process_update_subscription($sub_id)
     {
@@ -785,15 +796,15 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         $exp_month = isset($_POST['update_cc_exp_month']) ? sanitize_text_field($_POST['update_cc_exp_month']) : $sub->cc_exp_month;
         $exp_year  = isset($_POST['update_cc_exp_year']) ? sanitize_text_field($_POST['update_cc_exp_year']) : $sub->cc_exp_year;
 
-        // Only include the full cc number if there are errors
+        // Only include the full cc number if there are errors.
         if (strtolower($_SERVER['REQUEST_METHOD']) == 'post' and empty($errors)) {
             $sub->cc_last4     = $last4;
             $sub->cc_exp_month = $exp_month;
             $sub->cc_exp_year  = $exp_year;
             $sub->store();
 
-            unset($_POST['update_cvv_code']); // Unset this for security
-        } else { // If there are errors then show the full cc num ... if it's there
+            unset($_POST['update_cvv_code']); // Unset this for security.
+        } else { // If there are errors then show the full cc num ... if it's there.
             $last4 = isset($_POST['update_cc_num']) ? sanitize_text_field($_POST['update_cc_num']) : $sub->cc_last4;
         }
 
@@ -952,7 +963,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Process the suspend subscription
      *
-     * @param  integer $subscription_id The subscription ID
+     * @param  integer $subscription_id The subscription ID.
      * @return void
      */
     public function process_suspend_subscription($subscription_id)
@@ -973,7 +984,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Process the resume subscription
      *
-     * @param  integer $subscription_id The subscription ID
+     * @param  integer $subscription_id The subscription ID.
      * @return void
      */
     public function process_resume_subscription($subscription_id)
@@ -994,7 +1005,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     /**
      * Process the payment
      *
-     * @param  MeprTransaction $transaction The transaction
+     * @param  MeprTransaction $transaction The transaction.
      * @return void
      */
     public function process_payment($transaction)

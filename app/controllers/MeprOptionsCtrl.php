@@ -60,7 +60,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             wp_verify_nonce($_REQUEST['_wpnonce'], 'MeprUpdateCtrl::manually_queue_update')
         ) {
             MeprUpdateCtrl::manually_queue_update();
-        } elseif ($action === 'upgrade') { // Manually upgrade the database
+        } elseif ($action === 'upgrade') { // Manually upgrade the database.
             $mepr_app = new MeprAppCtrl();
             try {
                 delete_transient('mepr_migration_error');
@@ -124,8 +124,8 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 $mepr_options->update($settings);
                 $mepr_options->store();
 
-                // Ensure that the rewrite rules are flushed & in place
-                MeprUtils::flush_rewrite_rules(); // Don't call this before running ->update() - it borks stuff
+                // Ensure that the rewrite rules are flushed & in place.
+                MeprUtils::flush_rewrite_rules(); // Don't call this before running ->update() - it borks stuff.
 
                 $message = __('Options saved.', 'memberpress');
             }
@@ -280,7 +280,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 die(json_encode(['error' => __('No gateways were found', 'memberpress')]));
             }
 
-            // Artificially set the gateway to the first available
+            // Artificially set the gateway to the first available.
             $gateway = $gateways[0];
         } else {
             $gateway = $_POST['g'];
@@ -340,7 +340,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 $automatic_updates = !empty($mepr_options->auto_updates) ? $mepr_options->auto_updates : 'all';
 
                 if (is_array($editions) && $editions['license']['index'] > $editions['installed']['index'] && $automatic_updates != 'none') {
-                    // The installed plugin is a lower edition, try to upgrade to the higher license edition
+                    // The installed plugin is a lower edition, try to upgrade to the higher license edition.
                     if (!empty($li['url']) && MeprUtils::is_url($li['url'])) {
                         $result = self::install_plugin_silently($li['url'], ['overwrite_package' => true]);
 
@@ -387,7 +387,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                             if (is_array($highest_license)) {
                                 wp_send_json_error(
                                     sprintf(
-                                    // translators: %1$s: the product name, %2$s: open link tag, %3$s: close link tag
+                                    // Translators: %1$s: the product name, %2$s: open link tag, %3$s: close link tag.
                                         esc_html__('This License Key has expired, but you have an active license for %1$s, %2$sclick here%3$s to activate using this license instead.', 'memberpress'),
                                         '<strong>' . esc_html($highest_license['product_name']) . '</strong>',
                                         sprintf('<a href="#" id="mepr-activate-new-license" data-license-key="%s">', esc_attr($highest_license['license_key'])),
@@ -547,6 +547,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
      * Activate a Stripe payment method via AJAX.
      *
      * @return void
+     * @throws Exception If the payment method couldn't be activated.
      */
     public static function activate_stripe_payment_method()
     {
@@ -636,9 +637,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
      *
      * @param  string            $payment_method_type The payment method type: 'apple_pay', 'google_pay' or 'link'.
      * @param  MeprStripeGateway $pm                  The Stripe gateway object.
-     * @throws Exception If the payment method couldn't be activated
-     * @throws MeprHttpException The HTTP exception.
-     * @throws MeprRemoteException The remote exception.
+     * @throws Exception If the payment method couldn't be activated.
      *
      * @return void
      */
@@ -683,7 +682,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 $pm->send_stripe_request("payment_method_domains/{$test['id']}/validate", [], 'post');
             }
         } catch (Exception $e) {
-            // ignore exceptions in Test mode
+            // Ignore exceptions in Test mode.
         }
 
         remove_filter('mepr_stripe_is_test_mode', '__return_true');

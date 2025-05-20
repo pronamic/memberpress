@@ -6,11 +6,11 @@
   $saved_gateway_id = get_option('mepr_onboarding_payment_gateway');
 
 if (!empty($mepr_options->integrations) && empty($saved_gateway_id)) {
-    $state = 1; // skip without confirmation
+    $state = 1; // Skip without confirmation.
 } elseif (!empty($saved_gateway_id)) {
-    $state = 2; // continue
+    $state = 2; // Continue.
 } else {
-    $state = 3; // skip with confirmation
+    $state = 3; // Skip with confirmation.
 }
 ?>
 <div id="mepr-wizard-payments-skip"<?php echo $state == 2 || $state == 3  ? ' class="mepr-hidden"' : ''; ?>>

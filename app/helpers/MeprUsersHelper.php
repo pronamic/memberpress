@@ -86,12 +86,12 @@ class MeprUsersHelper
             }
         }
 
-        // You know we're just going to lump the user record fields in here no problem
+        // You know we're just going to lump the user record fields in here no problem.
         foreach ((array)$usr->rec as $ukey => $uval) {
             $params["usermeta:{$ukey}"] = $uval;
         }
 
-        $params = MeprHooks::apply_filters('mepr_user_notification_params', $params, $usr); // DEPRECATED
+        $params = MeprHooks::apply_filters('mepr_user_notification_params', $params, $usr); // DEPRECATED.
 
         return MeprHooks::apply_filters('mepr_user_email_params', $params, $usr);
     }
@@ -108,7 +108,7 @@ class MeprUsersHelper
     public static function render_custom_field($line, $value = '', $classes = [], $unique_suffix = '')
     {
         $required_attr = $line->required ? 'required' : '';
-        $array_types   = ['multiselect', 'checkboxes']; // If we update this, we need make sure it doesn't break the {$usermeta:slug} stuff in MeprTransactionsHelper
+        $array_types   = ['multiselect', 'checkboxes']; // If we update this, we need make sure it doesn't break the {$usermeta:slug} stuff in MeprTransactionsHelper.
         $bool_types    = ['checkbox'];
         $classes       = MeprHooks::apply_filters('mepr-custom-field-classes', $classes, $line);
         if (isset($line->placeholder)) {
@@ -119,7 +119,7 @@ class MeprUsersHelper
 
         $required_attr = $placeholder_attr . ' ' . $required_attr;
 
-        // Figure out what type we have here
+        // Figure out what type we have here.
         $is_array  = in_array($line->field_type, $array_types);
         $is_bool   = in_array($line->field_type, $bool_types);
         $is_string = ( !$is_array && !$is_bool );
@@ -147,11 +147,11 @@ class MeprUsersHelper
 
                 // We have to account for the possibility that the checkbox has been saved
                 // with a value of '' instead of false so we have to formally check if the
-                // value has been saved at some point in the past otherwise set as default
+                // value has been saved at some point in the past otherwise set as default.
                 if ($current_user !== false) {
                     if (MeprUtils::user_meta_exists($current_user->ID, $line->field_key)) {
                         $value = !empty($value);
-                    } else { // User may have unchecked the box during signup
+                    } else { // User may have unchecked the box during signup.
                         $value = false;
                     }
                 } else {
@@ -248,9 +248,9 @@ class MeprUsersHelper
               </span>
                         <?php
                     } else {
-                        if (!is_array($value)) {
+                        if (!is_array($value)) { // Suppress some errors here.
                             $value = [];
-                        } //Suppress some errors here
+                        }
 
                         $value[$o->option_value] = isset($value[$o->option_value]) ? true : false;
 
@@ -268,10 +268,10 @@ class MeprUsersHelper
         </div>
                 <?php
                 break;
-            case 'countries': // for now only geolocate if the user isn't logged in
+            case 'countries': // For now, only geolocate if the user isn't logged in.
                 echo MeprAppHelper::countries_dropdown($line->field_key, $value, $class, $required_attr, !MeprUtils::is_user_logged_in(), $unique_suffix);
                 break;
-            case 'states': // for now only geolocate if the user isn't logged in
+            case 'states': // For now, only geolocate if the user isn't logged in.
                 echo MeprAppHelper::states_dropdown($line->field_key, $value, $class, $required_attr, !MeprUtils::is_user_logged_in(), $unique_suffix);
                 break;
         }
@@ -294,7 +294,7 @@ class MeprUsersHelper
             $user = MeprUtils::get_currentuserinfo();
         }
 
-        // Give devs a chance to re-order these if they so wish
+        // Give devs a chance to re-order these if they so wish.
         $address_fields = MeprHooks::apply_filters('mepr_render_address_fields', $mepr_options->address_fields);
 
         foreach ($address_fields as $line) {
@@ -324,10 +324,10 @@ class MeprUsersHelper
 
         $custom_fields = self::get_custom_fields($product);
 
-        // Maybe show the address fields too
+        // Maybe show the address fields too.
         if ($mepr_options->show_address_fields && $show_address) {
             if (is_null($product)) {
-                // Check if any memberships require address fields
+                // Check if any memberships require address fields.
                 if ($user->show_address_fields()) {
                     $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
                 }
@@ -338,7 +338,7 @@ class MeprUsersHelper
             }
         }
 
-        // Give devs a chance to re-order these if they so wish
+        // Give devs a chance to re-order these if they so wish.
         $custom_fields = MeprHooks::apply_filters('mepr_render_custom_fields', $custom_fields);
 
         foreach ($custom_fields as $line) {
@@ -425,9 +425,9 @@ class MeprUsersHelper
     {
         $mepr_options = MeprOptions::fetch();
 
-        // Maybe show the address fields too
+        // Maybe show the address fields too.
         if ($mepr_options->show_address_fields) {
-            // Check if any memberships require address fields
+            // Check if any memberships require address fields.
             if ($user && $user->show_address_fields()) {
                 return $mepr_options->address_fields;
             }
@@ -439,7 +439,7 @@ class MeprUsersHelper
     /**
      * Gets custom fields
      *
-     * @param  MeprProduct $product MemberPress Product Object
+     * @param  MeprProduct $product MemberPress Product Object.
      * @return array
      */
     public static function get_custom_fields($product = null)
@@ -451,9 +451,9 @@ class MeprUsersHelper
             $user = MeprUtils::get_currentuserinfo();
         }
 
-        // Get the right custom fields
+        // Get the right custom fields.
         if ($logged_in && is_admin() && MeprUtils::is_mepr_admin()) {
-            // An admin is view the user's profile, so let's view all fields
+            // An admin is view the user's profile, so let's view all fields.
             $custom_fields = $mepr_options->custom_fields;
         } elseif (!is_null($product) && $product instanceof MeprProduct) {
             if ($product->customize_profile_fields) {
@@ -481,16 +481,16 @@ class MeprUsersHelper
     {
         $mepr_options = MeprOptions::fetch();
 
-        if (MeprUtils::is_mepr_admin()) { // Let admins see all fields
+        if (MeprUtils::is_mepr_admin()) { // Let admins see all fields.
             $custom_fields = $mepr_options->custom_fields;
         } elseif (!is_null($user)) {
             $custom_fields = $user->custom_profile_fields();
         } else {
-            return; // if we aren't an admin and don't have a user we have no business being here
+            return; // If we aren't an admin and don't have a user, we have no business being here.
         }
 
         if ($mepr_options->show_address_fields) {
-            $custom_fields = array_merge($custom_fields, $mepr_options->address_fields); // Genius
+            $custom_fields = array_merge($custom_fields, $mepr_options->address_fields); // Genius.
         }
         $custom_fields = MeprHooks::apply_filters('mepr_render_editable_custom_fields', $custom_fields);
 

@@ -113,7 +113,7 @@ class MeprOnboardingHelper
      */
     public static function get_mepr_edition_features($edition, $request_type = '')
     {
-        // raw data.
+        // Raw data.
         $dataset = require(MEPR_DATA_PATH . '/features/editions.php');
 
         $data = [];
@@ -121,7 +121,7 @@ class MeprOnboardingHelper
             return $data;
         }
 
-        // mepr edition data
+        // Mepr edition data.
         $data        = $dataset[$edition];
         $valid_types = ['payments','addons'];
 
@@ -152,7 +152,7 @@ class MeprOnboardingHelper
         $is_installed     = ! empty($plugins[$plugin_file_slug]);
         $selectable       = true;
         if ($is_installed) {
-            if (is_plugin_active($plugin_file_slug)) { // if addon is already installed and active, it must not be selectable.
+            if (is_plugin_active($plugin_file_slug)) { // If addon is already installed and active, it must not be selectable.
                 $selectable = false;
             }
         }
@@ -382,7 +382,7 @@ class MeprOnboardingHelper
             <?php
             if (!empty($data['account'])) {
                 printf(
-                // translators: %s: account name
+                    // Translators: %s: account name.
                     esc_html__('Connected to: %s', 'memberpress'),
                     '<span>' . esc_html($data['account']) . '</span>'
                 );
@@ -675,17 +675,17 @@ class MeprOnboardingHelper
         // }
         // Check if license type is not pro or developer and Auth.net payment gateway selected.
         if (! (MeprUtils::is_pro_edition($license_type) || $license_type == 'developer') && $payment_gateway == 'MeprAuthorizeGateway') {
-            return 'memberpress-pro-5'; // upgrade to pro required.
+            return 'memberpress-pro-5'; // Upgrade to pro required.
         }
 
-        // if there are no addons required installation bail out.
+        // If there are no addons required installation bail out.
         if (empty($addons_not_installed)) {
             return false;
         }
 
         foreach ($addons_not_installed as $k => $addon_slug) {
             if (in_array($addon_slug, $addons_installed, true)) {
-                unset($addons_not_installed[$k]); // already installed.
+                unset($addons_not_installed[$k]); // Already installed.
             }
         }
 
@@ -696,7 +696,7 @@ class MeprOnboardingHelper
 
 
         if (in_array($license_type, ['developer','memberpress-plus','memberpress-plus-2'], true)) {
-            return 'memberpress-pro-5'; // upgrade to pro required.
+            return 'memberpress-pro-5'; // Upgrade to pro required.
         }
 
         $pro_addons   = self::get_mepr_edition_features('memberpress-pro-5', 'addons');
@@ -722,11 +722,11 @@ class MeprOnboardingHelper
         }
 
         if ($elite_count > $pro_count) {
-            return 'memberpress-elite'; // upgrade to elite required.
+            return 'memberpress-elite'; // Upgrade to elite required.
         } elseif ($pro_count > $plus_count) {
-            return 'memberpress-pro-5'; // upgrade to pro required.
+            return 'memberpress-pro-5'; // Upgrade to pro required.
         } else {
-            return 'memberpress-plus-2'; // upgrade to plus required.
+            return 'memberpress-plus-2'; // Upgrade to plus required.
         }
     }
 

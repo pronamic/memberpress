@@ -18,7 +18,7 @@
         'membership-stripe-tax-code',
         __('Stripe Tax Category', 'memberpress'),
         sprintf(
-        // translators: %1$s: br tag, %2$s: open strong tag, %3$s: close strong tag, %4$s: open link tag, %5$s: close link tag
+        // Translators: %1$s: br tag, %2$s: open strong tag, %3$s: close strong tag, %4$s: open link tag, %5$s: close link tag.
             __('Set the Stripe tax category for this membership.%1$s%1$sThe %2$sDefault tax category%3$s will use the default tax category from the %4$sStripe tax settings%5$s.%1$s%1$sSelect %2$sCustom%3$s to be able to enter a %6$scustom tax category%5$s.', 'memberpress'),
             '<br>',
             '<strong>',

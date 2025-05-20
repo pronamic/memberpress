@@ -6,72 +6,459 @@ if (!defined('ABSPATH')) {
 
 class MeprProduct extends MeprCptModel implements MeprProductInterface
 {
+    /**
+     * Meta key for product price
+     *
+     * @var string
+     */
     public static $price_str                      = '_mepr_product_price';
+
+    /**
+     * Meta key for product period
+     *
+     * @var string
+     */
     public static $period_str                     = '_mepr_product_period';
+
+    /**
+     * Meta key for product period type
+     *
+     * @var string
+     */
     public static $period_type_str                = '_mepr_product_period_type';
+
+    /**
+     * Meta key for signup button text
+     *
+     * @var string
+     */
     public static $signup_button_text_str         = '_mepr_product_signup_button_text';
+
+    /**
+     * Meta key for limit cycles
+     *
+     * @var string
+     */
     public static $limit_cycles_str               = '_mepr_product_limit_cycles';
+
+    /**
+     * Meta key for limit cycles number
+     *
+     * @var string
+     */
     public static $limit_cycles_num_str           = '_mepr_product_limit_cycles_num';
+
+    /**
+     * Meta key for limit cycles action
+     *
+     * @var string
+     */
     public static $limit_cycles_action_str        = '_mepr_product_limit_cycles_action';
+
+    /**
+     * Meta key for limit cycles expires after
+     *
+     * @var string
+     */
     public static $limit_cycles_expires_after_str = '_mepr_product_limit_cycles_expires_after';
+
+    /**
+     * Meta key for limit cycles expires type
+     *
+     * @var string
+     */
     public static $limit_cycles_expires_type_str  = '_mepr_product_limit_cycles_expires_type';
+
+    /**
+     * Meta key for trial
+     *
+     * @var string
+     */
     public static $trial_str                      = '_mepr_product_trial';
+
+    /**
+     * Meta key for trial days
+     *
+     * @var string
+     */
     public static $trial_days_str                 = '_mepr_product_trial_days';
+
+    /**
+     * Meta key for trial amount
+     *
+     * @var string
+     */
     public static $trial_amount_str               = '_mepr_product_trial_amount';
+
+    /**
+     * Meta key for trial once
+     *
+     * @var string
+     */
     public static $trial_once_str                 = '_mepr_product_trial_once';
-    public static $group_id_str                   = '_mepr_group_id'; // Only one group at a time dude
-    public static $group_order_str                = '_mepr_group_order'; // Position in group
+
+    /**
+     * Meta key for group ID
+     *
+     * @var string
+     */
+    public static $group_id_str                   = '_mepr_group_id'; // Only one group at a time dude.
+
+    /**
+     * Meta key for group order
+     *
+     * @var string
+     */
+    public static $group_order_str                = '_mepr_group_order'; // Position in group.
+
+    /**
+     * Meta key for is highlighted
+     *
+     * @var string
+     */
     public static $is_highlighted_str             = '_mepr_product_is_highlighted';
+
+    /**
+     * Meta key for who can purchase
+     *
+     * @var string
+     */
     public static $who_can_purchase_str           = '_mepr_product_who_can_purchase';
+
+    /**
+     * Meta key for have or had
+     *
+     * @var string
+     */
     public static $have_or_had_str                = '_mepr_product_purchase';
+
+    /**
+     * Meta key for pricing title
+     *
+     * @var string
+     */
     public static $pricing_title_str              = '_mepr_product_pricing_title';
+
+    /**
+     * Meta key for pricing display
+     *
+     * @var string
+     */
     public static $pricing_display_str            = '_mepr_product_pricing_display';
+
+    /**
+     * Meta key for pricing show price
+     *
+     * @var string
+     */
     public static $pricing_show_price_str         = '_mepr_product_pricing_show_price';
+
+    /**
+     * Meta key for custom price
+     *
+     * @var string
+     */
     public static $custom_price_str               = '_mepr_product_custom_price';
+
+    /**
+     * Meta key for pricing heading text
+     *
+     * @var string
+     */
     public static $pricing_heading_txt_str        = '_mepr_product_pricing_heading_text';
+
+    /**
+     * Meta key for pricing footer text
+     *
+     * @var string
+     */
     public static $pricing_footer_txt_str         = '_mepr_product_pricing_footer_text';
+
+    /**
+     * Meta key for pricing button text
+     *
+     * @var string
+     */
     public static $pricing_button_txt_str         = '_mepr_product_pricing_button_text';
+
+    /**
+     * Meta key for pricing button position
+     *
+     * @var string
+     */
     public static $pricing_button_position_str    = '_mepr_product_pricing_button_position';
+
+    /**
+     * Meta key for pricing benefits
+     *
+     * @var string
+     */
     public static $pricing_benefits_str           = '_mepr_product_pricing_benefits';
+
+    /**
+     * Meta key for register price action
+     *
+     * @var string
+     */
     public static $register_price_action_str      = '_mepr_register_price_action';
+
+    /**
+     * Meta key for register price
+     *
+     * @var string
+     */
     public static $register_price_str             = '_mepr_register_price';
+
+    /**
+     * Meta key for thank you page enabled
+     *
+     * @var string
+     */
     public static $thank_you_page_enabled_str     = '_mepr_thank_you_page_enabled';
+
+    /**
+     * Meta key for thank you page type
+     *
+     * @var string
+     */
     public static $thank_you_page_type_str        = '_mepr_thank_you_page_type';
+
+    /**
+     * Meta key for thank you message
+     *
+     * @var string
+     */
     public static $thank_you_message_str          = '_mepr_product_thank_you_message';
+
+    /**
+     * Meta key for thank you page ID
+     *
+     * @var string
+     */
     public static $thank_you_page_id_str          = '_mepr_product_thank_you_page_id';
+
+    /**
+     * Meta key for simultaneous subscriptions
+     *
+     * @var string
+     */
     public static $simultaneous_subscriptions_str = '_mepr_allow_simultaneous_subscriptions';
+
+    /**
+     * Meta key for use custom template
+     *
+     * @var string
+     */
     public static $use_custom_template_str        = '_mepr_use_custom_template';
+
+    /**
+     * Meta key for custom template
+     *
+     * @var string
+     */
     public static $custom_template_str            = '_mepr_custom_template';
+
+    /**
+     * Meta key for customize payment methods
+     *
+     * @var string
+     */
     public static $customize_payment_methods_str  = '_mepr_customize_payment_methods';
+
+    /**
+     * Meta key for custom payment methods
+     *
+     * @var string
+     */
     public static $custom_payment_methods_str     = '_mepr_custom_payment_methods';
+
+    /**
+     * Meta key for customize profile fields
+     *
+     * @var string
+     */
     public static $customize_profile_fields_str   = '_mepr_customize_profile_fields';
+
+    /**
+     * Meta key for custom profile fields
+     *
+     * @var string
+     */
     public static $custom_profile_fields_str      = '_mepr_custom_profile_fields';
+
+    /**
+     * Meta key for custom login urls enabled
+     *
+     * @var string
+     */
     public static $custom_login_urls_enabled_str  = '_mepr_custom_login_urls_enabled';
+
+    /**
+     * Meta key for custom login urls default
+     *
+     * @var string
+     */
     public static $custom_login_urls_default_str  = '_mepr_custom_login_urls_default';
+
+    /**
+     * Meta key for custom login urls
+     *
+     * @var string
+     */
     public static $custom_login_urls_str          = '_mepr_custom_login_urls';
+
+    /**
+     * Meta key for expire type
+     *
+     * @var string
+     */
     public static $expire_type_str                = '_mepr_expire_type';
+
+    /**
+     * Meta key for expire after
+     *
+     * @var string
+     */
     public static $expire_after_str               = '_mepr_expire_after';
+
+    /**
+     * Meta key for expire unit
+     *
+     * @var string
+     */
     public static $expire_unit_str                = '_mepr_expire_unit';
+
+    /**
+     * Meta key for expire fixed
+     *
+     * @var string
+     */
     public static $expire_fixed_str               = '_mepr_expire_fixed';
+
+    /**
+     * Meta key for tax exempt
+     *
+     * @var string
+     */
     public static $tax_exempt_str                 = '_mepr_tax_exempt';
+
+    /**
+     * Meta key for tax class
+     *
+     * @var string
+     */
     public static $tax_class_str                  = '_mepr_tax_class';
+
+    /**
+     * Meta key for allow renewal
+     *
+     * @var string
+     */
     public static $allow_renewal_str              = '_mepr_allow_renewal';
+
+    /**
+     * Meta key for access URL
+     *
+     * @var string
+     */
     public static $access_url_str                 = '_mepr_access_url';
+
+    /**
+     * Meta key for emails
+     *
+     * @var string
+     */
     public static $emails_str                     = '_mepr_emails';
-    public static $disable_address_fields_str     = '_mepr_disable_address_fields'; // For free products mostly
+
+    /**
+     * Meta key for disable address fields
+     *
+     * @var string
+     */
+    public static $disable_address_fields_str     = '_mepr_disable_address_fields'; // For free products mostly.
+
+    /**
+     * Meta key for cannot purchase message
+     *
+     * @var string
+     */
     public static $cannot_purchase_message_str    = '_mepr_cannot_purchase_message';
+
+    /**
+     * Meta key for plan code
+     *
+     * @var string
+     */
     public static $plan_code_str                  = '_mepr_plan_code';
+
+    /**
+     * Meta key for nonce
+     *
+     * @var string
+     */
     public static $nonce_str                      = 'mepr_products_nonce';
+
+    /**
+     * Meta key for DB cleanup last run
+     *
+     * @var string
+     */
     public static $last_run_str                   = 'mepr_products_db_cleanup_last_run';
 
+    /**
+     * Custom post type name
+     *
+     * @var string
+     */
     public static $cpt                       = 'memberpressproduct';
+
+    /**
+     * Taxonomy name for product category
+     *
+     * @var string
+     */
     public static $taxonomy_product_category = 'mepr-product-category';
 
+    /**
+     * The period types.
+     *
+     * @var array
+     */
     public $period_types;
+
+    /**
+     * The limit cycles actions.
+     *
+     * @var array
+     */
     public $limit_cycles_actions;
+
+    /**
+     * The expire units.
+     *
+     * @var array
+     */
     public $expire_units;
+
+    /**
+     * The register price actions.
+     *
+     * @var array
+     */
     public $register_price_actions;
+
+    /**
+     * The pricing displays.
+     *
+     * @var array
+     */
     public $pricing_displays;
+
+    /**
+     * The expire types.
+     *
+     * @var array
+     */
     public $expire_types;
 
     /**
@@ -87,7 +474,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
             [
                 'price'                      => 0.00,
                 'period'                     => 1,
-                'period_type'                => 'lifetime', // Default to lifetime to simplify new membership form
+                'period_type'                => 'lifetime', // Default to lifetime to simplify new membership form.
                 'signup_button_text'         => __('Sign Up', 'memberpress'),
                 'limit_cycles'               => false,
                 'limit_cycles_num'           => 2,
@@ -102,7 +489,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                 'group_order'                => 0,
                 'is_highlighted'             => false,
                 'plan_code'                  => '',
-                // who_can_purchase should be an array of OBJECTS
+                // The who_can_purchase should be an array of OBJECTS.
                 'who_can_purchase'           => [],
                 'pricing_title'              => '',
                 'pricing_show_price'         => true,
@@ -112,7 +499,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                 'pricing_footer_txt'         => '',
                 'pricing_button_txt'         => '',
                 'pricing_button_position'    => 'footer',
-                // Pricing benefits should be an array of strings
+                // Pricing benefits should be an array of strings.
                 'pricing_benefits'           => [],
                 'register_price_action'      => 'default',
                 'register_price'             => '',
@@ -122,7 +509,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                 'thank_you_page_id'          => 0,
                 'custom_login_urls_enabled'  => false,
                 'custom_login_urls_default'  => '',
-                // An array of objects ->url and ->count
+                // An array of objects ->url and ->count.
                 'custom_login_urls'          => [],
                 'expire_type'                => 'none',
                 'expire_after'               => 1,
@@ -133,7 +520,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                 'allow_renewal'              => false,
                 'access_url'                 => '',
                 'emails'                     => [],
-                'disable_address_fields'     => false, // Mostly for free products
+                'disable_address_fields'     => false, // Mostly for free products.
                 'simultaneous_subscriptions' => false,
                 'use_custom_template'        => false,
                 'custom_template'            => '',
@@ -196,17 +583,16 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         // 'pricing_heading_txt' => '',
         // 'pricing_footer_txt' => '',
         // 'pricing_button_txt' => '',
-        // $this->validate_is_array($this->pricing_benefits, 'pricing_benefits');
+        // $this->validate_is_array($this->pricing_benefits, 'pricing_benefits');.
         $this->validate_is_in_array($this->register_price_action, $this->register_price_actions, 'register_price_action');
-        // if($this->register_price_action) { $this->validate_not_empty($this->register_price, 'register_price'); }
         $this->validate_is_bool($this->thank_you_page_enabled, 'thank_you_page_enabled');
 
         // No need to validate
-        // 'thank_you_message' => '',
+        // 'thank_you_message' => ''.
         $this->validate_is_bool($this->custom_login_urls_enabled, 'custom_login_urls_enabled');
 
         // No need to validate
-        // 'custom_login_urls_default' => '',
+        // 'custom_login_urls_default' => ''.
         if ($this->custom_login_urls_enabled) {
             $this->validate_is_array($this->custom_login_urls, 'custom_login_urls');
         }
@@ -298,7 +684,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         update_post_meta($id, self::$allow_renewal_str, $this->allow_renewal);
         update_post_meta($id, self::$access_url_str, $this->access_url);
         update_post_meta($id, self::$emails_str, $this->emails);
-        update_post_meta($id, self::$disable_address_fields_str, $this->disable_address_fields); // mostly for free products
+        update_post_meta($id, self::$disable_address_fields_str, $this->disable_address_fields); // Mostly for free products.
         update_post_meta($id, self::$simultaneous_subscriptions_str, $this->simultaneous_subscriptions);
         update_post_meta($id, self::$use_custom_template_str, $this->use_custom_template);
         update_post_meta($id, self::$custom_template_str, $this->custom_template);
@@ -442,7 +828,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         } elseif ($prorate && $this->is_one_time_payment() && $this->is_prorated()) {
             $grp = $this->group();
 
-            // Calculate days in this new period
+            // Calculate days in this new period.
             $days_in_new_period = $this->days_in_my_period();
 
             $old_sub = $current_user->subscription_in_group($grp->ID);
@@ -460,7 +846,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                         $old_sub
                     );
 
-                      // Don't update this below if the latest payment was for 0.00
+                      // Don't update this below if the latest payment was for 0.00.
                     if (MeprUtils::format_float($lt->amount) > 0.00) {
                         $product_price = $r->proration;
                     }
@@ -468,7 +854,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
             } else {
                 $txn = $current_user->lifetime_subscription_in_group($grp->ID);
                 if ($txn && MeprUtils::format_float($txn->amount) > 0.00) {
-                    // Don't update this below if the latest payment was for 0.00
+                    // Don't update this below if the latest payment was for 0.00.
                     $r = MeprUtils::calculate_proration(
                         $txn->amount,
                         $product_price,
@@ -557,10 +943,10 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
             case 'years':
                 $expires_at += MeprUtils::years($period, $created_at) + MeprUtils::days($mepr_options->grace_expire_days);
                 break;
-            default: // one-time payment
+            default: // One-time payment.
                 if ($this->expire_type == 'delay') {
                     if ($check_user && MeprUtils::is_user_logged_in()) {
-                        // Handle renewals
+                        // Handle renewals.
                         if ($this->is_renewal()) {
                             $last_txn = $this->get_last_active_txn($user->ID);
                             if ($last_txn) {
@@ -585,13 +971,13 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                 } elseif ($this->expire_type == 'fixed') {
                     $expires_at = strtotime($this->expire_fixed);
                     $now        = time();
-                    // Make sure we adjust the year if the membership is a renewable type and the user forgot to bump up the year
+                    // Make sure we adjust the year if the membership is a renewable type and the user forgot to bump up the year.
                     if ($this->allow_renewal) {
                         while ($now > $expires_at) {
                             $expires_at += MeprUtils::years(1);
                         }
                     }
-                    // Actually handle renewals
+                    // Actually handle renewals.
                     if ($check_user && $this->is_renewal()) {
                         $last_txn = $this->get_last_active_txn($user->ID);
                         if ($last_txn) {
@@ -605,7 +991,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                             }
                         }
                     }
-                } else { // lifetime
+                } else { // Lifetime.
                     $expires_at = null;
                 }
         }
@@ -642,8 +1028,11 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         return MeprHooks::apply_filters('mepr_product_is_one_time_payment', $this->period_type == 'lifetime' || $this->price == 0.00);
     }
 
-    // Just for checking if the membership type is a renewable type
-    // Not to be used when is_renewal() should be used instead
+    /**
+     * Check if the membership type is renewable.
+     *
+     * @return boolean
+     */
     public function is_renewable()
     {
         return (($this->expire_type == 'delay' || $this->expire_type == 'fixed') && $this->allow_renewal);
@@ -681,7 +1070,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
             return $override;
         }
 
-        // Admins can see & purchase anything
+        // Admins can see & purchase anything.
         if (MeprUtils::is_logged_in_and_an_admin()) {
             return true;
         }
@@ -690,7 +1079,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
             $user = new MeprUser(get_current_user_id());
         }
 
-        // Make sure user hasn't already subscribed to this membership first
+        // Make sure user hasn't already subscribed to this membership first.
         if (
             $user instanceof MeprUser &&
             $user->is_already_subscribed_to($this->ID) &&
@@ -701,10 +1090,10 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         }
 
         if (empty($this->who_can_purchase)) {
-            return true; // No rules exist so everyone can purchase
+            return true; // No rules exist so everyone can purchase.
         }
 
-        // Do not allow upgrades/downgrades during a pro-rated trial period from a previous upgrade/downgrade
+        // Do not allow upgrades/downgrades during a pro-rated trial period from a previous upgrade/downgrade.
         if ($user instanceof MeprUser) {
             $group = $this->group();
             if ($group !== false) {
@@ -718,7 +1107,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         foreach ($this->who_can_purchase as $who) {
             // Give Developers a chance to hook in here
             // Return true or false if you run your own custom handling here
-            // Otherwise return string 'no_custom' if MemberPress should handle the processing
+            // Otherwise return string 'no_custom' if MemberPress should handle the processing.
             $custom = MeprHooks::apply_filters('mepr-who-can-purchase-custom-check', 'no_custom', $who, $this);
 
             if ($custom !== 'no_custom' && is_bool($custom)) {
@@ -734,7 +1123,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
             }
 
             if ($who->user_type == 'guests' && !MeprUtils::is_user_logged_in()) {
-                return true; // If not a logged in member they can purchase
+                return true; // If not a logged in member they can purchase.
             }
 
             if ($who->user_type == 'members' && MeprUtils::is_user_logged_in()) {
@@ -744,12 +1133,12 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
             }
         }
 
-        return false; // If we make it here, nothing applied so let's return false
+        return false; // If we make it here, nothing applied so let's return false.
     }
 
     // This is really only used for annual renewals currently
     // It has some special code for fallback transactions (Downgrade Path feature of Groups)
-    // So be careful when using this function if you need to includ fallback transactions
+    // So be careful when using this function if you need to includ fallback transactions.
     /**
      * Get the last active transaction for a user.
      *
@@ -785,17 +1174,17 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
 
         $txn_id = $wpdb->get_var($lq);
         if ($txn_id) {
-            // Try for lifetimes
+            // Try for lifetimes.
             return new MeprTransaction($txn_id);
         }
 
         $txn_id = $wpdb->get_var($q);
         if ($txn_id) {
-            // Try for expiring
+            // Try for expiring.
             return new MeprTransaction($txn_id);
         }
 
-        // TODO: Maybe throw an exception here at some point
+        // TODO: Maybe throw an exception here at some point.
         return false;
     }
 
@@ -806,7 +1195,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
      */
     public function group()
     {
-        // Don't do static caching stuff here
+        // Don't do static caching stuff here.
         if (!isset($this->group_id) or empty($this->group_id)) {
             return false;
         }
@@ -883,7 +1272,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         if ($usr === false) {
             $usr = MeprUtils::get_currentuserinfo();
         }
-        return ($usr && $this->is_upgrade_or_downgrade_for($usr->ID, $type)); // Must be an upgrade/downgrade for the user
+        return ($usr && $this->is_upgrade_or_downgrade_for($usr->ID, $type)); // Must be an upgrade/downgrade for the user.
     }
 
     /**
@@ -898,12 +1287,12 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         $usr = new MeprUser($user_id);
         $grp = $this->group();
 
-        // not part of a group ... not an upgrade
+        // Not part of a group ... not an upgrade.
         if (!$grp) {
             return false;
         }
 
-        // no upgrade path here ... not an upgrade
+        // No upgrade path here ... not an upgrade.
         if (!$grp->is_upgrade_path) {
             return false;
         }
@@ -940,9 +1329,9 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     {
         global $wpdb;
         $date     = time();
-        $last_run = get_option(self::$last_run_str, 0); // Prevents all this code from executing on every page load
+        $last_run = get_option(self::$last_run_str, 0); // Prevents all this code from executing on every page load.
 
-        if (($date - $last_run) > 86400) { // Runs once at most once a day
+        if (($date - $last_run) > 86400) { // Runs once at most once a day.
             update_option(self::$last_run_str, $date);
             $sq1     = "SELECT ID
                 FROM {$wpdb->posts}
@@ -1187,7 +1576,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         $in = '%d';
         if (count($active_memberships) > 1) {
             $placeholders = array_fill(0, count($active_memberships), '%d');
-            $in           = implode(',', $placeholders); // Convert to comma separated string if > 1
+            $in           = implode(',', $placeholders); // Convert to comma separated string if > 1.
         }
 
         $q = $wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE ID IN({$in}) ORDER BY menu_order DESC, ID DESC LIMIT 1", $active_memberships);
@@ -1200,7 +1589,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     /**
      * Get the Stripe Product ID
      *
-     * @param  string $gateway_id The gateway ID
+     * @param  string $gateway_id The gateway ID.
      * @return string|false
      */
     public function get_stripe_product_id($gateway_id)
@@ -1211,7 +1600,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     /**
      * Get the Stripe Initial payment product ID
      *
-     * @param  string $gateway_id The gateway ID
+     * @param  string $gateway_id The gateway ID.
      * @return string|false
      */
     public function get_stripe_initial_payment_product_id($gateway_id)
@@ -1222,8 +1611,8 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     /**
      * Set the Stripe Product ID
      *
-     * @param string $gateway_id The gateway ID
-     * @param string $product_id The Stripe Product ID
+     * @param string $gateway_id The gateway ID.
+     * @param string $product_id The Stripe Product ID.
      */
     public function set_stripe_product_id($gateway_id, $product_id)
     {
@@ -1233,8 +1622,8 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     /**
      * Set the Stripe Initial Payment Product ID
      *
-     * @param string $gateway_id The gateway ID
-     * @param string $product_id The Stripe Product ID
+     * @param string $gateway_id The gateway ID.
+     * @param string $product_id The Stripe Product ID.
      */
     public function set_stripe_initial_payment_product_id($gateway_id, $product_id)
     {
@@ -1244,8 +1633,8 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     /**
      * Get the Stripe Plan ID for this product's current payment terms
      *
-     * @param  string $gateway_id The gateway ID
-     * @param  string $amount     The payment amount (excluding tax)
+     * @param  string $gateway_id The gateway ID.
+     * @param  string $amount     The payment amount (excluding tax).
      * @return string|false
      */
     public function get_stripe_plan_id($gateway_id, $amount)
@@ -1260,9 +1649,9 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     /**
      * Set the Stripe Plan ID for this product's current payment terms
      *
-     * @param string $gateway_id The gateway ID
-     * @param string $amount     The payment amount (excluding tax)
-     * @param string $plan_id    The Stripe Plan ID
+     * @param string $gateway_id The gateway ID.
+     * @param string $amount     The payment amount (excluding tax).
+     * @param string $plan_id    The Stripe Plan ID.
      */
     public function set_stripe_plan_id($gateway_id, $amount, $plan_id)
     {
@@ -1296,8 +1685,8 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     /**
      * Delete the Stripe Product ID
      *
-     * @param string $gateway_id The gateway ID
-     * @param string $product_id The Stripe Product ID
+     * @param string $gateway_id The gateway ID.
+     * @param string $product_id The Stripe Product ID.
      */
     public static function delete_stripe_product_id($gateway_id, $product_id)
     {
@@ -1309,8 +1698,8 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     /**
      * Delete the Stripe Plan ID
      *
-     * @param string $gateway_id The gateway ID
-     * @param string $plan_id    The Stripe Plan ID
+     * @param string $gateway_id The gateway ID.
+     * @param string $plan_id    The Stripe Plan ID.
      */
     public static function delete_stripe_plan_id($gateway_id, $plan_id)
     {

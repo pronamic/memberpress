@@ -12,7 +12,16 @@ if (!defined('ABSPATH')) {
 class MeprExpiringOption
 {
     // TODO: Perhaps add some kind of WP-CRON job to cleanup expired options?
-    // Not sure how many we'll have due to the self-cleaning features in self::get
+    // Not sure how many we'll have due to the self-cleaning features in self::get.
+    /**
+     * Sets an option with an expiration time.
+     *
+     * @param string  $name              The name of the option.
+     * @param mixed   $value             The value to set.
+     * @param integer $expire_in_seconds The number of seconds until the option expires.
+     *
+     * @return void
+     */
     public static function set($name, $value, $expire_in_seconds)
     {
         list($value_key,$timeout_key) = self::get_keys($name);
@@ -25,7 +34,7 @@ class MeprExpiringOption
     /**
      * Gets an option value with expiration checking.
      *
-     * @param string $name The name of the option to retrieve
+     * @param string $name The name of the option to retrieve.
      *
      * @return mixed The option value or empty string if expired/not found
      */
@@ -34,7 +43,7 @@ class MeprExpiringOption
         list($value_key,$timeout_key) = self::get_keys($name);
         $timeout                      = get_option($timeout_key);
 
-        // Auto-cleanup if expired
+        // Auto-cleanup if expired.
         if (time() > (int)$timeout) {
             delete_option($timeout_key);
             delete_option($value_key);
@@ -47,7 +56,7 @@ class MeprExpiringOption
     /**
      * Gets the value and timeout keys for an option.
      *
-     * @param string $name The name of the option
+     * @param string $name The name of the option.
      *
      * @return array Array containing value key and timeout key
      */
@@ -62,7 +71,7 @@ class MeprExpiringOption
     /**
      * Calculates the timeout timestamp for an option.
      *
-     * @param integer $expire_in_seconds Number of seconds until expiration
+     * @param integer $expire_in_seconds Number of seconds until expiration.
      *
      * @return integer Unix timestamp when the option will expire
      */

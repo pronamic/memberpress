@@ -15,6 +15,7 @@ class MeprCtrlFactory
      *
      * @param  string $class The controller class to fetch.
      * @param  array  $args  The args.
+     * @throws Exception If the controller class doesn't exist.
      * @return MeprBaseCtrl|false
      */
     public static function fetch($class, $args = [])
@@ -40,7 +41,7 @@ class MeprCtrlFactory
         }
 
         // We'll let the autoloader in memberpress.php
-        // handle including files containing these classes
+        // handle including files containing these classes.
         $r   = new ReflectionClass($class);
         $obj = $r->newInstanceArgs($args);
 

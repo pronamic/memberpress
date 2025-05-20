@@ -25,7 +25,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
         add_action('wp_ajax_mepr_lifetime_subscriptions', [$this, 'lifetime_csv']);
         add_action('mepr_control_table_footer', [$this, 'export_footer_link'], 10, 3);
 
-        // Screen Options
+        // Screen Options.
         $hook = $this->get_hook();
         add_action("load-{$hook}", [$this,'add_recurring_screen_options']);
         add_filter("manage_{$hook}_columns", [$this, 'get_columns']);
@@ -241,7 +241,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
             $user->load_user_data_by_email($user_login);
             if (!$user->ID) {
                 $errors[] = __('You must enter a valid username or email address', 'memberpress');
-            } else { // For use downstream in create and update transaction methods
+            } else { // For use downstream in create and update transaction methods.
                 $_POST['user_login'] = $user->user_login;
             }
         } else {
@@ -367,7 +367,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
         $sub = new MeprSubscription($_POST['id']);
         $sub->destroy();
 
-        die('true'); // don't localize this string
+        die('true'); // Don't localize this string.
     }
 
     /**
@@ -390,7 +390,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
         $sub = new MeprSubscription($_POST['id']);
         $sub->suspend();
 
-        die('true'); // don't localize this string
+        die('true'); // Don't localize this string.
     }
 
     /**
@@ -522,7 +522,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
             die($e->getMessage());
         }
 
-        die('true'); // don't localize this string
+        die('true'); // Don't localize this string.
     }
 
     /**
@@ -536,13 +536,14 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
             die('-1');
         }
 
-        // jQuery suggest plugin has already trimmed and escaped user input (\ becomes \\)
-        // so we just need to sanitize the username
+        // The jQuery suggest plugin has already trimmed and escaped user input (\ becomes \\)
+        // so we just need to sanitize the username.
         $s = sanitize_user($_GET['q']);
 
+        // Require 5 chars for matching.
         if (strlen($s) < 5) {
             die();
-        } // require 5 chars for matching
+        }
 
         $subs = MeprSubscription::search_by_subscr_id($s);
 
@@ -562,7 +563,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
 
         $filename = ( $lifetime ? 'non-recurring-' : '' ) . 'subscriptions-' . time();
 
-        // Since we're running WP_List_Table headless we need to do this
+        // Since we're running WP_List_Table headless we need to do this.
         $GLOBALS['hook_suffix'] = false;
 
         $screen = get_current_screen();

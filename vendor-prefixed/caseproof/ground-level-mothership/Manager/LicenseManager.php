@@ -124,7 +124,9 @@ class LicenseManager implements StaticContainerAwareness
     public function generateActivationForm(): string
     {
         ob_start();
-        $licenseIsStored = Credentials::isCredentialSetInEnvironmentOrConstants(MothershipService::LICENSE_KEY_BASENAME);
+        $licenseIsStored = Credentials::isCredentialSetInEnvironmentOrConstants(
+            MothershipService::LICENSE_KEY_BASENAME
+        );
         $pluginId        = self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId;
         ?>
         <form method="post" action="" name="<?php echo esc_attr($pluginId); ?>_activate_license_form">
@@ -182,7 +184,11 @@ class LicenseManager implements StaticContainerAwareness
                 >
                 <?php wp_nonce_field('mothership_deactivate_license', '_wpnonce'); ?>
                 <input type="hidden" name="<?php echo esc_attr($pluginId); ?>_license_button" value="deactivate">
-                <input type="submit" value="<?php esc_html_e('Deactivate License', 'memberpress'); ?>" class="button button-secondary <?php echo esc_attr($pluginId); ?>-button-deactivate">
+                <input 
+                    type="submit" 
+                    value="<?php esc_html_e('Deactivate License', 'memberpress'); ?>"
+                    class="button button-secondary <?php echo esc_attr($pluginId); ?>-button-deactivate"
+                >
             </div>
         </form>
         <?php
@@ -272,8 +278,8 @@ class LicenseManager implements StaticContainerAwareness
             throw new \Exception(sprintf(
                 '%1$s : %2$s',
                 esc_html__(
-                    'License deactivation failed, you are using a license key from an environment variable or constant.',
-                    'memberpress'
+                    'License deactivation failed, you are using a license key from an environment variable or constant.', // phpcs:ignore Generic.Files.LineLength.TooLong
+                    'caseproof-mothership'
                 ),
                 esc_html($e->getMessage())
             ));

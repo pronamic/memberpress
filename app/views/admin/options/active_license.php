@@ -10,7 +10,7 @@ if (is_array($editions)) {
     printf(
         '<div class="notice notice-warning inline"><p>%1$s<img id="mepr-install-license-edition-loading" class="mepr-hidden" src="%2$s" alt="%3$s" /></p></div>',
         sprintf(
-        // translators: %1$s: the license edition, %2$s: the installed edition, %3$s: open link tag, %4$s: close link tag
+        // Translators: %1$s: the license edition, %2$s: the installed edition, %3$s: open link tag, %4$s: close link tag.
             esc_html__('This License Key is for %1$s, but %2$s is installed. %3$sClick here%4$s to install the correct edition for the license (%1$s).', 'memberpress'),
             '<strong>' . esc_html($editions['license']['name']) . '</strong>',
             '<strong>' . esc_html($editions['installed']['name']) . '</strong>',
@@ -42,7 +42,7 @@ if (is_array($editions)) {
       <td>
         <?php
           printf(
-            // translators: %1$s: open b tag, %2$d: activation count, %3$s: max activations, %4$s close b tag
+            // Translators: %1$s: open b tag, %2$d: activation count, %3$s: max activations, %4$s close b tag.
               esc_html__('%1$s%2$d of %3$s%4$s sites have been activated with this license key', 'memberpress'),
               '<b>',
               esc_html($li['activation_count']),

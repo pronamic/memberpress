@@ -4,7 +4,7 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: https://memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.12.2
+Version: 1.12.3
 Requires PHP: 7.4
 Author: Caseproof, LLC
 Author URI: http://caseproof.com/
@@ -49,6 +49,7 @@ define('MEPR_DATA_PATH', MEPR_PATH . '/app/data');
 define('MEPR_FONTS_PATH', MEPR_PATH . '/fonts');
 define('MEPR_APIS_PATH', MEPR_PATH . '/app/apis');
 define('MEPR_MODELS_PATH', MEPR_PATH . '/app/models');
+define('MEPR_BRAND_MODELS_PATH', MEPR_BRAND_PATH . '/models');
 define('MEPR_CTRLS_PATH', MEPR_PATH . '/app/controllers');
 define('MEPR_GATEWAYS_PATH', MEPR_PATH . '/app/gateways');
 define('MEPR_EMAILS_PATH', MEPR_PATH . '/app/emails');
@@ -57,13 +58,17 @@ define('MEPR_VIEWS_PATH', MEPR_PATH . '/app/views');
 define('MEPR_BRAND_VIEWS_PATH', MEPR_BRAND_PATH . '/views');
 define('MEPR_WIDGETS_PATH', MEPR_PATH . '/app/widgets');
 define('MEPR_HELPERS_PATH', MEPR_PATH . '/app/helpers');
+define('MEPR_BRAND_HELPERS_PATH', MEPR_BRAND_PATH . '/helpers');
 define('MEPR_EXCEPTIONS_PATH', MEPR_PATH . '/app/lib/exceptions');
 define('MEPR_URL', plugins_url('/' . MEPR_PLUGIN_NAME));
+define('MEPR_BRAND_URL', MEPR_URL . '/brand');
 define('MEPR_VIEWS_URL', MEPR_URL . '/app/views');
 define('MEPR_IMAGES_URL', MEPR_URL . '/images');
-define('MEPR_BRAND_URL', MEPR_URL . '/brand');
+define('MEPR_BRAND_IMAGES_URL', MEPR_BRAND_URL . '/images');
 define('MEPR_CSS_URL', MEPR_URL . '/css');
+define('MEPR_BRAND_CSS_URL', MEPR_BRAND_URL . '/css');
 define('MEPR_JS_URL', MEPR_URL . '/js');
+define('MEPR_BRAND_JS_URL', MEPR_BRAND_URL . '/js');
 define('MEPR_GATEWAYS_URL', MEPR_URL . '/app/gateways');
 define('MEPR_FONTS_URL', MEPR_URL . '/fonts');
 define('MEPR_SCRIPT_URL', site_url('/index.php?plugin=mepr'));
@@ -98,28 +103,42 @@ function mepr_plugin_info($field)
     return '';
 }
 
-// Plugin Information from the plugin header declaration
+// Plugin Information from the plugin header declaration.
 define('MEPR_VERSION', mepr_plugin_info('Version'));
 define('MEPR_DISPLAY_NAME', mepr_plugin_info('Name'));
 define('MEPR_AUTHOR', mepr_plugin_info('Author'));
 define('MEPR_AUTHOR_URI', mepr_plugin_info('AuthorURI'));
 define('MEPR_DESCRIPTION', mepr_plugin_info('Description'));
 
-// Autoload all the requisite classes
+// Autoload all the requisite classes.
+/**
+ * Autoloads MemberPress plugin classes based on naming conventions.
+ *
+ * @param  string $class_name The name of the class to load.
+ * @return void
+ */
 function mepr_autoloader($class_name)
 {
     // Only load classes belonging to this plugin.
     if (preg_match('/^Mepr.+$/', $class_name)) {
-        if (preg_match('/^.+Interface$/', $class_name)) { // Load interfaces first
+        if (preg_match('/^.+Interface$/', $class_name)) { // Load interfaces first.
             $filepath = MEPR_INTERFACES_PATH . "/{$class_name}.php";
-        } elseif (preg_match('/^Mepr(Base|Cpt).+$/', $class_name)) { // Base classes are in lib
+        } elseif (preg_match('/^Mepr(Base|Cpt).+$/', $class_name)) { // Base classes are in lib.
             $filepath = MEPR_LIB_PATH . "/{$class_name}.php";
         } elseif (preg_match('/^.+BrandCtrl$/', $class_name)) {
             $filepath = MEPR_BRAND_CTRLS_PATH . "/{$class_name}.php";
         } elseif (preg_match('/^.+Ctrl$/', $class_name)) {
             $filepath = MEPR_CTRLS_PATH . "/{$class_name}.php";
+            // Try the brand controllers dir if file doesn't exist.
+            if (!file_exists($filepath)) {
+                $filepath = MEPR_BRAND_CTRLS_PATH . "/{$class_name}.php";
+            }
         } elseif (preg_match('/^.+Helper$/', $class_name)) {
             $filepath = MEPR_HELPERS_PATH . "/{$class_name}.php";
+            // Try the brand helpers dir if file doesn't exist.
+            if (!file_exists($filepath)) {
+                $filepath = MEPR_BRAND_HELPERS_PATH . "/{$class_name}.php";
+            }
         } elseif (preg_match('/^.+Exception$/', $class_name)) {
             $filepath = MEPR_EXCEPTIONS_PATH . "/{$class_name}.php";
         } elseif (preg_match('/^.+Jobs$/', $class_name)) {
@@ -156,7 +175,12 @@ function mepr_autoloader($class_name)
         } else {
             $filepath = MEPR_MODELS_PATH . "/{$class_name}.php";
 
-            // Now let's try the lib dir if its not a model
+            // Try the brand models dir if file doesn't exist.
+            if (!file_exists($filepath)) {
+                $filepath = MEPR_BRAND_MODELS_PATH . "/{$class_name}.php";
+            }
+
+            // Now let's try the lib dir if its not a model.
             if (!file_exists($filepath)) {
                 $filepath = MEPR_LIB_PATH . "/{$class_name}.php";
             }
@@ -168,36 +192,41 @@ function mepr_autoloader($class_name)
     }
 }
 
-// if __autoload is active, put it on the spl_autoload stack
+// If __autoload is active, put it on the spl_autoload stack.
 if (is_array(spl_autoload_functions()) and in_array('__autoload', spl_autoload_functions())) {
     spl_autoload_register('__autoload');
 }
 
-// Add the autoloader
+// Add the autoloader.
 spl_autoload_register('mepr_autoloader');
 
-// Load integration files
+// Load integration files.
 foreach ((array) glob(MEPR_INTEGRATIONS_PATH . '/*/Integration.php') as $file) {
     include_once $file;
 }
 
-// Load our controllers
+// Load our controllers.
 MeprCtrlFactory::all();
 
-// Setup screens
+// Setup screens.
 MeprAppCtrl::setup_menus();
 
-// Start Job Processor / Scheduler
+// Start Job Processor / Scheduler.
 new MeprJobs();
 
-// Template Tags
+// Template Tags.
+/**
+ * Outputs account links for logged in/out users.
+ *
+ * @return void
+ */
 function mepr_account_link()
 {
     try {
         $account_ctrl = MeprCtrlFactory::fetch('account');
         echo $account_ctrl->get_account_links();
     } catch (Exception $e) {
-        // Silently fail ... not much we can do if the account controller isn't present
+        // Silently fail ... not much we can do if the account controller isn't present.
     }
 }
 

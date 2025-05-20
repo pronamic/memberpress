@@ -18,7 +18,7 @@ class MeprDbMigrationRollbackException extends MeprDbMigrationException
     public function __construct($message, $code = 0, Exception $previous = null)
     {
         global $wpdb;
-        $wpdb->query('ROLLBACK'); // Attempt a rollback
+        $wpdb->query('ROLLBACK'); // Attempt a rollback.
         parent::__construct($message, $code, $previous);
     }
 }

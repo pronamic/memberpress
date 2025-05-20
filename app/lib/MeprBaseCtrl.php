@@ -14,7 +14,7 @@ abstract class MeprBaseCtrl
     public function __construct()
     {
         // This is to ensure that the load_hooks method is
-        // only ever loaded once across all instansiations
+        // only ever loaded once across all instansiations.
         static $loaded;
 
         if (!isset($loaded)) {

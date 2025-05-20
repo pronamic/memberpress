@@ -49,27 +49,31 @@ class LicenseActivations
     /**
      * Retrieve a license activation.
      *
-     * @param  string $licenseKey The license key to retrieve the activation for.
-     * @param  string $domain     The domain to retrieve the activation for.
+     * @param string $licenseKey The license key to retrieve the activation for.
+     * @param string $domain     The domain to retrieve the activation for.
+     * @param array  $args       Additional arguments for the request.
+     *
      * @return Response The response from the API.
      */
-    public static function retrieveLicenseActivation(string $licenseKey, string $domain): Response
+    public static function retrieveLicenseActivation(string $licenseKey, string $domain, array $args = []): Response
     {
         $endpoint = 'licenses/' . $licenseKey . '/activations/' . $domain;
-        $response = Request::get($endpoint);
+        $response = Request::get($endpoint, $args);
         return $response;
     }
 
     /**
      * List all activations for a license.
      *
-     * @param  string $licenseKey The license key to list activations for.
+     * @param string $licenseKey The license key to list activations for.
+     * @param array  $args       Additional arguments for the request.
+     *
      * @return Response The response from the API.
      */
-    public static function list(string $licenseKey): Response
+    public static function list(string $licenseKey, array $args = []): Response
     {
         $endpoint = 'licenses/' . $licenseKey . '/activations';
-        $response = Request::get($endpoint);
+        $response = Request::get($endpoint, $args);
         return $response;
     }
 }

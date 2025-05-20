@@ -130,13 +130,13 @@ class MeprBatchMigrator
         } else {
             MeprMigrator::free_memory();
 
-            // Move to the offset to the start of the next batch
+            // Move to the offset to the start of the next batch.
             $this->offset += $this->limit;
 
-            // Update the total count of items processed in this request
+            // Update the total count of items processed in this request.
             $this->processed += count($this->items);
 
-            // Calculate the number of items to process in the next batch
+            // Calculate the number of items to process in the next batch.
             if ($this->processed > 0) {
                 $elapsed_time  = microtime(true) - $this->start;
                 $time_per_item = $elapsed_time / $this->processed;

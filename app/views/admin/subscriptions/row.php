@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
-// Loop for each record
+// Loop for each record.
 if (!empty($records)) {
     $row_index = 0;
     foreach ($records as $rec) {
@@ -13,7 +13,7 @@ if (!empty($records)) {
     <tr id="record_<?php echo $rec->id; ?>" class="<?php echo $alternate; ?>">
         <?php
         foreach ($columns as $column_name => $column_display_name) {
-            // Style attributes for each col
+            // Style attributes for each col.
             $class = "class=\"{$column_name} column-{$column_name}\"";
             $style = '';
             if (in_array($column_name, $hidden)) {
@@ -23,7 +23,7 @@ if (!empty($records)) {
 
             $editlink = admin_url('user-edit.php?user_id=' . (int)$rec->user_id);
 
-            // Display the cell
+            // Display the cell.
             switch ($column_name) {
                 case 'col_id':
                 case 'col_txn_id':
@@ -270,5 +270,5 @@ if (!empty($records)) {
         ?>
     </tr>
         <?php
-    } //End foreach
-} //End if
+    }//end foreach
+}//end if

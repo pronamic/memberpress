@@ -6,11 +6,46 @@ if (!defined('ABSPATH')) {
 
 class MeprAuthorizeAPI
 {
+    /**
+     * The API endpoint for sandbox/test environment.
+     *
+     * @var string
+     */
     public static $sandbox_api_endpoint = 'https://apitest.authorize.net/xml/v1/request.api';
+
+    /**
+     * The API endpoint for live/production environment.
+     *
+     * @var string
+     */
     public static $live_api_endpoint    = 'https://api.authorize.net/xml/v1/request.api';
+
+    /**
+     * The API endpoint to use for requests.
+     *
+     * @var string
+     */
     private $api_endpoint;
+
+    /**
+     * The Authorize.net API login name.
+     *
+     * @var string
+     */
     private $login_name;
+
+    /**
+     * The Authorize.net API transaction key.
+     *
+     * @var string
+     */
     private $transaction_key;
+
+    /**
+     * Whether to use test mode (sandbox) or not.
+     *
+     * @var boolean
+     */
     private $test_mode;
 
     /**
@@ -69,7 +104,7 @@ class MeprAuthorizeAPI
             'headers' => ['content-type' => 'application/json'],
         ]));
         // Authorize.net is sending some garbage at the beginning of the response body that is not valid JSON
-        // Reference: https://community.developer.authorize.net/t5/Integration-and-Testing/JSON-issues/td-p/48851
+        // Reference: https://community.developer.authorize.net/t5/Integration-and-Testing/JSON-issues/td-p/48851.
         $api_response_body = preg_replace('/^[^\{]*/', '', $api_response_body);
         $response_json     = json_decode($api_response_body);
 

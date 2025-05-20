@@ -11,9 +11,9 @@ class MeprLoginWidget extends WP_Widget
     public function __construct()
     {
         parent::__construct(
-            'mepr_login_widget', // Base ID
-            'MemberPress Login', // Name
-            ['description' => __('Place a MemberPress Login on any page with a sidebar region', 'memberpress')] // Args
+            'mepr_login_widget', // Base ID.
+            'MemberPress Login', // Name.
+            ['description' => __('Place a MemberPress Login on any page with a sidebar region', 'memberpress')] // Args.
         );
     }
 
@@ -65,7 +65,7 @@ class MeprLoginWidget extends WP_Widget
                 $login_ctrl->display_login_form(true);
             }
         } catch (Exception $e) {
-            // Nothing for now
+            // Nothing for now.
         }
 
         echo $after_widget;

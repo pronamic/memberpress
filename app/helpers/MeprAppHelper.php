@@ -41,7 +41,7 @@ class MeprAppHelper
         $dp           = $wp_locale->number_format['decimal_point'];
 
         if ((float) $number > 0.00 || !$free_str) {
-            // Do decimal and 0's handling before adding symbol
+            // Do decimal and 0's handling before adding symbol.
             if (MeprUtils::is_zero_decimal_currency()) {
                 $rstr = (string) MeprUtils::format_currency_float((float) $number, 0);
             } else {
@@ -143,16 +143,16 @@ class MeprAppHelper
             $default = __('Unknown', 'memberpress');
         }
         if (is_null($format)) {
-            $format = get_option('date_format');
-        } //Gets WP date format option
+            $format = get_option('date_format'); // Gets WP date format option.
+        }
         if (empty($datetime) or preg_match('#^0000-00-00#', $datetime)) {
             return $default;
         }
 
         $ts     = strtotime($datetime);
-        $offset = get_option('gmt_offset'); // Gets WP timezone offset option
+        $offset = get_option('gmt_offset'); // Gets WP timezone offset option.
 
-        // Return a translatable date in the WP locale options
+        // Return a translatable date in the WP locale options.
         return date_i18n($format, ($ts + MeprUtils::hours($offset)), false);
     }
 
@@ -171,16 +171,16 @@ class MeprAppHelper
         if (is_null($default)) {
             $default = __('Unknown', 'memberpress');
         }
-        if (is_null($format)) {
+        if (is_null($format)) { // Gets WP date format option.
             $format = get_option('date_format');
-        } //Gets WP date format option
+        }
         if (empty($utc_datetime) or preg_match('#^0000-00-00#', $utc_datetime)) {
             return $default;
         }
 
         $ts = strtotime($utc_datetime);
 
-        return date_i18n($format, $ts, true); // return a translatable date in the WP locale options
+        return date_i18n($format, $ts, true); // Return a translatable date in the WP locale options.
     }
 
     /**
@@ -364,7 +364,7 @@ class MeprAppHelper
             $price = $price + $tax_amount;
         }
 
-        // Just truncate the zeros if it's an even dollar amount
+        // Just truncate the zeros if it's an even dollar amount.
         $fprice = MeprAppHelper::format_currency($price, $show_symbol);
         $fprice = preg_replace("#([{$regex_dp}]000?)([^0-9]*)$#", '$2', (string) $fprice);
 
@@ -404,7 +404,7 @@ class MeprAppHelper
                     $lt = $old_lifetime;
                 }
 
-                // Don't show prorated if the old amount is 0.00
+                // Don't show prorated if the old amount is 0.00.
                 if ($lt === false || MeprUtils::format_float($lt->amount) > 0.00) {
                     $price_str .= __(' (prorated)', 'memberpress');
                 }
@@ -465,7 +465,7 @@ class MeprAppHelper
                         $price_str .= sprintf(__(' for %1$d %2$s', 'memberpress'), $period, $period_type_str);
                     }
                 }
-            } elseif ($obj->limit_cycles) { // Prefix with payments count
+            } elseif ($obj->limit_cycles) { // Prefix with payments count.
                 $price_str .= sprintf(
                     _n(
                         '%1$d payment of ',
@@ -498,9 +498,9 @@ class MeprAppHelper
                 } else {
                     $expire_ts = strtotime($product->expire_fixed);
 
-                    // Make sure we adjust the year if the membership is a renewable type and the user forgot to bump up the year
+                    // Make sure we adjust the year if the membership is a renewable type and the user forgot to bump up the year.
                     if ($product->allow_renewal) {
-                        while ($now > $expire_ts) { // Add a year until $now < expiration date
+                        while ($now > $expire_ts) { // Add a year until $now < expiration date.
                             $expire_ts += MeprUtils::years(1);
                         }
                     }
@@ -508,7 +508,7 @@ class MeprAppHelper
 
                 $expire_str = date_i18n(get_option('date_format'), $expire_ts, true);
 
-                if (!$product->is_renewal()) { // Just hide this if it's a renewal
+                if (!$product->is_renewal()) { // Just hide this if it's a renewal.
                     $price_str .= sprintf(__(' for access until %s', 'memberpress'), $expire_str);
                 }
             }
@@ -560,22 +560,22 @@ class MeprAppHelper
     {
         $filename = (is_null($filename) ? uniqid() . '.csv' : $filename);
 
-        // output headers so that the file is downloaded rather than displayed
+        // Output headers so that the file is downloaded rather than displayed.
         header('Content-Type: text/csv; charset=utf-8');
         header("Content-Disposition: attachment; filename={$filename}");
 
-        // create a file pointer connected to the output stream
+        // Create a file pointer connected to the output stream.
         $output = fopen('php://output', 'w');
 
-        // output the column headings
+        // Output the column headings.
         fputcsv($output, $header);
 
-        // loop over the rows, outputting them
+        // Loop over the rows, outputting them.
         foreach ($rows as $row) {
             fputcsv($output, (array) $row);
         }
 
-        // close the file and exit
+        // Close the file and exit.
         fclose($output);
         exit;
     }

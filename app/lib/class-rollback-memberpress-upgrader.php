@@ -29,7 +29,7 @@ class WPRollbackMembercoreUpgrader extends Plugin_Upgrader
         $this->init();
         $this->upgrade_strings();
 
-        // We know MemberPress exists because here we are
+        // We know MemberPress exists because here we are.
         if (0) {
             $this->skin->before();
             $this->skin->set_result(false);
@@ -62,7 +62,7 @@ class WPRollbackMembercoreUpgrader extends Plugin_Upgrader
             return $this->result;
         }
 
-        // Force refresh of plugin update information
+        // Force refresh of plugin update information.
         wp_clean_plugins_cache($parsed_args['clear_update_cache']);
 
         return true;

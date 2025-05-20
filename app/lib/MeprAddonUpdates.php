@@ -6,12 +6,53 @@ if (!defined('ABSPATH')) {
 
 class MeprAddonUpdates
 {
+    /**
+     * Indicates if the MemberPress plugin is active.
+     *
+     * @var boolean
+     */
     public $memberpress_active;
+
+    /**
+     * The plugin slug.
+     *
+     * @var string
+     */
     public $slug;
+
+    /**
+     * The main plugin file path.
+     *
+     * @var string
+     */
     public $main_file;
+
+    /**
+     * The options key for storing license information.
+     *
+     * @var string
+     */
     public $options_key;
+
+    /**
+     * The plugin title.
+     *
+     * @var string
+     */
     public $title;
+
+    /**
+     * The plugin description.
+     *
+     * @var string
+     */
     public $desc;
+
+    /**
+     * The plugin installation path.
+     *
+     * @var string
+     */
     public $path;
 
     /**
@@ -66,7 +107,7 @@ class MeprAddonUpdates
             $license = $this->license();
 
             if (empty($license)) {
-                // Just here to query for the current version
+                // Just here to query for the current version.
                 $args = [];
                 if (defined('MEMBERPRESS_EDGE') && MEMBERPRESS_EDGE) {
                     $args['edge'] = 'true';
@@ -100,7 +141,7 @@ class MeprAddonUpdates
                     }
                 } catch (Exception $e) {
                     try {
-                        // Just here to query for the current version
+                        // Just here to query for the current version.
                         $args = [];
                         if (defined('MEMBERPRESS_EDGE') && MEMBERPRESS_EDGE) {
                             $args['edge'] = 'true';
@@ -154,6 +195,7 @@ class MeprAddonUpdates
      * @param  string  $domain   The domain.
      * @param  boolean $blocking The blocking.
      * @return object
+     * @throws Exception If the mothership request fails.
      */
     public function send_mothership_request(
         $endpoint,
@@ -251,7 +293,7 @@ class MeprAddonUpdates
     {
         if (MeprUtils::is_incorrect_edition_installed()) {
             printf(
-            // translators: %1$s: open link tag, %2$s: close link tag
+                // Translators: %1$s: open link tag, %2$s: close link tag.
                 ' <strong>' . esc_html__('To restore automatic updates, %1$sinstall the correct edition%2$s of MemberPress.', 'memberpress') . '</strong>',
                 sprintf('<a href="%s">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-license'))),
                 '</a>'

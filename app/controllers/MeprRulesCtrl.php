@@ -17,17 +17,18 @@ class MeprRulesCtrl extends MeprCptCtrl
             add_action(MeprOptions::fetch()->redirect_method, 'MeprRulesCtrl::rule_redirection', 3);
         }, 20);
 
-        // add_filter('the_content_feed', 'MeprRulesCtrl::rule_content', 999999, 1); //I think the_content is called before the_content_feed, so this is redundant
+        // I think the_content is called before the_content_feed, so this is redundant
+        // add_filter('the_content_feed', 'MeprRulesCtrl::rule_content', 999999, 1);.
         add_filter('the_content', 'MeprRulesCtrl::rule_content', 999999, 1);
         add_action('admin_init', 'MeprRulesCtrl::admin_rule_redirection', 3);
         add_filter('comments_template', 'MeprRulesCtrl::rule_comments');
         add_action('mod_rewrite_rules', 'MeprRulesCtrl::mod_rewrite_rules');
 
-        // All other stuff
+        // All other stuff.
         add_filter('bulk_actions-edit-memberpressrule', 'MeprRulesCtrl::disable_bulk');
         add_filter('post_row_actions', 'MeprRulesCtrl::disable_row', 10, 2);
         add_action('admin_enqueue_scripts', 'MeprRulesCtrl::enqueue_scripts');
-        add_action('admin_init', 'MeprRule::cleanup_db'); // Clear out all unused auto-save's
+        add_action('admin_init', 'MeprRule::cleanup_db'); // Clear out all unused auto-save's.
         add_action('manage_posts_custom_column', 'MeprRulesCtrl::custom_columns', 10, 2);
         add_filter('manage_edit-memberpressrule_columns', 'MeprRulesCtrl::columns');
         add_action('save_post', 'MeprRulesCtrl::save_postdata');
@@ -38,23 +39,23 @@ class MeprRulesCtrl extends MeprCptCtrl
         add_filter('default_title', 'MeprRulesCtrl::get_page_title_code');
         add_filter('posts_results', 'MeprRulesCtrl::filter_protected_posts_for_rest', 10, 2);
 
-        // Add virtual capabilities
+        // Add virtual capabilities.
         add_filter('user_has_cap', 'MeprRulesCtrl::authorized_cap', 10, 3);
-        add_filter('user_has_cap', 'MeprRulesCtrl::product_authorized_cap', 10, 3); // Deprecated
-        add_filter('user_has_cap', 'MeprRulesCtrl::rule_authorized_cap', 10, 3);  // Deprecated
+        add_filter('user_has_cap', 'MeprRulesCtrl::product_authorized_cap', 10, 3); // Deprecated.
+        add_filter('user_has_cap', 'MeprRulesCtrl::rule_authorized_cap', 10, 3);  // Deprecated.
         add_filter('user_has_cap', 'MeprRulesCtrl::active_cap', 10, 3);
 
-        MeprHooks::add_shortcode('mepr-rule', 'MeprRulesCtrl::rule_shortcode'); // Deprecated
+        MeprHooks::add_shortcode('mepr-rule', 'MeprRulesCtrl::rule_shortcode'); // Deprecated.
         MeprHooks::add_shortcode('mepr-active', 'MeprRulesCtrl::active_shortcode');
         MeprHooks::add_shortcode('mepr-unauthorized-message', 'MeprRulesCtrl::unauthorized_message_shortcode');
 
         MeprHooks::add_shortcode('mepr-show', 'MeprRulesCtrl::show_shortcode');
         MeprHooks::add_shortcode('mepr-hide', 'MeprRulesCtrl::hide_shortcode');
 
-        // Cleanup list view
+        // Cleanup list view.
         add_filter('views_edit-' . MeprRule::$cpt, 'MeprAppCtrl::cleanup_list_view');
 
-        // Protect WooCommerce Products (this used to be included in our old WC add-on which has since been deprecated)
+        // Protect WooCommerce Products (this used to be included in our old WC add-on which has since been deprecated).
         include_once(ABSPATH . 'wp-admin/includes/plugin.php');
         if (!is_plugin_active('memberpress-woocommerce/main.php')) {
             add_filter('woocommerce_is_purchasable', 'MeprRulesCtrl::override_wc_is_purchasable', 11, 2);
@@ -71,35 +72,40 @@ class MeprRulesCtrl extends MeprCptCtrl
      */
     public function register_post_type()
     {
-        register_post_type(MeprRule::$cpt, [
-            'labels'               => [
-                'name'               => __('Rules', 'memberpress'),
-                'singular_name'      => __('Rule', 'memberpress'),
-                'add_new'            => __('Add New', 'memberpress'),
-                'add_new_item'       => __('Add New Rule', 'memberpress'),
-                'edit_item'          => __('Edit Rule', 'memberpress'),
-                'new_item'           => __('New Rule', 'memberpress'),
-                'view_item'          => __('View Rule', 'memberpress'),
-                'search_items'       => __('Search Rules', 'memberpress'),
-                'not_found'          => __('No Rules found', 'memberpress'),
-                'not_found_in_trash' => __('No Rules found in Trash', 'memberpress'),
-                'parent_item_colon'  => __('Parent Rule:', 'memberpress'),
-            ],
-            'public'               => false,
-            'show_ui'              => true, // MeprUpdateCtrl::is_activated(),
-            'show_in_menu'         => 'memberpress',
-            'capability_type'      => 'page',
-            'hierarchical'         => false,
-            'register_meta_box_cb' => 'MeprRulesCtrl::add_meta_boxes',
-            'rewrite'              => false,
-            'supports'             => ['title'],
-        ]);
+        $args = MeprHooks::apply_filters(
+            'mepr_' . MeprRule::$cpt . '_post_type_args',
+            [
+                'labels'               => [
+                    'name'               => __('Rules', 'memberpress'),
+                    'singular_name'      => __('Rule', 'memberpress'),
+                    'add_new'            => __('Add New', 'memberpress'),
+                    'add_new_item'       => __('Add New Rule', 'memberpress'),
+                    'edit_item'          => __('Edit Rule', 'memberpress'),
+                    'new_item'           => __('New Rule', 'memberpress'),
+                    'view_item'          => __('View Rule', 'memberpress'),
+                    'search_items'       => __('Search Rules', 'memberpress'),
+                    'not_found'          => __('No Rules found', 'memberpress'),
+                    'not_found_in_trash' => __('No Rules found in Trash', 'memberpress'),
+                    'parent_item_colon'  => __('Parent Rule:', 'memberpress'),
+                ],
+                'public'               => false,
+                'show_ui'              => true, // MeprUpdateCtrl::is_activated().
+                'show_in_menu'         => 'memberpress',
+                'capability_type'      => 'page',
+                'hierarchical'         => false,
+                'register_meta_box_cb' => 'MeprRulesCtrl::add_meta_boxes',
+                'rewrite'              => false,
+                'supports'             => ['title'],
+            ]
+        );
+
+        register_post_type(MeprRule::$cpt, $args);
     }
 
     /**
      * Retrieves the page title code.
      *
-     * @param string $title The current page title
+     * @param string $title The current page title.
      *
      * @return string The modified page title
      */
@@ -117,30 +123,36 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Filters protected posts for REST API access.
      *
-     * @param array    $posts The posts to filter
-     * @param WP_Query $query The query object
+     * @param array    $posts The posts to filter.
+     * @param WP_Query $query The query object.
      *
      * @return array Filtered posts
      */
     public static function filter_protected_posts_for_rest($posts, $query)
     {
-        // Check if the current request is a REST API request
+        $mepr_options = MeprOptions::fetch();
+
+        if (!$mepr_options->enable_wp_rest_api_protection) {
+            return $posts;
+        }
+
+        // Check if the current request is a REST API request.
         if (defined('REST_REQUEST') && REST_REQUEST && is_array($posts)) {
-            // Loop through the posts
+            // Loop through the posts.
             foreach ($posts as $key => $post) {
                 $uri = get_permalink($post);
-                // Check if the post is protected by MemberPress
+                // Check if the post is protected by MemberPress.
                 if (MeprRule::is_locked($post)) {
-                    // Remove the protected post from the results
+                    // Remove the protected post from the results.
                     unset($posts[$key]);
                     continue;
                 }
                 if ($uri !== false && MeprRule::is_uri_locked($uri)) {
-                    // Remove the protected post from the results
+                    // Remove the protected post from the results.
                     unset($posts[$key]);
                 }
             }
-            // Re-index the array to prevent issues with keys
+            // Re-index the array to prevent issues with keys.
             $posts = array_values($posts);
         }
         return $posts;
@@ -149,7 +161,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Defines the columns for the rules list table.
      *
-     * @param array $columns The existing columns
+     * @param array $columns The existing columns.
      *
      * @return array The modified columns
      */
@@ -172,8 +184,8 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Renders custom columns for the rules list table.
      *
-     * @param string  $column  The name of the column
-     * @param integer $rule_id The ID of the rule
+     * @param string  $column  The name of the column.
+     * @param integer $rule_id The ID of the rule.
      *
      * @return void
      */
@@ -238,7 +250,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Handles rule comments.
      *
-     * @param string $template The template to use
+     * @param string $template The template to use.
      *
      * @return string
      */
@@ -266,7 +278,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     {
         global $post;
 
-        // Prevents us double matching a URI and causing a redirect loop
+        // Prevents us double matching a URI and causing a redirect loop.
         if (isset($_GET['action']) && $_GET['action'] == 'mepr_unauthorized') {
             return;
         }
@@ -278,27 +290,27 @@ class MeprRulesCtrl extends MeprCptCtrl
 
         // Add this filter to allow external resources
         // to control whether to redirect away from this content
-        // if the resource sets the filter to FALSE then no redirect will occur
+        // if the resource sets the filter to FALSE then no redirect will occur.
         if (!MeprHooks::apply_filters('mepr-pre-run-rule-redirection', true, $uri, $delim)) {
             return;
         }
 
         // Let's check the URI's first ok?
-        // This is here to perform an unauthorized redirection based on the uri
+        // This is here to perform an unauthorized redirection based on the uri.
         if (MeprRule::is_uri_locked($uri)) {
-            if ($mepr_options->redirect_on_unauthorized) { // Send to unauth page
+            if ($mepr_options->redirect_on_unauthorized) { // Send to unauth page.
                 $redirect_url = "{$mepr_options->unauthorized_redirect_url}{$delim}action=mepr_unauthorized&redirect_to=" . urlencode($uri);
-            } else { // Send to login page
+            } else { // Send to login page.
                 $redirect_url = $mepr_options->login_page_url('action=mepr_unauthorized&redirect_to=' . urlencode($uri));
             }
 
-            // Handle SSL
+            // Handle SSL.
             $redirect_url = ($is_ssl) ? str_replace('http:', 'https:', $redirect_url) : $redirect_url;
             MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr-rule-redirect-unauthorized-url', $redirect_url, $delim, $uri));
             exit;
         }
 
-        // If the URI isn't protected, let's check the other Rules
+        // If the URI isn't protected, let's check the other Rules.
         if ($mepr_options->redirect_on_unauthorized) {
             $do_redirect = MeprHooks::apply_filters('mepr-rule-do-redirection', self::should_do_redirect());
 
@@ -309,7 +321,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             ) {
                 $redirect_url = "{$mepr_options->unauthorized_redirect_url}{$delim}mepr-unauth-page={$post->ID}&redirect_to=" . urlencode($uri);
 
-                // Handle SSL
+                // Handle SSL.
                 $redirect_url = ($is_ssl) ? str_replace('http:', 'https:', $redirect_url) : $redirect_url;
                 MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr-rule-redirect-unauthorized-url', $redirect_url, $delim, $uri));
                 exit;
@@ -317,22 +329,26 @@ class MeprRulesCtrl extends MeprCptCtrl
         }
     }
 
-    // Allow control of the admin dashboard URL's too
+    /**
+     * Allow control of the admin dashboard URL's too
+     *
+     * @return void
+     */
     public static function admin_rule_redirection()
     {
         $uri          = esc_url($_SERVER['REQUEST_URI']);
         $mepr_options = MeprOptions::fetch();
         $delim        = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
 
-        // This performs an unauthorized redirection based on the uri
+        // This performs an unauthorized redirection based on the uri.
         if (MeprRule::is_uri_locked($uri)) {
-            if ($mepr_options->redirect_on_unauthorized) { // Send to unauth page
+            if ($mepr_options->redirect_on_unauthorized) { // Send to unauth page.
                 $redirect_url = "{$mepr_options->unauthorized_redirect_url}{$delim}action=mepr_unauthorized&redirect_to=" . urlencode($uri);
-            } else { // Send to login page
+            } else { // Send to login page.
                 $redirect_url = $mepr_options->login_page_url('action=mepr_unauthorized&redirect_to=' . urlencode($uri));
             }
 
-            // Handle SSL
+            // Handle SSL.
             $redirect_url = (MeprUtils::is_ssl()) ? str_replace('http:', 'https:', $redirect_url) : $redirect_url;
             MeprUtils::wp_redirect($redirect_url);
             exit;
@@ -373,7 +389,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         $mepr_options = MeprOptions::fetch();
 
         if (!empty($wp_query->posts) && $mepr_options->redirect_non_singular) {
-            // If even one post on this non-singular page is protected, let's redirect brotha
+            // If even one post on this non-singular page is protected, let's redirect brotha.
             foreach ($wp_query->posts as $post) {
                 if (MeprRule::is_locked($post)) {
                     return true;
@@ -387,7 +403,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Used to replace content for unauthorized visitors if redirect_on_unauthorized is not selected in MeprOptions.
      *
-     * @param string $content The content to replace
+     * @param string $content The content to replace.
      *
      * @return string
      */
@@ -395,7 +411,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     {
         $current_post = MeprUtils::get_current_post();
 
-        // This isn't a post? Just return the content then
+        // This isn't a post? Just return the content then.
         if ($current_post === false) {
             return $content;
         }
@@ -407,7 +423,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         static $new_content    = [];
         static $content_length = [];
 
-        // Init this posts static values
+        // Init this posts static values.
         if (!isset($new_content[$current_post->ID]) || empty($new_content[$current_post->ID])) {
             $already_run[$current_post->ID]    = false;
             $new_content[$current_post->ID]    = '';
@@ -421,14 +437,14 @@ class MeprRulesCtrl extends MeprCptCtrl
         $content_length[$current_post->ID] = strlen($content);
         $already_run[$current_post->ID]    = true;
 
-        // Get the URI
+        // Get the URI.
         $uri = $_SERVER['REQUEST_URI'];
 
         // Add this filter to allow external resources
         // to control whether to show or hide this content
-        // if the resource sets the filter to FALSE then it will not be protected
+        // if the resource sets the filter to FALSE then it will not be protected.
         if (!MeprHooks::apply_filters('mepr-pre-run-rule-content', true, $current_post, $uri)) {
-            // See notes above
+            // See notes above.
             $new_content[$current_post->ID] = $content;
             return $new_content[$current_post->ID];
         }
@@ -438,13 +454,13 @@ class MeprRulesCtrl extends MeprCptCtrl
         } else {
             // The user is allowed to see this content, but let's give developers one last chance to
             // block it if necessary - will be very helpful for magazine style membership sites
-            // return TRUE here to block the content from this user
+            // return TRUE here to block the content from this user.
             if (MeprHooks::apply_filters('mepr-last-chance-to-block-content', false, $current_post, $uri)) {
                 $content = do_shortcode(self::unauthorized_message($current_post));
             }
         }
 
-        // See notes above
+        // See notes above.
         $new_content[$current_post->ID] = $content;
         return $new_content[$current_post->ID];
     }
@@ -452,7 +468,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Shortcode for displaying unauthorized message.
      *
-     * @param array $atts The attributes of the shortcode
+     * @param array $atts The attributes of the shortcode.
      *
      * @return string The unauthorized message
      */
@@ -480,7 +496,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Displays the unauthorized message.
      *
-     * @param WP_Post $post The post object
+     * @param WP_Post $post The post object.
      *
      * @return string The unauthorized message
      */
@@ -492,10 +508,10 @@ class MeprRulesCtrl extends MeprCptCtrl
         static $login_form_shown = false;
         $show_login              = ($unauth->show_login && !$login_form_shown);
 
-        // if this is a singular page, then allow it to be shown more than once
-        // it won't literally be shown on the page more than once, but in case something
-        // calls the_content filter during an earlier hook, we'll want to make sure the form shows
-        // up on the page itself still.
+        // If this is a singular page, then allow it to be shown more than once
+        // It won't literally be shown on the page more than once, but in case something
+        // Calls the_content filter during an earlier hook, we'll want to make sure the form shows
+        // Up on the page itself still.
         if ($show_login && !is_singular()) {
             $login_form_shown = true;
         }
@@ -522,7 +538,7 @@ class MeprRulesCtrl extends MeprCptCtrl
 
         $content = ob_get_clean();
 
-        // TODO: oEmbed still not working for some strange reason
+        // TODO: oEmbed still not working for some strange reason.
         return MeprHooks::apply_filters('mepr-unauthorized-content', $content, $post);
     }
 
@@ -541,7 +557,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Saves post data for rules.
      *
-     * @param integer $post_id The ID of the post
+     * @param integer $post_id The ID of the post.
      *
      * @return integer|void
      */
@@ -550,7 +566,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         $post = get_post($post_id);
 
         if (!wp_verify_nonce((isset($_POST[MeprRule::$mepr_nonce_str])) ? $_POST[MeprRule::$mepr_nonce_str] : '', MeprRule::$mepr_nonce_str . wp_salt())) {
-            return $post_id; // Nonce prevents meta data from being wiped on move to trash
+            return $post_id; // Nonce prevents meta data from being wiped on move to trash.
         }
 
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
@@ -589,10 +605,10 @@ class MeprRulesCtrl extends MeprCptCtrl
 
             self::validate_rule_content($rule, $post_id);
 
-            // Delete rules first then add them back below
+            // Delete rules first then add them back below.
             MeprRuleAccessCondition::delete_all_by_rule($post_id);
 
-            // Let's store the access rules
+            // Let's store the access rules.
             if (isset($_POST['mepr_access_row']) && !empty($_POST['mepr_access_row'])) {
                 foreach ($_POST['mepr_access_row']['type'] as $index => $access_type) {
                     $rule_access_condition                   = new MeprRuleAccessCondition($_POST['mepr_access_row']['rule_access_condition_id'][$index]);
@@ -609,7 +625,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Deletes access rules.
      *
-     * @param integer $post_id The ID of the post
+     * @param integer $post_id The ID of the post.
      *
      * @return void
      */
@@ -633,7 +649,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         $rule_access_conditions = $rule->access_conditions();
         $server                 = strtolower($_SERVER['SERVER_SOFTWARE']);
 
-        if (preg_match('/(apache|litespeed)/', $server)) { // LiteSpeed is essentially the same as Apache, only it claims to be twice as fast
+        if (preg_match('/(apache|litespeed)/', $server)) { // LiteSpeed is essentially the same as Apache, only it claims to be twice as fast.
             $server            = 'apache';
             $htaccess          = ABSPATH . '.htaccess';
             $htaccess_writable = (file_exists($htaccess) and is_writable($htaccess));
@@ -718,8 +734,8 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Disables a row in the rules list table.
      *
-     * @param array   $actions The actions to disable
-     * @param WP_Post $post    The post object
+     * @param array   $actions The actions to disable.
+     * @param WP_Post $post    The post object.
      *
      * @return array
      */
@@ -731,7 +747,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             return $actions;
         }
 
-        unset($actions['inline hide-if-no-js']); // Hides quick-edit
+        unset($actions['inline hide-if-no-js']); // Hides quick-edit.
 
         return $actions;
     }
@@ -739,13 +755,13 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Disables bulk actions in the rules list table.
      *
-     * @param array $actions The actions to disable
+     * @param array $actions The actions to disable.
      *
      * @return array
      */
     public static function disable_bulk($actions)
     {
-        unset($actions['edit']); // disables bulk edit
+        unset($actions['edit']); // Disables bulk edit.
 
         return $actions;
     }
@@ -806,7 +822,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
             wp_register_script('rule-form-validator', MEPR_JS_URL . '/vendor/jquery.form-validator.min.js', ['jquery'], '2.3.26');
             wp_dequeue_script('autosave'); // Disable auto-saving
-            // Need mepr-rules-js to load in the footer since this script doesn't fully use document.ready()
+            // Need mepr-rules-js to load in the footer since this script doesn't fully use document.ready().
             wp_enqueue_script('mepr-rules-js', MEPR_JS_URL . '/admin_rules.js', ['jquery','jquery-ui-autocomplete','mepr-date-picker-js','rule-form-validator'], MEPR_VERSION, true);
             wp_register_style('mepr-simplegrid', MEPR_CSS_URL . '/vendor/simplegrid.css', [], MEPR_VERSION);
             wp_enqueue_style('mepr-rules-css', MEPR_CSS_URL . '/admin-rules.css', ['mepr-simplegrid'], MEPR_VERSION);
@@ -818,7 +834,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Modifies the rewrite rules.
      *
-     * @param string $rules The existing rewrite rules
+     * @param string $rules The existing rewrite rules.
      *
      * @return string The modified rewrite rules
      */
@@ -826,29 +842,29 @@ class MeprRulesCtrl extends MeprCptCtrl
     {
         $mepr_options = MeprOptions::fetch();
 
-        // If disabled mod_rewrite is checked let's not go on
+        // If disabled mod_rewrite is checked let's not go on.
         if ($mepr_options->disable_mod_rewrite) {
             return $rules;
         }
 
         $rule_uri    = MEPR_URL . '/lock.php';
-        $rule_path   = preg_replace('#^(https?:)?//[^/]+#', '', $rule_uri); // grab the root
+        $rule_path   = preg_replace('#^(https?:)?//[^/]+#', '', $rule_uri); // Grab the root.
         $subdir      = preg_replace('#^https?://[^/]+#', '', site_url());
         $mepr_rules  = "\n";
         $mepr_rules .= "# BEGIN MemberPress Rules\n";
         $mepr_rules .= "<IfModule mod_rewrite.c>\n\n";
 
-        // Make sure there's been a cookie set for us to access the file
+        // Make sure there's been a cookie set for us to access the file.
         $mepr_rules .= "RewriteCond %{HTTP_COOKIE} mplk=([a-zA-Z0-9]+)\n";
 
-        // See if there's also a rule file for the rule hash
+        // See if there's also a rule file for the rule hash.
         $mepr_rules .= 'RewriteCond ' . MeprRule::rewrite_rule_file_dir(true) . "/%1 -f\n";
-        // If rule hash exists in query string, there's a rule file and they match then short circuit to the actual url
+        // If rule hash exists in query string, there's a rule file and they match then short circuit to the actual url.
         $mepr_rules .= "RewriteRule ^(.*)$ - [L]\n\n";
         // If the url is the lock url then don't lock it or we'll end up in an infinite redirect
         // Don't need this now that we're bypassing php files alltogether
         // $mepr_rules .= "RewriteRule memberpress\/lock\.php$ - [L]\n";
-        // Directories that we shouldn't allow to be protected
+        // Directories that we shouldn't allow to be protected.
         $no_protect_dirs = MeprHooks::apply_filters('mepr_rewrite_rules_no_protect_dirs', ['wp-admin','wp-includes','wp-content/plugins','wp-content/themes'], $rules);
         $npstr           = implode('|', $no_protect_dirs);
         $mepr_rules     .= 'RewriteCond %{REQUEST_URI} !^/(' . $npstr . ")\n";
@@ -859,7 +875,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         $ptstr         = implode('|', $protect_types);
         $mepr_rules   .= 'RewriteCond %{REQUEST_URI} \.(' . strtolower($ptstr) . '|' . strtoupper($ptstr) . ")$\n";
 
-        // All else fails ... run it through lock.php to see if it's protected
+        // All else fails ... run it through lock.php to see if it's protected.
         $mepr_rules .= "RewriteRule . {$rule_path} [L]\n\n";
         $mepr_rules .= "</IfModule>\n";
         $mepr_rules .= "# END MemberPress Rules\n";
@@ -867,15 +883,15 @@ class MeprRulesCtrl extends MeprCptCtrl
         $mepr_rules = MeprHooks::apply_filters('mepr_rewrite_rules', $mepr_rules, $rules);
 
         // Mepr rules must appear *AFTER* wp's rules because we
-        // don't know how wp will handle the uri unless its a file
+        // don't know how wp will handle the uri unless its a file.
         return $rules . $mepr_rules;
     }
 
     /**
      * Deprecated
      *
-     * @param array  $atts    The attributes of the shortcode
-     * @param string $content The content of the shortcode
+     * @param array  $atts    The attributes of the shortcode.
+     * @param string $content The content of the shortcode.
      *
      * @return string The modified content
      */
@@ -887,8 +903,8 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Active shortcode
      *
-     * @param array  $atts    The attributes of the shortcode
-     * @param string $content The content of the shortcode
+     * @param array  $atts    The attributes of the shortcode.
+     * @param string $content The content of the shortcode.
      *
      * @return string The modified content
      */
@@ -900,8 +916,8 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Show shortcode
      *
-     * @param array  $atts    The attributes of the shortcode
-     * @param string $content The content of the shortcode
+     * @param array  $atts    The attributes of the shortcode.
+     * @param string $content The content of the shortcode.
      *
      * @return string The modified content
      */
@@ -913,8 +929,8 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Hide shortcode
      *
-     * @param array  $atts    The attributes of the shortcode
-     * @param string $content The content of the shortcode
+     * @param array  $atts    The attributes of the shortcode.
+     * @param string $content The content of the shortcode.
      *
      * @return string The modified content
      */
@@ -926,9 +942,9 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Protect shortcode content
      *
-     * @param array  $atts           The attributes of the shortcode
-     * @param string $content        The content of the shortcode
-     * @param string $shortcode_type The type of shortcode
+     * @param array  $atts           The attributes of the shortcode.
+     * @param string $content        The content of the shortcode.
+     * @param string $shortcode_type The type of shortcode.
      *
      * @return string The modified content
      */
@@ -937,7 +953,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         $mepr_options = MeprOptions::fetch();
 
         // Allow single level shortcode nesting
-        // This only works if the inner shortcode does NOT have an ending tag
+        // This only works if the inner shortcode does NOT have an ending tag.
         $content = do_shortcode($content);
 
         if ($shortcode_type === 'mepr-show') {
@@ -987,13 +1003,13 @@ class MeprRulesCtrl extends MeprCptCtrl
             $allowed = !MeprUtils::is_user_logged_in();
         } else {
             // Check if we've been given sanitary input, if not this shortcode
-            // is no good so let's return the full content here
+            // is no good so let's return the full content here.
             if (MeprUtils::is_mepr_admin()) {
                 return ($hide_if_allowed ? $unauth : $content);
             }
 
             if (MeprUtils::is_user_logged_in()) {
-                // Deprecated
+                // Deprecated.
                 if ($shortcode_type == 'mp-rule') {
                     $allowed = (
                     (isset($atts['id']) && current_user_can('mepr-active', "rule: {$atts['id']}")) ||
@@ -1020,10 +1036,16 @@ class MeprRulesCtrl extends MeprCptCtrl
         return ((($allowed && !$hide_if_allowed) || (!$allowed && $hide_if_allowed)) ? $content : $unauth);
     }
 
-    /*
-        This will only work once $post is in place in the wp request flow
-    */
-    // Will support dashes, underscores, full plugin name, short plugin name and authorized or auth
+    /**
+     * This will only work once $post is in place in the wp request flow.
+     * Will support dashes, underscores, full plugin name, short plugin name and authorized or auth.
+     *
+     * @param array $caps The capabilities for the user.
+     * @param array $cap  The capabilities being checked.
+     * @param array $args Additional arguments.
+     *
+     * @return array Modified capabilities
+     */
     public static function authorized_cap($caps, $cap, $args)
     {
         $regex = '(memberpress|mepr)[-_]auth(orized)?';
@@ -1035,7 +1057,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         $caps[$cap[0]] = 1;
         $current_post  = MeprUtils::get_current_post();
 
-        // General MemberPress Authorized for this page
+        // General MemberPress Authorized for this page.
         if (
             ($current_post !== false && MeprRule::is_locked($current_post)) ||
             MeprRule::is_uri_locked($_SERVER['REQUEST_URI'])
@@ -1049,9 +1071,9 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Handles product authorized capabilities (deprecated).
      *
-     * @param array  $caps The capabilities for the user
-     * @param string $cap  The capability being checked
-     * @param array  $args Additional arguments
+     * @param array  $caps The capabilities for the user.
+     * @param string $cap  The capability being checked.
+     * @param array  $args Additional arguments.
      *
      * @return array Modified capabilities
      */
@@ -1063,7 +1085,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             return $caps;
         }
 
-        // User is most likely a guest, so they don't have access to whatever we're doing here
+        // User is most likely a guest, so they don't have access to whatever we're doing here.
         if (!isset($args[1]) || !$args[1]) {
             return $caps;
         }
@@ -1082,9 +1104,9 @@ class MeprRulesCtrl extends MeprCptCtrl
      * Deprecated
      * Handles rule authorized capabilities (deprecated).
      *
-     * @param array  $caps The capabilities for the user
-     * @param string $cap  The capability being checked
-     * @param array  $args Additional arguments
+     * @param array  $caps The capabilities for the user.
+     * @param string $cap  The capability being checked.
+     * @param array  $args Additional arguments.
      *
      * @return array Modified capabilities
      */
@@ -1096,7 +1118,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             return $caps;
         }
 
-        // User is most likely a guest, so they don't have access to whatever we're doing here
+        // User is most likely a guest, so they don't have access to whatever we're doing here.
         if (!isset($args[1]) || !$args[1]) {
             return $caps;
         }
@@ -1119,9 +1141,9 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Is the user active on any membership, one specific rule or one specific membership?
      *
-     * @param array  $caps The capabilities for the user
-     * @param string $cap  The capability being checked
-     * @param array  $args Additional arguments
+     * @param array  $caps The capabilities for the user.
+     * @param string $cap  The capability being checked.
+     * @param array  $args Additional arguments.
      *
      * @return array Modified capabilities
      */
@@ -1133,7 +1155,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             return $caps;
         }
 
-        // User is most likely a guest, so they don't have access to whatever we're doing here
+        // User is most likely a guest, so they don't have access to whatever we're doing here.
         if (!isset($args[1]) || !$args[1]) {
             return $caps;
         }
@@ -1144,15 +1166,15 @@ class MeprRulesCtrl extends MeprCptCtrl
         if (MeprUtils::is_mepr_admin($user->ID)) {
             $caps[$active_str] = 1;
         } else {
-            // membership specific active
+            // Membership specific active.
             if (isset($args[2])) {
-                // If it's a membership then check that it's in the active membership subscriptions array
+                // If it's a membership then check that it's in the active membership subscriptions array.
                 if (is_numeric($args[2]) && is_array($ids) && !empty($ids)) {
                     if (in_array($args[2], $ids)) {
                         $caps[$active_str] = 1;
                     }
                 } elseif (preg_match('/^((product|membership)s?\s*[=:_-]?\s*)?((\d+\s*,\s*)*\d+)$/i', $args[2], $m) && is_array($ids) && !empty($ids)) {
-                    // If it's spelled out as a product or membership do the same thing here
+                    // If it's spelled out as a product or membership do the same thing here.
                     $product_ids = array_map('trim', explode(',', $m[3]));
                     if (is_array($product_ids) && !empty($product_ids)) {
                         $intersect = array_intersect($product_ids, $ids);
@@ -1161,7 +1183,7 @@ class MeprRulesCtrl extends MeprCptCtrl
                         }
                     }
                 } elseif (preg_match('/^rules?\s*[=:_-]?\s*((\d+\s*,\s*)*\d+)$/i', $args[2], $m)) {
-                    // If it's an array then check that it's in the active membership subscriptions array
+                    // If it's an array then check that it's in the active membership subscriptions array.
                     $product_ids = [];
                     $rule_ids    = array_map('trim', explode(',', $m[1]));
 
@@ -1193,7 +1215,7 @@ class MeprRulesCtrl extends MeprCptCtrl
      */
     public static function ajax_content_search()
     {
-        // Array( [action] => mepr_rule_content_search [type] => single_post [term] => you)
+        // Array( [action] => mepr_rule_content_search [type] => single_post [term] => you).
         check_ajax_referer('content_search', 'content_search_nonce');
 
         $type = sanitize_text_field($_REQUEST['type']);
@@ -1206,14 +1228,14 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Override WooCommerce is_purchasable
      *
-     * @param boolean $is  The current is_purchasable status
-     * @param object  $prd The product object
+     * @param boolean $is  The current is_purchasable status.
+     * @param object  $prd The product object.
      *
      * @return boolean Modified is_purchasable status
      */
     public static function override_wc_is_purchasable($is, $prd)
     {
-        // Bail if already locked, or is admin page, or is REST REQUEST
+        // Bail if already locked, or is admin page, or is REST REQUEST.
         if (!$is || is_admin() || (defined('REST_REQUEST') && REST_REQUEST)) {
             return $is;
         }
@@ -1238,7 +1260,7 @@ class MeprRulesCtrl extends MeprCptCtrl
      */
     public static function override_wc_is_visible($is, $prd_id, $prd_parent_id = false, $prd = false)
     {
-        // Bail if already locked, or is admin page, or is REST REQUEST
+        // Bail if already locked, or is admin page, or is REST REQUEST.
         if (!$is || is_admin() || (defined('REST_REQUEST') && REST_REQUEST)) {
             return $is;
         }
@@ -1273,9 +1295,9 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Never hide WooCommerce the_content
      *
-     * @param boolean $protect Whether to protect the content
-     * @param WP_Post $post    The post object
-     * @param string  $uri     The URI of the request
+     * @param boolean $protect Whether to protect the content.
+     * @param WP_Post $post    The post object.
+     * @param string  $uri     The URI of the request.
      *
      * @return boolean Modified protection status
      */
@@ -1291,8 +1313,8 @@ class MeprRulesCtrl extends MeprCptCtrl
     /**
      * Validates rule content and force the post status to draft if it's empty.
      *
-     * @param MeprRule $rule    The rule object
-     * @param integer  $post_id The post ID
+     * @param MeprRule $rule    The rule object.
+     * @param integer  $post_id The post ID.
      *
      * @return void
      */

@@ -269,7 +269,7 @@ class MeprRulesHelper
             return;
         }
 
-        // Show a text field for collecting comma separated list of ID's to exclude
+        // Show a text field for collecting comma separated list of ID's to exclude.
         if ($type == 'all' or (strstr($type, 'all_') !== false and !preg_match('#^all_tax_#', $type))) {
             ?>
       <span id="<?php echo $field_name; ?>-wrap">
@@ -340,7 +340,7 @@ class MeprRulesHelper
             $contents[$post->ID] = $post->post_title;
         }
 
-        // Don't think this is used, blair feel free to kill this if I'm right
+        // Don't think this is used, blair feel free to kill this if I'm right.
         $field_value = (isset($_POST[$field_name])) ? $_POST[$field_name] : '';
 
         if (!is_array($access)) {

@@ -6,5 +6,5 @@ if (!defined('ABSPATH')) {
 
 abstract class MeprBaseOptionsAdminEmail extends MeprBaseOptionsEmail
 {
-    // we do nothing ... this class is purely for taxonomy
+    // We do nothing ... this class is purely for taxonomy.
 }

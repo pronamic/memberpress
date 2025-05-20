@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 abstract class MeprBaseReminderEmail extends MeprBaseEmail
 {
+    /**
+     * The reminder object
+     *
+     * @var MeprReminder
+     */
     public $reminder;
 
     /**

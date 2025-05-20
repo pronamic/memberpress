@@ -96,7 +96,7 @@ class MeprSubscriptionsHelper
 
         $next_bill_amt = ($sub->total >= 0.00) ? $sub->total : $sub->price;
 
-        // Coupon title
+        // Coupon title.
         $cpn = ($cpn !== false) ? $cpn->post_title : '';
 
         $params = [
@@ -150,7 +150,7 @@ class MeprSubscriptionsHelper
             }
         }
 
-        // You know we're just going to lump the user record fields in here no problem
+        // You know we're just going to lump the user record fields in here no problem.
         foreach ((array)$usr->rec as $ukey => $uval) {
             $params["usermeta:{$ukey}"] = $uval;
         }

@@ -48,7 +48,7 @@ class MeprDrmNokey extends MeprBaseDrm
     /**
      * Adds site health status check for DRM key.
      *
-     * @param array $tests The existing tests array
+     * @param array $tests The existing tests array.
      *
      * @return array
      */
@@ -58,7 +58,7 @@ class MeprDrmNokey extends MeprBaseDrm
         $drm_status = MeprDrmHelper::get_status();
 
         if ($drm_status == '') {
-            return $tests; // bail.
+            return $tests; // Bail.
         }
 
         $tests['direct']['memberpress_drm_no_key'] = [

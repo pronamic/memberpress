@@ -781,7 +781,16 @@ class MeprReports
         return (($gt_two / count($res)) * 100);
     }
 
-    // Wrapper function
+    /**
+     * Format a date based on month, day, and year parameters.
+     *
+     * @param integer $month  The month value.
+     * @param integer $day    The day value.
+     * @param integer $year   The year value.
+     * @param string  $format The date format string.
+     *
+     * @return string The formatted date.
+     */
     public static function make_table_date($month, $day, $year, $format = 'm/d/Y')
     {
         $ts = mktime(0, 0, 1, $month, $day, $year);
@@ -871,7 +880,7 @@ class MeprReports
             $q .= $wpdb->prepare('WHERE s.created_at >= %s', $created_since);
         }
 
-        // Because we're dealing with sums & counts $stats should always be an array
+        // Because we're dealing with sums & counts $stats should always be an array.
         $stats = array_merge($stats, $wpdb->get_row($q, ARRAY_A));
 
         return (object)$stats;
@@ -975,7 +984,7 @@ class MeprReports
         return self::event_stats('subscription-upgraded', 'subscriptions', $created_since);
     }
 
-    // Cancellation events
+    // Cancellation events.
     /**
      * Get event statistics based on event type and creation date.
      *

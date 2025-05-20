@@ -8,6 +8,8 @@ class MeprUpdateStripeMetadataJob extends MeprBaseJob
 {
     /**
      * Update Stripe Metadata for a Transaction
+     *
+     * @throws Exception When transaction_id is not set.
      **/
     public function perform()
     {

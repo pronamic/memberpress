@@ -14,7 +14,7 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
         'currencies'   => 'all',
         'capabilities' => ['payment_intents', 'setup_future_usage', 'setup_intents', 'subscriptions'],
     ],
-    // Bank debits
+    // Bank debits.
     [
         'key'          => 'us_bank_account',
         'name'         => 'ACH Direct Debit',
@@ -43,7 +43,7 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
         'capabilities' => ['payment_intents', 'setup_future_usage', 'setup_intents', 'subscriptions'],
         'async'        => true,
     ],
-    // Bank redirects
+    // Bank redirects.
     [
         'key'          => 'bancontact',
         'name'         => 'Bancontact',
@@ -99,7 +99,7 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
         'currencies'   => ['CHF'],
         'capabilities' => ['payment_intents'],
     ],
-    // Buy now, pay later
+    // Buy now, pay later.
     [
         'key'          => 'affirm',
         'name'         => 'Affirm',
@@ -118,7 +118,7 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
         'currencies'   => ['AUD', 'CAD', 'CHF', 'CZK', 'DKK', 'EUR', 'GBP', 'NOK', 'NZD', 'PLN', 'SEK', 'USD'],
         'capabilities' => ['payment_intents'],
     ],
-    // Real-time payments
+    // Real-time payments.
     [
         'key'          => 'paynow',
         'name'         => 'PayNow',
@@ -131,7 +131,7 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
         'currencies'   => ['THB'],
         'capabilities' => ['payment_intents'],
     ],
-    // Vouchers
+    // Vouchers.
     [
         'key'          => 'boleto',
         'name'         => 'Boleto',
@@ -153,7 +153,7 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
         'capabilities' => ['payment_intents'],
         'async'        => true,
     ],
-    // Wallets
+    // Wallets.
     [
         'key'          => 'alipay',
         'name'         => 'Alipay',

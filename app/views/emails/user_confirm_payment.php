@@ -6,7 +6,7 @@
   <h2 style="margin-top: 0; color: #999; font-weight: normal;">
     <?php
       echo esc_html(sprintf(
-        // translators: %1$s: subscription ID, %2$s: blog name
+        // Translators: %1$s: subscription ID, %2$s: blog name.
           _x('%1$s &ndash; %2$s', 'ui', 'memberpress'),
           $subscr_num,
           $blogname
@@ -18,7 +18,7 @@
   <div class="section" style="display: block; margin-bottom: 24px;">
     <?php
       echo esc_html(sprintf(
-        // translators: %s: blog name
+        // Translators: %s: blog name.
           _x('We tried to process a payment for your subscription to %s, but your bank requested authentication for this transaction. Please confirm the payment by clicking on the following link:', 'ui', 'memberpress'),
           $blogname
       ));

@@ -1,5 +1,5 @@
 jQuery(function ($) {
-  var $deactivateLink = $('#the-list').find('[data-slug="' + MeprDeactivationSurvey.slug + '"] span.deactivate a'),
+  var $deactivateLink = $('#the-list').find('[data-plugin="' + MeprDeactivationSurvey.slug + '"] span.deactivate a'),
     $popup = $('#mepr-deactivation-survey'),
     $form = $popup.find('form'),
     popupOpen = false,

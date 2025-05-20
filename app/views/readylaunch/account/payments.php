@@ -47,7 +47,6 @@ if (! empty($payments)) {
     </td>
     <td data-label="<?php _ex('Date', 'ui', 'memberpress'); ?>">
       <div><strong><?php echo MeprAppHelper::format_date($payment->created_at); ?></strong></div>
-      <!-- <div><span class="mepr-payment-row__desc"><?php // echo MeprAppHelper::format_currency( $payment->total <= 0.00 ? $payment->amount : $payment->total ); ?><span></div> -->
     </td>
     <td data-label="<?php _ex('Card', 'ui', 'memberpress'); ?>">
       <p><?php echo esc_html($pm->label); ?></p>
@@ -62,7 +61,6 @@ if (! empty($payments)) {
     <td data-label="<?php _ex('Total', 'ui', 'memberpress'); ?>">
         <?php echo MeprAppHelper::format_currency($payment->total <= 0.00 ? $payment->amount : $payment->total); ?>
     </td>
-        <?php // MeprHooks::do_action('mepr_account_payments_table_row', $payment); ?>
         <?php if ($row_actions) { ?>
     <td class="mepr-pro-account-table__col-actions">
       <svg class="mepr-tooltip-trigger" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

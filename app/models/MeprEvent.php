@@ -6,13 +6,39 @@ if (!defined('ABSPATH')) {
 
 class MeprEvent extends MeprBaseModel
 {
-    // Supported event types
+    /**
+     * Event type for user related events.
+     *
+     * @var string
+     */
     public static $users_str         = 'users';
+
+    /**
+     * Event type for transaction related events.
+     *
+     * @var string
+     */
     public static $transactions_str  = 'transactions';
+
+    /**
+     * Event type for subscription related events.
+     *
+     * @var string
+     */
     public static $subscriptions_str = 'subscriptions';
+
+    /**
+     * Event type for DRM related events.
+     *
+     * @var string
+     */
     public static $drm_str           = 'drm';
 
-    // User events
+    /**
+     * Event name for login events.
+     *
+     * @var string
+     */
     public static $login_event_str = 'login';
 
     /**
@@ -180,7 +206,7 @@ class MeprEvent extends MeprBaseModel
         $this->use_existing_if_unique();
 
         $vals = (array)$this->rec;
-        unset($vals['created_at']); // let mepr_db handle this
+        unset($vals['created_at']); // Let mepr_db handle this.
 
         if (isset($this->id) and (int)$this->id > 0) {
             $mepr_db->update_record($mepr_db->events, $this->id, $vals);
@@ -190,7 +216,7 @@ class MeprEvent extends MeprBaseModel
             MeprHooks::do_action('mepr-event-create', $this);
             MeprHooks::do_action('mepr-event', $this);
 
-            MeprHooks::do_action("mepr-evt-{$this->event}", $this); // DEPRECATED
+            MeprHooks::do_action("mepr-evt-{$this->event}", $this); // DEPRECATED.
             MeprHooks::do_action("mepr-event-{$this->event}", $this);
         }
 
@@ -279,7 +305,7 @@ class MeprEvent extends MeprBaseModel
     public static function record($event, MeprBaseModel $obj, $args = '')
     {
         // Nothing to record? Hopefully this stops some ghost duplicate reminders we are seeing
-        // Gotta use ->rec here to avoid weird shiz from happening hopefully
+        // Gotta use ->rec here to avoid weird shiz from happening hopefully.
         if ((!isset($obj->rec->id) || !$obj->rec->id) && (!isset($obj->rec->ID) || !$obj->rec->ID)) {
             return;
         }
@@ -288,7 +314,7 @@ class MeprEvent extends MeprBaseModel
         $e->event = $event;
         $e->args  = $args;
 
-        // Just turn objects into json for fun
+        // Just turn objects into json for fun.
         if (is_array($args) || is_object($args)) {
             $e->args = json_encode($args);
         }

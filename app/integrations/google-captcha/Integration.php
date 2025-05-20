@@ -53,7 +53,7 @@ class MeprGoogleCaptchaIntegration
      */
     public function remove_allow_password_reset_action($errors)
     {
-        // We need to remove this action or the reCAPTCHA is checked twice
+        // We need to remove this action or the reCAPTCHA is checked twice.
         remove_action('allow_password_reset', 'gglcptch_lostpassword_check');
 
         return $errors;

@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 class MeprCoursesCtrl extends MeprBaseCtrl
 {
+    /**
+     * The courses slug
+     *
+     * @var string
+     */
     private $courses_slug = 'memberpress-courses/main.php';
 
     /**
@@ -95,13 +100,13 @@ class MeprCoursesCtrl extends MeprBaseCtrl
         $message   = '';
         $result    = 'error';
         switch ($type) {
-            case 'install-activate': // Install and activate courses
+            case 'install-activate': // Install and activate courses.
                 $installed = $this->install_courses(true);
                 $activated = $installed ? $installed : $activated;
                 $result    = $installed ? 'success' : 'error';
                 $message   = $installed ? esc_html__('Courses has been installed and activated successfully. Enjoy!', 'memberpress') : esc_html__('Courses could not be installed. Please check your license settings, or contact MemberPress support for help.', 'memberpress');
                 break;
-            case 'activate': // Just activate (already installed)
+            case 'activate': // Just activate (already installed).
                 $activated = is_null(activate_plugin($this->courses_slug));
                 $result    = 'success';
                 $message   = esc_html__('Courses has been activated successfully. Enjoy!', 'memberpress');
@@ -133,7 +138,7 @@ class MeprCoursesCtrl extends MeprBaseCtrl
     /**
      * Install the MemberPress Courses addon
      *
-     * @param boolean $activate Whether to activate after installing
+     * @param boolean $activate Whether to activate after installing.
      *
      * @return boolean Whether the plugin was installed
      */
@@ -150,10 +155,10 @@ class MeprCoursesCtrl extends MeprBaseCtrl
             return false;
         }
 
-        // Set the current screen to avoid undefined notices
+        // Set the current screen to avoid undefined notices.
         set_current_screen("memberpress_page_{$this->courses_slug}");
 
-        // Prepare variables
+        // Prepare variables.
         $url = esc_url_raw(
             add_query_arg(
                 [
@@ -165,7 +170,7 @@ class MeprCoursesCtrl extends MeprBaseCtrl
 
         $creds = request_filesystem_credentials($url, '', false, false, null);
 
-        // Check for file system permissions
+        // Check for file system permissions.
         if (false === $creds) {
             wp_send_json_error(esc_html('File system credentials failed.', 'memberpress'));
         }
@@ -173,19 +178,19 @@ class MeprCoursesCtrl extends MeprBaseCtrl
             wp_send_json_error(esc_html('File system credentials failed.', 'memberpress'));
         }
 
-        // We do not need any extra credentials if we have gotten this far, so let's install the plugin
+        // We do not need any extra credentials if we have gotten this far, so let's install the plugin.
         require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-        // Do not allow WordPress to search/download translations, as this will break JS output
+        // Do not allow WordPress to search/download translations, as this will break JS output.
         remove_action('upgrader_process_complete', ['Language_Pack_Upgrader', 'async_upgrade'], 20);
 
-        // Create the plugin upgrader with our custom skin
+        // Create the plugin upgrader with our custom skin.
         $installer = new Plugin_Upgrader(new MeprAddonInstallSkin());
 
         $plugin = wp_unslash($courses_addon->url);
         $installer->install($plugin);
 
-        // Flush the cache and return the newly installed plugin basename
+        // Flush the cache and return the newly installed plugin basename.
         wp_cache_flush();
 
         if ($installer->plugin_info() && true === $activate) {

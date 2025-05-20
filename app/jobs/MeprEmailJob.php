@@ -10,6 +10,7 @@ class MeprEmailJob extends MeprBaseJob
      * Perform the job.
      *
      * @return void
+     * @throws Exception When required parameters are missing.
      */
     public function perform()
     {

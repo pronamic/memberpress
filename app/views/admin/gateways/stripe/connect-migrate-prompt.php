@@ -75,7 +75,7 @@ if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys
   </div>
     <?php
 
-    // THIS IS A NEW PAYMENT METHOD
+    // THIS IS A NEW PAYMENT METHOD.
     ?>
 <?php elseif (!MeprStripeGateway::keys_are_set($id)) : ?>
   <div id="mepr-stripe-connect-migrate-prompt" class="mepr-payment-option-prompt">

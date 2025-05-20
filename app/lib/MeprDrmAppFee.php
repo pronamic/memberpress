@@ -115,7 +115,7 @@ class MeprDrmAppFee
 
         $payment_methods = $this->get_stripe_connected_payment_methods();
         if (empty($payment_methods) || !is_array($payment_methods)) {
-            return -1; // nothing to process.
+            return -1; // Nothing to process.
         }
 
         $mepr_db = new MeprDb();
@@ -176,7 +176,7 @@ class MeprDrmAppFee
     ';
 
         if (isset($params['mepr_app_not_fee_version']) && true === $params['mepr_app_not_fee_version']) {
-            $sql = $wpdb->prepare($sql, MeprTransaction::$complete_str, MeprTransaction::$confirmed_str, MeprSubscription::$active_str, MeprUtils::db_now(), $params['mepr_app_not_fee_version']);
+            $sql = $wpdb->prepare($sql, MeprTransaction::$complete_str, MeprTransaction::$confirmed_str, MeprSubscription::$active_str, MeprUtils::db_now(), $params['drm_fee_api_version']);
         } else {
             $sql = $wpdb->prepare($sql, MeprTransaction::$complete_str, MeprTransaction::$confirmed_str, MeprSubscription::$active_str, MeprUtils::db_now());
         }

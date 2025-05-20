@@ -2,7 +2,9 @@
     die('You are not allowed to call this page directly.');
 }
 $account_link       = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general', 'account');
-$has_stripe_connect = MeprStripeGateway::has_method_with_connect_status();
+$pm_id = MeprStripeGateway::has_method_with_connect_status('connected', true);
+$country = MeprStripeGateway::get_account_country($pm_id);
+$has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
 
 ?>
 <div class="mepr-notice-modal">

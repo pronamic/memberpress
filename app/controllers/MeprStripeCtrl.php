@@ -43,7 +43,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
                 $stripe_customer_id = $user->get_stripe_customer_id($payment_method->get_meta_gateway_id());
 
                 if (empty($stripe_customer_id)) {
-                    // Continue on other instances of MeprStripeGateway
+                    // Continue on other instances of MeprStripeGateway.
                     continue;
                 }
 
@@ -80,9 +80,9 @@ class MeprStripeCtrl extends MeprBaseCtrl
 
         try {
             $this->do_confirm_payment();
-        } catch (Throwable $t) { // Errors and exceptions in PHP 7
+        } catch (Throwable $t) { // Errors and exceptions in PHP 7.
             $content = $t->__toString();
-        } catch (Exception $e) { // Exceptions in PHP 5
+        } catch (Exception $e) { // Exceptions in PHP 5.
             $content = $e->__toString();
         }
 
@@ -100,6 +100,8 @@ class MeprStripeCtrl extends MeprBaseCtrl
      *
      * @param  string $mode The mode of the payment confirmation.
      * @return void
+     * @throws MeprGatewayException When payment processing fails.
+     * @throws Exception For general errors during payment processing.
      */
     public function do_confirm_payment($mode = '')
     {
@@ -154,10 +156,10 @@ class MeprStripeCtrl extends MeprBaseCtrl
             }
 
             // We don't have a transaction ID (i.e. this is the Single Page Checkout), so let's create the user and transaction
-            // This code is essentially the same as MeprCheckoutCtrl::process_signup_form
+            // This code is essentially the same as MeprCheckoutCtrl::process_signup_form.
             $disable_checkout_password_fields = $mepr_options->disable_checkout_password_fields;
 
-            // Validate the form post
+            // Validate the form post.
             $mepr_current_url = isset($_POST['mepr_current_url']) && is_string($_POST['mepr_current_url']) ? sanitize_text_field(wp_unslash($_POST['mepr_current_url'])) : '';
             $errors           = MeprHooks::apply_filters('mepr-validate-signup', MeprUser::validate_signup($_POST, [], $mepr_current_url));
 
@@ -165,12 +167,12 @@ class MeprStripeCtrl extends MeprBaseCtrl
                 wp_send_json(['errors' => $errors]);
             }
 
-            // Check if the user is logged in already
+            // Check if the user is logged in already.
             $is_existing_user = MeprUtils::is_user_logged_in();
 
             if ($is_existing_user) {
                 $usr = MeprUtils::get_currentuserinfo();
-            } else { // If new user we've got to create them and sign them in
+            } else { // If new user we've got to create them and sign them in.
                 $usr             = new MeprUser();
                 $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email($_POST['user_email']) : sanitize_user($_POST['user_login']);
                 $usr->user_email = sanitize_email($_POST['user_email']);
@@ -178,7 +180,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
                 $usr->last_name  = !empty($_POST['user_last_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
 
                 $password = ($disable_checkout_password_fields === true) ? wp_generate_password() : $_POST['mepr_user_password'];
-                // Have to use rec here because we unset user_pass on __construct
+                // Have to use rec here because we unset user_pass on __construct.
                 $usr->set_password($password);
                 try {
                     $usr->store();
@@ -186,18 +188,18 @@ class MeprStripeCtrl extends MeprBaseCtrl
                     // We need to refresh the user object. In the case where emails are used as
                     // usernames, the email & username could differ after the user is saved.
                     $usr = new MeprUser($usr->ID);
-                    // Log the new user in
+                    // Log the new user in.
                     if (MeprHooks::apply_filters('mepr-auto-login', true, $_POST['mepr_product_id'], $usr)) {
                         wp_signon(
                             [
                                 'user_login'    => $usr->user_login,
                                 'user_password' => $password,
                             ],
-                            MeprUtils::is_ssl() // May help with the users getting logged out when going between http and https
+                            MeprUtils::is_ssl() // May help with the users getting logged out when going between http and https.
                         );
                     }
 
-                    MeprEvent::record('login', $usr); // Record the first login here
+                    MeprEvent::record('login', $usr); // Record the first login here.
 
                     if ($disable_checkout_password_fields === true) {
                         $usr->send_password_notification('new');
@@ -214,13 +216,13 @@ class MeprStripeCtrl extends MeprBaseCtrl
                 wp_send_json(['error' => __('Sorry, we were unable to find the product.', 'memberpress')]);
             }
 
-            // If we're showing the fields on logged in purchases, let's save them here
+            // If we're showing the fields on logged in purchases, let's save them here.
             if (!$is_existing_user || ($is_existing_user && $mepr_options->show_fields_logged_in_purchases)) {
                 MeprUsersCtrl::save_extra_profile_fields($usr->ID, true, $prd, true);
-                $usr = new MeprUser($usr->ID); // Re-load the user object with the metadata now (helps with first name last name missing from hooks below)
+                $usr = new MeprUser($usr->ID); // Re-load the user object with the metadata now (helps with first name last name missing from hooks below).
             }
 
-            // Needed for autoresponders (SPC + Stripe + Free Trial issue)
+            // Needed for autoresponders (SPC + Stripe + Free Trial issue).
             MeprHooks::do_action('mepr-signup-user-loaded', $usr);
 
             $coupon_code = isset($_POST['mepr_coupon_code']) ? sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])) : '';
@@ -406,7 +408,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
                     }
                 }
 
-                // Use a SetupIntent for free trials, and create the subscription via webhook later
+                // Use a SetupIntent for free trials, and create the subscription via webhook later.
                 if ($sub->trial && $sub->trial_days > 0 && (float) $sub->trial_total <= 0.00 && empty($invoice_items)) {
                     $setup_intent = $pm->create_setup_intent($customer_id, $txn, $prd);
 
@@ -428,7 +430,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
                         }
                     } elseif (count($invoice_items)) {
                         // If there is no trial period and there is an order bump, set the trial days to cover one payment cycle and
-                        // add the first subscription payment to the trial amount
+                        // add the first subscription payment to the trial amount.
                         $now        = new DateTimeImmutable('now');
                         $end        = $now->modify(sprintf('+%d %s', $sub->period, $sub->period_type));
                         $trial_days = $end->diff($now)->format('%a');
@@ -460,12 +462,12 @@ class MeprStripeCtrl extends MeprBaseCtrl
                         $txn->trans_num = $subscription->latest_invoice['id'];
                         $txn->store();
                     } catch (Exception $e) {
-                        // Delete any created invoice items if the subscription failed to be created
+                        // Delete any created invoice items if the subscription failed to be created.
                         foreach ($invoice_item_ids as $invoice_item_id) {
                             try {
                                 $pm->send_stripe_request("invoiceitems/$invoice_item_id", [], 'delete');
                             } catch (Exception $e) {
-                                // ignore any exception here, throw the original
+                                // Ignore any exception here, throw the original.
                             }
                         }
 
@@ -515,7 +517,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
             if ($usr->is_already_subscribed_to($product->ID) && !$product->simultaneous_subscriptions && !$product->allow_renewal) {
                 wp_send_json([
                     'error' => sprintf(
-                        // translators: %1$s: product name, %2$s: open link tag, %3$s: close link tag
+                        // Translators: %1$s: product name, %2$s: open link tag, %3$s: close link tag.
                         esc_html__('You are already subscribed to %1$s, %2$sclick here%3$s to view your subscriptions.', 'memberpress'),
                         esc_html($product->post_title),
                         '<a href="' . esc_url(add_query_arg(['action' => 'subscriptions'], $mepr_options->account_page_url())) . '">',
@@ -643,7 +645,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
                 try {
                     $pm->retry_invoice_payment($subscription->latest_invoice['id']);
                 } catch (Exception $e) {
-                    // Ignore
+                    // Ignore.
                 }
             }
 

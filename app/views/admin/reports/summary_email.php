@@ -22,7 +22,7 @@
                   <p style="font-family:Helvetica,Arial,sans-serif;line-height:1.5;">
                     <?php
                       printf(
-                        // translators: %1$s: the site title, %2$s: the week date range
+                        // Translators: %1$s: the site title, %2$s: the week date range.
                           esc_html__('Here\'s the summary report for %1$s for the week of %2$s. Enjoy!', 'memberpress'),
                           esc_html($site),
                           sprintf(
@@ -138,7 +138,7 @@
                 <div style="padding:0 0 30px 0;">
                   <p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;">
                     <?php
-                      // translators: %1$s: open link tag, %2$s: close link tag
+                      // Translators: %1$s: open link tag, %2$s: close link tag.
                       printf(
                           esc_html__('P.S. Want to unsubscribe from these emails? %1$sClick here to access the MemberPress settings%2$s where you can disable the Weekly Summary Email.', 'memberpress'),
                           sprintf('<a href="%s" target="_blank">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-general'))),

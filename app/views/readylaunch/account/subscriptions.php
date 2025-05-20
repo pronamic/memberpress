@@ -37,7 +37,7 @@ if (!empty($subscriptions)) {
                 $group   = $prd->group();
                 $default = _x('Never', 'ui', 'memberpress');
                 if ($txn->txn_type == MeprTransaction::$fallback_str && $mepr_current_user->subscription_in_group($group)) {
-                    // Skip fallback transactions when user has an active sub in the fallback group
+                    // Skip fallback transactions when user has an active sub in the fallback group.
                     continue;
                 }
             } else {
@@ -58,10 +58,10 @@ if (!empty($subscriptions)) {
             }
 
             $mepr_options = MeprOptions::fetch();
-            $alt          = !$alt; // Facilitiates the alternating lines
+            $alt          = !$alt; // Facilitiates the alternating lines.
 
 
-            // Get row actions
+            // Get row actions.
             ob_start();
 
             if ($txn != false && $txn instanceof MeprTransaction && $txn->is_sub_account()) {
@@ -75,7 +75,7 @@ if (!empty($subscriptions)) {
                 ) {
                     $subscription = new MeprSubscription($s->id);
 
-                    if (!$subscription->in_grace_period()) { // Don't let people change shiz until a payment has come through yo
+                    if (!$subscription->in_grace_period()) { // Don't let people change shiz until a payment has come through yo.
                         $pm->print_user_account_subscription_row_actions($subscription);
                     }
                 } elseif (!$is_sub && !empty($prd->ID)) {
@@ -141,7 +141,7 @@ if (!empty($subscriptions)) {
                         MeprHooks::do_action('mepr_account_subscriptions_sub_account_terms', $txn);
                     } else {
                         if ($prd->register_price_action == 'custom' && !empty($prd->register_price)) {
-                            // Add coupon in if one was used eh
+                            // Add coupon in if one was used eh.
                             $coupon_str = '';
                             if ($is_sub) {
                                 $subscr = new MeprSubscription($s->id);
