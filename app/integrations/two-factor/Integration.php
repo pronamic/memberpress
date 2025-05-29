@@ -296,7 +296,14 @@ class MeprTwoFactorIntegration
                                        name="<?php echo esc_attr(Two_Factor_Core::ENABLED_PROVIDERS_USER_META_KEY); ?>[]"
                                        value="<?php echo esc_attr($provider_key); ?>"
                                        <?php checked(in_array($provider_key, $enabled_providers, true)); ?> />
-                                <?php echo esc_html(sprintf(__('Enable %s', 'memberpress'), $object->get_label())); ?>
+                                <?php echo esc_html(
+                                    // Translators: %s: provider label.
+                                    sprintf(
+                                        // Translators: %s: provider label.
+                                        __('Enable %s', 'memberpress'),
+                                        $object->get_label()
+                                    )
+                                ); ?>
                             </label>
                             <?php
                             /**

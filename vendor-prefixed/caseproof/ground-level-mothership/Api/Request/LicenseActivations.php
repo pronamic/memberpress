@@ -41,7 +41,7 @@ class LicenseActivations
      */
     public static function deactivate(string $licenseKey, string $domain): Response
     {
-        $endpoint = 'licenses/' . $licenseKey . '/activations/' . $domain . '/deactivate';
+        $endpoint = 'licenses/' . $licenseKey . '/activations/' . rawurlencode($domain) . '/deactivate';
         $response = Request::patch($endpoint, compact('domain'));
         return $response;
     }
@@ -57,8 +57,8 @@ class LicenseActivations
      */
     public static function retrieveLicenseActivation(string $licenseKey, string $domain, array $args = []): Response
     {
-        $endpoint = 'licenses/' . $licenseKey . '/activations/' . $domain;
-        $response = Request::get($endpoint, $args);
+        $endpoint = 'licenses/' . $licenseKey . '/activations/' . rawurlencode($domain);
+        $response = Request::get($endpoint);
         return $response;
     }
 

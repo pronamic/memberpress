@@ -1364,7 +1364,11 @@ class MeprUtils
     {
         header('WWW-Authenticate: Basic realm="' . self::blogname() . '"');
         header('HTTP/1.0 401 Unauthorized');
-        die(sprintf(__('UNAUTHORIZED: %s', 'memberpress'), $message));
+        die(sprintf(
+            // Translators: %s: unauthorized message.
+            __('UNAUTHORIZED: %s', 'memberpress'),
+            $message
+        ));
     }
 
     /**
@@ -1788,7 +1792,11 @@ class MeprUtils
                         }
                         foreach ($validations as $col => $v) {
                             if (in_array('required', $v) && !in_array($col, $headers)) {
-                                  throw new Exception(sprintf(__('Your CSV file must contain the column: %s', 'memberpress')));
+                                throw new Exception(sprintf(
+                                    // Translators: %s: column name.
+                                    __('Your CSV file must contain the column: %s', 'memberpress'),
+                                    $col
+                                ));
                             }
                         }
                     }
@@ -1801,7 +1809,11 @@ class MeprUtils
                         }
                         foreach ($validations as $col => $v) {
                             if (in_array('required', $v) && !in_array($col, $headers)) {
-                                throw new Exception(sprintf(__('Your CSV file must contain the column: %s', 'memberpress')));
+                                throw new Exception(sprintf(
+                                    // Translators: %s: column name.
+                                    __('Your CSV file must contain the column: %s', 'memberpress'),
+                                    $col
+                                ));
                             }
                         }
                         $assoc[] = $new_row;
@@ -2330,7 +2342,11 @@ class MeprUtils
      */
     public static function error_log($error)
     {
-        error_log(sprintf(__('*** MemberPress Error: %s', 'memberpress'), $error));
+        error_log(sprintf(
+            // Translators: %s: error message.
+            __('*** MemberPress Error: %s', 'memberpress'),
+            $error
+        ));
     }
 
     /**
@@ -2342,7 +2358,11 @@ class MeprUtils
     {
         // Getting some complaints about using WP_DEBUG here.
         if (defined('WP_MEPR_DEBUG') && WP_MEPR_DEBUG) {
-            error_log(sprintf(__('*** MemberPress Debug: %s', 'memberpress'), $message));
+            error_log(sprintf(
+                // Translators: %s: debug message.
+                __('*** MemberPress Debug: %s', 'memberpress'),
+                $message
+            ));
         }
     }
 
@@ -3276,6 +3296,16 @@ class MeprUtils
     }
 
     /**
+     * Get the current request URL.
+     *
+     * @return string
+     */
+    public static function get_current_url()
+    {
+        return (is_ssl() ? 'https' : 'http') . '://' . wp_unslash($_SERVER['HTTP_HOST']) . wp_unslash($_SERVER['REQUEST_URI']);
+    }
+
+    /**
      * Get the current URL without parameters.
      *
      * @return string The current URL without parameters.
@@ -3915,10 +3945,11 @@ class MeprUtils
     /**
      * Determines whether or not the provided gateway is connected.
      *
-     * @param  object $gateway The gateway object.
+     * @param  object           $gateway The gateway object.
+     * @param  MeprProduct|null $product The product being purchased.
      * @return boolean
      */
-    public static function is_gateway_connected($gateway)
+    public static function is_gateway_connected($gateway, MeprProduct $product = null)
     {
         if (!is_object($gateway) || !isset($gateway->key)) {
             return false;
@@ -3931,6 +3962,8 @@ class MeprUtils
                 return (MeprStripeGateway::is_stripe_connect($gateway->id) || MeprStripeGateway::keys_are_set($gateway->id));
             case 'paypalcommerce':
                 return ($gateway->is_paypal_connected() || $gateway->is_paypal_connected_live());
+            case 'square':
+                return $gateway instanceof MeprSquareGateway && $gateway->is_usable($product);
             default:
                 return true;
         }
@@ -4102,4 +4135,51 @@ class MeprUtils
     {
         return min(max($x, $min), $max);
     }
+
+    /**
+     * Encrypts a given value using the provided key.
+     *
+     * @param  string $value The plaintext value to be encrypted.
+     * @param  string $key   The binary string key to be used for encryption.
+     * @return string The encrypted value as a hexadecimal string.
+     * @throws Random\RandomException|Exception If an appropriate source of randomness cannot be found.
+     * @throws SodiumException If there is an error during sodium function calls.
+     */
+    public static function encrypt(string $value, string $key): string
+    {
+        $nonce      = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $ciphertext = sodium_crypto_secretbox($value, $nonce, $key);
+
+        return sodium_bin2hex($nonce . $ciphertext);
+    }
+
+    // phpcs:disable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber
+    /**
+     * Decrypts an encrypted value using the provided key.
+     *
+     * @param  string $value The encrypted value in hexadecimal format.
+     * @param  string $key   The binary string key to use for decryption.
+     * @return string The decrypted plaintext value.
+     * @throws InvalidArgumentException If the given value is empty.
+     * @throws UnexpectedValueException If the value failed to be decrypted.
+     * @throws SodiumException If there is an error during decryption.
+     */
+    public static function decrypt(string $value, string $key): string
+    {
+        if ($value === '') {
+            throw new InvalidArgumentException('Invalid value to decrypt.');
+        }
+
+        $value      = sodium_hex2bin($value);
+        $nonce      = mb_substr($value, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, '8bit');
+        $ciphertext = mb_substr($value, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, null, '8bit');
+        $plaintext  = sodium_crypto_secretbox_open($ciphertext, $nonce, $key);
+
+        if ($plaintext === false) {
+            throw new UnexpectedValueException('Failed to decrypt value.');
+        }
+
+        return $plaintext;
+    }
+    // phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber
 }

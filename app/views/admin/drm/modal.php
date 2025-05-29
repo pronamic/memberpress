@@ -29,7 +29,12 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
       <?php endif; ?>
       </p>
 
-      <p><?php _e('If you already have a license key, you can find it on your <a href="' . $account_link . '" target="_blank">Account Page</a>, and enter it below:', 'memberpress'); ?></p>
+      <p><?php printf(
+          // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+          esc_html__('If you already have a license key, you can find it on your %1$sAccount Page%2$s, and enter it below:', 'memberpress'),
+          '<a href="' . esc_url($account_link) . '" target="_blank">',
+          '</a>'
+      ); ?></p>
       <form method="POST" id="mepr-drm-form">
          <div class="field"><input name="license_key" id="mepr-drm-license-key" type="text" placeholder="<?php esc_attr_e('License Key', 'memberpress'); ?>"></div>
          <div class="field"><input id="mepr-drm-activate-license-key" type="button" value="<?php esc_attr_e('Submit', 'memberpress'); ?>"></div>
@@ -38,7 +43,15 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
       <div class="mepr-key-success mepr-drm-messages" style="display: none;"><span class="drm-success"></span></div>
 
       <?php if ($has_stripe_connect) : ?>
-      <p class="mepr-drm-modal-footnote"><small><?php printf(__('* When re-activating without an active license, MP will add an additional %s fee to each transaction.', 'memberpress'), MeprDrmHelper::get_application_fee_percentage() . '%'); ?></small></p>
+      <p class="mepr-drm-modal-footnote">
+        <small>
+            <?php printf(
+              // Translators: %s: application fee percentage.
+                __('* When re-activating without an active license, MP will add an additional %s fee to each transaction.', 'memberpress'),
+                MeprDrmHelper::get_application_fee_percentage() . '%'
+            ); ?>
+        </small>
+      </p>
       <?php endif; ?>
 
      </div>

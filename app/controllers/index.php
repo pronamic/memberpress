@@ -1,3 +1,5 @@
 <?php
 
-// Silence will fall.
+/**
+ * Silence will fall.
+ */

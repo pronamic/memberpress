@@ -63,7 +63,7 @@ if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys
       </tr>
     </tbody>
   </table>
-  <input class="mepr-stripe-connect-status" type="hidden" name="<?php echo $connect_status_string; ?>" value="<?php esc_attr_e($connect_status, 'memberpress'); ?>" />
-  <input class="mepr-stripe-service-account-id" type="hidden" name="<?php echo $service_account_id_string; ?>" value="<?php esc_attr_e($service_account_id, 'memberpress'); ?>" />
-  <input class="mepr-stripe-service-account-name" type="hidden" name="<?php echo $service_account_name_string; ?>" value="<?php esc_attr_e($service_account_name, 'memberpress'); ?>" />
+  <input class="mepr-stripe-connect-status" type="hidden" name="<?php echo $connect_status_string; ?>" value="<?php echo esc_attr($connect_status); ?>" />
+  <input class="mepr-stripe-service-account-id" type="hidden" name="<?php echo $service_account_id_string; ?>" value="<?php echo esc_attr($service_account_id); ?>" />
+  <input class="mepr-stripe-service-account-name" type="hidden" name="<?php echo $service_account_name_string; ?>" value="<?php echo esc_attr($service_account_name); ?>" />
 </div>

@@ -383,6 +383,7 @@ class MeprDrmHelper
         $support_link            = self::get_drm_link($drm_status, $purpose, 'support');
         $pricing_link            = self::get_drm_link($drm_status, $purpose, 'pricing');
         $additional_instructions = sprintf(
+            // Translators: %s: site URL.
             __('This is an automated message from %s.', 'memberpress'),
             esc_url(home_url())
         );
@@ -398,8 +399,18 @@ class MeprDrmHelper
                 $message           = sprintf(
                     '<p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul>',
                     $simple_message,
-                    __('Grab your key from your <a href="' . esc_url($account_link) . '">Account Page</a>.', 'memberpress'),
-                    __('<a href="' . esc_url($activation_link) . '">Click here</a> to enter and activate it.', 'memberpress'),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('Grab your key from your %1$sAccount Page%2$s.', 'memberpress'),
+                        '<a href="' . esc_url($account_link) . '">',
+                        '</a>'
+                    ),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('%1$sClick here%2$s to enter and activate it.', 'memberpress'),
+                        '<a href="' . esc_url($activation_link) . '">',
+                        '</a>'
+                    ),
                     __('That’s it!', 'memberpress')
                 );
                 break;
@@ -414,8 +425,18 @@ class MeprDrmHelper
                 $message           = sprintf(
                     '<p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul>',
                     $simple_message,
-                    __('Grab your key from your <a href="' . esc_url($account_link) . '">Account Page</a>.', 'memberpress'),
-                    __('<a href="' . esc_url($activation_link) . '">Click here</a> to enter and activate it.', 'memberpress'),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('Grab your key from your %1$sAccount Page%2$s.', 'memberpress'),
+                        '<a href="' . esc_url($account_link) . '">',
+                        '</a>'
+                    ),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('%1$sClick here%2$s to enter and activate it.', 'memberpress'),
+                        '<a href="' . esc_url($activation_link) . '">',
+                        '</a>'
+                    ),
                     __('That’s it!', 'memberpress')
                 );
                 break;
@@ -430,8 +451,18 @@ class MeprDrmHelper
                 $message           = sprintf(
                     '<p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul>',
                     $simple_message,
-                    __('Grab your key from your <a href="' . esc_url($account_link) . '">Account Page</a>.', 'memberpress'),
-                    __('<a href="' . esc_url($activation_link) . '">Click here</a> to enter and activate it.', 'memberpress'),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('Grab your key from your %1$sAccount Page%2$s.', 'memberpress'),
+                        '<a href="' . esc_url($account_link) . '">',
+                        '</a>'
+                    ),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('%1$sClick here%2$s to enter and activate it.', 'memberpress'),
+                        '<a href="' . esc_url($activation_link) . '">',
+                        '</a>'
+                    ),
                     __('That’s it!', 'memberpress')
                 );
                 break;
@@ -465,6 +496,7 @@ class MeprDrmHelper
         $support_link            = self::get_drm_link($drm_status, $purpose, 'support');
         $pricing_link            = self::get_drm_link($drm_status, $purpose, 'pricing');
         $additional_instructions = sprintf(
+            // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
             __('This is an automated message from %1$s. If you continue getting these messages, please try deactivating and then re-activating your license key on %2$s.', 'memberpress'),
             esc_url(home_url()),
             esc_url(home_url())
@@ -482,8 +514,18 @@ class MeprDrmHelper
                 $message           = sprintf(
                     '<p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul>',
                     $simple_message,
-                    __('Go to MemberPress.com and make your selection. <a href="' . esc_url($pricing_link) . '">Pricing</a>.', 'memberpress'),
-                    __('<a href="' . esc_url($activation_link) . '">Click here</a> to enter and activate your new license key.', 'memberpress'),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('Go to MemberPress.com and make your selection. %1$sPricing%2$s.', 'memberpress'),
+                        '<a href="' . esc_url($pricing_link) . '">',
+                        '</a>'
+                    ),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('%1$sClick here%2$s to enter and activate your new license key.', 'memberpress'),
+                        '<a href="' . esc_url($activation_link) . '">',
+                        '</a>'
+                    ),
                     __('That’s it!', 'memberpress')
                 );
                 break;
@@ -497,8 +539,18 @@ class MeprDrmHelper
                 $message           = sprintf(
                     '<p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul>',
                     $simple_message,
-                    __('Go to MemberPress.com and make your selection. <a href="' . esc_url($pricing_link) . '">Pricing</a>.', 'memberpress'),
-                    __('<a href="' . esc_url($activation_link) . '">Click here</a> to enter and activate your new license key.', 'memberpress'),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('Go to MemberPress.com and make your selection. %1$sPricing%2$s.', 'memberpress'),
+                        '<a href="' . esc_url($pricing_link) . '">',
+                        '</a>'
+                    ),
+                    sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('%1$sClick here%2$s to enter and activate your new license key.', 'memberpress'),
+                        '<a href="' . esc_url($activation_link) . '">',
+                        '</a>'
+                    ),
                     __('That’s it!', 'memberpress')
                 );
                 $help_message      = __('We’re here to help you get things back up and running. Let us know if you need assistance.', 'memberpress');

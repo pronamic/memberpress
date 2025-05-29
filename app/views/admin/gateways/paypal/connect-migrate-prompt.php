@@ -26,7 +26,11 @@ $display_keys = isset($_GET['display-keys']);
         <b><?php _e('Connected to PayPal Commerce Platform - Sandbox mode', 'memberpress'); ?></b>
             <?php if (! empty($settings->test_merchant_id)) { ?>
         <br/>
-        <span><?php echo esc_html(sprintf(__('PayPal Merchant ID: %s', 'memberpress'), $settings->test_merchant_id)) ?></span>
+        <span><?php echo esc_html(sprintf(
+            // Translators: %s: PayPal Merchant ID.
+            __('PayPal Merchant ID: %s', 'memberpress'),
+            $settings->test_merchant_id
+        )) ?></span>
             <?php } ?>
       </p>
 
@@ -51,7 +55,11 @@ $display_keys = isset($_GET['display-keys']);
         <b><?php _e('Connected to PayPal Commerce Platform - Live mode', 'memberpress'); ?></b>
             <?php if (! empty($settings->live_merchant_id)) { ?>
           <br/>
-          <span><?php echo esc_html(sprintf(__('PayPal Merchant ID: %s', 'memberpress'), $settings->live_merchant_id)) ?></span>
+          <span><?php echo esc_html(sprintf(
+              // Translators: %s: PayPal Merchant ID.
+              __('PayPal Merchant ID: %s', 'memberpress'),
+              $settings->live_merchant_id
+          )) ?></span>
             <?php } ?>
       </p>
 
@@ -76,7 +84,11 @@ $display_keys = isset($_GET['display-keys']);
       <b><?php _e("Connect with the world's most powerful and easy to use Payment Gateway", 'memberpress'); ?></b>
       <?php if (! empty($settings->live_merchant_id)) { ?>
       <br/>
-      <span><?php echo esc_html(sprintf(__('PayPal Merchant ID: %s', 'memberpress'), $settings->live_merchant_id)) ?></span>
+      <span><?php echo esc_html(sprintf(
+          // Translators: %s: PayPal Merchant ID.
+          __('PayPal Merchant ID: %s', 'memberpress'),
+          $settings->live_merchant_id
+      )) ?></span>
       <?php } ?>
     </p>
     <table class="paypal-feature-list" width="500px">

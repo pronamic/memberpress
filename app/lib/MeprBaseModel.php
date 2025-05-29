@@ -355,7 +355,11 @@ abstract class MeprBaseModel
     protected function validate_not_null($var, $field = '')
     {
         if (is_null($var)) {
-            throw new MeprCreateException(sprintf(__('%s must not be empty', 'memberpress'), $field));
+            throw new MeprCreateException(sprintf(
+                // Translators: %s: field name.
+                __('%s must not be empty', 'memberpress'),
+                $field
+            ));
         }
     }
 
@@ -370,7 +374,11 @@ abstract class MeprBaseModel
     protected function validate_not_empty($var, $field = '')
     {
         if (empty($var)) {
-            throw new MeprCreateException(sprintf(__('%s must not be empty', 'memberpress'), $field));
+            throw new MeprCreateException(sprintf(
+                // Translators: %s: field name.
+                __('%s must not be empty', 'memberpress'),
+                $field
+            ));
         }
     }
 
@@ -385,7 +393,11 @@ abstract class MeprBaseModel
     protected function validate_is_bool($var, $field = '')
     {
         if (!is_bool($var) && $var != 0 && $var != 1) {
-            throw new MeprCreateException(sprintf(__('%s must be true or false', 'memberpress'), $field));
+            throw new MeprCreateException(sprintf(
+                // Translators: %s: field name.
+                __('%s must be true or false', 'memberpress'),
+                $field
+            ));
         }
     }
 
@@ -400,7 +412,11 @@ abstract class MeprBaseModel
     protected function validate_is_array($var, $field = '')
     {
         if (!is_array($var)) {
-            throw new MeprCreateException(sprintf(__('%s must be an array', 'memberpress'), $field));
+            throw new MeprCreateException(sprintf(
+                // Translators: %s: field name.
+                __('%s must be an array', 'memberpress'),
+                $field
+            ));
         }
     }
 
@@ -416,7 +432,12 @@ abstract class MeprBaseModel
     protected function validate_is_in_array($var, $lookup, $field = '')
     {
         if (is_array($lookup) && !in_array($var, $lookup)) {
-            throw new MeprCreateException(sprintf(__('%1$s must be %2$s', 'memberpress'), $field, implode(' ' . __('or', 'memberpress') . ' ', $lookup)));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: lookup array.
+                __('%1$s must be %2$s', 'memberpress'),
+                $field,
+                implode(' ' . __('or', 'memberpress') . ' ', $lookup)
+            ));
         }
     }
 
@@ -431,7 +452,12 @@ abstract class MeprBaseModel
     protected function validate_is_url($var, $field = '')
     {
         if (!MeprUtils::is_url($var)) {
-            throw new MeprCreateException(sprintf(__('%1$s (%2$s) must be a valid url', 'memberpress'), $field, $var));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: field value.
+                __('%1$s (%2$s) must be a valid url', 'memberpress'),
+                $field,
+                $var
+            ));
         }
     }
 
@@ -448,7 +474,12 @@ abstract class MeprBaseModel
     protected function validate_is_currency($var, $min = 0.00, $max = null, $field = '')
     {
         if (!is_numeric($var) || $var < $min || (!is_null($max) && $var > $max)) {
-            throw new MeprCreateException(sprintf(__('%1$s (%2$s) must be a valid representation of currency', 'memberpress'), $field, $var));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: field value.
+                __('%1$s (%2$s) must be a valid representation of currency', 'memberpress'),
+                $field,
+                $var
+            ));
         }
     }
 
@@ -465,7 +496,12 @@ abstract class MeprBaseModel
     protected function validate_is_numeric($var, $min = 0, $max = null, $field = '')
     {
         if (!is_numeric($var) || $var < $min || (!is_null($max) && $var > $max)) {
-            throw new MeprCreateException(sprintf(__('%1$s (%2$s) must be a valid number', 'memberpress'), $field, $var));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: field value.
+                __('%1$s (%2$s) must be a valid number', 'memberpress'),
+                $field,
+                $var
+            ));
         }
     }
 
@@ -480,7 +516,12 @@ abstract class MeprBaseModel
     protected function validate_is_email($var, $field = '')
     {
         if (!MeprUtils::is_email($var)) {
-            throw new MeprCreateException(sprintf(__('%1$s (%2$s) must be a valid email', 'memberpress'), $field, $var));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: field value.
+                __('%1$s (%2$s) must be a valid email', 'memberpress'),
+                $field,
+                $var
+            ));
         }
     }
 
@@ -495,7 +536,12 @@ abstract class MeprBaseModel
     protected function validate_is_phone($var, $field = '')
     {
         if (!MeprUtils::is_phone($var)) {
-            throw new MeprCreateException(sprintf(__('%1$s (%2$s) must be a valid phone number', 'memberpress'), $field, $var));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: field value.
+                __('%1$s (%2$s) must be a valid phone number', 'memberpress'),
+                $field,
+                $var
+            ));
         }
     }
 
@@ -510,7 +556,12 @@ abstract class MeprBaseModel
     protected function validate_is_ip_addr($var, $field = '')
     {
         if (!MeprUtils::is_ip($var)) {
-            throw new MeprCreateException(sprintf(__('%1$s (%2$s) must be a valid IP Address', 'memberpress'), $field, $var));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: field value.
+                __('%1$s (%2$s) must be a valid IP Address', 'memberpress'),
+                $field,
+                $var
+            ));
         }
     }
 
@@ -525,7 +576,12 @@ abstract class MeprBaseModel
     protected function validate_is_date($var, $field = '')
     {
         if (!MeprUtils::is_date($var)) {
-            throw new MeprCreateException(sprintf(__('%1$s (%2$s) must be a valid date', 'memberpress'), $field, $var));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: field value.
+                __('%1$s (%2$s) must be a valid date', 'memberpress'),
+                $field,
+                $var
+            ));
         }
     }
 
@@ -540,7 +596,12 @@ abstract class MeprBaseModel
     protected function validate_is_timestamp($var, $field = '')
     {
         if (empty($var) || !is_numeric($var)) {
-            throw new MeprCreateException(sprintf(__('%1$s (%2$s) must be a valid timestamp', 'memberpress'), $field, $var));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: field value.
+                __('%1$s (%2$s) must be a valid timestamp', 'memberpress'),
+                $field,
+                $var
+            ));
         }
     }
 
@@ -556,7 +617,13 @@ abstract class MeprBaseModel
     protected function validate_regex($pattern, $var, $field = '')
     {
         if (!preg_match($pattern, $var)) {
-            throw new MeprCreateException(sprintf(__('%1$s (%2$s) must match the regex pattern: %3$s', 'memberpress'), $field, $var, $pattern));
+            throw new MeprCreateException(sprintf(
+                // Translators: %1$s: field name, %2$s: field value, %3$s: regex pattern.
+                __('%1$s (%2$s) must match the regex pattern: %3$s', 'memberpress'),
+                $field,
+                $var,
+                $pattern
+            ));
         }
     }
 }

@@ -1356,7 +1356,14 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
     {
         ?>
     <h3><?php _e('Updating your PayPal Account Information', 'memberpress'); ?></h3>
-    <div><?php printf(__('To update your PayPal Account Information, please go to %1$sPayPal.com%2$s, login and edit your account information there.', 'memberpress'), '<a href="http://paypal.com" target="blank">', '</a>'); ?></div>
+    <div>
+        <?php printf(
+        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+            __('To update your PayPal Account Information, please go to %1$sPayPal.com%2$s, login and edit your account information there.', 'memberpress'),
+            '<a href="http://paypal.com" target="blank">',
+            '</a>'
+        ); ?>
+    </div>
         <?php
     }
 
@@ -1447,7 +1454,11 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         }
 
         if (is_wp_error($resp)) {
-            throw new MeprHttpException(sprintf(__('You had an HTTP error connecting to %s', 'memberpress'), $this->name));
+            throw new MeprHttpException(sprintf(
+                // Translators: %s: gateway name.
+                __('You had an HTTP error connecting to %s', 'memberpress'),
+                $this->name
+            ));
         } else {
             return wp_parse_args($resp['body']);
         }
@@ -1769,7 +1780,12 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         $mepr_options = MeprOptions::fetch();
         ?>
     <h4><?php _e('Your payment at PayPal was cancelled.', 'memberpress'); ?></h4>
-    <p><?php echo MeprHooks::apply_filters('mepr_paypal_cancel_message', sprintf(__('You can retry your purchase by %1$sclicking here%2$s.', 'memberpress'), '<a href="' . MeprUtils::get_permalink() . '">', '</a>')); ?><br/></p>
+    <p><?php echo MeprHooks::apply_filters('mepr_paypal_cancel_message', sprintf(
+        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+        __('You can retry your purchase by %1$sclicking here%2$s.', 'memberpress'),
+        '<a href="' . MeprUtils::get_permalink() . '">',
+        '</a>'
+    )); ?><br/></p>
         <?php
     }
 }

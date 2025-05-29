@@ -19,7 +19,14 @@
   <select class="mepr_filter_field" id="gateway">
     <option value="all" <?php selected($gateway, false); ?>><?php _e('All Gateways', 'memberpress'); ?></option>
     <?php foreach ($gateways as $gid => $g) : ?>
-      <option value="<?php echo $gid; ?>" <?php selected($gid, $gateway); ?>><?php printf(__('%1$s (%2$s)', 'memberpress'), $g->label, $g->name); ?></option>
+      <option value="<?php echo $gid; ?>" <?php selected($gid, $gateway); ?>>
+          <?php printf(
+            // Translators: %1$s: gateway label, %2$s: gateway name.
+              __('%1$s (%2$s)', 'memberpress'),
+              $g->label,
+              $g->name
+          ); ?>
+      </option>
     <?php endforeach; ?>
   </select>
 

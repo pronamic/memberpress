@@ -17,7 +17,11 @@ class MeprJobFactory
     public static function fetch($class, $db = false)
     {
         if (!class_exists($class)) {
-            throw new MeprInvalidJobException(sprintf(__('Job class wasn\'t found for %s', 'memberpress'), $class));
+            throw new MeprInvalidJobException(sprintf(
+                // Translators: %s: Job class.
+                __('Job class wasn\'t found for %s', 'memberpress'),
+                $class
+            ));
         }
 
         // We'll let the autoloader in memberpress.php
@@ -26,7 +30,11 @@ class MeprJobFactory
         $job = $r->newInstanceArgs([$db]);
 
         if (!( $job instanceof MeprBaseJob )) {
-            throw new MeprInvalidJobException(sprintf(__('%s is not a valid job object.', 'memberpress'), $class));
+            throw new MeprInvalidJobException(sprintf(
+                // Translators: %s: Job class.
+                __('%s is not a valid job object.', 'memberpress'),
+                $class
+            ));
         }
 
         return $job;
@@ -40,7 +48,11 @@ class MeprJobFactory
     public static function paths()
     {
         $paths = MeprHooks::apply_filters('mepr-job-paths', [MEPR_JOBS_PATH]);
-        MeprUtils::debug_log(sprintf(__('Job Paths %s', 'memberpress'), MeprUtils::object_to_string($paths)));
+        MeprUtils::debug_log(sprintf(
+            // Translators: %s: Job paths.
+            __('Job Paths %s', 'memberpress'),
+            MeprUtils::object_to_string($paths)
+        ));
         return $paths;
     }
 }

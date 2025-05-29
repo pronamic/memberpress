@@ -168,6 +168,12 @@ ul.custom_options_list {
   width: 33%;
 }
 
+.mepr-integration > .mp-row {
+    margin-right: 35px;
+    display: flex;
+    gap: 20px;
+}
+
 .mepr-integration-gateway-form {
   vertical-align: top;
   display: inline-block;
@@ -221,6 +227,10 @@ ul.custom_options_list {
 }
 
 @media only screen and (max-width: 1061px) {
+  .mepr-integration > .mp-row {
+    display: block;
+    margin-right: 0;
+  }
   .mepr-integration-setup-form {
     vertical-align: top;
     display: block;
@@ -328,4 +338,164 @@ td.stripe-checkbox-column-right {
 .mepr-stripe-tax-enabled #mepr_charge_business_customer_net_price_section,
 .mepr-stripe-tax-enabled #mepr_show_negative_tax_on_invoice_section {
   display: none !important;
+}
+
+/* Square Gateway Styles */
+.mepr-square-env-boxes {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.mepr-square-env-box {
+    flex: 1;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    width: 480px;
+}
+
+.mepr-square-env-box.mepr-square-active {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.mepr-square-box-header {
+    background: #f0f0f1;
+    padding: 12px 15px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid #ccd0d4;
+}
+
+.mepr-square-env-box.mepr-square-active .mepr-square-box-header {
+    background: #2271b1;
+    color: #fff;
+}
+
+.mepr-square-panel {
+    background: #fff;
+    padding: 20px;
+}
+
+.mepr-square-connected-status {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+    justify-content: space-between;
+}
+
+.mepr-square-connected-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #edfaef;
+    color: #00a32a;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.mepr-square-connected-badge .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 5px;
+}
+
+.mepr-square-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mepr-square-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.mepr-square-row label {
+    font-weight: 500;
+    margin-top: 1px;
+    margin-right: 10px;
+}
+
+.mepr-square-field select {
+    min-width: 100px;
+}
+
+.mepr-square-connect {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.mepr-square-connect-info {
+    flex: 1;
+}
+
+.mepr-square-connect-info p {
+    margin: 0;
+    color: #666;
+}
+
+.mepr-square-connect-action {
+    flex: 0 0 auto;
+}
+
+.mepr-square-sandbox-toggle {
+    margin: 15px 0;
+}
+
+.mepr-square-sandbox-toggle label {
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 782px) {
+    .mepr-square-env-boxes {
+        flex-direction: column;
+    }
+
+    .mepr-square-row label {
+        flex: 0 0 100%;
+        margin-bottom: 10px;
+        margin-top: 0;
+    }
+
+    .mepr-square-field {
+        flex: 0 0 100%;
+    }
+
+    .mepr-square-connected-status,
+    .mepr-square-connect,
+    .mepr-square-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media screen and (min-width: 783px) and (max-width: 1100px) {
+    .mepr-square-actions .button {
+        padding: 0 8px;
+    }
+}
+
+@media screen and (max-width: 1510px) {
+    .mepr-square-env-box {
+        width: auto;
+    }
+   .mepr-square-env-boxes {
+       flex-direction: column;
+       text-align: center;
+   }
 }

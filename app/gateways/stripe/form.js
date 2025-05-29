@@ -18,7 +18,6 @@
     this.paymentMethods = [];
     this.selectedPaymentMethod = null;
     this.submitting = false;
-    this.isStripeCheckoutPageMode = this.$form.find('input[name=mepr_stripe_checkout_page_mode]').val();
     this.updateBillingDetailsTimeout = null;
     this.initPaymentMethods();
     this.$form.on('submit', $.proxy(this.handleSubmit, this));
@@ -173,34 +172,17 @@
    *
    * @param {jQuery.Event} e
    */
-  MeprStripeForm.prototype.handleSubmit = function (e) {
-    if (e.result === false) {
-      return;
-    }
-
+  MeprStripeForm.prototype.handleSubmit = async function (e) {
     var self = this;
 
-    e.preventDefault();
-
-    if (self.submitting) {
-      return;
-    }
-
-    self.submitting = true;
-
     if (self.$form.find('.mepr-payment-methods-wrapper').is(':hidden')) {
-      self.form.submit();
       return;
     }
-
-    self.$form.find('.mepr-form-has-errors').hide();
-    self.$form.find('.mepr-submit').prop('disabled', true);
-    self.$form.find('.mepr-loading-gif').show();
 
     self.selectedPaymentMethod = self.getSelectedPaymentMethod();
 
     if (self.selectedPaymentMethod) {
-      self.selectedPaymentMethod.$cardErrors.html('');
+      e.preventDefault();
 
       if (!self.selectedPaymentMethod.paymentElementComplete) {
         self.selectedPaymentMethod.$cardErrors.text(MeprStripeGateway.payment_information_incomplete);
@@ -208,35 +190,25 @@
         return;
       }
 
-      var $recaptcha = self.$form.find('[name="g-recaptcha-response"]'),
-          extraData = {};
-
-      if ($recaptcha.length) {
-        extraData['g-recaptcha-response'] = $recaptcha.val();
-      }
-
-      self.confirmPayment(self.selectedPaymentMethod, extraData);
-    } else {
-      if (!self.isSpc && self.isStripeCheckoutPageMode == '1') {
-        self.redirectToStripeCheckout();
+      if (self.submitting) {
         return;
       }
 
-      const paymentMethodId = self.$form.find('input[name="mepr_payment_method"]:checked').data('payment-method-type');
-      if (
-          self.isStripeCheckoutPageMode == '1' && (
-              paymentMethodId == 'Stripe' &&
-              self.$form.find('[name=mepr_stripe_is_checkout]').val() == '1'
-          )
-      ) {
-        self.redirectToStripeCheckout();
+      self.submitting = true;
+      self.$form.find('.mepr-form-has-errors').hide();
+      self.$form.find('.mepr-submit').prop('disabled', true);
+      self.$form.find('.mepr-loading-gif').show();
 
+      self.selectedPaymentMethod.$cardErrors.html('');
+
+      const { error } = await self.selectedPaymentMethod.elements.submit();
+
+      if (error) {
+        this.handlePaymentError(error.message);
         return;
       }
 
-      if (!self.$form.find('[data-merp-gateway-async]').is(':visible')) {
-        self.form.submit();
-      }
+      self.processForm();
     }
   };
 
@@ -469,90 +441,19 @@
       confirmParams: confirmParams
     });
 
-    if(error) {
+    if (error) {
       self.handlePaymentError(error.message);
     }
   };
 
   /**
-   * Create stripe checkout page session then redirect user to checkout.stripe.com
+   * Process the form.
    */
-  MeprStripeForm.prototype.redirectToStripeCheckout = function() {
+  MeprStripeForm.prototype.processForm = function () {
     var self = this,
-        formData = new FormData(self.$form.get(0));
+        formData = new FormData(self.form);
 
-    formData.append('action', 'mepr_stripe_create_checkout_session');
-    formData.append('mepr_current_url', document.location.href);
-
-    // We don't want to hit our routes for processing the signup or payment forms
-    formData.delete('mepr_process_signup_form');
-    formData.delete('mepr_process_payment_form');
-
-    $.ajax({
-      type: 'POST',
-      url: MeprStripeGateway.ajax_url,
-      data: formData,
-      dataType: 'json',
-      cache: false,
-      processData: false,
-      contentType: false,
-      headers: {
-        'cache-control': 'no-cache'
-      }
-    })
-    .done(function(result) {
-      if (typeof result.errors !== 'undefined') {
-        self.$form.find('.mepr-stripe-checkout-errors').html('');
-        for (var i = 0; i < Object.entries(result.errors).length; i++) {
-          self.$form.find('.mepr-stripe-checkout-errors').
-              append('<p>' + Object.entries(result.errors)[i][1] + '</p>');
-        }
-        self.allowResubmission();
-      }
-
-      if (typeof result.error !== 'undefined') {
-        self.$form.find('.mepr-stripe-checkout-errors').html(result.error);
-        self.allowResubmission();
-      }
-
-      if (typeof result.errors !== 'undefined' || typeof result.error !== 'undefined') {
-        return;
-      }
-
-      var stripe = Stripe(result.public_key);
-      return stripe.redirectToCheckout({ sessionId: result.id });
-    })
-    .fail(function () {
-      self.allowResubmission();
-      self.$form.find('.mepr-stripe-checkout-errors').html(MeprStripeGateway.error_please_try_again);
-    });
-  };
-
-  /**
-   * Confirm the payment with our Ajax endpoint
-   *
-   * @param {object} paymentMethod
-   * @param {object} [extraData] Additional data to send with the request
-   */
-  MeprStripeForm.prototype.confirmPayment = async function (paymentMethod, extraData) {
-    const { error } = await paymentMethod.elements.submit();
-
-    if (error) {
-      this.handlePaymentError(error.message);
-      return;
-    }
-
-    var self = this,
-        formData = new FormData(self.$form.get(0));
-
-    formData.append('action', 'mepr_stripe_confirm_payment');
-    formData.append('mepr_current_url', document.location.href);
-
-    if (extraData) {
-      $.each(extraData, function (key, value) {
-        formData.append(key, value);
-      });
-    }
+    formData.append('action', 'mepr_process_' + (self.isSpc ? 'signup' : 'payment') + '_form');
 
     // We don't want to hit our routes for processing the signup or payment forms
     formData.delete('mepr_process_signup_form');
@@ -571,7 +472,7 @@
       }
     })
     .done(function (response, textStatus, jqXHR) {
-      if (response === null || typeof response != 'object') {
+      if (response === null || typeof response !== 'object' || typeof response.success !== 'boolean') {
         self.handlePaymentError(MeprStripeGateway.invalid_response_error);
         self.debugCheckoutError({
           status: jqXHR.status,
@@ -581,19 +482,14 @@
           error_thrown: 'Response was null or not an object'
         });
       } else {
-        if (response.transaction_id) {
-          self.$form.find('input[name="mepr_transaction_id"]').val(response.transaction_id);
-        }
-
-        if (response.errors) {
-          self.handleValidationErrors(response.errors);
-        } else if (response.error) {
-          self.handlePaymentError(response.error);
-        } else if (response.action && (response.action === 'confirmPayment' || response.action === 'confirmSetup')) {
-          self.handleAction(response.action, response.client_secret, response.return_url);
-        } else if (!self.$form.hasClass('mepr-payment-submitted')) {
-          self.$form.addClass('mepr-payment-submitted');
-          self.form.submit();
+        if (response.success) {
+            self.handleAction(response.data.action, response.data.client_secret, response.data.return_url);
+        } else {
+            if (response.data.errors) {
+                self.handleValidationErrors(response.data.errors);
+            } else {
+                self.handlePaymentError(response.data);
+            }
         }
       }
     })
@@ -628,7 +524,7 @@
       url: MeprStripeGateway.ajax_url,
       dataType: 'json',
       data: {
-        action: 'mepr_stripe_debug_checkout_error',
+        action: 'mepr_debug_checkout_error',
         data: JSON.stringify(data)
       }
     });

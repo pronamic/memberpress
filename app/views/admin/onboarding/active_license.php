@@ -15,6 +15,7 @@
         if ($expires_at instanceof DateTime) {
             echo esc_html(
                 sprintf(
+                    // Translators: %s: date.
                     __('License activated until %s', 'memberpress'),
                     MeprUtils::date('F j, Y', $expires_at)
                 )

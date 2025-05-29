@@ -1,7 +1,10 @@
 <?php
 
-// See https://www.avalara.com/vatlive/en/vat-rates/european-vat-rates.html
-// Reduced Rates are currently a "best guess" based on information in above link.
+/**
+ * See https://www.avalara.com/vatlive/en/vat-rates/european-vat-rates.html
+ * Reduced Rates are currently a "best guess" based on information in above link.
+ */
+
 return MeprHooks::apply_filters('mepr-vat-countries', [
     'AT' => [
         'name'         => __('Austria', 'memberpress'),

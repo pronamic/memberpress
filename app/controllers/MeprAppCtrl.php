@@ -150,6 +150,7 @@ class MeprAppCtrl extends MeprBaseCtrl
                     add_meta_box(
                         'mepr_rules',
                         sprintf(
+                            // Translators: %s: custom post type name.
                             __('This %s is Protected', 'memberpress'),
                             $obj->labels->singular_name
                         ),
@@ -164,6 +165,7 @@ class MeprAppCtrl extends MeprBaseCtrl
                 add_meta_box(
                     'mepr_unauthorized_message',
                     sprintf(
+                        // Translators: %s: custom post type name.
                         __('MemberPress Unauthorized Access to this %s', 'memberpress'),
                         $obj->labels->singular_name
                     ),
@@ -174,6 +176,7 @@ class MeprAppCtrl extends MeprBaseCtrl
                     add_meta_box(
                         'mepr_rules',
                         sprintf(
+                            // Translators: %s: custom post type name.
                             __('This %s is Protected', 'memberpress'),
                             $obj->labels->singular_name
                         ),
@@ -321,12 +324,16 @@ class MeprAppCtrl extends MeprBaseCtrl
         $rule_count = count($rules);
 
         $message = '<strong>' .
-               sprintf(_n(
-                   'This Content is Protected by %s MemberPress Access Rule',
-                   'This Content is Protected by %s MemberPress Access Rules',
-                   $rule_count,
-                   'memberpress'
-               ), $rule_count) .
+               sprintf(
+                   // Translators: %1$d: number of access rules.
+                   _n(
+                       'This Content is Protected by %1$d MemberPress Access Rule',
+                       'This Content is Protected by %1$d MemberPress Access Rules',
+                       $rule_count,
+                       'memberpress'
+                   ),
+                   $rule_count
+               ) .
                '</strong>' .
                ' &ndash; <a href="#mepr_post_rules">' . __('Click here to view', 'memberpress') . '</a>';
 
@@ -344,12 +351,17 @@ class MeprAppCtrl extends MeprBaseCtrl
     {
         $current_php_version = phpversion();
         if (version_compare($current_php_version, MEPR_MIN_PHP_VERSION, '<')) {
-            $message = __('<strong>MemberPress: Your PHP version (%s) is out of date!</strong> ' .
-                    'This version has reached official End Of Life and as such may expose your site to security vulnerabilities. ' .
-                    'Please contact your web hosting provider to update to %s or newer', 'memberpress');
+            $message = sprintf(
+                // Translators: %1$s: opening strong tag, %2$s: current PHP version, %3$s: closing strong tag, %4$s: minimum PHP version.
+                esc_html__('%1$sMemberPress: Your PHP version (%2$s) is out of date!%3$s This version has reached official End Of Life and as such may expose your site to security vulnerabilities. Please contact your web hosting provider to update to %4$s or newer', 'memberpress'),
+                '<strong>',
+                $current_php_version,
+                '</strong>',
+                MEPR_MIN_PHP_VERSION
+            );
             ?>
      <div class="notice notice-warning is-dismissible">
-         <p><?php printf($message, $current_php_version, MEPR_MIN_PHP_VERSION); ?></p>
+         <p><?php echo $message; ?></p>
      </div>
             <?php
         }
@@ -577,7 +589,11 @@ class MeprAppCtrl extends MeprBaseCtrl
                     <?php echo $notifications_count; ?>
                 </span>
                 <span class="screen-reader-text">
-                    <?php sprintf(__('%d unread message(s)', 'memberpress'), $notifications_count); ?>
+                    <?php sprintf(
+                        // Translators: %1$d: number of unread messages.
+                        __('%1$d unread message(s)', 'memberpress'),
+                        $notifications_count
+                    ); ?>
                 </span>
             </span>
             <?php
@@ -1092,9 +1108,18 @@ class MeprAppCtrl extends MeprBaseCtrl
                 'coupon_nonce'                  => wp_create_nonce('mepr_coupons'),
                 'spc_enabled'                   => ( $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template ),
                 'spc_invoice'                   => ( $mepr_options->enable_spc_invoice || $mepr_options->design_enable_checkout_template ),
-                'no_compatible_pms'             => __('There are no payment methods available that can purchase this product, please contact the site administrator or purchase it separately.', 'memberpress'),
-                'switch_pm_prompt'              => __('It looks like your purchase requires %s. No problem! Just click below to switch.', 'memberpress'),
-                'switch_pm'                     => __('Switch to %s', 'memberpress'),
+                'no_compatible_pms'             => (
+                    // Translators: %s: payment method name.
+                    __('There are no payment methods available that can purchase this product, please contact the site administrator or purchase it separately.', 'memberpress')
+                ),
+                'switch_pm_prompt'              => (
+                    // Translators: %s: payment method name.
+                    __('It looks like your purchase requires %s. No problem! Just click below to switch.', 'memberpress')
+                ),
+                'switch_pm'                     => (
+                    // Translators: %s: payment method name.
+                    __('Switch to %s', 'memberpress')
+                ),
                 'cancel'                        => __('Cancel', 'memberpress'),
                 'no_compatible_pms_ob_required' => __('Payment Gateway(s) do not support required order configuration.', 'memberpress'),
                 'warning_icon_url'              => MEPR_IMAGES_URL . '/notice-icon-error.png',
@@ -1289,9 +1314,14 @@ class MeprAppCtrl extends MeprBaseCtrl
                     }
                 }
             }
-        } catch (Exception $e) {
-            ?>
-      <div class="mepr_error"><?php printf(__('There was a problem with our system: %s. Please come back soon and try again.', 'memberpress'), $e->getMessage()); ?></div>
+        } catch (Exception $e) { ?>
+            <div class="mepr_error">
+                <?php printf(
+                // Translators: %s: error message.
+                    __('There was a problem with our system: %s. Please come back soon and try again.', 'memberpress'),
+                    $e->getMessage()
+                ); ?>
+            </div>
             <?php
             exit;
         }
@@ -1752,12 +1782,12 @@ class MeprAppCtrl extends MeprBaseCtrl
     public static function maybe_auto_log_in()
     {
         if (!is_user_logged_in() && MeprHooks::apply_filters('mepr_maybe_auto_log_in', true)) {
-            $mepr_options     = MeprOptions::fetch();
-            $is_signup        = MeprUtils::is_post_request() && isset($_POST['mepr_process_signup_form']);
-            $is_stripe_signup = wp_doing_ajax() && isset($_POST['action']) && $_POST['action'] == 'mepr_stripe_confirm_payment';
-            $is_spc           = $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template;
+            $mepr_options   = MeprOptions::fetch();
+            $is_signup      = MeprUtils::is_post_request() && isset($_POST['mepr_process_signup_form']);
+            $is_ajax_signup = wp_doing_ajax() && isset($_POST['action']) && $_POST['action'] == 'mepr_process_signup_form';
+            $is_spc         = $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template;
 
-            if ($is_signup || ($is_spc && $is_stripe_signup)) {
+            if ($is_signup || ($is_spc && $is_ajax_signup)) {
                 $email            = sanitize_email($_POST['user_email'] ?? '');
                 $username         = $mepr_options->username_is_email ? $email : sanitize_user($_POST['user_login'] ?? '');
                 $password         = $_POST['mepr_user_password'] ?? '';

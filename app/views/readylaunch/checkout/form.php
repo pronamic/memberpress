@@ -216,7 +216,7 @@
         class="mepr-checkbox-field mepr-form-input" required>
         <input type="checkbox" name="mepr_agree_to_privacy_policy"
         id="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>" />
-            <?php echo preg_replace('/%(.*)%/', '<a href="' . $privacy_page_link . '" target="_blank">$1</a>', wp_kses_post(__($mepr_options->privacy_policy_title, 'memberpress'))); ?>
+            <?php echo preg_replace('/%(.*)%/', '<a href="' . $privacy_page_link . '" target="_blank">$1</a>', wp_kses_post($mepr_options->privacy_policy_title)); ?>
         </label>
         </div>
     <?php endif; ?>
@@ -242,7 +242,11 @@
 
 
   <div class="invoice-wrapper">
-    <h3 class="invoice-heading"><?php printf(esc_html_x('Pay %s', 'ui', 'memberpress'), get_bloginfo('name')); ?></h3>
+    <h3 class="invoice-heading"><?php printf(
+        // Translators: %s: blog name.
+        esc_html_x('Pay %s', 'ui', 'memberpress'),
+        get_bloginfo('name')
+    ); ?></h3>
 
     <div class="mp-form-row mepr_bold mepr_price">
       <div class="mepr_price_cell invoice-amount">

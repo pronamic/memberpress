@@ -603,7 +603,13 @@ endforeach;
             <?php
             $excerpt_size_input = ob_get_clean();
             ?>
-          <span><?php printf(__('Show the first %s characters of your content', 'memberpress'), $excerpt_size_input); ?></span>
+          <span>
+              <?php printf(
+                // Translators: %s: excerpt size.
+                  __('Show the first %s characters of your content', 'memberpress'),
+                  $excerpt_size_input
+              ); ?>
+          </span>
         </div>
 
         <?php if (!$global) : ?>

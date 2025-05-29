@@ -296,7 +296,10 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
                 'resume_sub_success'                       => __('The Subscription was successfully resumed.', 'memberpress'),
                 'resume_sub_requires_action'               => __('The Subscription could not be resumed automatically because the customer needs to authorize the transaction. Do you want to send the customer an email with a link to pay the invoice?', 'memberpress'),
                 'resume_sub_customer_email_sent'           => __('The email has been sent to the customer. The Subscription will resume when the invoice has been paid.', 'memberpress'),
-                'resume_sub_customer_email_error'          => __("An error occurred sending the email to the customer:\n\n%s", 'memberpress'),
+                'resume_sub_customer_email_error'          => (
+                    // Translators: %s: error message.
+                    __("An error occurred sending the email to the customer:\n\n%s", 'memberpress')
+                ),
                 'server_response_invalid'                  => __('The response from the server was invalid or malformed', 'memberpress'),
                 'ajax_error'                               => __('Ajax error', 'memberpress'),
                 'resume_text'                              => __('Enabled', 'memberpress'),

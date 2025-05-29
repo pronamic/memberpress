@@ -30,14 +30,22 @@ class MeprPowerPressIntegration
         // Add Dynamic MemberPress product capabilities into the mix.
         if (!empty($products)) {
             foreach ($products as $product) {
-                $caps["mepr-membership-auth-{$product->ID}"] = sprintf(__('MemberPress Membership: %s', 'memberpress'), $product->post_title);
+                $caps["mepr-membership-auth-{$product->ID}"] = sprintf(
+                    // Translators: %s: product name.
+                    __('MemberPress Membership: %s', 'memberpress'),
+                    $product->post_title
+                );
             }
         }
 
         // Add Dynamic MemberPress rule capabilities into the mix.
         if (!empty($rules)) {
             foreach ($rules as $rule) {
-                $caps["mepr-rule-auth-{$rule->ID}"] = sprintf(__('MemberPress Rule: %s', 'memberpress'), $rule->post_title);
+                $caps["mepr-rule-auth-{$rule->ID}"] = sprintf(
+                    // Translators: %s: rule name.
+                    __('MemberPress Rule: %s', 'memberpress'),
+                    $rule->post_title
+                );
             }
         }
 

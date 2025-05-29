@@ -177,7 +177,7 @@
             foreach ($mepr_options->custom_fields as $row) {
                 if (in_array($row->field_key, $active_slugs)) {
                     ?>
-                  <li class="mepr-profile-field-row"><input type="checkbox" name="product-profile-fields[<?php echo $row->field_key; ?>]" checked="checked" class="mepr-profile-field-box" /> <?php echo __(stripslashes($row->field_name), 'memberpress'); ?></li>
+                  <li class="mepr-profile-field-row"><input type="checkbox" name="product-profile-fields[<?php echo $row->field_key; ?>]" checked="checked" class="mepr-profile-field-box" /> <?php echo stripslashes($row->field_name); ?></li>
                     <?php
                 }
             }
@@ -190,7 +190,7 @@
             foreach ($mepr_options->custom_fields as $row) {
                 if (!in_array($row->field_key, $active_slugs)) {
                     ?>
-                  <li class="mepr-profile-field-row"><input type="checkbox" name="product-profile-fields[<?php echo $row->field_key; ?>]" class="mepr-profile-field-box" /> <?php echo __(stripslashes($row->field_name), 'memberpress'); ?></li>
+                  <li class="mepr-profile-field-row"><input type="checkbox" name="product-profile-fields[<?php echo $row->field_key; ?>]" class="mepr-profile-field-box" /> <?php echo stripslashes($row->field_name); ?></li>
                     <?php
                 }
             }

@@ -61,7 +61,11 @@
   <td>
     <input type="text" name="tax_rate" id="tax_rate" value="<?php echo MeprUtils::format_currency_float($txn->tax_rate, 3); ?>" class="regular-text" style="width:95px !important;"/>
     <span><?php echo '%'; ?></span>
-    <p class="description"><?php printf(__('The tax rate in percentage. (Ex: %s for 10%%)', 'memberpress'), MeprUtils::format_currency_float(10.000)) ; ?></p>
+    <p class="description"><?php printf(
+        // Translators: %s: tax rate.
+        __('The tax rate in percentage. (Ex: %s for 10%%)', 'memberpress'),
+        MeprUtils::format_currency_float(10.000)
+    ); ?></p>
   </td>
 </tr>
 

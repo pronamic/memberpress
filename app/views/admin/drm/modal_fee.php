@@ -9,13 +9,22 @@ $account_link = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general'
     <div class="mepr-notice-modal-content">
      <h3 class="mepr-notice-title"><?php _e('<span>ALERT!</span> MemberPress is running without a license', 'memberpress'); ?></h3>
      <div class="mepr-notice-desc">
-      <p><?php printf(__('When using without a license, MemberPress will add an additional %s fee to each transaction.', 'memberpress'), MeprDrmHelper::get_application_fee_percentage() . '%'); ?></p>
+      <p><?php printf(
+          // Translators: %s: application fee percentage.
+          __('When using without a license, MemberPress will add an additional %s fee to each transaction.', 'memberpress'),
+          MeprDrmHelper::get_application_fee_percentage() . '%'
+      ); ?></p>
 
       <p>
         <a target="_blank" href="<?php echo $account_link; ?>" class="button button-primary"><?php _e('Click here to purchase or renew your license key', 'memberpress'); ?></a>
       </p>
 
-      <p><?php _e('If you already have a license key, you can find it on your <a href="' . $account_link . '" target="_blank">Account Page</a>, and enter it below:', 'memberpress'); ?></p>
+      <p><?php printf(
+          // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+          esc_html__('If you already have a license key, you can find it on your %1$sAccount Page%2$s, and enter it below:', 'memberpress'),
+          '<a href="' . esc_url($account_link) . '" target="_blank">',
+          '</a>'
+      ); ?></p>
       <form method="POST" id="mepr-drm-form">
          <div class="field"><input name="license_key" id="mepr-drm-license-key" type="text" placeholder="<?php esc_attr_e('License Key', 'memberpress'); ?>"></div>
          <div class="field"><input id="mepr-drm-activate-license-key" type="button" value="<?php esc_attr_e('Submit', 'memberpress'); ?>"></div>

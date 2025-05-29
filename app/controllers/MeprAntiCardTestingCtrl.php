@@ -11,8 +11,10 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
     {
         add_action('mepr_display_general_options', [$this, 'display_options']);
         add_action('mepr_stripe_payment_failed', [$this, 'record_payment_failure']);
-        add_action('mepr_stripe_before_confirm_payment', [$this, 'maybe_block_confirm_payment']);
-        add_action('mepr_stripe_before_create_checkout_session', [$this, 'maybe_block_create_checkout_session']);
+        add_filter('mepr-validate-signup', [$this, 'maybe_block_payment']);
+        add_filter('mepr_validate_payment_form', [$this, 'maybe_block_payment']);
+        add_action('mepr_process_signup_form_ajax', [$this, 'maybe_block_payment_ajax']);
+        add_action('mepr_process_payment_form_ajax', [$this, 'maybe_block_payment_ajax']);
         add_action('wp_ajax_mepr_anti_card_testing_get_ip', [$this, 'get_detected_ip_ajax']);
     }
 
@@ -292,34 +294,35 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
     }
 
     /**
-     * Maybe block a payment.
+     * Block signup or payment if the IP is blocked.
      *
-     * @return void
+     * @param  array $errors The signup validation errors.
+     * @return array
      */
-    public function maybe_block_confirm_payment()
+    public function maybe_block_payment($errors)
     {
         $this->maybe_block_ip();
 
         if ($this->is_ip_blocked()) {
-            wp_send_json([
-                'error' => __('We are not able to complete your purchase at this time. Please contact us for more information.', 'memberpress'),
-            ]);
+            $errors[] = __('We are not able to complete your purchase at this time. Please contact us for more information.', 'memberpress');
         }
+
+        return $errors;
     }
 
     /**
-     * Maybe block a checkout session.
+     * Block signup or payment via Ajax if the IP is blocked.
      *
      * @return void
      */
-    public function maybe_block_create_checkout_session()
+    public function maybe_block_payment_ajax()
     {
         $this->maybe_block_ip();
 
         if ($this->is_ip_blocked()) {
-            wp_send_json([
-                'error' => __('We are not able to complete your purchase at this time. Please contact us for more information.', 'memberpress'),
-            ]);
+            wp_send_json_error(
+                __('We are not able to complete your purchase at this time. Please contact us for more information.', 'memberpress')
+            );
         }
     }
 

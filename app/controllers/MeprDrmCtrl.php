@@ -209,7 +209,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
     public function ajax_drm_activate_license()
     {
         if (! MeprUtils::is_post_request() || ! isset($_POST['key']) || ! is_string($_POST['key'])) {
-            wp_send_json_error(sprintf(__('An error occurred during activation: %s', 'memberpress'), __('Bad request.', 'memberpress')));
+            wp_send_json_error(sprintf(
+                // Translators: %s: error message.
+                __('An error occurred during activation: %s', 'memberpress'),
+                __('Bad request.', 'memberpress')
+            ));
         }
 
         if (! MeprUtils::is_logged_in_and_an_admin()) {
@@ -217,7 +221,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
 
         if (! check_ajax_referer('mepr_drm_activate_license', false, false)) {
-            wp_send_json_error(sprintf(__('An error occurred during activation: %s', 'memberpress'), __('Security check failed.', 'memberpress')));
+            wp_send_json_error(sprintf(
+                // Translators: %s: error message.
+                __('An error occurred during activation: %s', 'memberpress'),
+                __('Security check failed.', 'memberpress')
+            ));
         }
 
         $mepr_options = MeprOptions::fetch();
@@ -271,7 +279,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
     public function ajax_drm_use_without_license()
     {
         if (! MeprUtils::is_post_request()) {
-            wp_send_json_error(sprintf(__('An error occurred during activation: %s', 'memberpress'), __('Bad request.', 'memberpress')));
+            wp_send_json_error(sprintf(
+                // Translators: %s: error message.
+                __('An error occurred during activation: %s', 'memberpress'),
+                __('Bad request.', 'memberpress')
+            ));
         }
 
         if (! MeprUtils::is_logged_in_and_an_admin()) {
@@ -279,7 +291,11 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
 
         if (! check_ajax_referer('mepr_drm_use_without_license', false, false)) {
-            wp_send_json_error(sprintf(__('An error occurred: %s', 'memberpress'), __('Security check failed.', 'memberpress')));
+            wp_send_json_error(sprintf(
+                // Translators: %s: error message.
+                __('An error occurred: %s', 'memberpress'),
+                __('Security check failed.', 'memberpress')
+            ));
         }
 
         try {

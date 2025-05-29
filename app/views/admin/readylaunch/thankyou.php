@@ -14,7 +14,7 @@
               <tr>
                 <td>
                   <label class="switch">
-                    <input x-model="thankyou.showWelcomeImage" id="<?php esc_attr_e($mepr_options->design_show_thankyou_welcome_image_str, 'memberpress'); ?>" name="<?php esc_attr_e($mepr_options->design_show_thankyou_welcome_image_str, 'memberpress'); ?>" class="mepr-template-enablers" type="checkbox">
+                    <input x-model="thankyou.showWelcomeImage" id="<?php echo esc_attr($mepr_options->design_show_thankyou_welcome_image_str); ?>" name="<?php echo esc_attr($mepr_options->design_show_thankyou_welcome_image_str); ?>" class="mepr-template-enablers" type="checkbox">
                     <span class="slider round"></span>
                   </label>
                 </td>
@@ -54,7 +54,7 @@
                     <div x-show="thankyou.showWelcomeImage && !thankyou.welcomeImageId" class="upload-ui hide-if-no-js">
                       <div class="drag-drop-area">
                         <div class="drag-drop-inside">
-                          <p class="drag-drop-info"><?php _e('Upload Welcome Image', 'memberpress-courses', 'memberpress'); ?></p>
+                          <p class="drag-drop-info"><?php _e('Upload Welcome Image', 'memberpress'); ?></p>
 
                           <!-- Progress Indicator -->
                           <p class="drag-drop-loader">
@@ -63,10 +63,10 @@
 
                           <div class="drag-drop-buttons">
                             <p>
-                              <?php echo esc_html_x('or', 'Uploader: Upload Welcome Image - or - Select Image', 'memberpress-courses', 'memberpress'); ?>
+                              <?php echo esc_html_x('or', 'Uploader: Upload Welcome Image - or - Select Image', 'memberpress'); ?>
                             </p>
                             <p>
-                              <input type="button" value="<?php esc_attr_e('Select Image', 'memberpress-courses', 'memberpress'); ?>" class="button browse-button" />
+                              <input type="button" value="<?php esc_attr_e('Select Image', 'memberpress'); ?>" class="button browse-button" />
                             </p>
                           </div>
                         </div>
@@ -80,7 +80,7 @@
               <tr>
                 <td>
                   <label class="switch">
-                    <input x-model="thankyou.hideInvoice" id="<?php esc_attr_e($mepr_options->design_thankyou_hide_invoice_str, 'memberpress'); ?>" name="<?php esc_attr_e($mepr_options->design_thankyou_hide_invoice_str, 'memberpress'); ?>" class="mepr-template-enablers" type="checkbox">
+                    <input x-model="thankyou.hideInvoice" id="<?php echo esc_attr($mepr_options->design_thankyou_hide_invoice_str); ?>" name="<?php echo esc_attr($mepr_options->design_thankyou_hide_invoice_str); ?>" class="mepr-template-enablers" type="checkbox">
                     <span class="slider round"></span>
                   </label>
                 </td>

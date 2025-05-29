@@ -23,7 +23,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      *
      * @var string
      */
-    protected $gatewayID;
+    protected $gateway_id;
     /**
      * The login name for authentication.
      *
@@ -56,7 +56,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
     {
         $this->is_test         = $is_test;
         $this->endpoint        = $endpoint;
-        $this->gatewayID       = $gateway_id;
+        $this->gateway_id      = $gateway_id;
         $this->login_name      = $login_name;
         $this->transaction_key = $transaction_key;
     }
@@ -85,7 +85,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      * @return mixed The transaction number or an error.
      * @throws MeprException If the refund cannot be processed.
      */
-    public function refundTransaction($txn)
+    public function refund_transaction($txn)
     {
         $product = $txn->product();
 
@@ -116,9 +116,9 @@ class MeprArtificialAuthorizeNetProfileHttpClient
 </createTransactionRequest>';
 
         $this->log($xml);
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
-        $response = $this->parseAuthnetResponse($response);
+        $response = $this->parse_authnet_response($response);
         $this->log($response);
 
         if (
@@ -129,6 +129,9 @@ class MeprArtificialAuthorizeNetProfileHttpClient
 
             return $trans_num;
         } else {
+            if (isset($response['transactionResponse']['errors']['error']['errorText'])) {
+                throw new MeprException($response['transactionResponse']['errors']['error']['errorText']);
+            }
             throw new MeprException(__('Can not refund the payment. The transaction may not have been settled', 'memberpress'));
         }
     }
@@ -141,7 +144,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      * @return mixed The transaction number or an error.
      * @throws MeprException If the transaction cannot be voided.
      */
-    public function voidTransaction($txn)
+    public function void_transaction($txn)
     {
         $xml = '<createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
   <merchantAuthentication>
@@ -156,9 +159,9 @@ class MeprArtificialAuthorizeNetProfileHttpClient
 </createTransactionRequest>';
 
         $this->log($xml);
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
-        $response = $this->parseAuthnetResponse($response);
+        $response = $this->parse_authnet_response($response);
         $this->log($response);
 
         if (
@@ -185,7 +188,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      * @return string The transaction number.
      * @throws MeprException If the charge cannot be processed.
      */
-    public function chargeCustomer($authorize_net_customer, $txn, $capture = true, $cvc_code = null)
+    public function charge_customer($authorize_net_customer, $txn, $capture = true, $cvc_code = null)
     {
         $this->log($authorize_net_customer);
         $payment_profile = '';
@@ -230,9 +233,9 @@ class MeprArtificialAuthorizeNetProfileHttpClient
 </createTransactionRequest>';
 
         $this->log($xml);
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
-        $response = $this->parseAuthnetResponse($response);
+        $response = $this->parse_authnet_response($response);
         $this->log($response);
 
         if (
@@ -248,7 +251,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
             return $trans_num;
         } else {
             if (isset($response['transactionResponse']['errors']['error']['errorText'])) {
-                throw new MeprException(__($response['transactionResponse']['errors']['error']['errorText'], 'memberpress'));
+                throw new MeprException($response['transactionResponse']['errors']['error']['errorText']);
             }
             throw new MeprException(__('Can not complete the payment.', 'memberpress'));
         }
@@ -264,7 +267,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      *
      * @return string|null The customer payment profile ID or null on failure.
      */
-    public function createCustomerPaymentProfile($user, $authorizenet_customer, $data_value, $data_desc)
+    public function create_customer_payment_profile($user, $authorizenet_customer, $data_value, $data_desc)
     {
         if (empty($data_value) || empty($data_desc)) {
             return null;
@@ -311,9 +314,9 @@ class MeprArtificialAuthorizeNetProfileHttpClient
             return $this->cache[ $cache_key ];
         }
 
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
-        $response = $this->parseAuthnetResponse($response);
+        $response = $this->parse_authnet_response($response);
         $this->log($xml);
         $this->log($response);
 
@@ -341,7 +344,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      * @return string The subscription ID.
      * @throws MeprException If the subscription cannot be canceled.
      */
-    public function cancelSubscription($subscription_id)
+    public function cancel_subscription($subscription_id)
     {
         $xml = '<ARBCancelSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
     <merchantAuthentication>
@@ -352,9 +355,9 @@ class MeprArtificialAuthorizeNetProfileHttpClient
     <subscriptionId>' . esc_xml($subscription_id) . '</subscriptionId>
 </ARBCancelSubscriptionRequest>';
 
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
-        $response = $this->parseAuthnetResponse($response);
+        $response = $this->parse_authnet_response($response);
         $this->log($xml);
         $this->log($response);
 
@@ -372,14 +375,14 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      * @param  array            $array      The array to convert.
      * @return SimpleXMLElement The updated SimpleXMLElement object.
      */
-    public function array2Xml($simple_xml, $array)
+    public function array2_xml($simple_xml, $array)
     {
         foreach ($array as $key => $item) {
             if (!is_array($item)) {
                 $simple_xml->addChild($key, esc_xml($item));
             } else {
                 $child = $simple_xml->addChild($key);
-                $this->array2Xml($child, $item);
+                $this->array2_xml($child, $item);
             }
         }
         return $simple_xml;
@@ -392,7 +395,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      * @return mixed The response from the API.
      * @throws MeprException If the subscription cannot be updated.
      */
-    public function updateSubscription($args)
+    public function update_subscription($args)
     {
         $xml_str    = <<<XML
 <ARBUpdateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
@@ -402,11 +405,11 @@ XML;
         $auth       = $simple_xml->addChild('merchantAuthentication');
         $auth->addChild('name', esc_xml($this->login_name));
         $auth->addChild('transactionKey', esc_xml($this->transaction_key));
-        $this->array2Xml($simple_xml, $args);
+        $this->array2_xml($simple_xml, $args);
         $xml      = $simple_xml->asXML();
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
-        $response = $this->parseAuthnetResponse($response);
+        $response = $this->parse_authnet_response($response);
         $this->log($xml);
         $this->log($response);
 
@@ -427,7 +430,7 @@ XML;
      * @return string The subscription ID.
      * @throws MeprException If the subscription cannot be created.
      */
-    public function createSubscriptionFromCustomer($authorizenet_customer, $txn, $sub)
+    public function create_subscription_from_customer($authorizenet_customer, $txn, $sub)
     {
         $this->log('Creating sub');
         $this->log($sub);
@@ -464,7 +467,7 @@ XML;
                 $txn->trans_num = $txn_num;
                 $txn->store();
             } else {
-                $txn_num = $this->chargeCustomer($authorizenet_customer, $txn);
+                $txn_num = $this->charge_customer($authorizenet_customer, $txn);
 
                 if ($txn_num) {
                     $txn->txn_type  = \MeprTransaction::$payment_str;
@@ -515,9 +518,9 @@ XML;
   </subscription>
 </ARBCreateSubscriptionRequest>';
 
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
-        $response = $this->parseAuthnetResponse($response);
+        $response = $this->parse_authnet_response($response);
         $this->log($xml);
         $this->log($response);
         if (isset($response['subscriptionId'])) {
@@ -530,7 +533,7 @@ XML;
                 throw new MeprException(__('You have subscribed to a membership which has the same pricing term. Subscription can not be created with Authorize.net', 'memberpress'));
             }
 
-            throw new MeprException(__($message, 'memberpress'));
+            throw new MeprException($message);
         }
 
         return $response;
@@ -547,7 +550,7 @@ XML;
      * @return string The transaction number.
      * @throws MeprException If the charge cannot be processed.
      */
-    public function chargeCustomerCard($authorize_net_customer, $txn, $data_desc, $data_value)
+    public function charge_customer_card($authorize_net_customer, $txn, $data_desc, $data_value)
     {
         $user    = $txn->user();
         $address = [
@@ -595,9 +598,9 @@ XML;
     </transactionRequest>
 </createTransactionRequest>';
 
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
-        $response = $this->parseAuthnetResponse($response);
+        $response = $this->parse_authnet_response($response);
 
         if (
             isset($response['messages']['resultCode'])
@@ -612,7 +615,7 @@ XML;
             return $trans_num;
         } else {
             if (isset($response['transactionResponse']['errors']['error']['errorText'])) {
-                throw new MeprException(__($response['transactionResponse']['errors']['error']['errorText'], 'memberpress'));
+                throw new MeprException($response['transactionResponse']['errors']['error']['errorText']);
             }
             throw new MeprException(__('Can not complete the payment', 'memberpress'));
         }
@@ -628,7 +631,7 @@ XML;
      * @return array|null The response from the API or null on failure.
      * @throws MeprGatewayException If the email is already registered on the gateway.
      */
-    public function createCustomerProfile($user, $data_value, $data_desc)
+    public function create_customer_profile($user, $data_value, $data_desc)
     {
         $address = [
             'line1'       => get_user_meta($user->ID, 'mepr-address-one', true),
@@ -674,15 +677,15 @@ XML;
     </profile>
   </createCustomerProfileRequest>';
 
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
-        $response = $this->parseAuthnetResponse($response);
+        $response = $this->parse_authnet_response($response);
 
         $this->log($xml);
         $this->log($response);
 
         if (isset($response['customerProfileId'])) {
-            update_user_meta($user->ID, 'mepr_authorizenet_profile_id_' . $this->gatewayID, $response['customerProfileId']);
+            update_user_meta($user->ID, 'mepr_authorizenet_profile_id_' . $this->gateway_id, $response['customerProfileId']);
 
             return $response;
         } else {
@@ -702,7 +705,7 @@ XML;
      *
      * @return array|object The parsed response.
      */
-    protected function parseAuthnetResponse($response, $object = false)
+    protected function parse_authnet_response($response, $object = false)
     {
         $response = @simplexml_load_string($response);
 
@@ -714,25 +717,13 @@ XML;
     }
 
     /**
-     * Alias to getTransactionDetails.
-     *
-     * @param string $transaction_id The ID of the transaction.
-     *
-     * @return object|null The transaction details or null on failure.
-     */
-    public function get_transaction_details($transaction_id)
-    {
-        return $this->getTransactionDetails($transaction_id);
-    }
-
-    /**
      * Retrieves transaction details.
      *
      * @param string $transaction_id The ID of the transaction.
      *
      * @return object|null The transaction details or null on failure.
      */
-    public function getTransactionDetails($transaction_id)
+    public function get_transaction_details($transaction_id)
     {
         $xml = '
 <getTransactionDetailsRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
@@ -743,10 +734,10 @@ XML;
       <transId>' . esc_xml($transaction_id) . '</transId>
 </getTransactionDetailsRequest>';
 
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
 
-        $data = $this->parseAuthnetResponse($response, true);
+        $data = $this->parse_authnet_response($response, true);
 
         if (isset($data->transaction)) {
             return $data;
@@ -762,9 +753,9 @@ XML;
      *
      * @return array|null The customer profile data or null on failure.
      */
-    public function getCustomerProfile($user_id)
+    public function get_customer_profile($user_id)
     {
-        $meta = get_user_meta($user_id, 'mepr_authorizenet_profile_id_' . $this->gatewayID, true);
+        $meta = get_user_meta($user_id, 'mepr_authorizenet_profile_id_' . $this->gateway_id, true);
 
         if (empty($meta)) {
             return null;
@@ -785,12 +776,12 @@ XML;
             return $this->cache[ $cache_key ];
         }
 
-        $response = wp_remote_post($this->endpoint, $this->prepareOptions($xml));
+        $response = wp_remote_post($this->endpoint, $this->prepare_options($xml));
         $response = wp_remote_retrieve_body($response);
         $this->log($xml);
         $this->log($response);
 
-        $data = $this->parseAuthnetResponse($response);
+        $data = $this->parse_authnet_response($response);
 
         if (isset($data['profile'])) {
             $this->cache[ $cache_key ] = $data['profile'];
@@ -808,7 +799,7 @@ XML;
      *
      * @return array The prepared options for the request.
      */
-    protected function prepareOptions($args)
+    protected function prepare_options($args)
     {
         $options = [
             'body'        => $args,

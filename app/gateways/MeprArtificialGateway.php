@@ -578,7 +578,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
           <img src="<?php echo admin_url('images/loading.gif'); ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
           <?php MeprView::render('/shared/has_errors', get_defined_vars()); ?>
 
-          <noscript><p class="mepr_nojs"><?php _e('Javascript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>
+          <noscript><p class="mepr_nojs"><?php _e('JavaScript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>
         </form>
       </div>
         <?php

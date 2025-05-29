@@ -1,6 +1,9 @@
 <?php
 
-// Ensure the script is not directly accessed.
+/**
+ * Ensure the script is not directly accessed.
+ */
+
 if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }

@@ -223,6 +223,7 @@ class MeprRulesCtrl extends MeprCptCtrl
                 if ($rule->drip_enabled) {
                     $time = array_keys(MeprRule::get_time_units(), $rule->drip_unit);
                     printf(
+                        // Translators: %1$s: drip amount, %2$s: drip unit, %3$s: drip after.
                         __('%1$s %2$s after %3$s', 'memberpress'),
                         $rule->drip_amount,
                         $time[0],
@@ -235,6 +236,7 @@ class MeprRulesCtrl extends MeprCptCtrl
                 if ($rule->expires_enabled) {
                     $time = array_keys(MeprRule::get_time_units(), $rule->expires_unit);
                     printf(
+                        // Translators: %1$s: expiration amount, %2$s: expiration unit, %3$s: expiration after.
                         __('%1$s %2$s after %3$s', 'memberpress'),
                         $rule->expires_amount,
                         $time[0],
@@ -971,7 +973,8 @@ class MeprRulesCtrl extends MeprCptCtrl
         if (isset($atts['unauth'])) {
             if (trim($atts['unauth']) == 'message' || trim($atts['unauth']) == 'both') {
                 if (isset($atts['unauth_message'])) {
-                    $unauth = '<div class="mepr_error">' . trim($atts['unauth_message']) . '</div>';
+                    $class = doing_action('render_block') ? 'mepr_block_error' : 'mepr_error';
+                    $unauth = '<div class="' . esc_attr($class) . '">' . trim($atts['unauth_message']) . '</div>';
                 } else {
                     $rule_ids = [];
 

@@ -101,9 +101,20 @@ class MeprJobs
                 $this->work($job);
                 if (isset($job->class)) {
                     $obj = MeprJobFactory::fetch($job->class, $job);
-                    MeprUtils::debug_log(sprintf(__('Starting Job - %1$s (%2$s): %3$s', 'memberpress'), $job->id, $job->class, MeprUtils::object_to_string($obj)));
+                    MeprUtils::debug_log(sprintf(
+                        // Translators: %1$s: job ID, %2$s: job class.
+                        __('Starting Job - %1$s (%2$s): %3$s', 'memberpress'),
+                        $job->id,
+                        $job->class,
+                        MeprUtils::object_to_string($obj)
+                    ));
                     $obj->perform(); // Run the job's perform method.
-                    MeprUtils::debug_log(sprintf(__('Job Completed - %1$s (%2$s)', 'memberpress'), $job->id, $job->class));
+                    MeprUtils::debug_log(sprintf(
+                        // Translators: %1$s: job ID, %2$s: job class.
+                        __('Job Completed - %1$s (%2$s)', 'memberpress'),
+                        $job->id,
+                        $job->class
+                    ));
                     $this->complete($job); // When we're successful we complete the job.
                 } else {
                     $this->fail($job, __('No class was specified in the job config', 'memberpress'));
@@ -111,7 +122,11 @@ class MeprJobs
                 }
             } catch (Exception $e) {
                 $this->fail($job, $e->getMessage());
-                MeprUtils::debug_log(sprintf(__('Job Failed: %s', 'memberpress'), $e->getMessage()));
+                MeprUtils::debug_log(sprintf(
+                    // Translators: %s: error message.
+                    __('Job Failed: %s', 'memberpress'),
+                    $e->getMessage()
+                ));
             }
         }
     }

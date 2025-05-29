@@ -546,6 +546,7 @@ class MeprMigratorLearnDash extends MeprMigrator
 
             if ($section_id instanceof WP_Error || empty($section_id)) {
                 $this->logs[] = sprintf(
+                    // Translators: %1$s: section title, %2$s: error message.
                     __('Failed to migrate course section "%1$s": %2$s', 'memberpress'),
                     $section_data['title'],
                     $section_id instanceof WP_Error ? $section_id->get_error_message() : 'section ID was empty'

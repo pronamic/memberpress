@@ -946,4 +946,39 @@ jQuery(document).ready(function($) {
       $loader.hide();
     });
   });
+
+  $('#integrations-list').on('click', '.mepr-square-connect-new-gateway', function() {
+    const data = new FormData(),
+        values = $(this).closest('.mepr-integration').find(':input').serializeArray();
+
+    data.append('action', 'mepr_square_connect_new_gateway');
+    data.append('_ajax_nonce', MeprOptions.square_connect_nonce);
+    data.append('gateway_id', $(this).closest('.mepr-integration').data('id'));
+    data.append('environment', $(this).data('environment'));
+    values.forEach(value => data.append(value.name, value.value));
+
+    $.ajax({
+      method: 'POST',
+      url: ajaxurl,
+      processData: false,
+      contentType: false,
+      data: data
+    }).done(response => {
+      if (response && typeof response.success === 'boolean') {
+        if (response.success) {
+          window.location = response.data;
+        } else {
+          alert(response.data);
+        }
+      } else {
+        alert('Request failed');
+      }
+    }).fail(() => alert('Request failed'));
+  });
+
+  $('#integrations-list').on('click', '.mepr-square-disconnect', function(e) {
+    if (!confirm(MeprOptions.square_disconnect_confirm)) {
+      e.preventDefault();
+    }
+  });
 });

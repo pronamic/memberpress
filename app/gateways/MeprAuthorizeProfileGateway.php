@@ -275,7 +275,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     public function process_refund(MeprTransaction $txn)
     {
         $this->log($txn);
-        $this->getHttpClient()->refundTransaction($txn);
+        $this->getHttpClient()->refund_transaction($txn);
     }
 
     /**
@@ -376,7 +376,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         $sub = new MeprSubscription($subscription_id);
         $this->log($subscription_id);
         $this->log($_REQUEST);
-        $subscription = $this->getHttpClient()->cancelSubscription($sub->subscr_id);
+        $subscription = $this->getHttpClient()->cancel_subscription($sub->subscr_id);
 
         if ($subscription) {
             $_REQUEST['subscr_id'] = $subscription;
@@ -449,11 +449,11 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     {
         $user                  = $txn->user();
         $client                = $this->getHttpClient();
-        $authorizenet_customer = $client->getCustomerProfile($user->ID);
+        $authorizenet_customer = $client->get_customer_profile($user->ID);
 
         if ($authorizenet_customer) {
             $is_new_user       = false;
-            $new_payment_profile = $client->createCustomerPaymentProfile(
+            $new_payment_profile = $client->create_customer_payment_profile(
                 $user,
                 $authorizenet_customer,
                 $data_value,
@@ -465,8 +465,8 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             }
         } else {
             $is_new_user = true;
-            $client->createCustomerProfile($user, $data_value, $data_descriptor);
-            $authorizenet_customer = $client->getCustomerProfile($user->ID);
+            $client->create_customer_profile($user, $data_value, $data_descriptor);
+            $authorizenet_customer = $client->get_customer_profile($user->ID);
         }
 
         $this->log($authorizenet_customer);
@@ -477,7 +477,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         }
 
         if ($txn->is_one_time_payment()) {
-            $txn_num = $client->chargeCustomer($authorizenet_customer, $txn, true, $cvc_code);
+            $txn_num = $client->charge_customer($authorizenet_customer, $txn, true, $cvc_code);
 
             if (!empty($txn)) {
                 $txn->status    = MeprTransaction::$complete_str;
@@ -516,10 +516,10 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             if (apply_filters('mepr_authorize_profile_validation_txn_enabled', false) && $this->payment_validated !== true) {
                 $validation_txn = clone $txn;
                 $validation_txn->set_subtotal(1);
-                $validation_txn->trans_num = $client->chargeCustomer($authorizenet_customer, $validation_txn, false, $cvc_code);
+                $validation_txn->trans_num = $client->charge_customer($authorizenet_customer, $validation_txn, false, $cvc_code);
             }
 
-            $subscr_id = $client->createSubscriptionFromCustomer(
+            $subscr_id = $client->create_subscription_from_customer(
                 $authorizenet_customer,
                 $txn,
                 $sub,
@@ -528,7 +528,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             );
 
             if (isset($validation_txn)) {
-                $client->voidTransaction($validation_txn);
+                $client->void_transaction($validation_txn);
                 $this->payment_validated = true;
             }
 
@@ -775,7 +775,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
 
         $args = MeprHooks::apply_filters('mepr_authorize_update_subscription_args', $args, $sub);
 
-        $res = $this->getHttpClient()->updateSubscription($args);
+        $res = $this->getHttpClient()->update_subscription($args);
 
         return $res;
     }

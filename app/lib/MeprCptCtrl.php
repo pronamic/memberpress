@@ -123,41 +123,66 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
 
         if ($public) {
             $messages[$slug][1] = sprintf(
+                // Translators: %1$s: singular name, %2$s: view link, %3$s: singular name.
                 __('%1$s updated. <a href="%2$s">View %3$s</a>', 'memberpress'),
                 $singular_name,
                 esc_url(get_permalink($post_ID)),
                 $singular_name
             );
         } else {
-            $messages[$slug][1] = sprintf(__('%1$s updated.', 'memberpress'), $singular_name);
+            $messages[$slug][1] = sprintf(
+                // Translators: %1$s: singular name.
+                __('%1$s updated.', 'memberpress'),
+                $singular_name
+            );
         }
 
         $messages[$slug][2] = __('Custom field updated.', 'memberpress');
         $messages[$slug][3] = __('Custom field deleted.', 'memberpress');
-        $messages[$slug][4] = sprintf(__('%s updated.', 'memberpress'), $singular_name);
-        $messages[$slug][5] = isset($_GET['revision']) ? sprintf(__('%1$s restored to revision from %2$s', 'memberpress'), $singular_name, wp_post_revision_title((int) $_GET['revision'], false)) : false;
+        $messages[$slug][4] = sprintf(
+            // Translators: %s: singular name.
+            __('%s updated.', 'memberpress'),
+            $singular_name
+        );
+        $messages[$slug][5] = isset($_GET['revision']) ? sprintf(
+            // Translators: %1$s: singular name, %2$s: revision title.
+            __('%1$s restored to revision from %2$s', 'memberpress'),
+            $singular_name,
+            wp_post_revision_title((int) $_GET['revision'], false)
+        ) : false;
 
         if ($public) {
             $messages[$slug][6] = sprintf(
+                // Translators: %1$s: singular name, %2$s: view link, %3$s: singular name.
                 __('%1$s published. <a href="%2$s">View %3$s</a>', 'memberpress'),
                 $singular_name,
                 esc_url(get_permalink($post_ID)),
                 $singular_name
             );
         } else {
-            $messages[$slug][6] = sprintf(__('%1$s published.', 'memberpress'), $singular_name);
+            $messages[$slug][6] = sprintf(
+                // Translators: %1$s: singular name.
+                __('%1$s published.', 'memberpress'),
+                $singular_name
+            );
         }
 
-        $messages[$slug][7] = sprintf(__('%s saved.', 'memberpress'), $singular_name);
+        $messages[$slug][7] = sprintf(
+            // Translators: %1$s: singular name.
+            __('%s saved.', 'memberpress'),
+            $singular_name
+        );
 
         if ($public) {
             $messages[$slug][8]  = sprintf(
+                // Translators: %1$s: singular name, %2$s: preview link, %3$s: singular name.
                 __('%1$s submitted. <a target="_blank" href="%2$s">Preview %3$s</a>', 'memberpress'),
                 $singular_name,
                 esc_url(add_query_arg('preview', 'true', get_permalink($post_ID))),
                 $singular_name
             );
             $messages[$slug][9]  = sprintf(
+                // Translators: %1$s: singular name, %2$s: scheduled date, %3$s: view link, %4$s: singular name.
                 __('%1$s scheduled for: <strong>%2$s</strong>. <a target="_blank" href="%3$s">Preview %4$s</a>', 'memberpress'),
                 $singular_name,
                 date_i18n('M j, Y @ G:i', strtotime($post->post_date), true),
@@ -165,19 +190,29 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
                 $singular_name
             );
             $messages[$slug][10] = sprintf(
+                // Translators: %1$s: singular name, %2$s: preview link, %3$s: singular name.
                 __('%1$s draft updated. <a target="_blank" href="%2$s">Preview %3$s</a>', 'memberpress'),
                 $singular_name,
                 esc_url(add_query_arg('preview', 'true', get_permalink($post_ID))),
                 $singular_name
             );
         } else {
-            $messages[$slug][8]  = sprintf(__('%s submitted.', 'memberpress'), $singular_name);
+            $messages[$slug][8]  = sprintf(
+                // Translators: %1$s: singular name.
+                __('%s submitted.', 'memberpress'),
+                $singular_name
+            );
             $messages[$slug][9]  = sprintf(
+                // Translators: %1$s: singular name, %2$s: scheduled date.
                 __('%1$s scheduled for: <strong>%2$s</strong>.', 'memberpress'),
                 $singular_name,
                 date_i18n('M j, Y @ G:i', strtotime($post->post_date), true)
             );
-            $messages[$slug][10] = sprintf(__('%s draft updated.', 'memberpress'), $singular_name);
+            $messages[$slug][10] = sprintf(
+                // Translators: %1$s: singular name.
+                __('%s draft updated.', 'memberpress'),
+                $singular_name
+            );
         }
 
         return $messages;
@@ -204,35 +239,60 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
         $public        = $this->cpt->config['public'];
 
         $messages[$slug] = [
-            'updated'   => _n(
-                sprintf('%1$d %2$s updated.', $counts['updated'], $singular_name),
-                sprintf('%1$d %2$s updated.', $counts['updated'], $plural_name),
+            'updated'   => sprintf(
+                // Translators: %1$d: number of updated items, %2$s: singular or plural name.
+                _n(
+                    '%1$d %2$s updated.',
+                    '%1$d %2$s updated.',
+                    $counts['updated'],
+                    'memberpress'
+                ),
                 $counts['updated'],
-                'memberpress'
+                $counts['updated'] === 1 ? $singular_name : $plural_name
             ),
-            'locked'    => _n(
-                sprintf('%1$d %2$s not updated, somebody is editing it.', $counts['locked'], $singular_name),
-                sprintf('%1$d %2$s not updated, somebody is editing them.', $counts['locked'], $plural_name),
+            'locked'    => sprintf(
+                // Translators: %1$d: number of locked items, %2$s: singular or plural name.
+                _n(
+                    '%1$d %2$s not updated, somebody is editing it.',
+                    '%1$d %2$s not updated, somebody is editing them.',
+                    $counts['locked'],
+                    'memberpress'
+                ),
                 $counts['locked'],
-                'memberpress'
+                $counts['locked'] === 1 ? $singular_name : $plural_name
             ),
-            'deleted'   => _n(
-                sprintf('%1$d %2$s permanently deleted.', $counts['deleted'], $singular_name),
-                sprintf('%1$d %2$s permanently deleted.', $counts['deleted'], $plural_name),
+            'deleted'   => sprintf(
+                // Translators: %1$d: number of deleted items, %2$s: singular or plural name.
+                _n(
+                    '%1$d %2$s permanently deleted.',
+                    '%1$d %2$s permanently deleted.',
+                    $counts['deleted'],
+                    'memberpress'
+                ),
                 $counts['deleted'],
-                'memberpress'
+                $counts['deleted'] === 1 ? $singular_name : $plural_name
             ),
-            'trashed'   => _n(
-                sprintf('%1$s %2$s moved to the Trash.', $counts['trashed'], $singular_name),
-                sprintf('%1$s %2$s moved to the Trash.', $counts['trashed'], $plural_name),
+            'trashed'   => sprintf(
+                // Translators: %1$s: number of trashed items, %2$s: singular or plural name.
+                _n(
+                    '%1$s %2$s moved to the Trash.',
+                    '%1$s %2$s moved to the Trash.',
+                    $counts['trashed'],
+                    'memberpress'
+                ),
                 $counts['trashed'],
-                'memberpress'
+                $counts['trashed'] === 1 ? $singular_name : $plural_name
             ),
-            'untrashed' => _n(
-                sprintf('%1$s %2$s restored from the Trash.', $counts['untrashed'], $singular_name),
-                sprintf('%1$s %2$s restored from the Trash.', $counts['untrashed'], $plural_name),
+            'untrashed' => sprintf(
+                // Translators: %1$s: number of untrashed items, %2$s: singular or plural name.
+                _n(
+                    '%1$s %2$s restored from the Trash.',
+                    '%1$s %2$s restored from the Trash.',
+                    $counts['untrashed'],
+                    'memberpress'
+                ),
                 $counts['untrashed'],
-                'memberpress'
+                $counts['untrashed'] === 1 ? $singular_name : $plural_name
             ),
         ];
 

@@ -1,6 +1,9 @@
 <?php
 
-// Has welcome image? Priority given to shortcode.
+/**
+ * Has welcome image? Priority given to shortcode.
+ */
+
 if (isset($atts['show_welcome_image'])) {
     $has_welcome_image = filter_var($atts['show_welcome_image'], FILTER_VALIDATE_BOOLEAN);
 } elseif (isset($mepr_options->design_login_welcome_img)) {

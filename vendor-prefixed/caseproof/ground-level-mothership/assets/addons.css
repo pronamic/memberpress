@@ -241,3 +241,8 @@
 .mosh-clearfix:after {
     clear: both;
 }
+
+.mosh-product-info {
+    height: 130px;
+    overflow: auto;
+}

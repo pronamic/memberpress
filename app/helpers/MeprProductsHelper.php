@@ -465,7 +465,12 @@ class MeprProductsHelper
                     }
                 }
 
-                $renewal_str .= sprintf(__(' (renewal for %1$s to %2$s)', 'memberpress'), $new_created_at, $new_expires_at);
+                $renewal_str .= sprintf(
+                    // Translators: %1$s: renewal start date, %2$s: renewal end date.
+                    __(' (renewal for %1$s to %2$s)', 'memberpress'),
+                    $new_created_at,
+                    $new_expires_at
+                );
             }
         }
 

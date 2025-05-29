@@ -294,15 +294,33 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     /**
      * Retrieves a transaction by its transaction number.
      *
-     * @param  string $trans_num The transaction number.
+     * @param  string $trans_num   The transaction number.
+     * @param  string $return_type The type of object to return.
      * @return stdClass The transaction object.
      */
-    public static function get_one_by_trans_num($trans_num)
+    public static function get_one_by_trans_num($trans_num, $return_type = OBJECT)
     {
         $mepr_db = new MeprDb();
         $args    = compact('trans_num');
 
-        return $mepr_db->get_one_record($mepr_db->transactions, $args);
+        return $mepr_db->get_one_record($mepr_db->transactions, $args, $return_type);
+    }
+
+    /**
+     * Get a transaction instance by transaction number.
+     *
+     * @param  string $trans_num The transaction number.
+     * @return MeprTransaction|false The transaction instance or false if not found.
+     */
+    public static function get_instance_by_trans_num(string $trans_num)
+    {
+        $txn = new MeprTransaction(self::get_one_by_trans_num($trans_num, ARRAY_A));
+
+        if ($txn->id > 0) {
+            return $txn;
+        }
+
+        return false;
     }
 
     /**
@@ -1334,7 +1352,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                         $_REQUEST['silent'] = true; // Don't want to send cancellation notices.
                         // PT #157053195 skip cancelled subs.
                         if ($old_sub->status !== MeprSubscription::$cancelled_str) {
-                                $old_sub->cancel();
+                            $old_sub->cancel();
                         }
                     }
                 } else {

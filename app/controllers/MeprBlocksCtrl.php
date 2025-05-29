@@ -21,6 +21,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             add_action('enqueue_block_assets', [$this, 'enqueue_block_scripts']);
             add_filter('mepr-is-product-page', [$this, 'signup_block_enqueues'], 10, 2);
             add_filter('mepr_is_account_page', [$this, 'account_block_enqueues'], 10, 2);
+            add_filter('register_block_type_args', [$this, 'add_protection_attributes']);
+            add_filter('render_block', [$this, 'block_content_protection'], 10, 2);
         }
     }
 
@@ -571,6 +573,11 @@ class MeprBlocksCtrl extends MeprBaseCtrl
                 'custom_fields'            => $custom_fields,
                 'redirect_url_setting_url' => menu_page_url('memberpress-options', false) . '#mepr-accounts',
                 'disabled_blocks'          => MeprHooks::apply_filters('mepr_disabled_blocks', []),
+                'block_protection'         => MeprHooks::apply_filters('mepr_block_protection_enabled', true),
+                'block_protection_exclude' => MeprHooks::apply_filters(
+                    'mepr_block_protection_exclude',
+                    ['memberpress/protected-content']
+                ),
             ]
         );
 
@@ -663,5 +670,91 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         }
 
         return $return;
+    }
+
+    /**
+     * Add protection attributes to blocks.
+     *
+     * @param  array $args Array of arguments for registering a block type.
+     * @return array
+     */
+    public function add_protection_attributes($args)
+    {
+        $args['attributes']['mepr_protection_rule'] = [
+            'type'    => 'number',
+            'default' => 0,
+        ];
+
+        $args['attributes']['mepr_protection_ifallowed'] = [
+            'type'    => 'string',
+            'default' => 'show',
+        ];
+
+        $args['attributes']['mepr_protection_unauth'] = [
+            'type'    => 'string',
+            'default' => 'default',
+        ];
+
+        $args['attributes']['mepr_protection_unauth_message'] = [
+            'type'    => 'string',
+            'default' => '',
+        ];
+
+        return $args;
+    }
+
+    /**
+     * Applies content protection to a given block based on defined rules and attributes.
+     *
+     * This method evaluates the protection rule assigned to a block and modifies its content accordingly.
+     * If the user does not have the required permissions, it will handle unauthorized access by showing
+     * a default or custom message, or applying the specified settings for unauthorized users.
+     *
+     * @param  string $block_content The original content of the block.
+     * @param  array  $block         An associative array containing block attributes, including protection rules and settings.
+     * @return string The modified block content if a rule is applied, or the original content if no rule is set.
+     */
+    public function block_content_protection($block_content, $block)
+    {
+        // Skip if no protection rule is set.
+        if (empty($block['attrs']['mepr_protection_rule'])) {
+            return $block_content;
+        }
+
+        $attributes = [
+            'rule'      => $block['attrs']['mepr_protection_rule'],
+            'ifallowed' => !empty($block['attrs']['mepr_protection_ifallowed']) ? $block['attrs']['mepr_protection_ifallowed'] : 'show',
+            'unauth'    => !empty($block['attrs']['mepr_protection_unauth']) ? $block['attrs']['mepr_protection_unauth'] : 'hide',
+        ];
+
+        $rule = new MeprRule($attributes['rule']);
+        if (!($rule->ID > 0)) {
+            return '<div class="mepr_block_error">' . esc_html__('Invalid rule', 'memberpress') . '</div>';
+        }
+
+        $unauth_message = '';
+
+        if ($attributes['unauth'] === 'default') {
+            $global_settings = MeprRule::get_global_unauth_settings();
+            $post            = MeprUtils::get_current_post();
+            $post_settings   = $post instanceof WP_Post ? MeprRule::get_post_unauth_settings($post) : null;
+
+            if (is_object($post_settings) && $post_settings->unauth_message_type != 'default') {
+                $unauth_message = $post_settings->unauth_message;
+            } elseif ($rule->unauth_message_type != 'default') {
+                $unauth_message = $rule->unauth_message;
+            } else {
+                $unauth_message = $global_settings->message;
+            }
+        } elseif ($attributes['unauth'] === 'message' && !empty($block['attrs']['mepr_protection_unauth_message'])) {
+            $unauth_message = $block['attrs']['mepr_protection_unauth_message'];
+        }
+
+        if (!empty($unauth_message)) {
+            $attributes['unauth']         = 'message';
+            $attributes['unauth_message'] = do_shortcode(wp_kses_post($unauth_message));
+        }
+
+        return MeprRulesCtrl::protect_shortcode_content($attributes, $block_content);
     }
 }

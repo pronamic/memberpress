@@ -174,7 +174,7 @@
       <div class="mp-form-row">
         <label for="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>" class="mepr-checkbox-field mepr-form-input" required>
           <input type="checkbox" name="mepr_agree_to_privacy_policy" id="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>" />
-          <?php echo preg_replace('/%(.*)%/', '<a href="' . $privacy_page_link . '" target="_blank">$1</a>', wp_kses_post(__($mepr_options->privacy_policy_title, 'memberpress'))); ?>
+          <?php echo preg_replace('/%(.*)%/', '<a href="' . $privacy_page_link . '" target="_blank">$1</a>', wp_kses_post($mepr_options->privacy_policy_title)); ?>
         </label>
       </div>
     <?php endif; ?>

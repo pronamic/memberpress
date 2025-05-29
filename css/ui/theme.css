@@ -53,7 +53,7 @@
 
 .mepr-stripe-card-errors,
 .mepr-paypal-card-errors,
-.mepr-stripe-checkout-errors {
+.mepr-square-errors {
   color: #eb1c26;
 }
 
@@ -326,4 +326,9 @@ body:has(.mepr-paywall-overlay) {
 .mepr-order-bump-required input[name="mepr_order_bumps[]"] {
   pointer-events: none !important;
   opacity: 0.4 !important;
+}
+
+/* RTL Support*/
+.rtl .mp_wrapper form {
+  text-align: right;
 }

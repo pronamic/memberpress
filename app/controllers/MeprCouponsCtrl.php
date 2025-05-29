@@ -149,7 +149,12 @@ class MeprCouponsCtrl extends MeprCptCtrl
                     break;
                 case 'coupon-dm':
                     if ($coupon->discount_mode == 'trial-override') {
-                        printf(__('Trial: %1$s days for %2$s', 'memberpress'), $coupon->trial_days, MeprAppHelper::format_currency($coupon->trial_amount));
+                        printf(
+                            // Translators: %1$s: trial days, %2$s: trial amount.
+                            __('Trial: %1$s days for %2$s', 'memberpress'),
+                            $coupon->trial_days,
+                            MeprAppHelper::format_currency($coupon->trial_amount)
+                        );
                     } elseif ($coupon->discount_mode == 'first-payment') {
                         echo esc_html_x('First Payment', 'ui', 'memberpress');
                     } elseif ($coupon->discount_mode == 'standard') {

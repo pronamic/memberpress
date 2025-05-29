@@ -70,7 +70,10 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
     public function enqueue_scripts($hook)
     {
         if (preg_match('/_page_memberpress-(coachkit|options)$/', $hook)) {
-            remove_all_actions('admin_notices');
+            if (preg_match('/_page_memberpress-coachkit$/', $hook)) {
+                remove_all_actions('admin_notices');
+            }
+
             wp_enqueue_style('mepr-sister-plugin-css', MEPR_CSS_URL . '/admin-sister-plugin.css', [], MEPR_VERSION);
         }
     }
@@ -197,4 +200,3 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
         return $installer->plugin_info();
     }
 }
-

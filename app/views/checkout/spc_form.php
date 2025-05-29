@@ -9,6 +9,7 @@
     <input type="hidden" name="mepr_process_signup_form" value="<?php echo isset($_GET['mepr_process_signup_form']) ? esc_attr($_GET['mepr_process_signup_form']) : 1 ?>" />
     <input type="hidden" name="mepr_product_id" value="<?php echo esc_attr($product->ID); ?>" />
     <input type="hidden" name="mepr_transaction_id" value="<?php echo isset($_GET['mepr_transaction_id']) ? esc_attr($_GET['mepr_transaction_id']) : ''; ?>" />
+    <input type="hidden" name="mepr_current_url" value="<?php echo esc_attr(MeprUtils::get_current_url()); ?>" />
 
     <?php if (MeprUtils::is_user_logged_in()) : ?>
       <input type="hidden" name="logged_in_purchase" value="1" />
@@ -210,7 +211,7 @@
       <div class="mp-form-row">
         <label for="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>" class="mepr-checkbox-field mepr-form-input" required>
           <input type="checkbox" name="mepr_agree_to_privacy_policy" id="mepr_agree_to_privacy_policy<?php echo $unique_suffix; ?>" />
-          <?php echo preg_replace('/%(.*)%/', '<a href="' . $privacy_page_link . '" target="_blank">$1</a>', wp_kses_post(__($mepr_options->privacy_policy_title, 'memberpress'))); ?>
+          <?php echo preg_replace('/%(.*)%/', '<a href="' . $privacy_page_link . '" target="_blank">$1</a>', wp_kses_post($mepr_options->privacy_policy_title)); ?>
         </label>
       </div>
     <?php endif; ?>

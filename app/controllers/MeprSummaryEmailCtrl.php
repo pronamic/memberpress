@@ -111,6 +111,7 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
             }
 
             $subject = sprintf(
+                // Translators: %s: date.
                 __('[MemberPress] Your summary report for the week of %s', 'memberpress'),
                 MeprUtils::date('F j', $last_week_start, $utc)
             );

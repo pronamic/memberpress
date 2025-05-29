@@ -9,12 +9,9 @@ if (isset($user) && $user instanceof MeprUser && isset($mepr_options)) {
 ?>
 <?php if ($payment_method->settings->stripe_checkout_enabled == 'on') : ?>
     <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
-  <input type="hidden" name="mepr_stripe_is_checkout" value="1"/>
-  <input type="hidden" name="mepr_stripe_checkout_page_mode" value="1"/>
     <?php if ($payment_method->settings->use_desc) : ?>
     <div class="mepr-stripe-gateway-description"><?php esc_html_e('Pay with your Credit Card via Stripe Checkout', 'memberpress'); ?></div>
     <?php endif; ?>
-  <span role="alert" class="mepr-stripe-checkout-errors"></span>
 <?php else : ?>
     <?php MeprHooks::do_action('mepr-stripe-payment-form-before-name-field', $txn); ?>
   <div class="mepr-stripe-elements">
@@ -24,4 +21,4 @@ if (isset($user) && $user instanceof MeprUser && isset($mepr_options)) {
   </div>
 <?php endif; ?>
 <?php MeprHooks::do_action('mepr-stripe-payment-form', $txn); ?>
-<noscript><p class="mepr_nojs"><?php esc_html_e('Javascript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>
+<noscript><p class="mepr_nojs"><?php esc_html_e('JavaScript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>

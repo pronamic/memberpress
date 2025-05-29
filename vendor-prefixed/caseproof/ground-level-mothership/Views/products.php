@@ -55,7 +55,7 @@ declare(strict_types=1);
                                 <img src="<?php echo esc_url($product->image); ?>"
                                     alt="<?php
                                         echo esc_attr($product->list_name); // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps -- API response
-                                    ?>" 
+                                    ?>"
                                 >
                             </div>
                             <div class="mosh-product-info">

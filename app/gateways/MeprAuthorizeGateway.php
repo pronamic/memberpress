@@ -1616,9 +1616,19 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
         $response = wp_remote_post($this->settings->aimUrl, $remote);
 
         if (is_wp_error($response)) {
-            throw new MeprHttpException(sprintf(__('You had an HTTP error connecting to %1$s: %2$s', 'memberpress'), $this->name, MeprUtils::object_to_string($response)));
+            throw new MeprHttpException(sprintf(
+                // Translators: %1$s: gateway name, %2$s: error message.
+                __('You had an HTTP error connecting to %1$s: %2$s', 'memberpress'),
+                $this->name,
+                MeprUtils::object_to_string($response)
+            ));
         } elseif ($response['response']['code'] != '200') {
-            throw new MeprHttpException(sprintf(__('You had an HTTP error connecting to %1$s: %2$s', 'memberpress'), $this->name, MeprUtils::object_to_string($response)));
+            throw new MeprHttpException(sprintf(
+                // Translators: %1$s: gateway name, %2$s: error message.
+                __('You had an HTTP error connecting to %1$s: %2$s', 'memberpress'),
+                $this->name,
+                MeprUtils::object_to_string($response)
+            ));
         }
 
         $answers = explode('|', $response['body']);
@@ -1728,9 +1738,12 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
 
         if (is_wp_error($response)) {
-            throw new MeprHttpException(sprintf(__('You had an HTTP error connecting to %1$s: %2$s', 'memberpress'), $this->name, MeprUtils::object_to_string($response)));
-        } elseif ($response['response']['code'] != '200') {
-            throw new MeprHttpException(sprintf(__('You had an HTTP error connecting to %1$s: %2$s', 'memberpress'), $this->name, MeprUtils::object_to_string($response)));
+            throw new MeprHttpException(sprintf(
+                // Translators: %1$s: gateway name, %2$s: error message.
+                __('You had an HTTP error connecting to %1$s: %2$s', 'memberpress'),
+                $this->name,
+                MeprUtils::object_to_string($response)
+            ));
         } else {
             $answers = $this->simplexml2stdobject(@simplexml_load_string($response['body']));
 

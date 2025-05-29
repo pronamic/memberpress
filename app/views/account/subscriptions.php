@@ -119,11 +119,19 @@ if (!empty($subscriptions)) {
               <?php
                 $nba = $sub->next_billing_at;
                 if ($txn != false && $txn instanceof MeprTransaction && !$txn->is_sub_account && $is_sub && $nba) : ?>
-                  <div class="mepr-account-rebill"><?php echo esc_html(sprintf(_x('Next Billing: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba))); ?></div>
+                  <div class="mepr-account-rebill"><?php echo esc_html(sprintf(
+                      // Translators: %s: date.
+                      _x('Next Billing: %s', 'ui', 'memberpress'),
+                      MeprAppHelper::format_date($nba)
+                  )); ?></div>
                 <?php else :
                     $nba = $sub->expires_at;
                     if (!$sub->next_billing_at && $nba && stripos($sub->expires_at, '0000-00') === false) : ?>
-                      <div class="mepr-account-rebill"><?php echo esc_html(sprintf(_x('Expires: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba))); ?></div>
+                      <div class="mepr-account-rebill"><?php echo esc_html(sprintf(
+                          // Translators: %s: date.
+                          _x('Expires: %s', 'ui', 'memberpress'),
+                          MeprAppHelper::format_date($nba)
+                      )); ?></div>
                     <?php endif;
                 endif; ?>
 
@@ -145,7 +153,12 @@ if (!empty($subscriptions)) {
                     $exp_yr = $sub->cc_exp_year;
                     if ($exp_mo && $exp_yr) : ?>
                           <?php $cc_class = (($sub->cc_expiring_before_next_payment()) ? ' mepr-inactive' : ''); ?>
-                  <div class="mepr-account-cc-exp<?php echo esc_attr($cc_class); ?>"><?php echo esc_html(sprintf(_x('%1$02d-%2$d', 'ui', 'memberpress'), $exp_mo, $exp_yr)); ?></div>
+                  <div class="mepr-account-cc-exp<?php echo esc_attr($cc_class); ?>"><?php echo esc_html(sprintf(
+                      // Translators: %1$d: month, %2$d: year.
+                      _x('%1$02d-%2$d', 'ui', 'memberpress'),
+                      $exp_mo,
+                      $exp_yr
+                  )); ?></div>
                     <?php else : // Need a placeholder for responsive. ?>
                   <div>&zwnj;</div>
                     <?php endif; ?>

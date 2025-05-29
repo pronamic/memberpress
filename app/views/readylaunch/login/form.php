@@ -51,7 +51,12 @@ $admin_view         = isset($atts['admin_view']) ? $atts['admin_view'] : false;
               </script>
                 <?php else : ?>
               <div class="mepr-already-logged-in">
-                    <?php printf(_x('You\'re already logged in. %1$sLogout.%2$s', 'ui', 'memberpress'), '<a href="' . wp_logout_url(urldecode($redirect_to)) . '">', '</a>'); ?>
+                    <?php printf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        _x('You\'re already logged in. %1$sLogout.%2$s', 'ui', 'memberpress'),
+                        '<a href="' . wp_logout_url(urldecode($redirect_to)) . '">',
+                        '</a>'
+                    ); ?>
               </div>
                 <?php endif; ?>
             <?php else : ?>

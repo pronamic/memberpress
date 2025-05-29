@@ -13,6 +13,7 @@
 &nbsp;&bullet;&nbsp;<?php _e('And much more ...', 'memberpress'); ?>
 </p>
 <p><?php printf(
+    // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag, %3$s: opening anchor tag, %4$s: closing anchor tag.
     __('For a full list of features you can visit our %1$schangelog%2$s or %3$sread the blog post about 1.2.4%2$s.', 'memberpress'),
     '<a href="https://memberpress.com/change-log/">',
     '</a>',

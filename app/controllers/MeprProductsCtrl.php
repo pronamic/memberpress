@@ -701,6 +701,7 @@ class MeprProductsCtrl extends MeprCptCtrl
             $user = new MeprUser($user_ID);
             if ($user->is_already_subscribed_to($prd->ID)) {
                 $product_access_str = MeprHooks::apply_filters('mepr_product_access_string', sprintf(
+                    // Translators: %1$s: opening div tag, %2$s: opening anchor tag, %3$s: closing anchor and div tags.
                     __('%1$sYou have already subscribed to this item. %2$sClick here to access it%3$s', 'memberpress'),
                     '<div class="mepr-product-access-url">',
                     '<a href="' . stripslashes($prd->access_url) . '">',
@@ -1147,7 +1148,11 @@ class MeprProductsCtrl extends MeprCptCtrl
             }
 
             wp_dropdown_categories([
-                'show_option_all' => sprintf(esc_html__('Show all %s', 'memberpress'), $info_taxonomy->label),
+                'show_option_all' => sprintf(
+                    // Translators: %s: taxonomy label.
+                    esc_html__('Show all %s', 'memberpress'),
+                    $info_taxonomy->label
+                ),
                 'taxonomy'        => $taxonomy,
                 'name'            => $taxonomy,
                 'orderby'         => 'name',

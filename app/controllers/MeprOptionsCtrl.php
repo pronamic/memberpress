@@ -151,10 +151,17 @@ class MeprOptionsCtrl extends MeprBaseCtrl
     public static function enqueue_footer_scripts()
     {
         global $hook_suffix;
-        if ($hook_suffix == 'memberpress_page_memberpress-options') {
-            ?>
+
+        $mepr_options = MeprOptions::fetch();
+        if ($hook_suffix == 'memberpress_page_memberpress-options' && isset($mepr_options->integrations)) {
+            foreach ($mepr_options->integrations as $integration) {
+                if (isset($integration['gateway']) && $integration['gateway'] === 'MeprPayPalCommerceGateway') {
+                    ?>
       <script id="paypal-sdk-js" src="https://www.paypal.com/webapps/merchantboarding/js/lib/lightbox/partner.js"></script>
-            <?php
+                    <?php
+                    break;
+                }
+            }
         }
     }
 
@@ -206,17 +213,29 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 'option_nonce'                          => wp_create_nonce('mepr_gateway_form_nonce'),
                 'tax_nonce'                             => wp_create_nonce('mepr_taxes'),
                 'activate_license_nonce'                => wp_create_nonce('mepr_activate_license'),
-                'activation_error'                      => __('An error occurred during activation: %s', 'memberpress'),
+                'activation_error'                      => (
+                    // Translators: %s: error message.
+                    __('An error occurred during activation: %s', 'memberpress')
+                ),
                 'invalid_response'                      => __('Invalid response.', 'memberpress'),
                 'ajax_error'                            => __('Ajax error.', 'memberpress'),
                 'deactivate_license_nonce'              => wp_create_nonce('mepr_deactivate_license'),
-                'deactivate_confirm'                    => sprintf(__('Are you sure? MemberPress will not be functional on %s if this License Key is deactivated.', 'memberpress'), MeprUtils::site_domain()),
-                'deactivation_error'                    => __('An error occurred during deactivation: %s', 'memberpress'),
+                'deactivate_confirm'                    => sprintf(
+                    // Translators: %s: site domain.
+                    __('Are you sure? MemberPress will not be functional on %s if this License Key is deactivated.', 'memberpress'),
+                    MeprUtils::site_domain()
+                ),
+                'deactivation_error'                    => (
+                    // Translators: %s: error message.
+                    __('An error occurred during deactivation: %s', 'memberpress')
+                ),
                 'install_license_edition_nonce'         => wp_create_nonce('mepr_install_license_edition'),
                 'validate_stripe_payment_methods_nonce' => wp_create_nonce('mepr_validate_stripe_payment_method_types'),
                 'activate_stripe_payment_method_nonce'  => wp_create_nonce('mepr_activate_stripe_payment_method'),
                 'validate_stripe_tax_nonce'             => wp_create_nonce('mepr_validate_stripe_tax'),
                 'unable_to_verify_stripe_tax'           => __('Unable to verify Stripe Tax status', 'memberpress'),
+                'square_connect_nonce'                  => wp_create_nonce('mepr_square_connect'),
+                'square_disconnect_confirm'             => __('Are you sure you want to disconnect this gateway? Disconnecting this gateway will prevent subscription payments from being recorded and new payments will stop working when the access token expires.', 'memberpress'),
             ];
 
             wp_register_script('memberpress-i18n', MEPR_JS_URL . '/i18n.js', ['jquery'], MEPR_VERSION);
@@ -310,7 +329,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
     public static function ajax_activate_license()
     {
         if (!MeprUtils::is_post_request() || !isset($_POST['key']) || !is_string($_POST['key'])) {
-            wp_send_json_error(sprintf(__('An error occurred during activation: %s', 'memberpress'), __('Bad request.', 'memberpress')));
+            wp_send_json_error(sprintf(
+                // Translators: %s: error message.
+                __('An error occurred during activation: %s', 'memberpress'),
+                __('Bad request.', 'memberpress')
+            ));
         }
 
         if (!MeprUtils::is_logged_in_and_an_admin()) {
@@ -318,7 +341,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
 
         if (!check_ajax_referer('mepr_activate_license', false, false)) {
-            wp_send_json_error(sprintf(__('An error occurred during activation: %s', 'memberpress'), __('Security check failed.', 'memberpress')));
+            wp_send_json_error(sprintf(
+                // Translators: %s: error message.
+                __('An error occurred during activation: %s', 'memberpress'),
+                __('Security check failed.', 'memberpress')
+            ));
         }
 
         $mepr_options = MeprOptions::fetch();
@@ -414,7 +441,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
     public static function ajax_deactivate_license()
     {
         if (!MeprUtils::is_post_request()) {
-            wp_send_json_error(sprintf(__('An error occurred during deactivation: %s', 'memberpress'), __('Bad request.', 'memberpress')));
+            wp_send_json_error(sprintf(
+                // Translators: %s: error message.
+                __('An error occurred during deactivation: %s', 'memberpress'),
+                __('Bad request.', 'memberpress')
+            ));
         }
 
         if (!MeprUtils::is_logged_in_and_an_admin()) {
@@ -422,7 +453,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
 
         if (!check_ajax_referer('mepr_deactivate_license', false, false)) {
-            wp_send_json_error(sprintf(__('An error occurred during deactivation: %s', 'memberpress'), __('Security check failed.', 'memberpress')));
+            wp_send_json_error(sprintf(
+                // Translators: %s: error message.
+                __('An error occurred during deactivation: %s', 'memberpress'),
+                __('Security check failed.', 'memberpress')
+            ));
         }
 
         $mepr_options = MeprOptions::fetch();
@@ -659,7 +694,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 if (isset($live[$payment_method_type]['status_details']['error_message'])) {
                     $message = $live[$payment_method_type]['status_details']['error_message'];
                 } else {
-                    $message = sprintf(__('Unable to activate payment method `%s`', 'memberpress'), $payment_method_type);
+                    $message = sprintf(
+                        // Translators: %s: payment method type.
+                        __('Unable to activate payment method `%s`', 'memberpress'),
+                        $payment_method_type
+                    );
                 }
 
                 throw new Exception($message);

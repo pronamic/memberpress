@@ -53,6 +53,10 @@ class AddonsManager implements StaticContainerAwareness
             return $transient;
         }
 
+        if (! is_object($transient)) {
+            return $transient;
+        }
+
         $transientCheck = self::checkAddonsUpdateTransient();
         if ($transientCheck !== false) {
             $productsTransient = get_transient(
@@ -62,10 +66,6 @@ class AddonsManager implements StaticContainerAwareness
             );
             return ($productsTransient->products ?? false) ?
                 self::getTransientWithAddonsUpdates($productsTransient->products, $transient) : $transient;
-        }
-
-        if (! is_object($transient)) {
-            return $transient;
         }
 
         if (! isset($transient->response) || ! is_array($transient->response)) {
@@ -312,8 +312,8 @@ class AddonsManager implements StaticContainerAwareness
                 wp_send_json_success(
                     [
                         'message'   => $type === 'plugin'
-                                        ? esc_html__('Plugin installed & activated.', 'memberpress')
-                                        : esc_html__('Add-on installed & activated.', 'memberpress'),
+                                        ? esc_html__('Plugin installed and activated.', 'memberpress')
+                                        : esc_html__('Add-on installed and activated.', 'memberpress'),
                         'activated' => true,
                         'basename'  => $pluginBaseName,
                     ]
@@ -414,8 +414,8 @@ class AddonsManager implements StaticContainerAwareness
     public static function enqueueAssets(): void
     {
         wp_enqueue_style('dashicons');
-        wp_enqueue_script('mosh-addons-js', plugin_dir_url(__FILE__) . '../Assets/addons.js', [], null, true);
-        wp_enqueue_style('mosh-addons-css', plugin_dir_url(__FILE__) . '../Assets/addons.css');
+        wp_enqueue_script('mosh-addons-js', plugin_dir_url(__FILE__) . '../assets/addons.js', [], null, true);
+        wp_enqueue_style('mosh-addons-css', plugin_dir_url(__FILE__) . '../assets/addons.css');
         wp_localize_script('mosh-addons-js', 'MoshAddons', [
             'ajax_url'              => admin_url('admin-ajax.php'),
             'nonce'                 => wp_create_nonce('mosh_addons'),

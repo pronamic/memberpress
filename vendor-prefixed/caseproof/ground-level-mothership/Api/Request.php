@@ -123,7 +123,7 @@ class Request implements StaticContainerAwareness
         $headers = [];
 
         $licenseKey       = Credentials::getLicenseKey();
-        $activationDomain = Credentials::getActivationDomain();
+        $activationDomain = rawurlencode(Credentials::getActivationDomain());
         if ($licenseKey && $activationDomain) {
             return [
                 'Authorization' => 'Basic ' . base64_encode("$activationDomain:$licenseKey"),

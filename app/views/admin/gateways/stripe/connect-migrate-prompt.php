@@ -24,7 +24,13 @@ if (! isset($_GET['display-keys']) && ! isset($_COOKIE['mepr_stripe_display_keys
     <?php if (empty($service_account_name)) : ?>
         <?php _e('Connected to Stripe', 'memberpress'); ?>
     <?php else : ?>
-        <?php printf(__('Connected to: %1$s %2$s %3$s', 'memberpress'), '<strong>', $service_account_name, '</strong>'); ?>
+        <?php printf(
+            // Translators: %1$s: opening strong tag, %2$s: service account name, %3$s: closing strong tag.
+            __('Connected to: %1$s %2$s %3$s', 'memberpress'),
+            '<strong>',
+            $service_account_name,
+            '</strong>'
+        ); ?>
     <?php endif; ?>
     &nbsp;
     <span <?php echo $classes; ?>>

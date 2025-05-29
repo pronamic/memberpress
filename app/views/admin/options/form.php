@@ -1,6 +1,12 @@
-<?php if (!defined('ABSPATH')) {
-    die('You are not allowed to call this page directly.');
-} ?>
+<?php
+/**
+ * View admin/options/form
+ *
+ * @var MeprOptions $mepr_options
+ */
+
+defined('ABSPATH') || exit;
+?>
 
 <div class="wrap">
   <h2><?php _e('Settings', 'memberpress'); ?><a href="http://memberpress.helpscoutdocs.com/" class="add-new-h2" target="_blank"><?php _e('User Manual', 'memberpress'); ?></a></h2>
@@ -30,392 +36,423 @@
 
     <div id="license" class="mepr-options-hidden-pane">
 
-      <h3><?php esc_html_e('MemberPress License', 'memberpress'); ?></h3>
+      <section id="mepr-section-license">
+        <h3><?php esc_html_e('MemberPress License', 'memberpress'); ?></h3>
 
-      <div id="mepr-license-container">
+        <div id="mepr-license-container">
 
-        <?php
-        if (empty($li)) {
-            MeprView::render('/admin/options/inactive_license', get_defined_vars());
-        } else {
-            MeprView::render('/admin/options/active_license', get_defined_vars());
-        }
-        ?>
+          <?php
+            if (empty($li)) {
+                MeprView::render('/admin/options/inactive_license', get_defined_vars());
+            } else {
+                MeprView::render('/admin/options/active_license', get_defined_vars());
+            }
+            ?>
 
+        </div>
+      </section>
+
+      <section id="mepr-section-account-login">
+        <?php MeprView::render('/admin/options/account_login', get_defined_vars()); ?>
+      </section>
+
+      <div id="mepr-version-string">
+          <?php
+              printf(
+                // Translators: %s: version number.
+                  esc_html__("You're currently running version %s of MemberPress.", 'memberpress'),
+                  '<b>' . MEPR_VERSION . '</b>'
+              );
+                ?>
       </div>
-
-      <?php MeprView::render('/admin/options/account_login', get_defined_vars()); ?>
-
-      <div id="mepr-version-string"><?php printf(esc_html__("You're currently running version %s of MemberPress.", 'memberpress'), '<b>' . MEPR_VERSION . '</b>'); ?></div>
 
       <?php MeprHooks::do_action('mepr_activate_license_page'); ?>
 
     </div>
 
     <div id="pages" class="mepr-options-hidden-pane">
-      <h3><?php _e('Reserved Pages', 'memberpress'); ?></h3>
-      <table class="mepr-options-pane">
-        <tr>
-          <td><?php _e('MemberPress Thank You Page', 'memberpress'); ?>*:</td>
-          <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->thankyou_page_id_str, $mepr_options->thankyou_page_id, __('Thank You', 'memberpress')); ?></td>
-        </tr>
-        <tr>
-          <td><?php _e('MemberPress Account Page', 'memberpress'); ?>*:</td>
-          <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->account_page_id_str, $mepr_options->account_page_id, __('Account', 'memberpress')); ?></td>
-        </tr>
-        <tr>
-          <td><?php _e('MemberPress Login Page', 'memberpress'); ?>*:</td>
-          <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->login_page_id_str, $mepr_options->login_page_id, __('Login', 'memberpress')); ?></td>
-        </tr>
-        <?php if (MeprAppHelper::is_coaching_enabled()) : ?>
-        <tr>
-          <td><?php _e('MemberPress Coaching Page', 'memberpress'); ?>*:</td>
-          <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->coaching_page_id_str, $mepr_options->coaching_page_id, __('Coaching', 'memberpress')); ?></td>
-        </tr>
-        <?php endif; ?>
-      </table>
-
-      <h3 class="mepr-field-label">
-        <?php _e('Pages Slugs:', 'memberpress'); ?>
-        <?php MeprAppHelper::info_tooltip(
-            'mepr-group-and-product-pages-slugs',
-            __('Pages Slugs', 'memberpress'),
-            __('Use these fields to customize the base slug of urls for your groups and memberships.', 'memberpress') . '<br/><br/>' .
-            __('Note: It isn\'t recommended that you change these values if you already have existing groups and membership pages on a production membership site because all your urls for them will change (WordPress will attempt to redirect from old urls to new urls).', 'memberpress')
-        ); ?>
-      </h3>
-      <table class="mepr-options-pane">
-        <tbody>
-          <tr valign="top">
-            <td><label for="<?php echo $mepr_options->group_pages_slug_str; ?>"><?php _e('Group Pages Slug:', 'memberpress'); ?></td>
-            <td>
-              <input type="text" id="<?php echo $mepr_options->group_pages_slug_str; ?>" name="<?php echo $mepr_options->group_pages_slug_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->group_pages_slug); ?>" />
-            </td>
+      <section id="mepr-section-reserved-pages">
+        <h3><?php _e('Reserved Pages', 'memberpress'); ?></h3>
+        <table class="mepr-options-pane">
+          <tr id="mepr-option-thankyou-page-id">
+            <td><?php _e('MemberPress Thank You Page', 'memberpress'); ?>*:</td>
+            <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->thankyou_page_id_str, $mepr_options->thankyou_page_id, __('Thank You', 'memberpress')); ?></td>
           </tr>
-          <tr valign="top">
-            <td><label for="<?php echo $mepr_options->product_pages_slug_str; ?>"><?php _e('Membership Pages Slug:', 'memberpress'); ?></td>
-            <td>
-              <input type="text" id="<?php echo $mepr_options->product_pages_slug_str; ?>" name="<?php echo $mepr_options->product_pages_slug_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->product_pages_slug); ?>" />
-            </td>
+          <tr id="mepr-option-account-page-id">
+            <td><?php _e('MemberPress Account Page', 'memberpress'); ?>*:</td>
+            <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->account_page_id_str, $mepr_options->account_page_id, __('Account', 'memberpress')); ?></td>
           </tr>
-          <?php MeprHooks::do_action('mepr_display_pages_slugs_options'); ?>
-        </tbody>
-      </table>
+          <tr id="mepr-option-login-page-id">
+            <td><?php _e('MemberPress Login Page', 'memberpress'); ?>*:</td>
+            <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->login_page_id_str, $mepr_options->login_page_id, __('Login', 'memberpress')); ?></td>
+          </tr>
+          <?php if (MeprAppHelper::is_coaching_enabled()) : ?>
+          <tr id="mepr-option-coaching-page-id">
+            <td><?php _e('MemberPress Coaching Page', 'memberpress'); ?>*:</td>
+            <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->coaching_page_id_str, $mepr_options->coaching_page_id, __('Coaching', 'memberpress')); ?></td>
+          </tr>
+          <?php endif; ?>
+        </table>
+      </section>
 
-      <h3 class="mepr-field-label"><?php _e('Unauthorized Access', 'memberpress'); ?></h3>
-      <div class="mepr-options-pane">
-        <input type="checkbox" name="<?php echo $mepr_options->redirect_on_unauthorized_str; ?>" id="<?php echo $mepr_options->redirect_on_unauthorized_str; ?>" <?php checked($mepr_options->redirect_on_unauthorized); ?> />
-        <label for="<?php echo $mepr_options->redirect_on_unauthorized_str; ?>"><?php _e('Redirect unauthorized visitors to a specific URL', 'memberpress'); ?></label>
-        <?php MeprAppHelper::info_tooltip(
-            'mepr-unauthorized-handling',
-            __('Redirect Unauthorized Access', 'memberpress'),
-            __('MemberPress allows you to handle unauthorized access by replacing the content on page or via a redirection to a specific url.<br/><br/>When this is checked, unauthorized visits will be redirected to a url, otherwise the unauthorized message and login form will appear on the page.', 'memberpress')
-        ); ?>
-
-        <div id="mepr-unauthorized-redirect" class="mepr_hidden mepr-options-sub-pane">
-          <label for="<?php echo $mepr_options->redirect_method_str; ?>"><?php _e('Redirect method:', 'memberpress'); ?></label>
+      <section id="mepr-section-page-slugs">
+        <h3 class="mepr-field-label">
+          <?php _e('Pages Slugs:', 'memberpress'); ?>
           <?php MeprAppHelper::info_tooltip(
-              'mepr-unauthorized-redirect-method',
-              __('Redirect Method', 'memberpress'),
-              __('It is highly recommended that "template_redirect" should be your default redirect method.<br/><br/>However, this does not work with all WordPress themes. If you find that the unauthorized redirection is not happening when enabled try switching this to "init" instead.', 'memberpress')
+              'mepr-group-and-product-pages-slugs',
+              __('Pages Slugs', 'memberpress'),
+              __('Use these fields to customize the base slug of urls for your groups and memberships.', 'memberpress') . '<br/><br/>' .
+              __('Note: It isn\'t recommended that you change these values if you already have existing groups and membership pages on a production membership site because all your urls for them will change (WordPress will attempt to redirect from old urls to new urls).', 'memberpress')
           ); ?>
-          <select name="<?php echo $mepr_options->redirect_method_str; ?>" id="<?php echo $mepr_options->redirect_method_str; ?>">
-            <option value="template_redirect" <?php selected($mepr_options->redirect_method, 'template_redirect'); ?>>template_redirect <?php _e('(recommended)', 'memberpress'); ?></option>
-            <option value="init" <?php selected($mepr_options->redirect_method, 'init'); ?>>init</option>
-            <option value="send_headers" <?php selected($mepr_options->redirect_method, 'send_headers'); ?>>send_headers</option>
-          </select>
-          <br/><br/>
-          <input type="checkbox" name="<?php echo $mepr_options->redirect_non_singular_str; ?>" id="<?php echo $mepr_options->redirect_non_singular_str; ?>" <?php checked($mepr_options->redirect_non_singular); ?> />
-          <label for="<?php echo $mepr_options->redirect_non_singular_str; ?>"><?php _e('Redirect non-singular views:', 'memberpress'); ?></label>
-          <?php MeprAppHelper::info_tooltip(
-              'mepr-unauthorized-redirect-non-singular',
-              __('Redirect Non-Singular Views', 'memberpress'),
-              __('If any post in a non-singular view (EX: Blog page, category pages, archive pages etc) is protected, then do not allow the unauthorized members to see this non-singular view at all.', 'memberpress')
-          ); ?>
-          <br/><br/>
-          <label for="<?php echo $mepr_options->unauthorized_redirect_url_str; ?>"><?php _e('URL to direct unauthorized visitors to:', 'memberpress'); ?></label>
-          <?php MeprAppHelper::info_tooltip(
-              'mepr-unauthorized-redirect-url',
-              __('Unauthorized Redirection URL', 'memberpress'),
-              __('This is the URL that visitors will be redirected to when trying to access unauthorized content.', 'memberpress')
-          ); ?>
-          <input type="text" id="<?php echo $mepr_options->unauthorized_redirect_url_str; ?>" name="<?php echo $mepr_options->unauthorized_redirect_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->unauthorized_redirect_url); ?>" />
-          <br/>
-          <span class="description"><?php _e('You can use the <strong>[mepr-unauthorized-message]</strong> shortcode on this unauthorized page (assuming this url points to a page on this site).', 'memberpress'); ?></span>
-        </div>
-        <div>&nbsp;</div>
-        <div id="mepr-unauthorized-show-excerpts">
-          <input type="checkbox" name="<?php echo $mepr_options->unauth_show_excerpts_str; ?>" id="<?php echo $mepr_options->unauth_show_excerpts_str; ?>" <?php checked($mepr_options->unauth_show_excerpts); ?> />
-          <label for="<?php echo $mepr_options->unauth_show_excerpts_str; ?>"><?php _e('Show an excerpt to unauthorized visitors', 'memberpress'); ?></label>
-        </div>
+        </h3>
+        <table class="mepr-options-pane">
+          <tbody>
+            <tr id="mepr-option-group-pages-slug" valign="top">
+              <td><label for="<?php echo $mepr_options->group_pages_slug_str; ?>"><?php _e('Group Pages Slug:', 'memberpress'); ?></td>
+              <td>
+                <input type="text" id="<?php echo $mepr_options->group_pages_slug_str; ?>" name="<?php echo $mepr_options->group_pages_slug_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->group_pages_slug); ?>" />
+              </td>
+            </tr>
+            <tr id="mepr-option-product-pages-slug" valign="top">
+              <td><label for="<?php echo $mepr_options->product_pages_slug_str; ?>"><?php _e('Membership Pages Slug:', 'memberpress'); ?></td>
+              <td>
+                <input type="text" id="<?php echo $mepr_options->product_pages_slug_str; ?>" name="<?php echo $mepr_options->product_pages_slug_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->product_pages_slug); ?>" />
+              </td>
+            </tr>
+            <?php MeprHooks::do_action('mepr_display_pages_slugs_options'); ?>
+          </tbody>
+        </table>
+      </section>
 
-        <div id="mepr-unauthorized-show-excerpts-type" class="mepr-options-sub-pane mepr-hidden">
-          <?php
-            MeprOptionsHelper::display_show_excerpts_dropdown(
-                $mepr_options->unauth_excerpt_type_str,
-                $mepr_options->unauth_excerpt_type,
-                $mepr_options->unauth_excerpt_size_str,
-                $mepr_options->unauth_excerpt_size,
-                true
-            );
-            ?>
-        </div>
-        <div>&nbsp;</div>
-        <div id="mepr-unauthorized-show-login">
-          <input type="checkbox" name="<?php echo $mepr_options->unauth_show_login_str; ?>" id="<?php echo $mepr_options->unauth_show_login_str; ?>" <?php checked($mepr_options->unauth_show_login); ?> />
-          <label for="<?php echo $mepr_options->unauth_show_login_str; ?>"><?php _e('Show a login form on pages containing unauthorized message', 'memberpress'); ?></label>
-        </div>
-
-        <br/>
-        <div class="mepr-field-label">
-          <a href="" class="mp-toggle-unauthorized-message"><?php _e('Default Unauthorized Message:', 'memberpress'); ?></a>
+      <section id="mepr-section-unauthorized-access">
+        <h3 class="mepr-field-label"><?php _e('Unauthorized Access', 'memberpress'); ?></h3>
+        <div class="mepr-options-pane">
+          <div id="mepr-option-redirect-on-unauthorized">
+            <input type="checkbox" name="<?php echo $mepr_options->redirect_on_unauthorized_str; ?>" id="<?php echo $mepr_options->redirect_on_unauthorized_str; ?>" <?php checked($mepr_options->redirect_on_unauthorized); ?> />
+            <label for="<?php echo $mepr_options->redirect_on_unauthorized_str; ?>"><?php _e('Redirect unauthorized visitors to a specific URL', 'memberpress'); ?></label>
             <?php MeprAppHelper::info_tooltip(
-                'mepr-default-unauthorized-message',
-                __('Default Unauthorized Message', 'memberpress'),
-                __('This is the default message that will show up when a user is not allowed to access the content on a page.', 'memberpress')
+                'mepr-unauthorized-handling',
+                __('Redirect Unauthorized Access', 'memberpress'),
+                __('MemberPress allows you to handle unauthorized access by replacing the content on page or via a redirection to a specific url.<br/><br/>When this is checked, unauthorized visits will be redirected to a url, otherwise the unauthorized message and login form will appear on the page.', 'memberpress')
             ); ?>
+          </div>
+
+          <div id="mepr-unauthorized-redirect" class="mepr_hidden mepr-options-sub-pane">
+            <label for="<?php echo $mepr_options->redirect_method_str; ?>"><?php _e('Redirect method:', 'memberpress'); ?></label>
+            <?php MeprAppHelper::info_tooltip(
+                'mepr-unauthorized-redirect-method',
+                __('Redirect Method', 'memberpress'),
+                __('It is highly recommended that "template_redirect" should be your default redirect method.<br/><br/>However, this does not work with all WordPress themes. If you find that the unauthorized redirection is not happening when enabled try switching this to "init" instead.', 'memberpress')
+            ); ?>
+            <select name="<?php echo $mepr_options->redirect_method_str; ?>" id="<?php echo $mepr_options->redirect_method_str; ?>">
+              <option value="template_redirect" <?php selected($mepr_options->redirect_method, 'template_redirect'); ?>>template_redirect <?php _e('(recommended)', 'memberpress'); ?></option>
+              <option value="init" <?php selected($mepr_options->redirect_method, 'init'); ?>>init</option>
+              <option value="send_headers" <?php selected($mepr_options->redirect_method, 'send_headers'); ?>>send_headers</option>
+            </select>
+            <br/><br/>
+            <input type="checkbox" name="<?php echo $mepr_options->redirect_non_singular_str; ?>" id="<?php echo $mepr_options->redirect_non_singular_str; ?>" <?php checked($mepr_options->redirect_non_singular); ?> />
+            <label for="<?php echo $mepr_options->redirect_non_singular_str; ?>"><?php _e('Redirect non-singular views:', 'memberpress'); ?></label>
+            <?php MeprAppHelper::info_tooltip(
+                'mepr-unauthorized-redirect-non-singular',
+                __('Redirect Non-Singular Views', 'memberpress'),
+                __('If any post in a non-singular view (EX: Blog page, category pages, archive pages etc) is protected, then do not allow the unauthorized members to see this non-singular view at all.', 'memberpress')
+            ); ?>
+            <br/><br/>
+            <label for="<?php echo $mepr_options->unauthorized_redirect_url_str; ?>"><?php _e('URL to direct unauthorized visitors to:', 'memberpress'); ?></label>
+            <?php MeprAppHelper::info_tooltip(
+                'mepr-unauthorized-redirect-url',
+                __('Unauthorized Redirection URL', 'memberpress'),
+                __('This is the URL that visitors will be redirected to when trying to access unauthorized content.', 'memberpress')
+            ); ?>
+            <input type="text" id="<?php echo $mepr_options->unauthorized_redirect_url_str; ?>" name="<?php echo $mepr_options->unauthorized_redirect_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->unauthorized_redirect_url); ?>" />
+            <br/>
+            <span class="description"><?php _e('You can use the <strong>[mepr-unauthorized-message]</strong> shortcode on this unauthorized page (assuming this url points to a page on this site).', 'memberpress'); ?></span>
+          </div>
+
+          <div>&nbsp;</div>
+          <div id="mepr-unauthorized-show-excerpts">
+            <input type="checkbox" name="<?php echo $mepr_options->unauth_show_excerpts_str; ?>" id="<?php echo $mepr_options->unauth_show_excerpts_str; ?>" <?php checked($mepr_options->unauth_show_excerpts); ?> />
+            <label for="<?php echo $mepr_options->unauth_show_excerpts_str; ?>"><?php _e('Show an excerpt to unauthorized visitors', 'memberpress'); ?></label>
+          </div>
+
+          <div id="mepr-unauthorized-show-excerpts-type" class="mepr-options-sub-pane mepr-hidden">
+            <?php
+              MeprOptionsHelper::display_show_excerpts_dropdown(
+                  $mepr_options->unauth_excerpt_type_str,
+                  $mepr_options->unauth_excerpt_type,
+                  $mepr_options->unauth_excerpt_size_str,
+                  $mepr_options->unauth_excerpt_size,
+                  true
+              );
+                ?>
+          </div>
+          <div>&nbsp;</div>
+          <div id="mepr-unauthorized-show-login">
+            <input type="checkbox" name="<?php echo $mepr_options->unauth_show_login_str; ?>" id="<?php echo $mepr_options->unauth_show_login_str; ?>" <?php checked($mepr_options->unauth_show_login); ?> />
+            <label for="<?php echo $mepr_options->unauth_show_login_str; ?>"><?php _e('Show a login form on pages containing unauthorized message', 'memberpress'); ?></label>
+          </div>
+
+          <br/>
+          <div class="mepr-field-label">
+            <a href="" class="mp-toggle-unauthorized-message"><?php _e('Default Unauthorized Message:', 'memberpress'); ?></a>
+              <?php MeprAppHelper::info_tooltip(
+                  'mepr-default-unauthorized-message',
+                  __('Default Unauthorized Message', 'memberpress'),
+                  __('This is the default message that will show up when a user is not allowed to access the content on a page.', 'memberpress')
+              ); ?>
+          </div>
+          <div class="mepr-hidden mepr-options-sub-pane mp-unauthorized-message">
+            <?php wp_editor($mepr_options->unauthorized_message, $mepr_options->unauthorized_message_str); ?>
+          </div>
         </div>
-        <div class="mepr-hidden mepr-options-sub-pane mp-unauthorized-message">
-          <?php wp_editor($mepr_options->unauthorized_message, $mepr_options->unauthorized_message_str); ?>
-        </div>
-      </div>
+      </section>
       <?php MeprHooks::do_action('mepr_display_pages_options'); ?>
     </div>
 
     <div id="accounts" class="mepr-options-hidden-pane">
-      <h3><?php _e('Permissions:', 'memberpress'); ?></h3>
-      <div class="mepr-options-pane">
-        <div class="mp-row">
-          <div class="mp-col-4">
-            <label for="<?php echo $mepr_options->disable_wp_admin_bar_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->disable_wp_admin_bar_str; ?>" id="<?php echo $mepr_options->disable_wp_admin_bar_str; ?>" <?php checked($mepr_options->disable_wp_admin_bar); ?> />
-              <span><?php _e('Disable the WordPress admin bar for members', 'memberpress'); ?></span>
-            </label>
-          </div>
-          <div class="mp-col-5">
-            <label for="<?php echo $mepr_options->lock_wp_admin_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->lock_wp_admin_str; ?>" id="<?php echo $mepr_options->lock_wp_admin_str; ?>" <?php checked($mepr_options->lock_wp_admin); ?> />
-              <span><?php _e('Keep members out of the WordPress Dashboard', 'memberpress'); ?></span>
-            </label>
-          </div>
-        </div>
-        <div class="mp-row">
-          <div class="mp-col-4">
-            <label for="<?php echo $mepr_options->allow_cancel_subs_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->allow_cancel_subs_str; ?>" id="<?php echo $mepr_options->allow_cancel_subs_str; ?>" <?php checked($mepr_options->allow_cancel_subs); ?> />
-              <span><?php _e('Allow Members to Cancel their own subscriptions', 'memberpress'); ?></span>
-            </label>
-          </div>
-          <div class="mp-col-5">
-            <label for="<?php echo $mepr_options->allow_suspend_subs_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->allow_suspend_subs_str; ?>" id="<?php echo $mepr_options->allow_suspend_subs_str; ?>" <?php checked($mepr_options->allow_suspend_subs); ?> />
-              <span>
-                <?php _e('Allow Members to Pause &amp; Resume their own subscriptions', 'memberpress'); ?>
-              </span>
-            </label>
-            <?php MeprAppHelper::info_tooltip(
-                'mepr-suspend-resume',
-                __('Pausing &amp; Resuming Subscriptions', 'memberpress'),
-                __('This option will only be available if this is enabled and the user purchased their subscription using PayPal or Stripe.', 'memberpress')
-            ); ?>
-          </div>
-        </div>
-      </div>
-
-      <h3><?php _e('Registration:', 'memberpress'); ?></h3>
-      <div class="mepr-options-pane">
-        <div class="mp-row">
-          <div class="mp-col-9">
-            <label for="<?php echo $mepr_options->enforce_strong_password_str; ?>"><?php _e('Password Strength Meter:', 'memberpress'); ?></label>
-            <select name="<?php echo $mepr_options->enforce_strong_password_str; ?>" id="<?php echo $mepr_options->enforce_strong_password_str; ?>">
-              <option value="0" <?php selected($mepr_options->enforce_strong_password, 0); ?>><?php _e('Hide', 'memberpress'); ?></option>
-              <option value="show" <?php selected($mepr_options->enforce_strong_password, 'show'); ?>><?php _e('Show', 'memberpress'); ?></option>
-              <option value="weak" <?php selected($mepr_options->enforce_strong_password, 'weak'); // Mapped as "Medium". ?>><?php _e('Show &amp; Require Medium Password or Stronger (Recommended)', 'memberpress'); ?></option>
-              <option value="medium" <?php selected($mepr_options->enforce_strong_password, 'medium'); // Mapped as "Strong". ?>><?php _e('Show &amp; Require Strong Password or Stronger', 'memberpress'); ?></option>
-              <option value="strong" <?php selected($mepr_options->enforce_strong_password, 'strong'); // Mapped as "Very Strong". ?>><?php _e('Show &amp; Require Very Strong Password', 'memberpress'); ?></option>
-            </select>
-          </div>
-        </div>
-        <div class="mp-row">
-          <div class="mp-col-4">
-            <label for="<?php echo $mepr_options->disable_wp_registration_form_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->disable_wp_registration_form_str; ?>" id="<?php echo $mepr_options->disable_wp_registration_form_str; ?>" <?php checked($mepr_options->disable_wp_registration_form); ?> />
-              <span><?php _e('Disable the standard WordPress registration form', 'memberpress'); ?></span>
-            </label>
-          </div>
-          <div class="mp-col-5">
-            <label for="<?php echo $mepr_options->coupon_field_enabled_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->coupon_field_enabled_str; ?>" id="<?php echo $mepr_options->coupon_field_enabled_str; ?>" <?php checked($mepr_options->coupon_field_enabled); ?> />
-              <span><?php _e('Enable Coupon Field on membership registration forms', 'memberpress'); ?></span>
-            </label>
-          </div>
-        </div>
-        <div class="mp-row">
-          <div class="mp-col-4">
-            <label for="<?php echo $mepr_options->username_is_email_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->username_is_email_str; ?>" id="<?php echo $mepr_options->username_is_email_str; ?>" <?php checked($mepr_options->username_is_email); ?> />
-              <span><?php _e('Members must use their email address for their Username', 'memberpress'); ?></span>
-            </label>
-          </div>
-          <div class="mp-col-5">
-            <label for="<?php echo $mepr_options->pro_rated_upgrades_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->pro_rated_upgrades_str; ?>" id="<?php echo $mepr_options->pro_rated_upgrades_str; ?>" <?php checked($mepr_options->pro_rated_upgrades); ?> />
-              <span><?php _e('Pro-rate subscription prices when a member upgrades', 'memberpress'); ?></span>
-            </label>
-          </div>
-        </div>
-        <div class="mp-row">
-          <div class="mp-col-4">
-            <label for="<?php echo $mepr_options->disable_grace_init_days_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->disable_grace_init_days_str; ?>" id="<?php echo $mepr_options->disable_grace_init_days_str; ?>" <?php checked($mepr_options->disable_grace_init_days); ?> />
-              <span><?php _e('Disable the 1 day grace period after signup', 'memberpress'); ?></span>
-            </label>
-            <?php MeprAppHelper::info_tooltip(
-                'mepr-disable-init-grace-days',
-                __('1 Day Grace Period', 'memberpress'),
-                __('PayPal, Stripe, and Authorize.net can sometimes take up to 24 hours to process the first payment on a members recurring subscription. By default MemberPress allows a 1 day grace period after a member signs up, so they can access the site immediately rather than wait for their payment to clear.', 'memberpress') . '<br/><br/>' . __('If you would like to make them wait for the payment to clear before they are allowed to access the site, then enable this option.', 'memberpress')
-            ); ?>
-          </div>
-          <div class="mp-col-5">
-            <label for="<?php echo $mepr_options->disable_checkout_password_fields_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->disable_checkout_password_fields_str; ?>" id="<?php echo $mepr_options->disable_checkout_password_fields_str; ?>" <?php checked($mepr_options->disable_checkout_password_fields); ?> />
-              <span><?php _e('Disable Password Fields on membership registration forms', 'memberpress'); ?></span>
-            </label>
-            <?php MeprAppHelper::info_tooltip(
-                'mepr-disable-checkout-password-fields',
-                __('Disable Password Fields', 'memberpress'),
-                __('When this option is checked, the Password, Password Confirmation & Password Strength fields will not appear on the checkout page. The Member will then receive an email after they register that will provide the steps they can take to set up a password.', 'memberpress')
-            ); ?>
-          </div>
-        </div>
-        <div class="mp-row">
-          <div class="mp-col-4">
-            <label for="<?php echo $mepr_options->enable_spc_str; ?>">
-             <input type="checkbox" name="<?php echo $mepr_options->enable_spc_str; ?>" id="<?php echo $mepr_options->enable_spc_str; ?>" <?php checked($mepr_options->enable_spc); ?> />
-             <span><?php _e('Enable Single Page Checkout', 'memberpress'); ?></span>
-           </label>
-           <?php MeprAppHelper::info_tooltip(
-               'mepr-enable-spc',
-               __('Single Page Checkout', 'memberpress'),
-               __('Enabling this will eliminate the second step of the checkout process. Users will be able to enter their personal and payment details during the first step instead.', 'memberpress')
-           );
-                    ?>
-          </div>
-          <div class="mp-col-5">
-            <label for="<?php echo $mepr_options->enable_spc_invoice_str; ?>">
-             <input type="checkbox" name="<?php echo $mepr_options->enable_spc_invoice_str; ?>" id="<?php echo $mepr_options->enable_spc_invoice_str; ?>" <?php checked($mepr_options->enable_spc_invoice); ?> />
-             <span><?php _e('Enable Single Page Checkout Invoice', 'memberpress'); ?></span>
-           </label>
-           <?php MeprAppHelper::info_tooltip(
-               'mepr-enable-spc-invoice',
-               __('Single Page Checkout Invoice', 'memberpress'),
-               __('Enabling this will display Invoice table above the payment options.', 'memberpress')
-           );
-                    ?>
-          </div>
-        </div>
-        <div class="mp-row">
-          <div class="mp-col-4">
-            <label for="<?php echo $mepr_options->require_tos_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->require_tos_str; ?>" id="<?php echo $mepr_options->require_tos_str; ?>" <?php checked($mepr_options->require_tos); ?> />
-              <span><?php _e('Require Terms of Service on membership registration forms', 'memberpress'); ?></span>
-            </label>
-          </div>
-          <div class="mp-col-5">
-          </div>
-        </div>
-        <div id="mepr_tos_hidden" class="mepr-options-sub-pane mepr-hidden">
+      <section id="mepr-section-permissions">
+        <h3><?php _e('Permissions:', 'memberpress'); ?></h3>
+        <div class="mepr-options-pane">
           <div class="mp-row">
-            <div class="mp-col-3">
-              <label for="<?php echo $mepr_options->tos_url_str; ?>"><?php _e('URL to your Terms of Service page:', 'memberpress'); ?></label>
+            <div id="mepr-option-disable-wp-admin-bar" class="mp-col-5">
+              <label for="<?php echo $mepr_options->disable_wp_admin_bar_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->disable_wp_admin_bar_str; ?>" id="<?php echo $mepr_options->disable_wp_admin_bar_str; ?>" <?php checked($mepr_options->disable_wp_admin_bar); ?> />
+                <span><?php _e('Disable the WordPress admin bar for members', 'memberpress'); ?></span>
+              </label>
             </div>
-            <div class="mp-col-4">
-              <input type="text" id="<?php echo $mepr_options->tos_url_str; ?>" name="<?php echo $mepr_options->tos_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->tos_url); ?>" />
+            <div id="mepr-option-lock-wp-admin" class="mp-col-5">
+              <label for="<?php echo $mepr_options->lock_wp_admin_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->lock_wp_admin_str; ?>" id="<?php echo $mepr_options->lock_wp_admin_str; ?>" <?php checked($mepr_options->lock_wp_admin); ?> />
+                <span><?php _e('Keep members out of the WordPress Dashboard', 'memberpress'); ?></span>
+              </label>
             </div>
-          </div>
-          <div class="mp-row">
-            <div class="mp-col-3">
-              <label for="<?php echo $mepr_options->tos_title_str; ?>"><?php _e('Terms of Service Checkbox Title:', 'memberpress'); ?></label>
+            <div id="mepr-option-allow-cancel-subs" class="mp-col-5">
+              <label for="<?php echo $mepr_options->allow_cancel_subs_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->allow_cancel_subs_str; ?>" id="<?php echo $mepr_options->allow_cancel_subs_str; ?>" <?php checked($mepr_options->allow_cancel_subs); ?> />
+                <span><?php _e('Allow Members to Cancel their own subscriptions', 'memberpress'); ?></span>
+              </label>
             </div>
-            <div class="mp-col-4">
-              <input type="text" id="<?php echo $mepr_options->tos_title_str; ?>" name="<?php echo $mepr_options->tos_title_str; ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->tos_title)); ?>" />
-            </div>
-          </div>
-        </div>
-        <div class="mp-row">
-          <div class="mp-col-10">
-            <label for="<?php echo $mepr_options->require_privacy_policy_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->require_privacy_policy_str; ?>" id="<?php echo $mepr_options->require_privacy_policy_str; ?>" <?php checked($mepr_options->require_privacy_policy); ?> />
-              <span><?php _e('Require Privacy Policy acceptance on membership registration forms', 'memberpress'); ?></span>
-            </label>
-          </div>
-        </div>
-        <div id="mepr_privacy_hidden" class="mepr-options-sub-pane mepr-hidden">
-          <div class="mp-row">
-            <div class="mp-col-3">
-              <?php _e('Your Privacy Policy: ', 'memberpress'); ?>
-            </div>
-            <div class="mp-col-4">
-              <span>
-                <?php
-                $privacy_page_link = MeprAppHelper::privacy_policy_page_link();
-                if ($privacy_page_link) : ?>
-                  <a href="<?php echo $privacy_page_link; ?>"><?php echo $privacy_page_link; ?></a>
-                <?php else : ?>
-                    <?php _e(sprintf('Please create your %s.', '<a href="' . MeprOptionsHelper::admin_privacy_settings_link() . '">' . __('Privacy Policy Page', 'memberpress') . '</a>'), 'memberpress'); ?>
-                <?php endif; ?>
-              </span>
-            </div>
-          </div>
-          <div class="mp-row">
-            <div class="mp-col-3">
-              <label for="<?php echo $mepr_options->privacy_policy_title_str; ?>"><?php _e('Privacy Policy Checkbox Title:', 'memberpress'); ?></label>
+            <div id="mepr-option-allow-suspend-subs" class="mp-col-5">
+              <label for="<?php echo $mepr_options->allow_suspend_subs_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->allow_suspend_subs_str; ?>" id="<?php echo $mepr_options->allow_suspend_subs_str; ?>" <?php checked($mepr_options->allow_suspend_subs); ?> />
+                <span>
+                  <?php _e('Allow Members to Pause &amp; Resume their own subscriptions', 'memberpress'); ?>
+                </span>
+              </label>
               <?php MeprAppHelper::info_tooltip(
-                  $mepr_options->privacy_policy_title_str,
-                  __('Privacy Policy Checkbox Title', 'memberpress'),
-                  __('This will appear next to the Privacy Policy checkbox on membership registration forms. The text between % characters will become the link text to your Privacy Policy page.', 'memberpress')
+                  'mepr-suspend-resume',
+                  __('Pausing &amp; Resuming Subscriptions', 'memberpress'),
+                  __('This option will only be available if this is enabled and the user purchased their subscription using PayPal or Stripe.', 'memberpress')
               ); ?>
             </div>
-            <div class="mp-col-4">
-              <input type="text" id="<?php echo $mepr_options->privacy_policy_title_str; ?>" name="<?php echo $mepr_options->privacy_policy_title_str; ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->privacy_policy_title)); ?>" />
+          </div>
+        </div>
+      </section>
+
+      <section id="mepr-section-registration">
+        <h3><?php _e('Registration:', 'memberpress'); ?></h3>
+        <div class="mepr-options-pane">
+          <div class="mp-row">
+            <div id="mepr-option-enforce-strong-password" class="mp-col-10">
+              <label for="<?php echo $mepr_options->enforce_strong_password_str; ?>"><?php _e('Password Strength Meter:', 'memberpress'); ?></label>
+              <select name="<?php echo $mepr_options->enforce_strong_password_str; ?>" id="<?php echo $mepr_options->enforce_strong_password_str; ?>">
+                <option value="0" <?php selected($mepr_options->enforce_strong_password, 0); ?>><?php _e('Hide', 'memberpress'); ?></option>
+                <option value="show" <?php selected($mepr_options->enforce_strong_password, 'show'); ?>><?php _e('Show', 'memberpress'); ?></option>
+                <option value="weak" <?php selected($mepr_options->enforce_strong_password, 'weak'); // Mapped as "Medium". ?>><?php _e('Show &amp; Require Medium Password or Stronger (Recommended)', 'memberpress'); ?></option>
+                <option value="medium" <?php selected($mepr_options->enforce_strong_password, 'medium'); // Mapped as "Strong". ?>><?php _e('Show &amp; Require Strong Password or Stronger', 'memberpress'); ?></option>
+                <option value="strong" <?php selected($mepr_options->enforce_strong_password, 'strong'); // Mapped as "Very Strong". ?>><?php _e('Show &amp; Require Very Strong Password', 'memberpress'); ?></option>
+              </select>
+            </div>
+            <div id="mepr-option-disable-wp-registration-form" class="mp-col-5">
+              <label for="<?php echo $mepr_options->disable_wp_registration_form_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->disable_wp_registration_form_str; ?>" id="<?php echo $mepr_options->disable_wp_registration_form_str; ?>" <?php checked($mepr_options->disable_wp_registration_form); ?> />
+                <span><?php _e('Disable the standard WordPress registration form', 'memberpress'); ?></span>
+              </label>
+            </div>
+            <div id="mepr-option-coupon-field-enabled" class="mp-col-5">
+              <label for="<?php echo $mepr_options->coupon_field_enabled_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->coupon_field_enabled_str; ?>" id="<?php echo $mepr_options->coupon_field_enabled_str; ?>" <?php checked($mepr_options->coupon_field_enabled); ?> />
+                <span><?php _e('Enable Coupon Field on membership registration forms', 'memberpress'); ?></span>
+              </label>
+            </div>
+            <div id="mepr-option-username-is-email" class="mp-col-5">
+              <label for="<?php echo $mepr_options->username_is_email_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->username_is_email_str; ?>" id="<?php echo $mepr_options->username_is_email_str; ?>" <?php checked($mepr_options->username_is_email); ?> />
+                <span><?php _e('Members must use their email address for their Username', 'memberpress'); ?></span>
+              </label>
+            </div>
+            <div id="mepr-option-pro-rated-upgrades" class="mp-col-5">
+              <label for="<?php echo $mepr_options->pro_rated_upgrades_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->pro_rated_upgrades_str; ?>" id="<?php echo $mepr_options->pro_rated_upgrades_str; ?>" <?php checked($mepr_options->pro_rated_upgrades); ?> />
+                <span><?php _e('Pro-rate subscription prices when a member upgrades', 'memberpress'); ?></span>
+              </label>
+            </div>
+            <div id="mepr-option-disable-grace-init-days" class="mp-col-5">
+              <label for="<?php echo $mepr_options->disable_grace_init_days_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->disable_grace_init_days_str; ?>" id="<?php echo $mepr_options->disable_grace_init_days_str; ?>" <?php checked($mepr_options->disable_grace_init_days); ?> />
+                <span><?php _e('Disable the 1 day grace period after signup', 'memberpress'); ?></span>
+              </label>
+              <?php MeprAppHelper::info_tooltip(
+                  'mepr-disable-init-grace-days',
+                  __('1 Day Grace Period', 'memberpress'),
+                  __('PayPal, Stripe, and Authorize.net can sometimes take up to 24 hours to process the first payment on a members recurring subscription. By default MemberPress allows a 1 day grace period after a member signs up, so they can access the site immediately rather than wait for their payment to clear.', 'memberpress') . '<br/><br/>' . __('If you would like to make them wait for the payment to clear before they are allowed to access the site, then enable this option.', 'memberpress')
+              ); ?>
+            </div>
+            <div id="mepr-option-disable-checkout-password-fields" class="mp-col-5">
+              <label for="<?php echo $mepr_options->disable_checkout_password_fields_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->disable_checkout_password_fields_str; ?>" id="<?php echo $mepr_options->disable_checkout_password_fields_str; ?>" <?php checked($mepr_options->disable_checkout_password_fields); ?> />
+                <span><?php _e('Disable Password Fields on membership registration forms', 'memberpress'); ?></span>
+              </label>
+              <?php MeprAppHelper::info_tooltip(
+                  'mepr-disable-checkout-password-fields',
+                  __('Disable Password Fields', 'memberpress'),
+                  __('When this option is checked, the Password, Password Confirmation & Password Strength fields will not appear on the checkout page. The Member will then receive an email after they register that will provide the steps they can take to set up a password.', 'memberpress')
+              ); ?>
+            </div>
+            <div id="mepr-option-enable-spc" class="mp-col-5">
+              <label for="<?php echo $mepr_options->enable_spc_str; ?>">
+               <input type="checkbox" name="<?php echo $mepr_options->enable_spc_str; ?>" id="<?php echo $mepr_options->enable_spc_str; ?>" <?php checked($mepr_options->enable_spc); ?> />
+               <span><?php _e('Enable Single Page Checkout', 'memberpress'); ?></span>
+             </label>
+             <?php MeprAppHelper::info_tooltip(
+                 'mepr-enable-spc',
+                 __('Single Page Checkout', 'memberpress'),
+                 __('Enabling this will eliminate the second step of the checkout process. Users will be able to enter their personal and payment details during the first step instead.', 'memberpress')
+             );
+                        ?>
+            </div>
+            <div id="mepr-option-enable-spc-invoice" class="mp-col-5">
+              <label for="<?php echo $mepr_options->enable_spc_invoice_str; ?>">
+               <input type="checkbox" name="<?php echo $mepr_options->enable_spc_invoice_str; ?>" id="<?php echo $mepr_options->enable_spc_invoice_str; ?>" <?php checked($mepr_options->enable_spc_invoice); ?> />
+               <span><?php _e('Enable Single Page Checkout Invoice', 'memberpress'); ?></span>
+             </label>
+             <?php MeprAppHelper::info_tooltip(
+                 'mepr-enable-spc-invoice',
+                 __('Single Page Checkout Invoice', 'memberpress'),
+                 __('Enabling this will display Invoice table above the payment options.', 'memberpress')
+             );
+                        ?>
+            </div>
+            <div id="mepr-option-require-tos" class="mp-col-5">
+              <label for="<?php echo $mepr_options->require_tos_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->require_tos_str; ?>" id="<?php echo $mepr_options->require_tos_str; ?>" <?php checked($mepr_options->require_tos); ?> />
+                <span><?php _e('Require Terms of Service on membership registration forms', 'memberpress'); ?></span>
+              </label>
+            </div>
+            <div class="mp-col-5">
+            </div>
+          </div>
+          <div id="mepr_tos_hidden" class="mepr-options-sub-pane mepr-hidden">
+            <div class="mp-row">
+              <div class="mp-col-3">
+                <label for="<?php echo $mepr_options->tos_url_str; ?>"><?php _e('URL to your Terms of Service page:', 'memberpress'); ?></label>
+              </div>
+              <div class="mp-col-4">
+                <input type="text" id="<?php echo $mepr_options->tos_url_str; ?>" name="<?php echo $mepr_options->tos_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->tos_url); ?>" />
+              </div>
+            </div>
+            <div class="mp-row">
+              <div class="mp-col-3">
+                <label for="<?php echo $mepr_options->tos_title_str; ?>"><?php _e('Terms of Service Checkbox Title:', 'memberpress'); ?></label>
+              </div>
+              <div class="mp-col-4">
+                <input type="text" id="<?php echo $mepr_options->tos_title_str; ?>" name="<?php echo $mepr_options->tos_title_str; ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->tos_title)); ?>" />
+              </div>
+            </div>
+          </div>
+          <div id="mepr-option-require-privacy-policy" class="mp-row">
+            <div class="mp-col-10">
+              <label for="<?php echo $mepr_options->require_privacy_policy_str; ?>">
+                <input type="checkbox" name="<?php echo $mepr_options->require_privacy_policy_str; ?>" id="<?php echo $mepr_options->require_privacy_policy_str; ?>" <?php checked($mepr_options->require_privacy_policy); ?> />
+                <span><?php _e('Require Privacy Policy acceptance on membership registration forms', 'memberpress'); ?></span>
+              </label>
+            </div>
+          </div>
+          <div id="mepr_privacy_hidden" class="mepr-options-sub-pane mepr-hidden">
+            <div class="mp-row">
+              <div class="mp-col-3">
+                <?php _e('Your Privacy Policy: ', 'memberpress'); ?>
+              </div>
+              <div class="mp-col-4">
+                <span>
+                  <?php
+                    $privacy_page_link = MeprAppHelper::privacy_policy_page_link();
+                    if ($privacy_page_link) : ?>
+                    <a href="<?php echo $privacy_page_link; ?>"><?php echo $privacy_page_link; ?></a>
+                    <?php else : ?>
+                        <?php
+                        $privacy_link_text = sprintf(
+                            // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                            __('Please create your %1$sPrivacy Policy Page%2$s.', 'memberpress'),
+                            '<a href="' . esc_url(MeprOptionsHelper::admin_privacy_settings_link()) . '">',
+                            '</a>'
+                        );
+                        echo wp_kses_post($privacy_link_text);
+                        ?>
+                    <?php endif; ?>
+                </span>
+              </div>
+            </div>
+            <div class="mp-row">
+              <div class="mp-col-3">
+                <label for="<?php echo $mepr_options->privacy_policy_title_str; ?>"><?php _e('Privacy Policy Checkbox Title:', 'memberpress'); ?></label>
+                <?php MeprAppHelper::info_tooltip(
+                    $mepr_options->privacy_policy_title_str,
+                    __('Privacy Policy Checkbox Title', 'memberpress'),
+                    __('This will appear next to the Privacy Policy checkbox on membership registration forms. The text between % characters will become the link text to your Privacy Policy page.', 'memberpress')
+                ); ?>
+              </div>
+              <div class="mp-col-4">
+                <input type="text" id="<?php echo $mepr_options->privacy_policy_title_str; ?>" name="<?php echo $mepr_options->privacy_policy_title_str; ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->privacy_policy_title)); ?>" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <h3><?php _e('Login & Logout:', 'memberpress'); ?></h3>
-      <div class="mepr-options-pane">
-        <label for="<?php echo $mepr_options->force_login_page_url_str; ?>">
-          <input type="checkbox" name="<?php echo $mepr_options->force_login_page_url_str; ?>" id="<?php echo $mepr_options->force_login_page_url_str; ?>" <?php checked($mepr_options->force_login_page_url); ?> />
-          <span><?php _e('Use MemberPress login page URL', 'memberpress'); ?></span>
-        </label>
-        <?php MeprAppHelper::info_tooltip(
-            'mepr-force-login-page-url',
-            __('Use MemberPress login page URL', 'memberpress'),
-            __('Use this option to return MemberPress login page URL when other plugins/themes call the wp_login_url() function. If you have other plugins that use their own Login pages too you may want to leave this option disabled. This does NOT prevent directly accessing /wp-login.php page.', 'memberpress')
-        ); ?>
-        <br/><br/>
-        <label for="<?php echo $mepr_options->login_redirect_url_str; ?>"><?php _e('URL to direct member to after login:', 'memberpress'); ?></label>&nbsp;&nbsp;&nbsp;
-        <?php MeprAppHelper::info_tooltip(
-            'mepr-login-redirect-message',
-            __('Login Redirect URL', 'memberpress'),
-            __('For this to work you must have the Login page set in the MemberPress options. You can also override this option on a per-membership basis in the Advanced box when creating/editing a membership.', 'memberpress')
-        ); ?>
-        <input type="text" id="<?php echo $mepr_options->login_redirect_url_str; ?>" name="<?php echo $mepr_options->login_redirect_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->login_redirect_url); ?>" /><br/><br/>
-        <label for="<?php echo $mepr_options->logout_redirect_url_str; ?>"><?php _e('URL to direct member to after logout:', 'memberpress'); ?></label>
-        <?php MeprAppHelper::info_tooltip(
-            'mepr-logout-redirect-message',
-            __('Logout Redirect URL', 'memberpress'),
-            __('Set what URL you want the member to be taken to when they logout on your site. This setting applies to Administrators as well.', 'memberpress')
-        ); ?>
-        <input type="text" id="<?php echo $mepr_options->logout_redirect_url_str; ?>" name="<?php echo $mepr_options->logout_redirect_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->logout_redirect_url); ?>" /><br/><br/>
-      </div>
+      <section id="mepr-section-login-logout">
+        <h3><?php _e('Login & Logout:', 'memberpress'); ?></h3>
+        <div class="mepr-options-pane">
+          <div id="mepr-option-force-login-page-url">
+            <label for="<?php echo $mepr_options->force_login_page_url_str; ?>">
+              <input type="checkbox" name="<?php echo $mepr_options->force_login_page_url_str; ?>" id="<?php echo $mepr_options->force_login_page_url_str; ?>" <?php checked($mepr_options->force_login_page_url); ?> />
+              <span><?php _e('Use MemberPress login page URL', 'memberpress'); ?></span>
+            </label>
+            <?php MeprAppHelper::info_tooltip(
+                'mepr-force-login-page-url',
+                __('Use MemberPress login page URL', 'memberpress'),
+                __('Use this option to return MemberPress login page URL when other plugins/themes call the wp_login_url() function. If you have other plugins that use their own Login pages too you may want to leave this option disabled. This does NOT prevent directly accessing /wp-login.php page.', 'memberpress')
+            ); ?>
+            <br/><br/>
+          </div>
+          <div id="mepr-option-login-redirect-url">
+            <label for="<?php echo $mepr_options->login_redirect_url_str; ?>"><?php _e('URL to direct member to after login:', 'memberpress'); ?></label>&nbsp;&nbsp;&nbsp;
+            <?php MeprAppHelper::info_tooltip(
+                'mepr-login-redirect-message',
+                __('Login Redirect URL', 'memberpress'),
+                __('For this to work you must have the Login page set in the MemberPress options. You can also override this option on a per-membership basis in the Advanced box when creating/editing a membership.', 'memberpress')
+            ); ?>
+            <input type="text" id="<?php echo $mepr_options->login_redirect_url_str; ?>" name="<?php echo $mepr_options->login_redirect_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->login_redirect_url); ?>" /><br/><br/>
+          </div>
+          <div id="mepr-option-logout-redirect-url">
+            <label for="<?php echo $mepr_options->logout_redirect_url_str; ?>"><?php _e('URL to direct member to after logout:', 'memberpress'); ?></label>
+            <?php MeprAppHelper::info_tooltip(
+                'mepr-logout-redirect-message',
+                __('Logout Redirect URL', 'memberpress'),
+                __('Set what URL you want the member to be taken to when they logout on your site. This setting applies to Administrators as well.', 'memberpress')
+            ); ?>
+            <input type="text" id="<?php echo $mepr_options->logout_redirect_url_str; ?>" name="<?php echo $mepr_options->logout_redirect_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->logout_redirect_url); ?>" /><br/><br/>
+          </div>
+        </div>
+      </section>
 
-      <h3 class="mepr-field-label"><?php _e('Account Page Welcome Message', 'memberpress'); ?></h3>
-      <div class="mepr-options-pane">
-        <?php wp_editor($mepr_options->custom_message, $mepr_options->custom_message_str); ?>
-        <p class="description"><?php _e('This text will appear below the navigation on the Account Page.', 'memberpress'); ?></p>
-      </div>
+      <section id="mepr-section-account-page-welcome-message">
+        <h3 class="mepr-field-label"><?php _e('Account Page Welcome Message', 'memberpress'); ?></h3>
+        <div class="mepr-options-pane">
+          <?php wp_editor($mepr_options->custom_message, $mepr_options->custom_message_str); ?>
+          <p class="description"><?php _e('This text will appear below the navigation on the Account Page.', 'memberpress'); ?></p>
+        </div>
+      </section>
       <?php MeprHooks::do_action('mepr_display_account_options'); ?>
     </div>
 
@@ -654,221 +691,233 @@
     </div>
 
     <div id="general" class="mepr-options-hidden-pane">
-      <h3><?php _e('Internationalization', 'memberpress'); ?></h3>
-      <table class="form-table">
-        <tbody>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->language_code_str; ?>"><?php _e('Language Code:', 'memberpress'); ?></label>
-            </th>
-            <td>
-              <?php MeprOptionsHelper::payment_language_code_dropdown($mepr_options->language_code_str, $mepr_options->language_code); ?>
-            </td>
-          </tr>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->currency_code_str; ?>"><?php _e('Currency Code:', 'memberpress'); ?></label>
-            </th>
-            <td>
-              <?php MeprOptionsHelper::payment_currency_code_dropdown($mepr_options->currency_code_str, $mepr_options->currency_code); ?>
-            </td>
-          </tr>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->currency_symbol_str; ?>"><?php _e('Currency Symbol:', 'memberpress'); ?></label>
-            </th>
-            <td>
-              <?php MeprOptionsHelper::payment_currencies_dropdown($mepr_options->currency_symbol_str, $mepr_options->currency_symbol); ?>
-            </td>
-          </tr>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->currency_symbol_after_str; ?>"><?php _e('Symbol After Amount', 'memberpress'); ?></label>
-              <?php MeprAppHelper::info_tooltip(
-                  'mepr-currency-symbol-after',
-                  __('Display Currency Symbol After Amount', 'memberpress'),
-                  __('Will display the currency symbol after the price of the item. For example: 5.00$ instead of $5.00. Unless you know your countries currency symbol should be listed after, leave this unchecked.', 'memberpress')
-              ); ?>
-            </th>
-            <td>
-              <input type="checkbox" name="<?php echo $mepr_options->currency_symbol_after_str; ?>" id="<?php echo $mepr_options->currency_symbol_after_str; ?>" <?php checked($mepr_options->currency_symbol_after); ?> />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <br/>
-      <h3><?php _e('Theme Compatibility', 'memberpress'); ?></h3>
-      <table class="form-table">
-        <tbody>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->global_styles_str; ?>"><?php _e('Global CSS Styles', 'memberpress'); ?></label>
-              <?php MeprAppHelper::info_tooltip(
-                  'mepr-global-styles',
-                  __('Load all of MemberPress\'s CSS Styles on Each Page', 'memberpress'),
-                  __('When this option is enabled, all of MemberPress\'s CSS Styles will be loaded on every front end page of your website.', 'memberpress') . '<br/><br/><strong>' . __('Note: This option should only be enabled if MemberPress compatibility with your theme requires its usage.', 'memberpress') . '</strong>'
-              ); ?>
-            </th>
-            <td>
-              <input type="checkbox" name="<?php echo $mepr_options->global_styles_str; ?>" id="<?php echo $mepr_options->global_styles_str; ?>" <?php checked($mepr_options->global_styles); ?> />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <br/>
-      <h3><?php _e('SEO & PayWall', 'memberpress'); ?></h3>
-      <table class="form-table">
-        <tbody>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->authorize_seo_views_str; ?>"><?php _e('Authorize Search Engines', 'memberpress'); ?></label>
-              <?php MeprAppHelper::info_tooltip(
-                  'mepr-authorize-seo-views',
-                  __('Treat popular search engines as authorized members?', 'memberpress'),
-                  __('When this option is enabled -- Google, Yahoo, Ask, and Bing/MSN are allowed to view protected content on your site as if they were authorized members. This can help search engines index your content.', 'memberpress') . '<br/><br/>' . __("Note: This does not work with caching enabled on your site. So avoid enabling this when using WP Super Cache, W3TC, WP Engine hosting, GoDaddy's Managed WordPress -- or any other plugin/webhost that caches your pages.", 'memberpress')
-              ); ?>
-            </th>
-            <td>
-              <input type="checkbox" name="<?php echo $mepr_options->authorize_seo_views_str; ?>" id="<?php echo $mepr_options->authorize_seo_views_str; ?>" <?php checked($mepr_options->authorize_seo_views); ?> />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div id="mepr-seo-noindex-area" class="mepr-hidden">
+      <section id="mepr-section-internationalization">
+        <h3><?php _e('Internationalization', 'memberpress'); ?></h3>
         <table class="form-table">
           <tbody>
-            <tr valign="top">
+            <tr id="mepr-option-language-code" valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->seo_unauthorized_noindex_str; ?>"><?php _e('Block Search Engines', 'memberpress'); ?></label>
+                <label for="<?php echo $mepr_options->language_code_str; ?>"><?php _e('Language Code:', 'memberpress'); ?></label>
+              </th>
+              <td>
+                <?php MeprOptionsHelper::payment_language_code_dropdown($mepr_options->language_code_str, $mepr_options->language_code); ?>
+              </td>
+            </tr>
+            <tr id="mepr-option-currency-code" valign="top">
+              <th scope="row">
+                <label for="<?php echo $mepr_options->currency_code_str; ?>"><?php _e('Currency Code:', 'memberpress'); ?></label>
+              </th>
+              <td>
+                <?php MeprOptionsHelper::payment_currency_code_dropdown($mepr_options->currency_code_str, $mepr_options->currency_code); ?>
+              </td>
+            </tr>
+            <tr id="currency-symbol" valign="top">
+              <th scope="row">
+                <label for="<?php echo $mepr_options->currency_symbol_str; ?>"><?php _e('Currency Symbol:', 'memberpress'); ?></label>
+              </th>
+              <td>
+                <?php MeprOptionsHelper::payment_currencies_dropdown($mepr_options->currency_symbol_str, $mepr_options->currency_symbol); ?>
+              </td>
+            </tr>
+            <tr id="mepr-option-currency-symbol-after" valign="top">
+              <th scope="row">
+                <label for="<?php echo $mepr_options->currency_symbol_after_str; ?>"><?php _e('Symbol After Amount', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
-                    'mepr-seo-unauthorized-noindex',
-                    __('Ask search engines to not index protected content?', 'memberpress'),
-                    __("Automatically ask search engines not to index protected content on your site. If the 'Authorize Search Engines' option is enabled, this setting has no effect.", 'memberpress')
+                    'mepr-currency-symbol-after',
+                    __('Display Currency Symbol After Amount', 'memberpress'),
+                    __('Will display the currency symbol after the price of the item. For example: 5.00$ instead of $5.00. Unless you know your countries currency symbol should be listed after, leave this unchecked.', 'memberpress')
                 ); ?>
               </th>
               <td>
-                <input type="checkbox" name="<?php echo $mepr_options->seo_unauthorized_noindex_str; ?>" id="<?php echo $mepr_options->seo_unauthorized_noindex_str; ?>" <?php checked($mepr_options->seo_unauthorized_noindex); ?> />
+                <input type="checkbox" name="<?php echo $mepr_options->currency_symbol_after_str; ?>" id="<?php echo $mepr_options->currency_symbol_after_str; ?>" <?php checked($mepr_options->currency_symbol_after); ?> />
               </td>
             </tr>
           </tbody>
         </table>
-      </div>
+        <br/>
+      </section>
 
-      <table class="form-table">
-        <tbody>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->paywall_enabled_str; ?>"><?php _e('Enable PayWall', 'memberpress'); ?></label>
-              <?php MeprAppHelper::info_tooltip(
-                  'mepr-paywall-enabled',
-                  __('Enable PayWall', 'memberpress'),
-                  __('When enabled, you can specify how many free page views an unauthorized guest will have before being shown the unauthorized messages. We strongly encourage you to leave this option disabled during your initial setup and testing of MemberPress.', 'memberpress')
-              ); ?>
-            </th>
-            <td>
-              <input type="checkbox" name="<?php echo $mepr_options->paywall_enabled_str; ?>" id="<?php echo $mepr_options->paywall_enabled_str; ?>" <?php checked($mepr_options->paywall_enabled); ?> />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div id="mepr-paywall-options-area" class="mepr-sub-box-white mepr-hidden">
-        <div class="mepr-arrow mepr-white mepr-up mepr-sub-box-arrow"> </div>
+      <section id="mepr-section-theme-compatibility">
+        <h3><?php _e('Theme Compatibility', 'memberpress'); ?></h3>
         <table class="form-table">
           <tbody>
-            <tr valign="top">
+            <tr id="mepr-option-global-styles" valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->paywall_num_free_views_str; ?>"><?php _e('# Free Views', 'memberpress'); ?></label>
+                <label for="<?php echo $mepr_options->global_styles_str; ?>"><?php _e('Global CSS Styles', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
-                    'mepr-num-unauthorized-views',
-                    __('Number of Free Views per Guest', 'memberpress'),
-                    __('The number of free views unauthorized users can have before the paywall kicks in to prevent access to protected content.', 'memberpress')
+                    'mepr-global-styles',
+                    __('Load all of MemberPress\'s CSS Styles on Each Page', 'memberpress'),
+                    __('When this option is enabled, all of MemberPress\'s CSS Styles will be loaded on every front end page of your website.', 'memberpress') . '<br/><br/><strong>' . __('Note: This option should only be enabled if MemberPress compatibility with your theme requires its usage.', 'memberpress') . '</strong>'
                 ); ?>
               </th>
               <td>
-                <input type="text" size="2" name="<?php echo $mepr_options->paywall_num_free_views_str; ?>" id="<?php echo $mepr_options->paywall_num_free_views_str; ?>" value="<?php echo (int)$mepr_options->paywall_num_free_views; ?>" />
+                <input type="checkbox" name="<?php echo $mepr_options->global_styles_str; ?>" id="<?php echo $mepr_options->global_styles_str; ?>" <?php checked($mepr_options->global_styles); ?> />
               </td>
             </tr>
           </tbody>
         </table>
-      </div>
+        <br/>
+      </section>
 
-      <br/>
-      <h3><?php _e('Weekly Summary Email', 'memberpress'); ?></h3>
-      <table class="form-table">
-        <tbody>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo esc_attr($mepr_options->disable_summary_email_str); ?>"><?php _e('Disable Weekly Summary Email', 'memberpress'); ?></label>
-              <?php MeprAppHelper::info_tooltip(
-                  $mepr_options->disable_summary_email_str,
-                  __('Disable Weekly Summary Email', 'memberpress'),
-                  __('A weekly summary email is sent from MemberPress with a report on the revenue and transactions from the previous week. You can stop the email being sent by checking this option.', 'memberpress')
-              ); ?>
-            </th>
-            <td>
-              <input type="checkbox" name="<?php echo esc_attr($mepr_options->disable_summary_email_str); ?>" id="<?php echo esc_attr($mepr_options->disable_summary_email_str); ?>" <?php checked($mepr_options->disable_summary_email); ?> />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <section id="mepr-section-seo-paywall">
+        <h3><?php _e('SEO & PayWall', 'memberpress'); ?></h3>
+        <table id="mepr-option-authorize-seo-views" class="form-table">
+          <tbody>
+            <tr valign="top">
+              <th scope="row">
+                <label for="<?php echo $mepr_options->authorize_seo_views_str; ?>"><?php _e('Authorize Search Engines', 'memberpress'); ?></label>
+                <?php MeprAppHelper::info_tooltip(
+                    'mepr-authorize-seo-views',
+                    __('Treat popular search engines as authorized members?', 'memberpress'),
+                    __('When this option is enabled -- Google, Yahoo, Ask, and Bing/MSN are allowed to view protected content on your site as if they were authorized members. This can help search engines index your content.', 'memberpress') . '<br/><br/>' . __("Note: This does not work with caching enabled on your site. So avoid enabling this when using WP Super Cache, W3TC, WP Engine hosting, GoDaddy's Managed WordPress -- or any other plugin/webhost that caches your pages.", 'memberpress')
+                ); ?>
+              </th>
+              <td>
+                <input type="checkbox" name="<?php echo $mepr_options->authorize_seo_views_str; ?>" id="<?php echo $mepr_options->authorize_seo_views_str; ?>" <?php checked($mepr_options->authorize_seo_views); ?> />
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-      <br/>
-      <h3><?php _e('Rewrite Rules', 'memberpress'); ?></h3>
-      <table class="form-table">
-        <tbody>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->disable_mod_rewrite_str; ?>"><?php _e('Disable Rewrite Rules', 'memberpress'); ?></label>
-              <?php MeprAppHelper::info_tooltip(
-                  'mepr-disable-mod-rewrite',
-                  __('Disable mod_rewrite (.htaccess) Rules', 'memberpress'),
-                  __('If you are having problems getting other 3rd party applications such as phpBB or phpList to work along side MemberPress, you may need to check this option. Disabling mod_rewrite will mean that individual files cannot be protected with the Custom URI Rules.', 'memberpress')
-              ); ?>
-            </th>
-            <td>
-              <input type="checkbox" name="<?php echo $mepr_options->disable_mod_rewrite_str; ?>" id="<?php echo $mepr_options->disable_mod_rewrite_str; ?>" <?php checked($mepr_options->disable_mod_rewrite); ?> />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <div id="mepr-seo-noindex-area" class="mepr-hidden">
+          <table class="form-table">
+            <tbody>
+              <tr valign="top">
+                <th scope="row">
+                  <label for="<?php echo $mepr_options->seo_unauthorized_noindex_str; ?>"><?php _e('Block Search Engines', 'memberpress'); ?></label>
+                  <?php MeprAppHelper::info_tooltip(
+                      'mepr-seo-unauthorized-noindex',
+                      __('Ask search engines to not index protected content?', 'memberpress'),
+                      __("Automatically ask search engines not to index protected content on your site. If the 'Authorize Search Engines' option is enabled, this setting has no effect.", 'memberpress')
+                  ); ?>
+                </th>
+                <td>
+                  <input type="checkbox" name="<?php echo $mepr_options->seo_unauthorized_noindex_str; ?>" id="<?php echo $mepr_options->seo_unauthorized_noindex_str; ?>" <?php checked($mepr_options->seo_unauthorized_noindex); ?> />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-      <br/>
-      <h3><?php esc_html_e('Misc', 'memberpress'); ?></h3>
-      <table class="form-table">
-        <tbody>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>"><?php esc_html_e('Hide MemberPress Menu in Admin Bar', 'memberpress'); ?></label>
-              <?php MeprAppHelper::info_tooltip(
-                  'mepr-hide-mp-top-menu',
-                  esc_html__('Hide MemberPress Menu in Admin Bar', 'memberpress'),
-                  esc_html__('Enabling this option will hide the MemberPress admin bar menu', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
-              ); ?>
-            </th>
-            <td>
-              <input type="checkbox" name="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" id="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" <?php checked($mepr_options->hide_admin_bar_menu); ?> />
-            </td>
-          </tr>
-          <tr valign="top">
-            <th scope="row">
-              <label for="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>"><?php esc_html_e('Enable WP Rest API search discovery protection', 'memberpress'); ?></label>
-              <?php MeprAppHelper::info_tooltip(
-                  'mepr-enable-wp-rest-api-protection',
-                  esc_html__('Enable WP Rest API search discovery protection', 'memberpress'),
-                  esc_html__('Enabling this option will protect your WP Rest API search discovery', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
-              ); ?>
-            </th>
-            <td>
-              <input type="checkbox" name="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>" id="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>" <?php checked($mepr_options->enable_wp_rest_api_protection); ?> />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <br/>
+        <table id="mepr-option-paywall-enabled" class="form-table">
+          <tbody>
+            <tr valign="top">
+              <th scope="row">
+                <label for="<?php echo $mepr_options->paywall_enabled_str; ?>"><?php _e('Enable PayWall', 'memberpress'); ?></label>
+                <?php MeprAppHelper::info_tooltip(
+                    'mepr-paywall-enabled',
+                    __('Enable PayWall', 'memberpress'),
+                    __('When enabled, you can specify how many free page views an unauthorized guest will have before being shown the unauthorized messages. We strongly encourage you to leave this option disabled during your initial setup and testing of MemberPress.', 'memberpress')
+                ); ?>
+              </th>
+              <td>
+                <input type="checkbox" name="<?php echo $mepr_options->paywall_enabled_str; ?>" id="<?php echo $mepr_options->paywall_enabled_str; ?>" <?php checked($mepr_options->paywall_enabled); ?> />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div id="mepr-paywall-options-area" class="mepr-sub-box-white mepr-hidden">
+          <div class="mepr-arrow mepr-white mepr-up mepr-sub-box-arrow"> </div>
+          <table class="form-table">
+            <tbody>
+              <tr valign="top">
+                <th scope="row">
+                  <label for="<?php echo $mepr_options->paywall_num_free_views_str; ?>"><?php _e('# Free Views', 'memberpress'); ?></label>
+                  <?php MeprAppHelper::info_tooltip(
+                      'mepr-num-unauthorized-views',
+                      __('Number of Free Views per Guest', 'memberpress'),
+                      __('The number of free views unauthorized users can have before the paywall kicks in to prevent access to protected content.', 'memberpress')
+                  ); ?>
+                </th>
+                <td>
+                  <input type="text" size="2" name="<?php echo $mepr_options->paywall_num_free_views_str; ?>" id="<?php echo $mepr_options->paywall_num_free_views_str; ?>" value="<?php echo (int)$mepr_options->paywall_num_free_views; ?>" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <br/>
+      </section>
+
+      <section id="mepr-section-weekly-summary-email">
+        <h3><?php _e('Weekly Summary Email', 'memberpress'); ?></h3>
+        <table class="form-table">
+          <tbody>
+            <tr valign="top">
+              <th scope="row">
+                <label for="<?php echo esc_attr($mepr_options->disable_summary_email_str); ?>"><?php _e('Disable Weekly Summary Email', 'memberpress'); ?></label>
+                <?php MeprAppHelper::info_tooltip(
+                    $mepr_options->disable_summary_email_str,
+                    __('Disable Weekly Summary Email', 'memberpress'),
+                    __('A weekly summary email is sent from MemberPress with a report on the revenue and transactions from the previous week. You can stop the email being sent by checking this option.', 'memberpress')
+                ); ?>
+              </th>
+              <td>
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->disable_summary_email_str); ?>" id="<?php echo esc_attr($mepr_options->disable_summary_email_str); ?>" <?php checked($mepr_options->disable_summary_email); ?> />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <br/>
+      </section>
+
+      <section id="mepr-section-rewrite-rules">
+        <h3><?php _e('Rewrite Rules', 'memberpress'); ?></h3>
+        <table class="form-table">
+          <tbody>
+            <tr valign="top">
+              <th scope="row">
+                <label for="<?php echo $mepr_options->disable_mod_rewrite_str; ?>"><?php _e('Disable Rewrite Rules', 'memberpress'); ?></label>
+                <?php MeprAppHelper::info_tooltip(
+                    'mepr-disable-mod-rewrite',
+                    __('Disable mod_rewrite (.htaccess) Rules', 'memberpress'),
+                    __('If you are having problems getting other 3rd party applications such as phpBB or phpList to work along side MemberPress, you may need to check this option. Disabling mod_rewrite will mean that individual files cannot be protected with the Custom URI Rules.', 'memberpress')
+                ); ?>
+              </th>
+              <td>
+                <input type="checkbox" name="<?php echo $mepr_options->disable_mod_rewrite_str; ?>" id="<?php echo $mepr_options->disable_mod_rewrite_str; ?>" <?php checked($mepr_options->disable_mod_rewrite); ?> />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <br/>
+      </section>
+
+      <section id="mepr-section-misc">
+        <h3><?php esc_html_e('Misc', 'memberpress'); ?></h3>
+        <table class="form-table">
+          <tbody>
+            <tr valign="top">
+              <th scope="row">
+                <label for="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>"><?php esc_html_e('Hide MemberPress Menu in Admin Bar', 'memberpress'); ?></label>
+                <?php MeprAppHelper::info_tooltip(
+                    'mepr-hide-mp-top-menu',
+                    esc_html__('Hide MemberPress Menu in Admin Bar', 'memberpress'),
+                    esc_html__('Enabling this option will hide the MemberPress admin bar menu', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
+                ); ?>
+              </th>
+              <td>
+                <input type="checkbox" name="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" id="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" <?php checked($mepr_options->hide_admin_bar_menu); ?> />
+              </td>
+            </tr>
+            <tr valign="top">
+              <th scope="row">
+                <label for="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>"><?php esc_html_e('Enable WP Rest API search discovery protection', 'memberpress'); ?></label>
+                <?php MeprAppHelper::info_tooltip(
+                    'mepr-enable-wp-rest-api-protection',
+                    esc_html__('Enable WP Rest API search discovery protection', 'memberpress'),
+                    esc_html__('Enabling this option will protect your WP Rest API search discovery', 'memberpress') // phpcs:ignore Generic.Files.LineLength.TooLong
+                ); ?>
+              </th>
+              <td>
+                <input type="checkbox" name="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>" id="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>" <?php checked($mepr_options->enable_wp_rest_api_protection); ?> />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <br/>
+      </section>
 
       <?php MeprHooks::do_action('mepr_display_general_options'); ?>
     </div>

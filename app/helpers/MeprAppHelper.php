@@ -7,6 +7,13 @@ if (!defined('ABSPATH')) {
 class MeprAppHelper
 {
     /**
+     * Default allowed HTML tags for sanitization.
+     *
+     * @var array
+     */
+    private static $default_allowed_tags = null;
+
+    /**
      * Displays an information tooltip.
      *
      * @param string $id    The ID of the tooltip.
@@ -381,9 +388,18 @@ class MeprAppHelper
             } elseif ($period_type == 'lifetime') {
                 $price_str = __('Free', 'memberpress');
             } elseif ($period == 1) {
-                $price_str = sprintf(__('Free for a %1$s', 'memberpress'), $period_type_str);
+                $price_str = sprintf(
+                    // Translators: %s: period type.
+                    __('Free for a %s', 'memberpress'),
+                    $period_type_str
+                );
             } else {
-                $price_str = sprintf(__('Free for %1$d %2$s', 'memberpress'), $period, $period_type_str);
+                $price_str = sprintf(
+                    // Translators: %1$d: period, %2$s: period type.
+                    __('Free for %1$d %2$s', 'memberpress'),
+                    $period,
+                    $period_type_str
+                );
             }
         } elseif ($period_type == 'lifetime') {
             $price_str = $fprice;
@@ -444,14 +460,23 @@ class MeprAppHelper
 
                     // If proration and max number of payments is 1.
                     if ($proration_single_cycle) {
-                        $sub_str = __('%1$s %2$s for %3$s%4$s ', 'memberpress');
+                        $sub_str = (
+                            // Translators: %1$s: trial price, %2$s: trial period, %3$s: upgrade price, %4$s: upgrade period.
+                            __('%1$s %2$s for %3$s%4$s ', 'memberpress')
+                        );
                     } else {
-                        $sub_str = __('%1$s %2$s for %3$s%4$s then ', 'memberpress');
+                        $sub_str = (
+                            // Translators: %1$s: trial price, %2$s: trial period, %3$s: upgrade price, %4$s: upgrade period.
+                            __('%1$s %2$s for %3$s%4$s then ', 'memberpress')
+                        );
                     }
 
                     $price_str = sprintf($sub_str, $conv_trial_count, $conv_trial_type_str, $trial_str, $upgrade_str);
                 } else {
-                    $sub_str   = __('%1$s%2$s once and ', 'memberpress');
+                    $sub_str   = (
+                        // Translators: %1$s: trial price, %2$s: upgrade price.
+                        __('%1$s%2$s once and ', 'memberpress')
+                    );
                     $price_str = sprintf($sub_str, $trial_str, $upgrade_str);
                 }
             } else {
@@ -462,11 +487,17 @@ class MeprAppHelper
                 if (!$proration_single_cycle) {
                     $price_str .= $fprice;
                     if ($obj->limit_cycles_action == 'expire') {
-                        $price_str .= sprintf(__(' for %1$d %2$s', 'memberpress'), $period, $period_type_str);
+                        $price_str .= sprintf(
+                            // Translators: %1$d: period, %2$s: period type.
+                            __(' for %1$d %2$s', 'memberpress'),
+                            $period,
+                            $period_type_str
+                        );
                     }
                 }
             } elseif ($obj->limit_cycles) { // Prefix with payments count.
                 $price_str .= sprintf(
+                    // Translators: %1$d: number of payments.
                     _n(
                         '%1$d payment of ',
                         '%1$d payments of ',
@@ -479,9 +510,20 @@ class MeprAppHelper
 
             if (!$obj->limit_cycles or ($obj->limit_cycles and $obj->limit_cycles_num > 1)) {
                 if ($period == 1) {
-                    $price_str .= sprintf(__('%1$s / %2$s', 'memberpress'), $fprice, $period_type_str);
+                    $price_str .= sprintf(
+                        // Translators: %1$s: price, %2$s: period type.
+                        __('%1$s / %2$s', 'memberpress'),
+                        $fprice,
+                        $period_type_str
+                    );
                 } else {
-                    $price_str .= sprintf(__('%1$s / %2$d %3$s', 'memberpress'), $fprice, $period, $period_type_str);
+                    $price_str .= sprintf(
+                        // Translators: %1$s: price, %2$d: period, %3$s: period type.
+                        __('%1$s / %2$d %3$s', 'memberpress'),
+                        $fprice,
+                        $period,
+                        $period_type_str
+                    );
                 }
             }
         }
@@ -489,7 +531,12 @@ class MeprAppHelper
         if ($period_type == 'lifetime') {
             if ($obj->expire_type == 'delay') {
                 $expire_str = MeprUtils::period_type_name($obj->expire_unit, $obj->expire_after);
-                $price_str .= sprintf(__(' for %1$d %2$s', 'memberpress'), $obj->expire_after, $expire_str);
+                $price_str .= sprintf(
+                    // Translators: %1$d: expiration period, %2$s: expiration unit.
+                    __(' for %1$d %2$s', 'memberpress'),
+                    $obj->expire_after,
+                    $expire_str
+                );
             } elseif ($obj->expire_type == 'fixed') {
                 $now = time();
 
@@ -509,7 +556,11 @@ class MeprAppHelper
                 $expire_str = date_i18n(get_option('date_format'), $expire_ts, true);
 
                 if (!$product->is_renewal()) { // Just hide this if it's a renewal.
-                    $price_str .= sprintf(__(' for access until %s', 'memberpress'), $expire_str);
+                    $price_str .= sprintf(
+                        // Translators: %s: expiration date.
+                        __(' for access until %s', 'memberpress'),
+                        $expire_str
+                    );
                 }
             }
         }
@@ -519,7 +570,11 @@ class MeprAppHelper
         }
 
         if (!empty($coupon)) {
-            $price_str .= sprintf(__(' with coupon %s', 'memberpress'), $coupon_code);
+            $price_str .= sprintf(
+                // Translators: %s: coupon code.
+                __(' with coupon %s', 'memberpress'),
+                $coupon_code
+            );
         }
 
         return MeprHooks::apply_filters('mepr-price-string', $price_str, $obj, $show_symbol);
@@ -725,9 +780,15 @@ class MeprAppHelper
 
         if ($all) {
             $params['all'] = 1;
-            $label         = __('Export table as CSV (%s records)', 'memberpress');
+            $label         = (
+                // Translators: %s: number of records.
+                __('Export table as CSV (%s records)', 'memberpress')
+            );
         } else {
-            $label = __('Export all as CSV (%s records)', 'memberpress');
+            $label = (
+                // Translators: %s: number of records.
+                __('Export all as CSV (%s records)', 'memberpress')
+            );
         }
 
         $export_link = MeprUtils::admin_url(
@@ -916,103 +977,149 @@ class MeprAppHelper
     public static function wp_kses($content, $allowed_tags = [])
     {
         if (!is_array($allowed_tags) || empty($allowed_tags)) {
-            $allowed_tags = [
-                'a'          => [
-                    'class' => [],
-                    'href'  => [],
-                    'rel'   => [],
-                    'title' => [],
-                ],
-                'abbr'       => [
-                    'title' => [],
-                ],
-                'b'          => [],
-                'blockquote' => [
-                    'cite' => [],
-                ],
-                'cite'       => [
-                    'title' => [],
-                ],
-                'code'       => [],
-                'del'        => [
-                    'datetime' => [],
-                    'title'    => [],
-                ],
-                'dd'         => [],
-                'div'        => [
-                    'class' => [],
-                    'title' => [],
-                    'style' => [],
-                ],
-                'dl'         => [],
-                'dt'         => [],
-                'em'         => [],
-                'h1'         => [],
-                'h2'         => [],
-                'h3'         => [],
-                'h4'         => [],
-                'h5'         => [],
-                'h6'         => [],
-                'i'          => [],
-                'img'        => [
-                    'alt'    => [],
-                    'class'  => [],
-                    'height' => [],
-                    'src'    => [],
-                    'width'  => [],
-                ],
-                'form'       => [
-                    'id'     => [],
-                    'class'  => [],
-                    'name'   => [],
-                    'action' => [],
-                    'method' => [],
-                ],
-                'li'         => [
-                    'class' => [],
-                ],
-                'ol'         => [
-                    'class' => [],
-                ],
-                'p'          => [
-                    'class' => [],
-                ],
-                'q'          => [
-                    'cite'  => [],
-                    'title' => [],
-                ],
-                'span'       => [
-                    'class' => [],
-                    'title' => [],
-                    'style' => [],
-                ],
-                'strike'     => [],
-                'strong'     => [],
-                'ul'         => [
-                    'class' => [],
-                ],
-                'input'      => [
-                    'type'        => [],
-                    'name'        => [],
-                    'value'       => [],
-                    'class'       => [],
-                    'id'          => [],
-                    'placeholder' => [],
-                    'readonly'    => [],
-                    'disabled'    => [],
-                    'checked'     => [],
-                ],
-                'button'     => [
-                    'type'        => [],
-                    'data-toggle' => [],
-                    'value'       => [],
-                    'class'       => [],
-                    'id'          => [],
-                    'aria-label'  => [],
-                    'readonly'    => [],
-                    'disabled'    => [],
-                ],
-            ];
+            if (self::$default_allowed_tags === null) {
+                self::$default_allowed_tags = [
+                    'a'          => [
+                        'href'        => [],
+                        'rel'         => [],
+                        'title'       => [],
+                        'target'      => [],
+                        'aria-label'  => [],
+                        'aria-hidden' => [],
+                        'role'        => [],
+                    ],
+                    'abbr'       => [
+                        'title' => [],
+                    ],
+                    'b'          => [],
+                    'blockquote' => [
+                        'cite' => [],
+                    ],
+                    'cite'       => [
+                        'title' => [],
+                    ],
+                    'code'       => [],
+                    'del'        => [
+                        'datetime' => [],
+                        'title'    => [],
+                    ],
+                    'dd'         => [],
+                    'div'        => [
+                        'title'       => [],
+                        'style'       => [],
+                        'aria-label'  => [],
+                        'aria-hidden' => [],
+                        'role'        => [],
+                    ],
+                    'dl'         => [],
+                    'dt'         => [],
+                    'em'         => [],
+                    'h1'         => [],
+                    'h2'         => [],
+                    'h3'         => [],
+                    'h4'         => [],
+                    'h5'         => [],
+                    'h6'         => [],
+                    'i'          => [
+                        'aria-hidden' => [],
+                    ],
+                    'img'        => [
+                        'alt'     => [],
+                        'height'  => [],
+                        'src'     => [],
+                        'width'   => [],
+                        'loading' => [],
+                        'sizes'   => [],
+                        'srcset'  => [],
+                    ],
+                    'form'       => [
+                        'name'   => [],
+                        'action' => [],
+                        'method' => [],
+                        'aria-label' => [],
+                    ],
+                    'li'         => [],
+                    'ol'         => [],
+                    'p'          => [],
+                    'q'          => [
+                        'cite'  => [],
+                        'title' => [],
+                    ],
+                    'span'       => [
+                        'title'       => [],
+                        'style'       => [],
+                        'aria-label'  => [],
+                        'aria-hidden' => [],
+                    ],
+                    'strike'     => [],
+                    'strong'     => [],
+                    'ul'         => [],
+                    'input'      => [
+                        'type'          => [],
+                        'name'          => [],
+                        'value'         => [],
+                        'placeholder'   => [],
+                        'readonly'      => [],
+                        'disabled'      => [],
+                        'checked'       => [],
+                        'aria-label'    => [],
+                        'aria-required' => [],
+                        'aria-invalid'  => [],
+                        'autocomplete'  => [],
+                    ],
+                    'button'     => [
+                        'type'          => [],
+                        'data-toggle'   => [],
+                        'value'         => [],
+                        'aria-label'    => [],
+                        'aria-pressed'  => [],
+                        'aria-expanded' => [],
+                        'readonly'      => [],
+                        'disabled'      => [],
+                    ],
+                    'label'      => [
+                        'for'    => [],
+                    ],
+                    'nav'        => [
+                        'aria-label' => [],
+                        'role'       => [],
+                    ],
+                    'section'    => [
+                        'aria-labelledby' => [],
+                    ],
+                    'table'      => [
+                        'role'   => [],
+                    ],
+                    'thead'      => [],
+                    'tbody'      => [],
+                    'tr'         => [],
+                    'th'         => [
+                        'scope' => [],
+                    ],
+                    'td'         => [],
+                ];
+
+                // Allow all global attributes.
+                $global_attributes = [
+                    'id'               => [],
+                    'class'            => [],
+                    'aria-describedby' => [],
+                    'aria-details'     => [],
+                    'aria-hidden'      => [],
+                    'aria-labelledby'  => [],
+                    'aria-label'       => [],
+                    'role'             => [],
+                    'tabindex'         => [],
+                    'data-*'           => [], // Support for all data-* attributes.
+                ];
+
+                // Apply global attributes to all elements.
+                foreach (self::$default_allowed_tags as $tag => $attributes) {
+                    self::$default_allowed_tags[$tag] = array_merge($attributes, $global_attributes);
+                }
+            }
+
+            $allowed_tags = self::$default_allowed_tags;
         }
 
         return wp_kses($content, $allowed_tags);

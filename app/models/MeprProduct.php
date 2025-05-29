@@ -1060,10 +1060,9 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     /**
      * Can this product be purchased?
      *
-     * @param  MeprUser|null $user The purchasing user. If null, it will use the currently logged-in user.
-     * @return MeprGroup|false
+     * @return boolean
      */
-    public function can_you_buy_me(MeprUser $user = null)
+    public function can_you_buy_me()
     {
         $override = MeprHooks::apply_filters('mepr-can-you-buy-me-override', null, $this);
         if (!is_null($override)) {
@@ -1075,9 +1074,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
             return true;
         }
 
-        if (is_null($user) && MeprUtils::is_user_logged_in()) {
-            $user = new MeprUser(get_current_user_id());
-        }
+        $user = MeprUtils::get_currentuserinfo();
 
         // Make sure user hasn't already subscribed to this membership first.
         if (

@@ -7,7 +7,11 @@
     <input type="checkbox"
            name="<?php echo $email->field_name('enabled'); ?>"
            id="<?php echo $email->field_name('enabled', true); ?>"<?php checked($email->enabled()); ?>/>
-    <?php printf(__('Send %s', 'memberpress'), $email->title); ?>
+    <?php printf(
+        // Translators: %s: email title.
+        __('Send %s', 'memberpress'),
+        $email->title
+    ); ?>
   </label>
   <?php MeprAppHelper::info_tooltip(
       $email->dashed_name(),

@@ -388,7 +388,11 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
         $res = $this->send_nvp_request('DoDirectPayment', $args);
         // $this->email_status("DoDirectPayment Response:\n".MeprUtils::object_to_string($res,true)."\n", $this->settings->debug);
         if (!isset($res['ACK']) || strtoupper($res['ACK']) != 'SUCCESS') {
-            throw new MeprGatewayException(sprintf(__('The payment was unsuccessful. %s', 'memberpress'), $this->error_str($res)));
+            throw new MeprGatewayException(sprintf(
+                // Translators: %s: error message.
+                __('The payment was unsuccessful. %s', 'memberpress'),
+                $this->error_str($res)
+            ));
         }
 
         $_REQUEST['paypal_response'] = $res;
@@ -480,7 +484,11 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
         $this->email_status("RefundTransaction Response:\n" . MeprUtils::object_to_string($res, true) . "\n", $this->settings->debug);
 
         if (!isset($res['ACK']) || strtoupper($res['ACK']) != 'SUCCESS') {
-            throw new MeprGatewayException(sprintf(__('The refund was unsuccessful. %s', 'memberpress'), $this->error_str($res)));
+            throw new MeprGatewayException(sprintf(
+                // Translators: %s: error message.
+                __('The refund was unsuccessful. %s', 'memberpress'),
+                $this->error_str($res)
+            ));
         }
 
         $_POST['parent_txn_id'] = $txn->id;
@@ -739,7 +747,11 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
         $res = $this->send_nvp_request('UpdateRecurringPaymentsProfile', $args);
 
         if (!isset($res['ACK']) || strtoupper($res['ACK']) != 'SUCCESS') {
-            throw new MeprGatewayException(sprintf(__('Updating the Credit Card was unsuccessful. %s', 'memberpress'), $this->error_str($res)));
+            throw new MeprGatewayException(sprintf(
+                // Translators: %s: error message.
+                __('Updating the Credit Card was unsuccessful. %s', 'memberpress'),
+                $this->error_str($res)
+            ));
         }
 
         $_REQUEST['res']    = $res;
@@ -1457,7 +1469,11 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
         }
 
         if (is_wp_error($resp)) {
-            throw new MeprHttpException(sprintf(__('You had an HTTP error connecting to %s', 'memberpress'), $this->name));
+            throw new MeprHttpException(sprintf(
+                // Translators: %s: gateway name.
+                __('You had an HTTP error connecting to %s', 'memberpress'),
+                $this->name
+            ));
         } else {
             $resp_args = wp_parse_args($resp['body']);
 
@@ -1568,7 +1584,12 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
         $mepr_options = MeprOptions::fetch();
         ?>
       <h4><?php _e('Your payment at PayPal was cancelled.', 'memberpress'); ?></h4>
-      <p><?php echo MeprHooks::apply_filters('mepr_paypal_website_payments_pro_cancel_message', sprintf(__('You can retry your purchase by %1$sclicking here%2$s.', 'memberpress'), '<a href="' . MeprUtils::get_permalink() . '">', '</a>')); ?><br/></p>
+      <p><?php echo MeprHooks::apply_filters('mepr_paypal_website_payments_pro_cancel_message', sprintf(
+          // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+          __('You can retry your purchase by %1$sclicking here%2$s.', 'memberpress'),
+          '<a href="' . MeprUtils::get_permalink() . '">',
+          '</a>'
+      )); ?><br/></p>
         <?php
     }
 
@@ -1599,7 +1620,11 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
      */
     private function send_digital_goods_error_message()
     {
-        $subject = sprintf(__('** PayPal Payment ERROR on %s', 'memberpress'), MeprUtils::blogname());
+        $subject = sprintf(
+            // Translators: %s: site name.
+            __('** PayPal Payment ERROR on %s', 'memberpress'),
+            MeprUtils::blogname()
+        );
         $body    = __('Your PayPal account isn\'t setup to sell Digital Goods.
 
 Your recurring billing profiles and transactions won\'t complete properly until this problem is fixed.
@@ -1671,7 +1696,11 @@ The MemberPress Team
         );
 
         if (strtolower($res['ACK']) != 'success') {
-            throw new MeprGatewayException(sprintf(__('There was a problem cancelling. %s', 'memberpress'), $this->error_str($res)));
+            throw new MeprGatewayException(sprintf(
+                // Translators: %s: error message.
+                __('There was a problem cancelling. %s', 'memberpress'),
+                $this->error_str($res)
+            ));
         }
 
         $_REQUEST['recurring_payment_id'] = $sub->subscr_id;

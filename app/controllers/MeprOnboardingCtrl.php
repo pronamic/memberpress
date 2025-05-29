@@ -1284,7 +1284,11 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         $content_id    = $rule_data['content_id'];
         $membership_id = $rule_data['membership_id'];
 
-        $rule_title = sprintf(esc_html__('A Single %s', 'memberpress'), $rule_data['content_type']) . ': ' . $rule_data['content_title'];
+        $rule_title = sprintf(
+            // Translators: %1$s: custom post type name.
+            __('A Single %1$s', 'memberpress'),
+            $rule_data['content_type']
+        ) . ': ' . $rule_data['content_title'];
 
         $post_id = wp_insert_post([
             'post_type'   => 'memberpressrule',

@@ -22,7 +22,12 @@ class MeprAdminSubExpiresReminderEmail extends MeprBaseReminderEmail
         $this->ui_order    = 1;
 
         $enabled = $use_template = $this->show_form = true;
-        $subject = sprintf(__('** %1$s Reminder Sent to %2$s', 'memberpress'), '{$reminder_name}', '{$username}');
+        $subject = sprintf(
+          // Translators: %1$s: reminder name, %2$s: username.
+            __('** %1$s Reminder Sent to %2$s', 'memberpress'),
+            '{$reminder_name}',
+            '{$username}'
+        );
         $body    = $this->body_partial();
 
         $this->defaults  = compact('enabled', 'subject', 'body', 'use_template');

@@ -60,7 +60,11 @@
     MeprAppHelper::info_tooltip(
         'mepr-group-products-list',
         __('Memberships', 'memberpress'),
-        sprintf(__('Here you can add/remove memberships from this group pricing page.%1$s%1$sThe order of the memberships is important here. Order the memberships so that the lowest tier membership is at the top of the list and the highest tier membership is at the bottom, with the other memberships in order in between.', 'memberpress'), '<br />')
+        sprintf(
+          // Translators: %1$s: line break.
+            __('Here you can add/remove memberships from this group pricing page.%1$s%1$sThe order of the memberships is important here. Order the memberships so that the lowest tier membership is at the top of the list and the highest tier membership is at the bottom, with the other memberships in order in between.', 'memberpress'),
+            '<br />'
+        )
     );
     ?>
   </h4>

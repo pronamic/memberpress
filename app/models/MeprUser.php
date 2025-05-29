@@ -914,7 +914,11 @@ class MeprUser extends MeprBaseModel
         }
 
         if (is_wp_error($id)) {
-            throw new MeprCreateException(sprintf(__('The user was unable to be saved: %s', 'memberpress'), $id->get_error_message()));
+            throw new MeprCreateException(sprintf(
+                // Translators: %s: error message.
+                __('The user was unable to be saved: %s', 'memberpress'),
+                $id->get_error_message()
+            ));
         } else {
             $this->rec->ID = $id;
         }
@@ -1137,9 +1141,7 @@ class MeprUser extends MeprBaseModel
             $recipient = $this->formatted_email();
 
             // Translators: In this string, %s is the Blog Name/Title.
-            $subject          = MeprHooks::apply_filters('mepr_user_pw_reset_title', sprintf(_x('[%s] Your new Password', 'ui', 'memberpress'), $mepr_blogname));
-            $password_message = _x('', 'ui', 'memberpress');
-
+            $subject = MeprHooks::apply_filters('mepr_user_pw_reset_title', sprintf(_x('[%s] Your new Password', 'ui', 'memberpress'), $mepr_blogname));
 
             ob_start();
             MeprView::render('/emails/user_password_was_reset', get_defined_vars());
@@ -1215,7 +1217,12 @@ class MeprUser extends MeprBaseModel
                     $current_url = urlencode(esc_url($current_url ? $current_url : $_SERVER['REQUEST_URI']));
                     $login_url   = $mepr_options->login_page_url("redirect_to={$current_url}");
 
-                    $errors['user_login'] = sprintf(__('This username has already been taken. If you are an existing user, please %1$sLogin%2$s first. You will be redirected back here to complete your sign-up afterwards.', 'memberpress'), "<a href=\"{$login_url}\"><strong>", '</strong></a>');
+                    $errors['user_login'] = sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        __('This username has already been taken. If you are an existing user, please %1$sLogin%2$s first. You will be redirected back here to complete your sign-up afterwards.', 'memberpress'),
+                        "<a href=\"{$login_url}\"><strong>",
+                        '</strong></a>'
+                    );
                 }
             }
 
@@ -1227,7 +1234,12 @@ class MeprUser extends MeprBaseModel
                 $current_url = $current_url ? $current_url : urlencode(esc_url($_SERVER['REQUEST_URI']));
                 $login_url   = $mepr_options->login_page_url("redirect_to={$current_url}");
 
-                $errors['user_email'] = sprintf(__('This email address has already been used. If you are an existing user, please %1$sLogin%2$s to complete your purchase. You will be redirected back here to complete your sign-up afterwards.', 'memberpress'), "<a href=\"{$login_url}\"><strong>", '</strong></a>');
+                $errors['user_email'] = sprintf(
+                    // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                    __('This email address has already been used. If you are an existing user, please %1$sLogin%2$s to complete your purchase. You will be redirected back here to complete your sign-up afterwards.', 'memberpress'),
+                    "<a href=\"{$login_url}\"><strong>",
+                    '</strong></a>'
+                );
             }
 
             if ($mepr_options->disable_checkout_password_fields === false) {
@@ -1274,8 +1286,29 @@ class MeprUser extends MeprBaseModel
         $product_price       = $product->adjusted_price($product_coupon_code);
         $pms                 = $mepr_options->payment_methods();
 
-        if (! $product->can_you_buy_me()) {
-            $errors[] = wpautop(do_shortcode($product->cannot_purchase_message));
+        if (!$product->can_you_buy_me()) {
+            $user = MeprUtils::get_currentuserinfo();
+
+            if (
+                $user instanceof MeprUser &&
+                $user->is_already_subscribed_to($product->ID) &&
+                !$product->simultaneous_subscriptions &&
+                !$product->allow_renewal
+            ) {
+                $errors[] = sprintf(
+                    // Translators: %1$s: product name, %2$s: open link tag, %3$s: close link tag.
+                    esc_html__('You are already subscribed to %1$s, %2$sclick here%3$s to view your subscriptions.', 'memberpress'),
+                    esc_html($product->post_title),
+                    '<a href="' . esc_url(add_query_arg(['action' => 'subscriptions'], $mepr_options->account_page_url())) . '">',
+                    '</a>'
+                );
+            } else {
+                if (!empty($product->cannot_purchase_message)) {
+                    $errors[] = wpautop(do_shortcode($product->cannot_purchase_message));
+                } else {
+                    $errors[] = _x('You don\'t have access to purchase this item.', 'ui', 'memberpress');
+                }
+            }
         }
 
         // Don't allow free payment method on non-free transactions
@@ -2143,7 +2176,15 @@ class MeprUser extends MeprBaseModel
             $country = '';
         }
 
-        $addr = sprintf('<br/>' . __('%1$s', 'memberpress') . '<br/>' . __('%2$s, %3$s %4$s%5$s', 'memberpress') . '<br/>', $addr, $city, $state, $zip, $country);
+        $addr = sprintf(
+            // Translators: %1$s: address line 1, %2$s: city, %3$s: state, %4$s: zip, %5$s: country.
+            __('<br/>%1$s<br/>%2$s, %3$s %4$s%5$s<br/>', 'memberpress'),
+            $addr,
+            $city,
+            $state,
+            $zip,
+            $country
+        );
 
         return MeprHooks::apply_filters('mepr-user-formatted-address', $addr, $this);
     }

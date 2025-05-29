@@ -31,7 +31,7 @@
               ); ?>
             </th>
             <td>
-              <input type="text" id="mepr_tax_taxjar_api_key_live" name="mepr_tax_taxjar_api_key_live" class="regular-text" value="<?php esc_attr_e(get_option('mepr_tax_taxjar_api_key_live'), 'memberpress'); ?>" />
+              <input type="text" id="mepr_tax_taxjar_api_key_live" name="mepr_tax_taxjar_api_key_live" class="regular-text" value="<?php echo esc_attr(get_option('mepr_tax_taxjar_api_key_live')); ?>" />
             </td>
           </tr>
           <tr valign="top">
@@ -44,7 +44,7 @@
               ); ?>
             </th>
             <td>
-              <input type="text" id="mepr_tax_taxjar_api_key_sandbox" name="mepr_tax_taxjar_api_key_sandbox" class="regular-text" value="<?php esc_attr_e(get_option('mepr_tax_taxjar_api_key_sandbox'), 'memberpress'); ?>" />
+              <input type="text" id="mepr_tax_taxjar_api_key_sandbox" name="mepr_tax_taxjar_api_key_sandbox" class="regular-text" value="<?php echo esc_attr(get_option('mepr_tax_taxjar_api_key_sandbox')); ?>" />
             </td>
           </tr>
           <tr valign="top">

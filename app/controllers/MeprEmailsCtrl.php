@@ -135,7 +135,11 @@ class MeprEmailsCtrl extends MeprBaseCtrl
                 'subscr_next_billing_at'     => MeprAppHelper::format_date(gmdate('c', time() + MeprUtils::months(1))),
                 'subscr_expires_at'          => MeprAppHelper::format_date(gmdate('c', time() + MeprUtils::months(1))),
                 'subscr_gateway'             => __('Credit Card (Stripe)', 'memberpress'),
-                'subscr_terms'               => sprintf(__('%s / month', 'memberpress'), $amount),
+                'subscr_terms'               => sprintf(
+                    // Translators: %s: price.
+                    __('%s / month', 'memberpress'),
+                    $amount
+                ),
                 'subscr_cc_num'              => MeprUtils::cc_num('6710'),
                 'subscr_cc_month_exp'        => gmdate('m'),
                 'subscr_cc_year_exp'         => (gmdate('Y') + 2),

@@ -31,7 +31,11 @@ if (is_array($editions)) {
     </tr>
     <tr>
       <td><?php esc_html_e('Status:', 'memberpress'); ?></td>
-      <td><b><?php echo esc_html(sprintf(__('Active on %s', 'memberpress'), MeprUtils::site_domain())); ?></b></td>
+      <td><b><?php echo esc_html(sprintf(
+          // Translators: %s: site domain.
+          __('Active on %s', 'memberpress'),
+          MeprUtils::site_domain()
+      )); ?></b></td>
     </tr>
     <tr>
       <td><?php esc_html_e('Product:', 'memberpress'); ?></td>
@@ -54,7 +58,11 @@ if (is_array($editions)) {
     </tr>
   </table>
   <div class="mepr-deactivate-button">
-    <button type="button" id="mepr-deactivate-license-key" class="button button-primary"><?php echo esc_html(sprintf(__('Deactivate License Key on %s', 'memberpress'), MeprUtils::site_domain())); ?></button>
+    <button type="button" id="mepr-deactivate-license-key" class="button button-primary"><?php echo esc_html(sprintf(
+        // Translators: %s: site domain.
+        __('Deactivate License Key on %s', 'memberpress'),
+        MeprUtils::site_domain()
+    )); ?></button>
   </div>
 </div>
 

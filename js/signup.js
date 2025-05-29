@@ -297,6 +297,17 @@
       }
     });
 
+    // A debounced window resize function, to fix a Square card input sizing issue.
+    const windowResize = (() => {
+      let timeoutId;
+      return () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 10);
+      };
+    })();
+
     $('body').on('click', '.mepr-signup-form div[class^=mepr-payment-method] input.mepr-form-radio', function () {
       var form = $(this).closest('.mepr-signup-form');
 
@@ -327,7 +338,7 @@
             });
 
             if(pmid_exists) {
-              form.find(pmid).slideDown(200);
+              form.find(pmid).slideDown(200, windowResize);
             }
           }
         });
@@ -340,7 +351,7 @@
         });
 
         if(pmid_exists) {
-          form.find(pmid).slideDown(200);
+          form.find(pmid).slideDown(200, windowResize);
         }
       }
     });

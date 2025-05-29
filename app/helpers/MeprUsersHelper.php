@@ -506,7 +506,14 @@ class MeprUsersHelper
                 ?>
         <tr>
           <th>
-            <label for="<?php echo $line->field_key; ?>"><?php printf(__('%1$s:%2$s', 'memberpress'), stripslashes($line->field_name), $required); ?></label>
+            <label for="<?php echo $line->field_key; ?>">
+                <?php printf(
+                // Translators: %1$s: field name, %2$s: required asterisk.
+                    __('%1$s:%2$s', 'memberpress'),
+                    stripslashes($line->field_name),
+                    $required
+                ); ?>
+            </label>
           </th>
           <td>
                 <?php

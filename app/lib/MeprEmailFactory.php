@@ -30,7 +30,12 @@ class MeprEmailFactory
         $obj = $r->newInstanceArgs($args);
 
         if (!($obj instanceof $etype)) {
-            throw new MeprInvalidEmailException(sprintf(__('Not a valid email object: %1$s is not an instance of %2$s', 'memberpress'), $class, $etype));
+            throw new MeprInvalidEmailException(sprintf(
+                // Translators: %1$s: class name, %2$s: expected class name.
+                __('Not a valid email object: %1$s is not an instance of %2$s', 'memberpress'),
+                $class,
+                $etype
+            ));
         }
 
         return $obj;

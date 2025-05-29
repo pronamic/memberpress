@@ -116,7 +116,12 @@ class MeprSubscriptionsHelper
             'signup_url'                 => $prd->url(),
             'subscr_num'                 => $sub->subscr_id,
             'subscr_date'                => $sub_date,
-            'subscr_gateway'             => sprintf(__('%1$s (%2$s)', 'memberpress'), $pm->label, $pm->name),
+            'subscr_gateway'             => sprintf(
+                // Translators: %1$s: gateway label, %2$s: gateway name.
+                __('%1$s (%2$s)', 'memberpress'),
+                $pm->label,
+                $pm->name
+            ),
             'subscr_next_billing_at'     => MeprAppHelper::format_date($sub->next_billing_at, ''),
             'subscr_trial_end_date'      => $trial_end_date,
             'subscr_expires_at'          => $expires_at,
@@ -199,7 +204,15 @@ class MeprSubscriptionsHelper
             $obj = $mepr_options->payment_method($pm_id);
             if ($obj instanceof MeprBaseRealGateway) :
                 ?>
-            <option value="<?php echo $obj->id; ?>" <?php selected($value, $obj->id); ?>><?php printf(__('%1$s (%2$s)', 'memberpress'), $obj->label, $obj->name); ?>&nbsp;</option>
+            <option value="<?php echo $obj->id; ?>" <?php selected($value, $obj->id); ?>>
+                <?php printf(
+                // Translators: %1$s: gateway label, %2$s: gateway name.
+                    __('%1$s (%2$s)', 'memberpress'),
+                    $obj->label,
+                    $obj->name
+                ); ?>
+                &nbsp;
+            </option>
                 <?php
             endif;
         endforeach;

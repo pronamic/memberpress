@@ -173,17 +173,33 @@ if (!empty($subscriptions)) {
               <div class="mepr-pro-account-table__rebill">
 
                 <?php if ($txn != false && $txn instanceof MeprTransaction && !$txn->is_sub_account && $is_sub && ($nba = $sub->next_billing_at)) : // phpcs:ignore ?>
-                    <?php printf(_x('Next Billing: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba)); ?>
+                    <?php printf(
+                        // Translators: %s: date.
+                        _x('Next Billing: %s', 'ui', 'memberpress'),
+                        MeprAppHelper::format_date($nba)
+                    ); ?>
                 <?php elseif (!$sub->next_billing_at && ($nba = $sub->expires_at) && stripos($sub->expires_at, '0000-00') === false) : // phpcs:ignore ?>
                     <?php
                     if (strtotime($nba) < time()) {
-                        printf(_x('Expired: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba));
+                        printf(
+                            // Translators: %s: date.
+                            _x('Expired: %s', 'ui', 'memberpress'),
+                            MeprAppHelper::format_date($nba)
+                        );
                     } else {
-                        printf(_x('Expires: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba));
+                        printf(
+                            // Translators: %s: date.
+                            _x('Expires: %s', 'ui', 'memberpress'),
+                            MeprAppHelper::format_date($nba)
+                        );
                     }
                     ?>
                 <?php elseif (false === $txn && ($nba = $sub->created_at)) : // phpcs:ignore ?>
-                    <?php printf(_x('Expired: %s', 'ui', 'memberpress'), MeprAppHelper::format_date($nba)); ?>
+                    <?php printf(
+                        // Translators: %s: date.
+                        _x('Expired: %s', 'ui', 'memberpress'),
+                        MeprAppHelper::format_date($nba)
+                    ); ?>
                 <?php endif; ?>
               </div>
               <div class="mepr-pro-account-table__subscription">

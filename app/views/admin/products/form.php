@@ -7,7 +7,11 @@ if (!defined('ABSPATH')) {
 
 <div id="mepr-products-form" class="inside">
   <p>
-    <strong><?php printf(__('Price (%s):', 'memberpress'), $mepr_options->currency_symbol); ?></strong>
+    <strong><?php printf(
+        // Translators: %s: currency symbol.
+        __('Price (%s):', 'memberpress'),
+        $mepr_options->currency_symbol
+    ); ?></strong>
   </p>
   <p>
     <input name="<?php echo MeprProduct::$price_str; ?>" id="<?php echo MeprProduct::$price_str; ?>" type="text" value="<?php echo MeprUtils::format_currency_float($product->price); ?>" />
@@ -132,7 +136,11 @@ if (!defined('ABSPATH')) {
           <input name="<?php echo MeprProduct::$trial_days_str; ?>" id="<?php echo MeprProduct::$trial_days_str; ?>" type="text" size="2" value="<?php echo $product->trial_days; ?>" />
         </p>
         <p>
-          <strong><?php printf(__('Trial Amount (%s):', 'memberpress'), $mepr_options->currency_symbol); ?></strong>
+          <strong><?php printf(
+              // Translators: %s: currency symbol.
+              __('Trial Amount (%s):', 'memberpress'),
+              $mepr_options->currency_symbol
+          ); ?></strong>
         </p>
         <p>
           <input name="<?php echo MeprProduct::$trial_amount_str; ?>" id="<?php echo MeprProduct::$trial_amount_str; ?>" size="7" type="text" value="<?php echo MeprUtils::format_currency_float($product->trial_amount); ?>" />

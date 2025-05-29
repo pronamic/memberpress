@@ -258,7 +258,11 @@ class MeprOptions
         }
 
         if (!isset($this->custom_message)) {
-            $this->custom_message = sprintf(__('Welcome to %s', 'memberpress'), $mepr_blogname);
+            $this->custom_message = sprintf(
+                // Translators: %s: blog name.
+                __('Welcome to %s', 'memberpress'),
+                $mepr_blogname
+            );
         }
 
         if (
@@ -896,11 +900,18 @@ class MeprOptions
                 $params[$this->integrations_str][$intg_key]['use_label'] = isset($params[$this->integrations_str][$intg_key]['use_label']);
                 $params[$this->integrations_str][$intg_key]['use_desc']  = isset($params[$this->integrations_str][$intg_key]['use_desc']);
 
-                if (isset($intg['gateway']) && $intg['gateway'] == 'MeprStripeGateway') {
-                    if ($currency_code_changed || empty($params[$this->integrations_str][$intg_key]['payment_methods'])) {
-                        // Set the Stripe payment methods to be an empty array if the currency code has changed
-                        // or no payment methods were selected.
-                        $params[$this->integrations_str][$intg_key]['payment_methods'] = [];
+                if (isset($intg['gateway'])) {
+                    if ($intg['gateway'] == 'MeprStripeGateway') {
+                        if ($currency_code_changed || empty($params[$this->integrations_str][$intg_key]['payment_methods'])) {
+                            // Set the Stripe payment methods to be an empty array if the currency code has changed
+                            // or no payment methods were selected.
+                            $params[$this->integrations_str][$intg_key]['payment_methods'] = [];
+                        }
+                    } elseif ($intg['gateway'] == 'MeprSquareGateway') {
+                        $params[$this->integrations_str][$intg_key]['sandbox'] = isset($params[$this->integrations_str][$intg_key]['sandbox']);
+                        $params[$this->integrations_str][$intg_key]['production_connected'] = isset($params[$this->integrations_str][$intg_key]['production_connected']);
+                        $params[$this->integrations_str][$intg_key]['sandbox_connected'] = isset($params[$this->integrations_str][$intg_key]['sandbox_connected']);
+                        $params[$this->integrations_str][$intg_key]['saved'] = isset($params[$this->integrations_str][$intg_key]['saved']);
                     }
                 }
             }

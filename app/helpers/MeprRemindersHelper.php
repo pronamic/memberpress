@@ -72,6 +72,7 @@ class MeprRemindersHelper
                 'before' => [
                     'name'        => __('Subscription Expiring', 'memberpress'),
                     'description' => sprintf(
+                        // Translators: %1$d: trigger length, %2$s: trigger interval.
                         __('Subscription is expiring in %1$d %2$s', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
@@ -80,6 +81,7 @@ class MeprRemindersHelper
                 'after'  => [
                     'name'        => __('Subscription Expired', 'memberpress'),
                     'description' => sprintf(
+                        // Translators: %1$d: trigger length, %2$s: trigger interval.
                         __('Subscription expired %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
@@ -90,6 +92,7 @@ class MeprRemindersHelper
                 'before' => [
                     'name'        => __('Subscription Renewing', 'memberpress'),
                     'description' => sprintf(
+                        // Translators: %1$d: trigger length, %2$s: trigger interval.
                         __('Subscription is renewing in %1$d %2$s', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
@@ -98,6 +101,7 @@ class MeprRemindersHelper
                 'after'  => [
                     'name'        => __('Subscription Renewed', 'memberpress'),
                     'description' => sprintf(
+                        // Translators: %1$d: trigger length, %2$s: trigger interval.
                         __('Subscription renewed %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
@@ -108,6 +112,7 @@ class MeprRemindersHelper
                 'before' => [
                     'name'        => __('Credit Card Expiring', 'memberpress'),
                     'description' => sprintf(
+                        // Translators: %1$d: trigger length, %2$s: trigger interval.
                         __('Credit Card is Expiring in %1$d %2$s', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
@@ -116,6 +121,7 @@ class MeprRemindersHelper
                 'after'  => [
                     'name'        => __('Credit Card Expired', 'memberpress'),
                     'description' => sprintf(
+                        // Translators: %1$d: trigger length, %2$s: trigger interval.
                         __('Credit Card Expired %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
@@ -130,6 +136,7 @@ class MeprRemindersHelper
                 'after'  => [
                     'name'        => __('Member Signed Up', 'memberpress'),
                     'description' => sprintf(
+                        // Translators: %1$d: trigger length, %2$s: trigger interval.
                         __('Member Signed Up %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
@@ -144,6 +151,7 @@ class MeprRemindersHelper
                 'after'  => [
                     'name'        => __('Sign Up Abandoned', 'memberpress'),
                     'description' => sprintf(
+                        // Translators: %1$d: trigger length, %2$s: trigger interval.
                         __('Sign Up Abandoned %1$d %2$s ago', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()
@@ -154,6 +162,7 @@ class MeprRemindersHelper
                 'before' => [
                     'name'        => __('Subscription Trial Period is Ending Soon', 'memberpress'),
                     'description' => sprintf(
+                        // Translators: %1$d: trigger length, %2$s: trigger interval.
                         __('Subscription trial period is ending in %1$d %2$s', 'memberpress'),
                         $reminder->trigger_length,
                         $reminder->get_trigger_interval_str()

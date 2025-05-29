@@ -1,3 +1,5 @@
 <?php
 
-// Shush.
+/**
+ * Silence will fall.
+ */

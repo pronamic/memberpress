@@ -60,7 +60,11 @@
   <td>
     <input type="text" name="tax_rate" id="tax_rate" value="<?php echo MeprUtils::format_currency_float($sub->tax_rate, 3); ?>" class="regular-text" style="width:95px !important;"/>
     <span><?php echo '%'; ?></span>
-    <p class="description"><?php printf(__('The tax rate in percentage. (Ex: %s for 10%%)', 'memberpress'), MeprUtils::format_currency_float(10.000)) ; ?></p>
+    <p class="description"><?php printf(
+        // Translators: %s: tax rate.
+        __('The tax rate in percentage. (Ex: %s for 10%%)', 'memberpress'),
+        MeprUtils::format_currency_float(10.000)
+    ); ?></p>
   </td>
 </tr>
 
@@ -110,7 +114,11 @@
 </tr>
 
 <tr valign="top">
-  <th scope="row"><label for="trial_amount"><?php printf(__('Trial Amount (%s):', 'memberpress'), $mepr_options->currency_symbol); ?></label></th>
+  <th scope="row"><label for="trial_amount"><?php printf(
+      // Translators: %s: currency symbol.
+      __('Trial Amount (%s):', 'memberpress'),
+      $mepr_options->currency_symbol
+  ); ?></label></th>
   <td>
     <span><?php echo $mepr_options->currency_symbol; ?></span>
     <input type="text" name="trial_amount" id="trial_amount" value="<?php echo MeprUtils::format_currency_float($sub->trial_amount); ?>" class="regular-text" style="width:95px !important;"/>

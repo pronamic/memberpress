@@ -34,7 +34,11 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
     public static function validate_signup($errors)
     {
         if (isset($_POST['mp-pass-strength']) && (int)$_POST['mp-pass-strength'] < self::get_required_int()) {
-            $errors['mepr_user_password'] = sprintf(__('This password doesn\'t meet the minimum strength requirement. %s.', 'memberpress'), self::get_required_str());
+            $errors['mepr_user_password'] = sprintf(
+                // Translators: %s: password strength requirement.
+                __('This password doesn\'t meet the minimum strength requirement. %s.', 'memberpress'),
+                self::get_required_str()
+            );
         }
 
         return $errors;

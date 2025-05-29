@@ -10,6 +10,13 @@ if (!defined('ABSPATH')) {
 abstract class MeprBaseGateway
 {
     /**
+     * A unique key to identify this gateway.
+     *
+     * @var string
+     */
+    public $key;
+
+    /**
      * Used in the view to identify the payment method
      *
      * @var string
@@ -82,7 +89,7 @@ abstract class MeprBaseGateway
     /**
      * This will be where the gateway interface will store its settings
      *
-     * @var array
+     * @var object
      */
     public $settings;
 
@@ -505,7 +512,12 @@ abstract class MeprBaseGateway
         // Back button fix for IE and Edge
         // Make sure they haven't just completed the subscription signup and clicked the back button.
         if ($txn->status != MeprTransaction::$pending_str) {
-            throw new Exception(sprintf(_x('You already completed your payment to this subscription. %1$sClick here to view your subscriptions%2$s.', 'ui', 'memberpress'), '<a href="' . $mepr_options->account_page_url('action=subscriptions') . '">', '</a>'));
+            throw new Exception(sprintf(
+                // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                _x('You already completed your payment to this subscription. %1$sClick here to view your subscriptions%2$s.', 'ui', 'memberpress'),
+                '<a href="' . $mepr_options->account_page_url('action=subscriptions') . '">',
+                '</a>'
+            ));
         }
 
         $error_str = __('Sorry but we can\'t process your payment at this time. Try back later.', 'memberpress');

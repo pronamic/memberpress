@@ -372,12 +372,23 @@ class MeprRule extends MeprCptModel
 
             foreach ($cpts as $type_name => $cpt) {
                 $types[$type_name] = [
-                    "all_{$type_name}"    => sprintf(__('All %s', 'memberpress'), $cpt->labels->name),
-                    "single_{$type_name}" => sprintf(__('A Single %s', 'memberpress'), $cpt->labels->singular_name),
+                    "all_{$type_name}"    => sprintf(
+                        // Translators: %1$s: custom post type name.
+                        __('All %1$s', 'memberpress'),
+                        $cpt->labels->name
+                    ),
+                    "single_{$type_name}" => sprintf(
+                        // Translators: %1$s: custom post type name.
+                        __('A Single %1$s', 'memberpress'),
+                        $cpt->labels->singular_name
+                    ),
                 ];
-
                 if ($cpt->hierarchical) {
-                    $types[$type_name]["parent_{$type_name}"] = sprintf(__('Child %s of', 'memberpress'), $cpt->labels->name);
+                    $types[$type_name]["parent_{$type_name}"] = sprintf(
+                        // Translators: %1$s: custom post type name.
+                        __('Child %1$s of', 'memberpress'),
+                        $cpt->labels->name
+                    );
                 }
             }
 
@@ -400,7 +411,11 @@ class MeprRule extends MeprCptModel
                 } elseif ($tax_name == 'category') {
                     $types['all']["all_tax_{$tax_name}"] = __('All Content Categorized', 'memberpress');
                 } else {
-                    $types['all']["all_tax_{$tax_name}"] = sprintf(__('All Content with %1$s', 'memberpress'), $tx->labels->singular_name);
+                    $types['all']["all_tax_{$tax_name}"] = sprintf(
+                        // Translators: %1$s: tax name.
+                        __('All Content with %1$s', 'memberpress'),
+                        $tx->labels->singular_name
+                    );
                 }
 
                 foreach ($tx->object_type as $cpt_slug) {
@@ -417,14 +432,27 @@ class MeprRule extends MeprCptModel
 
                     if ($tax_name == 'post_tag') {
                         if ($cpt_slug != 'post') { // Already setup for post.
-                            $types[$cpt_slug]["tax_{$tax_name}||cpt_{$cpt_slug}"] = sprintf(__('%1$s Tagged', 'memberpress'), $cpt->labels->name);
+                            $types[$cpt_slug]["tax_{$tax_name}||cpt_{$cpt_slug}"] = sprintf(
+                                // Translators: %1$s: product name.
+                                __('%1$s Tagged', 'memberpress'),
+                                $cpt->labels->name
+                            );
                         }
                     } elseif ($tax_name == 'category') {
                         if ($cpt_slug != 'post') { // Already setup for post.
-                            $types[$cpt_slug]["tax_{$tax_name}||cpt_{$cpt_slug}"] = sprintf(__('%1$s Categorized', 'memberpress'), $cpt->labels->name);
+                            $types[$cpt_slug]["tax_{$tax_name}||cpt_{$cpt_slug}"] = sprintf(
+                                // Translators: %1$s: product name.
+                                __('%1$s Categorized', 'memberpress'),
+                                $cpt->labels->name
+                            );
                         }
                     } else {
-                        $types[$cpt_slug]["tax_{$tax_name}||cpt_{$cpt_slug}"] = sprintf(__('%1$s with %2$s', 'memberpress'), $cpt->labels->name, $tx->labels->singular_name);
+                        $types[$cpt_slug]["tax_{$tax_name}||cpt_{$cpt_slug}"] = sprintf(
+                            // Translators: %1$s: product name, %2$s: tax name.
+                            __('%1$s with %2$s', 'memberpress'),
+                            $cpt->labels->name,
+                            $tx->labels->singular_name
+                        );
                     }
                 }
             }
@@ -1608,7 +1636,11 @@ class MeprRule extends MeprCptModel
             break;
             default:
                 $product = new MeprProduct($type);
-                return sprintf(__('member purchases %s', 'memberpress'), $product->post_title);
+                return sprintf(
+                    // Translators: %s: product name.
+                    __('member purchases %s', 'memberpress'),
+                    $product->post_title
+                );
             break;
         }
     }

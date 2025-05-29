@@ -84,7 +84,11 @@ class MeprCouponsHelper
     {
         $content = '';
         if (isset($coupon_code) && !empty($coupon_code)) {
-            $content .= sprintf(__('Using Coupon &ndash; %s', 'memberpress'), esc_html($coupon_code));
+            $content .= sprintf(
+                // Translators: %s: coupon code.
+                __('Using Coupon &ndash; %s', 'memberpress'),
+                esc_html($coupon_code)
+            );
         } else {
             $content .= __('Have a coupon?', 'memberpress');
         }

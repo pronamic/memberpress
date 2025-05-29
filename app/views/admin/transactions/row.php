@@ -93,7 +93,7 @@ if (!empty($records)) {
                             );
                             ?>
                 "
-                     target="_blank"><?php echo esc_html_x('PDF Invoice', 'ui', 'memberpress-pdf-invoice', 'memberpress'); ?></a>  |
+                     target="_blank"><?php echo esc_html_x('PDF Invoice', 'ui', 'memberpress'); ?></a>  |
                         <?php }
                     }
                       $txn = new MeprTransaction($rec->id);

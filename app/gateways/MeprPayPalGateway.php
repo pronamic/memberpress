@@ -1223,7 +1223,14 @@ class MeprPayPalGateway extends MeprBasePayPalGateway
     {
         ?>
     <h3><?php _e('Updating your PayPal Account Information', 'memberpress'); ?></h3>
-    <div><?php printf(__('To update your PayPal Account Information, please go to %1$sPayPal.com%2$s, login and edit your account information there.', 'memberpress'), '<a href="http://paypal.com" target="blank">', '</a>'); ?></div>
+    <div>
+        <?php printf(
+        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+            __('To update your PayPal Account Information, please go to %1$sPayPal.com%2$s, login and edit your account information there.', 'memberpress'),
+            '<a href="http://paypal.com" target="blank">',
+            '</a>'
+        ); ?>
+    </div>
         <?php
     }
 
@@ -1318,7 +1325,11 @@ class MeprPayPalGateway extends MeprBasePayPalGateway
         }
 
         if (is_wp_error($resp)) {
-            throw new MeprHttpException(sprintf(__('You had an HTTP error connecting to %s', 'memberpress'), $this->name));
+            throw new MeprHttpException(sprintf(
+                // Translators: %s: gateway name.
+                __('You had an HTTP error connecting to %s', 'memberpress'),
+                $this->name
+            ));
         } else {
             return wp_parse_args($resp['body']);
         }
@@ -1422,7 +1433,12 @@ class MeprPayPalGateway extends MeprBasePayPalGateway
         $mepr_options = MeprOptions::fetch();
         ?>
       <h4><?php _e('Your payment at PayPal was cancelled.', 'memberpress'); ?></h4>
-      <p><?php echo MeprHooks::apply_filters('mepr_paypal_cancel_message', sprintf(__('You can retry your purchase by %1$sclicking here%2$s.', 'memberpress'), '<a href="' . MeprUtils::get_permalink() . '">', '</a>')); ?><br/></p>
+      <p><?php echo MeprHooks::apply_filters('mepr_paypal_cancel_message', sprintf(
+        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+          __('You can retry your purchase by %1$sclicking here%2$s.', 'memberpress'),
+          '<a href="' . MeprUtils::get_permalink() . '">',
+          '</a>'
+      )); ?><br/></p>
         <?php
     }
 
@@ -1436,7 +1452,12 @@ class MeprPayPalGateway extends MeprBasePayPalGateway
         $mepr_options = MeprOptions::fetch();
         ?>
       <h4><?php _e('Your payment at PayPal failed.', 'memberpress'); ?></h4>
-      <p><?php echo MeprHooks::apply_filters('mepr_paypal_cancel_message', sprintf(__('You can retry your purchase by %1$sclicking here%2$s. If you continue having troubles paying, please contact PayPal support to find out why the payments are not being approved.', 'memberpress'), '<a href="' . MeprUtils::get_permalink() . '">', '</a>')); ?><br/></p>
+      <p><?php echo MeprHooks::apply_filters('mepr_paypal_cancel_message', sprintf(
+        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+          __('You can retry your purchase by %1$sclicking here%2$s. If you continue having troubles paying, please contact PayPal support to find out why the payments are not being approved.', 'memberpress'),
+          '<a href="' . MeprUtils::get_permalink() . '">',
+          '</a>'
+      )); ?><br/></p>
         <?php
     }
 
@@ -1467,8 +1488,13 @@ class MeprPayPalGateway extends MeprBasePayPalGateway
      */
     private function send_digital_goods_error_message()
     {
-        $subject = sprintf(__('** PayPal Payment ERROR on %s', 'memberpress'), MeprUtils::blogname());
-        $body    = __('Your PayPal account isn\'t set up to sell Digital Goods.
+        $subject = sprintf(
+            // Translators: %s: blog name.
+            __('** PayPal Payment ERROR on %s', 'memberpress'),
+            MeprUtils::blogname()
+        );
+        $body    = (
+            __('Your PayPal account isn\'t set up to sell Digital Goods.
 
 PayPal is no longer accepting new signups for Digital Goods (via Express Checkout).
 
@@ -1481,7 +1507,7 @@ If their support cannot, or will not activate Digital Goods for you, then you wi
 Thanks,
 
 The MemberPress Team
-', 'memberpress');
+', 'memberpress'));
 
         MeprUtils::wp_mail_to_admin($subject, $body);
     }

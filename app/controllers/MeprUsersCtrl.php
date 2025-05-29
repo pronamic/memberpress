@@ -481,11 +481,19 @@ class MeprUsersCtrl extends MeprBaseCtrl
             }
 
             if ((!isset($_POST[$line->field_key]) || (empty($_POST[$line->field_key]) && $_POST[$line->field_key] != '0')) && $line->required && 'file' != $line->field_type) {
-                $errs[$line->field_key] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
+                $errs[$line->field_key] = sprintf(
+                    // Translators: %s: field name.
+                    __('%s is required.', 'memberpress'),
+                    stripslashes($line->field_name)
+                );
 
                 // This allows us to run this on dashboard profile fields as well as front end.
                 if (is_object($errors)) {
-                    $errors->add($line->field_key, sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name)));
+                    $errors->add($line->field_key, sprintf(
+                        // Translators: %s: field name.
+                        __('%s is required.', 'memberpress'),
+                        stripslashes($line->field_name)
+                    ));
                 }
             }
 
@@ -498,7 +506,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
                     if (empty($file['tmp_name']) || empty($file['name']) || empty($file['size'])) {
                         if ($line->required) {
-                            $errs[$line->field_key] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
+                            $errs[$line->field_key] = sprintf(
+                                // Translators: %s: field name.
+                                __('%s is required.', 'memberpress'),
+                                stripslashes($line->field_name)
+                            );
                         }
                     } elseif ($file['error'] == UPLOAD_ERR_OK) {
                         add_filter('upload_mimes', 'MeprUsersHelper::get_allowed_mime_types');
@@ -506,10 +518,18 @@ class MeprUsersCtrl extends MeprBaseCtrl
                         remove_filter('upload_mimes', 'MeprUsersHelper::get_allowed_mime_types');
 
                         if (!$wp_filetype['ext'] && !current_user_can('unfiltered_upload')) {
-                            $errs[$line->field_key] = sprintf(__('%s file type not allowed.', 'memberpress'), stripslashes($line->field_name));
+                            $errs[$line->field_key] = sprintf(
+                                // Translators: %s: field name.
+                                __('%s file type not allowed.', 'memberpress'),
+                                stripslashes($line->field_name)
+                            );
                         }
                     } else {
-                        $errs[$line->field_key] = sprintf(__('%s could not be uploaded.', 'memberpress'), stripslashes($line->field_name));
+                        $errs[$line->field_key] = sprintf(
+                            // Translators: %s: field name.
+                            __('%s could not be uploaded.', 'memberpress'),
+                            stripslashes($line->field_name)
+                        );
                     }
                 } else {
                     // Validate existing file.
@@ -517,7 +537,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
                         $file = get_user_meta(get_current_user_id(), $line->field_key, true);
 
                         if (empty($file)) {
-                              $errs[$line->field_key] = sprintf(__('%s is required.', 'memberpress'), stripslashes($line->field_name));
+                              $errs[$line->field_key] = sprintf(
+                                // Translators: %s: field name.
+                                  __('%s is required.', 'memberpress'),
+                                  stripslashes($line->field_name)
+                              );
                         }
                     }
                 }
@@ -525,19 +549,31 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
             if ($line->required && 'email' == $line->field_type && !empty($_POST[$line->field_key])) {
                 if (!is_email(stripcslashes($_POST[$line->field_key]))) {
-                    $errs[$line->field_key] = sprintf(__('%s is not a valid email address.', 'memberpress'), stripslashes($line->field_name));
+                    $errs[$line->field_key] = sprintf(
+                        // Translators: %s: field name.
+                        __('%s is not a valid email address.', 'memberpress'),
+                        stripslashes($line->field_name)
+                    );
                 }
             }
 
             if ($line->required && 'url' == $line->field_type && !empty($_POST[$line->field_key])) {
                 if (!preg_match('/(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&\/\/=]*)/', $_POST[$line->field_key])) {
-                    $errs[$line->field_key] = sprintf(__('%s is not a valid URL.', 'memberpress'), stripslashes($line->field_name));
+                    $errs[$line->field_key] = sprintf(
+                        // Translators: %s: field name.
+                        __('%s is not a valid URL.', 'memberpress'),
+                        stripslashes($line->field_name)
+                    );
                 }
             }
 
             if ('date' == $line->field_type && !empty($_POST[$line->field_key])) {
                 if (!MeprUtils::is_date($_POST[$line->field_key])) {
-                    $errs[$line->field_key] = sprintf(__('%s is not a valid date.', 'memberpress'), stripslashes($line->field_name));
+                    $errs[$line->field_key] = sprintf(
+                        // Translators: %s: field name.
+                        __('%s is not a valid date.', 'memberpress'),
+                        stripslashes($line->field_name)
+                    );
                 }
             }
         }

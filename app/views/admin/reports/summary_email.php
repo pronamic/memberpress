@@ -140,6 +140,7 @@
                     <?php
                       // Translators: %1$s: open link tag, %2$s: close link tag.
                       printf(
+                        // Translators: %1$s: open link tag, %2$s: close link tag.
                           esc_html__('P.S. Want to unsubscribe from these emails? %1$sClick here to access the MemberPress settings%2$s where you can disable the Weekly Summary Email.', 'memberpress'),
                           sprintf('<a href="%s" target="_blank">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-general'))),
                           '</a>'

@@ -7,7 +7,14 @@
 </div>
 <div id="body" style="width: 600px; background: white; padding: 40px; margin: 0 auto; text-align: left;">
   <div style="margin-bottom: 20px;"><?php _ex('Your Credit Card will expire before your next billing on {$blog_name}.', 'ui', 'memberpress'); ?></div>
-  <div style="margin-bottom: 20px;"><?php printf(_x('To avoid any interruptions in your subscription, please %1$slogin to your account%2$s and update your credit card information.', 'ui', 'memberpress'), '<a href="{$subscr_update_url}">', '</a>'); ?></div>
+  <div style="margin-bottom: 20px;">
+    <?php printf(
+      // Translators: %1$s: login to your account link, %2$s: close link.
+        _x('To avoid any interruptions in your subscription, please %1$slogin to your account%2$s and update your credit card information.', 'ui', 'memberpress'),
+        '<a href="{$subscr_update_url}">',
+        '</a>'
+    ); ?>
+  </div>
   <table style="clear: both;" class="transaction">
     <tr><th style="text-align: left;"><?php _ex('Website:', 'ui', 'memberpress'); ?></th><td>{$blog_name}</td></tr>
     <tr><th style="text-align: left;"><?php _ex('Subscription:', 'ui', 'memberpress'); ?></th><td>{$product_name}</td></tr>

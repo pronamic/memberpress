@@ -329,11 +329,11 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
     }
 
     /**
-     * Searches for subscriptions by subscription ID.
+     * Get a subscription by subscription ID.
      *
      * @param string $subscr_id The subscription ID to search for.
      *
-     * @return array The list of matching subscriptions.
+     * @return MeprSubscription|false The subscription instance, or false if not found.
      */
     public static function get_one_by_subscr_id($subscr_id)
     {
@@ -1304,7 +1304,6 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
      */
     public function limit_payment_cycles()
     {
-
         // Check if limiting is even enabled.
         if (!$this->limit_cycles) {
             return;
@@ -1357,10 +1356,10 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
 
                     switch ($this->limit_cycles_expires_type) {
                         case 'days':
-                                $expires_at += MeprUtils::days($this->limit_cycles_expires_after);
+                            $expires_at += MeprUtils::days($this->limit_cycles_expires_after);
                             break;
                         case 'weeks':
-                              $expires_at += MeprUtils::weeks($this->limit_cycles_expires_after);
+                            $expires_at += MeprUtils::weeks($this->limit_cycles_expires_after);
                             break;
                         case 'months':
                             $expires_at += MeprUtils::months($this->limit_cycles_expires_after, strtotime($txn->created_at));
@@ -2077,19 +2076,14 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
      * Resumes the subscription.
      *
      * @return boolean True on success, false on failure.
-     * @throws MeprGatewayRequiresActionException When gateway requires additional action to complete resume.
+     *
+     * @throws Exception If the subscription could not be resumed.
      */
     public function resume()
     {
         if ($this->can('resume-subscriptions')) {
-            try {
-                $pm = $this->payment_method();
-                return $pm->process_resume_subscription($this->id);
-            } catch (MeprGatewayRequiresActionException $e) {
-                throw $e;
-            } catch (Exception $e) {
-                return false;
-            }
+            $pm = $this->payment_method();
+            return $pm->process_resume_subscription($this->id);
         }
 
         return false;
@@ -2913,7 +2907,12 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
         $res  = $wpdb->query($subq);
 
         if ($res === false) { // $res will never return a WP_Error
-            throw new MeprDbMigrationException(sprintf(__('MemberPress database migration failed: %1$s %2$s', 'memberpress'), $wpdb->last_error, $subq));
+            throw new MeprDbMigrationException(sprintf(
+                // Translators: %1$s: last error message, %2$s: query.
+                __('MemberPress database migration failed: %1$s %2$s', 'memberpress'),
+                $wpdb->last_error,
+                $subq
+            ));
         }
     }
 

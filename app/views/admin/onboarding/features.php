@@ -159,6 +159,7 @@ $addons_selectable = MeprOnboardingHelper::features_addons_selectable_list();
 <p class="mepr-wizard-plugins-to-install">
   <?php
     printf(
+        // Translators: %s: opening span tag, %s: closing span tag.
         __('If your subscription level allows, the following plugins will be installed automatically: %s', 'memberpress'),
         '<span></span> <br /><br /><strong>Want a feature your membership level doesn’t support? No worries! You’ll get the chance to upgrade later in the onboarding wizard.</strong>'
     );

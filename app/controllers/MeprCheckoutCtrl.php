@@ -19,10 +19,16 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         MeprHooks::add_shortcode('mepr-ecommerce-tracking', [$this, 'replace_tracking_codes']);
         add_filter('mepr-signup-checkout-url', [$this, 'handle_spc_checkout_url'], 10, 2);
         add_action('mepr_readylaunch_thank_you_page_after_content', [$this, 'maybe_show_order_bumps_error_message_in_readylaunch']);
-        add_filter('mepr_options_helper_payment_methods', [$this, 'exclude_disconnected_gateways'], 10, 2);
+        add_filter('mepr_options_helper_payment_methods', [$this, 'exclude_disconnected_gateways'], 10, 3);
         add_filter('the_content', [$this, 'maybe_show_order_bumps_error_message'], 1);
         add_action('wp_ajax_mepr_get_checkout_state', [$this, 'get_checkout_state']);
         add_action('wp_ajax_nopriv_mepr_get_checkout_state', [$this, 'get_checkout_state']);
+        add_action('wp_ajax_mepr_process_signup_form', [$this, 'process_signup_form_ajax']);
+        add_action('wp_ajax_nopriv_mepr_process_signup_form', [$this, 'process_signup_form_ajax']);
+        add_action('wp_ajax_mepr_process_payment_form', [$this, 'process_payment_form_ajax']);
+        add_action('wp_ajax_nopriv_mepr_process_payment_form', [$this, 'process_payment_form_ajax']);
+        add_action('wp_ajax_mepr_debug_checkout_error', [$this, 'debug_checkout_error']);
+        add_action('wp_ajax_nopriv_mepr_debug_checkout_error', [$this, 'debug_checkout_error']);
     }
 
     /**
@@ -63,8 +69,13 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             }
 
             $error         = (explode('|', $meta));
-            $error_message = sprintf(__('Notice: %1$s purchase failed. Click <a href="%2$s" target="_blank">here</a> to purchase it separately.', 'memberpress'), $product->post_title, get_permalink($product->ID));
-
+            $error_message = sprintf(
+                // Translators: %1$s: product name, %2$s: opening anchor tag, %3$s: closing anchor tag.
+                __('Notice: %1$s purchase failed. Click %2$shere%3$s to purchase it separately.', 'memberpress'),
+                $product->post_title,
+                '<a href="' . get_permalink($product->ID) . '" target="_blank">',
+                '</a>'
+            );
 
             if (! empty($error)) {
                 $errors[] = $error_message;
@@ -124,7 +135,13 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 }
 
                 $error         = (explode('|', $meta));
-                $error_message = sprintf(__('Notice: %1$s purchase failed. Click <a href="%2$s" target="_blank">here</a> to purchase it separately.', 'memberpress'), $product->post_title, get_permalink($product->ID));
+                $error_message = sprintf(
+                    // Translators: %1$s: product name, %2$s: opening anchor tag, %3$s: closing anchor tag.
+                    __('Notice: %1$s purchase failed. Click %2$shere%3$s to purchase it separately.', 'memberpress'),
+                    $product->post_title,
+                    '<a href="' . get_permalink($product->ID) . '" target="_blank">',
+                    '</a>'
+                );
 
                 if (! empty($error)) {
                     $errors[] = $error_message;
@@ -422,216 +439,189 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
 
-        if (isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id'])) {
-            // With the new Stripe SCA changes a transaction already exists, just grab the vars we need for the hooks.
-            $txn = new MeprTransaction((int) $_POST['mepr_transaction_id']);
+        // Validate the form post.
+        $errors = MeprHooks::apply_filters('mepr-validate-signup', MeprUser::validate_signup($_POST, []));
+        if (!empty($errors)) {
+            $_POST['errors']    = $errors; // Deprecated?
+            $_REQUEST['errors'] = $errors;
 
-            if (empty($txn->id)) {
-                $_POST['errors'] = [__('Sorry, we were unable to find the transaction.', 'memberpress')];
+            return;
+        }
+
+        // Check if the user is logged in already.
+        $is_existing_user = MeprUtils::is_user_logged_in();
+
+        if ($is_existing_user) {
+            $usr = MeprUtils::get_currentuserinfo();
+        } else { // If new user we've got to create them and sign them in.
+            $usr             = new MeprUser();
+            $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email($_POST['user_email']) : sanitize_user($_POST['user_login']);
+            $usr->user_email = sanitize_email($_POST['user_email']);
+            $usr->first_name = !empty($_POST['user_first_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
+            $usr->last_name  = !empty($_POST['user_last_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
+
+            $password = ($mepr_options->disable_checkout_password_fields === true) ? wp_generate_password() : $_POST['mepr_user_password'];
+            // Have to use rec here because we unset user_pass on __construct.
+            $usr->set_password($password);
+
+            try {
+                $usr->store();
+
+                // We need to refresh the user object. In the case where emails are used as
+                // usernames, the email & username could differ after the user is saved.
+                $usr = new MeprUser($usr->ID);
+
+                // Log the new user in.
+                if (MeprHooks::apply_filters('mepr-auto-login', true, $_POST['mepr_product_id'], $usr)) {
+                    wp_signon(
+                        [
+                            'user_login'    => $usr->user_login,
+                            'user_password' => $password,
+                        ],
+                        MeprUtils::is_ssl() // May help with the users getting logged out when going between http and https.
+                    );
+                }
+
+                MeprEvent::record('login', $usr); // Record the first login here.
+            } catch (MeprCreateException $e) {
+                $_POST['errors']    = [__('The user was unable to be saved.', 'memberpress')];  // Deprecated?
+                $_REQUEST['errors'] = [__('The user was unable to be saved.', 'memberpress')];
                 return;
             }
+        }
 
-            $usr = $txn->user();
+        // Create a new transaction and set our new membership details.
+        $txn          = new MeprTransaction();
+        $txn->user_id = $usr->ID;
 
-            if (empty($usr->ID)) {
-                $_POST['errors'] = [__('Sorry, we were unable to find the user.', 'memberpress')];
-                return;
+        // Get the membership in place.
+        $txn->product_id = sanitize_text_field($_POST['mepr_product_id']);
+        $product         = $txn->product();
+
+        if (empty($product->ID)) {
+            $_POST['errors']    = [__('Sorry, we were unable to find the membership.', 'memberpress')];
+            $_REQUEST['errors'] = [__('Sorry, we were unable to find the membership.', 'memberpress')];
+            return;
+        }
+
+        // If we're showing the fields on logged in purchases, let's save them here.
+        if (!$is_existing_user || ($is_existing_user && $mepr_options->show_fields_logged_in_purchases)) {
+            MeprUsersCtrl::save_extra_profile_fields($usr->ID, true, $product, true);
+            $usr = new MeprUser($usr->ID); // Re-load the user object with the metadata now (helps with first name last name missing from hooks below).
+        }
+
+        // Needed for autoresponders (SPC + Stripe + Free Trial issue).
+        MeprHooks::do_action('mepr-signup-user-loaded', $usr);
+
+        // Set default price, adjust it later if coupon applies.
+        $price = $product->adjusted_price();
+
+        // Default coupon object.
+        $cpn = (object)[
+            'ID'         => 0,
+            'post_title' => null,
+        ];
+
+        // Adjust membership price from the coupon code.
+        if (isset($_POST['mepr_coupon_code']) && !empty($_POST['mepr_coupon_code'])) {
+            // Coupon object has to be loaded here or else txn create will record a 0 for coupon_id.
+            $mepr_coupon_code = htmlentities(sanitize_text_field($_POST['mepr_coupon_code']));
+            $cpn              = MeprCoupon::get_one_from_code(sanitize_text_field($_POST['mepr_coupon_code']));
+
+            if (($cpn !== false) || ($cpn instanceof MeprCoupon)) {
+                $price = $product->adjusted_price($cpn->post_title);
             }
+        }
 
-            $is_existing_user = true;
+        $txn->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($price));
 
-            $product = $txn->product();
+        // Set the coupon id of the transaction.
+        $txn->coupon_id = $cpn->ID;
 
-            if ($product->is_one_time_payment()) {
-                $signup_type = 'non-recurring';
-            } else {
-                $signup_type = 'recurring';
-            }
+        // Figure out the Payment Method.
+        if (isset($_POST['mepr_payment_method']) && !empty($_POST['mepr_payment_method'])) {
+            $txn->gateway = sanitize_text_field($_POST['mepr_payment_method']);
         } else {
-            // Validate the form post.
-            $errors = MeprHooks::apply_filters('mepr-validate-signup', MeprUser::validate_signup($_POST, []));
-            if (!empty($errors)) {
-                $_POST['errors']    = $errors; // Deprecated?
-                $_REQUEST['errors'] = $errors;
+            $txn->gateway = MeprTransaction::$free_gateway_str;
+        }
 
-                return;
-            }
-
-            // Check if the user is logged in already.
-            $is_existing_user = MeprUtils::is_user_logged_in();
-
-            if ($is_existing_user) {
-                $usr = MeprUtils::get_currentuserinfo();
-            } else { // If new user we've got to create them and sign them in.
-                $usr             = new MeprUser();
-                $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email($_POST['user_email']) : sanitize_user($_POST['user_login']);
-                $usr->user_email = sanitize_email($_POST['user_email']);
-                $usr->first_name = !empty($_POST['user_first_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
-                $usr->last_name  = !empty($_POST['user_last_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
-
-                $password = ($mepr_options->disable_checkout_password_fields === true) ? wp_generate_password() : $_POST['mepr_user_password'];
-                // Have to use rec here because we unset user_pass on __construct.
-                $usr->set_password($password);
-
-                try {
-                    $usr->store();
-
-                    // We need to refresh the user object. In the case where emails are used as
-                    // usernames, the email & username could differ after the user is saved.
-                    $usr = new MeprUser($usr->ID);
-
-                    // Log the new user in.
-                    if (MeprHooks::apply_filters('mepr-auto-login', true, $_POST['mepr_product_id'], $usr)) {
-                        wp_signon(
-                            [
-                                'user_login'    => $usr->user_login,
-                                'user_password' => $password,
-                            ],
-                            MeprUtils::is_ssl() // May help with the users getting logged out when going between http and https.
-                        );
-                    }
-
-                    MeprEvent::record('login', $usr); // Record the first login here.
-                } catch (MeprCreateException $e) {
-                    $_POST['errors']    = [__('The user was unable to be saved.', 'memberpress')];  // Deprecated?
-                    $_REQUEST['errors'] = [__('The user was unable to be saved.', 'memberpress')];
-                    return;
-                }
-            }
-
-            // Create a new transaction and set our new membership details.
-            $txn          = new MeprTransaction();
-            $txn->user_id = $usr->ID;
-
-            // Get the membership in place.
-            $txn->product_id = sanitize_text_field($_POST['mepr_product_id']);
-            $product         = $txn->product();
-
-            if (empty($product->ID)) {
-                $_POST['errors']    = [__('Sorry, we were unable to find the membership.', 'memberpress')];
-                $_REQUEST['errors'] = [__('Sorry, we were unable to find the membership.', 'memberpress')];
-                return;
-            }
-
-            // If we're showing the fields on logged in purchases, let's save them here.
-            if (!$is_existing_user || ($is_existing_user && $mepr_options->show_fields_logged_in_purchases)) {
-                MeprUsersCtrl::save_extra_profile_fields($usr->ID, true, $product, true);
-                $usr = new MeprUser($usr->ID); // Re-load the user object with the metadata now (helps with first name last name missing from hooks below).
-            }
-
-            // Needed for autoresponders (SPC + Stripe + Free Trial issue).
-            MeprHooks::do_action('mepr-signup-user-loaded', $usr);
-
-            // Set default price, adjust it later if coupon applies.
-            $price = $product->adjusted_price();
-
-            // Default coupon object.
-            $cpn = (object)[
-                'ID'         => 0,
-                'post_title' => null,
-            ];
-
-            // Adjust membership price from the coupon code.
-            if (isset($_POST['mepr_coupon_code']) && !empty($_POST['mepr_coupon_code'])) {
-                // Coupon object has to be loaded here or else txn create will record a 0 for coupon_id.
-                $mepr_coupon_code = htmlentities(sanitize_text_field($_POST['mepr_coupon_code']));
-                $cpn              = MeprCoupon::get_one_from_code(sanitize_text_field($_POST['mepr_coupon_code']));
-
-                if (($cpn !== false) || ($cpn instanceof MeprCoupon)) {
-                    $price = $product->adjusted_price($cpn->post_title);
-                }
-            }
-
-            $txn->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($price));
-
-            // Set the coupon id of the transaction.
-            $txn->coupon_id = $cpn->ID;
-
-            // Figure out the Payment Method.
-            if (isset($_POST['mepr_payment_method']) && !empty($_POST['mepr_payment_method'])) {
-                $txn->gateway = sanitize_text_field($_POST['mepr_payment_method']);
-            } else {
-                $txn->gateway = MeprTransaction::$free_gateway_str;
-            }
-
-            // Let's checkout now.
-            if ($txn->gateway === MeprTransaction::$free_gateway_str) {
-                $signup_type = 'free';
-            } else {
-                $pm = $txn->payment_method();
-                if ($pm instanceof MeprBaseExclusiveRecurringGateway) {
-                    $sub_attrs = $pm->subscription_attributes($product->plan_code);
-                    if ($pm->is_one_time_payment($product->plan_code)) {
-                        $signup_type = 'non-recurring';
-                        $price       = $sub_attrs['one_time_amount'];
-                    } else {
-                        $signup_type = 'recurring';
-
-                        // Create the subscription from the gateway plan.
-                        $sub             = new MeprSubscription($sub_attrs);
-                        $sub->user_id    = $usr->ID;
-                        $sub->gateway    = $pm->id;
-                        $sub->product_id = $product->ID;
-                        $sub->maybe_prorate(); // Sub to sub.
-                        $sub->store();
-
-                        // Update the transaction with subscription id.
-                        $txn->subscription_id = $sub->id;
-                        $price                = $sub->price;
-                    }
-                    // Update subtotal.
-                    $txn->amount = $price;
-                } elseif ($pm instanceof MeprBaseRealGateway) {
-                    // Set default price, adjust it later if coupon applies.
-                    $price = $product->adjusted_price();
-                    // Default coupon object.
-                    $cpn = (object)[
-                        'ID'         => 0,
-                        'post_title' => null,
-                    ];
-                    // Adjust membership price from the coupon code.
-                    if (isset($_POST['mepr_coupon_code']) && !empty($_POST['mepr_coupon_code'])) {
-                        // Coupon object has to be loaded here or else txn create will record a 0 for coupon_id.
-                        $cpn = MeprCoupon::get_one_from_code(sanitize_text_field($_POST['mepr_coupon_code']));
-                        if (($cpn !== false) || ($cpn instanceof MeprCoupon)) {
-                            $price = $product->adjusted_price($cpn->post_title);
-                        }
-                    }
-                    $txn->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($price));
-
-                    // Set the coupon id of the transaction.
-                    $txn->coupon_id = $cpn->ID;
-                    // Create a new subscription.
-                    if ($product->is_one_time_payment() || !$product->is_payment_required($cpn->post_title)) {
-                        $signup_type = 'non-recurring';
-                    } else {
-                        $signup_type = 'recurring';
-
-                        $sub          = new MeprSubscription();
-                        $sub->user_id = $usr->ID;
-                        $sub->gateway = $pm->id;
-                        $sub->load_product_vars($product, $cpn->post_title, true);
-                        $sub->maybe_prorate(); // Sub to sub.
-                        $sub->store();
-
-                        $txn->subscription_id = $sub->id;
-                    }
+        // Let's checkout now.
+        if ($txn->gateway === MeprTransaction::$free_gateway_str) {
+            $signup_type = 'free';
+        } else {
+            $pm = $txn->payment_method();
+            if ($pm instanceof MeprBaseExclusiveRecurringGateway) {
+                $sub_attrs = $pm->subscription_attributes($product->plan_code);
+                if ($pm->is_one_time_payment($product->plan_code)) {
+                    $signup_type = 'non-recurring';
+                    $price       = $sub_attrs['one_time_amount'];
                 } else {
-                    $_POST['errors'] = [__('Invalid payment method', 'memberpress')];
-                    return;
-                }
-            }
+                    $signup_type = 'recurring';
 
-            $txn->store();
+                    // Create the subscription from the gateway plan.
+                    $sub             = new MeprSubscription($sub_attrs);
+                    $sub->user_id    = $usr->ID;
+                    $sub->gateway    = $pm->id;
+                    $sub->product_id = $product->ID;
+                    $sub->maybe_prorate(); // Sub to sub.
+                    $sub->store();
 
-            if (empty($txn->id)) {
-                // Don't want any loose ends here if the $txn didn't save for some reason.
-                if ($signup_type === 'recurring' && ($sub instanceof MeprSubscription)) {
-                    $sub->destroy();
+                    // Update the transaction with subscription id.
+                    $txn->subscription_id = $sub->id;
+                    $price                = $sub->price;
                 }
-                $_POST['errors'] = [__('Sorry, we were unable to create a transaction.', 'memberpress')];
+                // Update subtotal.
+                $txn->amount = $price;
+            } elseif ($pm instanceof MeprBaseRealGateway) {
+                // Set default price, adjust it later if coupon applies.
+                $price = $product->adjusted_price();
+                // Default coupon object.
+                $cpn = (object)[
+                    'ID'         => 0,
+                    'post_title' => null,
+                ];
+                // Adjust membership price from the coupon code.
+                if (isset($_POST['mepr_coupon_code']) && !empty($_POST['mepr_coupon_code'])) {
+                    // Coupon object has to be loaded here or else txn create will record a 0 for coupon_id.
+                    $cpn = MeprCoupon::get_one_from_code(sanitize_text_field($_POST['mepr_coupon_code']));
+                    if (($cpn !== false) || ($cpn instanceof MeprCoupon)) {
+                        $price = $product->adjusted_price($cpn->post_title);
+                    }
+                }
+                $txn->set_subtotal(MeprUtils::maybe_round_to_minimum_amount($price));
+
+                // Set the coupon id of the transaction.
+                $txn->coupon_id = $cpn->ID;
+                // Create a new subscription.
+                if ($product->is_one_time_payment() || !$product->is_payment_required($cpn->post_title)) {
+                    $signup_type = 'non-recurring';
+                } else {
+                    $signup_type = 'recurring';
+
+                    $sub          = new MeprSubscription();
+                    $sub->user_id = $usr->ID;
+                    $sub->gateway = $pm->id;
+                    $sub->load_product_vars($product, $cpn->post_title, true);
+                    $sub->maybe_prorate(); // Sub to sub.
+                    $sub->store();
+
+                    $txn->subscription_id = $sub->id;
+                }
+            } else {
+                $_POST['errors'] = [__('Invalid payment method', 'memberpress')];
                 return;
             }
+        }
+
+        $txn->store();
+
+        if (empty($txn->id)) {
+            // Don't want any loose ends here if the $txn didn't save for some reason.
+            if ($signup_type === 'recurring' && ($sub instanceof MeprSubscription)) {
+                $sub->destroy();
+            }
+            $_POST['errors'] = [__('Sorry, we were unable to create a transaction.', 'memberpress')];
+            return;
         }
 
         try {
@@ -708,7 +698,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
      */
     public function process_spc_payment_form($txn)
     {
-        if (did_action('mepr_stripe_payment_pending') || did_action('mepr_stripe_checkout_pending')) {
+        if (wp_doing_ajax()) {
             return;
         }
 
@@ -806,8 +796,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             if ($txn->rec != false) {
                 $mepr_options = MeprOptions::fetch();
                 $pm           = $mepr_options->payment_method($txn->gateway);
-                if ($pm && $pm instanceof MeprBaseRealGateway) {
-                    $errors = $pm->validate_payment_form([]);
+                if ($pm instanceof MeprBaseRealGateway) {
+                    $errors = MeprHooks::apply_filters('mepr_validate_payment_form', $pm->validate_payment_form([]), $txn, $pm);
 
                     if (empty($errors)) {
                         // The process_payment_form either returns true
@@ -859,20 +849,22 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
     /**
      * Exclude disconnected gateways from the list of payment methods.
      *
-     * @param array  $pm_ids     The payment method IDs.
-     * @param string $field_name The field name.
+     * @param array            $pm_ids     The payment method IDs.
+     * @param string           $field_name The field name.
+     * @param MeprProduct|null $product    The product being purchased.
      *
      * @return array The filtered payment method IDs.
      */
-    public function exclude_disconnected_gateways($pm_ids, $field_name)
+    public function exclude_disconnected_gateways($pm_ids, $field_name, $product = null)
     {
         $mepr_options     = MeprOptions::fetch();
         $connected_pm_ids = [];
+        $product = $product instanceof MeprProduct ? $product : null;
 
         foreach ($pm_ids as $pm_id) {
             $obj = $mepr_options->payment_method($pm_id);
 
-            if (MeprUtils::is_gateway_connected($obj)) {
+            if (MeprUtils::is_gateway_connected($obj, $product)) {
                 $connected_pm_ids[] = $pm_id;
             }
         }
@@ -1089,13 +1081,21 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             }
 
             if (!$product->can_you_buy_me()) {
-                throw new Exception(sprintf(__("You don't have access to purchase %s.", 'memberpress'), $product->post_title));
+                throw new Exception(sprintf(
+                    // Translators: %s: product name.
+                    __("You don't have access to purchase %s.", 'memberpress'),
+                    $product->post_title
+                ));
             }
 
             $group = $product->group();
 
             if ($group instanceof MeprGroup && $group->is_upgrade_path) {
-                throw new Exception(sprintf(__('The product %s cannot be purchased at this time.', 'memberpress'), $product->post_title));
+                throw new Exception(sprintf(
+                    // Translators: %s: product name.
+                    __('The product %s cannot be purchased at this time.', 'memberpress'),
+                    $product->post_title
+                ));
             }
 
             $order_bump_products[] = $product;
@@ -1195,30 +1195,56 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             $payment_method_ids = isset($_POST['mepr_payment_methods']) && is_array($_POST['mepr_payment_methods']) ? array_map('sanitize_text_field', array_map('wp_unslash', $_POST['mepr_payment_methods'])) : [];
 
             if (count($payment_method_ids)) {
-                $payment_methods  = $mepr_options->payment_methods(false);
-                $coupon           = MeprCoupon::get_one_from_code($coupon_code);
-                $coupon_code      = $coupon instanceof MeprCoupon ? $coupon->post_title : '';
-                $elements_options = [];
+                $payment_methods     = $mepr_options->payment_methods(false);
+                $coupon              = MeprCoupon::get_one_from_code($coupon_code);
+                $coupon_code         = $coupon instanceof MeprCoupon ? $coupon->post_title : '';
+                $elements_options    = [];
+                $square_verification = [];
 
                 foreach ($payment_methods as $pm) {
-                    if ($pm instanceof MeprStripeGateway && $pm->settings->stripe_checkout_enabled != 'on' && in_array($pm->id, $payment_method_ids, true)) {
-                        try {
-                              list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
-                                  $prd,
-                                  0,
-                                  get_current_user_id(),
-                                  $pm->id,
-                                  $coupon,
-                                  false
-                              );
+                    if (!in_array($pm->id, $payment_method_ids, true)) {
+                        continue;
+                    }
 
-                                  $elements_options[$pm->id] = $pm->get_elements_options(
-                                      $prd,
-                                      $txn,
-                                      $sub,
-                                      $coupon_code,
-                                      $order_bump_products
-                                  );
+                    if ($pm instanceof MeprStripeGateway && $pm->settings->stripe_checkout_enabled != 'on') {
+                        try {
+                             list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
+                                 $prd,
+                                 0,
+                                 get_current_user_id(),
+                                 $pm->id,
+                                 $coupon,
+                                 false
+                             );
+
+                             $elements_options[$pm->id] = $pm->get_elements_options(
+                                 $prd,
+                                 $txn,
+                                 $sub,
+                                 $coupon_code,
+                                 $order_bump_products
+                             );
+                        } catch (Exception $e) {
+                            // Ignore exception.
+                        }
+                    } elseif ($pm instanceof MeprSquareGateway) {
+                        try {
+                            list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
+                                $prd,
+                                0,
+                                get_current_user_id(),
+                                $pm->id,
+                                $coupon,
+                                false
+                            );
+
+                            $square_verification[$pm->id] = $pm->get_verification_details(
+                                $prd,
+                                $txn,
+                                $sub,
+                                $coupon_code,
+                                $order_bump_products
+                            );
                         } catch (Exception $e) {
                             // Ignore exception.
                         }
@@ -1228,9 +1254,282 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 if (count($elements_options)) {
                     $data['elements_options'] = $elements_options;
                 }
+
+                if (count($square_verification)) {
+                    $data['square_verification'] = $square_verification;
+                }
             }
         }
 
         wp_send_json_success($data);
+    }
+
+    /**
+     * Signup form processing for asynchronous gateways (Single Page Checkout).
+     */
+    public function process_signup_form_ajax()
+    {
+        MeprHooks::do_action('mepr_process_signup_form_ajax');
+
+        try {
+            $mepr_options      = MeprOptions::fetch();
+            $payment_method_id = isset($_POST['mepr_payment_method']) ? sanitize_text_field(wp_unslash($_POST['mepr_payment_method'])) : '';
+            $pm                = $mepr_options->payment_method($payment_method_id);
+
+            if (!$pm instanceof MeprBaseRealAjaxGateway || !$pm->validate_ajax_gateway()) {
+                wp_send_json_error(__('Invalid payment gateway', 'memberpress'));
+            }
+
+            // Validate the form post.
+            $mepr_current_url = isset($_POST['mepr_current_url']) && is_string($_POST['mepr_current_url']) ? sanitize_text_field(wp_unslash($_POST['mepr_current_url'])) : '';
+            $errors           = MeprHooks::apply_filters('mepr-validate-signup', MeprUser::validate_signup($_POST, [], $mepr_current_url));
+
+            if (!empty($errors)) {
+                wp_send_json_error(['errors' => $errors]);
+            }
+
+            $product_id = isset($_POST['mepr_product_id']) ? (int) $_POST['mepr_product_id'] : 0;
+            $prd        = new MeprProduct($product_id);
+
+            if (empty($prd->ID)) {
+                wp_send_json_error(__('Sorry, we were unable to find the product.', 'memberpress'));
+            }
+
+            // Check if the user is logged in already.
+            $is_existing_user = MeprUtils::is_user_logged_in();
+
+            if ($is_existing_user) {
+                $usr = MeprUtils::get_currentuserinfo();
+            } else {
+                // If new user we've got to create them and sign them in.
+                $usr             = new MeprUser();
+                $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email($_POST['user_email']) : sanitize_user($_POST['user_login']);
+                $usr->user_email = sanitize_email($_POST['user_email']);
+                $usr->first_name = !empty($_POST['user_first_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
+                $usr->last_name  = !empty($_POST['user_last_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
+
+                $password = ($mepr_options->disable_checkout_password_fields === true) ? wp_generate_password() : $_POST['mepr_user_password'];
+                // Have to use rec here because we unset user_pass on __construct.
+                $usr->set_password($password);
+                try {
+                    $usr->store();
+
+                    // We need to refresh the user object. In the case where emails are used as
+                    // usernames, the email & username could differ after the user is saved.
+                    $usr = new MeprUser($usr->ID);
+
+                    // Log the new user in.
+                    if (MeprHooks::apply_filters('mepr-auto-login', true, $_POST['mepr_product_id'], $usr)) {
+                        wp_signon(
+                            [
+                                'user_login'    => $usr->user_login,
+                                'user_password' => $password,
+                            ],
+                            MeprUtils::is_ssl() // May help with the users getting logged out when going between http and https.
+                        );
+                    }
+
+                    MeprEvent::record('login', $usr); // Record the first login here.
+
+                    if ($mepr_options->disable_checkout_password_fields === true) {
+                        $usr->send_password_notification('new');
+                    }
+                } catch (MeprCreateException $e) {
+                    wp_send_json_error(__('The user was unable to be saved.', 'memberpress'));
+                }
+            }
+
+            // If we're showing the fields on logged in purchases, let's save them here.
+            if (!$is_existing_user || ($is_existing_user && $mepr_options->show_fields_logged_in_purchases)) {
+                MeprUsersCtrl::save_extra_profile_fields($usr->ID, true, $prd, true);
+                $usr = new MeprUser($usr->ID); // Re-load the user object with the metadata now (helps with first name last name missing from hooks below).
+            }
+
+            // Needed for autoresponders (SPC + Stripe + Free Trial issue).
+            MeprHooks::do_action('mepr-signup-user-loaded', $usr);
+
+            $coupon_code = isset($_POST['mepr_coupon_code']) ? sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])) : '';
+            $cpn         = MeprCoupon::get_one_from_code($coupon_code);
+
+            try {
+                list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
+                    $prd,
+                    0,
+                    $usr->ID,
+                    $pm->id,
+                    $cpn
+                );
+
+                MeprHooks::do_action('mepr-process-signup', $txn->amount, $usr, $prd->ID, $txn->id);
+                MeprHooks::do_action('mepr-signup', $txn);
+
+                $pm->process_payment_ajax(
+                    $prd,
+                    $usr,
+                    $txn,
+                    $sub instanceof MeprSubscription ? $sub : null,
+                    $cpn instanceof MeprCoupon ? $cpn : null
+                );
+            } catch (Exception $e) {
+                wp_send_json_error($e->getMessage());
+            }
+        } catch (Throwable $t) {
+            $this->handle_critical_error($t);
+        }
+    }
+
+    /**
+     * Payment form processing for asynchronous gateways (Two-Page Checkout).
+     */
+    public function process_payment_form_ajax()
+    {
+        MeprHooks::do_action('mepr_process_payment_form_ajax');
+
+        try {
+            $txn = new MeprTransaction((int) $_POST['mepr_transaction_id'] ?? 0);
+
+            if (!$txn->id) {
+                wp_send_json_error(__('Transaction not found', 'memberpress'));
+            }
+
+            $pm = $txn->payment_method();
+
+            if (!$pm instanceof MeprBaseRealAjaxGateway || !$pm->validate_ajax_gateway()) {
+                wp_send_json_error(__('Invalid payment gateway', 'memberpress'));
+            }
+
+            $prd = $txn->product();
+
+            if (!$prd->ID) {
+                wp_send_json_error(__('Product not found', 'memberpress'));
+            }
+
+            $usr = $txn->user();
+
+            if (!$usr->ID) {
+                wp_send_json_error(__('User not found', 'memberpress'));
+            }
+
+            $sub = !$prd->is_one_time_payment() ? $txn->subscription() : null;
+            $cpn = $txn->coupon();
+
+            $pm->process_payment_ajax(
+                $prd,
+                $usr,
+                $txn,
+                $sub instanceof MeprSubscription ? $sub : null,
+                $cpn instanceof MeprCoupon ? $cpn : null
+            );
+        } catch (Throwable $t) {
+            $this->handle_critical_error($t);
+        }
+    }
+
+    /**
+     * Handle a critical error during checkout processing.
+     *
+     * @param Throwable $t The critical error that was triggered.
+     */
+    protected function handle_critical_error(Throwable $t)
+    {
+        $this->send_checkout_error_debug_email(
+            $t->__toString(),
+            isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id']) ? (int) $_POST['mepr_transaction_id'] : null,
+            isset($_POST['user_email']) && is_string($_POST['user_email']) ? sanitize_text_field(wp_unslash($_POST['user_email'])) : null
+        );
+
+        error_log(sprintf('PHP Fatal error: Uncaught %s', $t->__toString()));
+
+        wp_send_json_error(__('An error occurred, please DO NOT submit the form again as you may be double charged. Please contact us for further assistance instead.', 'memberpress'));
+    }
+
+    /**
+     * Handle the Ajax request to debug a checkout error
+     */
+    public function debug_checkout_error()
+    {
+        if (!MeprUtils::is_post_request() || !isset($_POST['data']) || !is_string($_POST['data'])) {
+            wp_send_json_error();
+        }
+
+        $data = json_decode(wp_unslash($_POST['data']), true);
+
+        if (!is_array($data)) {
+            wp_send_json_error();
+        }
+
+        $allowed_keys = [
+            'text_status'   => 'textStatus',
+            'error_thrown'  => 'errorThrown',
+            'status'        => 'jqXHR.status (200 expected)',
+            'status_text'   => 'jqXHR.statusText (OK expected)',
+            'response_text' => 'jqXHR.responseText (JSON object expected)',
+        ];
+
+        $content = 'INVALID SERVER RESPONSE' . "\n\n";
+
+        foreach ($allowed_keys as $key => $label) {
+            if (!array_key_exists($key, $data)) {
+                continue;
+            }
+
+            ob_start();
+            var_dump($data[$key]);
+            $value = ob_get_clean();
+
+            $content .= sprintf(
+                "%s:\n%s\n",
+                $label,
+                $value
+            );
+        }
+
+        $this->send_checkout_error_debug_email(
+            $content,
+            isset($data['transaction_id']) && is_numeric($data['transaction_id']) ? (int) $data['transaction_id'] : null,
+            isset($data['customer_email']) && is_string($data['customer_email']) ? sanitize_text_field($data['customer_email']) : null
+        );
+
+        wp_send_json_success();
+    }
+
+    /**
+     * Sends an email to the admin email addresses alerting them of the given checkout error.
+     *
+     * @param string       $content        The email content.
+     * @param integer|null $transaction_id The transaction ID.
+     * @param string|null  $customer_email The customer's email address.
+     */
+    protected function send_checkout_error_debug_email($content, $transaction_id = null, $customer_email = null)
+    {
+        if (MeprHooks::apply_filters('mepr_disable_checkout_error_debug_email', false)) {
+            return;
+        }
+
+        $message = 'An error occurred during the MemberPress checkout which resulted in an error message being displayed to the customer. The transaction may not have fully completed.' . "\n\n";
+        $message .= 'The error may have happened due to a plugin conflict or custom code, please carefully check the details below to identify the cause, or you can send this email to support@memberpress.com for help.' . "\n\n";
+
+        if ($transaction_id) {
+            $message .= sprintf("MemberPress transaction ID: %s\n", $transaction_id);
+
+            if (!$customer_email) {
+                $transaction = new MeprTransaction($transaction_id);
+                $user        = $transaction->user();
+
+                if ($user->ID > 0 && $user->user_email) {
+                    $customer_email = $user->user_email;
+                }
+            }
+        }
+
+        if ($customer_email) {
+            $message .= sprintf("Customer email: %s\n", $customer_email);
+        }
+
+        $message .= sprintf("Customer IP: %s\n", $_SERVER['REMOTE_ADDR']);
+        $message .= sprintf("Customer User Agent: %s\n", !empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '(empty)');
+        $message .= sprintf("Date (UTC): %s\n\n", gmdate('Y-m-d H:i:s'));
+
+        MeprUtils::wp_mail_to_admin('[MemberPress] IMPORTANT: Checkout error', $message . $content);
     }
 }

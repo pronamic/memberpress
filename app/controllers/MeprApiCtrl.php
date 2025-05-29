@@ -110,7 +110,11 @@ class MeprApiCtrl extends MeprBaseCtrl
     {
         header('WWW-Authenticate: Basic realm="' . MeprUtils::blogname() . '"');
         header('HTTP/1.0 401 Unauthorized');
-        die(sprintf(__('UNAUTHORIZED: %s', 'memberpress'), $message));
+        die(sprintf(
+            // Translators: %s: error message.
+            __('UNAUTHORIZED: %s', 'memberpress'),
+            $message
+        ));
     }
 
     /**

@@ -17,6 +17,7 @@ class MeprAccountCtrl extends MeprBaseCtrl
         add_action('init', [$this,  'maybe_update_username']); // Need to use init for cookie stuff and to get old and new emails.
         add_action('mepr-above-checkout-form', [$this,  'maybe_show_broken_sub_message']); // Show message on checkout form with link to update broken sub.
         add_action('wp_ajax_save_profile_changes', [$this, 'save_profile_fields']);
+        add_action('wp_ajax_mepr_process_update_account_form', [$this, 'process_update_account_form_ajax']);
 
 
         /*
@@ -66,7 +67,12 @@ class MeprAccountCtrl extends MeprBaseCtrl
             if (!empty($enabled_prd_ids)) { // If it's not empty, then the user already has an Enabled subscription for this membership.
                 $prd = new MeprProduct($prd_id);
                 if (!$prd->simultaneous_subscriptions && apply_filters('maybe_show_broken_sub_message_override', true, $prd)) {
-                    $errors[] = sprintf(_x('You already have a subscription to this Membership. Please %1$supdate your payment details%2$s on the existing subscription instead of purchasing again.', 'ui', 'memberpress'), '<a href="' . $mepr_options->account_page_url('action=subscriptions') . '">', '</a>');
+                    $errors[] = sprintf(
+                        // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+                        _x('You already have a subscription to this Membership. Please %1$supdate your payment details%2$s on the existing subscription instead of purchasing again.', 'ui', 'memberpress'),
+                        '<a href="' . $mepr_options->account_page_url('action=subscriptions') . '">',
+                        '</a>'
+                    );
                     MeprView::render('/shared/errors', get_defined_vars());
                     ?>
           <!-- Hidden signup form -->
@@ -638,6 +644,69 @@ class MeprAccountCtrl extends MeprBaseCtrl
             }
         }
     }
+
+    // phpcs:disable Squiz.Commenting.FunctionCommentThrowTag.Missing
+    /**
+     * Update account form processing for asynchronous gateways.
+     *
+     * @return void
+     */
+    public function process_update_account_form_ajax()
+    {
+        try {
+            $options         = MeprOptions::fetch();
+            $subscription_id = (int) $_POST['mepr_subscription_id'] ?? 0;
+
+            if (empty($subscription_id)) {
+                throw new MeprGatewayException(__('Bad request', 'memberpress'));
+            }
+
+            if (!is_user_logged_in()) {
+                throw new MeprGatewayException(__('Sorry, you must be logged in to do this.', 'memberpress'));
+            }
+
+            if (!check_ajax_referer('mepr_process_update_account_form', false, false)) {
+                throw new MeprGatewayException(__('Security check failed.', 'memberpress'));
+            }
+
+            $sub = new MeprSubscription((int) $_POST['mepr_subscription_id'] ?? 0);
+
+            if (!($sub->id > 0)) {
+                throw new MeprGatewayException(__('Subscription not found', 'memberpress'));
+            }
+
+            $usr = $sub->user();
+
+            if ($usr->ID != get_current_user_id()) {
+                throw new MeprGatewayException(__('This subscription is for another user.', 'memberpress'));
+            }
+
+            $pm = $sub->payment_method();
+
+            if (!$pm instanceof MeprBaseRealAjaxGateway) {
+                throw new MeprGatewayException(__('Invalid payment gateway', 'memberpress'));
+            }
+
+            $pm->process_update_account_form_ajax($sub);
+
+            wp_send_json_success(
+                add_query_arg(
+                    array_map(
+                        'rawurlencode',
+                        [
+                            'action' => 'update',
+                            'sub' => $sub->id,
+                            'message' => __('Your account information was successfully updated.', 'memberpress'),
+                        ]
+                    ),
+                    $options->account_page_url()
+                )
+            );
+        } catch (Exception $e) {
+            wp_send_json_error($e->getMessage());
+        }
+    }
+    // phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.Missing
 
     /**
      * Upgrades a user's subscription.

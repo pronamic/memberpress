@@ -71,7 +71,15 @@ class MeprTransactionsHelper
             $obj = $mepr_options->payment_method($pm_id);
             if ($obj instanceof MeprBaseRealGateway) :
                 ?>
-            <option value="<?php echo $obj->id; ?>" <?php selected($value, $obj->id); ?>><?php printf(__('%1$s (%2$s)', 'memberpress'), $obj->label, $obj->name); ?>&nbsp;</option>
+            <option value="<?php echo $obj->id; ?>" <?php selected($value, $obj->id); ?>>
+                <?php printf(
+                // Translators: %1$s: gateway label, %2$s: gateway name.
+                    __('%1$s (%2$s)', 'memberpress'),
+                    $obj->label,
+                    $obj->name
+                ); ?>
+                &nbsp;
+            </option>
                 <?php
             endif;
         endforeach;
@@ -206,7 +214,12 @@ class MeprTransactionsHelper
             'trans_num'        => $txn->trans_num,
             'trans_date'       => $created_at,
             'trans_expires_at' => $expires_at,
-            'trans_gateway'    => sprintf(__('%1$s (%2$s)', 'memberpress'), $pm->label, $pm->name),
+            'trans_gateway'    => sprintf(
+                // Translators: %1$s: gateway label, %2$s: gateway name.
+                __('%1$s (%2$s)', 'memberpress'),
+                $pm->label,
+                $pm->name
+            ),
             'trans_status'     => ucfirst($txn->status),
             'user_remote_addr' => $_SERVER['REMOTE_ADDR'],
             'payment_amount'   => $payment_amount,
@@ -327,17 +340,29 @@ class MeprTransactionsHelper
             }
 
             $cpn_id   = $coupon->ID;
-            $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+            $cpn_desc = sprintf(
+                // Translators: %s: coupon code.
+                __("Coupon Code '%s'", 'memberpress'),
+                $coupon->post_title
+            );
         } elseif ($sub && ($coupon = $sub->coupon())) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
             if ($coupon->discount_mode == 'trial-override' && $sub->trial) {
                 $amount     = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
                 $cpn_id     = $coupon->ID;
-                $cpn_desc   = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+                $cpn_desc   = sprintf(
+                    // Translators: %s: coupon code.
+                    __("Coupon Code '%s'", 'memberpress'),
+                    $coupon->post_title
+                );
                 $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
             } else {
                 $amount     = $sub->price;
                 $cpn_id     = $coupon->ID;
-                $cpn_desc   = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+                $cpn_desc   = sprintf(
+                    // Translators: %s: coupon code.
+                    __("Coupon Code '%s'", 'memberpress'),
+                    $coupon->post_title
+                );
                 $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
             }
         } else {
@@ -648,17 +673,29 @@ class MeprTransactionsHelper
             }
 
             $cpn_id   = $coupon->ID;
-            $cpn_desc = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+            $cpn_desc = sprintf(
+                // Translators: %s: coupon code.
+                __("Coupon Code '%s'", 'memberpress'),
+                $coupon->post_title
+            );
         } elseif ($sub && ($coupon = $sub->coupon())) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
             if ($coupon->discount_mode == 'trial-override' && $sub->trial) {
                 $amount     = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
                 $cpn_id     = $coupon->ID;
-                $cpn_desc   = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+                $cpn_desc   = sprintf(
+                    // Translators: %s: coupon code.
+                    __("Coupon Code '%s'", 'memberpress'),
+                    $coupon->post_title
+                );
                 $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
             } else {
                 $amount     = $sub->price;
                 $cpn_id     = $coupon->ID;
-                $cpn_desc   = sprintf(__("Coupon Code '%s'", 'memberpress'), $coupon->post_title);
+                $cpn_desc   = sprintf(
+                    // Translators: %s: coupon code.
+                    __("Coupon Code '%s'", 'memberpress'),
+                    $coupon->post_title
+                );
                 $cpn_amount = MeprUtils::format_float((float)$amount - (float)$txn->amount);
             }
         } else {

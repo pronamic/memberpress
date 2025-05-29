@@ -328,7 +328,11 @@ class MeprVatTaxCtrl extends MeprBaseCtrl
         if ($prd->ID && $prd->tax_class == 'reduced' && isset($countries[$country]['reduced_rate'])) {
             $tax_rate->tax_rate = $countries[$country]['reduced_rate'];
         }
-        $tax_rate->tax_desc  = sprintf(__('VAT (%s)', 'memberpress'), $countries[$country]['name']);
+        $tax_rate->tax_desc  = sprintf(
+            // Translators: %s: country name.
+            __('VAT (%s)', 'memberpress'),
+            $countries[$country]['name']
+        );
         $tax_rate->tax_class = 'vat';
 
         return MeprHooks::apply_filters('mepr_vat_tax_rate', $tax_rate, $country, $prd_id);
@@ -764,7 +768,14 @@ class MeprVatTaxCtrl extends MeprBaseCtrl
      */
     public function maybe_apply_vat_reversal($price, $prd, $usr)
     {
-        if (get_option('mepr_calculate_taxes') && get_option('mepr_vat_enabled') && MeprTransactionsHelper::is_charging_business_net_price()) {
+        $mepr_options = MeprOptions::fetch();
+
+        if (
+            get_option('mepr_calculate_taxes') &&
+            $mepr_options->attr('tax_calc_type') == 'inclusive' &&
+            get_option('mepr_vat_enabled') &&
+            MeprTransactionsHelper::is_charging_business_net_price()
+        ) {
             $tax_rate = $usr->tax_rate($prd->ID);
 
             if ($tax_rate->customer_type === 'business' && $tax_rate->reversal) {

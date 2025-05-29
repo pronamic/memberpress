@@ -40,6 +40,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         }
     }
 
+    // phpcs:disable Squiz.Commenting.FunctionCommentThrowTag.Missing
     /**
      * Process a Connect
      *
@@ -47,7 +48,6 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
      */
     public function process_connect()
     {
-
         // Make sure we've entered our Authenticator process.
         if (! isset($_GET['mepr-connect']) || 'true' !== $_GET['mepr-connect']) {
             return;
@@ -100,6 +100,32 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
             exit;
         }
 
+        if (isset($_GET['square_connect']) && 'true' === $_GET['square_connect']) {
+            $options           = MeprOptions::fetch();
+            $payment_method_id = sanitize_text_field(wp_unslash($_GET['square_payment_method_id'] ?? ''));
+            $environment       = sanitize_text_field(wp_unslash($_GET['square_environment'] ?? ''));
+            $environment       = $environment == 'sandbox' ? 'sandbox' : 'production';
+            $pm                = $options->payment_method($payment_method_id);
+
+            try {
+                if (!$pm instanceof MeprSquareGateway) {
+                    throw new Exception(__('Sorry, this only works with Square.', 'memberpress'));
+                }
+
+                wp_redirect($pm->connect_url($environment));
+                exit;
+            } catch (Exception $e) {
+                $args = [
+                    'page'                       => 'memberpress-options',
+                    'mepr-square-connect-status' => 'error',
+                    'error'                      => $e->getMessage(),
+                ];
+
+                wp_redirect(add_query_arg(array_map('rawurlencode', $args), admin_url('admin.php')));
+                exit;
+            }
+        }
+
         $redirect_url = remove_query_arg(['mepr-connect', 'nonce', 'site_uuid', 'user_uuid', 'auth_code', 'license_key']);
 
         $license_key = isset($_GET['license_key']) ? sanitize_text_field(wp_unslash($_GET['license_key'])) : '';
@@ -115,6 +141,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         wp_redirect($redirect_url);
         exit;
     }
+    // phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.Missing
 
     /**
      * Process a Disconnect
@@ -175,14 +202,13 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
     /**
      * Generates a JWT, signed by the stored secret token
      *
-     * @param array $payload Payload data.
-     * @param sring $secret  Used to sign the JWT.
+     * @param array  $payload Payload data.
+     * @param string $secret  Used to sign the JWT.
      *
      * @return string
      */
     public static function generate_jwt($payload, $secret = false)
     {
-
         if (false === $secret) {
             $secret = get_option('mepr_authenticator_secret_token');
         }

@@ -19,7 +19,11 @@ class MeprUserCcExpiresReminderEmail extends MeprBaseReminderEmail
         $this->ui_order    = 0;
 
         $enabled = $use_template = $this->show_form = true;
-        $subject = sprintf(__('** Your %1$s', 'memberpress'), '{$reminder_description}');
+        $subject = sprintf(
+          // Translators: %s: reminder description.
+            __('** Your %s', 'memberpress'),
+            '{$reminder_description}'
+        );
         $body    = $this->body_partial();
 
         $this->defaults  = compact('enabled', 'subject', 'body', 'use_template');

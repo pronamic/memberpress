@@ -221,6 +221,7 @@ class MeprReminder extends MeprCptModel
 
         if (!$skip_name_override) {
             $title = sprintf(
+                // Translators: %1$d: trigger length, %2$s: trigger interval, %3$s: trigger timing, %4$s: trigger event name.
                 __('%1$d %2$s %3$s %4$s', 'memberpress'),
                 $this->trigger_length,
                 strtolower($this->get_trigger_interval_str()),
