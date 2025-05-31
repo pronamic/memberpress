@@ -4,7 +4,7 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: https://memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.12.4
+Version: 1.12.6
 Requires PHP: 7.4
 Author: Caseproof, LLC
 Author URI: http://caseproof.com/
@@ -35,7 +35,7 @@ require_once __DIR__ . '/vendor-prefixed/autoload.php';
 
 define('MEPR_PLUGIN_SLUG', 'memberpress/memberpress.php');
 define('MEPR_PLUGIN_NAME', 'memberpress');
-define('MEPR_PATH', dirname(__DIR__) . '/' . MEPR_PLUGIN_NAME);
+define('MEPR_PATH', __DIR__);
 define('MEPR_IMAGES_PATH', MEPR_PATH . '/images');
 define('MEPR_BRAND_PATH', MEPR_PATH . '/brand');
 define('MEPR_BRAND_CTRLS_PATH', MEPR_BRAND_PATH . '/controllers');

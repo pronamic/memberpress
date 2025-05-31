@@ -54,7 +54,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
         $coachkit_addon = false;
         if (empty($plugins['memberpress-coachkit/main.php'])) {
             // Only query addons if CoachKit™ is not installed.
-            $addons         = (array) MeprUpdateCtrl::addons(true, true, true);
+            $addons         = (array) MeprUpdateCtrl::addons(true, true);
             $coachkit_addon = ! empty($addons['memberpress-coachkit']) ? $addons['memberpress-coachkit'] : false;
         }
 
