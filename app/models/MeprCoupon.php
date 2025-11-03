@@ -274,7 +274,7 @@ class MeprCoupon extends MeprCptModel
         $this->validate_is_currency($this->discount_amount, 0, null, 'discount_amount');
         $this->validate_is_array($this->valid_products, 'valid_products');
 
-        if ($this->discount_mode == 'trial-override') {
+        if ($this->discount_mode === 'trial-override') {
             $this->validate_is_numeric($this->trial_days, 0, null, 'trial_days');
             $this->validate_is_currency($this->trial_amount, 0, null, 'trial_amount');
         }
@@ -329,18 +329,20 @@ class MeprCoupon extends MeprCptModel
     {
         global $wpdb;
 
-        // Ignore the status here?
-        $and_status = "AND post_status = 'publish'";
         if ($ignore_status) {
-            $and_status = '';
+            $query = "SELECT ID
+                     FROM {$wpdb->posts}
+                     WHERE post_title = %s
+                       AND post_type = %s";
+            $id = $wpdb->get_var($wpdb->prepare($query, $code, self::$cpt)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        } else {
+            $query = "SELECT ID
+                     FROM {$wpdb->posts}
+                     WHERE post_title = %s
+                       AND post_type = %s
+                       AND post_status = 'publish'";
+            $id = $wpdb->get_var($wpdb->prepare($query, $code, self::$cpt)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
         }
-
-        $q  = "SELECT ID
-            FROM {$wpdb->posts}
-            WHERE post_title = %s
-              AND post_type = %s
-              {$and_status}";
-        $id = $wpdb->get_var($wpdb->prepare($q, $code, self::$cpt));
 
         if (!$id) {
             return false;
@@ -400,7 +402,7 @@ class MeprCoupon extends MeprCptModel
         }
 
         // Coupon code is not valid for this membership.
-        if (!in_array($product_id, $this->valid_products)) {
+        if (!in_array((int) $product_id, array_map('intval', $this->valid_products), true)) {
             return false;
         }
 
@@ -412,7 +414,7 @@ class MeprCoupon extends MeprCptModel
             }
         }
 
-        return apply_filters('mepr_coupon_is_valid', true, $this, $product_id); // If we made it here, the coupon is good.
+        return MeprHooks::apply_filters('mepr_coupon_is_valid', true, $this, $product_id); // If we made it here, the coupon is good.
     }
 
     /**
@@ -470,7 +472,7 @@ class MeprCoupon extends MeprCptModel
      */
     public function apply_discount($price, $is_first_payment = false, $prd = null)
     {
-        if ($is_first_payment && $this->discount_mode == 'first-payment') {
+        if ($is_first_payment && $this->discount_mode === 'first-payment') {
             $discount_amount = $this->get_first_payment_discount_amount($prd);
             $discount_type   = $this->first_payment_discount_type;
         } else {
@@ -480,7 +482,7 @@ class MeprCoupon extends MeprCptModel
 
         $value = $price;
 
-        if ($discount_type == 'percent') {
+        if ($discount_type === 'percent') {
             $value = ((1 - ($discount_amount / 100)) * $price);
         } else {
             $value = ($price - $discount_amount);
@@ -497,15 +499,15 @@ class MeprCoupon extends MeprCptModel
      */
     public function maybe_apply_trial_override(&$obj)
     {
-        if ($this->discount_type == 'percent' && $this->discount_amount == 100) {
+        if ($this->discount_type === 'percent' && (int) $this->discount_amount === 100) {
             $obj->trial        = false;
             $obj->trial_days   = 0;
             $obj->trial_amount = 0;
-        } elseif ($this->discount_mode == 'trial-override') {
+        } elseif ($this->discount_mode === 'trial-override') {
             $obj->trial        = true;
             $obj->trial_days   = $this->trial_days;
             $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount($this->trial_amount);
-        } elseif ($this->discount_mode == 'first-payment') {
+        } elseif ($this->discount_mode === 'first-payment') {
             $obj->trial      = true;
             $obj->trial_days = (($obj instanceof MeprProduct) ? $obj->days_in_my_period() : $obj->days_in_this_period());
 
@@ -519,7 +521,7 @@ class MeprCoupon extends MeprCptModel
         // Basically, if the subscription does have a trial period
         // because of a coupon then the trial payment should count as one of the limited cycle payments.
         if (
-            ($this->discount_mode == 'trial-override' || $this->discount_mode == 'first-payment') &&
+            ($this->discount_mode === 'trial-override' || $this->discount_mode === 'first-payment') &&
             $obj instanceof MeprSubscription &&
             $obj->trial_amount > 0 &&
             $obj->limit_cycles &&
@@ -555,23 +557,22 @@ class MeprCoupon extends MeprCptModel
             }
 
             // While we're in here we should consider deleting auto-draft coupons, waste of db space.
-            $sq1     = "SELECT ID
-                FROM {$wpdb->posts}
-                WHERE post_type = '" . self::$cpt . "' AND
-                      post_status = 'auto-draft'";
-            $sq1_res = $wpdb->get_col($sq1);
-            if (!empty($sq1_res)) {
-                $post_ids = implode(',', $sq1_res);
-                $q1       = "DELETE
-                  FROM {$wpdb->postmeta}
-                  WHERE post_id IN ({$post_ids})";
-                $q2       = "DELETE
-                  FROM {$wpdb->posts}
-                  WHERE post_type = '" . self::$cpt . "' AND
-                        post_status = 'auto-draft'";
-                $wpdb->query($q1);
-                $wpdb->query($q2);
-            }
+            $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+                $wpdb->prepare(
+                    "DELETE FROM {$wpdb->postmeta}
+                     WHERE post_id IN (SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'auto-draft')",
+                    self::$cpt
+                )
+            );
+
+            $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+                $wpdb->prepare(
+                    "DELETE FROM {$wpdb->posts}
+                     WHERE post_type = %s AND
+                           post_status = 'auto-draft'",
+                    self::$cpt
+                )
+            );
         }
     }
 
@@ -601,35 +602,26 @@ class MeprCoupon extends MeprCptModel
         $mepr_db = new MeprDb();
         $tcount  = 0;
 
-        $sq = "
-      SELECT COUNT(DISTINCT subscription_id)
-        FROM {$mepr_db->transactions}
-       WHERE coupon_id = %d
-         AND subscription_id > 0
-         AND txn_type IN (%s,%s)
-         AND status <> %s;
-    ";
-
-        $sq = $wpdb->prepare($sq, $this->ID, MeprTransaction::$payment_str, MeprTransaction::$subscription_confirmation_str, MeprSubscription::$pending_str);
-
-        $sqcount = $wpdb->get_var($sq);
+        $sqcount = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT COUNT(DISTINCT subscription_id) FROM {$mepr_db->transactions} WHERE coupon_id = %d AND subscription_id > 0 AND txn_type IN (%s,%s) AND status <> %s;",
+            $this->ID,
+            MeprTransaction::$payment_str,
+            MeprTransaction::$subscription_confirmation_str,
+            MeprSubscription::$pending_str
+        ));
         if ($sqcount) {
             $tcount += $sqcount;
         }
 
         // Query one-time payments next.
-        $lq = "
-      SELECT COUNT(*)
-        FROM {$mepr_db->transactions}
-       WHERE coupon_id = %d
-         AND (subscription_id <= 0 OR subscription_id IS NULL)
-         AND txn_type = %s
-         AND status <> %s
-    ";
-
-        $lq = $wpdb->prepare($lq, $this->ID, MeprTransaction::$payment_str, MeprTransaction::$pending_str);
-
-        $lqcount = $wpdb->get_var($lq);
+        $lqcount = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT COUNT(*) FROM {$mepr_db->transactions} WHERE coupon_id = %d AND (subscription_id <= 0 OR subscription_id IS NULL) AND txn_type = %s AND status <> %s",
+            $this->ID,
+            MeprTransaction::$payment_str,
+            MeprTransaction::$pending_str
+        ));
         if ($lqcount) {
             $tcount += $lqcount;
         }
@@ -723,7 +715,7 @@ class MeprCoupon extends MeprCptModel
             'amount' => $discount_amount,
         ];
 
-        if ($this->discount_type != 'percent') {
+        if ($this->discount_type !== 'percent') {
             $mepr_options      = MeprOptions::fetch();
             $terms['currency'] = $mepr_options->currency_code;
         }
@@ -745,13 +737,11 @@ class MeprCoupon extends MeprCptModel
 
         global $wpdb;
 
-        $query = $wpdb->prepare(
+        $meta_ids = $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
             "SELECT meta_id FROM {$wpdb->postmeta} WHERE meta_key LIKE %s AND meta_value = %s",
             $wpdb->esc_like('_mepr_stripe_coupon_id_' . $gateway_id) . '%',
             $coupon_id
-        );
-
-        $meta_ids = $wpdb->get_col($query);
+        ));
 
         if (is_array($meta_ids) && count($meta_ids)) {
             foreach ($meta_ids as $meta_id) {
@@ -796,8 +786,12 @@ class MeprCoupon extends MeprCptModel
          $date_query;
     ";
 
-        $subscription_query       = $wpdb->prepare($subscription_query, $this->ID, MeprSubscription::$pending_str, $user_id);
-        $subscription_query_count = $wpdb->get_var($subscription_query);
+        $subscription_query_count = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $subscription_query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $this->ID,
+            MeprSubscription::$pending_str,
+            $user_id
+        ));
         if ($subscription_query_count) {
             $total_count += $subscription_query_count;
         }
@@ -814,9 +808,13 @@ class MeprCoupon extends MeprCptModel
          $date_query;
     ";
 
-        $lifetime_query = $wpdb->prepare($lifetime_query, $this->ID, MeprTransaction::$payment_str, MeprTransaction::$pending_str, $user_id);
-
-        $lifetime_query_count = $wpdb->get_var($lifetime_query);
+        $lifetime_query_count = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $lifetime_query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $this->ID,
+            MeprTransaction::$payment_str,
+            MeprTransaction::$pending_str,
+            $user_id
+        ));
         if ($lifetime_query_count) {
             $total_count += $lifetime_query_count;
         }

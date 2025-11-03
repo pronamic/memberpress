@@ -201,6 +201,12 @@
   color: #06429e;
   text-decoration: none;
 }
+.mepr-account-container #mepr-account-content button.mepr-account-row-action {
+  clear: both;
+  padding: 0.25rem 1.5rem !important;
+  color: #06429e !important;
+  font-size: 14px !important;
+}
 .mepr-account-container a:visited {
   color: #06429e;
 }
@@ -269,6 +275,15 @@
   color: #007bff;
   background-color: transparent;
   border: 0;
+}
+.mepr-account-container button.btn-link {
+  padding: 0.5rem 1rem;
+}
+#mepr-account-content .mepr-pro-account-table__col-actions button {
+  padding: 0;
+  background: #fff;
+  border: none;
+  color: #212529;
 }
 .mepr-account-container .dropdown {
   position: absolute;
@@ -592,11 +607,23 @@
   flex-direction: column;
   justify-content: space-between;
 }
+.mepr-account-container .mepr-profile-wrapper__footer {
+  margin: 0;
+  list-style: none;
+}
 .mepr-profile-wrapper__footer {
   border-top: 1px solid rgba(0, 0, 0, 0.2);
   padding: 1rem 0 0.6rem;
   display: flex;
   flex-wrap: wrap;
+}
+.mepr-account-container .mepr-profile-wrapper__footer .mepr-button {
+  padding-top: 0.5625rem;
+  padding-bottom: 0.5625rem;
+}
+
+#mepr-account-nav ul {
+  display: block;
 }
 
 .mepr-profile-wrapper__footer > * + * {
@@ -620,7 +647,7 @@
   }
 }
 #mepr-profile-details dt {
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.55);
   font-size: 0.8rem;
   display: flex;
   align-items: baseline;
@@ -646,6 +673,43 @@
   #mepr-profile-image {
     width: 40%;
   }
+}
+
+.mepr-profile-details__button:focus svg,
+.mepr-profile-details__button:focus path {
+  fill: #06429e;
+}
+#mepr-profile-details .mepr-profile-details__button:focus-visible {
+  outline: dashed #06429e;
+}
+#mepr-profile-details .mepr-profile-details__button:focus-visible svg {
+  width: 15px;
+  height: 15px;
+}
+.mepr_modal .mepr_modal_form input[type="text"]:focus-visible,
+.mepr_modal .mepr_modal_form input[type="email"]:focus-visible,
+.mepr_modal .mepr_modal_form input[type="tel"]:focus-visible,
+.mepr_modal .mepr_modal_form select:focus-visible {
+  border-color: #06429e;
+}
+.mepr_modal .mepr_modal_form input[type="checkbox"]:focus-visible {
+  box-shadow: 0 0 0 1px #06429e;
+  outline: dashed #06429e;
+}
+.mepr_modal .mepr_modal_form input[type="file"] {
+  padding: 2px;
+  border: 1px dashed transparent;
+}
+.mepr_modal .mepr_modal_form input[type="file"]:focus-visible {
+  border-color: #06429e;
+  color: #06429e;
+  font-weight: 500;
+}
+.mepr_modal .mepr_modal_form input[type="submit"]:focus-visible {
+  background: #022862;
+}
+.mepr_modal button.mepr_modal__close:focus-visible {
+  color: #06429e;
 }
 
 .mepr-courses-wrapper {
@@ -685,6 +749,9 @@
   border-radius: 100px;
   color: #fff;
 }
+.mepr-courses-wrapper .course-progress .user-progress.center-block {
+  color: #42464d;
+}
 
 .mepr-subscriptions-wrapper {
   padding-bottom: 50px;
@@ -709,7 +776,8 @@
 .mepr-pro-account-table__created_at {
   font-weight: bold;
 }
-button.mepr-pro-account-table__badge {
+button.mepr-pro-account-table__badge,
+div.mepr-pro-account-table__badge {
   border-radius: 999px;
   background: #fff;
   border: 0;
@@ -717,6 +785,11 @@ button.mepr-pro-account-table__badge {
   font-size: 12px;
   font-weight: 600;
   cursor: auto !important;
+}
+div.mepr-pro-account-table__badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  text-align: center;
 }
 button.mepr-pro-account-table__badge:hover {
   border: 0;
@@ -747,6 +820,11 @@ button.mepr-pro-account-table__badge:hover {
   width: 20px;
   height: 20px;
   cursor: pointer;
+}
+.mepr-pro-account-table svg:focus-visible {
+  fill: #06429e;
+  border: 1px solid #c6cdd7;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 .mepr-pro-account-table__col-actions {
   position: relative;
@@ -853,6 +931,10 @@ button.mepr-pro-account-table__badge:hover {
 }
 .mepr_modal .mepr_modal_form .mp-form-row {
   display: none;
+}
+.mepr_modal .mepr_modal_form > fieldset {
+  padding: 0;
+  border: none;
 }
 .mepr_modal .mepr_modal_form .mp-form-label {
   margin-bottom: 1rem;

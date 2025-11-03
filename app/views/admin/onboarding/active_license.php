@@ -61,7 +61,7 @@
       </div>
     </div>
     <div class="mepr-wizard-license-manage">
-      <a href="https://memberpress.com/ipob/downloads" target="_blank"><?php esc_html_e('Manage activations', 'memberpress'); ?></a>
+      <a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_manage_activations')); ?>" target="_blank"><?php esc_html_e('Manage activations', 'memberpress'); ?></a>
     </div>
     <div class="mepr-wizard-license-deactivate">
       <button type="button" id="mepr-deactivate-license-key" class="mepr-wizard-button-secondary"><?php esc_html_e('Deactivate License', 'memberpress'); ?></button>

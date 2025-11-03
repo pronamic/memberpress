@@ -39,31 +39,23 @@ class MeprGrdLvlCtrl extends MeprBaseCtrl implements StaticContainerAwareness
     /**
      * Initializes a GroundLevel container and dependent services.
      *
-     * @param boolean $force_init If true, forces notifications to load even if notifications are disabled.
-     *                            Used during database migrations when we cannot determine if the current
-     *                            user has access to notifications.
+     * @param boolean $force_init_ipn If true, forces notifications to load even if notifications are disabled.
+     *                                Used during database migrations when we cannot determine if the current
+     *                                user has access to notifications.
      */
-    public static function init(bool $force_init = false): void
+    public static function init(bool $force_init_ipn = false): void
     {
-        /**
-         * Currently we're loading a container, mothership, and ipn services in order
-         * to power IPN functionality. We don't need the container or mothership
-         * for anything other than IPN so we can skip the whole load if notifications
-         * are disabled or unavailable for the user.
-         *
-         * Later we'll want to move this condition to be only around the {@see self::init_ipn()}
-         * load method.
-         */
-        if (MeprNotifications::has_access() || $force_init) {
-            self::setContainer(new Container());
+        // Always create a fresh container.
+        self::setContainer(new Container());
 
-            /**
-             * Plugin bootstrap via GrdLvl package.
-             *
-             * @todo: Later we'll want to "properly" bootstrap a container via a
-             */
+        // Always initialize mothership.
+        self::init_mothership();
 
-            self::init_mothership();
+        // Initialize IPNs only when any of these conditions are met:
+        // - Database migrations are being run (force_init_ipn)
+        // - User has access to mepr notifications
+        // - Performing cronjobs.
+        if ($force_init_ipn || MeprNotifications::has_access() || wp_doing_cron()) {
             self::init_ipn();
         }
     }

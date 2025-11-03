@@ -146,11 +146,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
      */
     public function log($data)
     {
-        if (!defined('WP_MEPR_DEBUG')) {
-            return;
-        }
-
-        file_put_contents(WP_CONTENT_DIR . '/authorize-net.log', print_r($data, true) . PHP_EOL, FILE_APPEND);
+        MeprUtils::debug_log('', [$data], WP_CONTENT_DIR . '/authorize-net.log');
     }
 
     /**
@@ -163,7 +159,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         $this->log($_GET);
         $this->log(file_get_contents('php://input'));
         $this->email_status(
-            'Webhook Just Came In (' . $_SERVER['REQUEST_METHOD'] . "):\n" . MeprUtils::object_to_string($_REQUEST, true) . "\n",
+            'Webhook Just Came In (' . sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'] ?? '')) . "):\n" . MeprUtils::object_to_string($_REQUEST, true) . "\n",
             $this->settings->debug
         );
         require_once(__DIR__ . '/MeprAuthorizeWebhooks.php');
@@ -171,7 +167,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         try {
             $webhook_handler->process_webhook();
         } catch (Exception $e) {
-            MeprUtils::error_log('MeprAuthorizeGateway Webhook Error: ' . $e->getMessage());
+            MeprUtils::debug_log('MeprAuthorizeGateway Webhook Error: ' . $e->getMessage());
         }
     }
 
@@ -186,41 +182,41 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         $txn_key       = trim($this->settings->transaction_key);
         $signature_key = trim($this->settings->signature_key);
         $public_key    = trim($this->settings->public_key);
-        $test_mode     = ($this->settings->test_mode == 'on' or $this->settings->test_mode == true);
-        $debug         = ($this->settings->debug == 'on' or $this->settings->debug == true);
+        $test_mode     = ($this->settings->test_mode === 'on' or $this->settings->test_mode === true);
+        $debug         = ($this->settings->debug === 'on' or $this->settings->debug === true);
         ?>
         <table>
             <tr>
-                <td><?php _e('API Login ID*:', 'memberpress'); ?></td>
+                <td><?php esc_html_e('API Login ID*:', 'memberpress'); ?></td>
                 <td><input type="text" class="mepr-auto-trim"
-                           name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id; ?>][login_name]"
-                           value="<?php echo $login_name; ?>" /></td>
+                           name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id); ?>][login_name]"
+                           value="<?php echo esc_attr($login_name); ?>" /></td>
             </tr>
             <tr>
-                <td><?php _e('Transaction Key*:', 'memberpress'); ?></td>
+                <td><?php esc_html_e('Transaction Key*:', 'memberpress'); ?></td>
                 <td><input type="text" class="mepr-auto-trim"
-                           name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id; ?>][transaction_key]"
-                           value="<?php echo $txn_key; ?>" /></td>
+                           name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id); ?>][transaction_key]"
+                           value="<?php echo esc_attr($txn_key); ?>" /></td>
             </tr>
             <tr>
-                <td><?php _e('Signature Key*:', 'memberpress'); ?></td>
+                <td><?php esc_html_e('Signature Key*:', 'memberpress'); ?></td>
                 <td><input type="text" class="mepr-auto-trim"
                            name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id); ?>][signature_key]"
                            value="<?php echo esc_attr($signature_key); ?>" /></td>
             </tr>
             <tr>
-                <td><?php _e('Public Key*:', 'memberpress'); ?></td>
+                <td><?php esc_html_e('Public Key*:', 'memberpress'); ?></td>
                 <td><input type="text" class="mepr-auto-trim"
                            name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id); ?>][public_key]"
                            value="<?php echo esc_attr($public_key); ?>" /></td>
             </tr>
             <tr>
                 <td colspan="2"><input type="checkbox"
-                                       name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id); ?>][test_mode]"<?php checked($test_mode); ?> />&nbsp;<?php _e('Use Authorize.net Sandbox', 'memberpress'); ?>
+                                       name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id); ?>][test_mode]"<?php checked($test_mode); ?> />&nbsp;<?php esc_html_e('Use Authorize.net Sandbox', 'memberpress'); ?>
                 </td>
             </tr>
             <tr>
-                <td><?php _e('Webhook URL:', 'memberpress'); ?></td>
+                <td><?php esc_html_e('Webhook URL:', 'memberpress'); ?></td>
                 <td>
                     <?php MeprAppHelper::clipboard_input($this->notify_url('whk')); ?>
                 </td>
@@ -391,22 +387,23 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
      */
     public function record_cancel_subscription()
     {
-        $subscr_id = (isset($_REQUEST['subscr_id'])) ? $_REQUEST['subscr_id'] : $_REQUEST['recurring_payment_id'];
-        $sub       = MeprSubscription::get_one_by_subscr_id($subscr_id);
+        $recurring_payment_id = sanitize_text_field(wp_unslash($_REQUEST['recurring_payment_id'] ?? ''));
+        $subscr_id            = isset($_REQUEST['subscr_id']) ? sanitize_text_field(wp_unslash($_REQUEST['subscr_id'])) : $recurring_payment_id;
+        $sub                  = MeprSubscription::get_one_by_subscr_id($subscr_id);
 
         if (!$sub) {
             return false;
         }
 
         // Seriously ... if sub was already cancelled what are we doing here?
-        if ($sub->status == MeprSubscription::$cancelled_str) {
+        if ($sub->status === MeprSubscription::$cancelled_str) {
             return $sub;
         }
 
         $sub->status = MeprSubscription::$cancelled_str;
         $sub->store();
 
-        if (!isset($_REQUEST['silent']) || ($_REQUEST['silent'] == false)) {
+        if (!isset($_REQUEST['silent']) || (bool) $_REQUEST['silent'] === false) {
             MeprUtils::send_cancelled_sub_notices($sub);
         }
 
@@ -487,7 +484,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
                 MeprUtils::send_signup_notices($txn);
                 MeprUtils::send_transaction_receipt_notices($txn);
 
-                add_filter('mepr-signup-checkout-url', function ($uri, $txn) {
+                add_filter('mepr_signup_checkout_url', function ($uri, $txn) {
                     $mepr_options    = MeprOptions::fetch();
                     $product         = new MeprProduct($txn->product_id);
                     $sanitized_title = sanitize_title($product->post_title);
@@ -513,7 +510,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             }
 
             // Charge a 1 dollar to validate payment source.
-            if (apply_filters('mepr_authorize_profile_validation_txn_enabled', false) && $this->payment_validated !== true) {
+            if (MeprHooks::apply_filters('mepr_authorize_profile_validation_txn_enabled', false) && $this->payment_validated !== true) {
                 $validation_txn = clone $txn;
                 $validation_txn->set_subtotal(1);
                 $validation_txn->trans_num = $client->charge_customer($authorizenet_customer, $validation_txn, false, $cvc_code);
@@ -547,12 +544,12 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
                 }
 
                 $txn->save();
-                MeprHooks::do_action('mepr-auth-net-subscription-initialized', $txn);
+                MeprHooks::do_action('mepr_auth_net_subscription_initialized', $txn);
             }
 
             MeprUtils::send_signup_notices($txn);
 
-            add_filter('mepr-signup-checkout-url', function ($uri, $txn) {
+            add_filter('mepr_signup_checkout_url', function ($uri, $txn) {
                 $mepr_options    = MeprOptions::fetch();
                 $product         = new MeprProduct($txn->product_id);
                 $sanitized_title = sanitize_title($product->post_title);
@@ -579,7 +576,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         array_unshift($order_bumps, $txn);
         unset($_POST['mepr_order_bumps']);
         $data_value      = sanitize_text_field(wp_unslash($_POST['dataValue']));
-        $data_descriptor = sanitize_text_field(wp_unslash($_POST['dataDescriptor']));
+        $data_descriptor = sanitize_text_field(wp_unslash($_POST['dataDescriptor'] ?? ''));
         $cvc_code        = isset($_POST['cvc-code']) ? sanitize_text_field(wp_unslash($_POST['cvc-code'])) : null;
         $this->log('data value' . $data_value);
         $this->log('data descriptor' . $data_descriptor);
@@ -653,13 +650,13 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
         $txn                    = new MeprTransaction($transaction_id);
 
         // Artifically set the price of the $prd in case a coupon was used.
-        if ($prd->price != $amount) {
+        if ((float) $prd->price !== (float) $amount) {
             $coupon     = true;
             $prd->price = $amount;
         }
 
         $invoice = MeprTransactionsHelper::get_invoice($txn);
-        echo $invoice;
+        echo $invoice; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         ?>
         <form action="" method="post" id="mepr-authorizenet-payment-form">
             <input type="hidden" name="mepr_process_payment_form" value="Y" />
@@ -673,13 +670,13 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             ?>
             <div class="mepr-payment-method-desc-text mp_wrapper" style="display: block;">
                 <?php
-                echo MeprView::get_string('/checkout/MeprAuthorizeProfileGateway/payment_gateway_fields', get_defined_vars());
+                echo MeprView::get_string('/checkout/MeprAuthorizeProfileGateway/payment_gateway_fields', get_defined_vars()); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 ?>
                 <br>
                 <input type="submit" class="mepr-submit"
-                       value="<?php echo esc_attr(_x('Submit', 'ui', 'memberpress')); ?>" />
-                <img src="<?php echo admin_url('images/loading.gif'); ?>"
-                     alt="<?php _e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
+                       value="<?php echo esc_attr_x('Submit', 'ui', 'memberpress'); ?>" />
+                <img src="<?php echo esc_url(admin_url('images/loading.gif')); ?>"
+                     alt="<?php esc_attr_e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
             </div>
         </form>
         <?php
@@ -722,12 +719,12 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
 
         $sub = new MeprSubscription($sub_id);
         if (!isset($sub->id) || (int) $sub->id <= 0) {
-            throw new MeprGatewayException(__('Your payment details are invalid, please check them and try again.', 'memberpress'));
+            throw new MeprGatewayException(esc_html__('Your payment details are invalid, please check them and try again.', 'memberpress'));
         }
 
         $usr = $sub->user();
         if (!isset($usr->ID) || (int) $usr->ID <= 0) {
-            throw new MeprGatewayException(__('Your payment details are invalid, please check them and try again.', 'memberpress'));
+            throw new MeprGatewayException(esc_html__('Your payment details are invalid, please check them and try again.', 'memberpress'));
         }
 
         $args = [
@@ -736,9 +733,9 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             'subscription'   => [
                 'payment' => [
                     'creditCard' => [
-                        'cardNumber'     => sanitize_text_field($_POST['update_cc_num']),
-                        'expirationDate' => sanitize_text_field($_POST['update_cc_exp_month']) . '-' . sanitize_text_field($_POST['update_cc_exp_year']),
-                        'cardCode'       => sanitize_text_field($_POST['update_cvv_code']),
+                        'cardNumber'     => sanitize_text_field(wp_unslash($_POST['update_cc_num'] ?? '')),
+                        'expirationDate' => sanitize_text_field(wp_unslash($_POST['update_cc_exp_month'] ?? '')) . '-' . sanitize_text_field(wp_unslash($_POST['update_cc_exp_year'] ?? '')),
+                        'cardCode'       => sanitize_text_field(wp_unslash($_POST['update_cvv_code'] ?? '')),
                     ],
                 ],
             ],
@@ -792,12 +789,12 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     {
         $sub = new MeprSubscription($sub_id);
 
-        $last4     = isset($_POST['update_cc_num']) ? substr(sanitize_text_field($_POST['update_cc_num']), -4) : $sub->cc_last4;
-        $exp_month = isset($_POST['update_cc_exp_month']) ? sanitize_text_field($_POST['update_cc_exp_month']) : $sub->cc_exp_month;
-        $exp_year  = isset($_POST['update_cc_exp_year']) ? sanitize_text_field($_POST['update_cc_exp_year']) : $sub->cc_exp_year;
+        $last4     = isset($_POST['update_cc_num']) ? substr(sanitize_text_field(wp_unslash($_POST['update_cc_num'])), -4) : $sub->cc_last4;
+        $exp_month = isset($_POST['update_cc_exp_month']) ? sanitize_text_field(wp_unslash($_POST['update_cc_exp_month'])) : $sub->cc_exp_month;
+        $exp_year  = isset($_POST['update_cc_exp_year']) ? sanitize_text_field(wp_unslash($_POST['update_cc_exp_year'])) : $sub->cc_exp_year;
 
         // Only include the full cc number if there are errors.
-        if (strtolower($_SERVER['REQUEST_METHOD']) == 'post' and empty($errors)) {
+        if (strtolower(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'] ?? ''))) === 'post' and empty($errors)) {
             $sub->cc_last4     = $last4;
             $sub->cc_exp_month = $exp_month;
             $sub->cc_exp_year  = $exp_year;
@@ -805,10 +802,10 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
 
             unset($_POST['update_cvv_code']); // Unset this for security.
         } else { // If there are errors then show the full cc num ... if it's there.
-            $last4 = isset($_POST['update_cc_num']) ? sanitize_text_field($_POST['update_cc_num']) : $sub->cc_last4;
+            $last4 = isset($_POST['update_cc_num']) ? sanitize_text_field(wp_unslash($_POST['update_cc_num'])) : $sub->cc_last4;
         }
 
-        $ccv_code = (isset($_POST['update_cvv_code'])) ? sanitize_text_field($_POST['update_cvv_code']) : '';
+        $ccv_code = (isset($_POST['update_cvv_code'])) ? sanitize_text_field(wp_unslash($_POST['update_cvv_code'])) : '';
         $exp      = sprintf('%02d', $exp_month) . " / {$exp_year}";
 
         ?>
@@ -816,14 +813,14 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
             <form action="" method="post" id="mepr_authorize_net_update_cc_form" class="mepr-checkout-form mepr-form"
                   novalidate>
                 <input type="hidden" name="_mepr_nonce"
-                       value="<?php echo wp_create_nonce('mepr_process_update_account_form'); ?>" />
+                       value="<?php echo esc_attr(wp_create_nonce('mepr_process_update_account_form')); ?>" />
                 <div class="mepr_update_account_table">
-                    <div><strong><?php _e('Update your Credit Card information below', 'memberpress'); ?></strong></div>
+                    <div><strong><?php esc_html_e('Update your Credit Card information below', 'memberpress'); ?></strong></div>
                     <?php MeprView::render('/shared/errors', get_defined_vars()); ?>
                     <div class="mp-form-row">
-                        <label><?php _e('Credit Card Number', 'memberpress'); ?></label>
+                        <label><?php esc_html_e('Credit Card Number', 'memberpress'); ?></label>
                         <input type="text" class="mepr-form-input cc-number validation" pattern="\d*"
-                               autocomplete="cc-number" placeholder="<?php echo MeprUtils::cc_num($last4); ?>"
+                               autocomplete="cc-number" placeholder="<?php echo esc_attr(MeprUtils::cc_num($last4)); ?>"
                                required />
                         <input type="hidden" class="mepr-cc-num" name="update_cc_num" />
                         <script>
@@ -840,10 +837,10 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
 
                     <div class="mp-form-row">
                         <div class="mp-form-label">
-                            <label><?php _e('Expiration', 'memberpress'); ?></label>
-                            <span class="cc-error"><?php _e('Invalid Expiration', 'memberpress'); ?></span>
+                            <label><?php esc_html_e('Expiration', 'memberpress'); ?></label>
+                            <span class="cc-error"><?php esc_html_e('Invalid Expiration', 'memberpress'); ?></span>
                         </div>
-                        <input type="text" class="mepr-form-input cc-exp validation" value="<?php echo $exp; ?>"
+                        <input type="text" class="mepr-form-input cc-exp validation" value="<?php echo esc_attr($exp); ?>"
                                pattern="\d*" autocomplete="cc-exp" placeholder="mm/yy" required>
                         <input type="hidden" class="cc-exp-month" name="update_cc_exp_month" />
                         <input type="hidden" class="cc-exp-year" name="update_cc_exp_year" />
@@ -860,8 +857,8 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
 
                     <div class="mp-form-row">
                         <div class="mp-form-label">
-                            <label><?php _e('CVC', 'memberpress'); ?></label>
-                            <span class="cc-error"><?php _e('Invalid CVC Code', 'memberpress'); ?></span>
+                            <label><?php esc_html_e('CVC', 'memberpress'); ?></label>
+                            <span class="cc-error"><?php esc_html_e('Invalid CVC Code', 'memberpress'); ?></span>
                         </div>
                         <input type="text" name="update_cvv_code" class="mepr-form-input card-cvc cc-cvc validation"
                                pattern="\d*" autocomplete="off" required />
@@ -869,7 +866,7 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
 
                     <div class="mp-form-row">
                         <div class="mp-form-label">
-                            <label><?php _e('Zip code for Card', 'memberpress'); ?></label>
+                            <label><?php esc_html_e('Zip code for Card', 'memberpress'); ?></label>
                         </div>
                         <input type="text" name="update_zip_post_code" class="mepr-form-input" autocomplete="off"
                                value="" required />
@@ -878,9 +875,9 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
 
                 <div class="mepr_spacer">&nbsp;</div>
 
-                <input type="submit" class="mepr-submit" value="<?php _e('Update Credit Card', 'memberpress'); ?>" />
-                <img src="<?php echo admin_url('images/loading.gif'); ?>"
-                     alt="<?php _e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
+                <input type="submit" class="mepr-submit" value="<?php esc_attr_e('Update Credit Card', 'memberpress'); ?>" />
+                <img src="<?php echo esc_url(admin_url('images/loading.gif')); ?>"
+                     alt="<?php esc_attr_e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
                 <?php MeprView::render('/shared/has_errors', get_defined_vars()); ?>
             </form>
         </div>
@@ -897,14 +894,14 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
     {
         if (
             !isset($_POST['_mepr_nonce']) or empty($_POST['_mepr_nonce']) or
-            !wp_verify_nonce($_POST['_mepr_nonce'], 'mepr_process_update_account_form')
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_mepr_nonce'])), 'mepr_process_update_account_form')
         ) {
             $errors[] = __('An unknown error has occurred. Please try again.', 'memberpress');
         }
 
         if (!isset($_POST['update_cc_num']) || empty($_POST['update_cc_num'])) {
             $errors[] = __('You must enter your Credit Card number.', 'memberpress');
-        } elseif (!$this->is_credit_card_valid($_POST['update_cc_num'])) {
+        } elseif (!$this->is_credit_card_valid(sanitize_text_field(wp_unslash($_POST['update_cc_num'])))) {
             $errors[] = __('Your credit card number is invalid.', 'memberpress');
         }
 

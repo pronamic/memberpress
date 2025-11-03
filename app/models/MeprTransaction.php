@@ -377,13 +377,15 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             return $transactions;
         }
 
-        $query = $wpdb->prepare("SELECT id FROM {$mepr_db->transactions} WHERE order_id = %d", $order_id);
+        $query = "SELECT id FROM {$mepr_db->transactions} WHERE order_id = %d";
+        $params = [$order_id];
 
         if (is_numeric($exclude_txn_id)) {
-            $query .= $wpdb->prepare(' AND id <> %d', $exclude_txn_id);
+            $query .= ' AND id <> %d';
+            $params[] = $exclude_txn_id;
         }
 
-        $results = $wpdb->get_col($query);
+        $results = $wpdb->get_col($wpdb->prepare($query, ...$params)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         foreach ($results as $txn_id) {
             $txn = new MeprTransaction($txn_id);
@@ -414,13 +416,15 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             return $transactions;
         }
 
-        $query = $wpdb->prepare("SELECT id FROM {$mepr_db->transactions} WHERE order_id = %d AND gateway = %s", $order_id, $gateway);
+        $query = "SELECT id FROM {$mepr_db->transactions} WHERE order_id = %d AND gateway = %s";
+        $params = [$order_id, $gateway];
 
         if (is_numeric($exclude_txn_id)) {
-            $query .= $wpdb->prepare(' AND id <> %d', $exclude_txn_id);
+            $query .= ' AND id <> %d';
+            $params[] = $exclude_txn_id;
         }
 
-        $results = $wpdb->get_col($query);
+        $results = $wpdb->get_col($wpdb->prepare($query, ...$params)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         foreach ($results as $txn_id) {
             $txn = new MeprTransaction($txn_id);
@@ -445,9 +449,11 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         global $wpdb;
 
         $mepr_db = new MeprDb();
-        $query   = "SELECT * FROM {$mepr_db->transactions} WHERE subscription_id=%s ORDER BY created_at LIMIT 1";
-        $query   = $wpdb->prepare($query, $subscription_id);
-        return $wpdb->get_row($query);
+        return $wpdb->get_row($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT * FROM {$mepr_db->transactions} WHERE subscription_id=%s ORDER BY created_at LIMIT 1",
+            $subscription_id
+        ));
     }
 
     /**
@@ -560,7 +566,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             $limit = "LIMIT {$limit}";
         }
 
-        $where = $exclude_expired ? "AND (t.expires_at > '" . date('c') . "' OR t.expires_at = '" . MeprUtils::db_lifetime() . "' OR t.expires_at IS NULL) " : '';
+        $where = $exclude_expired ? "AND (t.expires_at > '" . MeprUtils::db_now() . "' OR t.expires_at = '" . MeprUtils::db_lifetime() . "' OR t.expires_at IS NULL) " : '';
 
         if ($include_confirmations) {
             // Also include sub_account transactions if there are any.
@@ -597,12 +603,10 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
               {$order_by}
               {$limit}";
 
-        $query = $wpdb->prepare($query, MeprProduct::$access_url_str, $user_id);
-
         if ($count) {
-            return $wpdb->get_var($query);
+            return $wpdb->get_var($wpdb->prepare($query, MeprProduct::$access_url_str, $user_id)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
         } else {
-            return $wpdb->get_results($query);
+            return $wpdb->get_results($wpdb->prepare($query, MeprProduct::$access_url_str, $user_id)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
         }
     }
 
@@ -620,10 +624,11 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         global $wpdb;
 
         $mepr_db = new MeprDb();
-        $query   = "SELECT id FROM {$mepr_db->transactions} WHERE user_id=%d {$order_by}{$limit}";
-        $query   = $wpdb->prepare($query, $user_id);
-
-        return $wpdb->get_col($query);
+        return $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT id FROM {$mepr_db->transactions} WHERE user_id=%d {$order_by}{$limit}",
+            $user_id
+        ));
     }
 
     /**
@@ -706,7 +711,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         }
 
         // Force 23:59:59 to help cover some overlaps.
-        if (!$keep_expires_at_time && isset($this->expires_at) && !empty($this->expires_at) && $this->expires_at != MeprUtils::db_lifetime()) {
+        if (!$keep_expires_at_time && isset($this->expires_at) && !empty($this->expires_at) && $this->expires_at !== MeprUtils::db_lifetime()) {
             $this->expires_at = MeprUtils::ts_to_mysql_date(strtotime($this->expires_at), 'Y-m-d 23:59:59');
         }
 
@@ -718,7 +723,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
         $sub = $this->subscription();
         if (
-            ($this->status == self::$failed_str || $this->status == self::$refunded_str) && $sub
+            ($this->status === self::$failed_str || $this->status === self::$refunded_str) && $sub
         ) {
             // If we have a failure or refund before the confirmation period
             // is over then we expire the subscription confirmation transaction.
@@ -726,9 +731,9 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         }
 
         // This should happen after everything is done processing including the subscr txn_count.
-        MeprHooks::do_action('mepr-txn-transition-status', $old_txn->status, $this->status, $this);
-        MeprHooks::do_action('mepr-txn-store', $this, $old_txn); // 2018-03-10 BW: now including old_txn to allow for comparisons.
-        MeprHooks::do_action('mepr-txn-status-' . $this->status, $this);
+        MeprHooks::do_action('mepr_txn_transition_status', $old_txn->status, $this->status, $this);
+        MeprHooks::do_action('mepr_txn_store', $this, $old_txn); // 2018-03-10 BW: now including old_txn to allow for comparisons.
+        MeprHooks::do_action('mepr_txn_status_' . $this->status, $this);
 
         return $this->id;
     }
@@ -744,7 +749,8 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         $mepr_db      = new MeprDb();
 
         // TODO: Modify this function and query to work for expiring trials as well.
-        $query = $wpdb->prepare(
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_results($wpdb->prepare(
             "
       SELECT txn.*
       FROM {$mepr_db->transactions} AS txn
@@ -759,9 +765,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
       ",
             MeprUtils::db_now(),
             MeprUtils::ts_to_mysql_date(time())
-        );
-
-        return $wpdb->get_results($query);
+        )); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
     }
 
     /**
@@ -849,15 +853,15 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             $args[] = $wpdb->prepare('YEAR(tr.created_at) = %s', $params['year']);
         }
 
-        if (isset($params['prd_id']) && $params['prd_id'] != 'all' && is_numeric($params['prd_id'])) {
+        if (isset($params['prd_id']) && $params['prd_id'] !== 'all' && is_numeric($params['prd_id'])) {
             $args[] = $wpdb->prepare('tr.product_id = %d', $params['prd_id']);
         }
 
-        if (isset($params['membership']) && $params['membership'] != 'all' && is_numeric($params['membership'])) {
+        if (isset($params['membership']) && $params['membership'] !== 'all' && is_numeric($params['membership'])) {
             $args[] = $wpdb->prepare('tr.product_id = %d', $params['membership']);
         }
 
-        if (isset($params['status']) && $params['status'] != 'all') {
+        if (isset($params['status']) && $params['status'] !== 'all') {
             $args[] = $wpdb->prepare('tr.status = %s', $params['status']);
         }
 
@@ -873,7 +877,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             $args[] = $wpdb->prepare('m.user_login = %s', $params['member']);
         }
 
-        if (isset($params['gateway']) && $params['gateway'] != 'all') {
+        if (isset($params['gateway']) && $params['gateway'] !== 'all') {
             $args[] = $wpdb->prepare('tr.gateway = %s', $params['gateway']);
         }
 
@@ -917,12 +921,12 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         global $wpdb, $post_type;
         $mepr_db = new MeprDb();
 
-        $q = "UPDATE {$mepr_db->transactions}
-            SET product_id = 0
-            WHERE product_id = %d";
-
-        if ($post_type == MeprProduct::$cpt) {
-            $wpdb->query($wpdb->prepare($q, $id));
+        if ($post_type === MeprProduct::$cpt) {
+            $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                "UPDATE {$mepr_db->transactions} SET product_id = 0 WHERE product_id = %d",
+                $id
+            ));
         }
     }
 
@@ -938,11 +942,11 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $q = "UPDATE {$mepr_db->transactions}
-            SET user_id = 0
-            WHERE user_id = %d";
-
-        $wpdb->query($wpdb->prepare($q, $id));
+        $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "UPDATE {$mepr_db->transactions} SET user_id = 0 WHERE user_id = %d",
+            $id
+        ));
     }
 
     /**
@@ -974,8 +978,8 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function is_active($offset = 0)
     {
-        return ( ( $this->rec->status == self::$complete_str ||
-               $this->rec->status == self::$confirmed_str ) &&
+        return ( ( $this->rec->status === self::$complete_str ||
+               $this->rec->status === self::$confirmed_str ) &&
             !$this->is_expired($offset) );
     }
 
@@ -989,14 +993,14 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     public function is_expired($offset = 0)
     {
         // Check for a lifetime first.
-        if (is_null($this->expires_at) || $this->expires_at == MeprUtils::db_lifetime()) {
+        if (is_null($this->expires_at) || $this->expires_at === MeprUtils::db_lifetime()) {
             return false;
         }
 
         $todays_ts  = time() + $offset; // Use the offset to check when a txn will expire.
         $expires_ts = strtotime($this->expires_at);
 
-        return ($this->status == 'complete' && $expires_ts < $todays_ts);
+        return ($this->status === 'complete' && $expires_ts < $todays_ts);
     }
 
     /**
@@ -1183,14 +1187,14 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         $mepr_options = MeprOptions::fetch();
 
         // Just short circuit if the transaction has already completed.
-        if ($txn->status == self::$complete_str) {
+        if ($txn->status === self::$complete_str) {
             return;
         }
 
         $product = new MeprProduct($txn->product_id);
 
         // Expires at is now more difficult to calculate with our new membership terms.
-        if ($product->period_type != 'lifetime') { // A free recurring subscription? Nope - let's make it lifetime for free here folks.
+        if ($product->period_type !== 'lifetime') { // A free recurring subscription? Nope - let's make it lifetime for free here folks.
             $expires_at = MeprUtils::db_lifetime();
         } else {
             $product_expiration = $product->get_expires_at(strtotime($txn->created_at));
@@ -1215,7 +1219,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         // No such thing as a free subscription in MemberPress
         // So let's clean up this mess right now.
         if (!empty($txn->subscription_id) && (int)$txn->subscription_id > 0) {
-            MeprHooks::do_action('mepr-before-subscription-destroy-create-free-transaction', $txn);
+            MeprHooks::do_action('mepr_before_subscription_destroy_create_free_transaction', $txn);
 
             $sub = new MeprSubscription($txn->subscription_id);
 
@@ -1344,7 +1348,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                     // NOTE: This was added for one specific customer, it should only be used at customers own risk,
                     // we don not support any custom development or issues that arrise from using this hook
                     // to override the default group behavior.
-                    $override_default_behavior = apply_filters('mepr-override-group-default-behavior-sub', false, $old_sub);
+                    $override_default_behavior = MeprHooks::apply_filters('mepr_override_group_default_behavior_sub', false, $old_sub);
 
                     if (!$override_default_behavior) {
                         $evt_txn = $old_sub->latest_txn();
@@ -1357,11 +1361,11 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                     }
                 } else {
                     $old_lifetime_txn = $usr->lifetime_subscription_in_group($grp->ID);
-                    if ($old_lifetime_txn && $old_lifetime_txn->id != $this->id) {
+                    if ($old_lifetime_txn && $old_lifetime_txn->id !== $this->id) {
                         // NOTE: This was added for one specific customer, it should only be used at customers own risk,
                         // we don not support any custom development or issues that arrise from using this hook
                         // to override the default group behavior.
-                        $override_default_behavior = apply_filters('mepr-override-group-default-behavior-lt', false, $old_lifetime_txn);
+                        $override_default_behavior = MeprHooks::apply_filters('mepr_override_group_default_behavior_lt', false, $old_lifetime_txn);
 
                         if (!$override_default_behavior) {
                             $old_lifetime_txn->expires_at = MeprUtils::ts_to_mysql_date(time() - MeprUtils::days(1));
@@ -1376,7 +1380,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         }
 
         if (!empty($evt_txn)) {
-            MeprHooks::do_action('mepr-changing-subscription', $this, $evt_txn);
+            MeprHooks::do_action('mepr_changing_subscription', $this, $evt_txn);
         }
 
         return $evt_txn;
@@ -1393,7 +1397,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     public function can($cap)
     {
         // If the status isn't complete then the refund can't happen.
-        if ($cap == 'process-refunds' && $this->status != MeprTransaction::$complete_str) {
+        if ($cap === 'process-refunds' && $this->status !== MeprTransaction::$complete_str) {
             return false;
         }
 
@@ -1403,7 +1407,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             return false;
         }
 
-        if ($cap == 'process-refunds' && $pm instanceof MeprAuthorizeGateway) {
+        if ($cap === 'process-refunds' && $pm instanceof MeprAuthorizeGateway) {
             return ($pm->can($cap) &&
               ( ( $sub = $this->subscription() &&
                   !empty($sub->cc_last4) &&
@@ -1426,7 +1430,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         $mepr_options = MeprOptions::fetch();
 
-        if (is_null($this->expires_at) || $this->expires_at == MeprUtils::db_lifetime()) {
+        if (is_null($this->expires_at) || $this->expires_at === MeprUtils::db_lifetime()) {
             return 'lifetime';
         }
 
@@ -1445,7 +1449,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         $mepr_options = MeprOptions::fetch();
         $now          = time();
 
-        if (is_null($this->expires_at) || $this->expires_at == MeprUtils::db_lifetime()) {
+        if (is_null($this->expires_at) || $this->expires_at === MeprUtils::db_lifetime()) {
             return 'lifetime';
         }
 
@@ -1458,7 +1462,8 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                 [
                     self::$complete_str,
                     self::$confirmed_str,
-                ]
+                ],
+                true
             )
         ) {
             return 0;
@@ -1495,8 +1500,11 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $q         = $wpdb->prepare("SELECT COUNT(*) FROM {$mepr_db->transactions} AS tr WHERE tr.trans_num=%s", $trans_num);
-        $txn_count = $wpdb->get_var($q);
+        $txn_count = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT COUNT(*) FROM {$mepr_db->transactions} AS tr WHERE tr.trans_num=%s",
+            $trans_num
+        ));
 
         return ((int)$txn_count > 0);
     }
@@ -1512,6 +1520,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         $mepr_db = new MeprDb();
 
         // Expiring Transactions.
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
         $query = $wpdb->prepare(
             "
       SELECT tr.id, IF(tr.subscription_id = 0, 'none', sub.status) AS sub_status
@@ -1535,9 +1544,9 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             MeprTransaction::$complete_str,
             MeprUtils::db_now(),
             MeprUtils::db_now()
-        );
+        ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 
-        $res = $wpdb->get_results($query);
+        $res = $wpdb->get_results($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         return $res;
     }
@@ -1589,7 +1598,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         $mepr_options = MeprOptions::fetch();
 
-        if ($mepr_options->attr('tax_calc_type') == 'inclusive') {
+        if ($mepr_options->attr('tax_calc_type') === 'inclusive') {
             $usr      = $this->user();
             $subtotal = $usr->calculate_subtotal($subtotal, null, 2, $this->product());
         }
@@ -1696,7 +1705,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function is_sub_account()
     {
-        return ($this->txn_type == self::$sub_account_str);
+        return ($this->txn_type === self::$sub_account_str);
     }
 
     /**
@@ -1706,7 +1715,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function is_confirmation()
     {
-        return ($this->txn_type == self::$subscription_confirmation_str);
+        return ($this->txn_type === self::$subscription_confirmation_str);
     }
 
     /**
@@ -1733,12 +1742,13 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
         $status_array = [self::$complete_str,self::$refunded_str];
         if (
-            $this->txn_type == self::$payment_str &&
-            in_array($this->status, $status_array) &&
+            $this->txn_type === self::$payment_str &&
+            in_array($this->status, $status_array, true) &&
             $this->subscription_id > 0
         ) {
             $mepr_db = MeprDb::fetch();
 
+            // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             $q = $wpdb->prepare(
                 "
           SELECT COUNT(*)
@@ -1763,9 +1773,9 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                 self::$confirmed_str,
                 $this->subscription_id,
                 $this->created_at
-            );
+            ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-            return (int)$wpdb->get_var($q);
+            return (int) $wpdb->get_var($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
         }
 
         // If this is not a subscription payment then this value is irrelevant.
@@ -1778,7 +1788,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
     /**
      * Get the tracking subtotal for the transaction.
-     * Currently only used in mepr-ecommerce-tracking shortcodes
+     * Currently only used in mepr_ecommerce_tracking shortcodes
      *
      * @param string $mgm The magic method operation.
      * @param string $val The value to set (unused).
@@ -1789,7 +1799,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         switch ($mgm) {
             case 'get':
-                if ($this->rec->txn_type == MeprTransaction::$subscription_confirmation_str) {
+                if ($this->rec->txn_type === MeprTransaction::$subscription_confirmation_str) {
                     $sub = new MeprSubscription($this->rec->subscription_id);
 
                     if ($sub->trial) {
@@ -1805,7 +1815,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
     /**
      * Get the tracking total for the transaction.
-     * Currently only used in mepr-ecommerce-tracking shortcodes
+     * Currently only used in mepr_ecommerce_tracking shortcodes
      *
      * @param string $mgm The magic method operation.
      * @param string $val The value to set (unused).
@@ -1816,7 +1826,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         switch ($mgm) {
             case 'get':
-                if ($this->rec->txn_type == MeprTransaction::$subscription_confirmation_str) {
+                if ($this->rec->txn_type === MeprTransaction::$subscription_confirmation_str) {
                     $sub = new MeprSubscription($this->rec->subscription_id);
 
                     if ($sub->trial) {
@@ -1832,7 +1842,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
     /**
      * Get the tracking tax amount for the transaction.
-     * Currently only used in mepr-ecommerce-tracking shortcodes
+     * Currently only used in mepr_ecommerce_tracking shortcodes
      *
      * @param string $mgm The magic method operation.
      * @param string $val The value to set (unused).
@@ -1843,7 +1853,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         switch ($mgm) {
             case 'get':
-                if ($this->rec->txn_type == MeprTransaction::$subscription_confirmation_str) {
+                if ($this->rec->txn_type === MeprTransaction::$subscription_confirmation_str) {
                     $sub = new MeprSubscription($this->rec->subscription_id);
 
                     if ($sub->trial) {
@@ -1859,7 +1869,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
     /**
      * Get the tracking tax rate for the transaction.
-     * Currently only used in mepr-ecommerce-tracking shortcodes
+     * Currently only used in mepr_ecommerce_tracking shortcodes
      *
      * @param string $mgm The magic method operation.
      * @param string $val The value to set (unused).
@@ -1870,7 +1880,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         switch ($mgm) {
             case 'get':
-                if ($this->rec->txn_type == MeprTransaction::$subscription_confirmation_str) {
+                if ($this->rec->txn_type === MeprTransaction::$subscription_confirmation_str) {
                     $sub = new MeprSubscription($this->rec->subscription_id);
                     return $sub->tax_rate;
                 } else {

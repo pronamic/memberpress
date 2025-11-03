@@ -33,7 +33,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
 
         add_filter('cron_schedules', [$this,'intervals']);
 
-        if (!defined('MEMBERPRESS_DISABLE_TXN_EXPIRE_EVENTS') || false == MEMBERPRESS_DISABLE_TXN_EXPIRE_EVENTS) {
+        if (!defined('MEMBERPRESS_DISABLE_TXN_EXPIRE_EVENTS') || false === (bool) MEMBERPRESS_DISABLE_TXN_EXPIRE_EVENTS) {
             // Set a wp-cron.
             add_action('mepr_send_txn_expire_events', [$this,'send_expired_txn_events']);
 
@@ -49,7 +49,9 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         add_action('mepr_table_controls_search', [$this, 'table_search_box']);
 
         // Capture complete and refunded events for offline gateway.
-        add_action('mepr-txn-store', 'MeprArtificialGateway::capture_txn_status_for_events');
+        if (class_exists('MeprArtificialGateway')) {
+            add_action('mepr_txn_store', 'MeprArtificialGateway::capture_txn_status_for_events');
+        }
     }
 
     /**
@@ -63,7 +65,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
     {
         $schedules['mepr_send_txn_expire_events_interval'] = [
             'interval' => MeprUtils::hours(1), // Every hour.
-            'display'  => __('MemberPress Send Transaction Expire Events', 'memberpress'),
+            'display'  => 'MemberPress Send Transaction Expire Events',
         ];
 
         return $schedules;
@@ -87,10 +89,10 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
      */
     public function listing()
     {
-        $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? $_REQUEST['action'] : false;
-        if ($action == 'new') {
+        $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? sanitize_key(wp_unslash($_REQUEST['action'])) : false;
+        if ($action === 'new') {
             $this->new_trans();
-        } elseif ($action == 'edit') {
+        } elseif ($action === 'edit') {
             $this->edit_trans();
         } else {
             $this->display_list();
@@ -114,11 +116,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             $this->create_trans($txn);
         } else {
             if (isset($_REQUEST['user']) && !empty($_REQUEST['user'])) {
-                $user_login = stripslashes($_REQUEST['user']);
+                $user_login = sanitize_user(wp_unslash($_REQUEST['user']));
             }
 
             if (isset($_REQUEST['subscription']) && is_numeric($_REQUEST['subscription'])) {
-                $sub             = new MeprSubscription($_REQUEST['subscription']);
+                $sub             = new MeprSubscription(intval(wp_unslash($_REQUEST['subscription'])));
                 $usr             = $sub->user();
                 $prd             = $sub->product();
                 $user_login      = $usr->user_login;
@@ -141,7 +143,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $subscr_num   = '';
 
         if (isset($_REQUEST['id'])) {
-            $txn        = new MeprTransaction($_REQUEST['id']);
+            $txn        = new MeprTransaction(intval(wp_unslash($_REQUEST['id'])));
             $usr        = $txn->user();
             $user_login = $usr->user_login;
 
@@ -176,23 +178,23 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $errors = $this->validate_trans();
 
         $usr = new MeprUser();
-        $usr->load_user_data_by_login($_POST['user_login']);
+        $usr->load_user_data_by_login(sanitize_user(wp_unslash($_POST['user_login'] ?? '')));
         $user_login = $usr->user_login;
         $subscr_num = '';
 
         $txn->trans_num  = (isset($_POST['trans_num']) && !empty($_POST['trans_num'])) ? sanitize_file_name(wp_unslash($_POST['trans_num'])) : uniqid();
         $txn->user_id    = $usr->ID;
-        $txn->product_id = sanitize_key($_POST['product_id']);
+        $txn->product_id = intval(wp_unslash($_POST['product_id'] ?? 0));
         // $txn->set_subtotal($_POST['amount']); //Don't do this, it doesn't work right on existing txns
-        $txn->amount     = MeprUtils::format_currency_us_float($_POST['amount']);
-        $txn->tax_amount = MeprUtils::format_currency_us_float($_POST['tax_amount']);
+        $txn->amount     = MeprUtils::format_currency_us_float(sanitize_text_field(wp_unslash($_POST['amount'] ?? '')));
+        $txn->tax_amount = MeprUtils::format_currency_us_float(sanitize_text_field(wp_unslash($_POST['tax_amount'] ?? '')));
         $txn->total      = $txn->amount + $txn->tax_amount;
-        $txn->tax_rate   = MeprUtils::format_currency_us_float($_POST['tax_rate']);
-        $txn->status     = sanitize_text_field($_POST['status']);
-        $txn->gateway    = sanitize_text_field($_POST['gateway']);
+        $txn->tax_rate   = MeprUtils::format_currency_us_float(sanitize_text_field(wp_unslash($_POST['tax_rate'] ?? '')));
+        $txn->status     = sanitize_text_field(wp_unslash($_POST['status'] ?? ''));
+        $txn->gateway    = sanitize_text_field(wp_unslash($_POST['gateway'] ?? ''));
 
         if (isset($_POST['subscr_num']) && !empty($_POST['subscr_num'])) {
-            $sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_num']);
+            $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field(wp_unslash($_POST['subscr_num'])));
             if ($sub) {
                 $txn->subscription_id = $sub->id;
                 $subscr_num           = $sub->subscr_id;
@@ -200,23 +202,23 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             }
         }
 
-        if (isset($_POST['created_at']) && ($_POST['created_at'] == '' || is_null($_POST['created_at']))) {
+        if (isset($_POST['created_at']) && ($_POST['created_at'] === '' || is_null($_POST['created_at']))) {
             $txn->created_at = MeprUtils::ts_to_mysql_date(time()); // This crap is due to mysql craziness.
         } else {
-            $txn->created_at = MeprUtils::ts_to_mysql_date(strtotime($_POST['created_at']));
+            $txn->created_at = MeprUtils::ts_to_mysql_date(strtotime(sanitize_text_field(wp_unslash($_POST['created_at']))));
         }
 
-        if (isset($_POST['expires_at']) && ($_POST['expires_at'] == '' || is_null($_POST['expires_at']))) {
+        if (isset($_POST['expires_at']) && ($_POST['expires_at'] === '' || is_null($_POST['expires_at']))) {
             $txn->expires_at = MeprUtils::db_lifetime(); // This crap is due to mysql craziness.
         } else {
-            $txn->expires_at = MeprUtils::ts_to_mysql_date(strtotime($_POST['expires_at']), 'Y-m-d 23:59:59');
+            $txn->expires_at = MeprUtils::ts_to_mysql_date(strtotime(sanitize_text_field(wp_unslash($_POST['expires_at']))), 'Y-m-d 23:59:59');
         }
 
         // Only save to the database if there aren't any errors.
         if (empty($errors)) {
             $txn->store();
 
-            if ($txn->status == MeprTransaction::$complete_str) {
+            if ($txn->status === MeprTransaction::$complete_str) {
                 MeprEvent::record('transaction-completed', $txn);
 
                 // This is a recurring payment.
@@ -230,14 +232,14 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
 
             if (empty($txn->subscription_id)) {
                 // If the transaction is not part of a subscription (stand-alone transaction).
-                MeprHooks::do_action('mepr-signup', $txn);
+                MeprHooks::do_action('mepr_signup', $txn);
             } elseif (
                 isset($sub) &&
                 count($sub->transactions()) <= 1 &&
-                $txn->status == MeprTransaction::$complete_str
+                $txn->status === MeprTransaction::$complete_str
             ) {
                 // If the transaction is the only completed transaction of a recurring subscription.
-                MeprHooks::do_action('mepr-signup', $txn);
+                MeprHooks::do_action('mepr_signup', $txn);
             }
 
             $message = __('A transaction was created successfully.', 'memberpress');
@@ -266,22 +268,22 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $errors = $this->validate_trans();
 
         $usr = new MeprUser();
-        $usr->load_user_data_by_login($_POST['user_login']);
+        $usr->load_user_data_by_login(sanitize_user(wp_unslash($_POST['user_login'] ?? '')));
         $user_login      = $usr->user_login;
         $subscr_num      = '';
-        $txn->trans_num  = sanitize_file_name(wp_unslash($_POST['trans_num']));
+        $txn->trans_num  = sanitize_file_name(wp_unslash($_POST['trans_num'] ?? ''));
         $txn->user_id    = $usr->ID;
-        $txn->product_id = sanitize_key($_POST['product_id']);
+        $txn->product_id = intval(wp_unslash($_POST['product_id'] ?? 0));
         // $txn->set_subtotal($_POST['amount']); //Don't do this, it doesn't work right on existing txns
-        $txn->amount     = MeprUtils::format_currency_us_float($_POST['amount']);
-        $txn->tax_amount = MeprUtils::format_currency_us_float($_POST['tax_amount']);
+        $txn->amount     = MeprUtils::format_currency_us_float(sanitize_text_field(wp_unslash($_POST['amount'] ?? '')));
+        $txn->tax_amount = MeprUtils::format_currency_us_float(sanitize_text_field(wp_unslash($_POST['tax_amount'] ?? '')));
         $txn->total      = $txn->amount + $txn->tax_amount;
-        $txn->tax_rate   = MeprUtils::format_currency_us_float($_POST['tax_rate']);
-        $txn->status     = sanitize_text_field($_POST['status']);
-        $txn->gateway    = sanitize_text_field($_POST['gateway']);
+        $txn->tax_rate   = MeprUtils::format_currency_us_float(sanitize_text_field(wp_unslash($_POST['tax_rate'] ?? '')));
+        $txn->status     = sanitize_text_field(wp_unslash($_POST['status'] ?? ''));
+        $txn->gateway    = sanitize_text_field(wp_unslash($_POST['gateway'] ?? ''));
 
         if (isset($_POST['subscr_num']) && !empty($_POST['subscr_num'])) {
-            $sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_num']);
+            $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field(wp_unslash($_POST['subscr_num'])));
             if ($sub) {
                 $txn->subscription_id = $sub->id;
                 $subscr_num           = $sub->subscr_id;
@@ -289,16 +291,16 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             }
         }
 
-        if (isset($_POST['created_at']) && ($_POST['created_at'] == '' || is_null($_POST['created_at']))) {
+        if (isset($_POST['created_at']) && ($_POST['created_at'] === '' || is_null($_POST['created_at']))) {
             $txn->created_at = MeprUtils::ts_to_mysql_date(time()); // This crap is due to mysql craziness.
         } else {
-            $txn->created_at = MeprUtils::ts_to_mysql_date(strtotime($_POST['created_at']));
+            $txn->created_at = MeprUtils::ts_to_mysql_date(strtotime(sanitize_text_field(wp_unslash($_POST['created_at']))));
         }
 
-        if (isset($_POST['expires_at']) && ($_POST['expires_at'] == '' || is_null($_POST['expires_at']))) {
+        if (isset($_POST['expires_at']) && ($_POST['expires_at'] === '' || is_null($_POST['expires_at']))) {
             $txn->expires_at = MeprUtils::db_lifetime(); // This crap is due to mysql craziness.
         } else {
-            $txn->expires_at = MeprUtils::ts_to_mysql_date(strtotime($_POST['expires_at']));
+            $txn->expires_at = MeprUtils::ts_to_mysql_date(strtotime(sanitize_text_field(wp_unslash($_POST['expires_at']))));
         }
 
         // Only save to the database if there aren't any errors.
@@ -322,8 +324,8 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
 
         if (!isset($_POST['user_login']) || empty($_POST['user_login'])) {
             $errors[] = __('The username must be set.', 'memberpress');
-        } elseif (is_email($_POST['user_login']) && !username_exists($_POST['user_login'])) {
-            $usr->load_user_data_by_email($_POST['user_login']);
+        } elseif (is_email(sanitize_email(wp_unslash($_POST['user_login']))) && !username_exists(sanitize_email(wp_unslash($_POST['user_login'])))) {
+            $usr->load_user_data_by_email(sanitize_email(wp_unslash($_POST['user_login'])));
 
             if (!$usr->ID) {
                 $errors[] = __('You must enter a valid username or email address', 'memberpress');
@@ -331,7 +333,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                 $_POST['user_login'] = $usr->user_login;
             }
         } else {
-            $usr->load_user_data_by_login($_POST['user_login']);
+            $usr->load_user_data_by_login(sanitize_user(wp_unslash($_POST['user_login'])));
 
             if (!$usr->ID) {
                 $errors[] = __('You must enter a valid username or email address', 'memberpress');
@@ -343,17 +345,23 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             $errors[] = __('The amount must be set.', 'memberpress');
         }
 
-        if (preg_match('/[^0-9., ]/', $_POST['amount'])) {
+        if (preg_match('/[^0-9., ]/', sanitize_text_field(wp_unslash($_POST['amount'])))) {
             $errors[] = __('The amount must be a number.', 'memberpress');
         }
 
         if (isset($_POST['subscr_num']) && !empty($_POST['subscr_num'])) {
-            $sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_num']);
+            $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field(wp_unslash($_POST['subscr_num'])));
             if ($sub) {
-                if ($sub->product_id != $_POST['product_id']) {
-                    $prd      = new MeprProduct($_POST['product_id']);
+                $product_id = intval(wp_unslash($_POST['product_id'] ?? 0));
+                if ((int) $sub->product_id !== $product_id) {
+                    $prd      = new MeprProduct($product_id);
                     $sub_prd  = $sub->product();
-                    $errors[] = sprintf(__("This is not a subscription for membership '%1\$s' but for '%2\$s'", 'memberpress'), $prd->post_title, $sub_prd->post_title);
+                    $errors[] = sprintf(
+                        // Translators: %1$s: expected membership name, %2$s: actual membership name.
+                        __('This is not a subscription for membership "%1$s" but for "%2$s"', 'memberpress'),
+                        $prd->post_title,
+                        $sub_prd->post_title
+                    );
                 }
 
                 /*
@@ -363,8 +371,13 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                  */
                 $sub_usr = $sub->user();
 
-                if ($usr->ID != $sub_usr->ID) {
-                    $errors[] = sprintf(__("This is not a subscription for user '%1\$s' but for '%2\$s'", 'memberpress'), $usr->user_login, $sub_usr->user_login);
+                if ($usr->ID !== $sub_usr->ID) {
+                    $errors[] = sprintf(
+                        // Translators: %1$s: expected username, %2$s: actual username.
+                        __('This is not a subscription for user "%1$s" but for "%2$s"', 'memberpress'),
+                        $usr->user_login,
+                        $sub_usr->user_login
+                    );
                 }
 
                 /*
@@ -387,11 +400,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             }
         }
 
-        if (empty($_POST['trans_num']) || preg_match('#[^a-zA-z0-9_\-]#', $_POST['trans_num'])) {
+        if (empty($_POST['trans_num']) || preg_match('#[^a-zA-z0-9_\-]#', sanitize_text_field(wp_unslash($_POST['trans_num'])))) {
             $errors[] = __('The Transaction Number is required, and must contain only letters, numbers, underscores and hyphens.', 'memberpress');
         }
 
-        return MeprHooks::apply_filters('mepr-admin-transaction-validation-errors', $errors);
+        return MeprHooks::apply_filters('mepr_admin_transaction_validation_errors', $errors);
     }
 
     /**
@@ -403,7 +416,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
      */
     public function enqueue_scripts($hook)
     {
-        if ($hook == 'memberpress_page_memberpress-trans' || $hook == 'memberpress_page_memberpress-new-trans') {
+        if ($hook === 'memberpress_page_memberpress-trans' || $hook === 'memberpress_page_memberpress-new-trans') {
             $l10n = [
                 'del_txn'                           => __('Deleting Transactions could cause the associated member to lose access to protected content. Are you sure you want to delete this Transaction?', 'memberpress'),
                 'del_txn_error'                     => __('The Transaction could not be deleted. Please try again later.', 'memberpress'),
@@ -431,7 +444,6 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker'], MEPR_VERSION);
             wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
             wp_register_script('mphelpers', MEPR_JS_URL . '/mphelpers.js', ['suggest'], MEPR_VERSION);
-            wp_register_script('mepr-clipboard-js', MEPR_JS_URL . '/vendor/clipboard.min.js', [], MEPR_VERSION);
             wp_register_script('mepr-tooltipster', MEPR_JS_URL . '/vendor/tooltipster.bundle.min.js', ['jquery'], MEPR_VERSION);
 
             wp_enqueue_script(
@@ -442,7 +454,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                     'mphelpers',
                     'mepr-table-controls-js',
                     'mepr-date-picker-js',
-                    'mepr-clipboard-js',
+                    'clipboard',
                     'mepr-tooltipster',
                 ],
                 MEPR_VERSION
@@ -462,11 +474,11 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         check_ajax_referer('edit_txn_status', 'edit_txn_status_nonce');
 
         if (!MeprUtils::is_mepr_admin()) {
-            die(__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'));
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !isset($_POST['value']) || empty($_POST['value'])) {
-            die(__('Save Failed', 'memberpress'));
+            wp_die(esc_html__('Save Failed', 'memberpress'));
         }
 
         $id    = sanitize_key($_POST['id']);
@@ -478,9 +490,9 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             $txn->load_data($tdata);
             $txn->status = esc_sql($value); // Escape the input this way since $wpdb->escape() is deprecated.
             $txn->store();
-            die($txn->status);
+            wp_die(esc_html($txn->status));
         } else {
-            die(__('Save Failed', 'memberpress'));
+            wp_die(esc_html__('Save Failed', 'memberpress'));
         }
     }
 
@@ -494,19 +506,19 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         check_ajax_referer('refund_txn', 'refund_txn_nonce');
 
         if (!MeprUtils::is_mepr_admin()) {
-            die(__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'));
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            die(__('Could not refund transaction', 'memberpress'));
+            wp_die(esc_html__('Could not refund transaction', 'memberpress'));
         }
 
-        $txn = new MeprTransaction($_POST['id']);
+        $txn = new MeprTransaction(intval(wp_unslash($_POST['id'])));
 
         try {
             $txn->refund();
         } catch (Exception $e) {
-            die($e->getMessage());
+            wp_die(esc_html($e->getMessage()));
         }
 
         die('true'); // Don't localize this string.
@@ -522,14 +534,14 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         check_ajax_referer('refund_txn_cancel_sub', 'refund_txn_cancel_sub_nonce');
 
         if (!MeprUtils::is_mepr_admin()) {
-            die(__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'));
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            die(__('Could not refund transaction', 'memberpress'));
+            wp_die(esc_html__('Could not refund transaction', 'memberpress'));
         }
 
-        $txn = new MeprTransaction($_POST['id']);
+        $txn = new MeprTransaction(intval(wp_unslash($_POST['id'])));
 
         try {
             $txn->refund();
@@ -539,7 +551,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                 $sub->cancel();
             }
         } catch (Exception $e) {
-            die($e->getMessage());
+            wp_die(esc_html($e->getMessage()));
         }
 
         die('true'); // Don't localize this string.
@@ -555,14 +567,14 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         check_ajax_referer('delete_transaction', 'mepr_transactions_nonce');
 
         if (!MeprUtils::is_mepr_admin()) {
-            die(__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'));
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            die(__('Could not delete transaction', 'memberpress'));
+            wp_die(esc_html__('Could not delete transaction', 'memberpress'));
         }
 
-        $txn = new MeprTransaction($_POST['id']);
+        $txn = new MeprTransaction(intval(wp_unslash($_POST['id'])));
         $txn->destroy();
 
         die('true'); // Don't localize this string.
@@ -591,7 +603,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             'col_expires_at'     => __('Expires On', 'memberpress'),
         ];
 
-        return MeprHooks::apply_filters('mepr-admin-transactions-cols', $cols);
+        return MeprHooks::apply_filters('mepr_admin_transactions_cols', $cols);
     }
 
     /**
@@ -619,14 +631,14 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         if (!MeprUtils::is_mepr_admin()) {
-            die(__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'));
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            die(__('Could not send email. Please try again later.', 'memberpress'));
+            wp_die(esc_html__('Could not send email. Please try again later.', 'memberpress'));
         }
 
-        $txn = new MeprTransaction($_POST['id']);
+        $txn = new MeprTransaction(intval(wp_unslash($_POST['id'])));
 
         MeprUtils::send_notices(
             $txn,
@@ -634,7 +646,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             'MeprAdminReceiptEmail'
         );
 
-        die(__('Email sent', 'memberpress'));
+        wp_die(esc_html__('Email sent', 'memberpress'));
     }
 
     /**
@@ -647,19 +659,19 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         if (!MeprUtils::is_mepr_admin()) {
-            die(__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'));
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            die(__('Could not send email. Please try again later.', 'memberpress'));
+            wp_die(esc_html__('Could not send email. Please try again later.', 'memberpress'));
         }
 
-        $txn = new MeprTransaction($_POST['id']);
+        $txn = new MeprTransaction(intval(wp_unslash($_POST['id'])));
         $usr = $txn->user();
 
         MeprUtils::maybe_send_product_welcome_notices($txn, $usr);
 
-        die(__('Welcome Email sent', 'memberpress'));
+        wp_die(esc_html__('Welcome Email sent', 'memberpress'));
     }
 
     /**
@@ -670,18 +682,18 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
     public function default_expiration()
     {
         if (isset($_REQUEST['product_id']) && isset($_REQUEST['created_at'])) {
-            $prd = MeprProduct::get_one($_REQUEST['product_id']);
+            $prd = MeprProduct::get_one(intval(wp_unslash($_REQUEST['product_id'])));
             if (
                 $prd &&
                 // !$prd->is_one_time_payment() && //Breaking one-offs which have an expiration date
-                (preg_match('/\d\d\d\d-\d\d-\d\d/', $_REQUEST['created_at']) ||
-                preg_match('/\d\d\d\d-\d\d-\d\d \d\d-\d\d-\d\d/', $_REQUEST['created_at']) ||
+                (preg_match('/\d\d\d\d-\d\d-\d\d/', sanitize_text_field(wp_unslash($_REQUEST['created_at']))) ||
+                preg_match('/\d\d\d\d-\d\d-\d\d \d\d-\d\d-\d\d/', sanitize_text_field(wp_unslash($_REQUEST['created_at']))) ||
                 empty($_REQUEST['created_at']))
             ) {
-                $expires_at_ts = $prd->get_expires_at(strtotime($_REQUEST['created_at']), false);
+                $expires_at_ts = $prd->get_expires_at(strtotime(sanitize_text_field(wp_unslash($_REQUEST['created_at']))), false);
 
                 if (!is_null($expires_at_ts)) {
-                    echo date('Y-m-d H:i:s', (int)$expires_at_ts);
+                    echo esc_html(gmdate('Y-m-d H:i:s', (int)$expires_at_ts));
                 }
             }
         }
@@ -701,14 +713,15 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         $filename = 'transactions-' . time();
 
         // Since we're running WP_List_Table headless we need to do this.
+        // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
         $GLOBALS['hook_suffix'] = false;
 
         $screen = get_current_screen();
         $tab    = new MeprTransactionsTable($screen, $this->get_columns());
 
         if (isset($_REQUEST['all']) && !empty($_REQUEST['all'])) {
-            $search       = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql($_REQUEST['search'])  : '';
-            $search_field = isset($_REQUEST['search']) && !empty($_REQUEST['search-field'])  ? esc_sql($_REQUEST['search-field'])  : 'any';
+            $search       = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql(sanitize_text_field(wp_unslash($_REQUEST['search'])))  : '';
+            $search_field = isset($_REQUEST['search-field']) && !empty($_REQUEST['search-field'])  ? esc_sql(sanitize_key(wp_unslash($_REQUEST['search-field'])))  : 'any';
             $search_field = isset($tab->db_search_cols[$search_field]) ? $tab->db_search_cols[$search_field] : 'any';
 
             $all = MeprTransaction::list_table(
@@ -739,7 +752,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
      */
     public function export_footer_link($action, $totalitems, $itemcount)
     {
-        if ($action == 'mepr_transactions') {
+        if ($action === 'mepr_transactions') {
             MeprAppHelper::export_table_link($action, 'export_transactions', 'mepr_transactions_nonce', $itemcount);
             ?> | <?php
       MeprAppHelper::export_table_link($action, 'export_transactions', 'mepr_transactions_nonce', $totalitems, true);
@@ -809,8 +822,8 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                 MeprEvent::record('non-recurring-transaction-expired', $txn);
             }
 
-            MeprHooks::do_action('mepr-txn-expired', $txn, $row->sub_status); // DEPRECATED.
-            MeprHooks::do_action('mepr-transaction-expired', $txn, $row->sub_status);
+            MeprHooks::do_action('mepr_txn_expired', $txn, $row->sub_status); // DEPRECATED.
+            MeprHooks::do_action('mepr_transaction_expired', $txn, $row->sub_status);
         }
     }
 
@@ -821,12 +834,12 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
      */
     public function table_search_box()
     {
-        if (isset($_REQUEST['page']) && $_REQUEST['page'] == 'memberpress-trans') {
+        if (isset($_REQUEST['page']) && $_REQUEST['page'] === 'memberpress-trans') {
             $mepr_options = MeprOptions::fetch();
 
-            $membership = (isset($_REQUEST['membership']) ? $_REQUEST['membership'] : false);
-            $status     = (isset($_REQUEST['status']) ? $_REQUEST['status'] : 'all');
-            $gateway    = (isset($_REQUEST['gateway']) ? $_REQUEST['gateway'] : 'all');
+            $membership = (isset($_REQUEST['membership']) ? sanitize_text_field(wp_unslash($_REQUEST['membership'])) : false);
+            $status     = (isset($_REQUEST['status']) ? sanitize_key(wp_unslash($_REQUEST['status'])) : 'all');
+            $gateway    = (isset($_REQUEST['gateway']) ? sanitize_key(wp_unslash($_REQUEST['gateway'])) : 'all');
 
             $args     = [
                 'orderby' => 'title',

@@ -4,29 +4,28 @@
 <div id="header" style="width: 680px; padding: 0px; margin: 0 auto; text-align: left;">
   <h1 style="font-size: 30px; margin-bottom: 0;"><?php printf(
       // Translators: %1$s: Reminder name.
-      _x('%1$s Reminder Sent', 'ui', 'memberpress'),
+      esc_html_x('%1$s Reminder Sent', 'ui', 'memberpress'),
       '{$reminder_name}'
   ); ?></h1>
   <h2 style="margin-top: 0; color: #999; font-weight: normal;">{$user_full_name} ({$username})</h2>
 </div>
 <div id="body" style="width: 600px; background: white; padding: 40px; margin: 0 auto; text-align: left;">
   <div class="section" style="display: block; margin-bottom: 24px;"><?php printf(
-      // Translators: %1$s: Reminder name, %2$s: Reminder description, %3$s: Username.
-      _x('A %1$s Reminder (%2$s) was just sent to %3$s for the following subscription:', 'ui', 'memberpress'),
+      // Translators: %1$s: reminder name, %2$s: reminder description, %3$s: username.
+      esc_html_x('A %1$s Reminder (%2$s) was just sent to %3$s for the following subscription:', 'ui', 'memberpress'),
       '{$reminder_name}',
       '{$reminder_description}',
       '{$username}'
   ); ?></div>
   <table style="clear: both;" class="transaction">
-    <tr><th style="text-align: left;"><?php _ex('Membership:', 'ui', 'memberpress'); ?></th><td>{$product_name}</td></tr>
-    <tr><th style="text-align: left;"><?php _ex('Subscription:', 'ui', 'memberpress'); ?></th><td>{$subscr_num}</td></tr>
-    <tr><th style="text-align: left;"><?php _ex('Created:', 'ui', 'memberpress'); ?></th><td>{$subscr_date}</td></tr>
-    <tr><th style="text-align: left;"><?php _ex('Expires:', 'ui', 'memberpress'); ?></th><td>{$subscr_expires_at}</td></tr>
-    <tr><th style="text-align: left;"><?php _ex('CC Expires:', 'ui', 'memberpress'); ?></th><td>{$subscr_cc_month_exp}/{$subscr_cc_year_exp}</td></tr>
-    <tr><th style="text-align: left;"><?php _ex('Name:', 'ui', 'memberpress'); ?></th><td>{$user_full_name}</td></tr>
-    <tr><th style="text-align: left;"><?php _ex('Email:', 'ui', 'memberpress'); ?></th><td>{$user_email}</td></tr>
-    <tr><th style="text-align: left;"><?php _ex('Login:', 'ui', 'memberpress'); ?></th><td>{$user_login}</td></tr>
-    <tr><th style="text-align: left;"><?php _ex('User ID:', 'ui', 'memberpress'); ?></th><td>{$user_id}</td></tr>
+    <tr><th style="text-align: left;"><?php echo esc_html_x('Membership:', 'ui', 'memberpress'); ?></th><td>{$product_name}</td></tr>
+    <tr><th style="text-align: left;"><?php echo esc_html_x('Subscription:', 'ui', 'memberpress'); ?></th><td>{$subscr_num}</td></tr>
+    <tr><th style="text-align: left;"><?php echo esc_html_x('Created:', 'ui', 'memberpress'); ?></th><td>{$subscr_date}</td></tr>
+    <tr><th style="text-align: left;"><?php echo esc_html_x('Expires:', 'ui', 'memberpress'); ?></th><td>{$subscr_expires_at}</td></tr>
+    <tr><th style="text-align: left;"><?php echo esc_html_x('CC Expires:', 'ui', 'memberpress'); ?></th><td>{$subscr_cc_month_exp}/{$subscr_cc_year_exp}</td></tr>
+    <tr><th style="text-align: left;"><?php echo esc_html_x('Name:', 'ui', 'memberpress'); ?></th><td>{$user_full_name}</td></tr>
+    <tr><th style="text-align: left;"><?php echo esc_html_x('Email:', 'ui', 'memberpress'); ?></th><td>{$user_email}</td></tr>
+    <tr><th style="text-align: left;"><?php echo esc_html_x('Login:', 'ui', 'memberpress'); ?></th><td>{$user_login}</td></tr>
+    <tr><th style="text-align: left;"><?php echo esc_html_x('User ID:', 'ui', 'memberpress'); ?></th><td>{$user_id}</td></tr>
   </table>
 </div>
-

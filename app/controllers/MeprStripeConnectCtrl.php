@@ -31,7 +31,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         add_action('admin_notices', [$this, 'mp_disconnect_notice']);
         add_action('admin_notices', [$this, 'admin_notices']);
         add_filter('site_status_tests', [$this, 'add_site_health_test']);
-        add_action('mepr-weekly-summary-email-inner-table-top-tr', [$this, 'maybe_add_notice_to_weekly_summary_email']);
+        add_action('mepr_weekly_summary_email_inner_table_top_tr', [$this, 'maybe_add_notice_to_weekly_summary_email']);
         add_action('wp_ajax_mepr_stripe_connect_update_creds', [$this, 'process_update_creds']);
         add_action('wp_ajax_mepr_stripe_connect_refresh', [$this, 'process_refresh_tokens']);
         add_action('wp_ajax_mepr_stripe_connect_disconnect', [$this, 'process_disconnect']);
@@ -42,26 +42,27 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         add_action('wp_ajax_mepr_create_new_payment_method', [$this, 'create_new_payment_method']);
 
-        $site_uuid = get_option('mepr_authenticator_site_uuid');
+        add_action('mepr_stripe_connect_credentials_updated', [$this, 'connect_credentials_updated']);
+    }
 
-        /*
-         * If no scheduled check exists and we have a site UUID,
-         * schedule a daily check of the stripe connect domain
-         *
-            <<<<<<< HEAD
-         * if ( ! wp_next_scheduled ( 'mepr_stripe_connect_check_domain' ) && ! empty( $site_uuid ) ) {
-         * wp_schedule_event( time(), 'daily', 'mepr_stripe_connect_check_domain' );
-         * }
-            =======
-            if ( ! wp_next_scheduled ( 'mepr_stripe_connect_check_domain' ) && ! empty( $site_uuid ) ) {
-            wp_schedule_event( time(), 'daily', 'mepr_stripe_connect_check_domain' );
-            }
-         */
+    /**
+     * Update the country of the Stripe account.
+     *
+     * @wp-hook mepr_stripe_connect_credentials_updated
+     *
+     * @param string $method_id The ID of the payment method.
+     *
+     * @return void
+     */
+    public function connect_credentials_updated($method_id)
+    {
+        // Refresh options to ensure we have the latest credentials.
+        $mepr_options    = MeprOptions::fetch(true);
+        $account_country = MeprStripeGateway::get_account_country($method_id, true);
 
-        // Remove wp-cron Stripe Connect job.
-        $timestamp = wp_next_scheduled('mepr_stripe_connect_check_domain');
-        if ($timestamp) {
-            wp_unschedule_event($timestamp, 'mepr_stripe_connect_check_domain');
+        if ($account_country !== false) {
+            $mepr_options->integrations[$method_id]['country'] = $account_country;
+            $mepr_options->store(false);
         }
     }
 
@@ -72,7 +73,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
      */
     public function persist_display_keys()
     {
-        if (isset($_GET['page']) && $_GET['page'] == 'memberpress-options' && isset($_GET['display-keys'])) {
+        if (isset($_GET['page']) && $_GET['page'] === 'memberpress-options' && isset($_GET['display-keys'])) {
             setcookie('mepr_stripe_display_keys', '1', time() + HOUR_IN_SECONDS, '/');
         }
     }
@@ -105,7 +106,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         $old_site_url = get_option('mepr_old_site_url', get_site_url());
 
         // Exit if the home URL hasn't changed.
-        if ($old_site_url == get_site_url()) {
+        if ($old_site_url === get_site_url()) {
             return;
         }
 
@@ -117,7 +118,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         ];
 
         $jwt    = MeprAuthenticatorCtrl::generate_jwt($payload);
-        $domain = parse_url(get_site_url(), PHP_URL_HOST);
+        $domain = wp_parse_url(get_site_url(), PHP_URL_HOST);
 
         // Request to change the domain with the auth service (site.domain).
         $response = wp_remote_post(MEPR_AUTH_SERVICE_URL . '/api/domains/update', [
@@ -150,7 +151,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         $body = wp_remote_retrieve_body($response);
 
-        MeprUtils::debug_log('maybe_update_webhooks recived this from Stripe Service: ' . print_r($body, true));
+        MeprUtils::debug_log('maybe_update_webhooks recived this from Stripe Service: ', [$body]);
 
         // Store for next time.
         update_option('mepr_old_site_url', get_site_url());
@@ -163,13 +164,13 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
      */
     public function upgrade_notice()
     {
-        if (MeprStripeGateway::has_method_with_connect_status('not-connected') && ( ! isset($_COOKIE['mepr_stripe_connect_upgrade_dismissed']) || false == $_COOKIE['mepr_stripe_connect_upgrade_dismissed'] )) {
+        if (MeprStripeGateway::has_method_with_connect_status('not-connected') && ( ! isset($_COOKIE['mepr_stripe_connect_upgrade_dismissed']) || false === (bool) $_COOKIE['mepr_stripe_connect_upgrade_dismissed'] )) {
             ?>
         <div class="notice notice-error mepr-notice is-dismissible" id="mepr_stripe_connect_upgrade_notice">
           <p>
-            <p><span class="dashicons dashicons-warning mepr-warning-notice-icon"></span><strong class="mepr-warning-notice-title"><?php _e('MemberPress Security Notice', 'memberpress'); ?></strong></p>
-            <p><strong><?php _e('Your current Stripe payment connection is out of date and may become insecure. Please click the button below to re-connect your Stripe payment method now.', 'memberpress'); ?></strong></p>
-            <p><a href="<?php echo admin_url('admin.php?page=memberpress-options#mepr-integration'); ?>" class="button button-primary"><?php _e('Re-connect Stripe Payments to Fix this Error Now', 'memberpress'); ?></a></p>
+            <p><span class="dashicons dashicons-warning mepr-warning-notice-icon"></span><strong class="mepr-warning-notice-title"><?php esc_html_e('MemberPress Security Notice', 'memberpress'); ?></strong></p>
+            <p><strong><?php esc_html_e('Your current Stripe payment connection is out of date and may become insecure. Please click the button below to re-connect your Stripe payment method now.', 'memberpress'); ?></strong></p>
+            <p><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-options#mepr-integration')); ?>" class="button button-primary"><?php esc_html_e('Re-connect Stripe Payments to Fix this Error Now', 'memberpress'); ?></a></p>
           </p>
             <?php wp_nonce_field('mepr_stripe_connect_upgrade_notice_dismiss', 'mepr_stripe_connect_upgrade_notice_dismiss'); ?>
         </div>
@@ -193,7 +194,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         if (is_array($payment_methods)) {
             foreach ($payment_methods as $pm) {
-                if (isset($pm->key) && $pm->key == 'stripe') {
+                if (isset($pm->key) && $pm->key === 'stripe') {
                     $using_stripe = true;
                 }
             }
@@ -204,7 +205,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
       <div class="notice notice-error is-dismissible">
         <p><?php esc_html_e('Your MemberPress.com account and Stripe gateway have been disconnected. Please re-connect the Stripe gateway by clicking the button below in order to start taking payments again.', 'memberpress'); ?></p>
-        <p><a href="<?php echo admin_url('admin.php?page=memberpress-options#mepr-integration'); ?>" class="button button-primary"><?php esc_html_e('Re-connect Stripe', 'memberpress'); ?></a></p>
+        <p><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-options#mepr-integration')); ?>" class="button button-primary"><?php esc_html_e('Re-connect Stripe', 'memberpress'); ?></a></p>
       </div>
 
             <?php
@@ -221,7 +222,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
 
         if (isset($_GET['mepr-action']) && 'error' === $_GET['mepr-action'] && isset($_GET['error']) && ! empty($_GET['error'])) : ?>
       <div class="notice notice-error mepr-removable-notice is-dismissible">
-        <p><?php echo strip_tags(urldecode($_GET['error'])); ?></p>
+        <p><?php echo esc_html(sanitize_text_field(wp_unslash($_GET['error']))); ?></p>
       </div>
         <?php endif;
 
@@ -250,7 +251,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
             ?>
 
       <div class="notice notice-success mepr-removable-notice is-dismissible">
-        <p><?php echo $notice_text; ?></p>
+        <p><?php echo esc_html($notice_text); ?></p>
       </div>
 
             <?php
@@ -330,11 +331,11 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         <tr>
           <td valign="top">
             <div style="padding:30px;background-color:#f1f1f1;">
-              <h2 style="color:#dc3232;"><?php _e('MemberPress Security Notice', 'memberpress'); ?></h2>
+              <h2 style="color:#dc3232;"><?php esc_html_e('MemberPress Security Notice', 'memberpress'); ?></h2>
               <p style="font-family:Helvetica,Arial,sans-serif;line-height:1.5;">
-                <?php _e('Your current Stripe payment connection is out of date and may become insecure. Please click the link below to re-connect your Stripe payment method now.', 'memberpress'); ?>
+                <?php esc_html_e('Your current Stripe payment connection is out of date and may become insecure. Please click the link below to re-connect your Stripe payment method now.', 'memberpress'); ?>
               </p>
-              <p><a href="<?php echo admin_url('admin.php?page=memberpress-options#mepr-integration'); ?>"><?php _e('Re-connect Stripe Payments to Fix this Error Now', 'memberpress'); ?></a></p>
+              <p><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-options#mepr-integration')); ?>"><?php esc_html_e('Re-connect Stripe Payments to Fix this Error Now', 'memberpress'); ?></a></p>
             </div>
           </td>
         </tr>
@@ -349,45 +350,47 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
      */
     public function process_update_creds()
     {
-
         // Security check.
-        if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce($_GET['_wpnonce'], 'stripe-update-creds')) {
-            wp_die(__('Sorry, updating your credentials failed. (security)', 'memberpress'));
+        if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'stripe-update-creds')) {
+            wp_die(esc_html__('Sorry, updating your credentials failed. (security)', 'memberpress'));
         }
 
         // Check for the existence of any errors passed back from the service.
         if (isset($_GET['error'])) {
-            wp_die(sanitize_text_field(urldecode($_GET['error'])));
+            wp_die(esc_html(sanitize_text_field(wp_unslash($_GET['error']))));
         }
 
         // Make sure we have a method ID.
         if (! isset($_GET['pmt'])) {
-            wp_die(__('Sorry, updating your credentials failed. (pmt)', 'memberpress'));
+            wp_die(esc_html__('Sorry, updating your credentials failed. (pmt)', 'memberpress'));
         }
 
         // Make sure the user is authorized.
         if (! MeprUtils::is_mepr_admin()) {
-            wp_die(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
+            wp_die(esc_html__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
         $mepr_options = MeprOptions::fetch();
 
-        $method_id = sanitize_text_field($_GET['pmt']);
+        $method_id = sanitize_text_field(wp_unslash($_GET['pmt']));
         $pm        = $mepr_options->payment_method($method_id);
 
         if (!($pm instanceof MeprStripeGateway)) {
-            wp_die(__('Sorry, this only works with Stripe.', 'memberpress'));
+            wp_die(esc_html__('Sorry, this only works with Stripe.', 'memberpress'));
         }
 
         $pm->update_connect_credentials();
 
-        MeprUtils::debug_log("*** MeprStripeConnectCtrl->process_update_creds() stored payment methods [{$method_id}]: " . print_r($mepr_options->integrations[$method_id]['api_keys']['test']['secret'], true));
+        MeprUtils::debug_log(
+            "MeprStripeConnectCtrl->process_update_creds() stored payment methods [{$method_id}]: ",
+            [$mepr_options->integrations[$method_id]['api_keys']['test']['secret']]
+        );
 
-        $stripe_action = ( ! empty($_GET['stripe-action']) ? sanitize_text_field($_GET['stripe-action']) : 'updated' );
+        $stripe_action = ( ! empty($_GET['stripe-action']) ? sanitize_text_field(wp_unslash($_GET['stripe-action'])) : 'updated' );
 
         $onboarding = isset($_GET['onboarding']) ? sanitize_text_field(wp_unslash($_GET['onboarding'])) : '';
 
-        if ($onboarding == 'true') {
+        if ($onboarding === 'true') {
             $redirect_url = add_query_arg([
                 'page'          => 'memberpress-onboarding',
                 'step'          => '6',
@@ -413,21 +416,21 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     {
 
         // Security check.
-        if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce($_GET['_wpnonce'], 'stripe-refresh')) {
-            wp_die(__('Sorry, the refresh failed.', 'memberpress'));
+        if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'stripe-refresh')) {
+            wp_die(esc_html__('Sorry, the refresh failed.', 'memberpress'));
         }
 
         // Make sure we have a method ID.
         if (! isset($_GET['method-id'])) {
-            wp_die(__('Sorry, the refresh failed.', 'memberpress'));
+            wp_die(esc_html__('Sorry, the refresh failed.', 'memberpress'));
         }
 
         // Make sure the user is authorized.
         if (! MeprUtils::is_mepr_admin()) {
-            wp_die(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
+            wp_die(esc_html__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
-        $method_id = sanitize_text_field($_GET['method-id']);
+        $method_id = sanitize_text_field(wp_unslash($_GET['method-id']));
         $site_uuid = get_option('mepr_authenticator_site_uuid');
 
         $payload = [
@@ -444,7 +447,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         $body = json_decode(wp_remote_retrieve_body($response), true);
 
         if (! isset($body['connect_status']) || 'refreshed' !== $body['connect_status']) {
-            wp_die(__('Sorry, the refresh failed.', 'memberpress'));
+            wp_die(esc_html__('Sorry, the refresh failed.', 'memberpress'));
         }
 
         $mepr_options = MeprOptions::fetch();
@@ -455,14 +458,14 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
             // Update ALL of the payment methods connected to this account.
             if (
                 isset($mepr_options->integrations[$method_id]['service_account_id']) &&
-                $mepr_options->integrations[$method_id]['service_account_id'] == sanitize_text_field($body['service_account_id'])
+                $mepr_options->integrations[$method_id]['service_account_id'] === sanitize_text_field($body['service_account_id'])
             ) {
                 $mepr_options->integrations[$method_id]['service_account_name']       = sanitize_text_field($body['service_account_name']);
                 $mepr_options->integrations[$method_id]['api_keys']['test']['public'] = sanitize_text_field($body['test_publishable_key']);
                 $mepr_options->integrations[$method_id]['api_keys']['test']['secret'] = sanitize_text_field($body['test_secret_key']);
                 $mepr_options->integrations[$method_id]['api_keys']['live']['public'] = sanitize_text_field($body['live_publishable_key']);
                 $mepr_options->integrations[$method_id]['api_keys']['live']['secret'] = sanitize_text_field($body['live_secret_key']);
-                $integration_updated_count++;
+                ++$integration_updated_count;
             }
         }
 
@@ -488,26 +491,26 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     {
 
         // Security check.
-        if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce($_GET['_wpnonce'], 'stripe-disconnect')) {
-            wp_die(__('Sorry, the disconnect failed.', 'memberpress'));
+        if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'stripe-disconnect')) {
+            wp_die(esc_html__('Sorry, the disconnect failed.', 'memberpress'));
         }
 
         // Make sure we have a method ID.
         if (! isset($_GET['method-id'])) {
-            wp_die(__('Sorry, the disconnect failed.', 'memberpress'));
+            wp_die(esc_html__('Sorry, the disconnect failed.', 'memberpress'));
         }
 
         // Make sure the user is authorized.
         if (! MeprUtils::is_mepr_admin()) {
-            wp_die(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
+            wp_die(esc_html__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
-        $method_id = sanitize_text_field($_GET['method-id']);
+        $method_id = sanitize_text_field(wp_unslash($_GET['method-id']));
 
         $res = $this->disconnect($method_id);
 
         if (!$res) {
-            wp_die(__('Sorry, the disconnect failed.', 'memberpress'));
+            wp_die(esc_html__('Sorry, the disconnect failed.', 'memberpress'));
         }
 
         $redirect_url = add_query_arg([
@@ -595,7 +598,8 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
     {
         check_ajax_referer('new-stripe-connect', 'security');
 
-        $form_data = urldecode($_POST['form_data']);
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        $form_data = urldecode(wp_unslash($_POST['form_data'] ?? ''));
 
         $pm = [];
         parse_str($form_data, $pm);
@@ -639,4 +643,3 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         }
     }
 }
-

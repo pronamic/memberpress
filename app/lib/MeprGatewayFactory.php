@@ -20,7 +20,7 @@ class MeprGatewayFactory
     public static function fetch($class, $settings = null)
     {
         if (!class_exists($class)) {
-            throw new MeprInvalidGatewayException(__('Gateway wasn\'t found', 'memberpress'));
+            throw new MeprInvalidGatewayException(esc_html__('Gateway wasn\'t found', 'memberpress'));
         }
 
         // We'll let the autoloader in memberpress.php
@@ -28,7 +28,7 @@ class MeprGatewayFactory
         $obj = new $class();
 
         if (!is_a($obj, 'MeprBaseRealGateway')) {
-            throw new MeprInvalidGatewayException(__('Not a valid gateway', 'memberpress'));
+            throw new MeprInvalidGatewayException(esc_html__('Not a valid gateway', 'memberpress'));
         }
 
         if (!is_null($settings)) {
@@ -51,7 +51,10 @@ class MeprGatewayFactory
             $gateways = [];
 
             foreach (self::paths() as $path) {
-                $files = @glob($path . '/Mepr*Gateway.php');
+                $files = glob($path . '/Mepr*Gateway.php');
+                if ($files === false) {
+                    continue;
+                }
                 foreach ($files as $file) {
                     $class = preg_replace('#\.php#', '', basename($file));
 
@@ -75,6 +78,6 @@ class MeprGatewayFactory
      */
     public static function paths()
     {
-        return MeprHooks::apply_filters('mepr-gateway-paths', [MEPR_GATEWAYS_PATH]);
+        return MeprHooks::apply_filters('mepr_gateway_paths', [MEPR_GATEWAYS_PATH]);
     }
 }

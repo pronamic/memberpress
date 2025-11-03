@@ -1,6 +1,6 @@
 <h2><?php esc_html_e('Create Content', 'memberpress'); ?></h2>
 <?php
-$courses_plugin_active = is_plugin_active('memberpress-courses/main.php');
+$courses_plugin_active = MeprUtils::is_addon_active(MeprUtils::ADDON_COURSES);
 ?>
   <div class="mepr-wizard-create-content-type" <?php echo ! $courses_plugin_active  ? ' style="display:none;"' : ''; ?>>
     <div>
@@ -32,7 +32,7 @@ $courses_plugin_active = is_plugin_active('memberpress-courses/main.php');
   </div>
   <div class="mepr-wizard-popup-button-row">
     <button type="button" id="mepr-wizard-create-new-content-save" class="mepr-wizard-button-blue"><?php esc_html_e('Save', 'memberpress'); ?></button>
-    <a target='_blank' class="mepr-wizard-popuphelp" href='<?php echo admin_url('edit.php?post_type=mpcs-course'); ?>' id="mepr-wizard-create-content-course-help" <?php echo ! $courses_plugin_active  ? ' style="display:none;"' : ''; ?>>
+    <a target='_blank' class="mepr-wizard-popuphelp" href='<?php echo esc_url(admin_url('edit.php?post_type=mpcs-course')); ?>' id="mepr-wizard-create-content-course-help" <?php echo ! $courses_plugin_active  ? ' style="display:none;"' : ''; ?>>
       <?php
         printf(
           // Translators: %1$s: open underline tag, %2$s: close underline tag.

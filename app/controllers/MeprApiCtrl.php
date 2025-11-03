@@ -44,11 +44,11 @@ class MeprApiCtrl extends MeprBaseCtrl
             $struct['transactions'][] = $txn_struct;
         }
 
-        if (!isset($_REQUEST['fmt']) or $_REQUEST['fmt'] == 'json') {
+        if (!isset($_REQUEST['fmt']) or $_REQUEST['fmt'] === 'json') {
             $this->render_json($struct, $filename);
-        } elseif ($_REQUEST['fmt'] == 'xml') {
+        } elseif ($_REQUEST['fmt'] === 'xml') {
             $this->render_xml($struct, $filename);
-        } elseif ($_REQUEST['fmt'] == 'csv') {
+        } elseif ($_REQUEST['fmt'] === 'csv') {
             $csv_struct = [];
 
             if (empty($txns)) {
@@ -90,7 +90,8 @@ class MeprApiCtrl extends MeprBaseCtrl
         if (!isset($_SERVER['PHP_AUTH_USER'])) {
             $this->unauthorized(__('No credentials have been provided.', 'memberpress'));
         } else {
-            $user = wp_authenticate($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $user = wp_authenticate($_SERVER['PHP_AUTH_USER'] ?? '', $_SERVER['PHP_AUTH_PW'] ?? '');
 
             if (is_wp_error($user)) {
                 $this->unauthorized($user->get_error_message());
@@ -110,11 +111,16 @@ class MeprApiCtrl extends MeprBaseCtrl
     {
         header('WWW-Authenticate: Basic realm="' . MeprUtils::blogname() . '"');
         header('HTTP/1.0 401 Unauthorized');
-        die(sprintf(
-            // Translators: %s: error message.
-            __('UNAUTHORIZED: %s', 'memberpress'),
-            $message
-        ));
+
+        die(
+            esc_html(
+                sprintf(
+                    // Translators: %s: error message.
+                    __('UNAUTHORIZED: %s', 'memberpress'),
+                    $message
+                )
+            )
+        );
     }
 
     /**
@@ -150,7 +156,7 @@ class MeprApiCtrl extends MeprBaseCtrl
             header("Content-Disposition: attachment; filename=\"{$filename}.xml\"");
         }
 
-        die($this->to_xml($struct));
+        die($this->to_xml($struct)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     /**
@@ -172,7 +178,7 @@ class MeprApiCtrl extends MeprBaseCtrl
 
         header('Content-Type: text/plain');
 
-        die($this->to_csv($struct));
+        die($this->to_csv($struct)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     /**

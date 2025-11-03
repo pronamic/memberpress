@@ -5,10 +5,12 @@
 <p class="description">
   <?php
     printf(
-      // Translators: %1$s: link to memberpress.com, %2$s: link to memberpress.com/login.
-        esc_html__('You must have a License Key to enable automatic updates for MemberPress, access the admin areas of MemberPress, and receive support. If you don\'t have a License please go to %1$s to get one. If you do have a license you can login at %2$s to manage your licenses and site activations.', 'memberpress'),
-        '<a href="https://memberpress.com">MemberPress.com</a>',
-        '<a href="https://memberpress.com/login">MemberPress.com/login</a>'
+      // Translators: %1$s: opening link tag for website, %2$s: closing link tag, %3$s: opening link tag for login, %4$s: closing link tag.
+        esc_html__('A License Key is required to enable automatic updates for MemberPress, access admin areas, and receive support. If you don\'t have a license, please %1$svisit our website%2$s to get one. If you already have a license, you can %3$slog in to your account%4$s to manage your licenses and site activations.', 'memberpress'),
+        '<a href="' . esc_url(MeprUtils::get_link_url('home')) . '">',
+        '</a>',
+        '<a href="' . esc_url(MeprUtils::get_link_url('login')) . '">',
+        '</a>'
     );
     ?>
 </p>

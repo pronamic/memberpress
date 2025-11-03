@@ -309,22 +309,23 @@ class MeprGroup extends MeprCptModel
     {
         global $wpdb;
 
-        $query = "
-      SELECT ID FROM {$wpdb->posts} AS p
-        JOIN {$wpdb->postmeta} AS pm_group_id
-          ON p.ID = pm_group_id.post_id
-         AND pm_group_id.meta_key = %s
-         AND pm_group_id.meta_value = %s
-        JOIN {$wpdb->postmeta} AS pm_group_order
-          ON p.ID = pm_group_order.post_id
-         AND pm_group_order.meta_key = %s
-       WHERE p.post_status = %s
-       ORDER BY pm_group_order.meta_value * 1
-    "; // * 1 = easy way to cast strings as numbers in SQL
-
-        $query = $wpdb->prepare($query, MeprProduct::$group_id_str, $this->ID, MeprProduct::$group_order_str, 'publish');
-
-        $res = $wpdb->get_col($query);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $res = $wpdb->get_col($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} AS p
+            JOIN {$wpdb->postmeta} AS pm_group_id
+            ON p.ID = pm_group_id.post_id
+            AND pm_group_id.meta_key = %s
+            AND pm_group_id.meta_value = %s
+            JOIN {$wpdb->postmeta} AS pm_group_order
+            ON p.ID = pm_group_order.post_id
+            AND pm_group_order.meta_key = %s
+            WHERE p.post_status = %s
+            ORDER BY pm_group_order.meta_value * 1", // * 1 = easy way to cast strings as numbers in SQL
+            MeprProduct::$group_id_str,
+            $this->ID,
+            MeprProduct::$group_order_str,
+            'publish'
+        ));
 
         $products = [];
 
@@ -332,11 +333,11 @@ class MeprGroup extends MeprCptModel
             foreach ($res as $product_id) {
                 $prd = new MeprProduct($product_id);
 
-                if ($return_type == 'objects') {
+                if ($return_type === 'objects') {
                     $products[] = $prd;
-                } elseif ($return_type == 'ids') {
+                } elseif ($return_type === 'ids') {
                     $products[] = $prd->ID;
-                } elseif ($return_type == 'titles') {
+                } elseif ($return_type === 'titles') {
                     $products[] = $prd->post_title;
                 }
             }
@@ -367,27 +368,8 @@ class MeprGroup extends MeprCptModel
      */
     public function fallback_membership()
     {
-        global $wpdb;
-
-        $query = $wpdb->prepare(
-            "
-      SELECT meta_value
-      FROM {$wpdb->postmeta}
-      WHERE post_id = %d
-        AND meta_key = %s
-      ",
-            $this->ID,
-            $this::$fallback_membership_str
-        );
-
-        $result = $wpdb->get_var($query);
-
-        if ($result) {
-            $product_id = (int)$result;
-            return new MeprProduct($product_id);
-        } else {
-            return false;
-        }
+        $product_id = get_post_meta($this->ID, $this::$fallback_membership_str, true);
+        return $product_id ? new MeprProduct((int) $product_id) : false;
     }
 
     /**
@@ -408,7 +390,7 @@ class MeprGroup extends MeprCptModel
         // Try and find the old txn and make sure it's not one belonging
         // to the membership the user just signed up for.
         foreach ($usr_txns as $txn) {
-            if (in_array($txn->product_id, $grp_prds) && $txn->product_id != $new_prd_id) {
+            if (in_array((int) $txn->product_id, array_map('intval', $grp_prds), true) && (int) $txn->product_id !== (int) $new_prd_id) {
                 $txn_id = $txn->id;
             }
         }
@@ -433,24 +415,25 @@ class MeprGroup extends MeprCptModel
 
         if (($date - $last_run) > 86400) { // Runs at most once a day.
             update_option(self::$last_run_str, $date);
-            $sq1     = "SELECT ID
-                FROM {$wpdb->posts}
-                WHERE post_type = '" . self::$cpt . "' AND
-                      post_status = 'auto-draft'";
-            $sq1_res = $wpdb->get_col($sq1);
-            if (!empty($sq1_res)) {
-                $post_ids = implode(',', $sq1_res);
-                $q1       = "DELETE
-                  FROM {$wpdb->postmeta}
-                  WHERE post_id IN ({$post_ids})";
-                $q2       = "DELETE
-                  FROM {$wpdb->posts}
-                  WHERE post_type = '" . self::$cpt . "' AND
-                        post_status = 'auto-draft'";
 
-                $wpdb->query($q1);
-                $wpdb->query($q2);
-            }
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $wpdb->query(
+                $wpdb->prepare(
+                    "DELETE FROM {$wpdb->postmeta}
+                     WHERE post_id IN (SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'auto-draft')",
+                    self::$cpt
+                )
+            );
+
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $wpdb->query(
+                $wpdb->prepare(
+                    "DELETE FROM {$wpdb->posts}
+                     WHERE post_type = %s AND
+                           post_status = 'auto-draft'",
+                    self::$cpt
+                )
+            );
         }
     }
 
@@ -489,7 +472,7 @@ class MeprGroup extends MeprCptModel
      */
     public function manual_append_price_boxes()
     {
-        return preg_match('~\[mepr-group-price-boxes~', $this->post_content);
+        return preg_match('~\[(mepr_group_price_boxes|mepr-group-price-boxes)~', $this->post_content);
     }
 
     /**
@@ -502,13 +485,13 @@ class MeprGroup extends MeprCptModel
     public static function is_group_page($post)
     {
         if (is_object($post)) {
-            if (property_exists($post, 'post_type') && $post->post_type == MeprGroup::$cpt) {
+            if (property_exists($post, 'post_type') && $post->post_type === MeprGroup::$cpt) {
                 $grp = new MeprGroup($post->ID);
                 return $grp;
             }
 
-            if (preg_match('~\[mepr-group-price-boxes\s+group_id=[\"\\\'](\d+)[\"\\\']~', $post->post_content, $m) && isset($m[1])) {
-                $grp = new MeprGroup($m[1]);
+            if (preg_match('~\[(mepr_group_price_boxes|mepr-group-price-boxes)\s+group_id=[\"\\\'](\d+)[\"\\\']~', $post->post_content, $m) && isset($m[2])) {
+                $grp = new MeprGroup($m[2]);
                 return $grp;
             }
         }
@@ -524,7 +507,7 @@ class MeprGroup extends MeprCptModel
     public function group_template()
     {
         if (
-            $this->group_theme != 'custom'
+            $this->group_theme !== 'custom'
         ) {
             $filename = self::find_group_theme($this->group_theme);
             if (false !== $filename) {
@@ -564,7 +547,10 @@ class MeprGroup extends MeprCptModel
 
         $templates = [];
         foreach ($paths as $path) {
-            $templates = array_merge($templates, @glob("{$path}/*.css"));
+            $css_files = glob("{$path}/*.css");
+            if (is_array($css_files)) {
+                $templates = array_merge($templates, $css_files);
+            }
         }
 
         if (!$full_paths) {
@@ -621,7 +607,10 @@ class MeprGroup extends MeprCptModel
 
         $themes = [];
         foreach ($paths as $path) {
-            $themes = array_merge($themes, @glob("{$path}/*.css"));
+            $css_files = glob("{$path}/*.css");
+            if (is_array($css_files)) {
+                $themes = array_merge($themes, $css_files);
+            }
         }
 
         if (!$full_paths) {

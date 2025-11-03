@@ -32,7 +32,7 @@ jQuery(document).ready(function($) {
   var hash = location.hash.replace('#','');
 
   if(hash == '') {
-    hash = 'license';
+    hash = $('.mepr-options-hidden-pane').first().attr('id') || 'license';
   }
   else {
     hash = hash.replace('mepr-','');
@@ -163,77 +163,19 @@ jQuery(document).ready(function($) {
     }
   });
 
-  //Custom Fields JS
-  function get_new_line()
-  {
-    var random_id = Math.floor(Math.random() * 100000001); //easiest way to do this
-    return  '<li class="mepr-custom-field postbox"> \
-              <label>' + MeprOptions.nameLabel + '</label> \
-              <input type="text" name="mepr-custom-fields[' + random_id + '][name]" /> \
-               \
-              <label>' + MeprOptions.typeLabel + '</label> \
-              <select name="mepr-custom-fields[' + random_id + '][type]" class="mepr-custom-fields-select" data-value="' + random_id + '"> \
-                <option value="text">' + MeprOptions.textOption + '</option> \
-                <option value="email">' + MeprOptions.emailOption + '</option> \
-                <option value="url">' + MeprOptions.urlOption + '</option> \
-                <option value="tel">' + MeprOptions.phoneOption + '</option> \
-                <option value="date">' + MeprOptions.dateOption + '</option> \
-                <option value="textarea">' + MeprOptions.textareaOption + '</option> \
-                <option value="checkbox">' + MeprOptions.checkboxOption + '</option> \
-                <option value="dropdown">' + MeprOptions.dropdownOption + '</option> \
-                <option value="multiselect">' + MeprOptions.multiselectOption + '</option> \
-                <option value="radios">' + MeprOptions.radiosOption + '</option> \
-                <option value="checkboxes">' + MeprOptions.checkboxesOption + '</option> \
-                <option value="file">' + MeprOptions.fileuploadOption + '</option> \
-              </select> \
-               \
-              <label for="mepr-custom-fields[' + random_id + '][default]">' + MeprOptions.defaultLabel + '</label> \
-              <input type="text" name="mepr-custom-fields[' + random_id + '][default]" /> \
-               \
-              <input type="checkbox" name="mepr-custom-fields[' + random_id + '][signup]" id="mepr-custom-fields-signup-' + random_id + '" /> \
-              <label for="mepr-custom-fields-signup-' + random_id + '">' + MeprOptions.signupLabel + '</label> \
-               \
-              <input type="checkbox" name="mepr-custom-fields[' + random_id + '][show_in_account]" id="mepr-custom-fields-account-' + random_id + '" checked/> \
-              <label for="mepr-custom-fields-account-' + random_id + '">' + MeprOptions.accountLabel + '</label> \
-               \
-              <input type="checkbox" name="mepr-custom-fields[' + random_id + '][required]" id="mepr-custom-fields-required-' + random_id + '" /> \
-              <label for="mepr-custom-fields-required-' + random_id + '">' + MeprOptions.requiredLabel + '</label> \
-              <input type="hidden" name="mepr-custom-fields-index[]" value="' + random_id + '" /> \
-               \
-              <a href="" class="mepr-custom-field-remove"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a> \
-              <div id="dropdown-hidden-options-' + random_id + '" style="display:none;"></div> \
-              \
-              <input type="hidden" name="mepr-custom-fields[' + random_id + '][slug]" value="mepr_none" />\
-            </li>';
+  function  get_new_line() {
+    var row_id = Math.floor(Math.random() * 100000001);
+    return MeprOptions.custom_fields_row.replace(/ROW_ID/g, row_id);
   }
 
-  function get_initial_dropdown_options(my_id)
+  function get_initial_dropdown_options(row_id)
   {
-    return '<ul class="custom_options_list"> \
-              <li> \
-                <label>' + MeprOptions.optionNameLabel + '</label> \
-                <input type="text" name="mepr-custom-fields[' + my_id + '][option][]" /> \
-                 \
-                <label>' + MeprOptions.optionValueLabel + '</label> \
-                <input type="text" name="mepr-custom-fields[' + my_id + '][value][]" /> \
-                 \
-                <a href="" class="mepr-option-remove"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a> \
-              </li> \
-              <a href="" id="mepr-add-new-option" title="' + MeprOptions.addOptionLabel + '" data-value="' + my_id + '"><i class="mp-icon mp-icon-plus-circled mp-16"></i></a> \
-            </ul>';
+    return MeprOptions.custom_fields_options.replace(/ROW_ID/g, row_id);
   }
 
-  function get_new_option_line(my_id)
+  function get_new_option_line(row_id)
   {
-    return '<li> \
-              <label>' + MeprOptions.optionNameLabel + '</label> \
-              <input type="text" name="mepr-custom-fields[' + my_id + '][option][]" /> \
-               \
-              <label>' + MeprOptions.optionValueLabel + '</label> \
-              <input type="text" name="mepr-custom-fields[' + my_id + '][value][]" /> \
-               \
-              <a href="" class="mepr-option-remove"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a> \
-            </li>';
+    return MeprOptions.custom_fields_option_new.replace(/ROW_ID/g, row_id);
   }
 
   $('a#mepr-add-new-custom-field').on('click', function() {
@@ -242,8 +184,8 @@ jQuery(document).ready(function($) {
   });
 
   $('body').on('click', 'a#mepr-add-new-option', function() {
-    var my_id = $(this).attr('data-value');
-    $(this).before(get_new_option_line(my_id));
+    var row_id = $(this).attr('data-value');
+    $(this).before(get_new_option_line(row_id));
     return false;
   });
 
@@ -257,43 +199,43 @@ jQuery(document).ready(function($) {
   });
 
   $('body').on('change', 'select.mepr-custom-fields-select', function() {
-    var my_id = $(this).data('value');
+    var row_id = $(this).data('value');
     var type = $(this).val();
 
     if( $.inArray(type,['dropdown','multiselect','radios','checkboxes']) > -1 ) {
-      $('div#dropdown-hidden-options-' + my_id).html(get_initial_dropdown_options(my_id));
-      $('div#dropdown-hidden-options-' + my_id).show();
+      $('div#dropdown-hidden-options-' + row_id).html(get_initial_dropdown_options(row_id));
+      $('div#dropdown-hidden-options-' + row_id).show();
     } else {
-      $('div#dropdown-hidden-options-' + my_id).html('');
-      $('div#dropdown-hidden-options-' + my_id).hide();
+      $('div#dropdown-hidden-options-' + row_id).html('');
+      $('div#dropdown-hidden-options-' + row_id).hide();
     }
 
     return false;
   });
 
   $('body').on('change', 'select.mepr-custom-fields-select', function() {
-    var my_id = $(this).data('value');
+    var row_id = $(this).data('value');
     var type = $(this).val();
 
     if( 'file' == type ) {
-      $('input[name="mepr-custom-fields['+my_id+'][default]"]').hide();
-      $('label[for="mepr-custom-fields['+my_id+'][default]"]').hide();
+      $('input[name="mepr-custom-fields['+row_id+'][default]"]').hide();
+      $('label[for="mepr-custom-fields['+row_id+'][default]"]').hide();
 
     } else {
-      $('input[name="mepr-custom-fields['+my_id+'][default]"]').show();
-      $('label[for="mepr-custom-fields['+my_id+'][default]"]').show();
+      $('input[name="mepr-custom-fields['+row_id+'][default]"]').show();
+      $('label[for="mepr-custom-fields['+row_id+'][default]"]').show();
     }
 
     return false;
   });
 
   $("select.mepr-custom-fields-select").each(function(){
-    var my_id = $(this).data('value');
+    var row_id = $(this).data('value');
     var type = $(this).val();
 
     if( 'file' == type ) {
-      $('input[name="mepr-custom-fields['+my_id+'][default]"]').hide();
-      $('label[for="mepr-custom-fields['+my_id+'][default]"]').hide();
+      $('input[name="mepr-custom-fields['+row_id+'][default]"]').hide();
+      $('label[for="mepr-custom-fields['+row_id+'][default]"]').hide();
 
     }
   });
@@ -754,17 +696,6 @@ jQuery(document).ready(function($) {
     .always(function () {
       $('#mepr-install-license-edition-loading').hide();
     });
-  });
-
-  $('body').on('click', '#mepr-activate-new-license', function (e) {
-    e.preventDefault();
-
-    var license_key = $(this).data('license-key');
-
-    setTimeout(function () {
-      $('#mepr-license-key').val(license_key);
-      $('#mepr-activate-license-key').trigger('click');
-    }, 250);
   });
 
   $('input[name=mepr_charge_business_customer_net_price]').on('change', function(){

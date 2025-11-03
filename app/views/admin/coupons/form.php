@@ -15,7 +15,7 @@ if (!empty($products)) :
     <tbody>
       <tr valign="top">
         <th scope="row">
-          <label><?php _e('Discount:', 'memberpress'); ?></label>
+          <label><?php esc_html_e('Discount:', 'memberpress'); ?></label>
           <?php
             MeprAppHelper::info_tooltip(
                 'mepr-coupon-discount',
@@ -25,16 +25,16 @@ if (!empty($products)) :
             ?>
         </th>
         <td>
-          <input type="text" size="5" name="<?php echo MeprCoupon::$discount_amount_str; ?>" value="<?php echo $c->discount_amount; ?>" />
-          <select name="<?php echo MeprCoupon::$discount_type_str; ?>">
-            <option value="percent" <?php echo ($c->discount_type == 'percent') ? 'selected="selected"' : ''; ?>><?php _e('%', 'memberpress'); ?></option>
-            <option value="dollar" <?php echo ($c->discount_type == 'dollar') ? 'selected="selected"' : ''; ?>><?php echo $mepr_options->currency_code; ?></option>
+          <input type="text" size="5" name="<?php echo esc_attr(MeprCoupon::$discount_amount_str); ?>" value="<?php echo esc_attr($c->discount_amount); ?>" />
+          <select name="<?php echo esc_attr(MeprCoupon::$discount_type_str); ?>">
+            <option value="percent" <?php selected($c->discount_type, 'percent'); ?>>%</option>
+            <option value="dollar" <?php selected($c->discount_type, 'dollar'); ?>><?php echo esc_html($mepr_options->currency_code); ?></option>
           </select>
         </td>
       </tr>
       <tr valign="top">
         <th scope="row">
-          <label><?php _e('Discount Mode:', 'memberpress'); ?></label>
+          <label><?php esc_html_e('Discount Mode:', 'memberpress'); ?></label>
           <?php
             MeprAppHelper::info_tooltip(
                 'mepr-coupon-discount-mode',
@@ -44,10 +44,10 @@ if (!empty($products)) :
             ?>
         </th>
         <td>
-          <select name="<?php echo MeprCoupon::$discount_mode_str; ?>" class="mepr-toggle-select" data-first-payment-box="mepr_first_payment_box" data-trial-override-box="mepr_trial_override_box">
-            <option value="standard" <?php selected($c->discount_mode, 'standard'); ?>><?php _e('Standard', 'memberpress'); ?></option>
-            <option value="first-payment" <?php selected($c->discount_mode, 'first-payment'); ?>><?php _e('First Payment', 'memberpress'); ?></option>
-            <option value="trial-override" <?php selected($c->discount_mode, 'trial-override'); ?>><?php _e('Trial Period Override', 'memberpress'); ?></option>
+          <select name="<?php echo esc_attr(MeprCoupon::$discount_mode_str); ?>" class="mepr-toggle-select" data-first-payment-box="mepr_first_payment_box" data-trial-override-box="mepr_trial_override_box">
+            <option value="standard" <?php selected($c->discount_mode, 'standard'); ?>><?php esc_html_e('Standard', 'memberpress'); ?></option>
+            <option value="first-payment" <?php selected($c->discount_mode, 'first-payment'); ?>><?php esc_html_e('First Payment', 'memberpress'); ?></option>
+            <option value="trial-override" <?php selected($c->discount_mode, 'trial-override'); ?>><?php esc_html_e('Trial Period Override', 'memberpress'); ?></option>
           </select>
         </td>
       </tr>
@@ -59,7 +59,7 @@ if (!empty($products)) :
       <tbody>
         <tr valign="top">
           <th scope="row">
-            <label><?php _e('# of Days:', 'memberpress'); ?></label>
+            <label><?php esc_html_e('# of Days:', 'memberpress'); ?></label>
             <?php
               MeprAppHelper::info_tooltip(
                   'mepr-coupon-trial-days',
@@ -69,15 +69,15 @@ if (!empty($products)) :
             ?>
           </th>
           <td>
-            <input name="<?php echo MeprCoupon::$trial_days_str; ?>" id="<?php echo MeprCoupon::$trial_days_str; ?>" type="text" size="3" value="<?php echo $c->trial_days; ?>" />
+            <input name="<?php echo esc_attr(MeprCoupon::$trial_days_str); ?>" id="<?php echo esc_attr(MeprCoupon::$trial_days_str); ?>" type="text" size="3" value="<?php echo esc_attr($c->trial_days); ?>" />
           </td>
         </tr>
         <tr valign="top">
           <th scope="row">
-            <label><?php _e('Trial Cost:', 'memberpress'); ?></label>
+            <label><?php esc_html_e('Trial Cost:', 'memberpress'); ?></label>
           </th>
           <td>
-            <?php echo $mepr_options->currency_symbol; ?><input name="<?php echo MeprCoupon::$trial_amount_str; ?>" id="<?php echo MeprCoupon::$trial_amount_str; ?>" size="7" type="text" value="<?php echo MeprUtils::format_float($c->trial_amount); ?>" />
+            <?php echo esc_html($mepr_options->currency_symbol); ?><input name="<?php echo esc_attr(MeprCoupon::$trial_amount_str); ?>" id="<?php echo esc_attr(MeprCoupon::$trial_amount_str); ?>" size="7" type="text" value="<?php echo esc_attr(MeprUtils::format_float($c->trial_amount)); ?>" />
           </td>
         </tr>
       </tbody>
@@ -89,7 +89,7 @@ if (!empty($products)) :
       <tbody>
         <tr valign="top">
           <th scope="row">
-            <label><?php _e('First Payment Discount:', 'memberpress'); ?></label>
+            <label><?php esc_html_e('First Payment Discount:', 'memberpress'); ?></label>
             <?php
               MeprAppHelper::info_tooltip(
                   'mepr-first-payment-discount',
@@ -99,10 +99,10 @@ if (!empty($products)) :
             ?>
           </th>
           <td>
-            <input type="text" size="5" name="<?php echo MeprCoupon::$first_payment_discount_amount_str; ?>" value="<?php echo esc_attr($c->first_payment_discount_amount); ?>" />
-            <select name="<?php echo MeprCoupon::$first_payment_discount_type_str; ?>">
-              <option value="percent" <?php selected($c->first_payment_discount_type, 'percent'); ?>><?php _e('%', 'memberpress'); ?></option>
-              <option value="dollar" <?php selected($c->first_payment_discount_type, 'dollar'); ?>><?php echo $mepr_options->currency_code; ?></option>
+            <input type="text" size="5" name="<?php echo esc_attr(MeprCoupon::$first_payment_discount_amount_str); ?>" value="<?php echo esc_attr($c->first_payment_discount_amount); ?>" />
+            <select name="<?php echo esc_attr(MeprCoupon::$first_payment_discount_type_str); ?>">
+              <option value="percent" <?php selected($c->first_payment_discount_type, 'percent'); ?>>%</option>
+              <option value="dollar" <?php selected($c->first_payment_discount_type, 'dollar'); ?>><?php echo esc_html($mepr_options->currency_code); ?></option>
             </select>
           </td>
         </tr>
@@ -113,7 +113,7 @@ if (!empty($products)) :
     <tbody>
       <tr valign="top">
         <th scope="row">
-          <label><?php _e('Usage Count:', 'memberpress'); ?></label>
+          <label><?php esc_html_e('Usage Count:', 'memberpress'); ?></label>
           <?php
             MeprAppHelper::info_tooltip(
                 'mepr-coupon-usage-amount',
@@ -124,7 +124,7 @@ if (!empty($products)) :
         </th>
         <td>
           <?php $usage_amount = (intval($c->usage_amount) <= 0) ? '∞' : $c->usage_amount; ?>
-          <input type="text" maxlength="4" size="4" name="<?php  echo MeprCoupon::$usage_amount_str; ?>" value="<?php echo $usage_amount; ?>" />
+          <input type="text" maxlength="4" size="4" name="<?php  echo esc_attr(MeprCoupon::$usage_amount_str); ?>" value="<?php echo esc_attr($usage_amount); ?>" />
         </td>
       </tr>
       <tr valign="top">
@@ -171,42 +171,49 @@ if (!empty($products)) :
     <tbody>
       <tr valign="top">
         <th scope="row">
-          <label for="<?php echo MeprCoupon::$use_on_upgrades_str; ?>"><?php _e('Allow on Upgrades and Downgrades:', 'memberpress'); ?></label>
+          <label for="<?php echo esc_attr(MeprCoupon::$use_on_upgrades_str); ?>"><?php esc_html_e('Allow on Upgrades and Downgrades:', 'memberpress'); ?></label>
         </th>
         <td>
-          <input type="checkbox" name="<?php echo MeprCoupon::$use_on_upgrades_str; ?>" id="<?php echo MeprCoupon::$use_on_upgrades_str; ?>" class="mepr-toggle-checkbox" data-box="mepr_use_on_upgrades_box" <?php checked($c->use_on_upgrades); ?> />
+          <input type="checkbox" name="<?php echo esc_attr(MeprCoupon::$use_on_upgrades_str); ?>" id="<?php echo esc_attr(MeprCoupon::$use_on_upgrades_str); ?>" class="mepr-toggle-checkbox" data-box="mepr_use_on_upgrades_box" <?php checked($c->use_on_upgrades); ?> />
         </td>
       </tr>
       <tr valign="top">
         <th scope="row">
-          <label for="<?php echo MeprCoupon::$should_start_str; ?>"><?php _e('Schedule Coupon Start:', 'memberpress'); ?></label>
+          <label for="<?php echo esc_attr(MeprCoupon::$should_start_str); ?>"><?php esc_html_e('Schedule Coupon Start:', 'memberpress'); ?></label>
         </th>
         <td>
-          <input type="checkbox" name="<?php echo MeprCoupon::$should_start_str; ?>" id="<?php echo MeprCoupon::$should_start_str; ?>" class="mepr-toggle-checkbox" data-box="mepr_start_coupon_box" <?php checked($c->should_start); ?> />
+          <input type="checkbox" name="<?php echo esc_attr(MeprCoupon::$should_start_str); ?>" id="<?php echo esc_attr(MeprCoupon::$should_start_str); ?>" class="mepr-toggle-checkbox" data-box="mepr_start_coupon_box" <?php checked($c->should_start); ?> />
           <div id="mepr_start_coupon_box" class="mepr-sub-box mepr_start_coupon_box" style="margin-top: 20px;">
             <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
             <table class="form-table">
               <tbody>
                 <tr valign="top">
                   <th scope="row">
-                    <label><?php _e('Coupon Start Date:', 'memberpress'); ?></label>
+                    <label><?php esc_html_e('Coupon Start Date:', 'memberpress'); ?></label>
                   </th>
                   <td>
-                    <span class="description"><small><?php echo MeprUtils::period_type_name('months'); ?></small></span>
-                    <select name="<?php echo MeprCoupon::$starts_on_month_str; ?>">
+                    <span class="description"><small><?php echo esc_html(MeprUtils::period_type_name('months')); ?></small></span>
+                    <select name="<?php echo esc_attr(MeprCoupon::$starts_on_month_str); ?>">
                       <?php MeprCouponsHelper::months_options($c->starts_on); ?>
                     </select>
-                    <span class="description"><small><?php echo MeprUtils::period_type_name('days'); ?></small></span>
-                    <input type="text" size="2" maxlength="2" name="<?php echo MeprCoupon::$starts_on_day_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->starts_on, 'j'); ?>" />
-                    <span class="description"><small><?php echo MeprUtils::period_type_name('years'); ?></small></span>
-                    <input type="text" size="4" maxlength="4" name="<?php echo MeprCoupon::$starts_on_year_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->starts_on, 'Y'); ?>" />
+                    <span class="description"><small><?php echo esc_html(MeprUtils::period_type_name('days')); ?></small></span>
+                    <input type="text" size="2" maxlength="2" name="<?php echo esc_attr(MeprCoupon::$starts_on_day_str); ?>" value="<?php echo esc_attr(MeprUtils::get_date_from_ts($c->starts_on, 'j')); ?>" />
+                    <span class="description"><small><?php echo esc_html(MeprUtils::period_type_name('years')); ?></small></span>
+                    <input type="text" size="4" maxlength="4" name="<?php echo esc_attr(MeprCoupon::$starts_on_year_str); ?>" value="<?php echo esc_attr(MeprUtils::get_date_from_ts($c->starts_on, 'Y')); ?>" />
                     <br>
                     <div class="description mepr_coupons_timezone"><small><?php esc_html_e('Timezone', 'memberpress'); ?></small></div>
                     <select name="<?php echo esc_attr(MeprCoupon::$start_on_timezone_str); ?>" class="mepr_coupons_timezone">
                       <?php echo wp_timezone_choice($coupon_start_selected_timezone); ?>
                     </select>
                     <br>
-                    <?php echo wp_kses(sprintf(__('Coupon Starts at <strong>00:00:01 AM on selected date</strong>.', 'memberpress')), ['strong' => []]);  ?>
+                    <?php
+                        printf(
+                            // Translators: %1$s: open strong tag, %2$s: close strong tag.
+                            esc_html__('Coupon Starts at %1$s00:00:01 AM on the selected date%2$s.', 'memberpress'),
+                            '<strong>',
+                            '</strong>'
+                        );
+                    ?>
                   </td>
                 </tr>
               </tbody>
@@ -216,34 +223,41 @@ if (!empty($products)) :
       </tr>
       <tr valign="top">
         <th scope="row">
-          <label for="<?php echo MeprCoupon::$should_expire_str; ?>"><?php _e('Expire Coupon:', 'memberpress'); ?></label>
+          <label for="<?php echo esc_attr(MeprCoupon::$should_expire_str); ?>"><?php esc_html_e('Expire Coupon:', 'memberpress'); ?></label>
         </th>
         <td>
-          <input type="checkbox" name="<?php echo MeprCoupon::$should_expire_str; ?>" id="<?php echo MeprCoupon::$should_expire_str; ?>" class="mepr-toggle-checkbox" data-box="mepr_expire_coupon_box" <?php checked($c->should_expire); ?> />
+          <input type="checkbox" name="<?php echo esc_attr(MeprCoupon::$should_expire_str); ?>" id="<?php echo esc_attr(MeprCoupon::$should_expire_str); ?>" class="mepr-toggle-checkbox" data-box="mepr_expire_coupon_box" <?php checked($c->should_expire); ?> />
           <div id="mepr_expire_coupon_box" class="mepr-sub-box mepr_expire_coupon_box" style="margin-top: 20px;">
             <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
             <table class="form-table">
               <tbody>
                 <tr valign="top">
                   <th scope="row">
-                    <label><?php _e('Coupon Expiration:', 'memberpress'); ?></label>
+                    <label><?php esc_html_e('Coupon Expiration:', 'memberpress'); ?></label>
                   </th>
                   <td>
-                    <span class="description"><small><?php echo MeprUtils::period_type_name('months'); ?></small></span>
-                    <select name="<?php echo MeprCoupon::$expires_on_month_str; ?>">
+                    <span class="description"><small><?php echo esc_html(MeprUtils::period_type_name('months')); ?></small></span>
+                    <select name="<?php echo esc_attr(MeprCoupon::$expires_on_month_str); ?>">
                       <?php MeprCouponsHelper::months_options($c->expires_on); ?>
                     </select>
-                    <span class="description"><small><?php echo MeprUtils::period_type_name('days'); ?></small></span>
-                    <input type="text" size="2" maxlength="2" name="<?php echo MeprCoupon::$expires_on_day_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->expires_on, 'j'); ?>" />
-                    <span class="description"><small><?php echo MeprUtils::period_type_name('years'); ?></small></span>
-                    <input type="text" size="4" maxlength="4" name="<?php echo MeprCoupon::$expires_on_year_str; ?>" value="<?php echo MeprUtils::get_date_from_ts($c->expires_on, 'Y'); ?>" />
+                    <span class="description"><small><?php echo esc_html(MeprUtils::period_type_name('days')); ?></small></span>
+                    <input type="text" size="2" maxlength="2" name="<?php echo esc_attr(MeprCoupon::$expires_on_day_str); ?>" value="<?php echo esc_attr(MeprUtils::get_date_from_ts($c->expires_on, 'j')); ?>" />
+                    <span class="description"><small><?php echo esc_html(MeprUtils::period_type_name('years')); ?></small></span>
+                    <input type="text" size="4" maxlength="4" name="<?php echo esc_attr(MeprCoupon::$expires_on_year_str); ?>" value="<?php echo esc_attr(MeprUtils::get_date_from_ts($c->expires_on, 'Y')); ?>" />
                     <br>
                     <div class="description mepr_coupons_timezone"><small><?php esc_html_e('Timezone', 'memberpress'); ?></small></div>
-                    <select name="<?php echo MeprCoupon::$expires_on_timezone_str; ?>" class="mepr_coupons_timezone">
+                    <select name="<?php echo esc_attr(MeprCoupon::$expires_on_timezone_str); ?>" class="mepr_coupons_timezone">
                       <?php echo wp_timezone_choice($coupon_expire_selected_timezone); ?>
                     </select>
                     <br>
-                    <?php echo wp_kses(sprintf(__('Coupon Expires at <strong>11:59:59 PM on selected date</strong>.', 'memberpress')), ['strong' => []]);  ?>
+                    <?php
+                        printf(
+                            // Translators: %1$s: open strong tag, %2$s: close strong tag.
+                            esc_html__('Coupon Expires at %1$s11:59:59 PM on the selected date%2$s.', 'memberpress'),
+                            '<strong>',
+                            '</strong>'
+                        );
+                    ?>
                   </td>
                 </tr>
               </tbody>
@@ -258,27 +272,27 @@ if (!empty($products)) :
     <tbody>
       <tr valign="top">
         <td>
-          <?php _e('Apply coupon to the following Memberships:', 'memberpress'); ?><br/>
+          <?php esc_html_e('Apply coupon to the following Memberships:', 'memberpress'); ?><br/>
           <?php MeprCouponsHelper::products_dropdown(MeprCoupon::$valid_products_str, $c->valid_products); ?><br/>
-          <span class="description"><?php _e('Hold the Control Key (Command Key on the Mac) in order to select or deselect multiple memberships', 'memberpress'); ?></span>
+          <span class="description"><?php esc_html_e('Hold the Control Key (Command Key on the Mac) in order to select or deselect multiple memberships', 'memberpress'); ?></span>
         </td>
       </tr>
     </tbody>
   </table>
   <!-- The NONCE below prevents post meta from being blanked on move to trash -->
-  <input type="hidden" name="<?php echo MeprCoupon::$nonce_str; ?>" value="<?php echo wp_create_nonce(MeprCoupon::$nonce_str . wp_salt()); ?>" />
+  <input type="hidden" name="<?php echo esc_attr(MeprCoupon::$nonce_str); ?>" value="<?php echo esc_attr(wp_create_nonce(MeprCoupon::$nonce_str . wp_salt())); ?>" />
   <!-- jQuery i18n data -->
-  <div id="save-coupon-helper" style="display:none;" data-value="<?php _e('Save Coupon', 'memberpress'); ?>"></div>
-  <div id="coupon-message-helper" style="display:none;" data-value="<?php _e('Coupon Saved', 'memberpress'); ?>"></div>
+  <div id="save-coupon-helper" style="display:none;" data-value="<?php esc_attr_e('Save Coupon', 'memberpress'); ?>"></div>
+  <div id="coupon-message-helper" style="display:none;" data-value="<?php esc_attr_e('Coupon Saved', 'memberpress'); ?>"></div>
 </div>
     <?php
 else :
     ?>
   <div id="mepr-coupons-form">
-    <strong><?php _e('You cannot create coupons until you have added at least 1 Membership.', 'memberpress'); ?></strong>
+    <strong><?php esc_html_e('You cannot create coupons until you have added at least 1 Membership.', 'memberpress'); ?></strong>
     <!-- jQuery i18n data -->
-    <div id="save-coupon-helper" style="display:none;" data-value="<?php _e('Save Coupon', 'memberpress'); ?>"></div>
-    <div id="coupon-message-helper" style="display:none;" data-value="<?php _e('Coupon Saved', 'memberpress'); ?>"></div>
+    <div id="save-coupon-helper" style="display:none;" data-value="<?php esc_attr_e('Save Coupon', 'memberpress'); ?>"></div>
+    <div id="coupon-message-helper" style="display:none;" data-value="<?php esc_attr_e('Coupon Saved', 'memberpress'); ?>"></div>
   </div>
     <?php
 endif;

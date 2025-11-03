@@ -123,10 +123,10 @@ class MeprArtificialGateway extends MeprBaseRealGateway
             return;
         }
 
-        if ($gateway !== false && isset($gateway->settings->gateway) && $gateway->settings->gateway == 'MeprArtificialGateway') {
+        if ($gateway !== false && isset($gateway->settings->gateway) && $gateway->settings->gateway === 'MeprArtificialGateway') {
             MeprEvent::record('offline-payment-' . $txn->status, $txn);
 
-            if ($txn->status == MeprTransaction::$complete_str) {
+            if ($txn->status === MeprTransaction::$complete_str) {
                 $sub = $txn->subscription();
                 if ($sub && $sub instanceof MeprSubscription) {
                     $sub->limit_payment_cycles();
@@ -150,7 +150,13 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        return $wpdb->get_results("SELECT * FROM {$mepr_db->events} WHERE event = 'offline-payment-{$txn->status}' AND evt_id = {$txn->id} AND evt_id_type = 'transactions'");
+        return $wpdb->get_results($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT * FROM {$mepr_db->events} WHERE event = %s AND evt_id = %d AND evt_id_type = %s",
+            "offline-payment-{$txn->status}",
+            $txn->id,
+            'transactions'
+        ));
     }
 
     /**
@@ -314,14 +320,14 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         // no automated recurring profiles when paying offline.
         $sub->subscr_id  = 'ts_' . uniqid();
         $sub->status     = MeprSubscription::$active_str;
-        $sub->created_at = gmdate('c');
+        $sub->created_at = MeprUtils::db_now();
         $sub->gateway    = $this->id;
 
         // If this subscription has a paid trail, we need to change the price of this transaction to the trial price duh.
         if ($sub->trial) {
             $mepr_options    = MeprOptions::fetch();
             $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
-            $tax_inclusive   = $mepr_options->attr('tax_calc_type') == 'inclusive';
+            $tax_inclusive   = $mepr_options->attr('tax_calc_type') === 'inclusive';
             $txn->set_subtotal($calculate_taxes && $tax_inclusive ? $sub->trial_total : $sub->trial_amount);
             $expires_ts      = time() + MeprUtils::days($sub->trial_days);
             $txn->expires_at = gmdate('c', $expires_ts);
@@ -467,14 +473,14 @@ class MeprArtificialGateway extends MeprBaseRealGateway
      */
     public function record_cancel_subscription()
     {
-        $sub = new MeprSubscription($_REQUEST['sub_id']);
+        $sub = new MeprSubscription(intval(wp_unslash($_REQUEST['sub_id'] ?? 0)));
 
         if (!$sub) {
             return false;
         }
 
         // Seriously ... if sub was already cancelled what are we doing here?
-        if ($sub->status == MeprSubscription::$cancelled_str) {
+        if ($sub->status === MeprSubscription::$cancelled_str) {
             return $sub;
         }
 
@@ -485,7 +491,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
             $sub->limit_reached_actions();
         }
 
-        if (!isset($_REQUEST['silent']) || ($_REQUEST['silent'] == false)) {
+        if (!isset($_REQUEST['silent']) || (bool) $_REQUEST['silent'] === false) {
             MeprUtils::send_cancelled_sub_notices($sub);
         }
 
@@ -555,7 +561,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         $txn = new MeprTransaction($txn_id);
 
         // Artifically set the price of the $prd in case a coupon was used.
-        if ($prd->price != $amount) {
+        if ((float) $prd->price !== (float) $amount) {
             $coupon     = true;
             $prd->price = $amount;
         }
@@ -563,8 +569,8 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         ob_start();
 
         $invoice = MeprTransactionsHelper::get_invoice($txn);
-        echo $invoice;
-        echo MeprOptionsHelper::payment_method_description($this);
+        echo $invoice; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo MeprOptionsHelper::payment_method_description($this); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
         ?>
       <div class="mp_wrapper mp_payment_form_wrapper">
@@ -574,17 +580,17 @@ class MeprArtificialGateway extends MeprBaseRealGateway
 
           <div class="mepr_spacer">&nbsp;</div>
 
-          <input type="submit" class="mepr-submit" value="<?php _e('Submit', 'memberpress'); ?>" />
-          <img src="<?php echo admin_url('images/loading.gif'); ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
+          <input type="submit" class="mepr-submit" value="<?php esc_attr_e('Submit', 'memberpress'); ?>" />
+          <img src="<?php echo esc_url(admin_url('images/loading.gif')); ?>" alt="<?php esc_attr_e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
           <?php MeprView::render('/shared/has_errors', get_defined_vars()); ?>
 
-          <noscript><p class="mepr_nojs"><?php _e('JavaScript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>
+          <noscript><p class="mepr_nojs"><?php esc_html_e('JavaScript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>
         </form>
       </div>
         <?php
 
         $output = MeprHooks::apply_filters('mepr_artificial_gateway_payment_form', ob_get_clean(), $txn);
-        echo $output;
+        echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     /**
@@ -605,33 +611,33 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     public function display_options_form()
     {
         $mepr_options            = MeprOptions::fetch();
-        $manually_complete       = ($this->settings->manually_complete == 'on' || $this->settings->manually_complete == true);
-        $no_cancel_up_down_grade = ($this->settings->no_cancel_up_down_grade == 'on' || $this->settings->no_cancel_up_down_grade == true);
-        $always_send_welcome     = ($this->settings->always_send_welcome == 'on' || $this->settings->always_send_welcome == true);
+        $manually_complete       = ($this->settings->manually_complete === 'on' || $this->settings->manually_complete === true);
+        $no_cancel_up_down_grade = ($this->settings->no_cancel_up_down_grade === 'on' || $this->settings->no_cancel_up_down_grade === true);
+        $always_send_welcome     = ($this->settings->always_send_welcome === 'on' || $this->settings->always_send_welcome === true);
         ?>
     <table>
       <tr>
         <td colspan="2">
-          <input type="checkbox" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][manually_complete]"<?php echo checked($manually_complete); ?> />&nbsp;<?php _e('Admin Must Manually Complete Transactions', 'memberpress'); ?>
+          <input type="checkbox" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][manually_complete]"<?php echo checked($manually_complete); ?> />&nbsp;<?php esc_html_e('Admin Must Manually Complete Transactions', 'memberpress'); ?>
         </td>
       </tr>
       <tr>
         <td colspan="2">
-          <input type="checkbox" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][always_send_welcome]"<?php echo checked($always_send_welcome); ?> />&nbsp;<?php _e('Send Welcome email when "Admin Must Manually Complete Transactions" is enabled', 'memberpress'); ?>
+          <input type="checkbox" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][always_send_welcome]"<?php echo checked($always_send_welcome); ?> />&nbsp;<?php esc_html_e('Send Welcome email when "Admin Must Manually Complete Transactions" is enabled', 'memberpress'); ?>
         </td>
       </tr>
       <tr>
         <td colspan="2">
-          <input type="checkbox" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][no_cancel_up_down_grade]"<?php echo checked($no_cancel_up_down_grade); ?> />&nbsp;<?php _e('Do not cancel old plan on upgrades when "Admin Must Manually Complete Transactions" is enabled', 'memberpress'); ?>
+          <input type="checkbox" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][no_cancel_up_down_grade]"<?php echo checked($no_cancel_up_down_grade); ?> />&nbsp;<?php esc_html_e('Do not cancel old plan on upgrades when "Admin Must Manually Complete Transactions" is enabled', 'memberpress'); ?>
         </td>
       </tr>
       <tr>
         <td colspan="2">
-          <label><?php _e('Description', 'memberpress'); ?></label><br/>
-          <textarea name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][desc]" rows="3" cols="45"><?php echo stripslashes($this->settings->desc); ?></textarea>
+          <label><?php esc_html_e('Description', 'memberpress'); ?></label><br/>
+          <textarea name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][desc]" rows="3" cols="45"><?php echo esc_textarea(stripslashes($this->settings->desc)); ?></textarea>
         </td>
       </tr>
-        <?php echo MeprHooks::do_action('mepr-artificial-gateway-settings-after', $this); ?>
+        <?php echo MeprHooks::do_action('mepr_artificial_gateway_settings_after', $this); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
     </table>
         <?php
     }
@@ -669,7 +675,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     {
         // Handled Manually in test gateway.
         ?>
-    <p><b><?php _e('This action is not possible with the payment method used with this Subscription', 'memberpress'); ?></b></p>
+    <p><b><?php esc_html_e('This action is not possible with the payment method used with this Subscription', 'memberpress'); ?></b></p>
         <?php
     }
 
@@ -730,7 +736,7 @@ class MeprArtificialGateway extends MeprBaseRealGateway
         // If we are marking the transacton as complete, and the admin must manually complete, and old subscriptions
         // are not canceled when the admin must manually complete, then we need to check to see if the old sub needs to
         // be cancelled here.
-        if ($txn->status == MeprTransaction::$complete_str && $gateway->settings->manually_complete && $gateway->settings->no_cancel_up_down_grade) {
+        if ($txn->status === MeprTransaction::$complete_str && $gateway->settings->manually_complete && $gateway->settings->no_cancel_up_down_grade) {
             $sub = $txn->subscription();
             if ($sub) {
                 $sub->maybe_cancel_old_sub(true); // Pass true here to by pass the artificial gateway check.

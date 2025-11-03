@@ -5,13 +5,13 @@
 <div class="mp_wrapper">
   <?php if (!empty($welcome_message)) : ?>
     <div id="mepr-account-welcome-message">
-        <?php echo MeprHooks::apply_filters('mepr-account-welcome-message', do_shortcode($welcome_message), $mepr_current_user); ?>
+        <?php echo wp_kses_post(MeprHooks::apply_filters('mepr_account_welcome_message', do_shortcode($welcome_message), $mepr_current_user)); ?>
     </div>
   <?php endif; ?>
 
   <?php if (!empty($mepr_current_user->user_message)) : ?>
     <div id="mepr-account-user-message">
-        <?php echo MeprHooks::apply_filters('mepr-user-message', wpautop(do_shortcode($mepr_current_user->user_message)), $mepr_current_user); ?>
+        <?php echo wp_kses_post(MeprHooks::apply_filters('mepr_user_message', wpautop(do_shortcode($mepr_current_user->user_message)), $mepr_current_user)); ?>
     </div>
   <?php endif; ?>
 
@@ -21,22 +21,22 @@
     <input type="hidden" name="mepr-process-account" value="Y" />
     <?php wp_nonce_field('update_account', 'mepr_account_nonce'); ?>
 
-    <?php MeprHooks::do_action('mepr-account-home-before-name', $mepr_current_user); ?>
+    <?php MeprHooks::do_action('mepr_account_home_before_name', $mepr_current_user); ?>
 
     <?php if ($mepr_options->show_fname_lname) : ?>
       <div class="mp-form-row mepr_first_name<?php echo ($mepr_options->require_fname_lname) ? ' mepr-field-required' : ''; ?>">
         <div class="mp-form-label">
-          <label for="user_first_name"><?php _ex('First Name:', 'ui', 'memberpress');
+          <label for="user_first_name"><?php echo esc_html_x('First Name:', 'ui', 'memberpress');
             echo ($mepr_options->require_fname_lname) ? '*' : ''; ?></label>
-          <span class="cc-error"><?php _ex('First Name Required', 'ui', 'memberpress'); ?></span>
+          <span class="cc-error"><?php echo esc_html_x('First Name Required', 'ui', 'memberpress'); ?></span>
         </div>
         <input type="text" name="user_first_name" id="user_first_name" class="mepr-form-input" value="<?php echo esc_attr($mepr_current_user->first_name); ?>" <?php echo ($mepr_options->require_fname_lname) ? 'required' : ''; ?> />
       </div>
       <div class="mp-form-row mepr_last_name<?php echo ($mepr_options->require_fname_lname) ? ' mepr-field-required' : ''; ?>">
         <div class="mp-form-label">
-          <label for="user_last_name"><?php _ex('Last Name:', 'ui', 'memberpress');
+          <label for="user_last_name"><?php echo esc_html_x('Last Name:', 'ui', 'memberpress');
             echo ($mepr_options->require_fname_lname) ? '*' : ''; ?></label>
-          <span class="cc-error"><?php _ex('Last Name Required', 'ui', 'memberpress'); ?></span>
+          <span class="cc-error"><?php echo esc_html_x('Last Name Required', 'ui', 'memberpress'); ?></span>
         </div>
         <input type="text" id="user_last_name" name="user_last_name" class="mepr-form-input" value="<?php echo esc_attr($mepr_current_user->last_name); ?>" <?php echo ($mepr_options->require_fname_lname) ? 'required' : ''; ?> />
       </div>
@@ -46,27 +46,27 @@
     <?php endif; ?>
     <div class="mp-form-row mepr_email mepr-field-required">
       <div class="mp-form-label">
-        <label for="user_email"><?php _ex('Email:*', 'ui', 'memberpress');  ?></label>
-        <span class="cc-error"><?php _ex('Invalid Email', 'ui', 'memberpress'); ?></span>
+        <label for="user_email"><?php echo esc_html_x('Email:*', 'ui', 'memberpress');  ?></label>
+        <span class="cc-error"><?php echo esc_html_x('Invalid Email', 'ui', 'memberpress'); ?></span>
       </div>
       <input type="email" id="user_email" name="user_email" class="mepr-form-input" value="<?php echo esc_attr($mepr_current_user->user_email); ?>" required />
     </div>
     <?php
       MeprUsersHelper::render_custom_fields(null, 'account');
-      MeprHooks::do_action('mepr-account-home-fields', $mepr_current_user);
+      MeprHooks::do_action('mepr_account_home_fields', $mepr_current_user);
     ?>
 
     <div class="mepr_spacer">&nbsp;</div>
 
-    <input type="submit" name="mepr-account-form" value="<?php _ex('Save Profile', 'ui', 'memberpress'); ?>" class="mepr-submit mepr-share-button" />
-    <img src="<?php echo admin_url('images/loading.gif'); ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
+    <input type="submit" name="mepr-account-form" value="<?php echo esc_attr_x('Save Profile', 'ui', 'memberpress'); ?>" class="mepr-submit mepr-share-button" />
+    <img src="<?php echo esc_url(admin_url('images/loading.gif')); ?>" alt="<?php echo esc_attr_x('Loading...', 'ui', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
     <?php MeprView::render('/shared/has_errors', get_defined_vars()); ?>
   </form>
 
   <div class="mepr_spacer">&nbsp;</div>
 
   <span class="mepr-account-change-password">
-    <a href="<?php echo esc_url($account_url . $delim . 'action=newpassword'); ?>"><?php _ex('Change Password', 'ui', 'memberpress'); ?></a>
+    <a href="<?php echo esc_url($account_url . $delim . 'action=newpassword'); ?>"><?php echo esc_html_x('Change Password', 'ui', 'memberpress'); ?></a>
   </span>
 
   <?php MeprHooks::do_action('mepr_account_home', $mepr_current_user); ?>

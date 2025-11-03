@@ -97,8 +97,8 @@ class MeprMigratorCtrl extends MeprBaseCtrl
         if (
             !MeprUtils::is_logged_in_and_an_admin() ||
             get_option('mepr_dismiss_notice_learndash_migrator') ||
-            $pagenow != 'edit.php' ||
-            $typenow != 'mpcs-course'
+            $pagenow !== 'edit.php' ||
+            $typenow !== 'mpcs-course'
         ) {
             return;
         }

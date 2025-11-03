@@ -15,7 +15,7 @@ class MeprAvalaraTaxRateIntegration
     {
         // Filter for MP Options page (field to enable VAT and collect VAT country & VAT ID).
         add_action('mepr_tax_rate_options', [$this,'options']);
-        add_action('mepr-process-options', [$this,'store_options']);
+        add_action('mepr_process_options', [$this,'store_options']);
 
         $calculate_taxes     = get_option('mepr_calculate_taxes');
         $tax_avalara_enabled = get_option('mepr_tax_avalara_enabled');
@@ -78,14 +78,14 @@ class MeprAvalaraTaxRateIntegration
         $postcode     = urlencode($postcode);
         $state        = urlencode($state);
 
-        if (strtoupper($country) == 'US') {
+        if (strtoupper($country) === 'US') {
             $response = wp_remote_get(
                 "https://rest.avatax.com/api/v2/taxrates/byaddress?line1={$street}&country={$country}&city={$city}&region={$state}&postalCode={$postcode}",
                 ['headers' => ['Authorization' => "Basic {$auth}"]]
             );
 
             if (is_wp_error($response)) {
-                  MeprUtils::debug_log(print_r($response, true));
+                  MeprUtils::debug_log('', [$response]);
             } else {
                 $response_body = json_decode($response['body']);
 

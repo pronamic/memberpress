@@ -74,7 +74,7 @@ abstract class MeprCptModel extends MeprBaseModel
         $this->rec = get_post($id);
         if (null === $this->rec) {
             $this->initialize_new_cpt();
-        } elseif ($this->post_type != $cpt) {
+        } elseif ($this->post_type !== $cpt) {
             $this->initialize_new_cpt();
         } else {
             $this->load_meta($id);
@@ -134,7 +134,7 @@ abstract class MeprCptModel extends MeprBaseModel
         }
 
         if (empty($id) or is_wp_error($id)) {
-            throw new MeprCreateException(sprintf(__('This was unable to be saved.', 'memberpress')));
+            throw new MeprCreateException(esc_html__('This was unable to be saved.', 'memberpress'));
         } else {
             $this->ID = $id;
         }
@@ -172,7 +172,7 @@ abstract class MeprCptModel extends MeprBaseModel
         $res = wp_delete_post($this->ID, true);
 
         if (false === $res) {
-            throw new MeprCreateException(sprintf(__('This was unable to be deleted.', 'memberpress')));
+            throw new MeprCreateException(esc_html__('This was unable to be deleted.', 'memberpress'));
         }
 
         return $res;
@@ -225,7 +225,7 @@ abstract class MeprCptModel extends MeprBaseModel
             return [];
         }
 
-        $use_transient_cache = MeprHooks::apply_filters('mepr-cpt-all-use-transient-cache', true, $cpt, $class);
+        $use_transient_cache = MeprHooks::apply_filters('mepr_cpt_all_use_transient_cache', true, $cpt, $class);
 
         if ($use_transient_cache === true) {
             $cached = get_transient($transient);
@@ -239,7 +239,7 @@ abstract class MeprCptModel extends MeprBaseModel
         $posts = get_posts(MeprHooks::apply_filters('mepr_cpt_all_args', $args, $cpt));
 
         foreach ($posts as $post) {
-            if (isset($post->post_type) && $post->post_type == $cpt) {
+            if (isset($post->post_type) && $post->post_type === $cpt) {
                 $models[] = $r->newInstance($post->ID);
             }
         }
@@ -309,12 +309,14 @@ abstract class MeprCptModel extends MeprBaseModel
             if ($fill_selects) {
                 $selects[] = "pm_{$meta_key}.meta_value AS {$meta_key}";
             }
+            // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             $joins[] = $wpdb->prepare(
                 "LEFT JOIN {$wpdb->postmeta} AS pm_{$meta_key} " .
                 "ON pm_{$meta_key}.post_id=p.ID " .
                 "AND pm_{$meta_key}.meta_key=%s",
                 $meta_key_str
             );
+            // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         }
 
         $selects_str = join(', ', $selects);
@@ -328,7 +330,7 @@ abstract class MeprCptModel extends MeprBaseModel
           "LIMIT {$limit} " .
          "OFFSET {$offset}";
 
-        $res = $wpdb->get_results($q, $type);
+        $res = $wpdb->get_results($q, $type); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         // Two layer maybe_unserialize.
         for ($i = 0; $i < count($res); $i++) {

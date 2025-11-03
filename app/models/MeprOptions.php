@@ -110,6 +110,7 @@ class MeprOptions
     public function populate_rewrite()
     {
         if (empty($GLOBALS['wp_rewrite'])) {
+            // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
             $GLOBALS['wp_rewrite'] = new WP_Rewrite();
         }
     }
@@ -124,7 +125,7 @@ class MeprOptions
         // TODO: We will want to migrate everything to using these dynamic type variables as we continue.
         $json                = file_get_contents(MEPR_DATA_PATH . '/options/dynamic_attrs.json');
         $attrs               = json_decode($json, true);
-        $this->dynamic_attrs = MeprHooks::apply_filters('mepr-options-dynamic-attrs', $attrs);
+        $this->dynamic_attrs = MeprHooks::apply_filters('mepr_options_dynamic_attrs', $attrs);
     }
 
     /**
@@ -266,8 +267,8 @@ class MeprOptions
         }
 
         if (
-            $this->thankyou_page_id == 0 or
-            $this->login_page_id == 0
+            $this->thankyou_page_id === 0 or
+            $this->login_page_id === 0
         ) {
             $this->setup_complete = 0;
         } else {
@@ -328,6 +329,10 @@ class MeprOptions
 
         if (!isset($this->enable_spc_invoice)) {
             $this->enable_spc_invoice = false;
+        }
+
+        if (!isset($this->enable_math_captcha)) {
+            $this->enable_math_captcha = false;
         }
 
         if (!isset($this->coupon_field_enabled)) {
@@ -417,7 +422,7 @@ class MeprOptions
         }
 
         if (!isset($this->unauthorized_message)) {
-            $this->unauthorized_message = MeprHooks::apply_filters('mepr-unauthorized-message', __('You are unauthorized to view this page.', 'memberpress'));
+            $this->unauthorized_message = MeprHooks::apply_filters('mepr_unauthorized_message', __('You are unauthorized to view this page.', 'memberpress'));
         }
 
         // For backwards compatibility.
@@ -493,13 +498,13 @@ class MeprOptions
         // How many days will the users get free access before their first
         // payment trial days in the membership will override this value.
         if (isset($this->disable_grace_init_days) && $this->disable_grace_init_days) {
-            $this->grace_init_days = MeprHooks::apply_filters('mepr-grace-init-days', 0);
+            $this->grace_init_days = MeprHooks::apply_filters('mepr_grace_init_days', 0);
         } else {
-            $this->grace_init_days = MeprHooks::apply_filters('mepr-grace-init-days', 1);
+            $this->grace_init_days = MeprHooks::apply_filters('mepr_grace_init_days', 1);
         }
 
         // Do we want some overlap in expirations?
-        $this->grace_expire_days = MeprHooks::apply_filters('mepr-grace-expire-days', 0);
+        $this->grace_expire_days = MeprHooks::apply_filters('mepr_grace_expire_days', 0);
 
         if (!isset($this->allow_cancel_subs)) {
             $this->allow_cancel_subs = true;
@@ -669,6 +674,7 @@ class MeprOptions
         $this->disable_checkout_password_fields_str  = 'mepr-disable-checkout-password-fields';
         $this->enable_spc_str                        = 'mepr-enable-spc';
         $this->enable_spc_invoice_str                = 'mepr-enable-spc-invoice';
+        $this->enable_math_captcha_str               = 'mepr-enable-math-captcha';
         $this->coupon_field_enabled_str              = 'mepr-coupon-field-enabled';
         $this->require_tos_str                       = 'mepr-require-tos';
         $this->tos_url_str                           = 'mepr-tos-url';
@@ -888,7 +894,7 @@ class MeprOptions
 
         $this->custom_message        = wp_kses_post(stripslashes($params[$this->custom_message_str]));
         $currency_code               = stripslashes($params[$this->currency_code_str]);
-        $currency_code_changed       = $this->currency_code != $currency_code;
+        $currency_code_changed       = $this->currency_code !== $currency_code;
         $this->currency_code         = $currency_code;
         $this->currency_symbol       = stripslashes($params[$this->currency_symbol_str]);
         $this->currency_symbol_after = isset($params[$this->currency_symbol_after_str]);
@@ -901,13 +907,13 @@ class MeprOptions
                 $params[$this->integrations_str][$intg_key]['use_desc']  = isset($params[$this->integrations_str][$intg_key]['use_desc']);
 
                 if (isset($intg['gateway'])) {
-                    if ($intg['gateway'] == 'MeprStripeGateway') {
+                    if ($intg['gateway'] === 'MeprStripeGateway') {
                         if ($currency_code_changed || empty($params[$this->integrations_str][$intg_key]['payment_methods'])) {
                             // Set the Stripe payment methods to be an empty array if the currency code has changed
                             // or no payment methods were selected.
                             $params[$this->integrations_str][$intg_key]['payment_methods'] = [];
                         }
-                    } elseif ($intg['gateway'] == 'MeprSquareGateway') {
+                    } elseif ($intg['gateway'] === 'MeprSquarePaymentsGateway') {
                         $params[$this->integrations_str][$intg_key]['sandbox'] = isset($params[$this->integrations_str][$intg_key]['sandbox']);
                         $params[$this->integrations_str][$intg_key]['production_connected'] = isset($params[$this->integrations_str][$intg_key]['production_connected']);
                         $params[$this->integrations_str][$intg_key]['sandbox_connected'] = isset($params[$this->integrations_str][$intg_key]['sandbox_connected']);
@@ -926,6 +932,7 @@ class MeprOptions
         $this->disable_checkout_password_fields = isset($params[$this->disable_checkout_password_fields_str]);
         $this->enable_spc                       = isset($params[$this->enable_spc_str]);
         $this->enable_spc_invoice               = isset($params[$this->enable_spc_invoice_str]);
+        $this->enable_math_captcha              = isset($params[$this->enable_math_captcha_str]);
         $this->coupon_field_enabled             = isset($params[$this->coupon_field_enabled_str]);
         $this->require_tos                      = isset($params[$this->require_tos_str]);
         $this->tos_url                          = (isset($params[$this->tos_url_str])) ? trim(stripslashes($params[$this->tos_url_str])) : '';
@@ -1014,7 +1021,7 @@ class MeprOptions
         $new_address_fields = [];
 
         foreach ($this->address_fields as $line) {
-            if ($line->field_key != 'mepr-address-two') { // Don't set address 2 to required ever.
+            if ($line->field_key !== 'mepr-address-two') { // Don't set address 2 to required ever.
                 $line->required = $this->require_address_fields;
             }
 
@@ -1056,7 +1063,7 @@ class MeprOptions
         $custom_field = null;
 
         foreach ($this->custom_fields as $custom_field) {
-            if ($custom_field->field_key == $field_key) {
+            if ($custom_field->field_key === $field_key) {
                 return $custom_field;
             }
         }
@@ -1082,10 +1089,10 @@ class MeprOptions
 
             foreach ($indexes as $i) {
                 $name = isset($params[$this->custom_fields_str][$i]['name']) ? $params[$this->custom_fields_str][$i]['name'] : '';
-                $slug = ($params[$this->custom_fields_str][$i]['slug'] == 'mepr_none') ? substr(MeprUtils::sanitize_string('mepr_' . $name), 0, 240) : substr($params[$this->custom_fields_str][$i]['slug'], 0, 240); // Need to check that this key doesn't already exist in usermeta table.
+                $slug = ($params[$this->custom_fields_str][$i]['slug'] === 'mepr_none') ? substr(MeprUtils::sanitize_string('mepr_' . $name), 0, 240) : substr($params[$this->custom_fields_str][$i]['slug'], 0, 240); // Need to check that this key doesn't already exist in usermeta table.
 
                 // Prevent duplicate slugs.
-                if (in_array($slug, $used)) {
+                if (in_array($slug, $used, true)) {
                     do {
                         $slug_parts = explode('-', $slug);
                         if (is_array($slug_parts)) { // We may have a number appended already.
@@ -1101,7 +1108,7 @@ class MeprOptions
                         } else { // Append 1.
                             $slug .= '-1';
                         }
-                    } while (in_array($slug, $used));
+                    } while (in_array($slug, $used, true));
                 }
                 $used[] = $slug;
 
@@ -1112,7 +1119,7 @@ class MeprOptions
                 $required        = isset($params[$this->custom_fields_str][$i]['required']);
                 $dropdown_ops    = [];
 
-                if (in_array($type, ['dropdown','multiselect','radios','checkboxes'])) {
+                if (in_array($type, ['dropdown','multiselect','radios','checkboxes'], true)) {
                     $options = $params[$this->custom_fields_str][$i]['option'];
                     $values  = $params[$this->custom_fields_str][$i]['value'];
 
@@ -1120,7 +1127,7 @@ class MeprOptions
                         if (!empty($value)) {
                                 // Due to WPML compat - we're no longer storing these as forced (object)'s - see $this->wpml_custom_fields().
                                 $option_value = sanitize_title($values[$key], sanitize_title($options[$key]));
-                                $option_value = MeprHooks::apply_filters('mepr-custom-field-option-value', $option_value, $values[$key], $options[$key]);
+                                $option_value = MeprHooks::apply_filters('mepr_custom_field_option_value', $option_value, $values[$key], $options[$key]);
 
                                 $dropdown_ops[] = [
                                     'option_name'  => $options[$key],
@@ -1134,7 +1141,7 @@ class MeprOptions
                     }
                 }
 
-                if ($name != '') { // If no name was left let's not save this line
+                if ($name !== '') { // If no name was left let's not save this line
                     // Due to WPML compat - we're no longer storing these as forced (object)'s - see $this->wpml_custom_fields().
                     $fields[] = [
                         'field_key'       => $slug,
@@ -1215,7 +1222,10 @@ class MeprOptions
         $country  = $this->attr('biz_country');
         $postcode = $this->attr('biz_postcode');
 
-        return (!empty($country) && !empty($postcode) && !empty($state) && !empty($city) && !empty($one));
+        // Countries that don't have states/provinces don't need state field.
+        $state_required = !in_array($country, MeprUtils::get_countries_without_states(), true);
+
+        return (!empty($country) && !empty($postcode) && !empty($city) && !empty($one) && (!$state_required || !empty($state)));
     }
 
     /**
@@ -1231,7 +1241,7 @@ class MeprOptions
     {
         $pmt_methods = $this->payment_methods($include_builtin_gateways, $force);
 
-        if ($id == 'default') {
+        if ($id === 'default') {
             $keys = array_keys($pmt_methods);
             if (isset($keys[0])) {
                 $id = $keys[0];
@@ -1315,7 +1325,7 @@ class MeprOptions
         if (isset($this->account_page_id) && (int)$this->account_page_id > 0) {
             $link = MeprUtils::get_permalink($this->account_page_id);
 
-            $link = MeprHooks::apply_filters('mepr-account-page-permalink', $link);
+            $link = MeprHooks::apply_filters('mepr_account_page_permalink', $link);
 
             if (!empty($args)) {
                 $link .= MeprAppCtrl::get_param_delimiter_char($link) . $args;
@@ -1366,7 +1376,7 @@ class MeprOptions
 
         if (isset($args_array['membership_id'])) {
             $product = new MeprProduct($args_array['membership_id']);
-            if ($product->thank_you_page_enabled && $product->thank_you_page_type == 'page') {
+            if ($product->thank_you_page_enabled && $product->thank_you_page_type === 'page') {
                 // Returns the custom thank you page for the product.
                 $thank_you_page_id = $product->thank_you_page_id;
             } elseif (isset($this->thankyou_page_id)) {
@@ -1396,7 +1406,7 @@ class MeprOptions
             }
         }
 
-        return MeprHooks::apply_filters('mepr-thankyou-page-url', $url, $args_array);
+        return MeprHooks::apply_filters('mepr_thankyou_page_url', $url, $args_array);
     }
 
     /**
@@ -1523,7 +1533,7 @@ class MeprOptions
         // It's either empty or there's something on this page - and it's not the unauth shortcode
         // so let's put the shortcode on this page, and setup the unauth message.
         if (empty($content) || (!empty($content) && strstr($content, 'mepr-unauthorized-message') === false)) {
-            $page->post_content                      = '[mepr-unauthorized-message]';
+            $page->post_content                      = '[mepr_unauthorized_message]';
             $mepr_options->redirect_on_unauthorized  = true;
             $mepr_options->unauthorized_redirect_url = MeprUtils::get_permalink($page->ID);
             $mepr_options->unauthorized_page_id      = 0; // Set the page to 0 so we don't end up here again.
@@ -1585,7 +1595,7 @@ class MeprOptions
 
         $value = stripslashes($value); // Single quotes etc causing escape chars to appear when output.
 
-        return MeprHooks::apply_filters('mepr-options-get-dynamic-attribute-' . $attr, $value, $this);
+        return MeprHooks::apply_filters('mepr_options_get_dynamic_attribute_' . $attr, $value, $this);
     }
 
     /**
@@ -1598,7 +1608,7 @@ class MeprOptions
      */
     public function set_attr($attr, $value)
     {
-        $value = MeprHooks::apply_filters('mepr-options-set-dynamic-attribute-' . $attr, $value, $this);
+        $value = MeprHooks::apply_filters('mepr_options_set_dynamic_attribute_' . $attr, $value, $this);
 
         if (array_key_exists($attr, get_object_vars($this))) {
             $this->$attr = $value;

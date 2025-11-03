@@ -70,11 +70,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      */
     public function log($data)
     {
-        if (! defined('WP_MEPR_DEBUG')) {
-            return;
-        }
-
-        file_put_contents(WP_CONTENT_DIR . '/authorize-net.log', print_r($data, true) . PHP_EOL, FILE_APPEND);
+        MeprUtils::debug_log('', [$data], WP_CONTENT_DIR . '/authorize-net.log');
     }
 
     /**
@@ -123,16 +119,16 @@ class MeprArtificialAuthorizeNetProfileHttpClient
 
         if (
             isset($response['messages']['resultCode'])
-            && $response['messages']['resultCode'] == 'Ok'
+            && $response['messages']['resultCode'] === 'Ok'
         ) {
             $trans_num = $response['transactionResponse']['transId'];
 
             return $trans_num;
         } else {
             if (isset($response['transactionResponse']['errors']['error']['errorText'])) {
-                throw new MeprException($response['transactionResponse']['errors']['error']['errorText']);
+                throw new MeprException(esc_html($response['transactionResponse']['errors']['error']['errorText']));
             }
-            throw new MeprException(__('Can not refund the payment. The transaction may not have been settled', 'memberpress'));
+            throw new MeprException(esc_html__('Can not refund the payment. The transaction may not have been settled', 'memberpress'));
         }
     }
 
@@ -166,8 +162,8 @@ class MeprArtificialAuthorizeNetProfileHttpClient
 
         if (
             isset($response['messages']['resultCode'])
-            && $response['messages']['resultCode'] == 'Ok'
-            && $response['transactionResponse']['responseCode'] == 1
+            && $response['messages']['resultCode'] === 'Ok'
+            && (int) $response['transactionResponse']['responseCode'] === 1
             && isset($response['transactionResponse']['transId'])
             && ! isset($response['transactionResponse']['errors'])
         ) {
@@ -202,8 +198,10 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         }
 
         if (empty($payment_profile)) {
-            throw new MeprException(__('Profile does not have a payment source', 'memberpress'));
+            throw new MeprException(esc_html__('Profile does not have a payment source', 'memberpress'));
         }
+
+        $customer_ip = filter_var(wp_unslash($_SERVER['REMOTE_ADDR'] ?? ''), FILTER_VALIDATE_IP);
 
         $xml = '<createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
     <merchantAuthentication>
@@ -224,8 +222,8 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         <poNumber>' . esc_xml($txn->id) . '</poNumber>
         <customer>
             <id>' . esc_xml($authorize_net_customer['customerProfileId']) . '</id>
-        </customer>
-        <customerIP>' . esc_xml($_SERVER['REMOTE_ADDR']) . '</customerIP>
+        </customer>' .
+        ($customer_ip ? '<customerIP>' . esc_xml($customer_ip) . '</customerIP>' : '') . '
         <authorizationIndicatorType>
             <authorizationIndicator>' . ($capture ? 'final' : 'pre') . '</authorizationIndicator>
         </authorizationIndicatorType>
@@ -240,8 +238,8 @@ class MeprArtificialAuthorizeNetProfileHttpClient
 
         if (
             isset($response['messages']['resultCode'])
-            && $response['messages']['resultCode'] == 'Ok'
-            && $response['transactionResponse']['responseCode'] == 1
+            && $response['messages']['resultCode'] === 'Ok'
+            && (int) $response['transactionResponse']['responseCode'] === 1
             && ! isset($response['transactionResponse']['errors'])
         ) {
             $trans_num = $response['transactionResponse']['transId'];
@@ -251,9 +249,9 @@ class MeprArtificialAuthorizeNetProfileHttpClient
             return $trans_num;
         } else {
             if (isset($response['transactionResponse']['errors']['error']['errorText'])) {
-                throw new MeprException($response['transactionResponse']['errors']['error']['errorText']);
+                throw new MeprException(esc_html($response['transactionResponse']['errors']['error']['errorText']));
             }
-            throw new MeprException(__('Can not complete the payment.', 'memberpress'));
+            throw new MeprException(esc_html__('Can not complete the payment.', 'memberpress'));
         }
     }
 
@@ -320,12 +318,12 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         $this->log($xml);
         $this->log($response);
 
-        if (isset($response['messages']['resultCode']) && $response['messages']['resultCode'] == 'Ok') {
+        if (isset($response['messages']['resultCode']) && $response['messages']['resultCode'] === 'Ok') {
             $this->cache[ $cache_key ] = $response['customerPaymentProfileId'];
 
             return $response['customerPaymentProfileId'];
-        } elseif (isset($response['messages']['message']['code']) && $response['messages']['message']['code'] == 'E00039') {
-            if ($response['messages']['message']['text'] == 'A duplicate customer payment profile already exists.') {
+        } elseif (isset($response['messages']['message']['code']) && $response['messages']['message']['code'] === 'E00039') {
+            if ($response['messages']['message']['text'] === 'A duplicate customer payment profile already exists.') {
                 $this->cache[ $cache_key ] = $response['customerPaymentProfileId'];
 
                 return $response['customerPaymentProfileId'];
@@ -361,10 +359,10 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         $this->log($xml);
         $this->log($response);
 
-        if (isset($response['messages']['resultCode']) && $response['messages']['resultCode'] == 'Ok') {
+        if (isset($response['messages']['resultCode']) && $response['messages']['resultCode'] === 'Ok') {
             return $subscription_id;
         } else {
-            throw new MeprException(__('Can not cancel subscription', 'memberpress'));
+            throw new MeprException(esc_html__('Can not cancel subscription', 'memberpress'));
         }
     }
 
@@ -397,11 +395,13 @@ class MeprArtificialAuthorizeNetProfileHttpClient
      */
     public function update_subscription($args)
     {
-        $xml_str    = <<<XML
-<ARBUpdateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
-</ARBUpdateSubscriptionRequest>
-XML;
-        $simple_xml = @new SimpleXMLElement($xml_str);
+        $xml_str = '<ARBUpdateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"></ARBUpdateSubscriptionRequest>';
+
+        try {
+            $simple_xml = new SimpleXMLElement($xml_str);
+        } catch (Exception $e) {
+            throw new MeprException(esc_html__('Failed to create XML element for subscription update', 'memberpress'));
+        }
         $auth       = $simple_xml->addChild('merchantAuthentication');
         $auth->addChild('name', esc_xml($this->login_name));
         $auth->addChild('transactionKey', esc_xml($this->transaction_key));
@@ -413,10 +413,10 @@ XML;
         $this->log($xml);
         $this->log($response);
 
-        if (isset($response['messages']['resultCode']) && $response['messages']['resultCode'] == 'Ok') {
+        if (isset($response['messages']['resultCode']) && $response['messages']['resultCode'] === 'Ok') {
             return $response;
         } else {
-            throw new MeprException(__('Can not update subscription', 'memberpress'));
+            throw new MeprException(esc_html__('Can not update subscription', 'memberpress'));
         }
     }
 
@@ -434,10 +434,10 @@ XML;
     {
         $this->log('Creating sub');
         $this->log($sub);
-        if ($sub->period_type == 'weeks') {
+        if ($sub->period_type === 'weeks') {
             $length = $sub->period * 7;
             $type   = 'days';
-        } elseif ($sub->period_type == 'years') {
+        } elseif ($sub->period_type === 'years') {
             $length = $sub->period * 365;
             $type   = 'days';
         } else {
@@ -445,7 +445,7 @@ XML;
             $type   = $sub->period_type;
         }
 
-        $start_date = date('Y-m-d', strtotime($sub->created_at));
+        $start_date = gmdate('Y-m-d', strtotime($sub->created_at));
 
         if (empty($sub->limit_cycles)) {
             $total_cycles = 9999;
@@ -453,7 +453,7 @@ XML;
             $total_cycles = (int) $sub->limit_cycles_num;
         }
 
-        if ($sub->trial == 1) {
+        if ((bool) $sub->trial === true) {
             $txn->set_subtotal($sub->trial_amount);
             $txn->total      = $sub->trial_total;
             $txn->expires_at = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days));
@@ -477,7 +477,7 @@ XML;
                 }
             }
 
-            $start_date = date('Y-m-d', strtotime($sub->created_at) + MeprUtils::days($sub->trial_days));
+            $start_date = gmdate('Y-m-d', strtotime($sub->created_at) + MeprUtils::days($sub->trial_days));
         }
 
         if (defined('MERP_AUTHORIZENET_TESTING')) {
@@ -529,11 +529,11 @@ XML;
             $message_code = $response['messages']['message']['code'] ?? '';
             $message      = $response['messages']['message']['text'] ?? '';
 
-            if ($message_code == 'E00012') {
-                throw new MeprException(__('You have subscribed to a membership which has the same pricing term. Subscription can not be created with Authorize.net', 'memberpress'));
+            if ($message_code === 'E00012') {
+                throw new MeprException(esc_html__('You have subscribed to a membership which has the same pricing term. Subscription can not be created with Authorize.net', 'memberpress'));
             }
 
-            throw new MeprException($message);
+            throw new MeprException(esc_html($message));
         }
 
         return $response;
@@ -562,6 +562,9 @@ XML;
             'postal_code' => get_user_meta($user->ID, 'mepr-address-zip', true),
         ];
         $this->log($authorize_net_customer);
+
+        $customer_ip = filter_var(wp_unslash($_SERVER['REMOTE_ADDR'] ?? ''), FILTER_VALIDATE_IP);
+
         $xml = '<createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
     <merchantAuthentication>
      <name>' . esc_xml($this->login_name) . '</name>
@@ -590,8 +593,8 @@ XML;
           <state>' . esc_xml($address['state']) . '</state>
           <zip>' . esc_xml($address['postal_code']) . '</zip>
           <country>' . esc_xml($address['country']) . '</country>
-        </billTo>
-        <customerIP>' . esc_xml($_SERVER['REMOTE_ADDR']) . '</customerIP>
+        </billTo>' .
+        ($customer_ip ? '<customerIP>' . esc_xml($customer_ip) . '</customerIP>' : '') . '
         <authorizationIndicatorType>
             <authorizationIndicator>final</authorizationIndicator>
         </authorizationIndicatorType>
@@ -604,8 +607,8 @@ XML;
 
         if (
             isset($response['messages']['resultCode'])
-            && $response['messages']['resultCode'] == 'Ok'
-            && $response['transactionResponse']['responseCode'] == 1
+            && $response['messages']['resultCode'] === 'Ok'
+            && (int) $response['transactionResponse']['responseCode'] === 1
             && ! isset($response['transactionResponse']['errors'])
         ) {
             $trans_num = $response['transactionResponse']['transId'];
@@ -615,9 +618,9 @@ XML;
             return $trans_num;
         } else {
             if (isset($response['transactionResponse']['errors']['error']['errorText'])) {
-                throw new MeprException($response['transactionResponse']['errors']['error']['errorText']);
+                throw new MeprException(esc_html($response['transactionResponse']['errors']['error']['errorText']));
             }
-            throw new MeprException(__('Can not complete the payment', 'memberpress'));
+            throw new MeprException(esc_html__('Can not complete the payment', 'memberpress'));
         }
     }
 
@@ -689,8 +692,8 @@ XML;
 
             return $response;
         } else {
-            if (isset($response['messages']['message']['code']) && $response['messages']['message']['code'] == 'E00039') {
-                throw new MeprGatewayException(__('Your email is already registered on the gateway. Please contact us.', 'memberpress'));
+            if (isset($response['messages']['message']['code']) && $response['messages']['message']['code'] === 'E00039') {
+                throw new MeprGatewayException(esc_html__('Your email is already registered on the gateway. Please contact us.', 'memberpress'));
             }
 
             return null;
@@ -707,13 +710,18 @@ XML;
      */
     protected function parse_authnet_response($response, $object = false)
     {
-        $response = @simplexml_load_string($response);
-
-        if ($object) {
-            return @json_decode(json_encode((array) $response), false);
+        $response = simplexml_load_string($response, 'SimpleXMLElement', LIBXML_NOWARNING);
+        if ($response === false) {
+            return $object ? (object)[] : [];
         }
 
-        return @json_decode(json_encode((array) $response), true);
+        if ($object) {
+            $json_result = json_decode(json_encode((array) $response), false);
+            return $json_result !== null ? $json_result : (object)[];
+        }
+
+        $json_result = json_decode(json_encode((array) $response), true);
+        return $json_result !== null ? $json_result : [];
     }
 
     /**

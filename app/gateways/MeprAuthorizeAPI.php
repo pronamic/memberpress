@@ -110,7 +110,7 @@ class MeprAuthorizeAPI
 
         if ($response_json->messages->resultCode === 'Error') {
             foreach ($response_json->messages->message as $error) {
-                MeprUtils::error_log('Authorize API Error ' . $error->code . '-' . $error->text);
+                MeprUtils::debug_log('Authorize API Error ' . $error->code . '-' . $error->text);
             }
             return null;
         } else {

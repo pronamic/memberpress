@@ -10,51 +10,47 @@ if (!empty($records)) {
 
         // Open the line.
         ?>
-    <tr id="record_<?php echo $rec->ID; ?>" class="<?php echo $alternate; ?>">
+    <tr id="record_<?php echo esc_attr($rec->ID); ?>" class="<?php echo esc_attr($alternate); ?>">
         <?php
         foreach ($columns as $column_name => $column_display_name) {
             // Style attributes for each col.
-            $class = "class=\"{$column_name} column-{$column_name}\"";
-            $style = '';
-            if (in_array($column_name, $hidden)) {
-                $style = ' style="display:none;"';
-            }
-            $attributes = $class . $style;
+            $class_value = $column_name . ' column-' . $column_name;
+            $is_hidden = in_array($column_name, $hidden, true);
 
             // $editlink = admin_url('user-edit.php?user_id='.(int)$rec->ID);
             // $deletelink = admin_url('user-edit.php?user_id='.(int)$rec->ID);
             $deletelink = wp_nonce_url("users.php?action=delete&amp;user={$rec->ID}", 'bulk-users');
-            $editlink   = esc_url(add_query_arg('wp_http_referer', urlencode(wp_unslash($_SERVER['REQUEST_URI'])), get_edit_user_link($rec->ID)));
+            $editlink   = esc_url(add_query_arg('wp_http_referer', urlencode(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''))), get_edit_user_link($rec->ID)));
 
             // Display the cell.
             switch ($column_name) {
                 case 'col_id':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->ID); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->ID); ?></td>
                     <?php
                     break;
                 case 'col_photo':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo get_avatar($rec->email, 32); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo get_avatar($rec->email, 32); ?></td>
                     <?php
                     break;
                 case 'col_name':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->name); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->name); ?></td>
                     <?php
                     break;
                 case 'col_username':
                     ?>
-          <td <?php echo $attributes; ?>>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>>
             <span class="mepr-member-avatar"><?php echo get_avatar($rec->email, 32); ?></span>
             <span class="mepr-member-username-and-actions">
               <div class="mepr-member-username">
-                <a href="<?php echo $editlink; ?>" title="<?php _e("View member's profile", 'memberpress'); ?>"><?php echo ((int)$rec->ID) ? stripslashes($rec->username) : __('Deleted', 'memberpress'); ?></a>
+                <a href="<?php echo esc_url($editlink); ?>" title="<?php esc_attr_e("View member's profile", 'memberpress'); ?>"><?php echo (int) $rec->ID ? esc_html($rec->username) : esc_html__('Deleted', 'memberpress'); ?></a>
               </div>
               <div class="mepr-member-actions mepr-hidden">
-                <a href="<?php echo $editlink; ?>" title="<?php _e("Edit member's profile", 'memberpress'); ?>"><?php _e('Edit', 'memberpress'); ?></a>
+                <a href="<?php echo esc_url($editlink); ?>" title="<?php esc_attr_e("Edit member's profile", 'memberpress'); ?>"><?php esc_html_e('Edit', 'memberpress'); ?></a>
                 |
-                <a href="<?php echo $deletelink; ?>" title="<?php _e('Delete member', 'memberpress'); ?>"><?php _e('Delete', 'memberpress'); ?></a>
+                <a href="<?php echo esc_url($deletelink); ?>" title="<?php esc_attr_e('Delete member', 'memberpress'); ?>"><?php esc_html_e('Delete', 'memberpress'); ?></a>
               </div>
             </span>
           </td>
@@ -62,41 +58,43 @@ if (!empty($records)) {
                     break;
                 case 'col_email':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->email); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->email); ?></td>
                     <?php
                     break;
                 case 'col_status':
+                    ?>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>>
+                    <?php
                     $mepr_user = new MeprUser($rec->ID);
                     if ($mepr_user->is_active()) {
-                        $status = '<span class="mepr-active">' . __('Active', 'memberpress') . '</span>';
+                        echo '<span class="mepr-active">' . esc_html__('Active', 'memberpress') . '</span>';
                     } elseif ($mepr_user->has_expired()) {
-                        $status = '<span class="mepr-inactive">' . __('Inactive', 'memberpress') . '</span>';
+                        echo '<span class="mepr-inactive">' . esc_html__('Inactive', 'memberpress') . '</span>';
                     } else {
-                        $status = '<span>' . __('None', 'memberpress') . '</span>';
+                        echo '<span>' . esc_html__('None', 'memberpress') . '</span>';
                     }
-
                     ?>
-          <td <?php echo $attributes; ?>><?php echo $status; ?></td>
+          </td>
                     <?php
                     break;
                 case 'col_txn_count':
                     ?>
-          <td <?php echo $attributes; ?>><a href="<?php echo admin_url('admin.php?page=memberpress-trans&member=' . urlencode($rec->username)); ?>"><?php echo esc_html($rec->txn_count); ?></a></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-trans&member=' . urlencode($rec->username))); ?>"><?php echo esc_html($rec->txn_count); ?></a></td>
                     <?php
                     break;
                 case 'col_expired_txn_count':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->expired_txn_count); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->expired_txn_count); ?></td>
                     <?php
                     break;
                 case 'col_active_txn_count':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->active_txn_count); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->active_txn_count); ?></td>
                     <?php
                     break;
                 case 'col_sub_count':
                     ?>
-          <td <?php echo $attributes; ?>><a href="<?php echo admin_url('admin.php?page=memberpress-subscriptions&member=' . urlencode($rec->username)); ?>"><?php echo esc_html($rec->sub_count); ?></a></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-subscriptions&member=' . urlencode($rec->username))); ?>"><?php echo esc_html($rec->sub_count); ?></a></td>
                     <?php
                     break;
                 case 'col_sub_info':
@@ -108,13 +106,13 @@ if (!empty($records)) {
                         __('Paused', 'memberpress')  => 'suspended',
                     ];
                     ?>
-          <td <?php echo $attributes; ?>>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>>
                     <?php
-                    foreach ($sub_counts as $label => $status) {
-                        $status_count = "{$status}_sub_count";
+                    foreach ($sub_counts as $label => $subscription_status) {
+                        $status_count = "{$subscription_status}_sub_count";
                         if ($rec->$status_count > 0) {
                             ?>
-                <div><a href="<?php echo $admin_sub_url . '&status=' . $status; ?>"><?php echo "{$rec->$status_count} {$label}"; ?></a></div>
+                <div><a href="<?php echo esc_url($admin_sub_url . '&status=' . $subscription_status); ?>"><?php echo esc_html("{$rec->$status_count} {$label}"); ?></a></div>
                             <?php
                         }
                     }
@@ -126,28 +124,28 @@ if (!empty($records)) {
                     $admin_txn_url = admin_url('admin.php?page=memberpress-trans&member=' . urlencode($rec->username));
                     $other_count   = $rec->txn_count;
                     ?>
-          <td <?php echo $attributes; ?>>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>>
                     <?php
                     if ($rec->active_txn_count > 0) {
                         $other_count = $other_count - $rec->active_txn_count;
                         ?>
-              <div><a href="<?php echo $admin_txn_url . '&status=complete'; ?>"><?php printf('%d %s', $rec->active_txn_count, __('Complete', 'memberpress')); ?></a></div>
+              <div><a href="<?php echo esc_url($admin_txn_url . '&status=complete'); ?>"><?php echo esc_html(sprintf('%d %s', $rec->active_txn_count, __('Complete', 'memberpress'))); ?></a></div>
                         <?php
                     }
                     if ($rec->expired_txn_count > 0) {
                         $other_count = $other_count - $rec->expired_txn_count;
                         ?>
-              <div><a href="<?php echo $admin_txn_url; ?>"><?php printf('%d %s', $rec->expired_txn_count, __('Expired', 'memberpress')); ?></a></div>
+              <div><a href="<?php echo esc_url($admin_txn_url); ?>"><?php echo esc_html(sprintf('%d %s', $rec->expired_txn_count, __('Expired', 'memberpress'))); ?></a></div>
                         <?php
                     }
                     if ($rec->trial_txn_count > 0) {
                         ?>
-              <div><?php printf('%d %s', $rec->trial_txn_count, __('Trial', 'memberpress')); ?></div>
+              <div><?php echo esc_html(sprintf('%d %s', $rec->trial_txn_count, __('Trial', 'memberpress'))); ?></div>
                         <?php
                     }
                     if ($other_count > 0) {
                         ?>
-              <div><a href="<?php echo $admin_txn_url; ?>"><?php printf('%d %s', $other_count, __('Other', 'memberpress')); ?></a></div>
+              <div><a href="<?php echo esc_url($admin_txn_url); ?>"><?php echo esc_html(sprintf('%d %s', $other_count, __('Other', 'memberpress'))); ?></a></div>
                         <?php
                     }
                     ?>
@@ -156,43 +154,43 @@ if (!empty($records)) {
                     break;
                 case 'col_info':
                     ?>
-          <td <?php echo $attributes; ?>>
-            <div><a href="<?php echo admin_url('admin.php?page=memberpress-subscriptions&member=' . urlencode($rec->username)); ?>"><?php printf('%d Subscriptions', $rec->sub_count); ?></a></div>
-            <div><a href="<?php echo admin_url('admin.php?page=memberpress-trans&member=' . urlencode($rec->username)); ?>"><?php printf('%d Transactions', $rec->txn_count); ?></a></div>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>>
+            <div><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-subscriptions&member=' . urlencode($rec->username))); ?>"><?php echo esc_html(sprintf('%d Subscriptions', $rec->sub_count)); ?></a></div>
+            <div><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-trans&member=' . urlencode($rec->username))); ?>"><?php echo esc_html(sprintf('%d Transactions', $rec->txn_count)); ?></a></div>
           </td>
                     <?php
                     break;
                 case 'col_pending_sub_count':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->pending_sub_count); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->pending_sub_count); ?></td>
                     <?php
                     break;
                 case 'col_active_sub_count':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->active_sub_count); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->active_sub_count); ?></td>
                     <?php
                     break;
                 case 'col_suspended_sub_count':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->suspended_sub_count); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->suspended_sub_count); ?></td>
                     <?php
                     break;
                 case 'col_cancelled_sub_count':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->cancelled_sub_count); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->cancelled_sub_count); ?></td>
                     <?php
                     break;
                 case 'col_memberships':
                     $titles = [];
                     if (!empty($rec->memberships)) {
                         $ids = explode(',', $rec->memberships);
-                        foreach ($ids as $id) {
-                              $membership = new MeprProduct($id);
+                        foreach ($ids as $membership_id) {
+                              $membership = new MeprProduct($membership_id);
                               $titles[]   = esc_html($membership->post_title);
                         }
                     }
                     ?>
-          <td <?php echo $attributes; ?>><?php echo implode(', ', $titles); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html(implode(', ', $titles)); ?></td>
                     <?php
                     break;
                 case 'col_inactive_memberships':
@@ -200,36 +198,37 @@ if (!empty($records)) {
                     if (!empty($rec->inactive_memberships)) {
                         $ids = explode(',', $rec->inactive_memberships);
 
-                        foreach ($ids as $id) {
-                              $membership        = new MeprProduct($id);
+                        foreach ($ids as $membership_id) {
+                              $membership        = new MeprProduct($membership_id);
                               $inactive_titles[] = esc_html($membership->post_title);
                         }
                     }
                     ?>
-          <td <?php echo $attributes; ?>><?php echo implode(', ', $inactive_titles); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html(implode(', ', $inactive_titles)); ?></td>
                     <?php
                     break;
                 case 'col_total_spent':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo MeprAppHelper::format_currency($rec->total_spent, true, false); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html(MeprAppHelper::format_currency($rec->total_spent, true, false)); ?></td>
                     <?php
                     break;
                 case 'col_last_login_date':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo MeprAppHelper::format_date($rec->last_login_date, __('Never', 'memberpress')); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html(MeprAppHelper::format_date($rec->last_login_date, esc_html__('Never', 'memberpress'))); ?></td>
                     <?php
                     break;
                 case 'col_login_count':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo esc_html($rec->login_count); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html($rec->login_count); ?></td>
                     <?php
                     break;
                 case 'col_registered':
                     ?>
-          <td <?php echo $attributes; ?>><?php echo MeprAppHelper::format_date($rec->registered); ?></td>
+          <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>><?php echo esc_html(MeprAppHelper::format_date($rec->registered)); ?></td>
                     <?php
                     break;
                 default:
+                    $attributes = 'class="' . esc_attr($class_value) . '"' . ($is_hidden ? ' style="display:none;"' : '');
                     MeprHooks::do_action('mepr_members_list_table_row', $attributes, $rec, $column_name, $column_display_name);
             }
         }

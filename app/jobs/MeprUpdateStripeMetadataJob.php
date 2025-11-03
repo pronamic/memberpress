@@ -15,7 +15,7 @@ class MeprUpdateStripeMetadataJob extends MeprBaseJob
     {
         MeprUtils::debug_log('** Performing Update Stripe TXN Metadata');
         if (!isset($this->transaction_id) || empty($this->transaction_id)) {
-            throw new Exception(sprintf(__('MeprUpdateStripeMetadataJob: transaction_id wasn\'t set.', 'memberpress'), $this->transaction_id));
+            throw new Exception(esc_html__('MeprUpdateStripeMetadataJob: transaction_id wasn\'t set.', 'memberpress'));
         }
 
         $txn = new MeprTransaction($this->transaction_id);

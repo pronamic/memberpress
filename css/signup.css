@@ -6,7 +6,7 @@
 .mp_wrapper .cc-error,
 .mp_wrapper .mepr-validation-error {
   display: none;
-  color: #eb1c26;
+  color: #d4151e;
   padding-left: 5px;
 }
 
@@ -131,6 +131,11 @@
 .mp_wrapper label.mepr-form-checkbox-label {
   width: auto !important;
   display: inline !important;
+}
+
+.mp_wrapper .mepr-signup-form fieldset {
+  padding: 0;
+  border: none;
 }
 
 .mp_wrapper .mepr_payment_method {

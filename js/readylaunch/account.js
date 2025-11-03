@@ -1,4 +1,6 @@
 jQuery(document).ready(function ($) {
+  // keep track of prior active element
+  let priorFocus;
 
   // Add all our events here
   $(document).on("click", ".mepr-profile-details__button", openModal);
@@ -16,6 +18,7 @@ jQuery(document).ready(function ($) {
    */
   function openModal(event) {
     var $modal = $("#mepr-account-modal");
+    priorFocus = document.activeElement;
 
     $modal.show();
     var fieldName = $(this).data('name');
@@ -39,6 +42,17 @@ jQuery(document).ready(function ($) {
       .trigger('add-disabled-attr');
 
     $currentRow.show();
+
+    // handle a11y focus events
+    focusModal($modal);
+
+    // close modal on ESC key
+    $(document).on('keyup', function(event) {
+      const key = event.key || event.keyCode;
+      if (key === 'Escape' || key === 'Esc' || key === 27) {
+        $('.mepr_modal__close').trigger('click');
+      }
+    });
   }
 
   /**
@@ -50,7 +64,10 @@ jQuery(document).ready(function ($) {
 
     var forceDelete = event.data != undefined && 'force' in event.data;
     if (!event.target.closest('.mepr_modal__box') || forceDelete) {
-
+      // select last focused element
+      if (priorFocus) {
+        priorFocus.focus();
+      }
       // get the current row.
       var $currentRow = $modal.find('.mp-form-row:visible');
 
@@ -71,6 +88,35 @@ jQuery(document).ready(function ($) {
       $modal.find('.mepr_pro_error ul').empty()
     }
 
+  }
+
+  function focusModal(element) {
+    const focusableEls = element.find('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
+    const closeButton = element.find('.mepr_modal__close');
+    const firstFocusableEl = focusableEls.first().focus();
+    const KEYCODE_TAB = 9;
+
+    firstFocusableEl.focus();
+
+    element.on('keydown', function(e) {
+      const isTabOrSpacePressed = (e.key === 'Tab' || e.keyCode === KEYCODE_TAB || e.code === 'Space' || e.keyCode === 32);
+
+      if (!isTabOrSpacePressed) {
+        return;
+      }
+
+      if (e.shiftKey) { // shift + tab
+        if (document.activeElement === firstFocusableEl.get(0)) {
+          closeButton.get(0).focus();
+          e.preventDefault();
+        }
+      } else { // tab
+        if (document.activeElement === closeButton.get(0)) {
+          firstFocusableEl.focus();
+          e.preventDefault();
+        }
+      }
+    });
   }
 
   // Saves our Changes
@@ -215,26 +261,42 @@ jQuery(document).ready(function ($) {
 
   createPopperInstances();
 
-  $(document).on('click', function (e) {
+  $(document).on('click', handlePopperEvents);
+  $(document).on('keyup', handlePopperEvents);
+
+  function handlePopperEvents(e) {
+    // Only run on click or keyup
+    if (e.type !== 'click' && (e.type !== 'keyup')) {
+      return;
+    }
+
+    // On keyup only run on Escape
+    if (e.type === 'keyup' && e.key !== 'Escape') {
+      return;
+    }
+
     var $trigger = $('.mepr-tooltip-trigger');
     var $popover = $('.mepr-tooltip-content');
     var $target = $(e.target);
 
     // Change target to parent if child element was clicked
-    if(!$target.is($trigger) && $target.parent().is($trigger)){
-      $target = $target.parent();
+    if(!$target.is($trigger) && $target.closest($trigger)){
+      $target = $target.closest('.mepr-tooltip-trigger');
     }
 
     if ($target.is($popover)) {
       return;
     }
 
-    if ($target.is($trigger)) {
+    if (e.type === 'keyup' && e.key === 'Escape') {
+      hidePopperAll($popover);
+      return;
+    }
 
-      var index = $('.mepr-tooltip-trigger').index($target.get(0));
+    if ($target.is($trigger)) {
+      var index = $trigger.index($target.get(0));
       var instance = popperInstances[index];
       var popover = $target.parent().find('.mepr-tooltip-content').get(0);
-
 
       if (!instance) return;
 
@@ -242,8 +304,7 @@ jQuery(document).ready(function ($) {
     } else {
       hidePopperAll($popover)
     }
-
-  });
+  }
 
   function createPopperInstances() {
     destroyPopperInstances();

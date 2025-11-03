@@ -14,7 +14,7 @@ class MeprReportsHelper
     public static function display_products_dropdown()
     {
         global $wpdb;
-        $product  = (isset($_GET['product']) && $_GET['product'] != 'all') ? $_GET['product'] : 'all';
+        $product  = (isset($_GET['product']) && sanitize_text_field(wp_unslash($_GET['product'])) !== 'all') ? sanitize_text_field(wp_unslash($_GET['product'])) : 'all';
         $contents = [];
 
         $posts = MeprCptModel::all('MeprProduct', false, [
@@ -28,11 +28,11 @@ class MeprReportsHelper
 
         ?>
       <select name="product">
-      <option value="all" <?php echo ($product == 'all') ? 'selected="selected"' : ''; ?>><?php _e('All', 'memberpress'); ?>&nbsp;</option>
+      <option value="all" <?php selected($product, 'all'); ?>><?php esc_html_e('All', 'memberpress'); ?>&nbsp;</option>
         <?php
         foreach ($contents as $curr_type => $curr_label) {
             ?>
-          <option value="<?php echo $curr_type; ?>" <?php echo ($product == $curr_type) ? 'selected="selected"' : ''; ?>><?php echo $curr_label; ?>&nbsp;</option>
+          <option value="<?php echo esc_attr($curr_type); ?>" <?php selected($product, $curr_type); ?>><?php echo esc_html($curr_label); ?>&nbsp;</option>
             <?php
         }
         ?>
@@ -51,14 +51,14 @@ class MeprReportsHelper
       <form method="get" action="admin.php">
         <input type="hidden" name="page" value="memberpress-reports" />
         <?php wp_nonce_field('mepr_customize_report', 'mepr_reports_nonce'); ?>
-        <label><?php _e('Month:', 'memberpress'); ?></label>
+        <label><?php esc_html_e('Month:', 'memberpress'); ?></label>
         <?php self::display_monthly_month_dropdown(); ?>
-        <label>&nbsp;&nbsp;<?php _e('Year:', 'memberpress'); ?></label>
+        <label>&nbsp;&nbsp;<?php esc_html_e('Year:', 'memberpress'); ?></label>
         <?php self::display_year_dropdown(); ?>
-        <label>&nbsp;&nbsp;<?php _e('Membership:', 'memberpress'); ?></label>
+        <label>&nbsp;&nbsp;<?php esc_html_e('Membership:', 'memberpress'); ?></label>
         <?php self::display_products_dropdown(); ?>
         <input type="hidden" name="main-view" value="monthly" />
-        &nbsp;&nbsp;<input type="submit" class="button button-primary" value="<?php _e('Go', 'memberpress'); ?>" />
+        &nbsp;&nbsp;<input type="submit" class="button button-primary" value="<?php esc_attr_e('Go', 'memberpress'); ?>" />
       </form>
         <?php
     }
@@ -70,7 +70,7 @@ class MeprReportsHelper
      */
     public static function display_monthly_month_dropdown()
     {
-        $month  = (isset($_GET['month']) && !empty($_GET['month']) && is_numeric($_GET['month'])) ? $_GET['month'] : date('n');
+        $month  = (isset($_GET['month']) && !empty($_GET['month']) && is_numeric($_GET['month'])) ? intval($_GET['month']) : gmdate('n');
         $months = [
             __('January', 'memberpress'),
             __('February', 'memberpress'),
@@ -89,8 +89,7 @@ class MeprReportsHelper
         echo '<select name="month">';
         foreach ($months as $i => $m) {
             $val      = $i + 1;
-            $selected = ($month == $val) ? 'selected="selected"' : '';
-            echo '<option value="' . $val . '" ' . $selected . '>' . $m . '</option>';
+            echo '<option value="' . esc_attr($val) . '" ' . selected($month, $val, false) . '>' . esc_html($m) . '</option>';
         }
         echo '</select>';
     }
@@ -102,18 +101,18 @@ class MeprReportsHelper
      */
     public static function get_yearly_dropdowns_form()
     {
-        $month = (isset($_GET['month'])) ? $_GET['month'] : date('n', time());
+        $month = (isset($_GET['month'])) ? intval($_GET['month']) : gmdate('n', time());
         ?>
       <form method="get" action="admin.php">
         <input type="hidden" name="page" value="memberpress-reports" />
         <input type="hidden" name="month" value="<?php echo esc_attr($month); ?>" />
         <?php wp_nonce_field('mepr_customize_report', 'mepr_reports_nonce'); ?>
-        <label><?php _e('Year:', 'memberpress'); ?></label>
+        <label><?php esc_html_e('Year:', 'memberpress'); ?></label>
         <?php self::display_year_dropdown(); ?>
-        <label>&nbsp;&nbsp;<?php _e('Membership:', 'memberpress'); ?></label>
+        <label>&nbsp;&nbsp;<?php esc_html_e('Membership:', 'memberpress'); ?></label>
         <?php self::display_products_dropdown(); ?>
         <input type="hidden" name="main-view" value="yearly" />
-        &nbsp;&nbsp;<input type="submit" class="button button-primary" value="<?php _e('Go', 'memberpress'); ?>" />
+        &nbsp;&nbsp;<input type="submit" class="button button-primary" value="<?php esc_attr_e('Go', 'memberpress'); ?>" />
       </form>
         <?php
     }
@@ -125,7 +124,7 @@ class MeprReportsHelper
      */
     public static function display_year_dropdown()
     {
-        $year  = (isset($_GET['year']) && !empty($_GET['year']) && is_numeric($_GET['year'])) ? $_GET['year'] : date('Y');
+        $year  = (isset($_GET['year']) && !empty($_GET['year']) && is_numeric($_GET['year'])) ? (int) $_GET['year'] : (int) gmdate('Y');
         $first = MeprReports::get_first_year();
         $last  = MeprReports::get_last_year();
 
@@ -133,8 +132,7 @@ class MeprReportsHelper
 
         if (($last - $first) >= 0) {
             for ($i = 0; $i <= ($last - $first); $i++) {
-                $selected = ($year == ($first + $i)) ? 'selected="selected"' : '';
-                echo '<option value="' . ($first + $i) . '" ' . $selected . '>' . ($first + $i) . '</option>';
+                echo '<option value="' . esc_attr($first + $i) . '" ' . selected($year, $first + $i, false) . '>' . esc_html($first + $i) . '</option>';
             }
         }
 
@@ -148,18 +146,18 @@ class MeprReportsHelper
      */
     public static function get_all_time_dropdowns_form()
     {
-        $month = (isset($_GET['month'])) ? $_GET['month'] : date('n', time());
-        $year  = (isset($_GET['year'])) ? $_GET['year'] : date('Y', time());
+        $month = (isset($_GET['month'])) ? intval($_GET['month']) : gmdate('n', time());
+        $year  = (isset($_GET['year'])) ? intval($_GET['year']) : gmdate('Y', time());
         ?>
       <form method="get" action="admin.php">
         <input type="hidden" name="page" value="memberpress-reports" />
-        <input type="hidden" name="month" value="<?php echo $month; ?>" />
-        <input type="hidden" name="year" value="<?php echo $year; ?>" />
+        <input type="hidden" name="month" value="<?php echo esc_attr($month); ?>" />
+        <input type="hidden" name="year" value="<?php echo esc_attr($year); ?>" />
         <?php wp_nonce_field('mepr_customize_report', 'mepr_reports_nonce'); ?>
-        <label><?php _e('Membership:', 'memberpress'); ?></label>
+        <label><?php esc_html_e('Membership:', 'memberpress'); ?></label>
         <?php self::display_products_dropdown(); ?>
         <input type="hidden" name="main-view" value="all-time" />
-        &nbsp;&nbsp;<input type="submit" class="button button-primary" value="<?php _e('Go', 'memberpress'); ?>" />
+        &nbsp;&nbsp;<input type="submit" class="button button-primary" value="<?php esc_attr_e('Go', 'memberpress'); ?>" />
       </form>
         <?php
     }

@@ -5,7 +5,7 @@
 <div class="mp_wrapper alignwide">
   <p style="text-align: center;"><?php printf(
       // Translators: %s: Reset password URL.
-      _x('The link you clicked has expired, please attempt to %s.', 'ui', 'memberpress'),
-      '<a href="' . $mepr_options->forgot_password_url() . '">' . _x('reset your password again', 'ui', 'memberpress') . '</a>'
+      esc_html_x('The link you clicked has expired, please attempt to %s.', 'ui', 'memberpress'),
+      '<a href="' . esc_url($mepr_options->forgot_password_url()) . '">' . esc_html_x('reset your password again', 'ui', 'memberpress') . '</a>'
   ); ?></p>
 </div>

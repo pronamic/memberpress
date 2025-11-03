@@ -15,11 +15,11 @@ class MeprEmailJob extends MeprBaseJob
     public function perform()
     {
         if (!isset($this->class) || empty($this->class)) {
-            throw new Exception(__('"class" cannot be blank', 'memberpress'));
+            throw new Exception(esc_html__('"class" cannot be blank', 'memberpress'));
         }
 
         if (!isset($this->to) || empty($this->to)) {
-            throw new Exception(__('"to" cannot be blank', 'memberpress'));
+            throw new Exception(esc_html__('"to" cannot be blank', 'memberpress'));
         }
 
         if (!isset($this->values)) {

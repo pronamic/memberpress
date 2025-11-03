@@ -1,5 +1,5 @@
 <?php
 
 foreach ($subs as $sub) {
-    echo "{$sub->subscr_id}\n";
+    echo esc_html($sub->subscr_id) . "\n";
 }

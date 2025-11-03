@@ -19,6 +19,9 @@ var mepr_populate_states = function(obj) { (function($) {
 
   if(fieldname == undefined || value == undefined) { return; }
 
+  // Grab unique suffix
+  var unique_suffix = states_dropdown.data('unique-suffix');
+
   // Clean up trailing whitespace
   fieldname = fieldname.replace(/^\s+/,'');
   fieldname = fieldname.replace(/\s+$/,'');
@@ -27,14 +30,38 @@ var mepr_populate_states = function(obj) { (function($) {
 
   var required = !!obj.attr('required');
 
+  // Check if country is in the list of countries without states
+  var countryWithoutStates = MeprI18n.countries_without_states && MeprI18n.countries_without_states.indexOf(country) !== -1;
+
+  // Helper function to update the asterisk in the label
+  var updateStateFieldAsterisk = function(fieldElement, isRequired) {
+    var label = fieldElement.siblings('.mp-form-label').find('label');
+    var labelText = label.text();
+    var hasAsterisk = labelText.indexOf('*') !== -1;
+
+    if (isRequired && !hasAsterisk) {
+      // Add asterisk at the end if required and not present
+      label.text(labelText + '*');
+    } else if (!isRequired && hasAsterisk) {
+      // Remove all asterisks if not required
+      label.text(labelText.replace(/\*/g, ''));
+    }
+  };
+
   if (MeprI18n.states[country] !== undefined) {
-    states_dropdown.attr('name', fieldname);
+    states_dropdown.attr('name', fieldname).attr('id', 'mepr-address-state' + unique_suffix);
     states_dropdown.show();
-    states_text.removeAttr('name');
+    states_text.removeAttr('name').removeAttr('id');
     states_text.hide();
-    if (required) {
+    if (required && !countryWithoutStates) {
       states_text.removeAttr('required');
       states_dropdown.attr('required','');
+      updateStateFieldAsterisk(states_dropdown, true);
+    } else {
+      // Country doesn't require states, so remove required attribute
+      states_dropdown.removeAttr('required');
+      states_text.removeAttr('required');
+      updateStateFieldAsterisk(states_dropdown, false);
     }
 
     states_dropdown.append('<option value="">' + MeprI18n.please_select_state + '</option>');
@@ -45,13 +72,19 @@ var mepr_populate_states = function(obj) { (function($) {
     }
   }
   else {
-    states_dropdown.removeAttr('name');
+    states_dropdown.removeAttr('name').removeAttr('id');
     states_dropdown.hide();
-    states_text.attr('name', fieldname);
+    states_text.attr('name', fieldname).attr('id', 'mepr-address-state' + unique_suffix);
     states_text.show();
-    if (required) {
+    if (required && !countryWithoutStates) {
       states_dropdown.removeAttr('required');
       states_text.attr('required','');
+      updateStateFieldAsterisk(states_text, true);
+    } else {
+      // Country doesn't require states, so remove required attribute
+      states_dropdown.removeAttr('required');
+      states_text.removeAttr('required');
+      updateStateFieldAsterisk(states_text, false);
     }
   }
 })(jQuery)};

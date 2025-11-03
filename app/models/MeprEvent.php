@@ -42,6 +42,13 @@ class MeprEvent extends MeprBaseModel
     public static $login_event_str = 'login';
 
     /**
+     * Cache for event data to avoid multiple file reads
+     *
+     * @var array
+     */
+    private static $events_config_cache = null;
+
+    /**
      * Constructor for the MeprEvent class.
      *
      * @param mixed $obj The object to initialize the event with.
@@ -201,7 +208,7 @@ class MeprEvent extends MeprBaseModel
     {
         $mepr_db = new MeprDb();
 
-        MeprHooks::do_action('mepr-event-pre-store', $this);
+        MeprHooks::do_action('mepr_event_pre_store', $this);
 
         $this->use_existing_if_unique();
 
@@ -210,17 +217,17 @@ class MeprEvent extends MeprBaseModel
 
         if (isset($this->id) and (int)$this->id > 0) {
             $mepr_db->update_record($mepr_db->events, $this->id, $vals);
-            MeprHooks::do_action('mepr-event-update', $this);
+            MeprHooks::do_action('mepr_event_update', $this);
         } else {
             $this->id = $mepr_db->create_record($mepr_db->events, $vals);
-            MeprHooks::do_action('mepr-event-create', $this);
-            MeprHooks::do_action('mepr-event', $this);
+            MeprHooks::do_action('mepr_event_create', $this);
+            MeprHooks::do_action('mepr_event', $this);
 
-            MeprHooks::do_action("mepr-evt-{$this->event}", $this); // DEPRECATED.
-            MeprHooks::do_action("mepr-event-{$this->event}", $this);
+            MeprHooks::do_action("mepr_evt_{$this->event}", $this); // DEPRECATED.
+            MeprHooks::do_action("mepr_event_{$this->event}", $this);
         }
 
-        MeprHooks::do_action('mepr-event-store', $this);
+        MeprHooks::do_action('mepr_event_store', $this);
 
         return $this->id;
     }
@@ -258,7 +265,7 @@ class MeprEvent extends MeprBaseModel
 
                 // If member-deleted event is being passed, make sure we generate some data.
                 if (!isset($obj->ID) || $obj->ID <= 0) {
-                    if ($this->event == 'member-deleted') {
+                    if ($this->event === 'member-deleted') {
                           $obj->ID         = 0;
                           $obj->user_email = 'johndoe@email.com';
                           $obj->user_login = 'johndoe';
@@ -335,6 +342,10 @@ class MeprEvent extends MeprBaseModel
             return;
         }
 
+        if (self::is_time_throttled($e)) {
+            return;
+        }
+
         $e->store();
     }
 
@@ -349,15 +360,11 @@ class MeprEvent extends MeprBaseModel
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $q = $wpdb->prepare("
-      SELECT id
-        FROM {$mepr_db->events}
-       WHERE event=%s
-       ORDER BY id DESC
-       LIMIT 1
-    ", $event);
-
-        $id = $wpdb->get_var($q);
+        $id = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT id FROM {$mepr_db->events} WHERE event=%s ORDER BY id DESC LIMIT 1",
+            $event
+        ));
         if ($id) {
             return new MeprEvent($id);
         }
@@ -377,11 +384,11 @@ class MeprEvent extends MeprBaseModel
 
         $mepr_db = MeprDb::fetch();
 
-        if ($event_type == MeprEvent::$users_str) {
+        if ($event_type === MeprEvent::$users_str) {
             return $wpdb->users;
-        } elseif ($event_type == MeprEvent::$transactions_str) {
+        } elseif ($event_type === MeprEvent::$transactions_str) {
             return $mepr_db->transactions;
-        } elseif ($event_type == MeprEvent::$subscriptions_str) {
+        } elseif ($event_type === MeprEvent::$subscriptions_str) {
             return $mepr_db->subscriptions;
         }
     }
@@ -393,7 +400,7 @@ class MeprEvent extends MeprBaseModel
      */
     private function event_info()
     {
-        $event_data = require(MEPR_DATA_PATH . '/events.php');
+        $event_data = self::get_events_config();
 
         if (isset($event_data[$this->event])) {
             return $event_data[$this->event];
@@ -444,18 +451,111 @@ class MeprEvent extends MeprBaseModel
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $q = $wpdb->prepare("
-      SELECT id
-        FROM {$mepr_db->events}
-       WHERE event=%s
-       AND created_at >= '%s' - interval %d day
-       ORDER BY id DESC
-       LIMIT 1
-    ", $event, MeprUtils::db_now(), $elapsed_days);
-
-        $id = $wpdb->get_var($q);
+        $id = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT id FROM {$mepr_db->events} WHERE event=%s AND created_at >= %s - interval %d day ORDER BY id DESC LIMIT 1",
+            $event,
+            MeprUtils::db_now(),
+            $elapsed_days
+        ));
         if ($id) {
             return new MeprEvent($id);
+        }
+
+        return false;
+    }
+
+    /**
+     * Load Event Configuration file into an array
+     *
+     * @return array|null
+     */
+    private static function get_events_config()
+    {
+        // Load and cache events data.
+        if (self::$events_config_cache === null) {
+            $events_file = MEPR_DATA_PATH . '/events.php';
+            if (!file_exists($events_file)) {
+                return []; // No events configuration, no throttling.
+            }
+            self::$events_config_cache = require($events_file);
+        }
+
+        return self::$events_config_cache;
+    }
+
+    /**
+     * Check if an event should be throttled based on time window
+     *
+     * @param  MeprEvent $e Event name.
+     * @return boolean True if event should be throttled (skipped)
+     */
+    private static function is_time_throttled(MeprEvent $e)
+    {
+        global $wpdb;
+
+        $event_config = self::get_events_config();
+
+        if (!isset($event_config[$e->event])) {
+            return false;
+        }
+
+        $event_data = $event_config[$e->event];
+
+        // Get and validate time limit.
+        $time_limit = absint($event_data->time_limit ?? 0);
+
+        /**
+         * Filter the event rate limit
+         *
+         * @param  int $time_limit Current time limit in seconds.
+         * @param  MeprEvent $e Event object being checked.
+         * @param  stdClass $event_data Full event configuration data.
+         * @return int Modified time limit
+         */
+        $time_limit = MeprHooks::apply_filters('mepr_event_rate_limit', $time_limit, $e, $event_data);
+
+        if ($time_limit <= 0) {
+            return false;
+        }
+
+        $mepr_db = new MeprDb();
+        $last_event_created_at = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT created_at FROM {$mepr_db->events} WHERE `event` = %s AND evt_id = %d AND evt_id_type = %s ORDER BY created_at DESC LIMIT 1",
+            $e->event,
+            (int) $e->evt_id,
+            $e->evt_id_type
+        ));
+        if (!empty($last_event_created_at)) {
+            // Ensure we have a valid timestamp.
+            $last_event_time = strtotime($last_event_created_at);
+            if ($last_event_time === false) {
+                return false; // Invalid date, don't throttle.
+            }
+
+            $time_since_last = time() - $last_event_time;
+
+            /**
+             * Filter whether an event should be throttled
+             *
+             * @param  boolean $should_throttle Current throttle decision.
+             * @param  MeprEvent $e Current event being checked.
+             * @param  string $last_event_created_at Event DateTime stamp.
+             * @param  int $time_since_last Seconds since last event.
+             * @param  int $time_limit Current throttle time limit.
+             * @return boolean Modified throttle decision
+             */
+            $should_throttle = ($time_since_last < $time_limit);
+
+            return MeprHooks::apply_filters(
+                'mepr_should_throttle_event',
+                $should_throttle,
+                $e,
+                $last_event_created_at,
+                $time_since_last,
+                $time_limit
+            );
         }
 
         return false;

@@ -4,37 +4,37 @@ if (!defined('ABSPATH')) {
 } ?>
 
 <div class="info_block">
-  <span class="info_block_title"><?php _e('Active Members', 'memberpress'); ?></span>
-  <h3><?php echo MeprReports::get_active_members_count(); ?></h3>
+  <span class="info_block_title"><?php esc_html_e('Active Members', 'memberpress'); ?></span>
+  <h3><?php echo esc_html(MeprReports::get_active_members_count()); ?></h3>
 </div>
 
 <div class="info_block">
-  <span class="info_block_title"><?php _e('Inactive Members', 'memberpress'); ?></span>
-  <h3><?php echo MeprReports::get_inactive_members_count(); ?></h3>
+  <span class="info_block_title"><?php esc_html_e('Inactive Members', 'memberpress'); ?></span>
+  <h3><?php echo esc_html(MeprReports::get_inactive_members_count()); ?></h3>
 </div>
 
 <div class="info_block">
-  <span class="info_block_title"><?php _e('Total Members', 'memberpress'); ?></span>
-  <h3><?php echo MeprReports::get_total_members_count(); ?></h3>
+  <span class="info_block_title"><?php esc_html_e('Total Members', 'memberpress'); ?></span>
+  <h3><?php echo esc_html(MeprReports::get_total_members_count()); ?></h3>
 </div>
 
 <div class="info_block">
-  <span class="info_block_title"><?php _e('Total WP Users', 'memberpress'); ?></span>
-  <h3><?php echo MeprReports::get_total_wp_users_count(); ?></h3>
+  <span class="info_block_title"><?php esc_html_e('Total WP Users', 'memberpress'); ?></span>
+  <h3><?php echo esc_html(MeprReports::get_total_wp_users_count()); ?></h3>
 </div>
 
 <div class="info_block">
-  <span class="info_block_title"><?php _e('Active Free Members', 'memberpress'); ?></span>
-  <h3><?php echo MeprReports::get_free_active_members_count(); ?></h3>
+  <span class="info_block_title"><?php esc_html_e('Active Free Members', 'memberpress'); ?></span>
+  <h3><?php echo esc_html(MeprReports::get_free_active_members_count()); ?></h3>
 </div>
 
 <div class="info_block">
-  <span class="info_block_title"><?php _e('Active Paid Members', 'memberpress'); ?></span>
-  <h3><?php echo MeprReports::get_paid_active_members_count(); ?></h3>
+  <span class="info_block_title"><?php esc_html_e('Active Paid Members', 'memberpress'); ?></span>
+  <h3><?php echo esc_html(MeprReports::get_paid_active_members_count()); ?></h3>
 </div>
 <div class="info_block">
-  <span class="info_block_title"><?php _e('Avg Mbr Lifetime Val', 'memberpress'); ?></span>
-  <h3><?php echo MeprAppHelper::format_currency(MeprReports::get_average_lifetime_value(), true, false); ?></h3>
+  <span class="info_block_title"><?php esc_html_e('Avg Mbr Lifetime Val', 'memberpress'); ?></span>
+  <h3><?php echo esc_html(MeprAppHelper::format_currency(MeprReports::get_average_lifetime_value(), true, false)); ?></h3>
 </div>
 <?php
 /*

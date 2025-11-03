@@ -19,25 +19,26 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         add_action('wp_enqueue_scripts', 'MeprReadyLaunchCtrl::enqueue_scripts', 999999);
         add_action('wp_head', 'MeprReadyLaunchCtrl::theme_style');
         add_action('admin_head', 'MeprReadyLaunchCtrl::theme_style');
+        add_action('mepr_rl_before_main', 'MeprReadyLaunchCtrl::add_header');
+        add_action('mepr_rl_after_main', 'MeprReadyLaunchCtrl::add_footer');
+        add_action('mepr_rl_enqueue_scripts', 'MeprReadyLaunchCtrl::enqueue_general_scripts');
 
-        add_filter('mepr-validate-options', 'MeprReadyLaunchCtrl::validate_settings_fields');
+        add_filter('mepr_validate_options', 'MeprReadyLaunchCtrl::validate_settings_fields');
         add_filter('template_include', [$this, 'override_page_templates'], 999999); // High priority so we have the last say here.
         add_filter('the_content', [$this, 'thankyou_page_content'], 99);
-        add_filter('mepr_render_address_fields', [$this, 'placeholders_to_address_fields']); // High priority so we have the last say here.
         add_filter('show_admin_bar', [$this, 'remove_admin_bar']);
-        add_filter('mepr-membership-cant-purchase-string', [$this, 'cant_purchase_message']);
-        add_filter('mepr-validate-account-ajax', [$this, 'validate_account_fields'], 10, 3);
+        add_filter('mepr_membership_cant_purchase_string', [$this, 'cant_purchase_message']);
+        add_filter('mepr_validate_account_ajax', [$this, 'validate_account_fields'], 10, 3);
 
         add_action('wp_ajax_prepare_editable_field', 'MeprReadyLaunchCtrl::account_profile_editable_fields');
         add_action('wp_ajax_load_more_subscriptions', [$this, 'load_more_subscriptions']);
         add_action('wp_ajax_load_more_payments', [$this, 'load_more_payments']);
 
-
         // Shortcodes!
-        MeprHooks::add_shortcode('mepr-pro-login-form', [$this, 'login_form_shortcode']);
-        MeprHooks::add_shortcode('mepr-pro-pricing-table', [$this, 'pricing_table_shortcode']);
-        MeprHooks::add_shortcode('mepr-pro-account-tabs', [$this, 'account_shortcode']);
-        MeprHooks::add_shortcode('mepr-pro-checkout', [$this, 'checkout_shortcode']);
+        MeprHooks::add_shortcode('mepr_pro_login_form', [$this, 'login_form_shortcode']);
+        MeprHooks::add_shortcode('mepr_pro_pricing_table', [$this, 'pricing_table_shortcode']);
+        MeprHooks::add_shortcode('mepr_pro_account_tabs', [$this, 'account_shortcode']);
+        MeprHooks::add_shortcode('mepr_pro_checkout', [$this, 'checkout_shortcode']);
     }
 
     /**
@@ -61,7 +62,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
 
         add_filter('mepr_pro_templates_has_login_block', '__return_true');
-        $content = do_shortcode('[mepr-login-form welcome_image="' . $welcome_image . '" show_welcome_image="' . $show_welcome_image . '" admin_view="' . $atts['admin_view'] . '"]');
+        $content = do_shortcode('[mepr_login_form welcome_image="' . $welcome_image . '" show_welcome_image="' . $show_welcome_image . '" admin_view="' . $atts['admin_view'] . '"]');
 
         return $content;
     }
@@ -88,7 +89,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
 
         add_filter('mepr_pro_templates_has_pricing_block', '__return_true');
-        $content = do_shortcode('[mepr-group-price-boxes group_id="' . $group->ID . '" show_title="' . $atts['show_title'] . '" button_highlight_color="' . $atts['button_highlight_color'] . '"] ');
+        $content = do_shortcode('[mepr_group_price_boxes group_id="' . $group->ID . '" show_title="' . $atts['show_title'] . '" button_highlight_color="' . $atts['button_highlight_color'] . '"] ');
 
         return $content;
     }
@@ -125,7 +126,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
 
         add_filter('mepr_pro_templates_has_account_block', '__return_true');
-        $content = do_shortcode('[mepr-account-form  welcome_image="' . $welcome_image . '" show_welcome_image="' . $show_welcome_image . '"]');
+        $content = do_shortcode('[mepr_account_form  welcome_image="' . $welcome_image . '" show_welcome_image="' . $show_welcome_image . '"]');
 
         if (MeprUtils::is_user_logged_in()) {
             $content = "<div class='mp_wrapper alignwide wp-block wp-shortcode'>" . $content . '</div>';
@@ -163,7 +164,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
 
         add_filter('mepr_pro_templates_has_checkout_block', '__return_true');
-        $content = do_shortcode('[mepr-membership-registration-form id="' . $prd->ID . '"]');
+        $content = do_shortcode('[mepr_membership_registration_form id="' . $prd->ID . '"]');
 
         return $content;
     }
@@ -181,7 +182,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         $logout_url          = MeprUtils::logout_url();
         $account_url         = $mepr_options->account_page_url();
         $delim               = MeprAppCtrl::get_param_delimiter_char($account_url);
-        $change_password_url = MeprHooks::apply_filters('mepr-rl-change-password-url', $account_url . $delim . 'action=newpassword');
+        $change_password_url = MeprHooks::apply_filters('mepr_rl_change_password_url', $account_url . $delim . 'action=newpassword');
         $logo                = esc_url(wp_get_attachment_url($mepr_options->design_logo_img));
         $user                = MeprUtils::get_currentuserinfo();
         $wrapper_classes     = '';
@@ -197,7 +198,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
 
         if (self::template_enabled('login')) {
-            if ($post->ID == $mepr_options->login_page_id) {
+            if ($post->ID === $mepr_options->login_page_id) {
                 $template = \MeprView::file('/readylaunch/layout/guest');
                 include $template;
                 exit;
@@ -223,6 +224,8 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             include $template;
             exit;
         }
+
+        $template = MeprHooks::apply_filters('mepr_rl_template_override', $template, get_defined_vars());
 
         return $template;
     }
@@ -273,7 +276,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
 
                                 $processed_sub_ids[] = (int) $subscription->id;
 
-                                if (($subscription->trial && $subscription->trial_days > 0 && $subscription->txn_count < 1) || $transaction->txn_type == MeprTransaction::$subscription_confirmation_str) {
+                                if (($subscription->trial && $subscription->trial_days > 0 && $subscription->txn_count < 1) || $transaction->txn_type === MeprTransaction::$subscription_confirmation_str) {
                                     MeprTransactionsHelper::set_invoice_txn_vars_from_sub($transaction, $subscription);
                                 }
 
@@ -292,7 +295,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
                 } else {
                     $sub = $txn->subscription();
 
-                    if ($sub instanceof MeprSubscription && (($sub->trial && $sub->trial_days > 0 && $sub->txn_count < 1) || $txn->txn_type == MeprTransaction::$subscription_confirmation_str)) {
+                    if ($sub instanceof MeprSubscription && (($sub->trial && $sub->trial_days > 0 && $sub->txn_count < 1) || $txn->txn_type === MeprTransaction::$subscription_confirmation_str)) {
                         MeprTransactionsHelper::set_invoice_txn_vars_from_sub($txn, $sub);
                     }
 
@@ -376,7 +379,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             if (
                 isset($post) &&
                 is_a($post, 'WP_Post') &&
-                $post->post_type == MeprGroup::$cpt
+                $post->post_type === MeprGroup::$cpt
             ) {
                 static::remove_styles($handles);
                 static::add_template_scripts('pricing');
@@ -400,6 +403,17 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     }
 
     /**
+     * Enqueues general ReadyLaunch scripts when called by other plugins
+     *
+     * @return void
+     */
+    public static function enqueue_general_scripts()
+    {
+        wp_enqueue_style('mp-pro-theme', MEPR_CSS_URL . '/readylaunch/theme.css', null, MEPR_VERSION);
+        wp_enqueue_script('mepr-general', MEPR_JS_URL . '/readylaunch/general.js', ['jquery'], MEPR_VERSION, true);
+    }
+
+    /**
      * Add Design tab toadmin memberpress page
      *
      * @return void
@@ -407,7 +421,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     public static function display_option_tab()
     {
         ?>
-    <a class="nav-tab" id="design" href="#"><?php _e('ReadyLaunch™', 'memberpress'); ?></a>
+    <a class="nav-tab" id="design" href="#"><?php esc_html_e('ReadyLaunch™', 'memberpress'); ?></a>
         <?php
     }
 
@@ -437,45 +451,6 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             }
         }
 
-        $data = [
-            'global'   => [
-                'logoId' => isset($mepr_options->design_logo_img) ? absint($mepr_options->design_logo_img) : '',
-            ],
-            'pricing'  => [
-                'enableTemplate' => isset($mepr_options->design_enable_pricing_template) ? filter_var($mepr_options->design_enable_pricing_template, FILTER_VALIDATE_BOOLEAN) : '',
-            ],
-            'checkout' => [
-                'enableTemplate' => isset($mepr_options->design_enable_checkout_template) ? filter_var($mepr_options->design_enable_checkout_template, FILTER_VALIDATE_BOOLEAN) : '',
-                'showPriceTerms' => isset($mepr_options->design_show_checkout_price_terms) ? filter_var($mepr_options->design_show_checkout_price_terms, FILTER_VALIDATE_BOOLEAN) : '',
-            ],
-            'login'    => [
-                'enableTemplate'   => isset($mepr_options->design_enable_login_template) ? filter_var($mepr_options->design_enable_login_template, FILTER_VALIDATE_BOOLEAN) : '',
-                'showWelcomeImage' => isset($mepr_options->design_show_login_welcome_image) ? filter_var($mepr_options->design_show_login_welcome_image, FILTER_VALIDATE_BOOLEAN) : '',
-                'welcomeImageId'   => isset($mepr_options->design_login_welcome_img) ? absint($mepr_options->design_login_welcome_img) : '',
-            ],
-            'thankyou' => [
-                'enableTemplate'   => isset($mepr_options->design_enable_thankyou_template) ? filter_var($mepr_options->design_enable_thankyou_template, FILTER_VALIDATE_BOOLEAN) : '',
-                'showWelcomeImage' => isset($mepr_options->design_show_thankyou_welcome_image) ? filter_var($mepr_options->design_show_thankyou_welcome_image, FILTER_VALIDATE_BOOLEAN) : '',
-                'hideInvoice'      => isset($mepr_options->design_thankyou_hide_invoice) ? filter_var($mepr_options->design_thankyou_hide_invoice, FILTER_VALIDATE_BOOLEAN) : '',
-                'welcomeImageId'   => isset($mepr_options->design_thankyou_welcome_img) ? absint($mepr_options->design_thankyou_welcome_img) : '',
-            ],
-            'account'  => [
-                'enableTemplate'   => isset($mepr_options->design_enable_account_template) ? filter_var($mepr_options->design_enable_account_template, FILTER_VALIDATE_BOOLEAN) : '',
-                'showWelcomeImage' => isset($mepr_options->design_show_account_welcome_image) ? filter_var($mepr_options->design_show_account_welcome_image, FILTER_VALIDATE_BOOLEAN) : '',
-                'welcomeImageId'   => isset($mepr_options->design_account_welcome_img) ? absint($mepr_options->design_account_welcome_img) : '',
-            ],
-            'courses'  => [
-                'enableTemplate'       => '',
-                'showProtectedCourses' => '',
-                'removeInstructorLink' => '',
-                'logoId'               => '',
-            ],
-            'coaching' => [
-                'enableTemplate' =>  isset($mepr_options->rl_enable_coaching_template) ? filter_var($mepr_options->rl_enable_coaching_template, FILTER_VALIDATE_BOOLEAN) : '',
-            ],
-        ];
-
-        $data = MeprHooks::apply_filters('mepr-readylaunch-options-data', $data);
 
         MeprView::render('/admin/readylaunch/options', get_defined_vars());
     }
@@ -495,7 +470,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         if (
             isset($params[ $mepr_options->design_enable_login_template_str ]) &&
             isset($params[ $mepr_options->design_show_login_welcome_image_str ]) &&
-            absint($params[ $mepr_options->design_login_welcome_img_str ]) == 0
+            absint($params[ $mepr_options->design_login_welcome_img_str ]) === 0
         ) {
             $errors[] = esc_html__('Welcome Image should be uploaded if Show Welcome Image button is checked', 'memberpress');
         }
@@ -512,13 +487,13 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     public static function remove_styles($allowed_handles = [])
     {
         global $wp_styles;
-        $allowed_handles         = apply_filters('mepr_design_style_handles', $allowed_handles);
-        $allowed_handle_prefixes = apply_filters('mepr_design_style_handle_prefixes', ['mepr-', 'mp-', 'mpca-', 'mpcs-', 'mpgft-', 'ca-course']);
+        $allowed_handles         = MeprHooks::apply_filters('mepr_design_style_handles', $allowed_handles);
+        $allowed_handle_prefixes = MeprHooks::apply_filters('mepr_design_style_handle_prefixes', ['mepr-', 'mp-', 'mpca-', 'mpcs-', 'mpgft-', 'mcpd', 'ca-course']);
 
         // Remove styles.
         foreach ($wp_styles->queue as $style) {
             $handle = $wp_styles->registered[ $style ]->handle;
-            if (! in_array($handle, $allowed_handles)) {
+            if (! in_array($handle, $allowed_handles, true)) {
                 foreach ($allowed_handle_prefixes as $prefix) {
                     if (strpos($handle, $prefix) === 0) {
                         continue 2;
@@ -542,6 +517,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         global $post;
 
         wp_enqueue_style('mp-pro-theme', MEPR_CSS_URL . '/readylaunch/theme.css', null, MEPR_VERSION);
+        wp_enqueue_script('mepr-general', MEPR_JS_URL . '/readylaunch/general.js', ['jquery'], MEPR_VERSION, true);
 
         if ('login' === $page) {
             wp_enqueue_style('mp-pro-login', MEPR_CSS_URL . '/readylaunch/login.css', null, MEPR_VERSION);
@@ -565,13 +541,13 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             );
         }
 
-        if ('pricing' == $page) {
+        if ('pricing' === $page) {
             wp_enqueue_style('mp-pro-pricing', MEPR_CSS_URL . '/readylaunch/pricing.css', null, MEPR_VERSION);
             wp_enqueue_script('mepr-pro-pricing', MEPR_JS_URL . '/readylaunch/pricing.js', ['jquery'], MEPR_VERSION, true);
             wp_enqueue_script('alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', [], MEPR_VERSION, true);
         }
 
-        if ('checkout' == $page) {
+        if ('checkout' === $page) {
             wp_enqueue_style('mp-pro-checkout', MEPR_CSS_URL . '/readylaunch/checkout.css', null, MEPR_VERSION);
             wp_enqueue_script('mepr-signupjs', MEPR_JS_URL . '/readylaunch/signup.js', ['jquery'], MEPR_VERSION, true);
             wp_enqueue_script('alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', [], MEPR_VERSION, true);
@@ -585,7 +561,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             );
         }
 
-        if ('thankyou' == $page) {
+        if ('thankyou' === $page) {
             wp_enqueue_style('mp-pro-checkout', MEPR_CSS_URL . '/readylaunch/checkout.css', null, MEPR_VERSION);
         }
     }
@@ -600,7 +576,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
      */
     public function add_view_path_for_slug($paths, $slug, $allowed_slugs = [])
     {
-        if (in_array($slug, $allowed_slugs) || empty($allowed_slugs)) {
+        if (in_array($slug, $allowed_slugs, true) || empty($allowed_slugs)) {
             array_splice($paths, 1, 0, MEPR_PATH . '/app/views/readylaunch');
         }
         return $paths;
@@ -662,7 +638,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         if ('pricing' === $template) {
             return isset($post) &&
             is_a($post, 'WP_Post') &&
-            $post->post_type == MeprGroup::$cpt &&
+            $post->post_type === MeprGroup::$cpt &&
             self::template_active('pricing');
         }
 
@@ -700,17 +676,17 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     public function account_profile_editable_fields()
     {
         $user      = MeprUtils::get_currentuserinfo();
-        $field_key = isset($_POST['field']) ? wp_unslash(sanitize_text_field($_POST['field'])) : '';
+        $field_key = isset($_POST['field']) ? sanitize_text_field(wp_unslash($_POST['field'])) : '';
 
         $custom_fields = MeprUsersHelper::get_custom_fields();
 
-        $key   = array_search($field_key, array_column($custom_fields, 'field_key'));
+        $key   = array_search($field_key, array_column($custom_fields, 'field_key'), true);
         $field = $custom_fields[ $key ];
         $value = $user ? get_user_meta($user->ID, $field->field_key, true) : '';
 
         ob_start();
         echo '<div><label class="mepr_modal_form__label">' . esc_html($field->field_name) . '</label></div>';
-        echo MeprUsersHelper::render_custom_field($field, $value);
+        echo MeprUsersHelper::render_custom_field($field, $value); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         $content = ob_get_clean();
 
         wp_send_json_success($content);
@@ -738,13 +714,13 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
         }
 
         if (isset($_POST['user_email'])) {
-            if (empty($_POST['user_email']) || !is_email(stripslashes($_POST['user_email']))) {
+            if (empty($_POST['user_email']) || !is_email(wp_unslash($_POST['user_email']))) {
                 $errors[] = __('You must enter a valid email address', 'memberpress');
             }
 
             // Old email is not the same as the new, so let's make sure no else has it
             // $user = MeprUtils::get_currentuserinfo(); //Old user info is here since we haven't stored the new stuff yet.
-            if ($user !== false && $user->user_email != stripslashes($_POST['user_email']) && email_exists(stripslashes($_POST['user_email']))) {
+            if ($user !== false && $user->user_email !== sanitize_email(wp_unslash($_POST['user_email'])) && email_exists(sanitize_email(wp_unslash($_POST['user_email'])))) {
                 $errors[] = __('This email is already in use by another member', 'memberpress');
             }
         }
@@ -760,7 +736,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     public function load_more_subscriptions()
     {
         // Check for nonce security!
-        if (isset($_POST['nonce']) && ! wp_verify_nonce($_POST['nonce'], 'mepr_account_update')) {
+        if (isset($_POST['nonce']) && ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'mepr_account_update')) {
             die('Busted!');
         }
 
@@ -790,7 +766,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     public function load_more_payments()
     {
         // Check for nonce security!
-        if (isset($_POST['nonce']) && ! wp_verify_nonce($_POST['nonce'], 'mepr_account_update')) {
+        if (isset($_POST['nonce']) && ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'mepr_account_update')) {
             die('Busted!');
         }
 
@@ -807,21 +783,6 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
 
         $content = ob_get_clean();
         wp_send_json_success($content);
-    }
-
-    /**
-     * Placeholders to address fields.
-     *
-     * @param  array $fields The fields.
-     * @return array
-     */
-    public function placeholders_to_address_fields($fields)
-    {
-        foreach ($fields as $key => $field) {
-            $fields[ $key ]->placeholder = $field->field_name;
-        }
-
-        return $fields;
     }
 
     /**
@@ -849,6 +810,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             self::template_enabled('account') ||
             self::template_enabled('checkout') ||
             self::template_enabled('thankyou') ||
+            MeprHooks::apply_filters('mepr_rl_theme_style', false) ||
             $is_block_editor
         ) { // Full page templates.
             $html  = '<style type="text/css">';
@@ -862,7 +824,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             $html .= sprintf('.app-layout .profile-menu__text--small, .guest-layout .profile-menu__text--small{color:rgba(%s)}', self::hexToRgb($text_color, 0.7));
             $html .= '</style>';
 
-            echo $html;
+            echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
 
         if (is_singular() && has_block('memberpress/pro-account-tabs')) {
@@ -871,8 +833,32 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             $html .= sprintf('#mepr-account-nav .mepr-nav-item a{color:rgba(%s)}', self::hexToRgb($text_color, 0.7));
             $html .= '</style>';
 
-            echo $html;
+            echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
+    }
+
+    /**
+     * Add the header.
+     *
+     * @param  array $args The arguments.
+     * @return void
+     */
+    public static function add_header($args)
+    {
+        extract($args, EXTR_SKIP);
+        MeprView::render('/readylaunch/layout/header', get_defined_vars());
+    }
+
+    /**
+     * Add the footer.
+     *
+     * @param  array $args The arguments.
+     * @return void
+     */
+    public static function add_footer($args)
+    {
+        extract($args, EXTR_SKIP);
+        MeprView::render('/readylaunch/layout/footer', get_defined_vars());
     }
 
     /**
@@ -936,9 +922,9 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
     {
         $hex      = str_replace('#', '', $hex);
         $length   = strlen($hex);
-        $rgb['r'] = hexdec($length == 6 ? substr($hex, 0, 2) : ( $length == 3 ? str_repeat(substr($hex, 0, 1), 2) : 0 ));
-        $rgb['g'] = hexdec($length == 6 ? substr($hex, 2, 2) : ( $length == 3 ? str_repeat(substr($hex, 1, 1), 2) : 0 ));
-        $rgb['b'] = hexdec($length == 6 ? substr($hex, 4, 2) : ( $length == 3 ? str_repeat(substr($hex, 2, 1), 2) : 0 ));
+        $rgb['r'] = hexdec($length === 6 ? substr($hex, 0, 2) : ( $length === 3 ? str_repeat(substr($hex, 0, 1), 2) : 0 ));
+        $rgb['g'] = hexdec($length === 6 ? substr($hex, 2, 2) : ( $length === 3 ? str_repeat(substr($hex, 1, 1), 2) : 0 ));
+        $rgb['b'] = hexdec($length === 6 ? substr($hex, 4, 2) : ( $length === 3 ? str_repeat(substr($hex, 2, 1), 2) : 0 ));
         if ($alpha) {
             $rgb['a'] = $alpha;
         }

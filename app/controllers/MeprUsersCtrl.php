@@ -49,9 +49,9 @@ class MeprUsersCtrl extends MeprBaseCtrl
         add_filter('wp_privacy_personal_data_erasers', [$this, 'register_mepr_data_eraser'], 10);
 
         // Shortcodes.
-        MeprHooks::add_shortcode('mepr-list-subscriptions', 'MeprUsersCtrl::list_users_subscriptions');
-        MeprHooks::add_shortcode('mepr-user-file', 'MeprUsersCtrl::show_user_file');
-        MeprHooks::add_shortcode('mepr-user-active-membership-titles', 'MeprUsersCtrl::get_user_active_membership_titles');
+        MeprHooks::add_shortcode('mepr_list_subscriptions', 'MeprUsersCtrl::list_users_subscriptions');
+        MeprHooks::add_shortcode('mepr_user_file', 'MeprUsersCtrl::show_user_file');
+        MeprHooks::add_shortcode('mepr_user_active_membership_titles', 'MeprUsersCtrl::get_user_active_membership_titles');
     }
 
     /**
@@ -64,7 +64,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
     public static function enqueue_admin_scripts($hook)
     {
 
-        if (! in_array($hook, ['user-edit.php', 'profile.php'])) {
+        if (! in_array($hook, ['user-edit.php', 'profile.php'], true)) {
             return;
         }
 
@@ -88,9 +88,16 @@ class MeprUsersCtrl extends MeprBaseCtrl
             wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/vendor/intlTelInput.js', [], '16.0.0', true);
             wp_enqueue_script('mepr-phone-utils-js', MEPR_JS_URL . '/vendor/intlTelInputUtils.js', ['mepr-phone-js'], '16.0.0', true);
             wp_enqueue_script('mepr-tel-config-js', MEPR_JS_URL . '/tel_input.js', ['mepr-phone-js'], MEPR_VERSION, true);
-            wp_localize_script('mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters('mepr-phone-input-config', [
+            wp_localize_script('mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters('mepr_phone_input_config', [
                 'defaultCountry' => strtolower(get_option('mepr_biz_country')),
                 'onlyCountries'  => '',
+                'i18n' => [
+                    'selectCountryCode' => esc_html__('Select country code', 'memberpress'),
+                    'countryCodeOptions' => esc_html__('Country code options', 'memberpress'),
+                    'countryChangedTo' => esc_html__('Country changed to', 'memberpress'),
+                    'countryCode' => esc_html__('country code', 'memberpress'),
+                    'phoneNumberInput' => esc_html__('Phone number input', 'memberpress'),
+                ],
             ]));
         }
     }
@@ -163,12 +170,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
      */
     public static function resend_welcome_email_callback()
     {
-        $ajax_nonce   = $_REQUEST['nonce'];
+        $ajax_nonce   = sanitize_text_field(wp_unslash($_REQUEST['nonce'] ?? ''));
         $mepr_options = MeprOptions::fetch();
 
         if (wp_verify_nonce($ajax_nonce, 'mepr_resend_welcome_email')) {
             if (MeprUtils::is_logged_in_and_an_admin()) {
-                $usr = new MeprUser($_REQUEST['uid']);
+                $usr = new MeprUser(intval(wp_unslash($_REQUEST['uid'] ?? 0)));
 
                 // Get the most recent transaction.
                 $txns = MeprTransaction::get_all_complete_by_user_id(
@@ -181,7 +188,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 );
 
                 if (count($txns) <= 0) {
-                    die(__('This user hasn\'t purchased any memberships - so no email will be sent.', 'memberpress'));
+                    wp_die(esc_html__('This user hasn\'t purchased any memberships - so no email will be sent.', 'memberpress'));
                 }
 
                 $txn    = new MeprTransaction($txns[0]->id);
@@ -192,14 +199,14 @@ class MeprUsersCtrl extends MeprBaseCtrl
                     $uemail     = MeprEmailFactory::fetch('MeprUserWelcomeEmail');
                     $uemail->to = $usr->formatted_email();
                     $uemail->send($params);
-                    die(__('Message Sent', 'memberpress'));
+                    wp_die(esc_html__('Message Sent', 'memberpress'));
                 } catch (Exception $e) {
-                    die(__('There was an issue sending the email', 'memberpress'));
+                    wp_die(esc_html__('There was an issue sending the email', 'memberpress'));
                 }
             }
-            die(__('Why you creepin\'?', 'memberpress'));
+            wp_die(esc_html__('Why you creepin\'?', 'memberpress'));
         }
-        die(__('Cannot resend message', 'memberpress'));
+        wp_die(esc_html__('Cannot resend message', 'memberpress'));
     }
 
     /**
@@ -214,16 +221,6 @@ class MeprUsersCtrl extends MeprBaseCtrl
         MeprSubscription::nullify_user_id_on_delete($id);
 
         return $id;
-    }
-
-    /**
-     * Email users with expiring transactions.
-     *
-     * @return boolean|void
-     */
-    public static function email_users_with_expiring_transactions()
-    {
-        return MeprUser::email_users_with_expiring_transactions();
     }
 
     // Not needed
@@ -241,7 +238,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
      */
     public static function enqueue_scripts($hook)
     {
-        if ($hook == 'user-edit.php' || $hook == 'profile.php') {
+        if ($hook === 'user-edit.php' || $hook === 'profile.php') {
             wp_enqueue_style('mepr-jquery-ui-smoothness', MEPR_CSS_URL . '/vendor/jquery-ui/smoothness.min.css', [], '1.13.3');
             wp_enqueue_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness'], MEPR_VERSION);
 
@@ -284,7 +281,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
         $user         = new MeprUser($user_id);
 
         if (isset($_POST[MeprUser::$user_message_str])) {
-            update_user_meta($user_id, MeprUser::$user_message_str, (string)wp_kses_post($_POST[MeprUser::$user_message_str]));
+            update_user_meta($user_id, MeprUser::$user_message_str, wp_slash(wp_kses_post(wp_unslash($_POST[MeprUser::$user_message_str]))));
         }
 
         // Get the right custom fields.
@@ -302,10 +299,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         // Since we use user_* for these, we need to artifically set the $_POST keys correctly for this to work.
         if (!isset($_POST['first_name']) || empty($_POST['first_name'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             $_POST['first_name'] = (isset($_POST['user_first_name'])) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
         }
 
         if (!isset($_POST['last_name']) || empty($_POST['last_name'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             $_POST['last_name'] = (isset($_POST['user_last_name'])) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
         }
 
@@ -343,12 +342,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
         if (empty($errors)) {
             // TODO: move this somewhere it makes more sense.
             if (isset($_POST['mepr-geo-country'])) {
-                update_user_meta($user_id, 'mepr-geo-country', sanitize_text_field($_POST['mepr-geo-country']));
+                update_user_meta($user_id, 'mepr-geo-country', wp_slash(sanitize_text_field(wp_unslash($_POST['mepr-geo-country']))));
             }
 
             foreach ($custom_fields as $line) {
                 // Allows fields to be selectively saved.
-                if (! empty($selected) && ! in_array($line->field_key, $selected)) {
+                if (! empty($selected) && ! in_array($line->field_key, $selected, true)) {
                     continue;
                 }
 
@@ -362,17 +361,18 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 }
 
                 if (isset($_POST[$line->field_key]) && !empty($_POST[$line->field_key])) {
-                    if (in_array($line->field_type, ['checkboxes', 'multiselect'])) {
-                        update_user_meta($user_id, $line->field_key, array_map('sanitize_text_field', array_filter($_POST[$line->field_key])));
-                    } elseif ($line->field_type == 'textarea') {
-                        update_user_meta($user_id, $line->field_key, sanitize_textarea_field($_POST[$line->field_key]));
+                    if (in_array($line->field_type, ['checkboxes', 'multiselect'], true)) {
+                        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                        update_user_meta($user_id, $line->field_key, wp_slash(array_map('sanitize_text_field', array_filter(wp_unslash($_POST[$line->field_key])))));
+                    } elseif ($line->field_type === 'textarea') {
+                        update_user_meta($user_id, $line->field_key, wp_slash(sanitize_textarea_field(wp_unslash($_POST[$line->field_key]))));
                     } else {
-                        update_user_meta($user_id, $line->field_key, sanitize_text_field($_POST[$line->field_key]));
+                        update_user_meta($user_id, $line->field_key, wp_slash(sanitize_text_field(wp_unslash($_POST[$line->field_key]))));
                     }
                 } else {
-                    if ($line->field_type == 'file') {
-                        if (isset($_FILES[$line->field_key]['error']) && $_FILES[$line->field_key]['error'] != UPLOAD_ERR_NO_FILE) {
-                              $file = $_FILES[$line->field_key];
+                    if ($line->field_type === 'file') {
+                        if (isset($_FILES[$line->field_key]['error']) && (int) $_FILES[$line->field_key]['error'] !== UPLOAD_ERR_NO_FILE) {
+                              $file = map_deep($_FILES[$line->field_key], 'sanitize_text_field');
 
                             if (!empty($file['name']) && !empty($file['size']) && !empty($file['tmp_name']) && is_uploaded_file($file['tmp_name'])) {
                                 add_filter('upload_dir', 'MeprUsersHelper::get_upload_dir');
@@ -394,9 +394,9 @@ class MeprUsersCtrl extends MeprBaseCtrl
                                 remove_filter('upload_dir', 'MeprUsersHelper::get_upload_dir');
                             }
                         }
-                    } elseif ($line->field_type == 'checkbox') {
+                    } elseif ($line->field_type === 'checkbox') {
                         update_user_meta($user_id, $line->field_key, false);
-                    } elseif (in_array($line->field_type, ['checkboxes', 'multiselect'])) {
+                    } elseif (in_array($line->field_type, ['checkboxes', 'multiselect'], true)) {
                         update_user_meta($user_id, $line->field_key, []);
                     } else {
                         update_user_meta($user_id, $line->field_key, '');
@@ -467,7 +467,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         foreach ($custom_fields as $line) {
             // Allows fields to be selectively validated.
-            if (! empty($selected) && ! in_array($line->field_key, $selected)) {
+            if (! empty($selected) && ! in_array($line->field_key, $selected, true)) {
                 continue;
             }
 
@@ -480,7 +480,15 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 $line->required = false;
             }
 
-            if ((!isset($_POST[$line->field_key]) || (empty($_POST[$line->field_key]) && $_POST[$line->field_key] != '0')) && $line->required && 'file' != $line->field_type) {
+            // Special handling for state/province field - not required for countries without states.
+            if ($line->field_key === 'mepr-address-state' && isset($_POST['mepr-address-country'])) {
+                $country = sanitize_text_field(wp_unslash($_POST['mepr-address-country']));
+                if (in_array($country, MeprUtils::get_countries_without_states(), true)) {
+                    $line->required = false;
+                }
+            }
+
+            if ((!isset($_POST[$line->field_key]) || (empty($_POST[$line->field_key]) && $_POST[$line->field_key] !== '0')) && $line->required && 'file' !== $line->field_type) {
                 $errs[$line->field_key] = sprintf(
                     // Translators: %s: field name.
                     __('%s is required.', 'memberpress'),
@@ -497,12 +505,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 }
             }
 
-            if ('file' == $line->field_type) {
-                $file_provided = isset($_FILES[$line->field_key]['error']) && $_FILES[$line->field_key]['error'] != UPLOAD_ERR_NO_FILE;
+            if ('file' === $line->field_type) {
+                $file_provided = isset($_FILES[$line->field_key]['error']) && (int) $_FILES[$line->field_key]['error'] !== UPLOAD_ERR_NO_FILE;
 
                 if ($file_provided) {
                     // Validate new file upload.
-                    $file = $_FILES[$line->field_key];
+                    $file = map_deep($_FILES[$line->field_key], 'sanitize_text_field');
 
                     if (empty($file['tmp_name']) || empty($file['name']) || empty($file['size'])) {
                         if ($line->required) {
@@ -512,7 +520,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
                                 stripslashes($line->field_name)
                             );
                         }
-                    } elseif ($file['error'] == UPLOAD_ERR_OK) {
+                    } elseif ((int) $file['error'] === UPLOAD_ERR_OK) {
                         add_filter('upload_mimes', 'MeprUsersHelper::get_allowed_mime_types');
                         $wp_filetype = wp_check_filetype($file['name']);
                         remove_filter('upload_mimes', 'MeprUsersHelper::get_allowed_mime_types');
@@ -547,8 +555,8 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 }
             }
 
-            if ($line->required && 'email' == $line->field_type && !empty($_POST[$line->field_key])) {
-                if (!is_email(stripcslashes($_POST[$line->field_key]))) {
+            if ($line->required && 'email' === $line->field_type && !empty($_POST[$line->field_key])) {
+                if (!is_email(stripcslashes(sanitize_email(wp_unslash($_POST[$line->field_key]))))) {
                     $errs[$line->field_key] = sprintf(
                         // Translators: %s: field name.
                         __('%s is not a valid email address.', 'memberpress'),
@@ -557,8 +565,8 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 }
             }
 
-            if ($line->required && 'url' == $line->field_type && !empty($_POST[$line->field_key])) {
-                if (!preg_match('/(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&\/\/=]*)/', $_POST[$line->field_key])) {
+            if ($line->required && 'url' === $line->field_type && !empty($_POST[$line->field_key])) {
+                if (!preg_match('/(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&\/\/=]*)/', sanitize_url(wp_unslash($_POST[$line->field_key])))) {
                     $errs[$line->field_key] = sprintf(
                         // Translators: %s: field name.
                         __('%s is not a valid URL.', 'memberpress'),
@@ -567,8 +575,8 @@ class MeprUsersCtrl extends MeprBaseCtrl
                 }
             }
 
-            if ('date' == $line->field_type && !empty($_POST[$line->field_key])) {
-                if (!MeprUtils::is_date($_POST[$line->field_key])) {
+            if ('date' === $line->field_type && !empty($_POST[$line->field_key])) {
+                if (!MeprUtils::is_date(sanitize_text_field(wp_unslash($_POST[$line->field_key])))) {
                     $errs[$line->field_key] = sprintf(
                         // Translators: %s: field name.
                         __('%s is not a valid date.', 'memberpress'),
@@ -594,7 +602,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         // The jQuery suggest plugin has already trimmed and escaped user input (\ becomes \\)
         // so we just need to sanitize the username.
-        $s = sanitize_user($_GET['q']);
+        $s = sanitize_user(wp_unslash($_GET['q'] ?? ''));
 
         if (strlen($s) < 2) {
             die; // Require 2 characters for matching.
@@ -649,12 +657,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
         $vars    = $query->query_vars;
         $mepr_db = new MeprDb();
 
-        if (isset($vars['orderby']) && $vars['orderby'] == 'last_login') {
+        if (isset($vars['orderby']) && $vars['orderby'] === 'last_login') {
             $query->query_fields .= ", (SELECT e.created_at FROM {$mepr_db->events} AS e WHERE {$wpdb->users}.ID = e.evt_id AND e.evt_id_type='" . MeprEvent::$users_str . "' AND e.event = '" . MeprEvent::$login_event_str . "' ORDER BY e.created_at DESC LIMIT 1) AS last_login";
             $query->query_orderby = "ORDER BY last_login {$vars['order']}";
         }
 
-        if (isset($vars['orderby']) && $vars['orderby'] == 'num_logins') {
+        if (isset($vars['orderby']) && $vars['orderby'] === 'num_logins') {
             $query->query_fields .= ", (SELECT count(*) FROM {$mepr_db->events} AS e WHERE {$wpdb->users}.ID = e.evt_id AND e.evt_id_type='" . MeprEvent::$users_str . "' AND e.event = '" . MeprEvent::$login_event_str . "') AS num_logins";
             $query->query_orderby = "ORDER BY num_logins {$vars['order']}";
         }
@@ -672,12 +680,12 @@ class MeprUsersCtrl extends MeprBaseCtrl
     {
         $user = new MeprUser($user_id);
 
-        if ($column_name == 'mepr_registered') {
+        if ($column_name === 'mepr_registered') {
             $registered = $user->user_registered;
             return MeprAppHelper::format_date($registered, __('Unknown', 'memberpress'), 'M j, Y') . '<br/>' . MeprAppHelper::format_date($registered, __('Unknown', 'memberpress'), 'g:i A');
         }
 
-        if ($column_name == 'mepr_products') {
+        if ($column_name === 'mepr_products') {
             $titles = $user->get_active_subscription_titles('<br/>');
 
             if (!empty($titles)) {
@@ -687,7 +695,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             }
         }
 
-        if ($column_name == 'mepr_last_login') {
+        if ($column_name === 'mepr_last_login') {
             $login = $user->get_last_login_data();
 
             if (!empty($login)) {
@@ -697,7 +705,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             }
         }
 
-        if ($column_name == 'mepr_num_logins') {
+        if ($column_name === 'mepr_num_logins') {
             return (int)$user->get_num_logins();
         }
 
@@ -719,7 +727,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
 
         // Don't mess up admin_post.php requests.
-        if (strpos($_SERVER['REQUEST_URI'], 'admin-post.php') !== false && isset($_REQUEST['action'])) {
+        if (strpos(sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '')), 'admin-post.php') !== false && isset($_REQUEST['action'])) {
             return;
         }
 
@@ -775,7 +783,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
 
         $mepr_options = MeprOptions::fetch();
 
-        if (isset($post) && $post instanceof WP_Post && $post->ID == $mepr_options->login_page_id) {
+        if (isset($post) && $post instanceof WP_Post && $post->ID === $mepr_options->login_page_id) {
             add_meta_box('mepr_login_page_meta_box', __('MemberPress Settings', 'memberpress'), 'MeprUsersCtrl::show_login_page_meta_box', 'page', 'normal', 'high');
         }
     }
@@ -809,7 +817,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
         $post         = get_post($post_id);
         $mepr_options = MeprOptions::fetch();
 
-        if (!wp_verify_nonce((isset($_POST[MeprUser::$nonce_str])) ? $_POST[MeprUser::$nonce_str] : '', MeprUser::$nonce_str . wp_salt())) {
+        if (!wp_verify_nonce((isset($_POST[MeprUser::$nonce_str])) ? sanitize_text_field(wp_unslash($_POST[MeprUser::$nonce_str])) : '', MeprUser::$nonce_str . wp_salt())) {
             return $post_id; // Nonce prevents meta data from being wiped on move to trash.
         }
 
@@ -821,7 +829,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             return;
         }
 
-        if (!empty($post) && $post->ID == $mepr_options->login_page_id) {
+        if (!empty($post) && $post->ID === $mepr_options->login_page_id) {
             $manual_login_form = (isset($_POST['_mepr_manual_login_form']));
             update_post_meta($post->ID, '_mepr_manual_login_form', $manual_login_form);
         }
@@ -854,7 +862,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
             $prd        = new MeprProduct($id);
             $created_at = MeprUser::get_user_product_signup_date($user->ID, $id);
 
-            if (in_array($id, $active_ids) && $status !== 'expired') {
+            if (in_array((int) $id, array_map('intval', $active_ids), true) && $status !== 'expired') {
                 $expiring_txn = MeprUser::get_user_product_expires_at_date($user->ID, $id, true);
                 $renewal_link = '';
                 $expires_at   = _x('Unknown', 'ui', 'memberpress');
@@ -871,7 +879,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
                     'access_url'   => $prd->access_url,
                     'created_at'   => $created_at,
                 ];
-            } elseif (!in_array($id, $active_ids) && in_array($status, ['expired', 'all'])) {
+            } elseif (!in_array((int) $id, array_map('intval', $active_ids), true) && in_array($status, ['expired', 'all'], true)) {
                 $inactive_rows[] = (object)[
                     'membership'    => $prd->post_title,
                     'purchase_link' => $prd->url(),
@@ -881,9 +889,9 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
 
         // Sorting active subs.
-        if (!empty($active_rows) && isset($atts['orderby']) && in_array($atts['orderby'], ['date', 'title'])) {
-            if ($atts['orderby'] == 'date') {
-                if ($atts['order'] == 'asc') {
+        if (!empty($active_rows) && isset($atts['orderby']) && in_array($atts['orderby'], ['date', 'title'], true)) {
+            if ($atts['orderby'] === 'date') {
+                if ($atts['order'] === 'asc') {
                     usort($active_rows, function ($a, $b) {
                         return $a->created_at <=> $b->created_at;
                     });
@@ -893,8 +901,8 @@ class MeprUsersCtrl extends MeprBaseCtrl
                     });
                 }
             }
-            if ($atts['orderby'] == 'title') {
-                if ($atts['order'] == 'desc') {
+            if ($atts['orderby'] === 'title') {
+                if ($atts['order'] === 'desc') {
                     usort($active_rows, function ($a, $b) {
                         return $b->membership <=> $a->membership;
                     });
@@ -907,9 +915,9 @@ class MeprUsersCtrl extends MeprBaseCtrl
         }
 
         // Sorting inactive subs.
-        if (!empty($inactive_rows) && isset($atts['orderby']) && in_array($atts['orderby'], ['date', 'title'])) {
-            if ($atts['orderby'] == 'date') {
-                if ($atts['order'] == 'asc') {
+        if (!empty($inactive_rows) && isset($atts['orderby']) && in_array($atts['orderby'], ['date', 'title'], true)) {
+            if ($atts['orderby'] === 'date') {
+                if ($atts['order'] === 'asc') {
                     usort($inactive_rows, function ($a, $b) {
                         return $a->created_at <=> $b->created_at;
                     });
@@ -919,8 +927,8 @@ class MeprUsersCtrl extends MeprBaseCtrl
                     });
                 }
             }
-            if ($atts['orderby'] == 'title') {
-                if ($atts['order'] == 'desc') {
+            if ($atts['orderby'] === 'title') {
+                if ($atts['order'] === 'desc') {
                     usort($inactive_rows, function ($a, $b) {
                         return $b->membership <=> $a->membership;
                     });
@@ -990,6 +998,6 @@ class MeprUsersCtrl extends MeprBaseCtrl
         $message = (isset($atts['message']) && !empty($atts['message'])) ? wp_kses_post($atts['message']) : '';
         $titles  = esc_attr(trim($user->get_active_subscription_titles()));
 
-        return ('' != $titles) ? $titles : $message;
+        return ('' !== $titles) ? $titles : $message;
     }
 }

@@ -17,7 +17,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
         add_action('wp_ajax_nopriv_mepr_stripe_create_account_setup_intent', [$this, 'create_account_setup_intent']);
         add_action('wp_ajax_mepr_stripe_update_payment_method', [$this, 'update_payment_method']);
         add_action('wp_ajax_nopriv_mepr_stripe_update_payment_method', [$this, 'update_payment_method']);
-        add_action('mepr-update-new-user-email', [$this, 'update_user_email']);
+        add_action('mepr_update_new_user_email', [$this, 'update_user_email']);
         add_action('mepr_stripe_record_sub_payment', [$this, 'update_charge_metadata']);
     }
 
@@ -48,7 +48,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
 
         $usr = $sub->user();
 
-        if ($usr->ID != get_current_user_id()) {
+        if ($usr->ID !== get_current_user_id()) {
             wp_send_json_error(__('This subscription is for another user.', 'memberpress'));
         }
 
@@ -109,7 +109,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
 
         $usr = $sub->user();
 
-        if ($usr->ID != get_current_user_id()) {
+        if ($usr->ID !== get_current_user_id()) {
             MeprUtils::wp_redirect(add_query_arg(['errors' => urlencode(__('This subscription is for another user.', 'memberpress'))], $return_url));
         }
 
@@ -122,13 +122,13 @@ class MeprStripeCtrl extends MeprBaseCtrl
         try {
             $setup_intent = $pm->retrieve_setup_intent($setup_intent_id);
 
-            if ($setup_intent->status != 'succeeded') {
+            if ($setup_intent->status !== 'succeeded') {
                 MeprUtils::wp_redirect(add_query_arg(['errors' => urlencode(__('The payment setup was unsuccessful, please try another payment method.', 'memberpress'))], $return_url));
             }
 
             $subscription = $pm->update_subscription_payment_method($sub, $usr, (object) $setup_intent->payment_method);
 
-            if ($subscription->latest_invoice && $subscription->latest_invoice['status'] == 'open') {
+            if ($subscription->latest_invoice && $subscription->latest_invoice['status'] === 'open') {
                 try {
                     $pm->retry_invoice_payment($subscription->latest_invoice['id']);
                 } catch (Exception $e) {
@@ -152,7 +152,7 @@ class MeprStripeCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         foreach ($mepr_options->integrations as $integration) {
-            if ($integration['gateway'] == 'MeprStripeGateway') {
+            if ($integration['gateway'] === 'MeprStripeGateway') {
                 $payment_method = new MeprStripeGateway();
                 $payment_method->load($integration);
                 $stripe_customer_id = $user->get_stripe_customer_id($payment_method->get_meta_gateway_id());

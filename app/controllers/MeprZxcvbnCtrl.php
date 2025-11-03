@@ -15,12 +15,12 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
     {
         add_action('after_setup_theme', function () {
             if (MeprOptions::fetch()->enforce_strong_password) {
-                add_filter('mepr-signup-scripts', 'MeprZxcvbnCtrl::load_scripts', 10, 3);
+                add_filter('mepr_signup_scripts', 'MeprZxcvbnCtrl::load_scripts', 10, 3);
                 add_action('wp_enqueue_scripts', 'MeprZxcvbnCtrl::load_reset_password_scripts');
-                add_action('mepr-after-password-fields', 'MeprZxcvbnCtrl::display_meter');
-                add_action('mepr-account-after-password-fields', 'MeprZxcvbnCtrl::display_meter');
-                add_action('mepr-reset-password-after-password-fields', 'MeprZxcvbnCtrl::display_meter');
-                add_filter('mepr-validate-signup', 'MeprZxcvbnCtrl::validate_signup');
+                add_action('mepr_after_password_fields', 'MeprZxcvbnCtrl::display_meter');
+                add_action('mepr_account_after_password_fields', 'MeprZxcvbnCtrl::display_meter');
+                add_action('mepr_reset_password_after_password_fields', 'MeprZxcvbnCtrl::display_meter');
+                add_filter('mepr_validate_signup', 'MeprZxcvbnCtrl::validate_signup');
             }
         }, 20);
     }
@@ -98,7 +98,7 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
 
-        if (!$mepr_options->global_styles && isset($_GET['action']) && $_GET['action'] == 'reset_password') {
+        if (!$mepr_options->global_styles && isset($_GET['action']) && $_GET['action'] === 'reset_password') {
             $i18n = self::get_i18n_array();
 
             wp_register_script('mepr-zxcvbn', MEPR_JS_URL . '/zxcvbn-async.js', ['jquery']);
@@ -120,10 +120,10 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
 
         ?>
     <div class="mp-form-row mp-password-strength-area">
-      <span class="mp-password-strength-display mp-nopass"><?php _e('Password Strength', 'memberpress'); ?></span>
+      <span class="mp-password-strength-display mp-nopass"><?php esc_html_e('Password Strength', 'memberpress'); ?></span>
 
         <?php if (!empty($required_str)) : ?>
-        <span>&nbsp;<small><em><?php echo $required_str; ?></em></small></span>
+        <span>&nbsp;<small><em><?php echo esc_html($required_str); ?></em></small></span>
         <?php endif; ?>
 
       <input type="hidden" name="mp-pass-strength" class="mp-pass-strength" value="0" />
@@ -153,7 +153,7 @@ class MeprZxcvbnCtrl extends MeprBaseCtrl
                 break;
         }
 
-        return MeprHooks::apply_filters('mepr-password-meter-text', $txt, $mepr_options->enforce_strong_password);
+        return MeprHooks::apply_filters('mepr_password_meter_text', $txt, $mepr_options->enforce_strong_password);
     }
 
     /**

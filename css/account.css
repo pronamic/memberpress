@@ -11,21 +11,25 @@
 }
 
 .mepr-white-popup .mepr-btn {
-  -webkit-border-radius: 5;
-  -moz-border-radius: 5;
   border-radius: 5px;
-  font-family: Arial;
-  color: #ffffff;
+  font-family: Arial, sans-serif;
+  color: #fff;
   font-size: 14px;
   background: #3498db;
-  padding: 10px 20px 10px 20px;
+  padding: 10px 20px;
   text-decoration: none;
   cursor: pointer;
 }
 
-.mepr-white-popup .mepr-btn:hover {
+.mepr-white-popup .mepr-btn:hover,
+.mepr-white-popup .mepr-btn:active,
+.mepr-white-popup .mepr-btn:focus-visible {
   background: #3cb0fd;
   text-decoration: none;
+}
+
+.mepr-white-popup .mepr-btn:focus-visible {
+  outline: dashed #3cb0fd;
 }
 
 .mepr-white-popup .mepr-cancel-sub-text {

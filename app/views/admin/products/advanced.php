@@ -4,7 +4,7 @@
 
 <div class="product-options-panel">
   <div id="mepr-product-access-url">
-    <label for="<?php echo MeprProduct::$access_url_str; ?>"><?php _e('Membership Access URL', 'memberpress'); ?></label>
+    <label for="<?php echo esc_attr(MeprProduct::$access_url_str); ?>"><?php esc_html_e('Membership Access URL', 'memberpress'); ?></label>
     <?php MeprAppHelper::info_tooltip(
         'mepr-product-access-url',
         __('Membership Access URL', 'memberpress'),
@@ -12,16 +12,16 @@
     );
                 ?>
     &nbsp;&nbsp;
-    <input type="text" name="<?php echo MeprProduct::$access_url_str; ?>" id="<?php echo MeprProduct::$access_url_str; ?>" value="<?php echo stripslashes($product->access_url); ?>" size="50" />
+    <input type="text" name="<?php echo esc_attr(MeprProduct::$access_url_str); ?>" id="<?php echo esc_attr(MeprProduct::$access_url_str); ?>" value="<?php echo esc_attr(stripslashes($product->access_url)); ?>" size="50" />
   </div>
 
   <div id="mepr-register-price" class="mepr-product-adv-item">
-    <label for="<?php echo MeprProduct::$register_price_action_str; ?>">
-      <span><?php _e('Membership Pricing Terms:', 'memberpress'); ?></span>
-      <select name="<?php echo MeprProduct::$register_price_action_str; ?>" id="<?php echo MeprProduct::$register_price_action_str; ?>">
-        <option value="default"<?php selected($product->register_price_action, 'default'); ?>><?php _e('Default', 'memberpress'); ?></option>
-        <option value="custom"<?php selected($product->register_price_action, 'custom'); ?>><?php _e('Custom', 'memberpress'); ?></option>
-        <option value="hidden"<?php selected($product->register_price_action, 'hidden'); ?>><?php _e('Hidden', 'memberpress'); ?></option>
+    <label for="<?php echo esc_attr(MeprProduct::$register_price_action_str); ?>">
+      <span><?php esc_html_e('Membership Pricing Terms:', 'memberpress'); ?></span>
+      <select name="<?php echo esc_attr(MeprProduct::$register_price_action_str); ?>" id="<?php echo esc_attr(MeprProduct::$register_price_action_str); ?>">
+        <option value="default"<?php selected($product->register_price_action, 'default'); ?>><?php esc_html_e('Default', 'memberpress'); ?></option>
+        <option value="custom"<?php selected($product->register_price_action, 'custom'); ?>><?php esc_html_e('Custom', 'memberpress'); ?></option>
+        <option value="hidden"<?php selected($product->register_price_action, 'hidden'); ?>><?php esc_html_e('Hidden', 'memberpress'); ?></option>
       </select>
       <?php
         MeprAppHelper::info_tooltip(
@@ -37,14 +37,14 @@
     </label>
 
     <div class="product-options-panel mepr-hidden">
-      <span><?php _e('Custom Registration Pricing Terms:', 'memberpress'); ?></span>
-      <input type="text" name="<?php echo MeprProduct::$register_price_str; ?>" id="<?php echo MeprProduct::$register_price_str; ?>" value="<?php echo stripslashes($product->register_price); ?>" size="50" />
+      <span><?php esc_html_e('Custom Registration Pricing Terms:', 'memberpress'); ?></span>
+      <input type="text" name="<?php echo esc_attr(MeprProduct::$register_price_str); ?>" id="<?php echo esc_attr(MeprProduct::$register_price_str); ?>" value="<?php echo esc_attr(stripslashes($product->register_price)); ?>" size="50" />
     </div>
   </div>
 
   <div id="mepr-custom-login-redirect-urls">
-    <input type="checkbox" name="<?php echo MeprProduct::$custom_login_urls_enabled_str; ?>" id="<?php echo MeprProduct::$custom_login_urls_enabled_str; ?>" <?php checked($product->custom_login_urls_enabled); ?> />
-    <label for="<?php echo MeprProduct::$custom_login_urls_enabled_str; ?>"><?php _e('Custom Login Redirect URLs', 'memberpress'); ?></label>
+    <input type="checkbox" name="<?php echo esc_attr(MeprProduct::$custom_login_urls_enabled_str); ?>" id="<?php echo esc_attr(MeprProduct::$custom_login_urls_enabled_str); ?>" <?php checked($product->custom_login_urls_enabled); ?> />
+    <label for="<?php echo esc_attr(MeprProduct::$custom_login_urls_enabled_str); ?>"><?php esc_html_e('Custom Login Redirect URLs', 'memberpress'); ?></label>
     <?php
         MeprAppHelper::info_tooltip(
             'mepr-customize-login-redirections',
@@ -54,8 +54,8 @@
         ?>
 
     <div id="mepr-custom-login-urls-area">
-      <label><?php _e('Default Login Redirect URL', 'memberpress'); ?></label>
-      <input type="text" name="<?php echo MeprProduct::$custom_login_urls_default_str; ?>" value="<?php echo $product->custom_login_urls_default; ?>" size="50" />
+      <label><?php esc_html_e('Default Login Redirect URL', 'memberpress'); ?></label>
+      <input type="text" name="<?php echo esc_attr(MeprProduct::$custom_login_urls_default_str); ?>" value="<?php echo esc_attr($product->custom_login_urls_default); ?>" size="50" />
       <?php
         MeprAppHelper::info_tooltip(
             'mepr-custom-login-urls-default',
@@ -64,7 +64,7 @@
         );
         ?>
       <div id="custom-login-urls-list-area">
-        <label><?php _e('Add Custom Login Redirect URLs', 'memberpress'); ?>:</label>
+        <label><?php esc_html_e('Add Custom Login Redirect URLs', 'memberpress'); ?>:</label>
         <?php
           MeprAppHelper::info_tooltip(
               'mepr-add-custom-login-urls',
@@ -77,14 +77,14 @@
                 <?php foreach ($product->custom_login_urls as $url) : ?>
               <li>
                 <span class="custom_login_urls_item">
-                  <label><?php _e('URL', 'memberpress'); ?></label>
-                  <input type="text" name="<?php echo MeprProduct::$custom_login_urls_str; ?>[]" value="<?php echo htmlentities(stripslashes($url->url), ENT_QUOTES); ?>" size="50" />
+                  <label><?php esc_html_e('URL', 'memberpress'); ?></label>
+                  <input type="text" name="<?php echo esc_attr(MeprProduct::$custom_login_urls_str); ?>[]" value="<?php echo esc_attr(stripslashes($url->url)); ?>" size="50" />
                   &nbsp;
-                  <label><?php _e('Login #', 'memberpress'); ?></label>
-                  <input type="text" name="_mepr_custom_login_urls_count[]" value="<?php echo $url->count; ?>" size="5" />
+                  <label><?php esc_html_e('Login #', 'memberpress'); ?></label>
+                  <input type="text" name="_mepr_custom_login_urls_count[]" value="<?php echo esc_attr($url->count); ?>" size="5" />
 
                   <span class="remove-span">
-                    <a href="" class="custom_login_urls_remove_url" title="<?php _e('Remove URL', 'memberpress'); ?>"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a>
+                    <a href="" class="custom_login_urls_remove_url" title="<?php esc_attr_e('Remove URL', 'memberpress'); ?>"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a>
                   </span>
                 </span>
               </li>
@@ -92,14 +92,14 @@
           <?php else : ?>
               <li>
                 <span class="custom_login_urls_item">
-                  <label><?php _e('URL', 'memberpress'); ?></label>
-                  <input type="text" name="<?php echo MeprProduct::$custom_login_urls_str; ?>[]" value="" size="50" />
+                  <label><?php esc_html_e('URL', 'memberpress'); ?></label>
+                  <input type="text" name="<?php echo esc_attr(MeprProduct::$custom_login_urls_str); ?>[]" value="" size="50" />
                   &nbsp;
-                  <label><?php _e('Login #', 'memberpress'); ?></label>
+                  <label><?php esc_html_e('Login #', 'memberpress'); ?></label>
                   <input type="text" name="_mepr_custom_login_urls_count[]" value="1" size="3" />
 
                   <span class="remove-span">
-                    <a href="" class="custom_login_urls_remove_url" title="<?php _e('Remove URL', 'memberpress'); ?>"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a>
+                    <a href="" class="custom_login_urls_remove_url" title="<?php esc_attr_e('Remove URL', 'memberpress'); ?>"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a>
                   </span>
                 </span>
               </li>
@@ -107,11 +107,11 @@
         </ul>
 
         <span>
-          <a href="" class="custom-login-urls-new-url" title="<?php _e('Add URL', 'memberpress'); ?>"><i class="mp-icon mp-icon-plus-circled mp-24"></i></a>
+          <a href="" class="custom-login-urls-new-url" title="<?php esc_attr_e('Add URL', 'memberpress'); ?>"><i class="mp-icon mp-icon-plus-circled mp-24"></i></a>
         </span>
       </div>
     </div>
   </div>
 
-  <?php MeprHooks::do_action('mepr-product-advanced-metabox', $product); ?>
+  <?php MeprHooks::do_action('mepr_product_advanced_metabox', $product); ?>
 </div>

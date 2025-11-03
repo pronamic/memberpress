@@ -52,23 +52,14 @@ class MeprRuleAccessCondition extends MeprBaseModel
         global $wpdb;
         $mepr_db = MeprDb::fetch();
 
-        $q = $wpdb->prepare(
-            "
-        SELECT id
-          FROM {$mepr_db->rule_access_conditions}
-         WHERE rule_id=%d
-           AND access_type=%s
-           AND access_operator=%s
-           AND access_condition=%s
-         LIMIT 1
-      ",
+        $id = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT id FROM {$mepr_db->rule_access_conditions} WHERE rule_id=%d AND access_type=%s AND access_operator=%s AND access_condition=%s LIMIT 1",
             $rule_access_condition->rule_id,
             $rule_access_condition->access_type,
             $rule_access_condition->access_operator,
             $rule_access_condition->access_condition
-        );
-
-        $id = $wpdb->get_var($q);
+        ));
 
         if (empty($id)) {
             MeprUtils::debug_log("Access condition DOESN'T exists: rule:{$rule_access_condition->rule_id} type:{$rule_access_condition->access_type} op:{$rule_access_condition->access_operator} cond:{$rule_access_condition->access_condition}");
@@ -90,15 +81,12 @@ class MeprRuleAccessCondition extends MeprBaseModel
         global $wpdb;
         $mepr_db = MeprDb::fetch();
 
-        $q = $wpdb->prepare(
-            "
-        DELETE FROM {$mepr_db->rule_access_conditions}
-         WHERE rule_id=%d
-      ",
+        return $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "DELETE FROM {$mepr_db->rule_access_conditions}
+            WHERE rule_id=%d",
             $rule_id
-        );
-
-        return $wpdb->query($q);
+        ));
     }
 
     /**

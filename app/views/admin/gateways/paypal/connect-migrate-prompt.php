@@ -5,25 +5,25 @@ $display_keys = isset($_GET['display-keys']);
  * PayPal Commerce Gateway
  *
  * @var MeprPayPalCommerceGateway $pm
-*/
+ */
 ?>
 <div id="mepr-paypal-connect-migrate-prompt" class="mepr-payment-option-prompt">
-  <input type="hidden" name="<?php echo $test_client_id_str; ?>" value="<?php echo esc_attr($settings->test_client_id); ?>"/>
-  <input type="hidden" name="<?php echo $live_client_id_str; ?>" value="<?php echo esc_attr($settings->live_client_id); ?>"/>
-  <input type="hidden" name="<?php echo $test_client_secret_str; ?>" value="<?php echo esc_attr($settings->test_client_secret); ?>"/>
-  <input type="hidden" name="<?php echo $live_client_secret_str; ?>" value="<?php echo esc_attr($settings->live_client_secret); ?>"/>
-  <input type="hidden" name="<?php echo $test_webhook_id_str; ?>" value="<?php echo esc_attr($settings->test_webhook_id); ?>"/>
-  <input type="hidden" name="<?php echo $live_webhook_id_str; ?>" value="<?php echo esc_attr($settings->live_webhook_id); ?>"/>
-  <input type="hidden" name="<?php echo $test_merchant_id_str; ?>" value="<?php echo esc_attr($settings->test_merchant_id); ?>"/>
-  <input type="hidden" name="<?php echo $live_merchant_id_str; ?>" value="<?php echo esc_attr($settings->live_merchant_id); ?>"/>
-  <input type="hidden" name="<?php echo $test_email_confirmed_str; ?>" value="<?php echo esc_attr(intval($settings->test_email_confirmed)); ?>"/>
-  <input type="hidden" name="<?php echo $live_email_confirmed_str; ?>" value="<?php echo esc_attr(intval($settings->live_email_confirmed)); ?>"/>
-  <div><img width="200px" src="<?php echo MEPR_IMAGES_URL . '/PayPal_with_Tagline.svg'; ?>" alt="PayPal logo"/>
+  <input type="hidden" name="<?php echo esc_attr($test_client_id_str); ?>" value="<?php echo esc_attr($settings->test_client_id); ?>"/>
+  <input type="hidden" name="<?php echo esc_attr($live_client_id_str); ?>" value="<?php echo esc_attr($settings->live_client_id); ?>"/>
+  <input type="hidden" name="<?php echo esc_attr($test_client_secret_str); ?>" value="<?php echo esc_attr($settings->test_client_secret); ?>"/>
+  <input type="hidden" name="<?php echo esc_attr($live_client_secret_str); ?>" value="<?php echo esc_attr($settings->live_client_secret); ?>"/>
+  <input type="hidden" name="<?php echo esc_attr($test_webhook_id_str); ?>" value="<?php echo esc_attr($settings->test_webhook_id); ?>"/>
+  <input type="hidden" name="<?php echo esc_attr($live_webhook_id_str); ?>" value="<?php echo esc_attr($settings->live_webhook_id); ?>"/>
+  <input type="hidden" name="<?php echo esc_attr($test_merchant_id_str); ?>" value="<?php echo esc_attr($settings->test_merchant_id); ?>"/>
+  <input type="hidden" name="<?php echo esc_attr($live_merchant_id_str); ?>" value="<?php echo esc_attr($settings->live_merchant_id); ?>"/>
+  <input type="hidden" name="<?php echo esc_attr($test_email_confirmed_str); ?>" value="<?php echo esc_attr(intval($settings->test_email_confirmed)); ?>"/>
+  <input type="hidden" name="<?php echo esc_attr($live_email_confirmed_str); ?>" value="<?php echo esc_attr(intval($settings->live_email_confirmed)); ?>"/>
+  <div><img width="200px" src="<?php echo esc_url(MEPR_IMAGES_URL . '/PayPal_with_Tagline.svg'); ?>" alt="PayPal logo">
   </div>
   <?php if ($pm->is_paypal_connected() or $pm->is_paypal_connected_live()) { ?>
         <?php if ($pm->is_paypal_connected()) { ?>
       <p class="mepr-paypal-setting-promo">
-        <b><?php _e('Connected to PayPal Commerce Platform - Sandbox mode', 'memberpress'); ?></b>
+        <b><?php esc_html_e('Connected to PayPal Commerce Platform - Sandbox mode', 'memberpress'); ?></b>
             <?php if (! empty($settings->test_merchant_id)) { ?>
         <br/>
         <span><?php echo esc_html(sprintf(
@@ -36,7 +36,7 @@ $display_keys = isset($_GET['display-keys']);
 
             <?php if (! $pm->is_paypal_email_confirmed()) { ?>
         <p class="mepr-paypal-setting-promo">
-          <b><?php _e('You need to confirm your email to accept payments', 'memberpress'); ?></b>
+          <b><?php esc_html_e('You need to confirm your email to accept payments', 'memberpress'); ?></b>
           <button
               x-data="{
                 verifyEmail() {
@@ -45,14 +45,14 @@ $display_keys = isset($_GET['display-keys']);
               }"
               type="button"
               data-verify-url="<?php echo esc_url_raw(admin_url('admin.php?mepr-paypal-commerce-confirm-email=1&sandbox=1&method-id=' . $payment_id . '&page=memberpress-options#mepr-integration')); ?>"
-              x-on:click="verifyEmail"><?php _e('My email is verified', 'memberpress'); ?></button>
+              x-on:click="verifyEmail"><?php esc_html_e('My email is verified', 'memberpress'); ?></button>
         </p>
             <?php } ?>
         <?php } ?>
 
         <?php if ($pm->is_paypal_connected_live()) { ?>
       <p class="mepr-paypal-setting-promo">
-        <b><?php _e('Connected to PayPal Commerce Platform - Live mode', 'memberpress'); ?></b>
+        <b><?php esc_html_e('Connected to PayPal Commerce Platform - Live mode', 'memberpress'); ?></b>
             <?php if (! empty($settings->live_merchant_id)) { ?>
           <br/>
           <span><?php echo esc_html(sprintf(
@@ -65,7 +65,7 @@ $display_keys = isset($_GET['display-keys']);
 
             <?php if (! $pm->is_paypal_email_confirmed_live()) { ?>
         <p class="mepr-paypal-setting-promo">
-          <b><?php _e('You need to confirm your email to accept payments', 'memberpress'); ?></b>
+          <b><?php esc_html_e('You need to confirm your email to accept payments', 'memberpress'); ?></b>
           <button
               x-data="{
                 verifyEmail() {
@@ -75,13 +75,13 @@ $display_keys = isset($_GET['display-keys']);
               x-on:click="verifyEmail"
               type="button"
               data-verify-url="<?php echo esc_url_raw(admin_url('admin.php?mepr-paypal-commerce-confirm-email=1&method-id=' . $payment_id . '&page=memberpress-options#mepr-integration')); ?>"
-          ><?php _e('My email is verified', 'memberpress'); ?></button>
+          ><?php esc_html_e('My email is verified', 'memberpress'); ?></button>
         </p>
             <?php } ?>
         <?php } ?>
   <?php } else { ?>
     <p class="mepr-paypal-setting-promo">
-      <b><?php _e("Connect with the world's most powerful and easy to use Payment Gateway", 'memberpress'); ?></b>
+      <b><?php esc_html_e("Connect with the world's most powerful and easy to use Payment Gateway", 'memberpress'); ?></b>
       <?php if (! empty($settings->live_merchant_id)) { ?>
       <br/>
       <span><?php echo esc_html(sprintf(
@@ -96,36 +96,29 @@ $display_keys = isset($_GET['display-keys']);
         <td>
           <ul class="paypal-features">
             <li>
-              <img
-                  src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e('Pay Securely', 'memberpress'); ?>
+              <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark.svg'); ?>" alt=""><?php esc_html_e('Pay Securely', 'memberpress'); ?>
             </li>
             <li>
-              <img
-                  src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e('Pay with PayPal', 'memberpress'); ?>
+              <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark.svg'); ?>" alt=""><?php esc_html_e('Pay with PayPal', 'memberpress'); ?>
             </li>
             <li>
-              <img
-                  src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e('Pay with PayPal Credit', 'memberpress'); ?>
+              <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark.svg'); ?>" alt=""><?php esc_html_e('Pay with PayPal Credit', 'memberpress'); ?>
             </li>
             <li>
-              <img
-                  src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e('Global reach', 'memberpress'); ?>
+              <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark.svg'); ?>" alt=""><?php esc_html_e('Global reach', 'memberpress'); ?>
             </li>
           </ul>
         </td>
         <td>
           <ul class="paypal-features">
             <li>
-              <img
-                  src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e('Automatic configuration', 'memberpress'); ?>
+              <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark.svg'); ?>" alt=""><?php esc_html_e('Automatic configuration', 'memberpress'); ?>
             </li>
             <li>
-              <img
-                  src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e('Recurring subscription billing', 'memberpress'); ?>
+              <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark.svg'); ?>" alt=""><?php esc_html_e('Recurring subscription billing', 'memberpress'); ?>
             </li>
             <li>
-              <img
-                  src="<?php echo MEPR_IMAGES_URL; ?>/Check_Mark.svg"/><?php _e('Non-recurring payments', 'memberpress'); ?>
+              <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark.svg'); ?>" alt=""><?php esc_html_e('Non-recurring payments', 'memberpress'); ?>
             </li>
           </ul>
         </td>
@@ -143,11 +136,11 @@ $display_keys = isset($_GET['display-keys']);
           x-on:click="confirmRollBack"
           type="button"
           class="button mepr-paypal-onboarding-button"
-          data-method-id="<?php echo esc_attr($payment_id); ?>"><?php _e('Disconnect and Retry', 'memberpress'); ?></button>
+          data-method-id="<?php echo esc_attr($payment_id); ?>"><?php esc_html_e('Disconnect and Retry', 'memberpress'); ?></button>
       <?php } ?>
   <?php } ?>
     <?php if ($upgraded_from_standard) : ?>
-        <p><b><?php echo esc_html(__('IPN URL: ', 'memberpress')); ?></b>
+        <p><b><?php echo esc_html__('IPN URL: ', 'memberpress'); ?></b>
           <input type="text" onfocus="this.select();" onclick="this.select();" readonly="true" value="<?php echo esc_html($pm->notify_url('ipn')); ?>">
         </p>
         <?php if ($display_keys) : ?>
@@ -200,9 +193,9 @@ $display_keys = isset($_GET['display-keys']);
     </script>
         <?php if (! $pm->is_paypal_connected_live() && ! $pm->is_paypal_connected() && isset($memberpress_connect_url)) { ?>
       <a class="button button-primary"
-         href="<?php echo $memberpress_connect_url; ?>"
+         href="<?php echo esc_url($memberpress_connect_url); ?>"
       >
-            <?php _e('Connect MemberPress', 'memberpress'); ?>
+            <?php esc_html_e('Connect MemberPress', 'memberpress'); ?>
       </a>
         <?php } ?>
         <?php if ($pm->is_paypal_connected_live()) {
@@ -212,7 +205,7 @@ $display_keys = isset($_GET['display-keys']);
               class="button mepr-paypal-onboarding-button"
               data-disconnect-confirm-msg="<?php echo esc_attr($disconnect_confirm_msg); ?>"
               data-method-id="<?php echo esc_attr($payment_id); ?>"
-              data-mepr-disconnect-paypal="1"><?php _e('Disconnect', 'memberpress'); ?></button>
+              data-mepr-disconnect-paypal="1"><?php esc_html_e('Disconnect', 'memberpress'); ?></button>
         <?php } else {
             $connect_confirm_msg = __('Going live will stop your Sandbox connection. Any subscriptions on your site connected to Sandbox will no longer track their renewals. Are you sure you\'re ready to Go Live?', 'memberpress');
             ?>
@@ -233,10 +226,10 @@ $display_keys = isset($_GET['display-keys']);
             data-paypal-connect-live="true"
             data-save-url="<?php echo esc_url_raw(admin_url('admin.php?page=memberpress-options&paypal=1&method-id=' . $payment_id . '#mepr-integration')); ?>"
             data-connect-confirm-msg="<?php echo esc_attr($connect_confirm_msg); ?>"
-            href="<?php echo $paypal_connect_url; ?>&displayMode=embedded"
+            href="<?php echo esc_url($paypal_connect_url); ?>&displayMode=embedded"
             data-paypal-button="true">
-          <img class="mepr-pp-icon" src="<?php echo MEPR_IMAGES_URL . '/PayPal_Icon_For_Button.svg'; ?>"/>
-                <?php _e('Connect Live', 'memberpress'); ?>
+          <img class="mepr-pp-icon" src="<?php echo esc_url(MEPR_IMAGES_URL . '/PayPal_Icon_For_Button.svg'); ?>"/>
+                <?php esc_html_e('Connect Live', 'memberpress'); ?>
       </a>
         <i x-show="!loaded" class="mp-icon-spinner"></i>
         </span>
@@ -252,7 +245,7 @@ $display_keys = isset($_GET['display-keys']);
               data-paypal-sandbox="true"
               data-method-id="<?php echo esc_attr($payment_id); ?>"
               data-disconnect-confirm-msg="<?php echo esc_attr($disconnect_confirm_msg); ?>"
-              data-mepr-disconnect-paypal="1"><?php _e('Disconnect', 'memberpress'); ?></button>
+              data-mepr-disconnect-paypal="1"><?php esc_html_e('Disconnect', 'memberpress'); ?></button>
         <?php } else { ?>
             <?php if (! isset($memberpress_connect_url) || empty($memberpress_connect_url)) { ?>
       <a
@@ -267,9 +260,9 @@ $display_keys = isset($_GET['display-keys']);
           data-paypal-sandbox="true"
           data-save-url="<?php echo esc_url_raw(admin_url('admin.php?page=memberpress-options&sandbox=1&paypal=1&method-id=' . $payment_id . '#mepr-integration')); ?>"
           data-paypal-onboard-complete="onboardedCallbackSandbox<?php echo esc_js(md5($payment_id)); ?>"
-          href="<?php echo $paypal_connect_url_sandbox; ?>&displayMode=embedded"
+          href="<?php echo esc_url($paypal_connect_url_sandbox); ?>&displayMode=embedded"
           data-paypal-button="true">
-                <?php _e('Connect Sandbox', 'memberpress'); ?>
+                <?php esc_html_e('Connect Sandbox', 'memberpress'); ?>
       </a>
             <?php } else { ?>
             <?php } ?>

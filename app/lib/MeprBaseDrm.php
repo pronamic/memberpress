@@ -100,6 +100,7 @@ abstract class MeprBaseDrm
         $drm  = new MeprDrm(1);
         $data = [
             'id' => 1,
+            'domain' => MeprUtils::site_domain(),
         ];
 
         MeprEvent::record($this->event_name, $drm, $data);
@@ -115,7 +116,7 @@ abstract class MeprBaseDrm
      */
     protected function update_event($event, $data)
     {
-        if ($event->rec->id == 0) {
+        if ((int) $event->rec->id === 0) {
             return;
         }
 
@@ -191,7 +192,7 @@ abstract class MeprBaseDrm
 
         $this->event = $event;
 
-        $event_data    = MeprDrmHelper::parse_event_args($event->args, true);
+        $event_data    = MeprDrmHelper::parse_event_args($event->args);
         $drm_event_key = MeprDrmHelper::get_status_key($drm_status);
 
         // Just make sure we run this once.
@@ -231,7 +232,7 @@ abstract class MeprBaseDrm
             return false;
         }
 
-        if ($_GET['page'] == 'memberpress-members') {
+        if ($_GET['page'] === 'memberpress-members') {
             return true;
         }
 
@@ -263,7 +264,7 @@ abstract class MeprBaseDrm
     {
         $view = MeprView::get_string('/admin/drm/modal');
 
-        echo MeprHooks::apply_filters('mepr_drm_modal', $view);
+        echo MeprHooks::apply_filters('mepr_drm_modal', $view); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     /**

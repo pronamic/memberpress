@@ -26,7 +26,7 @@ class MeprNotifications
      *
      * @var string
      */
-    const SOURCE_URL = 'https://mbr.press/UttZvA';
+    const SOURCE_URL = '';
     /**
      * Source URL arguments.
      *
@@ -76,7 +76,7 @@ class MeprNotifications
          *
          * @param boolean $has_access Whether or not the user has access to notifications.
          */
-        return apply_filters('mepr_admin_notifications_has_access', $has_access);
+        return MeprHooks::apply_filters('mepr_admin_notifications_has_access', $has_access);
     }
 
     /**
@@ -236,7 +236,7 @@ class MeprNotifications
             'id'           => $notification['type'] . '_' . $notification['id'],
             'subject'      => $notification['title'],
             'content'      => $notification['content'] . '<p>' . implode(' ', $btns) . '</p>',
-            'publishes_at' => date('Y-m-d H:i:s', $notification['saved'] ?? time()),
+            'publishes_at' => gmdate('Y-m-d H:i:s', $notification['saved'] ?? time()),
             'icon'         => sprintf(
                 '<img alt="%1$s" src="%2$s" style="width: 100%%; height: auto;">',
                 esc_attr__('Notification Icon', 'memberpress'),

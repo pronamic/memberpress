@@ -85,6 +85,12 @@
   margin-left: -25px;
 }
 
+.mepr-resend-welcome-email-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .mepr-resend-welcome-email-loader {
   vertical-align: middle;
   width: 16px !important;
@@ -104,29 +110,21 @@
   line-height: 85px;
 }
 
-.search-box {
-  text-align: right !important;
+.mepr-search-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  float: right;
+  margin: 0 0 15px 0;
 }
 
-.search-box .search-fields {
+.mepr-search-box .mepr-filter-by,
+.mepr-search-box .mepr-search-fields {
   display: flex;
   align-items: center;
   justify-content: end;
   gap: 3px;
-  margin-bottom: 10px !important;
-}
-
-.search-box .filter-by {
-  margin-bottom: 10px !important;
-  display: block;
-  text-align: right;
-}
-
-div#table-actions {
-  display: block;
-  padding-bottom: 5px;
-  width: auto;
-  float: left;
 }
 
 div#mepr-shortcode-login-page-area {
@@ -1234,6 +1232,13 @@ body.site-health-php .mepr-notice-dismiss-24hour{ display:none; }
 .mepr-notice-modal .mepr-notice-desc .mepr-key-success { font-weight: 600; font-size: 15px; }
 .mepr-notice-modal .mepr-notice-desc .mepr-key-success > span { display: inline-block; position: relative; padding: 10px 10px 10px 47px; }
 .mepr-notice-modal .mepr-notice-desc .mepr-key-success > span:before { content: ""; background: url('../images/notice-icon-success.gif') no-repeat; background-size: 100% auto; display: block; position: absolute; top: 50%; left: 0; -webkit-transform: translateY(-50%); transform: translateY(-50%); width: 24px; height: 24px; }
+
+.mepr-notice-modal .mepr-drm-unlock-steps {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
 
 .mepr-notice-modal-close {
   position: absolute;

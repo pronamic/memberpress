@@ -49,6 +49,7 @@
 
       this.added();
       this.uploaded();
+      this.complete();
     },
     added: function () {
       var $callback = this.onFilesAdded;
@@ -101,7 +102,7 @@
       this.uploader.bind('UploadComplete', function (up, file) {
 
         // Do additional stuff
-        if (typeof $callback === 'function') $callback(r);
+        if (typeof $callback === 'function') $callback(up, file);
       });
     }
   }

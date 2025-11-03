@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 <div id="mp-admin-header">
     <img class="mp-logo" src="<?php echo esc_url(MEPR_BRAND_URL . '/images/logo.svg'); ?>" alt="MemberPress logo" />
     <div class="mp-admin-header-actions">
-        <a class="mp-support-button button button-primary" href="<?php echo admin_url('admin.php?page=memberpress-support'); ?>"><?php _e('Support', 'memberpress')?></a>
+        <a class="mp-support-button button button-primary" href="<?php echo esc_url(admin_url('admin.php?page=memberpress-support')); ?>"><?php esc_html_e('Support', 'memberpress');?></a>
         <?php MeprHooks::do_action('mepr_admin_header_actions'); ?>
     </div>
     <?php MeprHooks::do_action('mepr_admin_header'); ?>

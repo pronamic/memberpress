@@ -49,7 +49,7 @@
 
   <div class="mepr-wizard-popup-button-row">
     <button type="button" id="mepr-wizard-create-new-rule-save" class="mepr-wizard-button-blue"><?php esc_html_e('Save', 'memberpress'); ?></button>
-    <a target='_blank' class="mepr-wizard-popuphelp" href='<?php echo admin_url('edit.php?post_type=memberpressrule'); ?>' id="mepr-wizard-create-content-course-help">
+    <a target='_blank' class="mepr-wizard-popuphelp" href='<?php echo esc_url(admin_url('edit.php?post_type=memberpressrule')); ?>' id="mepr-wizard-create-content-course-help">
       <?php
         printf(
           // Translators: %1$s: open underline tag, %2$s: close underline tag.

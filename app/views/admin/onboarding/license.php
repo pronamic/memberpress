@@ -10,7 +10,7 @@
 </div>
 <?php else : ?>
   <h2 class="mepr-wizard-step-title"><?php esc_html_e('Activate License', 'memberpress'); ?></h2>
-    <?php if (!MeprUtils::is_oem_edition(MEPR_EDITION)) : ?>
+    <?php if (!MeprOnboardingHelper::is_oem_edition(MEPR_EDITION)) : ?>
     <p class="mepr-wizard-step-description"><?php esc_html_e("First thing's first. Let's get your license activated.", 'memberpress'); ?></p>
     <p><a href="<?php echo esc_url(MeprAuthenticatorCtrl::get_auth_connect_url(false, false, ['onboarding' => 'true'], admin_url('admin.php?page=memberpress-onboarding&step=1'))); ?>" class="mepr-wizard-button-blue"><?php esc_html_e('Activate', 'memberpress'); ?></a></p>
         <?php if (isset($_GET['license_error'])) : ?>

@@ -45,7 +45,7 @@ abstract class MeprBaseModel
         $object_vars = array_keys(get_object_vars($this));
         $rec_array   = (array)$this->rec;
 
-        if (in_array($name, $object_vars)) {
+        if (in_array($name, $object_vars, true)) {
             $value = $this->$name;
         } elseif (array_key_exists($name, $rec_array)) {
             if (is_array($this->rec)) {
@@ -61,7 +61,14 @@ abstract class MeprBaseModel
             $value = call_user_func([$this,$extend_fn], $value);
         }
 
-        return MeprHooks::apply_filters('mepr-get-model-attribute-' . $name, $value, $this);
+        $value = apply_filters_deprecated(
+            'mepr-get-model-attribute-' . $name,
+            [$value, $this],
+            '1.12.7',
+            'mepr_get_model_attribute_' . $name
+        );
+
+        return MeprHooks::apply_filters('mepr_get_model_attribute_' . $name, $value, $this);
     }
 
     /**
@@ -73,7 +80,14 @@ abstract class MeprBaseModel
      */
     public function __set($name, $value)
     {
-        $value = MeprHooks::apply_filters('mepr-set-model-attribute-' . $name, $value, $this);
+        $value = apply_filters_deprecated(
+            'mepr-set-model-attribute-' . $name,
+            [$value, $this],
+            '1.12.7',
+            'mepr_set_model_attribute_' . $name
+        );
+
+        $value = MeprHooks::apply_filters('mepr_set_model_attribute_' . $name, $value, $this);
 
         // Alternative way to filter results through an sub class method.
         $extend_fn = "set_extend_{$name}";
@@ -88,7 +102,7 @@ abstract class MeprBaseModel
         $object_vars = array_keys(get_object_vars($this));
         $rec_array   = (array)$this->rec;
 
-        if (in_array($name, $object_vars)) {
+        if (in_array($name, $object_vars, true)) {
             $this->$name = $value;
         } elseif (array_key_exists($name, $rec_array)) {
             if (is_array($this->rec)) {
@@ -178,7 +192,7 @@ abstract class MeprBaseModel
             }
         }
 
-        MeprHooks::do_action('mepr-model-initialized', $this);
+        MeprHooks::do_action('mepr_model_initialized', $this);
     }
 
     /**
@@ -328,7 +342,7 @@ abstract class MeprBaseModel
      */
     protected function magic_method_handler_exists($name)
     {
-        return in_array("mgm_{$name}", get_class_methods($this));
+        return in_array("mgm_{$name}", get_class_methods($this), true);
     }
 
     /**
@@ -357,8 +371,8 @@ abstract class MeprBaseModel
         if (is_null($var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %s: field name.
-                __('%s must not be empty', 'memberpress'),
-                $field
+                esc_html__('%s must not be empty', 'memberpress'),
+                esc_html($field)
             ));
         }
     }
@@ -376,8 +390,8 @@ abstract class MeprBaseModel
         if (empty($var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %s: field name.
-                __('%s must not be empty', 'memberpress'),
-                $field
+                esc_html__('%s must not be empty', 'memberpress'),
+                esc_html($field)
             ));
         }
     }
@@ -392,11 +406,12 @@ abstract class MeprBaseModel
      */
     protected function validate_is_bool($var, $field = '')
     {
+        // phpcs:ignore Universal.Operators.StrictComparisons.LooseNotEqual
         if (!is_bool($var) && $var != 0 && $var != 1) {
             throw new MeprCreateException(sprintf(
                 // Translators: %s: field name.
-                __('%s must be true or false', 'memberpress'),
-                $field
+                esc_html__('%s must be true or false', 'memberpress'),
+                esc_html($field)
             ));
         }
     }
@@ -414,8 +429,8 @@ abstract class MeprBaseModel
         if (!is_array($var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %s: field name.
-                __('%s must be an array', 'memberpress'),
-                $field
+                esc_html__('%s must be an array', 'memberpress'),
+                esc_html($field)
             ));
         }
     }
@@ -431,12 +446,12 @@ abstract class MeprBaseModel
      */
     protected function validate_is_in_array($var, $lookup, $field = '')
     {
-        if (is_array($lookup) && !in_array($var, $lookup)) {
+        if (is_array($lookup) && !in_array($var, $lookup, true)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: lookup array.
-                __('%1$s must be %2$s', 'memberpress'),
-                $field,
-                implode(' ' . __('or', 'memberpress') . ' ', $lookup)
+                esc_html__('%1$s must be %2$s', 'memberpress'),
+                esc_html($field),
+                esc_html(implode(' ' . esc_html__('or', 'memberpress') . ' ', $lookup))
             ));
         }
     }
@@ -454,9 +469,9 @@ abstract class MeprBaseModel
         if (!MeprUtils::is_url($var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: field value.
-                __('%1$s (%2$s) must be a valid url', 'memberpress'),
-                $field,
-                $var
+                esc_html__('%1$s (%2$s) must be a valid url', 'memberpress'),
+                esc_html($field),
+                esc_html($var)
             ));
         }
     }
@@ -476,9 +491,9 @@ abstract class MeprBaseModel
         if (!is_numeric($var) || $var < $min || (!is_null($max) && $var > $max)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: field value.
-                __('%1$s (%2$s) must be a valid representation of currency', 'memberpress'),
-                $field,
-                $var
+                esc_html__('%1$s (%2$s) must be a valid representation of currency', 'memberpress'),
+                esc_html($field),
+                esc_html($var)
             ));
         }
     }
@@ -498,9 +513,9 @@ abstract class MeprBaseModel
         if (!is_numeric($var) || $var < $min || (!is_null($max) && $var > $max)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: field value.
-                __('%1$s (%2$s) must be a valid number', 'memberpress'),
-                $field,
-                $var
+                esc_html__('%1$s (%2$s) must be a valid number', 'memberpress'),
+                esc_html($field),
+                esc_html($var)
             ));
         }
     }
@@ -518,9 +533,9 @@ abstract class MeprBaseModel
         if (!MeprUtils::is_email($var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: field value.
-                __('%1$s (%2$s) must be a valid email', 'memberpress'),
-                $field,
-                $var
+                esc_html__('%1$s (%2$s) must be a valid email', 'memberpress'),
+                esc_html($field),
+                esc_html($var)
             ));
         }
     }
@@ -538,9 +553,9 @@ abstract class MeprBaseModel
         if (!MeprUtils::is_phone($var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: field value.
-                __('%1$s (%2$s) must be a valid phone number', 'memberpress'),
-                $field,
-                $var
+                esc_html__('%1$s (%2$s) must be a valid phone number', 'memberpress'),
+                esc_html($field),
+                esc_html($var)
             ));
         }
     }
@@ -558,9 +573,9 @@ abstract class MeprBaseModel
         if (!MeprUtils::is_ip($var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: field value.
-                __('%1$s (%2$s) must be a valid IP Address', 'memberpress'),
-                $field,
-                $var
+                esc_html__('%1$s (%2$s) must be a valid IP Address', 'memberpress'),
+                esc_html($field),
+                esc_html($var)
             ));
         }
     }
@@ -578,9 +593,9 @@ abstract class MeprBaseModel
         if (!MeprUtils::is_date($var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: field value.
-                __('%1$s (%2$s) must be a valid date', 'memberpress'),
-                $field,
-                $var
+                esc_html__('%1$s (%2$s) must be a valid date', 'memberpress'),
+                esc_html($field),
+                esc_html($var)
             ));
         }
     }
@@ -598,9 +613,9 @@ abstract class MeprBaseModel
         if (empty($var) || !is_numeric($var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: field value.
-                __('%1$s (%2$s) must be a valid timestamp', 'memberpress'),
-                $field,
-                $var
+                esc_html__('%1$s (%2$s) must be a valid timestamp', 'memberpress'),
+                esc_html($field),
+                esc_html($var)
             ));
         }
     }
@@ -619,10 +634,10 @@ abstract class MeprBaseModel
         if (!preg_match($pattern, $var)) {
             throw new MeprCreateException(sprintf(
                 // Translators: %1$s: field name, %2$s: field value, %3$s: regex pattern.
-                __('%1$s (%2$s) must match the regex pattern: %3$s', 'memberpress'),
-                $field,
-                $var,
-                $pattern
+                esc_html__('%1$s (%2$s) must match the regex pattern: %3$s', 'memberpress'),
+                esc_html($field),
+                esc_html($var),
+                esc_html($pattern)
             ));
         }
     }

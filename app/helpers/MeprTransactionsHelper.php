@@ -61,23 +61,18 @@ class MeprTransactionsHelper
 
         $pms = array_keys($mepr_options->integrations);
 
-        $value = isset($_POST[$field_name]) ? $_POST[$field_name] : $value;
+        $value = isset($_POST[$field_name]) ? sanitize_text_field(wp_unslash($_POST[$field_name])) : $value;
 
         ?>
-    <select name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" class="mepr-multi-select mepr-payment-methods-select">
-      <option value="manual" <?php selected($value, 'manual'); ?>><?php _e('Manual', 'memberpress'); ?>&nbsp;</option>
+    <select name="<?php echo esc_attr($field_name); ?>" id="<?php echo esc_attr($field_name); ?>" class="mepr-multi-select mepr-payment-methods-select">
+      <option value="manual" <?php selected($value, 'manual'); ?>><?php esc_html_e('Manual', 'memberpress'); ?>&nbsp;</option>
         <?php
         foreach ($pms as $pm_id) :
             $obj = $mepr_options->payment_method($pm_id);
             if ($obj instanceof MeprBaseRealGateway) :
                 ?>
-            <option value="<?php echo $obj->id; ?>" <?php selected($value, $obj->id); ?>>
-                <?php printf(
-                // Translators: %1$s: gateway label, %2$s: gateway name.
-                    __('%1$s (%2$s)', 'memberpress'),
-                    $obj->label,
-                    $obj->name
-                ); ?>
+            <option value="<?php echo esc_attr($obj->id); ?>" <?php selected($value, $obj->id); ?>>
+                <?php echo esc_html(sprintf('%1$s (%2$s)', $obj->label, $obj->name)); ?>
                 &nbsp;
             </option>
                 <?php
@@ -159,11 +154,11 @@ class MeprTransactionsHelper
 
         if (!isset($txn->expires_at) || empty($txn->expires_at)) {
             $expires_at = __('Unknown', 'memberpress');
-        } elseif ($txn->expires_at == MeprUtils::db_lifetime()) {
+        } elseif ($txn->expires_at === MeprUtils::db_lifetime()) {
             $expires_at = __('Never', 'memberpress');
         } else {
             // Confirmation txn? Let's guess what the expires at will be then.
-            if ($txn->status == MeprTransaction::$confirmed_str) {
+            if ($txn->status === MeprTransaction::$confirmed_str) {
                 $sub = $txn->subscription();
 
                 if ($sub->trial && $sub->trial_days) {
@@ -197,6 +192,13 @@ class MeprTransactionsHelper
         // Coupon title.
         $cpn = ($cpn !== false) ? $cpn->post_title : '';
 
+        // Handle cases where payment method might not exist.
+        if ($pm && is_object($pm) && isset($pm->label) && isset($pm->name)) {
+            $trans_gateway = sprintf('%1$s (%2$s)', $pm->label, $pm->name);
+        } else {
+            $trans_gateway = __('Unknown Payment Method', 'memberpress');
+        }
+
         $params = [
             'user_id'          => $usr->ID,
             'user_login'       => $usr->user_login,
@@ -214,14 +216,9 @@ class MeprTransactionsHelper
             'trans_num'        => $txn->trans_num,
             'trans_date'       => $created_at,
             'trans_expires_at' => $expires_at,
-            'trans_gateway'    => sprintf(
-                // Translators: %1$s: gateway label, %2$s: gateway name.
-                __('%1$s (%2$s)', 'memberpress'),
-                $pm->label,
-                $pm->name
-            ),
+            'trans_gateway'    => $trans_gateway,
             'trans_status'     => ucfirst($txn->status),
-            'user_remote_addr' => $_SERVER['REMOTE_ADDR'],
+            'user_remote_addr' => sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'] ?? '')),
             'payment_amount'   => $payment_amount,
             'blog_name'        => MeprUtils::blogname(),
             'payment_subtotal' => $payment_subtotal,
@@ -309,13 +306,13 @@ class MeprTransactionsHelper
             $sub = $txn->subscription();
         }
 
-        if ($sub instanceof MeprSubscription && (($sub->trial && $sub->trial_days > 0 && $sub->txn_count < 1) || $txn->txn_type == MeprTransaction::$subscription_confirmation_str)) {
+        if ($sub instanceof MeprSubscription && (($sub->trial && $sub->trial_days > 0 && $sub->txn_count < 1) || $txn->txn_type === MeprTransaction::$subscription_confirmation_str)) {
             self::set_invoice_txn_vars_from_sub($txn, $sub);
         }
 
         $desc                         = self::get_payment_description($txn, $sub, $prd);
         $calculate_taxes              = (bool) get_option('mepr_calculate_taxes');
-        $tax_inclusive                = $mepr_options->attr('tax_calc_type') == 'inclusive';
+        $tax_inclusive                = $mepr_options->attr('tax_calc_type') === 'inclusive';
         $show_negative_tax_on_invoice = get_option('mepr_show_negative_tax_on_invoice');
 
         $coupon = $txn->coupon();
@@ -330,9 +327,9 @@ class MeprTransactionsHelper
                 if ($remove_tax) {
                     $amount = ($amount / (1 + ($txn->tax_rate / 100)));
                 }
-                if (!$remove_tax && $prd->trial && $txn->amount == 0) {
+                if (!$remove_tax && $prd->trial && (float) $txn->amount === 0.00) {
                     $amount = 0;
-                    if ($coupon->discount_type == 'percent' && $coupon->discount_amount == 100) {
+                    if ($coupon->discount_type === 'percent' && (int) $coupon->discount_amount === 100) {
                         $amount = $raw_amount;
                     }
                 }
@@ -346,7 +343,7 @@ class MeprTransactionsHelper
                 $coupon->post_title
             );
         } elseif ($sub && ($coupon = $sub->coupon())) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
-            if ($coupon->discount_mode == 'trial-override' && $sub->trial) {
+            if ($coupon->discount_mode === 'trial-override' && $sub->trial) {
                 $amount     = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
                 $cpn_id     = $coupon->ID;
                 $cpn_desc   = sprintf(
@@ -373,7 +370,7 @@ class MeprTransactionsHelper
         }
 
         $invoice = MeprHooks::apply_filters(
-            'mepr-invoice',
+            'mepr_invoice',
             [
                 'items'  => [
                     [
@@ -396,7 +393,7 @@ class MeprTransactionsHelper
             $txn
         );
 
-        $show_quantity = MeprHooks::apply_filters('mepr-invoice-show-quantity', false, $txn);
+        $show_quantity = MeprHooks::apply_filters('mepr_invoice_show_quantity', false, $txn);
 
         $quantities = [];
         foreach ($invoice['items'] as $item) {
@@ -411,13 +408,13 @@ class MeprTransactionsHelper
         if ($sub) {
             $prd = $sub->product();
             if (
-                $prd->register_price_action == 'default' ||
-                ($prd->register_price_action == 'custom' && MeprReadyLaunchCtrl::template_enabled('checkout') && $mepr_options->design_show_checkout_price_terms)
+                $prd->register_price_action === 'default' ||
+                ($prd->register_price_action === 'custom' && MeprReadyLaunchCtrl::template_enabled('checkout') && $mepr_options->design_show_checkout_price_terms)
             ) {
                 $sub_price_str = MeprSubscriptionsHelper::format_currency($sub);
             }
 
-            if ($prd->register_price_action == 'custom' && !MeprReadyLaunchCtrl::template_enabled('checkout') && !empty($prd->register_price) && !$txn->coupon_id && !$txn->prorated) {
+            if ($prd->register_price_action === 'custom' && !MeprReadyLaunchCtrl::template_enabled('checkout') && !empty($prd->register_price) && !$txn->coupon_id && !$txn->prorated) {
                 $sub_price_str = stripslashes($prd->register_price);
             }
 
@@ -430,7 +427,7 @@ class MeprTransactionsHelper
                 && $coupon
                 && $sub instanceof MeprSubscription && $sub->trial
                 && (
-                    ($coupon->discount_mode == 'trial-override' && $coupon->trial_amount > $prd->price)
+                    ($coupon->discount_mode === 'trial-override' && $coupon->trial_amount > $prd->price)
                     || ($sub->trial_amount > 0 && $sub->trial_amount < $prd->price)
                 )
             ) {
@@ -439,14 +436,14 @@ class MeprTransactionsHelper
             }
         }
 
-        if ($mepr_options->design_enable_checkout_template) {
+        if ($mepr_options->design_enable_checkout_template && MeprUtils::is_product_page()) {
             MeprView::render('/readylaunch/checkout/invoice', get_defined_vars());
         } else {
             MeprView::render('/checkout/invoice', get_defined_vars());
         }
 
         $invoice = ob_get_clean();
-        return MeprHooks::apply_filters('mepr-invoice-html', $invoice, $txn);
+        return MeprHooks::apply_filters('mepr_invoice_html', $invoice, $txn);
     }
 
     /**
@@ -466,11 +463,11 @@ class MeprTransactionsHelper
         }
 
         ?>
-    <select name="<?php echo $field; ?>" id="<?php echo $id; ?>" class="<?php echo $classes; ?>">
-      <option value="<?php echo MeprTransaction::$complete_str; ?>" <?php echo selected($value, MeprTransaction::$complete_str); ?>><?php _e('Complete', 'memberpress'); ?></option>
-      <option value="<?php echo MeprTransaction::$pending_str; ?>" <?php echo selected($value, MeprTransaction::$pending_str); ?>><?php _e('Pending', 'memberpress'); ?></option>
-      <option value="<?php echo MeprTransaction::$failed_str; ?>" <?php echo selected($value, MeprTransaction::$failed_str); ?>><?php _e('Failed', 'memberpress'); ?></option>
-      <option value="<?php echo MeprTransaction::$refunded_str; ?>" <?php echo selected($value, MeprTransaction::$refunded_str); ?>><?php _e('Refunded', 'memberpress'); ?></option>
+    <select name="<?php echo esc_attr($field); ?>" id="<?php echo esc_attr($id); ?>" class="<?php echo esc_attr($classes); ?>">
+      <option value="<?php echo esc_attr(MeprTransaction::$complete_str); ?>" <?php echo selected($value, MeprTransaction::$complete_str); ?>><?php esc_html_e('Complete', 'memberpress'); ?></option>
+      <option value="<?php echo esc_attr(MeprTransaction::$pending_str); ?>" <?php echo selected($value, MeprTransaction::$pending_str); ?>><?php esc_html_e('Pending', 'memberpress'); ?></option>
+      <option value="<?php echo esc_attr(MeprTransaction::$failed_str); ?>" <?php echo selected($value, MeprTransaction::$failed_str); ?>><?php esc_html_e('Failed', 'memberpress'); ?></option>
+      <option value="<?php echo esc_attr(MeprTransaction::$refunded_str); ?>" <?php echo selected($value, MeprTransaction::$refunded_str); ?>><?php esc_html_e('Refunded', 'memberpress'); ?></option>
     </select>
         <?php
     }
@@ -500,13 +497,13 @@ class MeprTransactionsHelper
         ?>
 
     <select
-      name="<?php echo $field; ?>"
-      id="<?php echo $id; ?>"
-      class="mepr-membership-dropdown <?php echo $classes; ?>"
-      data-expires_at_field_id="<?php echo $expires_at_field_id; ?>"
+      name="<?php echo esc_attr($field); ?>"
+      id="<?php echo esc_attr($id); ?>"
+      class="mepr-membership-dropdown <?php echo esc_attr($classes); ?>"
+      data-expires_at_field_id="<?php echo esc_attr($expires_at_field_id); ?>"
       >
         <?php foreach ($products as $product) : ?>
-        <option value="<?php echo $product->ID; ?>" <?php selected($value, $product->ID); ?>><?php echo $product->post_title; ?></option>
+        <option value="<?php echo esc_attr($product->ID); ?>" <?php selected($value, $product->ID); ?>><?php echo esc_html($product->post_title); ?></option>
         <?php endforeach; ?>
     </select>
         <?php
@@ -529,14 +526,14 @@ class MeprTransactionsHelper
         }
 
         ?>
-      <div id="<?php echo $id; ?>" class="mepr_transaction_created_field">
+      <div id="<?php echo esc_attr($id); ?>" class="mepr_transaction_created_field">
         <input
           type="text"
-          name="<?php echo $field; ?>"
-          value="<?php echo MeprAppHelper::format_date_utc($value, date('Y-m-d H:i:s'), 'Y-m-d H:i:s'); ?>"
+          name="<?php echo esc_attr($field); ?>"
+          value="<?php echo esc_attr(MeprAppHelper::format_date_utc($value, gmdate('Y-m-d H:i:s'), 'Y-m-d H:i:s')); ?>"
           class="regular-text mepr-date-picker mepr-created-at"
         />
-        <a href="" class="mepr-today-button button"><?php _e('Now', 'memberpress'); ?></a>
+        <a href="" class="mepr-today-button button"><?php esc_html_e('Now', 'memberpress'); ?></a>
       </div>
         <?php
     }
@@ -561,17 +558,17 @@ class MeprTransactionsHelper
 
         ?>
       <div
-        id="<?php echo $id; ?>"
-        data-membership_field_id="<?php echo $membership_field; ?>"
-        data-created_at_field_id="<?php echo $created_at_field; ?>"
+        id="<?php echo esc_attr($id); ?>"
+        data-membership_field_id="<?php echo esc_attr($membership_field); ?>"
+        data-created_at_field_id="<?php echo esc_attr($created_at_field); ?>"
         class="mepr_transaction_expires_field">
-        <input type="text" name="<?php echo $field; ?>"
+        <input type="text" name="<?php echo esc_attr($field); ?>"
           data-initial_raw_value="<?php echo esc_attr($value); ?>"
-          value="<?php echo MeprAppHelper::format_date_utc($value, '', 'Y-m-d H:i:s'); ?>"
+          value="<?php echo esc_attr(MeprAppHelper::format_date_utc($value, '', 'Y-m-d H:i:s')); ?>"
           class="regular-text mepr-date-picker mepr-expires-at"
         />
-        <a href="" class="mepr-default-expiration-button button"><?php _e('Default', 'memberpress'); ?></a>
-        <a href="" class="mepr-lifetime-expiration-button button"><?php _e('Lifetime', 'memberpress'); ?></a>
+        <a href="" class="mepr-default-expiration-button button"><?php esc_html_e('Default', 'memberpress'); ?></a>
+        <a href="" class="mepr-lifetime-expiration-button button"><?php esc_html_e('Lifetime', 'memberpress'); ?></a>
       </div>
         <?php
     }
@@ -589,7 +586,7 @@ class MeprTransactionsHelper
 
         if (
             $charge_business_customer_net_price === true &&
-            $tax_calc_type == 'inclusive' &&
+            $tax_calc_type === 'inclusive' &&
             $vat_tax_businesses === false
         ) {
             return true;
@@ -642,13 +639,13 @@ class MeprTransactionsHelper
             $sub = $txn->subscription();
         }
 
-        if ($sub instanceof MeprSubscription && (($sub->trial && $sub->trial_days > 0 && $sub->txn_count < 1) || $txn->txn_type == MeprTransaction::$subscription_confirmation_str)) {
+        if ($sub instanceof MeprSubscription && (($sub->trial && $sub->trial_days > 0 && $sub->txn_count < 1) || $txn->txn_type === MeprTransaction::$subscription_confirmation_str)) {
             self::set_invoice_txn_vars_from_sub($txn, $sub);
         }
 
         $desc                         = self::get_payment_description($txn, $sub, $prd);
         $calculate_taxes              = (bool) get_option('mepr_calculate_taxes');
-        $tax_inclusive                = $mepr_options->attr('tax_calc_type') == 'inclusive';
+        $tax_inclusive                = $mepr_options->attr('tax_calc_type') === 'inclusive';
         $show_negative_tax_on_invoice = get_option('mepr_show_negative_tax_on_invoice');
 
         $coupon = $txn->coupon();
@@ -663,9 +660,9 @@ class MeprTransactionsHelper
                 if ($remove_tax) {
                     $amount = ($amount / (1 + ($txn->tax_rate / 100)));
                 }
-                if (!$remove_tax && $prd->trial && $txn->amount == 0) {
+                if (!$remove_tax && $prd->trial && (float) $txn->amount === 0.00) {
                     $amount = 0;
-                    if ($coupon->discount_type == 'percent' && $coupon->discount_amount == 100) {
+                    if ($coupon->discount_type === 'percent' && (int) $coupon->discount_amount === 100) {
                         $amount = $raw_amount;
                     }
                 }
@@ -679,7 +676,7 @@ class MeprTransactionsHelper
                 $coupon->post_title
             );
         } elseif ($sub && ($coupon = $sub->coupon())) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
-            if ($coupon->discount_mode == 'trial-override' && $sub->trial) {
+            if ($coupon->discount_mode === 'trial-override' && $sub->trial) {
                 $amount     = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
                 $cpn_id     = $coupon->ID;
                 $cpn_desc   = sprintf(
@@ -731,7 +728,7 @@ class MeprTransactionsHelper
         foreach ($order_bumps as $order_bump) {
             list($product, $transaction, $subscription) = $order_bump;
 
-            if ($subscription instanceof MeprSubscription && (($subscription->trial && $subscription->trial_days > 0 && $subscription->txn_count < 1) || $transaction->txn_type == MeprTransaction::$subscription_confirmation_str)) {
+            if ($subscription instanceof MeprSubscription && (($subscription->trial && $subscription->trial_days > 0 && $subscription->txn_count < 1) || $transaction->txn_type === MeprTransaction::$subscription_confirmation_str)) {
                 self::set_invoice_txn_vars_from_sub($transaction, $subscription);
             }
 
@@ -750,7 +747,7 @@ class MeprTransactionsHelper
             }
 
             $price_string = '';
-            if ($product->register_price_action != 'hidden' && MeprHooks::apply_filters('mepr_checkout_show_terms', true, $product)) {
+            if ($product->register_price_action !== 'hidden' && MeprHooks::apply_filters('mepr_checkout_show_terms', true, $product)) {
                 if (!$transaction->is_one_time_payment() && $subscription instanceof MeprSubscription && $subscription->id > 0) {
                     $price_string = MeprAppHelper::format_price_string($subscription, $subscription->price);
                 } else {
@@ -767,8 +764,8 @@ class MeprTransactionsHelper
                 $order_bump_title .= '&nbsp;&ndash;&nbsp;' . $order_bump_desc;
             }
 
-            if ($price_string != '') {
-                $order_bump_title .= apply_filters('mepr_order_bump_price_string', ' <br /><small>' . $price_string . '</small>');
+            if ($price_string !== '') {
+                $order_bump_title .= MeprHooks::apply_filters('mepr_order_bump_price_string', ' <br /><small>' . $price_string . '</small>');
             }
 
             $items[] = [
@@ -779,14 +776,14 @@ class MeprTransactionsHelper
         }
 
         $items = MeprHooks::apply_filters(
-            'mepr-invoice-items-order-bumps',
+            'mepr_invoice_items_order_bumps',
             $items,
             $txn,
             $order_bumps
         );
 
         $invoice = MeprHooks::apply_filters(
-            'mepr-invoice-order-bumps',
+            'mepr_invoice_order_bumps',
             [
                 'items'      => $items,
                 'coupon'     => [
@@ -801,7 +798,7 @@ class MeprTransactionsHelper
             $order_bumps
         );
 
-        $show_quantity = MeprHooks::apply_filters('mepr-invoice-show-quantity', false, $txn);
+        $show_quantity = MeprHooks::apply_filters('mepr_invoice_show_quantity', false, $txn);
 
         $quantities = [];
         foreach ($invoice['items'] as $item) {
@@ -816,13 +813,13 @@ class MeprTransactionsHelper
         if ($sub) {
             $prd = $sub->product();
             if (
-                $prd->register_price_action == 'default' ||
-                ($prd->register_price_action == 'custom' && MeprReadyLaunchCtrl::template_enabled('checkout') && $mepr_options->design_show_checkout_price_terms)
+                $prd->register_price_action === 'default' ||
+                ($prd->register_price_action === 'custom' && MeprReadyLaunchCtrl::template_enabled('checkout') && $mepr_options->design_show_checkout_price_terms)
             ) {
                 $sub_price_str = MeprSubscriptionsHelper::format_currency($sub);
             }
 
-            if ($prd->register_price_action == 'custom' && !MeprReadyLaunchCtrl::template_enabled('checkout') && !empty($prd->register_price) && !$txn->coupon_id && !$txn->prorated) {
+            if ($prd->register_price_action === 'custom' && !MeprReadyLaunchCtrl::template_enabled('checkout') && !empty($prd->register_price) && !$txn->coupon_id && !$txn->prorated) {
                 $sub_price_str = stripslashes($prd->register_price);
             }
 
@@ -835,7 +832,7 @@ class MeprTransactionsHelper
                 && $coupon
                 && $sub instanceof MeprSubscription && $sub->trial
                 && (
-                    ($coupon->discount_mode == 'trial-override' && $coupon->trial_amount > $prd->price)
+                    ($coupon->discount_mode === 'trial-override' && $coupon->trial_amount > $prd->price)
                     || ($sub->trial_amount > 0 && $sub->trial_amount < $prd->price)
                 )
             ) {
@@ -844,14 +841,14 @@ class MeprTransactionsHelper
             }
         }
 
-        if ($mepr_options->design_enable_checkout_template) {
+        if ($mepr_options->design_enable_checkout_template && MeprUtils::is_product_page()) {
             MeprView::render('/readylaunch/checkout/invoice_order_bumps', get_defined_vars());
         } else {
             MeprView::render('/checkout/invoice_order_bumps', get_defined_vars());
         }
 
         $invoice = ob_get_clean();
-        return MeprHooks::apply_filters('mepr-invoice-html', $invoice, $txn);
+        return MeprHooks::apply_filters('mepr_invoice_html', $invoice, $txn);
     }
 
     /**
@@ -915,5 +912,115 @@ class MeprTransactionsHelper
         $txn->tax_rate  = $sub->tax_rate;
         $txn->tax_desc  = $sub->tax_desc;
         $txn->tax_class = $sub->tax_class;
+    }
+
+    /**
+     * Gets the admin action links for a transaction record.
+     *
+     * Generates an array of action links available for a transaction in the admin interface.
+     * Links are generated based on transaction status and capabilities. Each link includes
+     * attributes for rendering and a priority for display order.
+     *
+     * @param object $rec Transaction record object.
+     * @type  int     $id        Transaction ID
+     * @type  string  $status    Transaction status
+     * @type  string  $trans_num Transaction number
+     * @type  string  $href        Link URL
+     * @type  string  $title       Link title attribute
+     * @type  string  $text        Link display text
+     * @type  string  $class       Link CSS class(es)
+     * @type  array   $data        Link data attributes
+     * @type  string  $id          Link ID attribute
+     * @type  string  $wrapper     Wrapper span class (optional)
+     * @type  string  $wrapper_id  Wrapper span ID (optional)
+     * @type  integer $priority    Display priority (lower numbers display first)
+     *
+     * @return array Array of link definitions.
+     *
+     * @filter mepr_admin_txn_row_action_links Filters the array of action links
+     */
+    public static function get_admin_action_links($rec)
+    {
+        $links = [];
+        $txn = new MeprTransaction($rec->id);
+        if (!$txn->id) {
+            return $links;
+        }
+        // Edit link (always shown).
+        $links['edit'] = [
+            'href' => admin_url('admin.php?page=memberpress-trans&action=edit&id=' . $rec->id),
+            'title' => __('Edit transaction', 'memberpress'),
+            'text' => __('Edit', 'memberpress'),
+            'class' => '',
+            'data' => [],
+            'id' => 'edit-txn-' . $rec->id,
+            'priority' => 10,
+        ];
+
+        // Non-pending/failed transaction flow.
+        if (!in_array($rec->status, [MeprTransaction::$pending_str, MeprTransaction::$failed_str], true)) {
+            $links['send_receipt'] = [
+                'href' => '',
+                'text' => __('Send Receipt', 'memberpress'),
+                'class' => 'mepr_resend_txn_email',
+                'data' => ['value' => $rec->id],
+                'id' => 'send-receipt-' . $rec->id,
+                'priority' => 20,
+            ];
+
+            $links['send_welcome'] = [
+                'href' => '',
+                'text' => __('Send Welcome', 'memberpress'),
+                'class' => 'mepr_send_welcome_email',
+                'data' => ['value' => $rec->id],
+                'id' => 'send-welcome-' . $rec->id,
+                'priority' => 30,
+            ];
+        }
+
+        // Refund capabilities.
+        if ($txn->can('process-refunds')) {
+            $links['refund'] = [
+                'href' => '',
+                'title' => __('Refund Transaction', 'memberpress'),
+                'text' => __('Refund', 'memberpress'),
+                'class' => 'mepr-refund-txn',
+                'data' => ['value' => $rec->id],
+                'wrapper' => 'mepr-refund-txn-action',
+                'wrapper_id' => 'refund-wrapper-' . $rec->id,
+                'id' => 'refund-txn-' . $rec->id,
+                'priority' => 40,
+            ];
+
+            $sub = $txn->subscription();
+            if ($sub && $sub->status === MeprSubscription::$active_str && $sub->can('cancel-subscriptions')) {
+                $links['refund_and_cancel'] = [
+                    'href' => '',
+                    'title' => __('Refund Transaction and Cancel Subscription', 'memberpress'),
+                    'text' => __('Refund & Cancel', 'memberpress'),
+                    'class' => 'mepr-refund-txn-and-cancel-sub',
+                    'data' => ['value' => $rec->id],
+                    'wrapper' => 'mepr-refund-txn-and-cancel-sub-action',
+                    'wrapper_id' => 'refund-cancel-wrapper-' . $rec->id,
+                    'id' => 'refund-cancel-txn-' . $rec->id,
+                    'priority' => 50,
+                ];
+            }
+        }
+
+        // Delete link (always shown).
+        $links['delete'] = [
+            'href' => '',
+            'title' => __('Delete Transaction', 'memberpress'),
+            'text' => __('Delete', 'memberpress'),
+            'class' => 'remove-txn-row',
+            'data' => ['value' => $rec->id],
+            'id' => 'delete-txn-' . $rec->id,
+            'priority' => 60,
+        ];
+
+        $links = (array) MeprHooks::apply_filters('mepr_admin_txn_row_action_links', $links, $rec, $txn);
+
+        return $links;
     }
 }

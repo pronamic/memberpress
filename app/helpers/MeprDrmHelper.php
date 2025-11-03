@@ -1,6 +1,6 @@
 <?php
 
-if (! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
@@ -18,25 +18,14 @@ class MeprDrmHelper
      *
      * @var string
      */
-    private static $drm_status     = '';
+    private static $drm_status = '';
 
     /**
      * Stores the DRM links for different statuses and purposes.
      *
      * @var array|null
      */
-    private static $drm_links      = null;
-
-    /**
-     * Fallback links to use when DRM links aren't available.
-     *
-     * @var array
-     */
-    private static $fallback_links = [
-        'account' => 'https://memberpress.com/account/',
-        'support' => 'https://memberpress.com/support/',
-        'pricing' => 'https://memberpress.com/pricing/',
-    ];
+    private static $drm_links = null;
 
     /**
      * Set the DRM status.
@@ -72,7 +61,7 @@ class MeprDrmHelper
         if (isset($mepr_options->mothership_license)) {
             $key = $mepr_options->mothership_license;
         }
-        return ! empty($key);
+        return !empty($key);
     }
 
     /**
@@ -99,7 +88,7 @@ class MeprDrmHelper
     {
         $aov = get_option('mepr_activation_override');
 
-        if (! empty($aov)) {
+        if (!empty($aov)) {
             return true; // Valid license.
         }
 
@@ -118,17 +107,27 @@ class MeprDrmHelper
             return true; // Valid license.
         }
 
-        if (! self::has_key()) {
+        // Bypass DRM for development/staging sites.
+        if (MeprUtils::is_dev_url()) {
+            return true; // Valid license for dev environments.
+        }
+
+        // Bypass DRM for non-production sites as per wp_get_environment_type().
+        if (function_exists('wp_get_environment_type') && wp_get_environment_type() !== 'production') {
+            return true; // Valid license for non-producction sites.
+        }
+
+        if (!self::has_key()) {
             return false;
         }
 
         $license = get_site_transient('mepr_license_info');
 
-        if (! isset($license['license_key'])) {
+        if (!isset($license['license_key'])) {
             return false;  // Invalid license.
         }
 
-        if ('enabled' != $license['license_key']['status']) {
+        if ('enabled' !== $license['license_key']['status']) {
             return false; // Invalid license.
         }
 
@@ -163,8 +162,8 @@ class MeprDrmHelper
             return 0; // Invalid timestamp.
         }
 
-        $start_date = new DateTime(date('Y-m-d'));
-        $end_date   = new DateTime(date('Y-m-d', $timestamp));
+        $start_date = new DateTime(gmdate('Y-m-d'));
+        $end_date   = new DateTime(gmdate('Y-m-d', $timestamp));
         $difference = $end_date->diff($start_date);
 
         return absint($difference->format('%a'));
@@ -196,7 +195,7 @@ class MeprDrmHelper
      */
     public static function is_locked($drm_status = '')
     {
-        return ( self::DRM_LOCKED === self::maybe_drm_status($drm_status) );
+        return (self::DRM_LOCKED === self::maybe_drm_status($drm_status));
     }
 
     /**
@@ -208,7 +207,7 @@ class MeprDrmHelper
      */
     public static function is_medium($drm_status = '')
     {
-        return ( self::DRM_MEDIUM === self::maybe_drm_status($drm_status) );
+        return (self::DRM_MEDIUM === self::maybe_drm_status($drm_status));
     }
 
     /**
@@ -220,7 +219,7 @@ class MeprDrmHelper
      */
     public static function is_low($drm_status = '')
     {
-        return ( self::DRM_LOW === self::maybe_drm_status($drm_status) );
+        return (self::DRM_LOW === self::maybe_drm_status($drm_status));
     }
 
     /**
@@ -289,44 +288,44 @@ class MeprDrmHelper
             self::$drm_links = [
                 self::DRM_LOW    => [
                     'email'   => [
-                        'home'    => 'https://memberpress.com/drmlow/email',
-                        'account' => 'https://memberpress.com/drmlow/email/acct',
-                        'support' => 'https://memberpress.com/drmlow/email/support',
-                        'pricing' => 'https://memberpress.com/drmlow/email/pricing',
+                        'home'    => MeprUtils::get_link_url('drm_low_email_home'),
+                        'account' => MeprUtils::get_link_url('drm_low_email_account'),
+                        'support' => MeprUtils::get_link_url('drm_low_email_support'),
+                        'pricing' => MeprUtils::get_link_url('drm_low_email_pricing'),
                     ],
                     'general' => [
-                        'home'    => 'https://memberpress.com/drmlow/ipm',
-                        'account' => 'https://memberpress.com/drmlow/ipm/account',
-                        'support' => 'https://memberpress.com/drmlow/ipm/support',
-                        'pricing' => 'https://memberpress.com/drmlow/ipm/pricing',
+                        'home'    => MeprUtils::get_link_url('drm_low_general_home'),
+                        'account' => MeprUtils::get_link_url('drm_low_general_account'),
+                        'support' => MeprUtils::get_link_url('drm_low_general_support'),
+                        'pricing' => MeprUtils::get_link_url('drm_low_general_pricing'),
                     ],
                 ],
                 self::DRM_MEDIUM => [
                     'email'   => [
-                        'home'    => 'https://memberpress.com/drmmed/email',
-                        'account' => 'https://memberpress.com/drmmed/email/acct',
-                        'support' => 'https://memberpress.com/drmmed/email/support',
-                        'pricing' => 'https://memberpress.com/drmmed/email/pricing',
+                        'home'    => MeprUtils::get_link_url('drm_medium_email_home'),
+                        'account' => MeprUtils::get_link_url('drm_medium_email_account'),
+                        'support' => MeprUtils::get_link_url('drm_medium_email_support'),
+                        'pricing' => MeprUtils::get_link_url('drm_medium_email_pricing'),
                     ],
                     'general' => [
-                        'home'    => 'https://memberpress.com/drmmed/ipm',
-                        'account' => 'https://memberpress.com/drmmed/ipm/account',
-                        'support' => 'https://memberpress.com/drmmed/ipm/support',
-                        'pricing' => 'https://memberpress.com/drmmed/ipm/pricing',
+                        'home'    => MeprUtils::get_link_url('drm_medium_general_home'),
+                        'account' => MeprUtils::get_link_url('drm_medium_general_account'),
+                        'support' => MeprUtils::get_link_url('drm_medium_general_support'),
+                        'pricing' => MeprUtils::get_link_url('drm_medium_general_pricing'),
                     ],
                 ],
                 self::DRM_LOCKED => [
                     'email'   => [
-                        'home'    => 'https://memberpress.com/drmlock/email',
-                        'account' => 'https://memberpress.com/drmlock/email/acct',
-                        'support' => 'https://memberpress.com/drmlock/email/support',
-                        'pricing' => 'https://memberpress.com/drmlock/email/pricing',
+                        'home'    => MeprUtils::get_link_url('drm_locked_email_home'),
+                        'account' => MeprUtils::get_link_url('drm_locked_email_account'),
+                        'support' => MeprUtils::get_link_url('drm_locked_email_support'),
+                        'pricing' => MeprUtils::get_link_url('drm_locked_email_pricing'),
                     ],
                     'general' => [
-                        'home'    => 'https://memberpress.com/drmlock/ipm',
-                        'account' => 'https://memberpress.com/drmlock/ipm/account',
-                        'support' => 'https://memberpress.com/drmlock/ipm/support',
-                        'pricing' => 'https://memberpress.com/drmlock/ipm/pricing',
+                        'home'    => MeprUtils::get_link_url('drm_locked_general_home'),
+                        'account' => MeprUtils::get_link_url('drm_locked_general_account'),
+                        'support' => MeprUtils::get_link_url('drm_locked_general_support'),
+                        'pricing' => MeprUtils::get_link_url('drm_locked_general_pricing'),
                     ],
                 ],
             ];
@@ -347,22 +346,28 @@ class MeprDrmHelper
     public static function get_drm_link($drm_status, $purpose, $type)
     {
         $drm_links = self::get_drm_links();
-        if (isset($drm_links[ $drm_status ])) {
-            if (! isset($drm_links[ $drm_status ][ $purpose ])) {
+        if (isset($drm_links[$drm_status])) {
+            if (!isset($drm_links[$drm_status][$purpose])) {
                 $purpose = 'general';
             }
 
-            if (isset($drm_links[ $drm_status ][ $purpose ])) {
-                $data = $drm_links[ $drm_status ][ $purpose ];
-                if (isset($data[ $type ])) {
-                    return $data[ $type ];
+            if (isset($drm_links[$drm_status][$purpose])) {
+                $data = $drm_links[$drm_status][$purpose];
+                if (isset($data[$type])) {
+                    return $data[$type];
                 }
             }
         }
 
+        $fallback_links = [
+            'account' => MeprUtils::get_link_url('account'),
+            'support' => MeprUtils::get_link_url('support'),
+            'pricing' => MeprUtils::get_link_url('pricing'),
+        ];
+
         // Fallback links.
-        if (isset(self::$fallback_links[$type])) {
-            return self::$fallback_links[$type];
+        if (isset($fallback_links[$type])) {
+            return $fallback_links[$type];
         }
 
         return '';
@@ -553,7 +558,7 @@ class MeprDrmHelper
                     ),
                     __('That’s it!', 'memberpress')
                 );
-                $help_message      = __('We’re here to help you get things back up and running. Let us know if you need assistance.', 'memberpress');
+                $help_message = __('We’re here to help you get things back up and running. Let us know if you need assistance.', 'memberpress');
                 break;
             default:
                 $heading                 = '';
@@ -605,9 +610,9 @@ class MeprDrmHelper
      */
     public static function is_dismissed($event_data, $notice_key)
     {
-        if (isset($event_data[ $notice_key ])) {
-            $diff = (int) abs(time() - $event_data[ $notice_key ]);
-            if ($diff <= ( HOUR_IN_SECONDS * 24 )) {
+        if (isset($event_data[$notice_key])) {
+            $diff = (int) abs(time() - $event_data[$notice_key]);
+            if ($diff <= (HOUR_IN_SECONDS * 24)) {
                 return true;
             }
         }
@@ -622,7 +627,7 @@ class MeprDrmHelper
      */
     public static function get_drm_transient_fee_data()
     {
-        $transient      =  get_transient('mepr_drm_app_fee');
+        $transient      = get_transient('mepr_drm_app_fee');
         $transient_data = false;
         if (!empty($transient) && strstr($transient, '|')) {
             $data           = explode('|', $transient);
@@ -678,8 +683,8 @@ class MeprDrmHelper
             return $app_fee;
         }
 
-        $url = 'https://memberpress.com/wp-json/caseproof/d7m/v1/f33';
-        if (defined('MEPR_STAGING_MP_URL') && ( defined('MPSTAGE') && MPSTAGE )) {
+        $url = rtrim(MeprUtils::get_link_url('home'), '/') . '/wp-json/caseproof/d7m/v1/f33';
+        if (defined('MEPR_STAGING_MP_URL') && (defined('MPSTAGE') && MPSTAGE)) {
             $url = MEPR_STAGING_MP_URL . '/wp-json/caseproof/d7m/v1/f33';
         }
 
@@ -692,7 +697,7 @@ class MeprDrmHelper
         ], $url);
 
         $api_response    = wp_remote_get($url, $args);
-        $fee_percentage  = apply_filters('mepr_drm_application_fee_percentage', 3);
+        $fee_percentage  = MeprHooks::apply_filters('mepr_drm_application_fee_percentage', 3);
         $current_version = get_option('mepr_drm_application_fee_version', 0);
         $transient_data  = $current_version . '|' . $fee_percentage;
 
@@ -729,7 +734,35 @@ class MeprDrmHelper
      */
     public static function enable_app_fee()
     {
-        return update_option('mepr_drm_app_fee_enabled', time(), false);
+        $r = update_option('mepr_drm_app_fee_enabled', time(), false);
+        if ($r) {
+            $time = time();
+            update_option('mepr_drm_app_fee_enabled_data_' . $time, [
+                'time'    => MeprUtils::ts_to_mysql_date($time),
+                'user_id' => MeprUtils::get_current_user_id(),
+                'domain'  => MeprUtils::site_domain(),
+            ], false);
+
+            $user    = MeprUtils::get_currentuserinfo();
+            $license = get_site_transient('mepr_license_info');
+
+            MeprUtils::wp_mail(
+                'support@memberpress.com',
+                'Stripe Application Fee Enabled on ' . MeprUtils::site_domain(),
+                sprintf(
+                    '<ul><li>Date: %s</li><li>Domain: %s</li><li>License Info: %s</li><li>User Email: %s</li><li>User ID: %d</li><li>Application Fee: %s%%</li></ul>',
+                    MeprUtils::ts_to_mysql_date($time),
+                    MeprUtils::site_domain(),
+                    $license ? wp_json_encode($license) : 'None',
+                    $user->user_email,
+                    $user->ID,
+                    self::get_application_fee_percentage()
+                ),
+                'Content-Type: text/html; charset=UTF-8'
+            );
+        }
+
+        return $r;
     }
 
     /**
@@ -739,7 +772,17 @@ class MeprDrmHelper
      */
     public static function disable_app_fee()
     {
-        return delete_option('mepr_drm_app_fee_enabled');
+        $r = delete_option('mepr_drm_app_fee_enabled');
+        if ($r) {
+            $time = time();
+            update_option('mepr_drm_app_fee_disabled_data_' . $time, [
+                'time'    => MeprUtils::ts_to_mysql_date($time),
+                'user_id' => MeprUtils::get_current_user_id(),
+                'domain'  => MeprUtils::site_domain(),
+            ], false);
+        }
+
+        return $r;
     }
 
     /**
@@ -753,7 +796,7 @@ class MeprDrmHelper
 
         if ($dimissed_time) {
             $diff = (int) abs(time() - $dimissed_time);
-            if ($diff <= ( DAY_IN_SECONDS * 30 )) {
+            if ($diff <= (DAY_IN_SECONDS * 30)) {
                 return true;
             }
         }
@@ -784,7 +827,7 @@ class MeprDrmHelper
             return false; // No country provided, disallow by default.
         }
 
-        $country = strtoupper($country);
+        $country              = strtoupper($country);
         $disallowed_countries = [
             'BR', // Brazil.
             'IN', // India.

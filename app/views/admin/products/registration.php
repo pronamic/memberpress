@@ -4,14 +4,14 @@
 
 <div class="product-options-panel">
   <div id="mepr-product-registration-button-text">
-    <span><?php _e('Registration Button Text:', 'memberpress'); ?></span>
-    <input name="<?php echo MeprProduct::$signup_button_text_str; ?>" id="<?php echo MeprProduct::$signup_button_text_str; ?>" type="text" value="<?php echo $product->signup_button_text; ?>" />
+    <span><?php esc_html_e('Registration Button Text:', 'memberpress'); ?></span>
+    <input name="<?php echo esc_attr(MeprProduct::$signup_button_text_str); ?>" id="<?php echo esc_attr(MeprProduct::$signup_button_text_str); ?>" type="text" value="<?php echo esc_attr($product->signup_button_text); ?>" />
   </div>
   <?php $calculate_taxes = get_option('mepr_calculate_taxes'); ?>
   <?php if ($calculate_taxes) : ?>
     <div id="mepr-membership-tax-exempt" class="mepr-product-adv-item">
-      <input type="checkbox" name="<?php echo MeprProduct::$tax_exempt_str; ?>" id="<?php echo MeprProduct::$tax_exempt_str; ?>" <?php checked($product->tax_exempt); ?> />
-      <span><?php _e('This Membership is Tax Exempt', 'memberpress'); ?></span>
+      <input type="checkbox" name="<?php echo esc_attr(MeprProduct::$tax_exempt_str); ?>" id="<?php echo esc_attr(MeprProduct::$tax_exempt_str); ?>" <?php checked($product->tax_exempt); ?> />
+      <span><?php esc_html_e('This Membership is Tax Exempt', 'memberpress'); ?></span>
         <?php
         MeprAppHelper::info_tooltip(
             'mepr-product-tax-exempt',
@@ -21,11 +21,11 @@
         ?>
         <?php if (!get_option('mepr_tax_stripe_enabled')) : ?>
         <div id="mepr-product-tax-class-fields" class="mepr-options-pane">
-          <label for="<?php echo MeprProduct::$tax_class_str; ?>">
-            <span><?php _e('Tax Rates:', 'memberpress'); ?></span>
-            <select name="<?php echo MeprProduct::$tax_class_str; ?>" id="<?php echo MeprProduct::$tax_class_str; ?>">
-              <option value="standard" <?php selected($product->tax_class, 'standard'); ?>><?php _e('Standard Rate', 'memberpress'); ?></option>
-              <option value="reduced" <?php selected($product->tax_class, 'reduced'); ?>><?php _e('Reduced Rate', 'memberpress'); ?></option>
+          <label for="<?php echo esc_attr(MeprProduct::$tax_class_str); ?>">
+            <span><?php esc_html_e('Tax Rates:', 'memberpress'); ?></span>
+            <select name="<?php echo esc_attr(MeprProduct::$tax_class_str); ?>" id="<?php echo esc_attr(MeprProduct::$tax_class_str); ?>">
+              <option value="standard" <?php selected($product->tax_class, 'standard'); ?>><?php esc_html_e('Standard Rate', 'memberpress'); ?></option>
+              <option value="reduced" <?php selected($product->tax_class, 'reduced'); ?>><?php esc_html_e('Reduced Rate', 'memberpress'); ?></option>
             </select>
             <?php
               MeprAppHelper::info_tooltip(
@@ -41,8 +41,8 @@
     </div>
   <?php endif; ?>
   <div id="mepr-product-thank-you-page" class="mepr-product-adv-item">
-    <input type="checkbox" name="<?php echo MeprProduct::$thank_you_page_enabled_str; ?>" id="<?php echo MeprProduct::$thank_you_page_enabled_str; ?>" <?php checked($product->thank_you_page_enabled); ?> />
-    <label for="<?php echo MeprProduct::$thank_you_page_enabled_str; ?>"><?php _e('Enable custom thank you page message', 'memberpress'); ?></label>
+    <input type="checkbox" name="<?php echo esc_attr(MeprProduct::$thank_you_page_enabled_str); ?>" id="<?php echo esc_attr(MeprProduct::$thank_you_page_enabled_str); ?>" <?php checked($product->thank_you_page_enabled); ?> />
+    <label for="<?php echo esc_attr(MeprProduct::$thank_you_page_enabled_str); ?>"><?php esc_html_e('Enable custom thank you page message', 'memberpress'); ?></label>
     <?php
       MeprAppHelper::info_tooltip(
           'mepr-product-custom-thank-you',
@@ -53,8 +53,8 @@
 
     <div id="mepr-product-thank-you-area">
       <div class="mepr-product-adv-item">
-        <input type="radio" name="<?php echo MeprProduct::$thank_you_page_type_str; ?>" id="<?php echo MeprProduct::$thank_you_page_type_str; ?>_message" value="message" <?php checked(in_array($product->thank_you_page_type, ['message', ''])); ?> />
-        <label for="<?php echo MeprProduct::$thank_you_page_type_str; ?>_message"><?php _e('Enable custom thank you message', 'memberpress'); ?></label>
+        <input type="radio" name="<?php echo esc_attr(MeprProduct::$thank_you_page_type_str); ?>" id="<?php echo esc_attr(MeprProduct::$thank_you_page_type_str); ?>_message" value="message" <?php checked(in_array($product->thank_you_page_type, ['message', ''], true)); ?> />
+        <label for="<?php echo esc_attr(MeprProduct::$thank_you_page_type_str); ?>_message"><?php esc_html_e('Enable custom thank you message', 'memberpress'); ?></label>
         <?php
           MeprAppHelper::info_tooltip(
               'mepr-product-custom-thank-you-message',
@@ -67,8 +67,8 @@
         </div>
       </div>
       <div class="mepr-product-adv-item">
-        <input type="radio" name="<?php echo MeprProduct::$thank_you_page_type_str; ?>" id="<?php echo MeprProduct::$thank_you_page_type_str; ?>_page" value="page" <?php checked($product->thank_you_page_type, 'page') ?> />
-        <label for="<?php echo MeprProduct::$thank_you_page_type_str; ?>_page"><?php _e('Enable custom thank you page', 'memberpress'); ?></label>
+        <input type="radio" name="<?php echo esc_attr(MeprProduct::$thank_you_page_type_str); ?>" id="<?php echo esc_attr(MeprProduct::$thank_you_page_type_str); ?>_page" value="page" <?php checked($product->thank_you_page_type, 'page') ?> />
+        <label for="<?php echo esc_attr(MeprProduct::$thank_you_page_type_str); ?>_page"><?php esc_html_e('Enable custom thank you page', 'memberpress'); ?></label>
         <?php
           MeprAppHelper::info_tooltip(
               'mepr-product-custom-thank-you-page',
@@ -88,8 +88,8 @@
   </div>
 
   <div id="mepr-product-payment-methods-wrap">
-    <input type="checkbox" name="<?php echo MeprProduct::$customize_payment_methods_str; ?>" id="<?php echo MeprProduct::$customize_payment_methods_str; ?>" <?php checked($product->customize_payment_methods); ?> />
-    <label for="<?php echo MeprProduct::$customize_payment_methods_str; ?>"><?php _e('Customize Payment Methods', 'memberpress'); ?></label>
+    <input type="checkbox" name="<?php echo esc_attr(MeprProduct::$customize_payment_methods_str); ?>" id="<?php echo esc_attr(MeprProduct::$customize_payment_methods_str); ?>" <?php checked($product->customize_payment_methods); ?> />
+    <label for="<?php echo esc_attr(MeprProduct::$customize_payment_methods_str); ?>"><?php esc_html_e('Customize Payment Methods', 'memberpress'); ?></label>
     <?php
       MeprAppHelper::info_tooltip(
           'mepr-product-customize-payment-methods',
@@ -98,7 +98,7 @@
       );
         ?>
     <div id="mepr-product-payment-methods" class="mepr-options-pane mepr_hidden">
-      <h4><?php _e('Active Payment Methods', 'memberpress'); ?></h4>
+      <h4><?php esc_html_e('Active Payment Methods', 'memberpress'); ?></h4>
       <?php
         $pms = $mepr_options->payment_methods();
 
@@ -108,7 +108,7 @@
         if (empty($pms)) {
             $active_pms = null;
             ?>
-            <div><?php _e('No Payment Methods were found. Please go to the options page to configure some.', 'memberpress'); ?></div>
+            <div><?php esc_html_e('No Payment Methods were found. Please go to the options page to configure some.', 'memberpress'); ?></div>
             <?php
         } else {
             $pmkeys       = array_keys($pms);
@@ -120,19 +120,19 @@
             foreach ($active_pms as $active_pm) {
                 $pm = $pms[$active_pm];
                 ?>
-                <li><input type="checkbox" data-id="<?php echo $active_pm; ?>" checked="checked" /> <?php echo "{$pm->label} ({$pm->name})"; ?></li>
+                <li><input type="checkbox" data-id="<?php echo esc_attr($active_pm); ?>" checked="checked" /> <?php echo esc_html("{$pm->label} ({$pm->name})"); ?></li>
                 <?php
             }
             ?>
           </ul>
 
-          <h4 id="mepr-product-inactive-payment-methods-title" class="mepr_hidden"><?php _e('Inactive Payment Methods', 'memberpress'); ?></h4>
+          <h4 id="mepr-product-inactive-payment-methods-title" class="mepr_hidden"><?php esc_html_e('Inactive Payment Methods', 'memberpress'); ?></h4>
           <ul id="mepr-product-inactive-payment-methods" class="mepr_hidden">
             <?php
             foreach ($inactive_pms as $inactive_pm) {
                 $pm = $pms[$inactive_pm];
                 ?>
-                <li><input type="checkbox" data-id="<?php echo $inactive_pm; ?>" /> <?php echo "{$pm->label} ({$pm->name})"; ?></li>
+                <li><input type="checkbox" data-id="<?php echo esc_attr($inactive_pm); ?>" /> <?php echo esc_html("{$pm->label} ({$pm->name})"); ?></li>
                 <?php
             }
             ?>
@@ -145,8 +145,8 @@
   </div>
 
   <div id="mepr-product-profile-fields-wrap">
-    <input type="checkbox" name="<?php echo MeprProduct::$customize_profile_fields_str; ?>" id="<?php echo MeprProduct::$customize_profile_fields_str; ?>" <?php checked($product->customize_profile_fields); ?> />
-    <label for="<?php echo MeprProduct::$customize_profile_fields_str; ?>"><?php _e('Customize User Information Fields', 'memberpress'); ?></label>
+    <input type="checkbox" name="<?php echo esc_attr(MeprProduct::$customize_profile_fields_str); ?>" id="<?php echo esc_attr(MeprProduct::$customize_profile_fields_str); ?>" <?php checked($product->customize_profile_fields); ?> />
+    <label for="<?php echo esc_attr(MeprProduct::$customize_profile_fields_str); ?>"><?php esc_html_e('Customize User Information Fields', 'memberpress'); ?></label>
     <?php
       MeprAppHelper::info_tooltip(
           'mepr-product-customize-profile-fields',
@@ -155,13 +155,13 @@
       );
         ?>
     <div id="mepr-product-profile-fields" class="mepr-options-pane mepr_hidden">
-      <h4><?php _e('Active Fields', 'memberpress'); ?></h4>
+      <h4><?php esc_html_e('Active Fields', 'memberpress'); ?></h4>
       <?php
         $fields = $mepr_options->custom_fields;
 
         if (empty($fields)) {
             ?>
-            <div><?php _e('No fields were found. Please go to the options page to configure some.', 'memberpress'); ?></div>
+            <div><?php esc_html_e('No fields were found. Please go to the options page to configure some.', 'memberpress'); ?></div>
             <?php
         } else {
             $slugs = $mepr_options->get_custom_field_slugs();
@@ -175,22 +175,22 @@
           <ul id="mepr-product-active-profile-fields">
             <?php
             foreach ($mepr_options->custom_fields as $row) {
-                if (in_array($row->field_key, $active_slugs)) {
+                if (in_array($row->field_key, $active_slugs, true)) {
                     ?>
-                  <li class="mepr-profile-field-row"><input type="checkbox" name="product-profile-fields[<?php echo $row->field_key; ?>]" checked="checked" class="mepr-profile-field-box" /> <?php echo stripslashes($row->field_name); ?></li>
+                  <li class="mepr-profile-field-row"><input type="checkbox" name="product-profile-fields[<?php echo esc_attr($row->field_key); ?>]" checked="checked" class="mepr-profile-field-box" /> <?php echo esc_html(stripslashes($row->field_name)); ?></li>
                     <?php
                 }
             }
             ?>
           </ul>
 
-          <h4 id="mepr-product-inactive-profile-fields-title" class="mepr_hidden"><?php _e('Inactive Fields', 'memberpress'); ?></h4>
+          <h4 id="mepr-product-inactive-profile-fields-title" class="mepr_hidden"><?php esc_html_e('Inactive Fields', 'memberpress'); ?></h4>
           <ul id="mepr-product-inactive-profile-fields" class="mepr_hidden">
             <?php
             foreach ($mepr_options->custom_fields as $row) {
-                if (!in_array($row->field_key, $active_slugs)) {
+                if (!in_array($row->field_key, $active_slugs, true)) {
                     ?>
-                  <li class="mepr-profile-field-row"><input type="checkbox" name="product-profile-fields[<?php echo $row->field_key; ?>]" class="mepr-profile-field-box" /> <?php echo stripslashes($row->field_name); ?></li>
+                  <li class="mepr-profile-field-row"><input type="checkbox" name="product-profile-fields[<?php echo esc_attr($row->field_key); ?>]" class="mepr-profile-field-box" /> <?php echo esc_html(stripslashes($row->field_name)); ?></li>
                     <?php
                 }
             }
@@ -204,8 +204,8 @@
 
   <?php if ($mepr_options->show_address_fields && $mepr_options->require_address_fields) : ?>
     <div id="mepr-product-disable-address-fields-wrap">
-      <input type="checkbox" name="<?php echo MeprProduct::$disable_address_fields_str; ?>" id="<?php echo MeprProduct::$disable_address_fields_str; ?>" <?php checked($product->disable_address_fields); ?> />
-      <label for="<?php echo MeprProduct::$disable_address_fields_str; ?>"><?php _e('Disable Address Fields', 'memberpress'); ?></label>
+      <input type="checkbox" name="<?php echo esc_attr(MeprProduct::$disable_address_fields_str); ?>" id="<?php echo esc_attr(MeprProduct::$disable_address_fields_str); ?>" <?php checked($product->disable_address_fields); ?> />
+      <label for="<?php echo esc_attr(MeprProduct::$disable_address_fields_str); ?>"><?php esc_html_e('Disable Address Fields', 'memberpress'); ?></label>
         <?php
         MeprAppHelper::info_tooltip(
             'mepr-product-disable-address-fields',
@@ -216,22 +216,22 @@
     </div>
   <?php endif; ?>
 
-  <?php MeprHooks::do_action('mepr-product-registration-metabox', $product); ?>
+  <?php MeprHooks::do_action('mepr_product_registration_metabox', $product); ?>
 
   <div id="mepr-product-manually-place-form">
     <?php // Manually place the registration form on the page. ?>
-    <a href="#" data-target="#mepr-product-shortcodes" class="mepr-slide-toggle"><?php _e('Membership Shortcodes', 'memberpress'); ?></a><br/><br/>
+    <a href="#" data-target="#mepr-product-shortcodes" class="mepr-slide-toggle"><?php esc_html_e('Membership Shortcodes', 'memberpress'); ?></a><br/><br/>
     <div id="mepr-product-shortcodes" class="mepr-radius-border mepr-hidden">
-      <p class="description"><?php _e('You can use this shortcode anywhere on your site to quickly display a link to this membership page. If the text inbetween the shortcode is not present, MemberPress will use the membership title as the link text instead.', 'memberpress'); ?></p>
-      [mepr-membership-link id="<?php echo $product->ID; ?>"] <?php _e('Optional link label here...', 'memberpress'); ?> [/mepr-membership-link]<br/><br/>
+      <p class="description"><?php esc_html_e('You can use this shortcode anywhere on your site to quickly display a link to this membership page. If the text inbetween the shortcode is not present, MemberPress will use the membership title as the link text instead.', 'memberpress'); ?></p>
+      [mepr_membership_link id="<?php echo esc_html($product->ID); ?>"] <?php esc_html_e('Optional link label here...', 'memberpress'); ?> [/mepr_membership_link]<br/><br/>
       <?php if (!empty($product->access_url)) : ?>
-        <p class="description"><?php _e('This shortcode can be used to show a link to the Membership Access URL set in the Advanced tab.', 'memberpress'); ?></p>
-        [mepr-membership-access-url id="<?php echo $product->ID; ?>"] <?php _e('Optional link label here...', 'memberpress'); ?> [/mepr-membership-access-url]<br/><br/>
+        <p class="description"><?php esc_html_e('This shortcode can be used to show a link to the Membership Access URL set in the Advanced tab.', 'memberpress'); ?></p>
+        [mepr_membership_access_url id="<?php echo esc_html($product->ID); ?>"] <?php esc_html_e('Optional link label here...', 'memberpress'); ?> [/mepr_membership_access_url]<br/><br/>
       <?php endif; ?>
-      <p class="description"><?php _e('Shortcode to be used on this membership page to manually place the registration form.', 'memberpress'); ?></p>
-      [mepr-membership-registration-form]<br/><br/>
-      <p class="description"><?php _e('Shortcode which can be used on any other WordPress page, post or custom post type to manually place the registration form for this membership.', 'memberpress'); ?></p>
-      [mepr-membership-registration-form id="<?php echo $product->ID; ?>"]
+      <p class="description"><?php esc_html_e('Shortcode to be used on this membership page to manually place the registration form.', 'memberpress'); ?></p>
+      [mepr_membership_registration_form]<br/><br/>
+      <p class="description"><?php esc_html_e('Shortcode which can be used on any other WordPress page, post or custom post type to manually place the registration form for this membership.', 'memberpress'); ?></p>
+      [mepr_membership_registration_form id="<?php echo esc_html($product->ID); ?>"]
     </div>
   </div>
 </div>

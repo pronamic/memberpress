@@ -23,7 +23,7 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
         $sub->status = MeprSubscription::$active_str;
 
         if ($set_created_at) {
-            $sub->created_at = gmdate('c');
+            $sub->created_at = MeprUtils::db_now();
         }
 
         $sub->store();
@@ -181,7 +181,7 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
     public function record_one_time_payment(MeprTransaction $txn, $trans_num)
     {
         // Just short circuit if the txn has already completed.
-        if ($txn->status == MeprTransaction::$complete_str) {
+        if ($txn->status === MeprTransaction::$complete_str) {
             return;
         }
 
@@ -197,7 +197,7 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
 
         $event_txn = $txn->maybe_cancel_old_sub();
 
-        if ($prd->period_type == 'lifetime') {
+        if ($prd->period_type === 'lifetime') {
             if ($upgrade) {
                 $this->upgraded_sub($txn, $event_txn);
             } elseif ($downgrade) {
@@ -277,7 +277,7 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
 
         $first_txn = $sub->first_txn();
 
-        if ($first_txn == false || !($first_txn instanceof MeprTransaction)) {
+        if (!($first_txn instanceof MeprTransaction)) {
             $coupon_id = $sub->coupon_id;
         } else {
             $coupon_id = $first_txn->coupon_id;
@@ -320,6 +320,6 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
         MeprUtils::send_transaction_receipt_notices($txn);
         MeprUtils::send_cc_expiration_notices($txn);
 
-        do_action("mepr_{$this->key}_record_sub_payment", $txn, $sub);
+        MeprHooks::do_action("mepr_{$this->key}_record_sub_payment", $txn, $sub);
     }
 }

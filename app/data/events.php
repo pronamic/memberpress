@@ -101,6 +101,15 @@ return MeprHooks::apply_filters('mepr_events', [
     'non-recurring-transaction-expired'    => (object) [
         'unique' => true,
     ],
+    // Member Status Change Events.
+    'account-is-active'    => (object) [
+        'unique' => false,
+        'time_limit' => 60, // Prevents multiple triggers within a 1-minute window.
+    ],
+    'account-is-inactive'    => (object) [
+        'unique' => false,
+        'time_limit' => 60, // Prevents multiple triggers within a 1-minute window.
+    ],
 
     /**
      * Events from Reminders
@@ -159,5 +168,22 @@ return MeprHooks::apply_filters('mepr_events', [
     ],
     'mpca-quiz-attempt-completed'          => (object) [
         'unique' => false,
+    ],
+
+    /**
+     * Events for Course Assignments
+     */
+    'mpcs-assignment-submission-completed' => (object) [
+        'unique' => false,
+    ],
+
+    /**
+     * Events for Gifting
+     */
+    'mpgft-gift-purchased'                 => (object) [
+        'unique' => true,
+    ],
+    'mpgft-gift-claimed'                   => (object) [
+        'unique' => true,
     ],
 ]);

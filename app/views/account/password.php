@@ -5,13 +5,13 @@
 <div class="mp_wrapper">
   <?php MeprView::render('/shared/errors', get_defined_vars()); ?>
 
-  <form action="<?php echo parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH); ?>" class="mepr-newpassword-form mepr-form" method="post" novalidate>
+  <form action="<?php echo esc_url(wp_parse_url(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? '')), PHP_URL_PATH)); ?>" class="mepr-newpassword-form mepr-form" method="post" novalidate>
     <input type="hidden" name="plugin" value="mepr" />
     <input type="hidden" name="action" value="updatepassword" />
     <?php wp_nonce_field('update_password', 'mepr_account_nonce'); ?>
 
     <div class="mp-form-row mepr_new_password">
-      <label for="mepr-new-password"><?php _ex('New Password', 'ui', 'memberpress'); ?></label>
+      <label for="mepr-new-password"><?php echo esc_html_x('New Password', 'ui', 'memberpress'); ?></label>
       <div class="mp-hide-pw">
         <input type="password" name="mepr-new-password" id="mepr-new-password" class="mepr-form-input mepr-new-password" required />
         <button type="button" class="button mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password', 'memberpress'); ?>">
@@ -20,7 +20,7 @@
       </div>
     </div>
     <div class="mp-form-row mepr_confirm_password">
-      <label for="mepr-confirm-password"><?php _ex('Confirm New Password', 'ui', 'memberpress'); ?></label>
+      <label for="mepr-confirm-password"><?php echo esc_html_x('Confirm New Password', 'ui', 'memberpress'); ?></label>
       <div class="mp-hide-pw">
         <input type="password" name="mepr-confirm-password" id="mepr-confirm-password" class="mepr-form-input mepr-new-password-confirm" required />
         <button type="button" class="button mp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password', 'memberpress'); ?>">
@@ -28,14 +28,14 @@
         </button>
       </div>
     </div>
-    <?php MeprHooks::do_action('mepr-account-after-password-fields', $mepr_current_user); ?>
+    <?php MeprHooks::do_action('mepr_account_after_password_fields', $mepr_current_user); ?>
 
     <div class="mepr_spacer">&nbsp;</div>
 
-    <input type="submit" name="new-password-submit" value="<?php _ex('Update Password', 'ui', 'memberpress'); ?>" class="mepr-submit" />
-    <?php _ex('or', 'ui', 'memberpress'); ?>
-    <a href="<?php echo esc_url($mepr_options->account_page_url()); ?>"><?php _ex('Cancel', 'ui', 'memberpress'); ?></a>
-    <img src="<?php echo admin_url('images/loading.gif'); ?>" alt="<?php _e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
+    <input type="submit" name="new-password-submit" value="<?php echo esc_attr_x('Update Password', 'ui', 'memberpress'); ?>" class="mepr-submit" />
+    <?php echo esc_html_x('or', 'ui', 'memberpress'); ?>
+    <a href="<?php echo esc_url($mepr_options->account_page_url()); ?>"><?php echo esc_html_x('Cancel', 'ui', 'memberpress'); ?></a>
+    <img src="<?php echo esc_url(admin_url('images/loading.gif')); ?>" alt="<?php esc_attr_e('Loading...', 'memberpress'); ?>" style="display: none;" class="mepr-loading-gif" />
     <?php MeprView::render('/shared/has_errors', get_defined_vars()); ?>
   </form>
 

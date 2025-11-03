@@ -14,16 +14,16 @@ class MeprUserRoles
      */
     public function __construct()
     {
-        add_action('mepr-txn-store', [$this, 'process_status_changes']);
-        add_action('mepr-txn-expired', [$this, 'process_status_changes'], 10, 2);
-        add_action('mepr-account-is-active', [$this, 'process_status_changes']);
+        add_action('mepr_txn_store', [$this, 'process_status_changes']);
+        add_action('mepr_txn_expired', [$this, 'process_status_changes'], 10, 2);
+        add_action('mepr_account_is_active', [$this, 'process_status_changes']);
         add_action('mepr_post_delete_transaction', [$this, 'process_destroy_txn'], 10, 4);
-        add_action('mepr-product-advanced-metabox', [$this, 'display_product_override']);
-        add_action('mepr-product-save-meta', [$this, 'save_product_override']);
+        add_action('mepr_product_advanced_metabox', [$this, 'display_product_override']);
+        add_action('mepr_product_save_meta', [$this, 'save_product_override']);
         add_action('profile_update', [$this, 'process_profile_update'], 10, 2);
 
         // Enqueue scripts.
-        add_action('mepr-membership-admin-enqueue-script', [$this, 'admin_enqueue_product_scripts']);
+        add_action('mepr_membership_admin_enqueue_script', [$this, 'admin_enqueue_product_scripts']);
     }
 
     /**
@@ -64,17 +64,15 @@ class MeprUserRoles
     /**
      * Processes the destruction of a transaction.
      *
-     * @param integer         $id       The ID of the transaction.
-     * @param WP_User         $user     The user object.
-     * @param string          $result   The result of the transaction.
-     * @param MeprTransaction $mepr_txn The transaction object.
+     * @param integer         $id     The ID of the transaction.
+     * @param WP_User         $user   The user object.
+     * @param string          $result The result of the transaction.
+     * @param MeprTransaction $txn    The transaction object.
      *
      * @return void
      */
-    public function process_destroy_txn($id, $user, $result, $mepr_txn)
+    public function process_destroy_txn($id, $user, $result, $txn)
     {
-        $txn          = new MeprTransaction(); // Temp txn object to pass to process_status_changes.
-        $txn->user_id = $user->ID;
         $this->process_status_changes($txn);
     }
 
@@ -88,7 +86,7 @@ class MeprUserRoles
      */
     public function process_status_changes($obj, $sub_status = false)
     {
-        if ($obj instanceof MeprTransaction && $sub_status !== false && $sub_status == MeprSubscription::$active_str) {
+        if ($obj instanceof MeprTransaction && $sub_status !== false && $sub_status === MeprSubscription::$active_str) {
             // This is an expiring transaction which is part of an active subscription, so check if there is a new txn
             // if there is a new txn then don't remove the user's roles.
             $sub = $obj->subscription();
@@ -106,7 +104,7 @@ class MeprUserRoles
             return;
         }
 
-        if (true === MeprHooks::apply_filters('mepr-bypass-user-roles-setup', false, $obj, $sub_status, $wp_user)) {
+        if (true === MeprHooks::apply_filters('mepr_bypass_user_roles_setup', false, $obj, $sub_status, $wp_user)) {
             return; // No need to process user roles.
         }
 
@@ -133,13 +131,13 @@ class MeprUserRoles
         $roles_to_remove        = $this->get_roles_to_remove($wp_user);
 
         // Remove the Roles they shouldn't have.
-        $roles_to_remove = MeprHooks::apply_filters('mepr-userroles-remove-roles', $roles_to_remove, $wp_user);
+        $roles_to_remove = MeprHooks::apply_filters('mepr_userroles_remove_roles', $roles_to_remove, $wp_user);
         if (!empty($roles_to_remove)) {
             $this->remove_roles($wp_user, $roles_to_remove);
         }
 
         // Add the Roles they should have.
-        $roles_user_should_have = MeprHooks::apply_filters('mepr-userroles-add-roles', $roles_user_should_have, $wp_user);
+        $roles_user_should_have = MeprHooks::apply_filters('mepr_userroles_add_roles', $roles_user_should_have, $wp_user);
         if (!empty($roles_user_should_have)) {
             $this->add_roles($wp_user, $roles_user_should_have);
         }
@@ -163,9 +161,12 @@ class MeprUserRoles
      */
     public function get_all_roles_from_all_memberships()
     {
-        global $wpdb;
-
-        $products = $wpdb->get_col("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_mepruserroles_enabled' AND meta_value = 1");
+        $products = get_posts([
+            'meta_key'    => '_mepruserroles_enabled',
+            'meta_value'  => '1',
+            'numberposts' => -1,
+            'fields'      => 'ids',
+        ]);
 
         return $this->get_roles_from_products_array($products);
     }
@@ -355,7 +356,7 @@ class MeprUserRoles
         ?>
     <div id="mepr-userroles" class="mepr-product-adv-item">
       <input type="checkbox" name="mepruserroles_enabled" id="mepruserroles_enabled" <?php checked($enabled); ?> />
-      <label for="mepruserroles_enabled"><?php _e('User Roles for this Membership', 'memberpress'); ?></label>
+      <label for="mepruserroles_enabled"><?php esc_html_e('User Roles for this Membership', 'memberpress'); ?></label>
 
         <?php MeprAppHelper::info_tooltip(
             'mepruserroles-list-override',
@@ -367,11 +368,11 @@ class MeprUserRoles
       <div id="mepruserroles_enabled_area" class="mepr-hidden product-options-panel">
         <select name="mepruserroles_product_roles[]" id="mepruserroles_product_roles" class="mepr-text-input form-field" multiple="multiple" size="5" style="width:99%;">
           <?php foreach ($all_roles as $role) : ?>
-            <option value="<?php echo $role['slug']; ?>" <?php selected(in_array($role['slug'], $roles)); ?>><?php echo $role['name']; ?></option>
+            <option value="<?php echo esc_attr($role['slug']); ?>" <?php selected(in_array($role['slug'], $roles, true)); ?>><?php echo esc_html($role['name']); ?></option>
           <?php endforeach; ?>
         </select>
         <br/>
-        <small><?php _e('Hold the Control Key (Command Key on the Mac) in order to select or deselect multiple roles', 'memberpress'); ?></small>
+        <small><?php esc_html_e('Hold the Control Key (Command Key on the Mac) in order to select or deselect multiple roles', 'memberpress'); ?></small>
       </div>
     </div>
         <?php
@@ -388,7 +389,8 @@ class MeprUserRoles
     {
         if (isset($_POST['mepruserroles_enabled']) && isset($_POST['mepruserroles_product_roles'])) {
             update_post_meta($product->ID, '_mepruserroles_enabled', true);
-            update_post_meta($product->ID, '_mepruserroles_roles', $_POST['mepruserroles_product_roles']);
+            $roles = array_map('sanitize_text_field', wp_unslash($_POST['mepruserroles_product_roles']));
+            update_post_meta($product->ID, '_mepruserroles_roles', wp_slash($roles));
         } else {
             update_post_meta($product->ID, '_mepruserroles_enabled', false);
             update_post_meta($product->ID, '_mepruserroles_roles', []);

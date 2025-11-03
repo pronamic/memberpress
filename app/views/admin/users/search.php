@@ -7,5 +7,5 @@
 
 ?>
 <?php foreach ($users as $user) : ?>
-    <?php echo $user->user_login, "\n"; ?>
+    <?php echo esc_html($user->user_login), "\n"; ?>
 <?php endforeach;

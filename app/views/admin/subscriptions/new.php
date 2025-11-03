@@ -3,7 +3,7 @@
 } ?>
 
 <div class="wrap">
-  <h2><?php _e('New Subscription', 'memberpress'); ?></h2>
+  <h2><?php esc_html_e('New Subscription', 'memberpress'); ?></h2>
 
   <?php MeprView::render('/admin/errors', get_defined_vars()); ?>
 
@@ -15,7 +15,7 @@
         </tbody>
       </table>
       <p class="submit">
-        <input type="submit" id="submit" class="button button-primary" value="<?php _e('Create', 'memberpress'); ?>" />
+        <input type="submit" id="submit" class="button button-primary" value="<?php esc_attr_e('Create', 'memberpress'); ?>" />
       </p>
     </form>
   </div>

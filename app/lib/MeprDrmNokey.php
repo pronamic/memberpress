@@ -41,7 +41,7 @@ class MeprDrmNokey extends MeprBaseDrm
 
         // DRM status detected.
         if ('' !== $this->drm_status) {
-            do_action('mepr_drm_no_license_event', $event, $days, $this->drm_status);
+            MeprHooks::do_action('mepr_drm_no_license_event', $event, $days, $this->drm_status);
         }
     }
 
@@ -57,7 +57,7 @@ class MeprDrmNokey extends MeprBaseDrm
 
         $drm_status = MeprDrmHelper::get_status();
 
-        if ($drm_status == '') {
+        if ($drm_status === '') {
             return $tests; // Bail.
         }
 

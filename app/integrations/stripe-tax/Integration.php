@@ -8,7 +8,7 @@ class MeprStripeTaxIntegration
     public function __construct()
     {
         add_action('mepr_tax_rate_options', [$this, 'options']);
-        add_action('mepr-process-options', [$this, 'store_options']);
+        add_action('mepr_process_options', [$this, 'store_options']);
         add_action('admin_notices', [$this, 'new_feature_admin_notice']);
         add_action('admin_notices', [$this, 'deactivated_admin_notice']);
         add_action('wp_ajax_mepr_dismiss_stripe_tax_notice', [$this, 'dismiss_stripe_tax_notice']);
@@ -20,10 +20,10 @@ class MeprStripeTaxIntegration
 
         if ($calculate_taxes && $tax_stripe_enabled) {
             add_filter('mepr_find_tax_rate', [$this, 'find_rate'], 30, 8);
-            add_action('mepr-product-advanced-metabox', [$this, 'display_membership_options'], 15);
-            add_action('mepr-membership-save-meta', [$this, 'save_membership_options']);
-            add_action('mepr-event-transaction-completed', [$this, 'create_tax_transaction']);
-            add_action('mepr-event-transaction-refunded', [$this, 'refund_tax_transaction']);
+            add_action('mepr_product_advanced_metabox', [$this, 'display_membership_options'], 15);
+            add_action('mepr_membership_save_meta', [$this, 'save_membership_options']);
+            add_action('mepr_event_transaction_completed', [$this, 'create_tax_transaction']);
+            add_action('mepr_event_transaction_refunded', [$this, 'refund_tax_transaction']);
             add_filter('site_status_tests', [$this, 'add_site_health_test']);
             add_action('admin_notices', [$this, 'admin_notice']);
         }
@@ -188,7 +188,7 @@ class MeprStripeTaxIntegration
         $tax_code_custom = get_post_meta($product_id, '_mepr_tax_stripe_tax_code_custom', true);
 
         if ($tax_code) {
-            return $tax_code == 'custom' ? $tax_code_custom : $tax_code;
+            return $tax_code === 'custom' ? $tax_code_custom : $tax_code;
         }
 
         return '';
@@ -360,7 +360,9 @@ class MeprStripeTaxIntegration
         $country  = get_user_meta($txn->user_id, 'mepr-address-country', true);
         $postcode = get_user_meta($txn->user_id, 'mepr-address-zip', true);
 
-        if (empty($one) || empty($city) || empty($state) || empty($country) || empty($postcode)) {
+        // Countries that don't have states/provinces.
+        $state_required = !in_array($country, MeprUtils::get_countries_without_states(), true);
+        if (empty($one) || empty($city) || empty($country) || empty($postcode) || ($state_required && empty($state))) {
             return;
         }
 
@@ -562,11 +564,11 @@ class MeprStripeTaxIntegration
         if (get_option('mepr_vat_enabled')) {
             $customer_type = MeprVatTaxCtrl::get_customer_type($user);
 
-            if ($customer_type == 'business') {
+            if ($customer_type === 'business') {
                 $vat_number = MeprVatTaxCtrl::get_vat_number($user);
 
                 if (!empty($vat_number)) {
-                    if (substr($vat_number, 0, 2) == 'GB') {
+                    if (substr($vat_number, 0, 2) === 'GB') {
                         $type = 'gb_vat';
                     } else {
                         $type = 'eu_vat';
@@ -599,7 +601,7 @@ class MeprStripeTaxIntegration
             return;
         }
 
-        if (isset($_GET['page']) && $_GET['page'] == 'memberpress-options') {
+        if (isset($_GET['page']) && $_GET['page'] === 'memberpress-options') {
             return;
         }
 
@@ -678,7 +680,7 @@ class MeprStripeTaxIntegration
             !MeprUtils::is_logged_in_and_an_admin() ||
             !get_option('mepr_tax_stripe_deactivated') ||
             get_user_meta(get_current_user_id(), 'mepr_dismiss_notice_deactivated_stripe_tax', true) ||
-            (isset($_GET['page']) && $_GET['page'] == 'memberpress-options')
+            (isset($_GET['page']) && $_GET['page'] === 'memberpress-options')
         ) {
             return;
         }
@@ -746,7 +748,7 @@ class MeprStripeTaxIntegration
         try {
             $tax_settings = (object) $pm->send_stripe_request('tax/settings', [], 'get');
 
-            if ($tax_settings->status != 'active') {
+            if ($tax_settings->status !== 'active') {
                 wp_send_json_error(false);
             }
 
@@ -796,7 +798,7 @@ class MeprStripeTaxIntegration
         try {
             $tax_settings = (object) $pm->send_stripe_request('tax/settings', [], 'get');
 
-            wp_send_json_success($tax_settings->status == 'active');
+            wp_send_json_success($tax_settings->status === 'active');
         } catch (Exception $e) {
             wp_send_json_error($e->getMessage());
         }

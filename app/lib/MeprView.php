@@ -90,7 +90,7 @@ class MeprView
     {
         $view = self::get_string($slug, $vars, $paths);
 
-        echo $view;
+        echo $view; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
         return $view;
     }

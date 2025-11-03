@@ -29,7 +29,7 @@ class MeprAuthorizeRetryJob extends MeprBaseJob
 
         if (is_object($auth_transaction)) {
             if (!isset($auth_transaction->transaction->subscription)) {
-                throw new Exception(__('No subscription data available', 'memberpress'));
+                throw new Exception(esc_html__('No subscription data available', 'memberpress'));
             } else {
                 $auth_webhook = new MeprAuthorizeWebhooks((object) $this->gateway_settings);
 
@@ -40,7 +40,7 @@ class MeprAuthorizeRetryJob extends MeprBaseJob
                 }
             }
         } else {
-            throw new Exception(__('There was a problem with the Authorize.net API request.', 'memberpress'));
+            throw new Exception(esc_html__('There was a problem with the Authorize.net API request.', 'memberpress'));
         }
     }
 }

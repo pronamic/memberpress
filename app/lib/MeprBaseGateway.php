@@ -133,7 +133,7 @@ abstract class MeprBaseGateway
         $mepr_options = MeprOptions::fetch();
         $ids          = array_keys($mepr_options->integrations);
 
-        $num = mt_rand(1, 9999);
+        $num = wp_rand(1, 9999);
         $id  = MeprUtils::base36_encode(time()) . '-' . MeprUtils::base36_encode($num);
 
         return $id;
@@ -164,7 +164,7 @@ abstract class MeprBaseGateway
      */
     public function can($cap)
     {
-        return in_array(trim($cap), $this->capabilities);
+        return in_array(trim($cap), $this->capabilities, true);
     }
 
     /**
@@ -511,11 +511,11 @@ abstract class MeprBaseGateway
 
         // Back button fix for IE and Edge
         // Make sure they haven't just completed the subscription signup and clicked the back button.
-        if ($txn->status != MeprTransaction::$pending_str) {
+        if ($txn->status !== MeprTransaction::$pending_str) {
             throw new Exception(sprintf(
                 // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
-                _x('You already completed your payment to this subscription. %1$sClick here to view your subscriptions%2$s.', 'ui', 'memberpress'),
-                '<a href="' . $mepr_options->account_page_url('action=subscriptions') . '">',
+                esc_html__('You already completed your payment to this subscription. %1$sClick here to view your subscriptions%2$s.', 'memberpress'),
+                '<a href="' . esc_url($mepr_options->account_page_url('action=subscriptions')) . '">',
                 '</a>'
             ));
         }
@@ -526,7 +526,7 @@ abstract class MeprBaseGateway
             $usr = $txn->user();
             $prd = $txn->product();
         } else {
-            throw new Exception($error_str . ' [PPF01]');
+            throw new Exception(esc_html($error_str) . ' [PPF01]');
         }
 
         // How did we get here?
@@ -538,7 +538,7 @@ abstract class MeprBaseGateway
 
             $txn->destroy();
 
-            throw new Exception($error_str . ' [PPF02]');
+            throw new Exception(esc_html($error_str) . ' [PPF02]');
         }
 
         if ($txn->amount <= 0.00) {
@@ -546,13 +546,13 @@ abstract class MeprBaseGateway
             return;
         }
 
-        if ($txn->gateway == $this->id) {
+        if ($txn->gateway === $this->id) {
             if (!$prd->is_one_time_payment()) {
                 // Trial pmt is included in the Subscription profile at gateway (PayPal mostly).
                 $sub = $txn->subscription();
                 if (!$this->can('subscription-trial-payment') && $sub !== false && $sub->trial && $sub->trial_amount > 0.00) {
                     $calculate_taxes = (bool) get_option('mepr_calculate_taxes');
-                    $tax_inclusive   = $mepr_options->attr('tax_calc_type') == 'inclusive';
+                    $tax_inclusive   = $mepr_options->attr('tax_calc_type') === 'inclusive';
                     $txn->set_subtotal($calculate_taxes && $tax_inclusive ? $sub->trial_total : $sub->trial_amount);
                     $this->email_status("Calling process_trial_payment ...\n\n" . MeprUtils::object_to_string($txn) . "\n\n" . MeprUtils::object_to_string($sub), $this->settings->debug);
                     $this->process_trial_payment($txn);
@@ -562,7 +562,7 @@ abstract class MeprBaseGateway
                 $this->process_payment($txn);
             }
         } else {
-            throw new Exception($error_str . ' [PPF03]');
+            throw new Exception(esc_html($error_str) . ' [PPF03]');
         }
     }
 
@@ -622,11 +622,11 @@ abstract class MeprBaseGateway
         $product = new MeprProduct($subscription->product_id);
 
         // Assume we're either on the account page or some
-        // page that is using the [mepr-account-form] shortcode.
+        // page that is using the [mepr_account_form] shortcode.
         $account_url = MeprUtils::get_account_url();
 
         if (wp_doing_ajax()) {
-            $account_url = isset($_POST['account_url']) ? esc_url($_POST['current_url']) : $account_url;
+            $account_url = isset($_POST['account_url']) ? esc_url_raw(wp_unslash($_POST['current_url'] ?? '')) : $account_url;
         }
         $account_delim    = ( preg_match('~\?~', $account_url) ? '&' : '?' );
         $user             = $subscription->user();
@@ -634,33 +634,33 @@ abstract class MeprBaseGateway
 
         ?>
         <?php // <div class="mepr-account-row-actions"> ?>
-        <?php if ($subscription->status != MeprSubscription::$pending_str) : ?>
-            <?php if ($subscription->status != MeprSubscription::$cancelled_str && !$hide_update_link) : ?>
-          <a href="<?php echo $this->https_url("{$account_url}{$account_delim}action=update&sub={$subscription->id}"); ?>" class="mepr-account-row-action mepr-account-update"><?php _e('Update', 'memberpress'); ?></a>
+        <?php if ($subscription->status !== MeprSubscription::$pending_str) : ?>
+            <?php if ($subscription->status !== MeprSubscription::$cancelled_str && !$hide_update_link) : ?>
+          <a href="<?php echo esc_url($this->https_url("{$account_url}{$account_delim}action=update&sub={$subscription->id}")); ?>" class="mepr-account-row-action mepr-account-update"><?php esc_html_e('Update', 'memberpress'); ?></a>
             <?php endif; ?>
 
             <?php
             $grp = $product->group();
             if ($grp && count($grp->products('ids')) > 1 && count($grp->buyable_products()) >= 1) : // Can't upgrade to no other options. ?>
-          <div id="mepr-upgrade-sub-<?php echo $subscription->id; ?>" class="mepr-white-popup mfp-hide">
+          <div id="mepr-upgrade-sub-<?php echo esc_attr($subscription->id); ?>" class="mepr-white-popup mfp-hide">
             <center>
               <div class="mepr-upgrade-sub-text">
-                <?php _e('Please select a new plan', 'memberpress'); ?>
+                <?php esc_html_e('Please select a new plan', 'memberpress'); ?>
               </div>
               <br/>
               <div>
-                <select id="mepr-upgrade-dropdown-<?php echo $subscription->id; ?>" class="mepr-upgrade-dropdown">
+                <select id="mepr-upgrade-dropdown-<?php echo esc_attr($subscription->id); ?>" class="mepr-upgrade-dropdown">
                   <?php foreach ($grp->products() as $p) : ?>
                         <?php if ($p->can_you_buy_me()) : ?>
-                      <option value="<?php echo $p->url(); ?>"><?php printf('%1$s (%2$s)', $p->post_title, MeprProductsHelper::product_terms($p, $user)); ?></option>
+                      <option value="<?php echo esc_attr(esc_url_raw($p->url())); ?>"><?php echo esc_html(sprintf('%1$s (%2$s)', $p->post_title, MeprProductsHelper::product_terms($p, $user))); ?></option>
                         <?php endif; ?>
                   <?php endforeach; ?>
                 </select>
               </div>
               <br/>
               <div class="mepr-cancel-sub-buttons">
-                <button class="mepr-btn mepr-upgrade-buy-now" data-id="<?php echo $subscription->id; ?>"><?php _e('Select Plan', 'memberpress'); ?></button>
-                <button class="mepr-btn mepr-upgrade-cancel"><?php _e('Cancel', 'memberpress'); ?></button>
+                <button class="mepr-btn mepr-upgrade-buy-now" data-id="<?php echo esc_attr($subscription->id); ?>"><?php esc_html_e('Select Plan', 'memberpress'); ?></button>
+                <button class="mepr-btn mepr-upgrade-cancel"><?php esc_html_e('Cancel', 'memberpress'); ?></button>
               </div>
             </center>
           </div>
@@ -672,52 +672,52 @@ abstract class MeprBaseGateway
                 ?>
                 <?php $upgrade_label = ($grp->is_upgrade_path ? __('Change Plan', 'memberpress') : __('Other Memberships', 'memberpress')); ?>
                 <?php if (!$grp->disable_change_plan_popup) : ?>
-            <a href="#mepr-upgrade-sub-<?php echo $subscription->id; ?>" class="mepr-open-upgrade-popup mepr-account-row-action mepr-account-upgrade"><?php echo $upgrade_label; ?></a>
+            <a href="#mepr-upgrade-sub-<?php echo esc_attr($subscription->id); ?>" class="mepr-open-upgrade-popup mepr-account-row-action mepr-account-upgrade"><?php echo esc_html($upgrade_label); ?></a>
                 <?php else : ?>
-            <a href="<?php echo $grp->url(); ?>" class="mepr-account-row-action mepr-account-upgrade"><?php echo $upgrade_label; ?></a>
+            <a href="<?php echo esc_url($grp->url()); ?>" class="mepr-account-row-action mepr-account-upgrade"><?php echo esc_html($upgrade_label); ?></a>
                 <?php endif; ?>
-                <?php echo MeprHooks::apply_filters('mepr_custom_upgrade_link', ob_get_clean(), $subscription); ?>
+                <?php echo MeprHooks::apply_filters('mepr_custom_upgrade_link', ob_get_clean(), $subscription); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <?php endif; ?>
 
             <?php if (
             $mepr_options->allow_suspend_subs and
                   $this->can('suspend-subscriptions') and
-                  $subscription->status == MeprSubscription::$active_str and
+                  $subscription->status === MeprSubscription::$active_str and
                   !$subscription->in_free_trial()
 ) : ?>
           <?php ob_start(); ?>
-            <a href="<?php echo "{$account_url}{$account_delim}action=suspend&sub={$subscription->id}"; ?>" class="mepr-account-row-action mepr-account-suspend" onclick="return confirm('<?php _e('Are you sure you want to pause this subscription?', 'memberpress'); ?>');"><?php _e('Pause', 'memberpress'); ?></a>
-          <?php echo MeprHooks::apply_filters('mepr_custom_pause_link', ob_get_clean(), $subscription); ?>
+            <a href="<?php echo esc_url("{$account_url}{$account_delim}action=suspend&sub={$subscription->id}"); ?>" class="mepr-account-row-action mepr-account-suspend" onclick="return confirm('<?php esc_attr_e('Are you sure you want to pause this subscription?', 'memberpress'); ?>');"><?php esc_html_e('Pause', 'memberpress'); ?></a>
+          <?php echo MeprHooks::apply_filters('mepr_custom_pause_link', ob_get_clean(), $subscription); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <?php elseif (
             $mepr_options->allow_suspend_subs and
                       $this->can('suspend-subscriptions') and
-                      $subscription->status == MeprSubscription::$suspended_str
+                      $subscription->status === MeprSubscription::$suspended_str
 ) : ?>
-          <div id="mepr-resume-sub-<?php echo $subscription->id; ?>" class="mepr-white-popup mfp-hide">
+          <div id="mepr-resume-sub-<?php echo esc_attr($subscription->id); ?>" class="mepr-white-popup mfp-hide">
             <div class="mepr-resume-sub-text">
-              <?php _e('Are you sure you want to resume this subscription?', 'memberpress'); ?>
+              <?php esc_html_e('Are you sure you want to resume this subscription?', 'memberpress'); ?>
             </div>
-            <button class="mepr-btn mepr-left-margin mepr-confirm-yes" data-url="<?php echo "{$account_url}{$account_delim}action=resume&sub={$subscription->id}"; ?>"><?php _e('Yes', 'memberpress'); ?></button>
-            <button class="mepr-btn mepr-confirm-no"><?php _e('No', 'memberpress'); ?></button>
+            <button class="mepr-btn mepr-left-margin mepr-confirm-yes" data-url="<?php echo esc_attr("{$account_url}{$account_delim}action=resume&sub={$subscription->id}"); ?>"><?php esc_html_e('Yes', 'memberpress'); ?></button>
+            <button class="mepr-btn mepr-confirm-no"><?php esc_html_e('No', 'memberpress'); ?></button>
           </div>
           <?php ob_start(); ?>
-            <a href="#mepr-resume-sub-<?php echo $subscription->id; ?>" class="mepr-open-resume-confirm mepr-account-row-action mepr-account-resume"><?php _e('Resume', 'memberpress'); ?></a>
-          <?php echo MeprHooks::apply_filters('mepr_custom_resume_link', ob_get_clean(), $subscription); ?>
+          <a href="#mepr-resume-sub-<?php echo esc_attr($subscription->id); ?>" class="mepr-open-resume-confirm mepr-account-row-action mepr-account-resume"><?php esc_html_e('Resume', 'memberpress'); ?></a>
+          <?php echo MeprHooks::apply_filters('mepr_custom_resume_link', ob_get_clean(), $subscription); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <?php endif; ?>
 
-            <?php if ($mepr_options->allow_cancel_subs and $this->can('cancel-subscriptions') && $subscription->status == MeprSubscription::$active_str) : ?>
-          <div id="mepr-cancel-sub-<?php echo $subscription->id; ?>" class="mepr-white-popup mfp-hide">
+            <?php if ($mepr_options->allow_cancel_subs and $this->can('cancel-subscriptions') && $subscription->status === MeprSubscription::$active_str) : ?>
+          <div id="mepr-cancel-sub-<?php echo esc_attr($subscription->id); ?>" class="mepr-white-popup mfp-hide">
             <div class="mepr-cancel-sub-text">
-                <?php _e('Are you sure you want to cancel this subscription?', 'memberpress'); ?>
+                <?php esc_html_e('Are you sure you want to cancel this subscription?', 'memberpress'); ?>
             </div>
             <div class="mepr-cancel-sub-buttons">
-              <button class="mepr-btn mepr-left-margin mepr-confirm-yes" data-url="<?php echo "{$account_url}{$account_delim}action=cancel&sub={$subscription->id}"; ?>"><?php _e('Yes', 'memberpress'); ?></button>
-              <button class="mepr-btn mepr-confirm-no"><?php _e('No', 'memberpress'); ?></button>
+              <button class="mepr-btn mepr-left-margin mepr-confirm-yes" data-url="<?php echo esc_attr("{$account_url}{$account_delim}action=cancel&sub={$subscription->id}"); ?>"><?php esc_html_e('Yes', 'memberpress'); ?></button>
+              <button class="mepr-btn mepr-confirm-no"><?php esc_html_e('No', 'memberpress'); ?></button>
             </div>
           </div>
                 <?php ob_start(); ?>
-            <a href="#mepr-cancel-sub-<?php echo $subscription->id; ?>" class="mepr-open-cancel-confirm mepr-account-row-action mepr-account-cancel"><?php _e('Cancel', 'memberpress'); ?></a>
-                <?php echo MeprHooks::apply_filters('mepr_custom_cancel_link', ob_get_clean(), $subscription); ?>
+                <a href="#mepr-cancel-sub-<?php echo esc_attr($subscription->id); ?>" class="mepr-open-cancel-confirm mepr-account-row-action mepr-account-cancel"><?php esc_html_e('Cancel', 'memberpress'); ?></a>
+                <?php echo MeprHooks::apply_filters('mepr_custom_cancel_link', ob_get_clean(), $subscription); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <?php endif; ?>
         <?php endif; ?>
         <?php // </div> ?>
@@ -822,7 +822,7 @@ abstract class MeprBaseGateway
         for ($i = 0; $i < $number_length; $i++) {
             $digit = $number[$i];
             // Multiply alternate digits by two.
-            if ($i % 2 == $parity) {
+            if ($i % 2 === $parity) {
                 $digit *= 2;
                 // If the sum is two digits, add them together (in effect).
                 if ($digit > 9) {
@@ -834,7 +834,7 @@ abstract class MeprBaseGateway
         }
 
         // If the total mod 10 equals 0, the number is valid.
-        return ( ( $total % 10 ) == 0 );
+        return ( ( $total % 10 ) === 0 );
     }
 
     /**
@@ -875,18 +875,16 @@ abstract class MeprBaseGateway
     public function months_dropdown($name, $class, $selected = '', $pad_zeros = false)
     {
         ?>
-    <select <?php echo empty($name) ? '' : "name=\"{$name}\" "; ?>class="mepr-payment-form-select <?php echo empty($class) ? '' : $class; ?>">
+        <select <?php echo empty($name) ? '' : 'name="' . esc_attr($name) . '" '; ?>class="mepr-payment-form-select <?php echo empty($class) ? '' : esc_attr($class); ?>">
         <?php
         for ($i = 1; $i <= 12; $i++) {
-            $i_str        = $pad_zeros ? sprintf('%02d', $i) : $i;
-            $selected_str = $selected == $i_str ? ' selected="selected"' : ''
+            $i_str        = $pad_zeros ? sprintf('%02d', $i) : (string) $i;
             ?>
-      <option value="<?php echo $i_str; ?>"<?php echo $selected_str; ?>><?php echo $i_str; ?></option>
+            <option value="<?php echo esc_attr($i_str); ?>" <?php selected($selected, $i_str); ?>><?php echo esc_html($i_str); ?></option>
             <?php
         }
-
         ?>
-    </select>
+        </select>
         <?php
     }
 
@@ -903,17 +901,15 @@ abstract class MeprBaseGateway
     {
         $year = gmdate('Y', time());
         ?>
-    <select <?php echo empty($name) ? '' : "name=\"{$name}\" "; ?>class="mepr-payment-form-select <?php echo empty($class) ? '' : $class; ?>">
+        <select <?php echo empty($name) ? '' : 'name="' . esc_attr($name) . '" '; ?>class="mepr-payment-form-select <?php echo empty($class) ? '' : esc_attr($class); ?>">
         <?php
         for ($i = $year; $i <= ($year + 9); $i++) {
-            $selected_str = $selected == $i ? ' selected="selected"' : ''
             ?>
-      <option value="<?php echo $i; ?>"<?php echo $selected_str; ?>><?php echo $i; ?></option>
+            <option value="<?php echo esc_attr($i); ?>" <?php selected($selected, $i); ?>><?php echo esc_html($i); ?></option>
             <?php
         }
-
         ?>
-    </select>
+        </select>
         <?php
     }
 
@@ -955,27 +951,20 @@ abstract class MeprBaseGateway
 
         // Let's also make sure the first txn is still a confirmation type.
         $first_txn = $sub->first_txn();
-        if ($first_txn == false || !($first_txn instanceof MeprTransaction) || $first_txn->txn_type != MeprTransaction::$subscription_confirmation_str) {
+        if (!($first_txn instanceof MeprTransaction) || $first_txn->txn_type !== MeprTransaction::$subscription_confirmation_str) {
             return false;
         }
 
         // Making sure this is in fact the first real payment.
-        $q = $wpdb->prepare(
-            "
-        SELECT COUNT(*)
-          FROM {$mepr_db->transactions}
-         WHERE subscription_id = %d
-           AND txn_type = %s
-           AND status <> %s
-      ",
+        $count = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT COUNT(*) FROM {$mepr_db->transactions} WHERE subscription_id = %d AND txn_type = %s AND status <> %s",
             $sub->id,
             MeprTransaction::$payment_str,
             MeprTransaction::$pending_str
-        );
+        ));
 
-        $count = $wpdb->get_var($q);
-
-        return ((int)$count == 0);
+        return ((int)$count === 0);
     }
 
     /**
@@ -1003,9 +992,9 @@ abstract class MeprBaseGateway
     {
         $type = MeprUtils::get_sub_type($obj);
         if ($type !== false) {
-            MeprHooks::do_action("mepr-upgraded-{$type}-sub", $obj);
-            MeprHooks::do_action('mepr-upgraded-sub', $type, $obj);
-            MeprHooks::do_action('mepr-sub-created', $type, $obj, 'upgraded');
+            MeprHooks::do_action("mepr_upgraded_{$type}_sub", $obj);
+            MeprHooks::do_action('mepr_upgraded_sub', $type, $obj);
+            MeprHooks::do_action('mepr_sub_created', $type, $obj, 'upgraded');
             if (MeprHooks::apply_filters('mepr_send_upgraded_sub_notices', true, $obj, $event_txn)) {
                 MeprUtils::send_upgraded_sub_notices($obj);
             }
@@ -1025,9 +1014,9 @@ abstract class MeprBaseGateway
     {
         $type = MeprUtils::get_sub_type($obj);
         if ($type !== false) {
-            MeprHooks::do_action("mepr-downgraded-{$type}-sub", $obj);
-            MeprHooks::do_action('mepr-downgraded-sub', $type, $obj);
-            MeprHooks::do_action('mepr-sub-created', $type, $obj, 'downgraded');
+            MeprHooks::do_action("mepr_downgraded_{$type}_sub", $obj);
+            MeprHooks::do_action('mepr_downgraded_sub', $type, $obj);
+            MeprHooks::do_action('mepr_sub_created', $type, $obj, 'downgraded');
             if (MeprHooks::apply_filters('mepr_send_downgraded_sub_notices', true, $obj, $event_txn)) {
                 MeprUtils::send_downgraded_sub_notices($obj);
             }
@@ -1047,9 +1036,9 @@ abstract class MeprBaseGateway
     {
         $type = MeprUtils::get_sub_type($obj);
         if ($type !== false) {
-            MeprHooks::do_action("mepr-new-{$type}-sub", $obj);
-            MeprHooks::do_action('mepr-new-sub', $type, $obj);
-            MeprHooks::do_action('mepr-sub-created', $type, $obj, 'new');
+            MeprHooks::do_action("mepr_new_{$type}_sub", $obj);
+            MeprHooks::do_action('mepr_new_sub', $type, $obj);
+            MeprHooks::do_action('mepr_sub_created', $type, $obj, 'new');
             if ($send_notices === true) {
                 MeprUtils::send_new_sub_notices($obj);
             }

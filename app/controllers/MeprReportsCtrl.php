@@ -44,9 +44,9 @@ class MeprReportsCtrl extends MeprBaseCtrl
             return;
         }
 
-        $curr_month   = (isset($_GET['month']) && !empty($_GET['month'])) ? $_GET['month'] : gmdate('n');
-        $curr_year    = (isset($_GET['year']) && !empty($_GET['year'])) ? $_GET['year'] : gmdate('Y');
-        $curr_product = (isset($_GET['product']) && !empty($_GET['product'])) ? $_GET['product'] : 'all';
+        $curr_month   = (isset($_GET['month']) && !empty($_GET['month'])) ? sanitize_text_field(wp_unslash($_GET['month'])) : gmdate('n');
+        $curr_year    = (isset($_GET['year']) && !empty($_GET['year'])) ? sanitize_text_field(wp_unslash($_GET['year'])) : gmdate('Y');
+        $curr_product = (isset($_GET['product']) && !empty($_GET['product'])) ? sanitize_text_field(wp_unslash($_GET['product'])) : 'all';
 
         MeprView::render('/admin/reports/main', get_defined_vars());
     }
@@ -63,8 +63,8 @@ class MeprReportsCtrl extends MeprBaseCtrl
         $local_data = [
             'report_nonce' => wp_create_nonce('mepr_reports'),
         ];
-        if ($hook == 'memberpress_page_memberpress-reports') {
-            wp_enqueue_script('mepr-google-jsapi', 'https://www.gstatic.com/charts/loader.js', [], MEPR_VERSION);
+        if ($hook === 'memberpress_page_memberpress-reports') {
+            wp_enqueue_script('mepr-google-jsapi', MEPR_JS_URL . '/vendor/google_charts.min.js', [], MEPR_VERSION);
             wp_enqueue_script('mepr-reports-js', MEPR_JS_URL . '/admin_reports.js', ['jquery', 'mepr-google-jsapi'], MEPR_VERSION, true);
             wp_enqueue_style('mepr-reports-css', MEPR_CSS_URL . '/admin-reports.css', [], MEPR_VERSION);
 
@@ -85,9 +85,9 @@ class MeprReportsCtrl extends MeprBaseCtrl
             MeprUtils::exit_with_status(403, __('Forbidden', 'memberpress'));
         }
 
-        $export        = $_REQUEST['export'];
+        $export        = sanitize_text_field(wp_unslash($_REQUEST['export'] ?? ''));
         $valid_exports = ['widget', 'yearly', 'monthly'];
-        if (in_array($export, $valid_exports)) {
+        if (in_array($export, $valid_exports, true)) {
             call_user_func("MeprReportsCtrl::export_{$export}");
         }
     }
@@ -227,8 +227,8 @@ class MeprReportsCtrl extends MeprBaseCtrl
     {
         check_ajax_referer('mepr_reports', 'report_nonce');
 
-        $year    = (isset($_REQUEST['year'])) ? $_REQUEST['year'] : false;
-        $month   = (isset($_REQUEST['month'])) ? $_REQUEST['month'] : false;
+        $year    = (isset($_REQUEST['year'])) ? sanitize_text_field(wp_unslash($_REQUEST['year'])) : false;
+        $month   = (isset($_REQUEST['month'])) ? sanitize_text_field(wp_unslash($_REQUEST['month'])) : false;
         $results = MeprReports::get_pie_data($year, $month);
 
         $chart_data =
@@ -299,12 +299,12 @@ class MeprReportsCtrl extends MeprBaseCtrl
     public static function monthly_table($export = false)
     {
         $mepr_options    = MeprOptions::fetch();
-        $type            = (isset($_REQUEST['type']) && !empty($_REQUEST['type'])) ? $_REQUEST['type'] : 'amounts';
-        $currency_symbol = ($type == 'amounts') ? $mepr_options->currency_symbol : '';
-        $month           = (isset($_REQUEST['month']) && !empty($_REQUEST['month'])) ? $_REQUEST['month'] : gmdate('n');
-        $year            = (isset($_REQUEST['year']) && !empty($_REQUEST['year'])) ? $_REQUEST['year'] : gmdate('Y');
-        $product         = (isset($_REQUEST['product']) && $_GET['product'] != 'all') ? $_REQUEST['product'] : 'all';
-        $q               = (isset($_REQUEST['q']) && $_REQUEST['q'] != 'none') ? $_REQUEST['q'] : [];
+        $type            = (isset($_REQUEST['type']) && !empty($_REQUEST['type'])) ? sanitize_text_field(wp_unslash($_REQUEST['type'])) : 'amounts';
+        $currency_symbol = ($type === 'amounts') ? $mepr_options->currency_symbol : '';
+        $month           = (isset($_REQUEST['month']) && !empty($_REQUEST['month'])) ? sanitize_text_field(wp_unslash($_REQUEST['month'])) : gmdate('n');
+        $year            = (isset($_REQUEST['year']) && !empty($_REQUEST['year'])) ? sanitize_text_field(wp_unslash($_REQUEST['year'])) : gmdate('Y');
+        $product         = (isset($_REQUEST['product']) && !empty($_REQUEST['product']) && sanitize_text_field(wp_unslash($_REQUEST['product'])) !== 'all') ? sanitize_text_field(wp_unslash($_REQUEST['product'])) : 'all';
+        $q               = (isset($_REQUEST['q']) && !empty($_REQUEST['q']) && sanitize_text_field(wp_unslash($_REQUEST['q'])) !== 'none') ? sanitize_text_field(wp_unslash($_REQUEST['q'])) : [];
 
         if ($export) {
             $txns     = MeprReports::get_monthly_dataset('transactions', $month, $year, $product, $q);
@@ -445,11 +445,11 @@ class MeprReportsCtrl extends MeprBaseCtrl
     public static function yearly_table($export = false)
     {
         $mepr_options    = MeprOptions::fetch();
-        $type            = (isset($_REQUEST['type']) && !empty($_REQUEST['type'])) ? $_REQUEST['type'] : 'amounts';
-        $currency_symbol = ($type == 'amounts') ? $mepr_options->currency_symbol : '';
-        $year            = (isset($_REQUEST['year']) && !empty($_REQUEST['year'])) ? $_REQUEST['year'] : gmdate('Y');
-        $product         = (isset($_REQUEST['product']) && $_GET['product'] != 'all') ? $_REQUEST['product'] : 'all';
-        $q               = (isset($_REQUEST['q']) && $_GET['q'] != 'none') ? $_REQUEST['q'] : '';
+        $type            = (isset($_REQUEST['type']) && !empty($_REQUEST['type'])) ? sanitize_text_field(wp_unslash($_REQUEST['type'])) : 'amounts';
+        $currency_symbol = ($type === 'amounts') ? $mepr_options->currency_symbol : '';
+        $year            = (isset($_REQUEST['year']) && !empty($_REQUEST['year'])) ? sanitize_text_field(wp_unslash($_REQUEST['year'])) : gmdate('Y');
+        $product         = (isset($_REQUEST['product']) && !empty($_REQUEST['product']) && sanitize_text_field(wp_unslash($_REQUEST['product'])) !== 'all') ? sanitize_text_field(wp_unslash($_REQUEST['product'])) : 'all';
+        $q               = (isset($_REQUEST['q']) && !empty($_REQUEST['q']) && sanitize_text_field(wp_unslash($_REQUEST['q'])) !== 'none') ? sanitize_text_field(wp_unslash($_REQUEST['q'])) : '';
 
         if ($export) {
             $filename = "memberpress-yearly-{$year}-{$type}-for-{$product}";
@@ -600,10 +600,10 @@ class MeprReportsCtrl extends MeprBaseCtrl
 
             // Go through the columns that have txn and amt columns.
             foreach ($txns[$i] as $label => $value) {
-                if (in_array($label, $valid_cols)) {
+                if (in_array($label, $valid_cols, true)) {
                     $csv[$i][$tmap[$label]] = $value ? $value : 0;
 
-                    if (in_array($label, $ta_cols)) {
+                    if (in_array($label, $ta_cols, true)) {
                         $csv[$i][$amap[$label]] = $amts[$i]->{$label} ? $amts[$i]->{$label} : 0.00;
                     }
                 }
@@ -611,7 +611,7 @@ class MeprReportsCtrl extends MeprBaseCtrl
 
             // Pickup all the amount only variables.
             foreach ($a_cols as $index => $label) {
-                if (in_array($label, $ta_cols)) {
+                if (in_array($label, $ta_cols, true)) {
                     $csv[$i][$amap[$label]] = $amts[$i]->{$label} ? $amts[$i]->{$label} : 0.00;
                 }
             }
@@ -640,9 +640,9 @@ class MeprReportsCtrl extends MeprBaseCtrl
      */
     protected static function do_common_vars()
     {
-        $curr_month   = (isset($_GET['month']) && !empty($_GET['month'])) ? $_GET['month'] : gmdate('n');
-        $curr_year    = (isset($_GET['year']) && !empty($_GET['year'])) ? $_GET['year'] : gmdate('Y');
-        $curr_product = (isset($_GET['product']) && !empty($_GET['product'])) ? $_GET['product'] : 'all';
+        $curr_month   = (isset($_GET['month']) && !empty($_GET['month'])) ? sanitize_text_field(wp_unslash($_GET['month'])) : gmdate('n');
+        $curr_year    = (isset($_GET['year']) && !empty($_GET['year'])) ? sanitize_text_field(wp_unslash($_GET['year'])) : gmdate('Y');
+        $curr_product = (isset($_GET['product']) && !empty($_GET['product'])) ? sanitize_text_field(wp_unslash($_GET['product'])) : 'all';
 
         return [
             'curr_month'   => $curr_month,

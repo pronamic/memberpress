@@ -31,11 +31,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
      */
     public static function maybe_show_stripe_checkout_warning()
     {
-        if (MeprUtils::is_get_request() && isset($_GET['page']) && $_GET['page'] == 'memberpress-options') {
+        if (MeprUtils::is_get_request() && isset($_GET['page']) && $_GET['page'] === 'memberpress-options') {
             $mepr_options = MeprOptions::fetch();
 
             foreach ($mepr_options->integrations as $integration) {
-                if (isset($integration['gateway']) && $integration['gateway'] == 'MeprStripeGateway' && isset($integration['use_stripe_checkout'])) {
+                if (isset($integration['gateway']) && $integration['gateway'] === 'MeprStripeGateway' && isset($integration['use_stripe_checkout'])) {
                     MeprView::render('/admin/stripe_checkout_deprecated');
                     break;
                 }
@@ -50,14 +50,16 @@ class MeprOptionsCtrl extends MeprBaseCtrl
      */
     public static function route()
     {
-        $action = (isset($_REQUEST['action']) ? $_REQUEST['action'] : '');
+        $action = (isset($_REQUEST['action']) ? sanitize_text_field(wp_unslash($_REQUEST['action'])) : '');
 
-        if (MeprUtils::is_post_request() && $action == 'process-form') {
+        if (MeprUtils::is_post_request() && $action === 'process-form') {
             check_admin_referer('mepr_update_options', 'mepr_options_nonce');
             return self::process_form();
         } elseif (
-            $action == 'queue' and isset($_REQUEST['_wpnonce']) and
-            wp_verify_nonce($_REQUEST['_wpnonce'], 'MeprUpdateCtrl::manually_queue_update')
+            $action === 'queue' &&
+            isset($_REQUEST['_wpnonce']) &&
+            class_exists('MeprUpdateCtrl') &&
+            wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), 'MeprUpdateCtrl::manually_queue_update')
         ) {
             MeprUpdateCtrl::manually_queue_update();
         } elseif ($action === 'upgrade') { // Manually upgrade the database.
@@ -93,7 +95,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         if (MeprUtils::is_logged_in_and_an_admin()) {
-            if (!empty($mepr_options->mothership_license)) {
+            if (class_exists('MeprUpdateCtrl') && !empty($mepr_options->mothership_license)) {
                 $li = get_site_transient('mepr_license_info');
 
                 if ($li === false) {
@@ -116,11 +118,11 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         if (MeprUtils::is_logged_in_and_an_admin()) {
-            $errors = MeprHooks::apply_filters('mepr-validate-options', $mepr_options->validate($_POST, []));
+            $errors = MeprHooks::apply_filters('mepr_validate_options', $mepr_options->validate($_POST, []));
 
             if (empty($errors)) {
-                MeprHooks::do_action('mepr-process-options', $_POST);
-                $settings = MeprHooks::apply_filters('mepr-saved-options', $_POST);
+                MeprHooks::do_action('mepr_process_options', $_POST);
+                $settings = MeprHooks::apply_filters('mepr_saved_options', $_POST);
                 $mepr_options->update($settings);
                 $mepr_options->store();
 
@@ -130,7 +132,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 $message = __('Options saved.', 'memberpress');
             }
 
-            if (!empty($mepr_options->mothership_license)) {
+            if (class_exists('MeprUpdateCtrl') && !empty($mepr_options->mothership_license)) {
                 $li = get_site_transient('mepr_license_info');
 
                 if ($li === false) {
@@ -153,12 +155,10 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         global $hook_suffix;
 
         $mepr_options = MeprOptions::fetch();
-        if ($hook_suffix == 'memberpress_page_memberpress-options' && isset($mepr_options->integrations)) {
+        if ($hook_suffix === 'memberpress_page_memberpress-options' && isset($mepr_options->integrations)) {
             foreach ($mepr_options->integrations as $integration) {
                 if (isset($integration['gateway']) && $integration['gateway'] === 'MeprPayPalCommerceGateway') {
-                    ?>
-      <script id="paypal-sdk-js" src="https://www.paypal.com/webapps/merchantboarding/js/lib/lightbox/partner.js"></script>
-                    <?php
+                    wp_enqueue_script('paypal-sdk-js', 'https://www.paypal.com/webapps/merchantboarding/js/lib/lightbox/partner.js', [], null, true);
                     break;
                 }
             }
@@ -174,7 +174,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
      */
     public static function enqueue_scripts($hook)
     {
-        if ($hook == 'memberpress_page_memberpress-options') {
+        if ($hook === 'memberpress_page_memberpress-options') {
             $mepr_options = MeprOptions::fetch();
 
             wp_register_style('mepr-clipboardtip', MEPR_CSS_URL . '/vendor/tooltipster.bundle.min.css', [], MEPR_VERSION);
@@ -183,27 +183,6 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             wp_enqueue_style('mp-emails', MEPR_CSS_URL . '/admin-emails.css', ['mp-options'], MEPR_VERSION);
 
             $js_helpers = [
-                'nameLabel'                             => __('Name:', 'memberpress'),
-                'typeLabel'                             => __('Type:', 'memberpress'),
-                'defaultLabel'                          => __('Default Value(s):', 'memberpress'),
-                'signupLabel'                           => __('Show at Signup', 'memberpress'),
-                'accountLabel'                          => __('Show in Account', 'memberpress'),
-                'requiredLabel'                         => __('Required', 'memberpress'),
-                'textOption'                            => __('Text', 'memberpress'),
-                'textareaOption'                        => __('Textarea', 'memberpress'),
-                'checkboxOption'                        => __('Checkbox', 'memberpress'),
-                'dropdownOption'                        => __('Dropdown', 'memberpress'),
-                'multiselectOption'                     => __('Multi-Select', 'memberpress'),
-                'emailOption'                           => __('Email', 'memberpress'),
-                'urlOption'                             => __('URL', 'memberpress'),
-                'phoneOption'                           => __('Phone', 'memberpress'),
-                'radiosOption'                          => __('Radio Buttons', 'memberpress'),
-                'checkboxesOption'                      => __('Checkboxes', 'memberpress'),
-                'fileuploadOption'                      => __('File Upload', 'memberpress'),
-                'dateOption'                            => __('Date', 'memberpress'),
-                'optionNameLabel'                       => __('Option Name:', 'memberpress'),
-                'optionValueLabel'                      => __('Option Value:', 'memberpress'),
-                'addOptionLabel'                        => __('Add Option', 'memberpress'),
                 'show_fname_lname_id'                   => "#{$mepr_options->show_fname_lname_str}",
                 'require_fname_lname_id'                => "#{$mepr_options->require_fname_lname_str}",
                 'jsUrl'                                 => MEPR_JS_URL,
@@ -236,6 +215,9 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 'unable_to_verify_stripe_tax'           => __('Unable to verify Stripe Tax status', 'memberpress'),
                 'square_connect_nonce'                  => wp_create_nonce('mepr_square_connect'),
                 'square_disconnect_confirm'             => __('Are you sure you want to disconnect this gateway? Disconnecting this gateway will prevent subscription payments from being recorded and new payments will stop working when the access token expires.', 'memberpress'),
+                'custom_fields_row'                     => self::get_custom_fields_row(),
+                'custom_fields_options'                 => self::get_custom_fields_options(),
+                'custom_fields_option_new'              => self::get_custom_fields_option_new(),
             ];
 
             wp_register_script('memberpress-i18n', MEPR_JS_URL . '/i18n.js', ['jquery'], MEPR_VERSION);
@@ -243,9 +225,8 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             wp_enqueue_script('alpinejs', MEPR_JS_URL . '/vendor/alpine.min.js', [], MEPR_VERSION, true);
             wp_localize_script('memberpress-i18n', 'MeprI18n', ['states' => MeprUtils::states()]);
 
-            wp_register_script('mepr-clipboard-js', MEPR_JS_URL . '/vendor/clipboard.min.js', [], MEPR_VERSION);
             wp_register_script('mepr-tooltipster', MEPR_JS_URL . '/vendor/tooltipster.bundle.min.js', ['jquery'], MEPR_VERSION);
-            wp_register_script('mepr-copy-to-clipboard', MEPR_JS_URL . '/copy_to_clipboard.js', ['mepr-clipboard-js','mepr-tooltipster'], MEPR_VERSION);
+            wp_register_script('mepr-copy-to-clipboard', MEPR_JS_URL . '/clipboard_copy.js', ['clipboard', 'mepr-tooltipster'], MEPR_VERSION);
             wp_localize_script('mepr-copy-to-clipboard', 'MeprClipboard', [
                 'copy_text'       => __('Copy to Clipboard', 'memberpress'),
                 'copied_text'     => __('Copied!', 'memberpress'),
@@ -273,8 +254,56 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             ];
             wp_enqueue_script('mepr-emails-js', MEPR_JS_URL . '/admin_emails.js', ['mepr-options-js'], MEPR_VERSION);
             wp_localize_script('mepr-emails-js', 'MeprEmail', $email_locals);
-            MeprHooks::do_action('mepr-options-admin-enqueue-script', $hook);
+            MeprHooks::do_action('mepr_options_admin_enqueue_script', $hook);
         }
+    }
+
+    /**
+     * Generates and returns the row HTML for custom fields.
+     */
+    private static function get_custom_fields_row(): string
+    {
+        $row_id = 'ROW_ID';
+        $line   =  (object) [
+            'field_key'       => '',
+            'field_name'      => '',
+            'field_type'      => 'text',
+            'default_value'   => '',
+            'show_on_signup'  => false,
+            'show_in_account' => true,
+            'required'        => false,
+            'options'         => [],
+        ];
+
+        return MeprView::get_string('/admin/options/custom-fields/row', compact('line', 'row_id'));
+    }
+
+    /**
+     * Generates and returns the options HTML for custom fields.
+     */
+    private static function get_custom_fields_options(): string
+    {
+        $row_id  = 'ROW_ID';
+        $options = [
+            (object) [
+                'option_name'  => '',
+                'option_value' => '',
+            ],
+        ];
+
+        return MeprView::get_string('/admin/options/custom-fields/options', compact('options', 'row_id'));
+    }
+
+    /**
+     * Generates and returns the new option HTML for custom fields.
+     *
+     * @return string
+     */
+    private static function get_custom_fields_option_new(): string
+    {
+        $row_id = 'ROW_ID';
+
+        return MeprView::get_string('/admin/options/custom-fields/option_new', compact('row_id'));
     }
 
     /**
@@ -302,13 +331,13 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             // Artificially set the gateway to the first available.
             $gateway = $gateways[0];
         } else {
-            $gateway = $_POST['g'];
+            $gateway = sanitize_text_field(wp_unslash($_POST['g']));
         }
 
         try {
             $obj = MeprGatewayFactory::fetch($gateway);
         } catch (Exception $e) {
-            die($e->getMessage());
+            wp_die(esc_html($e->getMessage()));
         }
 
         ob_start();
@@ -336,7 +365,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             ));
         }
 
-        if (!MeprUtils::is_logged_in_and_an_admin()) {
+        if (!MeprUtils::is_logged_in_and_an_admin() || !class_exists('MeprUpdateCtrl')) {
             wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
@@ -354,7 +383,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         try {
             $act        = MeprUpdateCtrl::activate_license($license_key);
             $li         = get_site_transient('mepr_license_info');
-            $onboarding = isset($_POST['onboarding']) && sanitize_text_field(wp_unslash($_POST['onboarding'])) == '1';
+            $onboarding = isset($_POST['onboarding']) && sanitize_text_field(wp_unslash($_POST['onboarding'])) === '1';
 
             if ($onboarding) {
                 $output = '';
@@ -366,13 +395,13 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 $editions          = MeprUtils::is_incorrect_edition_installed();
                 $automatic_updates = !empty($mepr_options->auto_updates) ? $mepr_options->auto_updates : 'all';
 
-                if (is_array($editions) && $editions['license']['index'] > $editions['installed']['index'] && $automatic_updates != 'none') {
+                if (is_array($editions) && $editions['license']['priority'] > $editions['installed']['priority'] && $automatic_updates !== 'none') {
                     // The installed plugin is a lower edition, try to upgrade to the higher license edition.
                     if (!empty($li['url']) && MeprUtils::is_url($li['url'])) {
                         $result = self::install_plugin_silently($li['url'], ['overwrite_package' => true]);
 
                         if ($result === true) {
-                            do_action('mepr_plugin_edition_changed');
+                            MeprHooks::do_action('mepr_plugin_edition_changed');
                             wp_send_json_success(true);
                         }
                     }
@@ -389,46 +418,6 @@ class MeprOptionsCtrl extends MeprBaseCtrl
 
             wp_send_json_success($output);
         } catch (Exception $e) {
-            try {
-                $expires = MeprUpdateCtrl::send_mothership_request("/license_keys/expires_at/$license_key");
-
-                if (isset($expires['expires_at'])) {
-                    $expires_at = strtotime($expires['expires_at']);
-
-                    if ($expires_at && $expires_at < time()) {
-                        $licenses = MeprUpdateCtrl::send_mothership_request("/license_keys/list_keys/$license_key");
-
-                        if (!empty($licenses) && is_array($licenses)) {
-                              $highest_edition_index = -1;
-                              $highest_license       = null;
-
-                            foreach ($licenses as $license) {
-                                $edition = MeprUtils::get_edition($license['product_slug']);
-
-                                if (is_array($edition) && $edition['index'] > $highest_edition_index) {
-                                          $highest_edition_index = $edition['index'];
-                                          $highest_license       = $license;
-                                }
-                            }
-
-                            if (is_array($highest_license)) {
-                                wp_send_json_error(
-                                    sprintf(
-                                    // Translators: %1$s: the product name, %2$s: open link tag, %3$s: close link tag.
-                                        esc_html__('This License Key has expired, but you have an active license for %1$s, %2$sclick here%3$s to activate using this license instead.', 'memberpress'),
-                                        '<strong>' . esc_html($highest_license['product_name']) . '</strong>',
-                                        sprintf('<a href="#" id="mepr-activate-new-license" data-license-key="%s">', esc_attr($highest_license['license_key'])),
-                                        '</a>'
-                                    )
-                                );
-                            }
-                        }
-                    }
-                }
-            } catch (Exception $ignore) {
-                // Nothing we can do, let it fail.
-            }
-
             wp_send_json_error($e->getMessage());
         }
     }
@@ -448,7 +437,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             ));
         }
 
-        if (!MeprUtils::is_logged_in_and_an_admin()) {
+        if (!MeprUtils::is_logged_in_and_an_admin() || !class_exists('MeprUpdateCtrl')) {
             wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
@@ -522,7 +511,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             if ($result instanceof WP_Error) {
                 wp_send_json_error($result->get_error_message());
             } elseif ($result === true) {
-                do_action('mepr_plugin_edition_changed');
+                MeprHooks::do_action('mepr_plugin_edition_changed');
                 wp_send_json_success(__('The correct edition of MemberPress has been installed successfully.', 'memberpress'));
             } else {
                 wp_send_json_error(__('Failed to install the correct edition of MemberPress, please download it from memberpress.com and install it manually.', 'memberpress'));
@@ -552,7 +541,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
 
         $gateway_id           = isset($_POST['gateway_id']) ? sanitize_text_field(wp_unslash($_POST['gateway_id'])) : '';
-        $payment_method_types = isset($_POST['payment_method_types']) && is_array($_POST['payment_method_types']) ? array_filter(array_map('sanitize_key', array_map('wp_unslash', $_POST['payment_method_types']))) : [];
+        $payment_method_types = isset($_POST['payment_method_types']) && is_array($_POST['payment_method_types']) ? array_filter(array_map('sanitize_key', wp_unslash($_POST['payment_method_types']))) : [];
 
         if (empty($gateway_id) || empty($payment_method_types)) {
             wp_send_json_error(__('Bad request.', 'memberpress'));
@@ -614,23 +603,6 @@ class MeprOptionsCtrl extends MeprBaseCtrl
         }
 
         try {
-            if ($payment_method_type == 'apple_pay') {
-                $root_dir                     = isset($_SERVER['DOCUMENT_ROOT']) ? wp_unslash($_SERVER['DOCUMENT_ROOT']) : ABSPATH;
-                $domain_association_file_name = 'apple-developer-merchantid-domain-association';
-                $well_known_dir               = untrailingslashit($root_dir) . '/.well-known';
-                $full_path                    = "$well_known_dir/$domain_association_file_name";
-
-                if (!file_exists($full_path)) {
-                    if (!is_dir($well_known_dir) && !@mkdir($well_known_dir, 0755) && !is_dir($well_known_dir)) {
-                        throw new Exception(__('Unable to create domain association folder in domain root', 'memberpress'));
-                    }
-
-                    if (!@copy(MEPR_GATEWAYS_PATH . "/stripe/$domain_association_file_name", $full_path)) {
-                        throw new Exception(__('Unable to copy the domain association file', 'memberpress'));
-                    }
-                }
-            }
-
             self::activate_payment_method($payment_method_type, $pm);
 
             wp_send_json_success();
@@ -654,9 +626,9 @@ class MeprOptionsCtrl extends MeprBaseCtrl
 
         if (
             is_array($pmd) &&
-            isset($pmd['domain_name']) && $pmd['domain_name'] == self::get_site_domain() &&
+            isset($pmd['domain_name']) && $pmd['domain_name'] === self::get_site_domain() &&
             isset($pmd['enabled']) && $pmd['enabled'] &&
-            isset($pmd[$payment_method_type]['status']) && $pmd[$payment_method_type]['status'] == 'active'
+            isset($pmd[$payment_method_type]['status']) && $pmd[$payment_method_type]['status'] === 'active'
         ) {
             return true;
         }
@@ -687,10 +659,10 @@ class MeprOptionsCtrl extends MeprBaseCtrl
             'enabled'     => 'true',
         ], 'post');
 
-        if ($live[$payment_method_type]['status'] != 'active') {
+        if ($live[$payment_method_type]['status'] !== 'active') {
             $live = $pm->send_stripe_request("payment_method_domains/{$live['id']}/validate", [], 'post');
 
-            if ($live[$payment_method_type]['status'] != 'active') {
+            if ($live[$payment_method_type]['status'] !== 'active') {
                 if (isset($live[$payment_method_type]['status_details']['error_message'])) {
                     $message = $live[$payment_method_type]['status_details']['error_message'];
                 } else {
@@ -701,7 +673,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                     );
                 }
 
-                throw new Exception($message);
+                throw new Exception(esc_html($message));
             }
         }
 
@@ -717,7 +689,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 'enabled'     => 'true',
             ], 'post');
 
-            if ($test[$payment_method_type]['status'] != 'active') {
+            if ($test[$payment_method_type]['status'] !== 'active') {
                 $pm->send_stripe_request("payment_method_domains/{$test['id']}/validate", [], 'post');
             }
         } catch (Exception $e) {
@@ -734,6 +706,6 @@ class MeprOptionsCtrl extends MeprBaseCtrl
      */
     private static function get_site_domain()
     {
-        return isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : str_replace(['https://', 'http://'], '', get_site_url());
+        return isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : str_replace(['https://', 'http://'], '', get_site_url());
     }
 }

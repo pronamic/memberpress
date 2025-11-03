@@ -5,7 +5,7 @@
 <div id="mepr-wizard-completed">
   <h2 class="mepr-wizard-step-title"><?php esc_html_e('Check out what you set up...', 'memberpress'); ?></h2>
   <div class="mepr-wizard-selected-content mepr-wizard-selected-content-full-scape">
-    <div id="mepr-wizard-completed-step-urls"><?php echo MeprOnboardingHelper::get_completed_step_urls_html(); ?></div>
+    <div id="mepr-wizard-completed-step-urls"><?php echo MeprOnboardingHelper::get_completed_step_urls_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
   </div>
 
   <h2 class="mepr-wizard-step-title"><?php esc_html_e('Your next step...', 'memberpress'); ?></h2>
@@ -16,7 +16,7 @@
           <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/courses-logo.svg'); ?>" alt="<?php esc_attr_e('Getting Started with MemberPress Courses', 'memberpress'); ?>" />
         </div>
         <div class="mepr-wizard-selected-content-image-description">
-           <a href="https://memberpress.com/addons/memberpress-courses/" target="_blank">
+           <a href="<?php echo esc_url(MeprUtils::get_link_url('addons_courses')); ?>" target="_blank">
             <h4 class="mepr-image-title"><?php esc_html_e('Getting Started with MemberPress Courses', 'memberpress'); ?></h4>
             <p class="mepr-image-desc"><?php esc_html_e('MemberPress Courses is included with your subscription. Learn how you can start selling what you know today!', 'memberpress'); ?></p>
           </a>
@@ -33,7 +33,7 @@
           <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/blog-screenshot.png'); ?>" alt="<?php esc_attr_e('MemberPress Blog', 'memberpress'); ?>" />
         </div>
         <div class="mepr-wizard-selected-content-image-description">
-          <a href="https://memberpress.com/blog/" target="_blank">
+          <a href="<?php echo esc_url(MeprUtils::get_link_url('blog')); ?>" target="_blank">
             <h4 class="mepr-image-title"><?php esc_html_e('MemberPress Blog', 'memberpress'); ?></h4>
             <p class="mepr-image-desc"><?php esc_html_e('Sign up for tips, tricks, and industry updates from top membership, LMS, and online business experts and influencers.', 'memberpress'); ?></p>
           </a>

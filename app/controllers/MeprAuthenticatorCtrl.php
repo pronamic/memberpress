@@ -54,7 +54,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         }
 
         // Validate the nonce on the WP side of things.
-        if (! isset($_GET['nonce']) || ! wp_verify_nonce($_GET['nonce'], 'mepr-connect')) {
+        if (! isset($_GET['nonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['nonce'])), 'mepr-connect')) {
             return;
         }
 
@@ -63,8 +63,8 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
             return;
         }
 
-        $site_uuid = sanitize_text_field($_GET['site_uuid']);
-        $auth_code = sanitize_text_field($_GET['auth_code']);
+        $site_uuid = sanitize_text_field(wp_unslash($_GET['site_uuid'] ?? ''));
+        $auth_code = sanitize_text_field(wp_unslash($_GET['auth_code'] ?? ''));
 
         // GET request to obtain token.
         $response = wp_remote_get(MEPR_AUTH_SERVICE_URL . "/api/tokens/{$site_uuid}", [
@@ -96,7 +96,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         }
 
         if (isset($_GET['stripe_connect']) && 'true' === $_GET['stripe_connect'] && isset($_GET['method_id']) && ! empty($_GET['method_id'])) {
-            wp_redirect(MeprStripeGateway::get_stripe_connect_url($_GET['method_id']));
+            wp_redirect(MeprStripeGateway::get_stripe_connect_url(sanitize_text_field(wp_unslash($_GET['method_id']))));
             exit;
         }
 
@@ -104,11 +104,11 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
             $options           = MeprOptions::fetch();
             $payment_method_id = sanitize_text_field(wp_unslash($_GET['square_payment_method_id'] ?? ''));
             $environment       = sanitize_text_field(wp_unslash($_GET['square_environment'] ?? ''));
-            $environment       = $environment == 'sandbox' ? 'sandbox' : 'production';
+            $environment       = $environment === 'sandbox' ? 'sandbox' : 'production';
             $pm                = $options->payment_method($payment_method_id);
 
             try {
-                if (!$pm instanceof MeprSquareGateway) {
+                if (!$pm instanceof MeprSquarePaymentsGateway) {
                     throw new Exception(__('Sorry, this only works with Square.', 'memberpress'));
                 }
 
@@ -130,7 +130,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
 
         $license_key = isset($_GET['license_key']) ? sanitize_text_field(wp_unslash($_GET['license_key'])) : '';
 
-        if (! empty($license_key)) {
+        if (! empty($license_key) && class_exists('MeprUpdateCtrl')) {
             try {
                 MeprUpdateCtrl::activate_license($license_key);
             } catch (Exception $e) {
@@ -157,7 +157,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         }
 
         // Validate the nonce on the WP side of things.
-        if (! isset($_GET['nonce']) || ! wp_verify_nonce($_GET['nonce'], 'mepr-disconnect')) {
+        if (! isset($_GET['nonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['nonce'])), 'mepr-disconnect')) {
             return;
         }
 

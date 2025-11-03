@@ -1,12 +1,11 @@
 <?php
 
 /**
- * The layout for unauthenticated or guest pages
- *
- * @package memberpress-pro-template
+ * The layout for unauthenticated or guest pages.
  */
 
 ?>
+
 <!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -22,7 +21,7 @@
   <div id="page" class="site guest-layout">
     <header id="masthead" class="site-header">
       <div class="site-branding">
-        <a href="<?php echo esc_url(home_url()); ?>"><img class="site-logo" src="<?php echo $logo ?>" /></a>
+        <a href="<?php echo esc_url(home_url()); ?>"><img class="site-logo" src="<?php echo esc_url($logo); ?>" /></a>
       </div><!-- .site-branding -->
     </header><!-- #masthead -->
     <!-- ../assets/logo.svg -->

@@ -4,7 +4,7 @@
 
 <div class="mp_wrapper">
   <div id="mepr-unauthorized-message">
-    <input type="hidden" name="mepr_custom_unauthorized_nonce" value="<?php echo $_wpnonce; ?>" />
+    <input type="hidden" name="mepr_custom_unauthorized_nonce" value="<?php echo esc_attr($_wpnonce); ?>" />
     <div class="mepr-main-pane">
       <?php
         MeprOptionsHelper::display_show_excerpts_dropdown(
@@ -32,4 +32,4 @@
     </div>
   </div>
 </div>
-<?php MeprHooks::do_action('mepr-unauthorized-message-options', $unauthorized_message_type, $unauthorized_message); ?>
+<?php MeprHooks::do_action('mepr_unauthorized_message_options', $unauthorized_message_type, $unauthorized_message); ?>

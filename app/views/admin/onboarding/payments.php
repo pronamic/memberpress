@@ -33,7 +33,7 @@ if (empty($onboarding_gateway) && $existing_gateway instanceof MeprBaseGateway) 
   </div>
 </div>
 <div id="mepr-wizard-payment-selected">
-  <?php echo MeprOnboardingHelper::get_payment_gateway_html(); ?>
+  <?php echo MeprOnboardingHelper::get_payment_gateway_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 </div>
 <div id="mepr-wizard-configure-authorize-popup" class="mepr-wizard-popup mfp-hide">
   <h2><?php esc_html_e('Authorize.net', 'memberpress'); ?></h2>
@@ -59,10 +59,17 @@ if (empty($onboarding_gateway) && $existing_gateway instanceof MeprBaseGateway) 
 </div>
 <div id="mepr-wizard-skip-payment-methods-popup" class="mepr-wizard-popup mfp-hide">
   <h2><?php esc_html_e('Be sure to add your payment option', 'memberpress'); ?></h2>
-  <p><?php esc_html_e('If you skip this step, MemberPress will set up the offline payment option automatically. You can later visit MemberPress > Settings > Payments to get your gateway rolling.', 'memberpress'); ?></p>
-  <div class="mepr-wizard-popup-button-row">
-    <button type="button" id="mepr-wizard-add-offline-payment-method" class="mepr-wizard-button-blue"><?php esc_html_e('Add Offline Payment', 'memberpress'); ?></button>
-  </div>
+  <?php if (class_exists('MeprArtificialGateway')) : ?>
+    <p><?php esc_html_e('If you skip this step, MemberPress will set up the offline payment option automatically. You can later visit MemberPress > Settings > Payments to get your gateway rolling.', 'memberpress'); ?></p>
+    <div class="mepr-wizard-popup-button-row">
+      <button type="button" id="mepr-wizard-add-offline-payment-method" class="mepr-wizard-button-blue"><?php esc_html_e('Add Offline Payment', 'memberpress'); ?></button>
+    </div>
+  <?php else : ?>
+    <p><?php esc_html_e('You can skip this step and set up your payment gateway later by visiting MemberPress > Settings > Payments.', 'memberpress'); ?></p>
+    <div class="mepr-wizard-popup-button-row">
+      <button type="button" id="mepr-wizard-add-offline-payment-method" class="mepr-wizard-button-blue"><?php esc_html_e('Continue', 'memberpress'); ?></button>
+    </div>
+  <?php endif; ?>
 </div>
 
 <div id="mepr-wizard-authnet-pro-optin-popup" class="mepr-wizard-popup mfp-hide">
@@ -70,11 +77,11 @@ if (empty($onboarding_gateway) && $existing_gateway instanceof MeprBaseGateway) 
   <p><?php esc_html_e('You\'ll need a Pro license to enable this gateway. But it\'s easy! Just click the button below and follow the prompts.', 'memberpress'); ?></p>
 
   <div class="mepr-wizard-popup-button-row">
-    <a href="<?php echo admin_url('admin.php?page=memberpress-onboarding&step=7'); ?>" id="mepr-wizard-configure-authorize-continue" class="mepr-wizard-button-orange"><?php esc_html_e('Continue to Upgrade', 'memberpress'); ?></a>
+    <a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-onboarding&step=7')); ?>" id="mepr-wizard-configure-authorize-continue" class="mepr-wizard-button-orange"><?php esc_html_e('Continue to Upgrade', 'memberpress'); ?></a>
   </div>
 </div>
 
-<?php if ($existing_gateway instanceof MeprStripeGateway && !get_option('mepr_tax_stripe_enabled') && isset($_GET['step']) && $_GET['step'] == '6') : ?>
+<?php if ($existing_gateway instanceof MeprStripeGateway && !get_option('mepr_tax_stripe_enabled') && isset($_GET['step']) && $_GET['step'] === '6') : ?>
   <div id="mepr-wizard-enable-stripe-tax-popup" class="mepr-wizard-popup mfp-hide">
     <h2><?php esc_html_e('Do you need to collect taxes?', 'memberpress'); ?></h2>
     <p>
@@ -102,7 +109,7 @@ if (empty($onboarding_gateway) && $existing_gateway instanceof MeprBaseGateway) 
       <?php
         printf(
           // Translators: %1$s: open link tag, %2$s: close link tag, %3$s: open link tag, %4$s: close link tag.
-            __('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
+            esc_html__('In the Stripe dashboard, please ensure that %1$sStripe Tax is enabled%2$s and that a %3$sRegistration is added%4$s for each location where tax should be collected.', 'memberpress'),
             '<a href="https://dashboard.stripe.com/tax" target="_blank">',
             '</a>',
             '<a href="https://dashboard.stripe.com/tax/registrations" target="_blank">',

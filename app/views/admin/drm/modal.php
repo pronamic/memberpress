@@ -2,33 +2,62 @@
     die('You are not allowed to call this page directly.');
 }
 $account_link       = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general', 'account');
-$pm_id = MeprStripeGateway::has_method_with_connect_status('connected', true);
-$country = MeprStripeGateway::get_account_country($pm_id);
+$pm_id              = MeprStripeGateway::has_method_with_connect_status('connected', true);
+$country            = MeprStripeGateway::get_account_country($pm_id);
 $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
 
 ?>
 <div class="mepr-notice-modal">
    <div class="mepr-notice-modal-wrapper">
-    <a href='<?php echo admin_url(); ?>' class='mepr-notice-modal-close'></a>
+    <a href='<?php echo esc_url(admin_url()); ?>' class='mepr-notice-modal-close'></a>
     <div class="mepr-notice-modal-content">
-     <h3 class="mepr-notice-title"><?php _e('<span>ALERT!</span> MemberPress Backend is Deactivated', 'memberpress'); ?></h3>
+     <h3 class="mepr-notice-title"><?php printf(
+         // Translators: %1$s: opening span tag, %2$s: closing span tag.
+         esc_html__('%1$sALERT!%2$s MemberPress Backend is Deactivated', 'memberpress'),
+         '<span>',
+         '</span>'
+     ); ?></h3>
      <div class="mepr-notice-desc">
-      <p><?php _e('Your MemberPress license key is not found or is invalid. Without an active license key, your frontend is unaffected. However, you can no longer:', 'memberpress'); ?></p>
+      <p><?php esc_html_e('Your MemberPress license key is not found or is invalid. Without an active license key, your frontend is unaffected. However, you can no longer:', 'memberpress'); ?></p>
       <ul>
-         <li><?php _e('Issue customer refunds', 'memberpress'); ?></li>
-         <li><?php _e('Add new members', 'memberpress'); ?></li>
-         <li><?php _e('Manage memberships', 'memberpress'); ?></li>
+         <li><?php esc_html_e('Issue customer refunds', 'memberpress'); ?></li>
+         <li><?php esc_html_e('Add new members', 'memberpress'); ?></li>
+         <li><?php esc_html_e('Manage memberships', 'memberpress'); ?></li>
       </ul>
-      <p><?php _e('This problem is easy to fix!', 'memberpress'); ?></p>
-      <p>
-      <?php if ($has_stripe_connect) : ?>
-        <a href="#" id="mepr-drm-btn-without-license" class="button button-secondary button-reactivate-fee mepr-drm-cta"><?php _e('Reactivate Backend Instantly*', 'memberpress'); ?></a>
-        <a target="_blank" href="<?php echo $account_link; ?>" class="button button-primary mepr-drm-cta"><?php _e('Buy or renew your license', 'memberpress'); ?></a>
-      <?php else : ?>
-        <a target="_blank" href="<?php echo $account_link; ?>" class="button button-primary"><?php _e('Click Here to purchase or renew your license key', 'memberpress'); ?></a>
-      <?php endif; ?>
-      </p>
-
+      <div class="mepr-drm-unlock-steps">
+        <div class="mepr-drm-unlock-step1">
+          <p><?php esc_html_e('This problem is easy to fix!', 'memberpress'); ?></p>
+          <p>
+          <?php if ($has_stripe_connect) : ?>
+            <a href="#" id="mepr-drm-btn-without-license-confirm" class="button button-secondary button-reactivate-fee mepr-drm-cta"><?php esc_html_e('Reactivate Backend Instantly*', 'memberpress'); ?></a>
+            <a target="_blank" href="<?php echo esc_url($account_link); ?>" class="button button-primary mepr-drm-cta"><?php esc_html_e('Buy or renew your license', 'memberpress'); ?></a>
+          <?php else : ?>
+            <a target="_blank" href="<?php echo esc_url($account_link); ?>" class="button button-primary"><?php esc_html_e('Click Here to purchase or renew your license key', 'memberpress'); ?></a>
+          <?php endif; ?>
+          </p>
+        </div>
+        <div class="mepr-drm-unlock-step2" style="display: none;">
+          <?php $application_fee_percentage = MeprDrmHelper::get_application_fee_percentage() . '%'; ?>
+          <p><?php
+              printf(
+                  // Translators: %s: application fee percentage.
+                  esc_html__('When re-activating without an active license, MP will add an additional %s fee to each transaction. Are you sure that you want to reactivate the backend without a license?', 'memberpress'),
+                  esc_html($application_fee_percentage)
+              );
+                ?></p>
+          <p><?php
+              printf(
+                  // Translators: %s: application fee percentage.
+                  esc_html__('IMPORTANT: If this is a staging site, and is connected to your Stripe account, the %s fee WILL be added to your production subscriptions. If you have a valid license, click "Cancel" below and please contact MemberPress support to inquire about a key for your staging site instead.', 'memberpress'),
+                  esc_html($application_fee_percentage)
+              );
+                ?></p>
+          <a href="#" id="mepr-drm-btn-without-license" class="button button-secondary"><?php esc_html_e('Yes, I Understand. Reactivate Backend Now.', 'memberpress'); ?></a>
+          <p>
+            <a href="#" id="mepr-drm-btn-without-license-cancel" class="button button-text"><?php esc_html_e('Cancel', 'memberpress'); ?></a>
+          </p>
+        </div>
+      </div>
       <p><?php printf(
           // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
           esc_html__('If you already have a license key, you can find it on your %1$sAccount Page%2$s, and enter it below:', 'memberpress'),
@@ -45,11 +74,15 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
       <?php if ($has_stripe_connect) : ?>
       <p class="mepr-drm-modal-footnote">
         <small>
-            <?php printf(
-              // Translators: %s: application fee percentage.
-                __('* When re-activating without an active license, MP will add an additional %s fee to each transaction.', 'memberpress'),
-                MeprDrmHelper::get_application_fee_percentage() . '%'
-            ); ?>
+            <?php
+                echo esc_html(
+                    sprintf(
+                        // Translators: %s: application fee percentage.
+                        __('* When re-activating without an active license, MP will add an additional %s fee to each transaction.', 'memberpress'),
+                        MeprDrmHelper::get_application_fee_percentage() . '%'
+                    )
+                );
+            ?>
         </small>
       </p>
       <?php endif; ?>
@@ -68,6 +101,11 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
         $('#wpbody').remove();
      });
     <?php if ($has_stripe_connect) : ?>
+    $('body').on('click', '#mepr-drm-btn-without-license-confirm,#mepr-drm-btn-without-license-cancel', function (e) {
+      e.preventDefault();
+      $('.mepr-drm-unlock-step1').toggle();
+      $('.mepr-drm-unlock-step2').toggle();
+    });
     $('body').on('click', '#mepr-drm-btn-without-license', function (e) {
       e.preventDefault();
       var $button = $(this);
@@ -77,7 +115,7 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
        dataType: 'json',
        data: {
          action: 'mepr_drm_use_without_license',
-         _ajax_nonce: '<?php echo wp_create_nonce('mepr_drm_use_without_license'); ?>'
+         _ajax_nonce: '<?php echo esc_js(wp_create_nonce('mepr_drm_use_without_license')); ?>'
        }
        })
        .done(function (response) {
@@ -116,7 +154,7 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
      $('.mepr-drm-messages').hide();
      var buttonText = $button.val();
      $button.val( '...' );
-    var generic_message = '<?php __('ERROR! License Key not valid. Try Again.', 'memberpress'); ?>';
+    var generic_message = '<?php echo esc_js(__('ERROR! License Key not valid. Try Again.', 'memberpress')); ?>';
 
      $.ajax({
      url: ajaxurl,
@@ -124,13 +162,13 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
      dataType: 'json',
      data: {
        action: 'mepr_drm_activate_license',
-       _ajax_nonce: '<?php echo wp_create_nonce('mepr_drm_activate_license'); ?>',
+       _ajax_nonce: '<?php echo esc_js(wp_create_nonce('mepr_drm_activate_license')); ?>',
        key: key
      }
      })
      .done(function (response) {
      if (!response || typeof response != 'object' || typeof response.success != 'boolean') {
-      $('span.drm-error').html( '<?php __('Invalid response.', 'memberpress'); ?>' );
+      $('span.drm-error').html( '<?php echo esc_js(__('Invalid response.', 'memberpress')); ?>' );
       $('.mepr-key-error').show();
      } else if (!response.success) {
        $('span.drm-error').html( response.data );
@@ -140,12 +178,12 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
        $('.mepr-key-success').show();
        $('#mepr-drm-form').remove();
        setTimeout(function(){
-         window.location.href="<?php echo admin_url('admin.php?page=memberpress-options'); ?>";
+         window.location.href="<?php echo esc_js(esc_url_raw(admin_url('admin.php?page=memberpress-options'))); ?>";
        }, 3000);
      }
      })
      .fail(function () {
-     $('.mepr-drm-error span').html( '<?php echo __('Ajax error.', 'memberpress'); ?>' );
+     $('.mepr-drm-error span').html( '<?php echo esc_js(__('Ajax error.', 'memberpress')); ?>' );
      $('.mepr-key-error').show();
      })
      .always(function () {

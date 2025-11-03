@@ -111,30 +111,32 @@ body {
   border-top: 2px solid rgba(0, 0, 0, 0.1);
   border-bottom: 0;
 }
-.mepr-checkout-container .invoice-wrapper svg.thankyou {
+.mepr-checkout-container .invoice-wrapper svg {
   color: #06429e;
   width: 4rem;
   height: auto;
 }
-.mepr-checkout-container .invoice-wrapper.thankyou p {
+.mepr-checkout-container .invoice-wrapper p {
   color: rgba(0, 0, 0, 0.56);
   margin: 0;
 }
-.mepr-checkout-container .invoice-wrapper.thankyou .mepr-order-no {
+.mepr-checkout-container .invoice-wrapper .mepr-order-no {
   margin: 1rem 0;
 }
 .mepr-checkout-container .invoice-wrapper.thankyou .mepr-button {
   display: inline-flex;
   align-items: center;
-  color: #fff;
   margin-bottom: 1em;
+  padding-top: 0.5625rem;
+  padding-bottom: 0.5625rem;
+  color: #fff;
 }
-.mepr-checkout-container .invoice-wrapper.thankyou .mepr-button svg {
+.mepr-checkout-container .invoice-wrapper .mepr-button svg {
   width: 1.4rem;
   color: #fff;
   margin-right: 5px;
 }
-.mepr-checkout-container .invoice-wrapper.thankyou .mp_price_str {
+.mepr-checkout-container .invoice-wrapper .mp_price_str {
   display: none;
 }
 .mepr-checkout-container .invoice-wrapper table {
@@ -193,6 +195,49 @@ body {
   cursor: pointer;
   border-radius: 6px;
 }
+.mepr-checkout-container .invoice-wrapper ul.mp-cart-body {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mepr-checkout-container .invoice-wrapper .mp-cart-item {
+  display: flex;
+  margin-bottom: 20px;
+  color: rgba(0, 0, 0, 0.56);
+}
+.mepr-checkout-container .invoice-wrapper .mp-cart-item-details {
+  margin-right: auto;
+  text-align: left;
+}
+.mepr-checkout-container .invoice-wrapper .mp-cart-item-image {
+  margin-right: 20px;
+}
+.mepr-checkout-container .invoice-wrapper .mp-cart-footer > div {
+  display: flex;
+  justify-content: space-between;
+}
+.mepr-checkout-container .invoice-wrapper .mp-cart-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  margin-top: 10px;
+  padding-top: 10px;
+  margin-left: 60px;
+  margin-bottom: 24px;
+  color: rgba(0, 0, 0, 0.56);
+}
+.mepr-checkout-container .invoice-wrapper .mp-cart-coupon {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(0, 0, 0, 0.56);
+}
+.mepr-checkout-container .invoice-wrapper .mp-cart-coupon-desc {
+  margin-left: 60px;
+}
+.mepr-checkout-container .invoice-wrapper .mp-cart-item-details .desc {
+  font-size: 14px;
+}
+.mepr-checkout-container .invoice-wrapper .mp-currency-cell {
+  margin-left: 10px;
+}
 
 .form-wrapper {
   padding-top: 3rem;
@@ -227,7 +272,7 @@ body {
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 .mp-form-row.mp-address-group {
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.08), 0px 1px 1px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 .form-wrapper .mp-form-row select {
@@ -257,6 +302,13 @@ body {
   padding-right: 0.75rem;
   background-image: none;
 }
+.form-wrapper .mp-form-row input[type="text"]:focus-visible,
+.form-wrapper .mp-form-row input[type="email"]:focus-visible,
+.form-wrapper .mp-form-row input[type="url"]:focus-visible,
+.form-wrapper .mp-form-row input[type="tel"]:focus-visible,
+.form-wrapper .mp-form-row select:focus-visible {
+  border: 2px solid #bcbcbc;
+}
 .form-wrapper .mp-form-row-group {
   position: relative;
   display: flex;
@@ -283,24 +335,22 @@ body {
   border-bottom-left-radius: 0;
 }
 .form-wrapper .mp-address-group {
-  margin-top: 2rem;
+  margin-top: 15px;
   margin-bottom: 2rem;
-}
-.form-wrapper .mp-address-group .mp-form-label {
-  display: none;
 }
 .form-wrapper .mp-address-group .mepr-form-input,
 .form-wrapper .mp-address-group input[type="text"] {
-  margin: 0;
-  box-shadow: none;
-  border-radius: 0;
   height: calc(1.7em + 0.75rem + 2px);
+  margin: 0;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.08), 0px 1px 1px rgba(0, 0, 0, 0.04);
+  border-radius: 0;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 .form-wrapper .mp-address-group > .mp-form-row + .mp-form-row .mepr-form-input {
   margin-top: -1px;
 }
 .form-wrapper .mp-address-group .mp-form-row {
-  margin: 0;
+  margin: 0 0 15px;
 }
 .form-wrapper .mp-address-group .mp-form-row:first-child .mepr-form-input {
   border-top-left-radius: 0.25rem;
@@ -322,6 +372,15 @@ body {
 .form-wrapper .mepr-payment-option-label input[type="radio"] {
   position: fixed;
   opacity: 0;
+}
+fieldset.mepr-order-bumps {
+  padding: 0;
+  margin-top: 1.3rem;
+  border: none;
+}
+.mepr-order-bumps legend {
+  font-weight: 700;
+  margin: 21px 0;
 }
 
 .mepr-payment-methods-radios {

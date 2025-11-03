@@ -1,80 +1,53 @@
 <?php
 
+/**
+ * MemberPress Editions.
+ *
+ * @returns array<string, array{
+ *     priority: int,
+ *     name: string,
+ *     addons: array<string>
+ * }>
+ */
+
 return [
     'business'                => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprPayPalStandardGateway',
-        ],
+        'priority' => 10,
+        'name'     => 'MemberPress Business',
         'addons'   => [
             'memberpress-courses',
             'memberpress-downloads',
-        ],
-    ],
-    'developer'               => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprAuthorizeGateway',
-            'MeprPayPalStandardGateway',
-        ],
-        'addons'   => [
-            'memberpress-courses',
-            'memberpress-downloads',
-            'memberpress-buddypress',
-            'memberpress-developer-tools',
-            'memberpress-gifting',
-            'memberpress-corporate',
-        ],
-    ],
-    'memberpress-plus'         => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprPayPalStandardGateway',
-        ],
-        'addons'   => [
-            'memberpress-courses',
-            'memberpress-downloads',
-            'memberpress-buddypress',
-            'memberpress-developer-tools',
-            'memberpress-gifting',
-        ],
-    ],
-    'memberpress-pro'          => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprAuthorizeGateway',
-            'MeprPayPalStandardGateway',
-        ],
-        'addons'   => [
-            'memberpress-courses',
-            'memberpress-downloads',
-            'memberpress-buddypress',
-            'memberpress-developer-tools',
-            'memberpress-gifting',
-            'memberpress-corporate',
         ],
     ],
     'memberpress-basic'        => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprPayPalStandardGateway',
-        ],
+        'priority' => 20,
+        'name'     => 'MemberPress Basic',
         'addons'   => [
             'memberpress-courses',
             'memberpress-downloads',
         ],
     ],
-    'memberpress-plus-2'       => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprPayPalStandardGateway',
+    'memberpress-launch'        => [
+        'priority' => 25,
+        'name'     => 'MemberPress Launch',
+        'addons'   => [
+            'memberpress-courses',
         ],
+    ],
+    'memberpress-plus'         => [
+        'priority' => 30,
+        'name'     => 'MemberPress Plus',
+        'addons'   => [
+            'memberpress-courses',
+            'memberpress-downloads',
+            'memberpress-buddypress',
+            'memberpress-developer-tools',
+            'memberpress-gifting',
+        ],
+    ],
+    'memberpress-plus-2'       => [
+        'priority' => 40,
+        'name'     => 'MemberPress Plus',
         'addons'   => [
             'memberpress-courses',
             'memberpress-downloads',
@@ -82,13 +55,43 @@ return [
             'memberpress-developer-tools',
         ],
     ],
-    'memberpress-pro-5'        => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprAuthorizeGateway',
-            'MeprPayPalStandardGateway',
+    'memberpress-growth'        => [
+        'priority' => 45,
+        'name'     => 'MemberPress Growth',
+        'addons'   => [
+            'memberpress-courses',
+            'memberpress-downloads',
+            'memberpress-buddypress',
+            'memberpress-coachkit',
         ],
+    ],
+    'developer'               => [
+        'priority' => 50,
+        'name'     => 'MemberPress Developer',
+        'addons'   => [
+            'memberpress-courses',
+            'memberpress-downloads',
+            'memberpress-buddypress',
+            'memberpress-developer-tools',
+            'memberpress-gifting',
+            'memberpress-corporate',
+        ],
+    ],
+    'memberpress-pro'          => [
+        'priority' => 60,
+        'name'     => 'MemberPress Pro',
+        'addons'   => [
+            'memberpress-courses',
+            'memberpress-downloads',
+            'memberpress-buddypress',
+            'memberpress-developer-tools',
+            'memberpress-gifting',
+            'memberpress-corporate',
+        ],
+    ],
+    'memberpress-pro-5'        => [
+        'priority' => 70,
+        'name'     => 'MemberPress Pro',
         'addons'   => [
             'memberpress-courses',
             'memberpress-downloads',
@@ -99,12 +102,8 @@ return [
         ],
     ],
     'memberpress-reseller-nhw' => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprAuthorizeGateway',
-            'MeprPayPalStandardGateway',
-        ],
+        'priority' => 70,
+        'name'     => 'MemberPress Reseller',
         'addons'   => [
             'memberpress-courses',
             'memberpress-downloads',
@@ -115,12 +114,8 @@ return [
         ],
     ],
     'memberpress-reseller-sng' => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprAuthorizeGateway',
-            'MeprPayPalStandardGateway',
-        ],
+        'priority' => 70,
+        'name'     => 'MemberPress Reseller',
         'addons'   => [
             'memberpress-courses',
             'memberpress-downloads',
@@ -131,12 +126,8 @@ return [
         ],
     ],
     'memberpress-oem'          => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprAuthorizeGateway',
-            'MeprPayPalStandardGateway',
-        ],
+        'priority' => 70,
+        'name'     => 'MemberPress OEM',
         'addons'   => [
             'memberpress-courses',
             'memberpress-downloads',
@@ -147,12 +138,21 @@ return [
         ],
     ],
     'memberpress-elite'        => [
-        'payments' => [
-            'MeprStripeGateway',
-            'MeprPayPalCommerceGateway',
-            'MeprAuthorizeGateway',
-            'MeprPayPalStandardGateway',
+        'priority' => 80,
+        'name'     => 'MemberPress Elite',
+        'addons'   => [
+            'memberpress-courses',
+            'memberpress-downloads',
+            'memberpress-buddypress',
+            'memberpress-developer-tools',
+            'memberpress-gifting',
+            'memberpress-corporate',
+            'memberpress-coachkit',
         ],
+    ],
+    'memberpress-scale'        => [
+        'priority' => 85,
+        'name'     => 'MemberPress Scale',
         'addons'   => [
             'memberpress-courses',
             'memberpress-downloads',

@@ -19,7 +19,7 @@ class MeprUsageCtrl extends MeprBaseCtrl
         }
 
         add_action('mepr_display_general_options', [$this,'display_options'], 99);
-        add_action('mepr-process-options', [$this,'save_options']);
+        add_action('mepr_process_options', [$this,'save_options']);
     }
 
     /**
@@ -32,7 +32,7 @@ class MeprUsageCtrl extends MeprBaseCtrl
     {
         $schedules['mepr_snapshot_interval'] = [
             'interval' => MeprUtils::weeks(1),
-            'display'  => __('MemberPress Snapshot Interval', 'memberpress'),
+            'display'  => 'MemberPress Snapshot Interval',
         ];
 
         return $schedules;

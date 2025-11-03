@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class MeprSquareCtrl extends MeprBaseCtrl
+class MeprSquareConnectCtrl extends MeprBaseCtrl
 {
     /**
      * Load the hooks for this controller.
@@ -50,9 +50,9 @@ class MeprSquareCtrl extends MeprBaseCtrl
         $options->integrations = array_merge($options->integrations, [
             $gateway_id => [
                 'id'        => $gateway_id,
-                'gateway'   => 'MeprSquareGateway',
-                'sandbox'   => $environment == 'sandbox',
-                'label'     => sanitize_text_field(wp_unslash($_POST[$options->integrations_str][$gateway_id]['label'])),
+                'gateway'   => 'MeprSquarePaymentsGateway',
+                'sandbox'   => $environment === 'sandbox',
+                'label'     => sanitize_text_field(wp_unslash($_POST[$options->integrations_str][$gateway_id]['label'] ?? '')),
                 'use_label' => isset($_POST[$options->integrations_str][$gateway_id]['use_label']),
                 'use_icon'  => isset($_POST[$options->integrations_str][$gateway_id]['use_icon']),
                 'use_desc'  => isset($_POST[$options->integrations_str][$gateway_id]['use_desc']),
@@ -64,7 +64,7 @@ class MeprSquareCtrl extends MeprBaseCtrl
 
         $pm = $options->payment_method($gateway_id);
 
-        if (!$pm instanceof MeprSquareGateway) {
+        if (!$pm instanceof MeprSquarePaymentsGateway) {
             wp_send_json_error(__('Bad request.', 'memberpress'));
         }
 
@@ -129,10 +129,10 @@ class MeprSquareCtrl extends MeprBaseCtrl
                 $options = MeprOptions::fetch();
                 $pm      = $options->payment_method($pmt);
 
-                if ($pm instanceof MeprSquareGateway) {
+                if ($pm instanceof MeprSquarePaymentsGateway) {
                     try {
                         $pm->fetch_credentials(
-                            sanitize_text_field(wp_unslash($_GET['environment'] ?? '')) == 'sandbox' ? 'sandbox' : 'production'
+                            sanitize_text_field(wp_unslash($_GET['environment'] ?? '')) === 'sandbox' ? 'sandbox' : 'production'
                         );
 
                         $args['mepr-square-connect-status'] = 'connected';
@@ -180,7 +180,7 @@ class MeprSquareCtrl extends MeprBaseCtrl
         $options = MeprOptions::fetch();
         $pm      = $options->payment_method($payment_method_id);
 
-        if (!$pm instanceof MeprSquareGateway) {
+        if (!$pm instanceof MeprSquarePaymentsGateway) {
             $this->die(__('Sorry, this only works with Square.', 'memberpress'));
         }
 
@@ -227,7 +227,7 @@ class MeprSquareCtrl extends MeprBaseCtrl
         $options = MeprOptions::fetch();
         $pm      = $options->payment_method($payment_method_id);
 
-        if (!$pm instanceof MeprSquareGateway) {
+        if (!$pm instanceof MeprSquarePaymentsGateway) {
             $this->die(__('Sorry, this only works with Square.', 'memberpress'));
         }
 
@@ -282,19 +282,19 @@ class MeprSquareCtrl extends MeprBaseCtrl
         if (isset($_GET['mepr-square-connect-status'])) {
             $status = sanitize_text_field(wp_unslash($_GET['mepr-square-connect-status']));
 
-            if ($status == 'error') {
-                $error = sanitize_text_field(wp_unslash($_GET['error']));
+            if ($status === 'error') {
+                $error = sanitize_text_field(wp_unslash($_GET['error'] ?? ''));
                 $error = empty($error) ? __('The payment method could not be connected to Square.', 'memberpress') : $error;
 
                 printf(
                     '<div class="notice notice-error is-dismissible"><p>%s</p></div>',
                     esc_html($error)
                 );
-            } elseif ($status == 'connected') {
+            } elseif ($status === 'connected') {
                 $message = __('The Square payment method was successfully connected.', 'memberpress');
-            } elseif ($status == 'disconnected') {
+            } elseif ($status === 'disconnected') {
                 $message = __('The Square payment method was successfully disconnected.', 'memberpress');
-            } elseif ($status == 'refreshed') {
+            } elseif ($status === 'refreshed') {
                 $message = __('The Square payment method credentials have been updated.', 'memberpress');
             }
 
@@ -335,7 +335,7 @@ class MeprSquareCtrl extends MeprBaseCtrl
         }
 
         foreach ($payment_methods as $pm) {
-            if (!$pm instanceof MeprSquareGateway) {
+            if (!$pm instanceof MeprSquarePaymentsGateway) {
                 continue;
             }
 
@@ -357,7 +357,7 @@ class MeprSquareCtrl extends MeprBaseCtrl
                                     esc_html__('The credentials for the Square gateway have expired. To continue accepting payments, please %1$sRefresh Square Credentials%2$s to update them. %3$sContact support%2$s if this issue persists.', 'memberpress'),
                                     '<a href="' . esc_url($pm->refresh_credentials_url($environment)) . '">',
                                     '</a>',
-                                    '<a href="https://memberpress.com/support/">'
+                                    '<a href="' . esc_url(MeprUtils::get_link_url('support')) . '">'
                                 )
                             );
                         } else {
@@ -374,7 +374,7 @@ class MeprSquareCtrl extends MeprBaseCtrl
                                         esc_html($expire_days),
                                         '<a href="' . esc_url($pm->refresh_credentials_url($environment)) . '">',
                                         '</a>',
-                                        '<a href="https://memberpress.com/support/">'
+                                        '<a href="' . esc_url(MeprUtils::get_link_url('support')) . '">'
                                     )
                                 );
                             }
@@ -418,7 +418,7 @@ class MeprSquareCtrl extends MeprBaseCtrl
         if (MeprUtils::is_post_request()) {
             $action = sanitize_text_field(wp_unslash($_POST['action'] ?? ''));
 
-            if ($action == 'process-form') {
+            if ($action === 'process-form') {
                 $posted_currency = sanitize_text_field(wp_unslash($_POST['mepr-currency-code'] ?? ''));
 
                 if (!empty($posted_currency)) {
@@ -428,14 +428,14 @@ class MeprSquareCtrl extends MeprBaseCtrl
         }
 
         foreach ($payment_methods as $pm) {
-            if (!$pm instanceof MeprSquareGateway) {
+            if (!$pm instanceof MeprSquarePaymentsGateway) {
                 continue;
             }
 
             foreach ($environments as $environment) {
                 if (
                     !empty($pm->settings->{"{$environment}_currency"}) &&
-                    $pm->settings->{"{$environment}_currency"} != $configured_currency
+                    $pm->settings->{"{$environment}_currency"} !== $configured_currency
                 ) {
                     printf(
                         '<div class="notice notice-error is-dismissible"><p>%s</p></div>',
@@ -469,7 +469,7 @@ class MeprSquareCtrl extends MeprBaseCtrl
 
         $screen_id = MeprUtils::get_current_screen_id();
 
-        if (!is_string($screen_id) || $screen_id != 'memberpressproduct') {
+        if (!is_string($screen_id) || $screen_id !== 'memberpressproduct') {
             return;
         }
 
@@ -477,7 +477,7 @@ class MeprSquareCtrl extends MeprBaseCtrl
         $has_square = false;
 
         foreach ($options->integrations as $integration) {
-            if (!empty($integration['gateway']) && $integration['gateway'] == 'MeprSquareGateway') {
+            if (!empty($integration['gateway']) && $integration['gateway'] === 'MeprSquarePaymentsGateway') {
                 $has_square = true;
                 break;
             }
@@ -495,12 +495,12 @@ class MeprSquareCtrl extends MeprBaseCtrl
 
         $product = new MeprProduct($post->ID);
 
-        if ($product->period_type == 'lifetime') {
+        if ($product->period_type === 'lifetime') {
             return;
         }
 
         try {
-            MeprSquareGateway::get_cadence((string) $product->period_type, (int) $product->period);
+            MeprSquarePaymentsGateway::get_cadence((string) $product->period_type, (int) $product->period);
         } catch (MeprGatewayException $e) {
             printf(
                 '<div class="notice notice-error is-dismissible"><p>%s</p></div>',

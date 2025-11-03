@@ -21,7 +21,7 @@ class MeprEmailFactory
     public static function fetch($class, $etype = 'MeprBaseEmail', $args = [])
     {
         if (!class_exists($class)) {
-            throw new MeprInvalidEmailException(__('Email wasn\'t found', 'memberpress'));
+            throw new MeprInvalidEmailException(esc_html__('Email wasn\'t found', 'memberpress'));
         }
 
         // We'll let the autoloader in memberpress.php
@@ -32,9 +32,9 @@ class MeprEmailFactory
         if (!($obj instanceof $etype)) {
             throw new MeprInvalidEmailException(sprintf(
                 // Translators: %1$s: class name, %2$s: expected class name.
-                __('Not a valid email object: %1$s is not an instance of %2$s', 'memberpress'),
-                $class,
-                $etype
+                esc_html__('Not a valid email object: %1$s is not an instance of %2$s', 'memberpress'),
+                esc_html($class),
+                esc_html($etype)
             ));
         }
 
@@ -60,7 +60,10 @@ class MeprEmailFactory
             $objs[$etype] = [];
 
             foreach (self::paths() as $path) {
-                $files = @glob($path . '/Mepr*Email.php', GLOB_NOSORT);
+                $files = glob($path . '/Mepr*Email.php', GLOB_NOSORT);
+                if ($files === false) {
+                    continue;
+                }
                 foreach ($files as $file) {
                     $class = preg_replace('#\.php#', '', basename($file));
 
@@ -75,7 +78,7 @@ class MeprEmailFactory
 
             // Order based on the ui_order.
             uasort($objs[$etype], function ($a, $b) {
-                if ($a->ui_order == $b->ui_order) {
+                if ($a->ui_order === $b->ui_order) {
                     return 0;
                 }
 
@@ -93,6 +96,6 @@ class MeprEmailFactory
      */
     public static function paths()
     {
-        return MeprHooks::apply_filters('mepr-email-paths', [MEPR_EMAILS_PATH]);
+        return MeprHooks::apply_filters('mepr_email_paths', [MEPR_EMAILS_PATH]);
     }
 }

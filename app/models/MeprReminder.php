@@ -139,7 +139,11 @@ class MeprReminder extends MeprCptModel
         $this->event_actions = [];
         foreach ($this->trigger_events as $e) {
             foreach ($this->trigger_timings as $t) {
-                $this->event_actions[] = "mepr-event-{$t}-{$e}-reminder";
+                $this->event_actions[] = sprintf(
+                    'mepr_event_%s_%s_reminder',
+                    $t,
+                    str_replace('-', '_', $e)
+                );
             }
         }
     }
@@ -231,9 +235,11 @@ class MeprReminder extends MeprCptModel
 
             // Direct SQL so we don't issue any actions / filters
             // in WP itself that could get us in an infinite loop.
-            $sql = "UPDATE {$wpdb->posts} SET post_title=%s WHERE ID=%d";
-            $sql = $wpdb->prepare($sql, $title, $id);
-            $wpdb->query($sql);
+            $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+                "UPDATE {$wpdb->posts} SET post_title=%s WHERE ID=%d",
+                $title,
+                $id
+            ));
         }
 
         update_post_meta($id, self::$trigger_length_str, $this->trigger_length);
@@ -306,14 +312,15 @@ class MeprReminder extends MeprCptModel
         $mepr_db = new MeprDb();
 
         $unit = $this->db_trigger_interval();
-        $op   = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
+        $op   = ( $this->trigger_timing === 'before' ? 'DATE_SUB' : 'DATE_ADD' );
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
         // If $this->products is empty, then we should send for all product_id's.
         $and_products = $this->get_query_products('tr.product_id');
 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $query = $wpdb->prepare(
-        // Get all info about expiring transactions.
+            // Get all info about expiring transactions.
             "SELECT tr.* FROM {$mepr_db->transactions} AS tr\n" .
 
             // Lifetimes don't expire.
@@ -339,15 +346,23 @@ class MeprReminder extends MeprCptModel
 
             // Ensure that we're in the 2 day window after the expiration / trigger.
             "AND {$op}( tr.expires_at, INTERVAL {$this->trigger_length} {$unit} ) <= %s
-          AND DATE_ADD(
+             AND DATE_ADD(
                 {$op}( tr.expires_at, INTERVAL {$this->trigger_length} {$unit} ),
-                INTERVAL 2 DAY
-              ) >= %s\n" .
+                INTERVAL 2 DAY ) >= %s\n",
+            MeprUtils::db_lifetime(),
+            MeprTransaction::$complete_str,
+            MeprTransaction::$confirmed_str,
+            MeprSubscription::$cancelled_str,
+            MeprSubscription::$suspended_str,
+            MeprUtils::db_now(),
+            MeprUtils::db_now(),
+        );
 
-            // Make sure that if our timing is beforehand
-            // then we don't send after the expiration.
-            ( $this->trigger_timing == 'before' ? $wpdb->prepare("AND tr.expires_at >= %s\n", MeprUtils::db_now()) : '' ) .
+        // Make sure that if our timing is beforehand
+        // then we don't send after the expiration.
+        $query .= ($this->trigger_timing === 'before' ? $wpdb->prepare("AND tr.expires_at >= %s\n", MeprUtils::db_now()) : '');
 
+        $query .= $wpdb->prepare(
             // Let's make sure the reminder event hasn't already fired ...
             // This will ensure that we don't send a second reminder.
             "AND ( SELECT ev.id
@@ -379,20 +394,13 @@ class MeprReminder extends MeprCptModel
             "{$and_products} " .
 
             // We're just getting one of these at a time ... we need the oldest one first.
-            "ORDER BY tr.expires_at
-        LIMIT 1\n",
-            MeprUtils::db_lifetime(),
-            MeprTransaction::$complete_str,
-            MeprTransaction::$confirmed_str,
-            MeprSubscription::$cancelled_str,
-            MeprSubscription::$suspended_str,
-            MeprUtils::db_now(),
-            MeprUtils::db_now(),
+            "ORDER BY tr.expires_at LIMIT 1\n",
             "{$this->trigger_timing}-{$this->trigger_event}-reminder",
             $this->ID
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-        $res = $wpdb->get_row($query);
+        $res = $wpdb->get_row($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         return $res;
     }
@@ -415,6 +423,7 @@ class MeprReminder extends MeprCptModel
 
         $query = $wpdb->prepare(
         // Get all info about renewing transactions.
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             "SELECT tr.* FROM {$mepr_db->transactions} AS tr\n" .
 
             // Lifetimes don't renew.
@@ -459,8 +468,9 @@ class MeprReminder extends MeprCptModel
             MeprUtils::db_now(),
             "{$this->trigger_timing}-{$this->trigger_event}-reminder",
             $this->ID
-        );
-        $res = $wpdb->get_row($query);
+        ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $res = $wpdb->get_row($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         return $res;
     }
@@ -481,6 +491,7 @@ class MeprReminder extends MeprCptModel
         // If $this->products is empty, then we should send for all product_id's.
         $and_products = $this->get_query_products('tr.product_id');
 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $query = $wpdb->prepare(
         // Get all info about renewing transactions.
             "SELECT tr.* FROM {$mepr_db->transactions} AS tr\n" .
@@ -559,9 +570,9 @@ class MeprReminder extends MeprCptModel
             MeprUtils::db_now(),
             "{$this->trigger_timing}-{$this->trigger_event}-reminder",
             $this->ID
-        );
+        ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-        $res = $wpdb->get_row($query);
+        $res = $wpdb->get_row($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         return $res;
     }
@@ -590,6 +601,7 @@ class MeprReminder extends MeprCptModel
         // Find transactions where
         // status = complete or confirmed
         // no other complete & unexpired txns for this user.
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $query = $wpdb->prepare(
         // Just select the actual transaction id.
             "SELECT txn.id FROM {$mepr_db->transactions} AS txn " .
@@ -628,8 +640,8 @@ class MeprReminder extends MeprCptModel
                          AND ( SELECT sub.trial
                                  FROM {$mepr_db->subscriptions} AS sub
                                 WHERE sub.id = txn2.subscription_id AND sub.trial_amount = 0.00 ) = 1 ) )
-                   " . $this->get_query_products('txn2.product_id') . '
-                   AND txn2.created_at < txn.created_at
+                   " . $this->get_query_products('txn2.product_id') // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                   . ' AND txn2.created_at < txn.created_at
                  LIMIT 1
               ) IS NULL ' .
 
@@ -656,8 +668,8 @@ class MeprReminder extends MeprCptModel
             MeprTransaction::$confirmed_str,
             "{$this->trigger_timing}-{$this->trigger_event}-reminder",
             $this->ID
-        );
-        $res = $wpdb->get_var($query);
+        ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $res = $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
         return $res;
     }
 
@@ -685,6 +697,8 @@ class MeprReminder extends MeprCptModel
         // Find transactions where
         // status = pending
         // no other complete & unexpired membership for this user.
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
         $query = $wpdb->prepare(
         // Just grab the transaction id.
             "SELECT txn.id FROM {$mepr_db->transactions} AS txn " .
@@ -716,8 +730,8 @@ class MeprReminder extends MeprCptModel
                  WHERE txn2.user_id = txn.user_id
                    AND txn2.product_id = txn.product_id
                    AND txn2.status IN (%s,%s)
-                   " . $this->get_query_products('txn2.product_id') . '
-                   AND txn2.created_at > txn.created_at
+                   " . $this->get_query_products('txn2.product_id') // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                   . ' AND txn2.created_at > txn.created_at
                  LIMIT 1
               ) IS NULL ' .
 
@@ -749,9 +763,9 @@ class MeprReminder extends MeprCptModel
             MeprTransaction::$confirmed_str,
             "{$this->trigger_timing}-{$this->trigger_event}-reminder",
             $this->ID
-        );
+        ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-        $res = $wpdb->get_var($query);
+        $res = $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
         return $res;
     }
 
@@ -766,10 +780,10 @@ class MeprReminder extends MeprCptModel
         $mepr_db = new MeprDb();
 
         $unit = $this->db_trigger_interval();
-        $op   = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
+        $op   = ( $this->trigger_timing === 'before' ? 'DATE_SUB' : 'DATE_ADD' );
 
         // We want to get expiring subscriptions.
-        $not = ( ( $this->trigger_event == 'sub-expires' ) ? ' ' : ' NOT ' );
+        $not = ( ( $this->trigger_event === 'sub-expires' ) ? ' ' : ' NOT ' );
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
         // If $this->products is empty, then we should send for all product_id's.
@@ -845,16 +859,14 @@ class MeprReminder extends MeprCptModel
                  CAST(sub.cc_exp_month AS UNSIGNED) ASC
         LIMIT 1';
 
-        $query = $wpdb->prepare(
-            $query,
+        $res = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             MeprSubscription::$active_str,
             MeprUtils::db_now(),
             MeprUtils::db_now(),
             "{$this->trigger_timing}-{$this->trigger_event}-reminder",
             $this->ID
-        );
-
-        $res = $wpdb->get_var($query);
+        ));
 
         return $res;
     }
@@ -875,7 +887,7 @@ class MeprReminder extends MeprCptModel
         $mepr_db = new MeprDb();
 
         $unit = $this->db_trigger_interval();
-        $op   = ( $this->trigger_timing == 'before' ? 'DATE_SUB' : 'DATE_ADD' );
+        $op   = ( $this->trigger_timing === 'before' ? 'DATE_SUB' : 'DATE_ADD' );
 
         // Make sure we're only grabbing from valid product ID's for this reminder yo
         // If $this->products is empty, then we should send for all product_id's.
@@ -924,7 +936,7 @@ class MeprReminder extends MeprCptModel
         LIMIT 1';
 
         $query = $wpdb->prepare(
-            $query,
+            $query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             MeprUtils::db_now(),
             MeprUtils::db_now(),
             MeprUtils::db_now(),
@@ -932,7 +944,7 @@ class MeprReminder extends MeprCptModel
             $this->rec->ID
         );
 
-        $res = $wpdb->get_var($query);
+        $res = $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         return $res;
     }

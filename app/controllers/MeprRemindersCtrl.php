@@ -26,7 +26,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
             // Set up cron schedules.
             add_filter('cron_schedules', [$this, 'intervals']);
             add_action('mepr_reminders_worker', [$this, 'worker']);
-            add_action('plugins_loaded', [$this, 'schedule_reminders']);
+            add_action('init', [$this, 'schedule_reminders']);
         } else {
             $this->unschedule_reminders();
         }
@@ -184,15 +184,17 @@ class MeprRemindersCtrl extends MeprCptCtrl
                     return;
             }
 
-            // TODO: Yah, not pretty but works ... change at some point.
-            $cval = '<span style="color: %s; font-size: 120%%;"><strong>%s</strong></span>';
+            if ('send_to_admin' === $column || 'send_to_member' === $column) {
+                $email_class = 'send_to_admin' === $column ? $aclass : $uclass;
+                $enabled = (int) $reminder->emails[$email_class]['enabled'] > 0;
 
-            if ('send_to_admin' == $column) {
-                (int)$reminder->emails[$aclass]['enabled'] > 0 ? printf($cval, 'limegreen', '✔︎') : printf($cval, 'red', '✖︎');
-            } elseif ('send_to_member' == $column) {
-                (int)$reminder->emails[$uclass]['enabled'] > 0 ? printf($cval, 'limegreen', '✔︎') : printf($cval, 'red', '✖︎');
-            } elseif ('reminder_products' == $column) {
-                echo implode(', ', $reminder->get_formatted_products());
+                printf(
+                    '<span style="color: %s; font-size: 120%%"><strong>%s</strong></span>',
+                    $enabled ? esc_attr('limegreen') : esc_attr('red'),
+                    $enabled ? '✔︎' : '✖︎'
+                );
+            } elseif ('reminder_products' === $column) {
+                echo esc_html(implode(', ', $reminder->get_formatted_products()));
             }
         }
     }
@@ -221,7 +223,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
                     'parent_item_colon'  => __('Parent Reminder:', 'memberpress'),
                 ],
                 'public'               => false,
-                'show_ui'              => true, // MeprUpdateCtrl::is_activated(),.
+                'show_ui'              => true,
                 'show_in_menu'         => 'memberpress',
                 'capability_type'      => 'post',
                 'hierarchical'         => false,
@@ -265,7 +267,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
     {
         global $current_screen;
 
-        if ($current_screen->post_type == MeprReminder::$cpt) {
+        if ($current_screen->post_type === MeprReminder::$cpt) {
             wp_enqueue_style('mepr-jquery-ui-smoothness', MEPR_CSS_URL . '/vendor/jquery-ui/smoothness.min.css', [], '1.13.3');
             wp_dequeue_script('autosave'); // Disable auto-saving.
             wp_enqueue_style('mepr-emails-css', MEPR_CSS_URL . '/admin-emails.css', [], MEPR_VERSION);
@@ -322,7 +324,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
 
         if (
             !wp_verify_nonce(
-                (isset($_POST[MeprReminder::$nonce_str])) ? $_POST[MeprReminder::$nonce_str] : '',
+                (isset($_POST[MeprReminder::$nonce_str])) ? sanitize_text_field(wp_unslash($_POST[MeprReminder::$nonce_str])) : '',
                 md5(MeprReminder::$nonce_str . wp_salt())
             )
         ) {
@@ -336,30 +338,32 @@ class MeprRemindersCtrl extends MeprCptCtrl
             return;
         }
 
-        if (!empty($post) && $post->post_type == MeprReminder::$cpt) {
+        if (!empty($post) && $post->post_type === MeprReminder::$cpt) {
             $reminder = new MeprReminder($post_id);
 
-            $reminder->trigger_length   = sanitize_text_field($_POST[MeprReminder::$trigger_length_str]);
-            $reminder->trigger_interval = sanitize_text_field($_POST[MeprReminder::$trigger_interval_str]);
-            $reminder->trigger_timing   = sanitize_text_field($_POST[MeprReminder::$trigger_timing_str]);
-            $reminder->trigger_event    = sanitize_text_field($_POST[MeprReminder::$trigger_event_str]);
+            $reminder->trigger_length   = sanitize_text_field(wp_unslash($_POST[MeprReminder::$trigger_length_str] ?? ''));
+            $reminder->trigger_interval = sanitize_text_field(wp_unslash($_POST[MeprReminder::$trigger_interval_str] ?? ''));
+            $reminder->trigger_timing   = sanitize_text_field(wp_unslash($_POST[MeprReminder::$trigger_timing_str] ?? ''));
+            $reminder->trigger_event    = sanitize_text_field(wp_unslash($_POST[MeprReminder::$trigger_event_str] ?? ''));
             $reminder->filter_products  = false;
             $reminder->products         = [];
 
             // Override filter by products vars.
             if (isset($_POST[MeprReminder::$filter_products_str]) && !empty($_POST[MeprReminder::$products_str])) {
                 $reminder->filter_products = true;
-                $reminder->products        = array_map('sanitize_text_field', $_POST[MeprReminder::$products_str]);
+                $reminder->products        = array_map('sanitize_text_field', wp_unslash($_POST[MeprReminder::$products_str]));
             }
 
             // Notification Settings.
             $emails = [];
-            foreach ($_POST[MeprReminder::$emails_str] as $email => $vals) {
-                $emails[$email] = [
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $reminder_emails = wp_unslash($_POST[MeprReminder::$emails_str] ?? []);
+            foreach ($reminder_emails as $email => $vals) {
+                $emails[sanitize_text_field($email)] = [
                     'enabled'      => isset($vals['enabled']),
                     'use_template' => isset($vals['use_template']),
-                    'subject'      => sanitize_text_field(wp_unslash($vals['subject'])),
-                    'body'         => MeprUtils::maybe_wpautop(stripslashes($vals['body'])),
+                    'subject'      => sanitize_text_field($vals['subject']),
+                    'body'         => MeprUtils::maybe_wpautop(wp_kses_post($vals['body'])),
                 ];
             }
 
@@ -369,7 +373,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
             // $reminder = $this->validate($reminder);.
             $reminder->store_meta(); // Only storing metadata here.
 
-            MeprHooks::do_action('mepr-reminder-save-meta', $reminder);
+            MeprHooks::do_action('mepr_reminder_save_meta', $reminder);
         }
     }
 
@@ -388,7 +392,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
     {
         $schedules[ 'mepr_reminders_worker_interval' ] = [
             'interval' => MeprUtils::minutes(15),
-            'display'  => __('MemberPress Reminders Worker', 'memberpress'),
+            'display'  => 'MemberPress Reminders Worker',
         ];
 
         return $schedules;
@@ -447,7 +451,10 @@ class MeprRemindersCtrl extends MeprCptCtrl
         $reminder = $this->get_valid_reminder($reminder_id);
 
         if ($reminder !== false) {
-            @set_time_limit(0); // Unlimited run time.
+            if (function_exists('set_time_limit')) {
+                // Unlimited run time.
+                set_time_limit(0); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
+            }
             $run_limit = MeprUtils::minutes(10); // Limit to 10 minutes.
 
             // The event name will be the same no matter what we're doing here.
@@ -465,12 +472,12 @@ class MeprRemindersCtrl extends MeprCptCtrl
                         }
                         break;
                     case 'sub-renews':
-                        if ($reminder->trigger_timing == 'before') {
+                        if ($reminder->trigger_timing === 'before') {
                             $txn = $reminder->get_next_renewing_txn();
                             if ($txn) {
                                 $obj = new MeprTransaction($txn->id); // We need the actual model.
                             }
-                        } elseif ($reminder->trigger_timing == 'after') {
+                        } elseif ($reminder->trigger_timing === 'after') {
                             $txn = $reminder->get_renewed_txn();
                             if ($txn) {
                                 $obj = new MeprTransaction($txn->id); // We need the actual model.
@@ -497,7 +504,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
                         }
                         break;
                     case 'sub-trial-ends':
-                        if ($reminder->trigger_timing == 'before') {
+                        if ($reminder->trigger_timing === 'before') {
                             $sub_id = $reminder->get_next_trial_ends_subs();
                             if ($sub_id) {
                                 $obj  = new MeprSubscription($sub_id);
@@ -574,7 +581,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
         // if they have already renewed their one-time subscription again before the expiring sub reminder is sent out.
         $disable_email = false; // Do not send the emails if this gets set to true.
 
-        if ($event->evt_id_type == 'transactions') {
+        if ($event->evt_id_type === 'transactions') {
             $txn = new MeprTransaction($event->evt_id);
 
             // Do not send reminders to sub-accounts.
@@ -596,7 +603,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
             switch ($reminder->trigger_event) {
                 case 'sub-expires':
                     // Don't send a reminder if the user has already renewed either a one-time or an offline subscription.
-                    if ($reminder->trigger_timing == 'before') { // Handle when the reminder should go out before.
+                    if ($reminder->trigger_timing === 'before') { // Handle when the reminder should go out before.
                         $txn_count = count($usr->transactions_for_product($txn->product_id, false, true));
 
                         // The txn_count > 1 works well for both renewals and offline subs actually because transactions_for_product
@@ -607,21 +614,21 @@ class MeprRemindersCtrl extends MeprCptCtrl
                     } else { // Handle when the reminder should go out after
                         // Don't send to folks if they have an active txn on this subscription (OR one in the
                         // products group) already yo.
-                        $active_subs = $usr->active_product_subscriptions('ids');
+                        $active_subs = array_map('intval', $usr->active_product_subscriptions('ids'));
                         $product     = new MeprProduct($txn->product_id);
                         $grp         = new MeprGroup($product->group_id);
 
                         // If product is in a group with an upgrade path check for all memberships in that group.
                         if ($product->group_id && $product->group_id > 0 && $grp->is_upgrade_path) {
                             foreach ($grp->products('ids') as $prd_id) {
-                                if (in_array($prd_id, $active_subs, false)) {
+                                if (in_array((int) $prd_id, $active_subs, true)) {
                                     $disable_email = true;
                                     break; // Breack out of the loop once we find one.
                                 }
                             }
                         } else {
                             // Just check this product.
-                            if (in_array($txn->product_id, $active_subs, false)) {
+                            if (in_array((int) $txn->product_id, $active_subs, true)) {
                                 $disable_email = true;
                             }
                         }
@@ -631,10 +638,10 @@ class MeprRemindersCtrl extends MeprCptCtrl
                     $aclass = 'MeprAdminSubExpiresReminderEmail';
                     break;
                 case 'sub-renews':
-                    if ($reminder->trigger_timing == 'after') {
+                    if ($reminder->trigger_timing === 'after') {
                         $sub       = $txn->subscription();
                         $txn_count = (isset($sub->txn_count) && $sub->txn_count) ? $sub->txn_count : 0;
-                        if ($txn_count < 2 && ($sub->trial == false || ($sub->trial && $sub->trial_amount > 0.00))) {
+                        if ($txn_count < 2 && ( (bool) $sub->trial === false || ($sub->trial && $sub->trial_amount > 0.00))) {
                                 $disable_email = true;
                         }
                     }
@@ -662,11 +669,11 @@ class MeprRemindersCtrl extends MeprCptCtrl
 
             $args = [['reminder_id' => $event->args]];
 
-            $disable_email = MeprHooks::apply_filters("mepr-{$reminder->trigger_event}-reminder-disable", $disable_email, $reminder, $usr, $prd, $event);
+            $disable_email = MeprHooks::apply_filters("mepr_{$reminder->trigger_event}_reminder_disable", $disable_email, $reminder, $usr, $prd, $event);
             if (!$disable_email) {
                 $this->send_emails($usr, $uclass, $aclass, $params, $args);
             }
-        } elseif ($event->evt_id_type == 'subscriptions') {
+        } elseif ($event->evt_id_type === 'subscriptions') {
             $sub = new MeprSubscription($event->evt_id);
 
             $usr      = $sub->user();
@@ -692,7 +699,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
 
             switch ($reminder->trigger_event) {
                 case 'sub-trial-ends':
-                    if ('before' == $reminder->trigger_timing) {
+                    if ('before' === $reminder->trigger_timing) {
                         $uclass = 'MeprUserSubTrialEndsReminderEmail';
                         $aclass = 'MeprAdminSubTrialEndsReminderEmail';
                     }
@@ -707,7 +714,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
 
             $args = [['reminder_id' => $reminder->ID]];
 
-            $disable_email = MeprHooks::apply_filters("mepr-{$reminder->trigger_event}-reminder-disable", $disable_email, $reminder, $usr, $prd, $event);
+            $disable_email = MeprHooks::apply_filters("mepr_{$reminder->trigger_event}_reminder_disable", $disable_email, $reminder, $usr, $prd, $event);
             if (!$disable_email) {
                 $this->send_emails($usr, $uclass, $aclass, $params, $args);
             }
@@ -724,7 +731,7 @@ class MeprRemindersCtrl extends MeprCptCtrl
     public function delete($id)
     {
         global $post_type;
-        if ($post_type != MeprReminder::$cpt) {
+        if ($post_type !== MeprReminder::$cpt) {
             return;
         }
         $this->unschedule_reminder($id);

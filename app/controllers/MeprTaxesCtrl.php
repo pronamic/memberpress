@@ -15,7 +15,7 @@ class MeprTaxesCtrl extends MeprBaseCtrl
     {
         add_action('mepr_display_options_tabs', [$this,'display_option_tab']);
         add_action('mepr_display_options', [$this,'display_option_fields']);
-        add_action('mepr-process-options', [$this,'store_option_fields']);
+        add_action('mepr_process_options', [$this,'store_option_fields']);
         add_action('wp_ajax_mepr_export_tax_rates', [$this,'export_tax_rates']);
         add_action('wp_ajax_mepr_remove_tax_rate', [$this,'remove_tax_rate']);
     }
@@ -28,7 +28,7 @@ class MeprTaxesCtrl extends MeprBaseCtrl
     public function display_option_tab()
     {
         ?>
-      <a class="nav-tab" id="taxes" href="#"><?php _e('Taxes', 'memberpress'); ?><?php echo MeprUtils::new_badge(); ?></a>
+        <a class="nav-tab" id="taxes" href="#"><?php esc_html_e('Taxes', 'memberpress'); ?></a>
         <?php
     }
 
@@ -115,6 +115,7 @@ class MeprTaxesCtrl extends MeprBaseCtrl
                 // 'tax_class' => array('required')
             ];
 
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             $tax_rates = MeprUtils::parse_csv_file($_FILES['mepr_tax_rates_csv']['tmp_name'], $validations, $mapping);
             MeprTaxRate::import($tax_rates);
         }
@@ -161,7 +162,7 @@ class MeprTaxesCtrl extends MeprBaseCtrl
             exit(json_encode(['error' => __('A valid tax rate id must be set', 'memberpress')]));
         }
 
-        $tax_rate = new MeprTaxRate($_POST['id']);
+        $tax_rate = new MeprTaxRate(intval(wp_unslash($_POST['id'])));
         if (empty($tax_rate->id)) {
             header('HTTP/1.0 404 Not Found');
             exit(json_encode(['error' => __('A valid tax rate id must be set', 'memberpress')]));
@@ -172,4 +173,3 @@ class MeprTaxesCtrl extends MeprBaseCtrl
         exit(json_encode(['message' => __('This tax rate was successfully deleted', 'memberpress')]));
     }
 }
-

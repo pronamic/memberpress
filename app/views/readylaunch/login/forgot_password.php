@@ -8,17 +8,17 @@
     <?php MeprView::render('/readylaunch/shared/errors', get_defined_vars()); ?>
 
       <div id="mepr-template-login" class="mp_wrapper">
-        <h3><?php _ex('Request a Password Reset', 'ui', 'memberpress'); ?></h3>
+        <h3><?php echo esc_html_x('Request a Password Reset', 'ui', 'memberpress'); ?></h3>
         <form name="mepr_forgot_password_form" id="mepr_forgot_password_form" class="mepro-form" action="" method="post">
           <?php // Nonce not necessary on this form seeing as the user isn't logged in yet. ?>
           <div class="mp-form-row mepr_forgot_password_input">
-            <label for="mepr_user_or_email"><?php _ex('Enter Your Username or Email Address', 'ui', 'memberpress'); ?></label>
+            <label for="mepr_user_or_email"><?php echo esc_html_x('Enter Your Username or Email Address', 'ui', 'memberpress'); ?></label>
             <input type="text" name="mepr_user_or_email" id="mepr_user_or_email" value="<?php echo isset($mepr_user_or_email) ? esc_html($mepr_user_or_email) : ''; ?>" />
           </div>
-          <?php MeprHooks::do_action('mepr-forgot-password-form'); ?>
+          <?php MeprHooks::do_action('mepr_forgot_password_form'); ?>
           <div class="mp-spacer">&nbsp;</div>
           <div class="submit">
-            <input type="submit" name="wp-submit" id="wp-submit" class="button-primary mepr-share-button" value="<?php _ex('Request Password Reset', 'ui', 'memberpress'); ?>" />
+            <input type="submit" name="wp-submit" id="wp-submit" class="button-primary mepr-share-button" value="<?php echo esc_attr_x('Request Password Reset', 'ui', 'memberpress'); ?>" />
             <input type="hidden" name="action" value="forgot_password" />
             <input type="hidden" name="mepr_process_forgot_password_form" value="true" />
           </div>

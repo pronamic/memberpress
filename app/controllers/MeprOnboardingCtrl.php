@@ -56,9 +56,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
      */
     public static function route()
     {
-        global $wpdb;
-
-        $wpdb->query("INSERT INTO {$wpdb->options} (option_name, option_value) VALUES('mepr_onboarded', '1') ON DUPLICATE KEY UPDATE option_value = VALUES(option_value);");
+        update_option('mepr_onboarded', '1');
 
         $step = isset($_GET['step']) ? (int) $_GET['step'] : 0;
 
@@ -313,7 +311,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         }
 
         // Check if EA is installed or active.
-        if ('easy-affiliate' == $addon_slug) {
+        if ('easy-affiliate' === $addon_slug) {
             $installed = is_dir(WP_PLUGIN_DIR . '/easy-affiliate');
             $active    = is_plugin_active('easy-affiliate/easy-affiliate.php');
 
@@ -329,8 +327,8 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                     return 0;
                 }
 
-                $domain = defined('MEPR_ONBOARDING_MP_URL') ? MEPR_ONBOARDING_MP_URL : 'https://memberpress.com';
-                $url    = $domain . '/wp-admin/admin-ajax.php?action=mepr_onboarding_get_ea_license';
+                $domain = defined('MEPR_ONBOARDING_MP_URL') ? MEPR_ONBOARDING_MP_URL : MeprUtils::get_link_url('home');
+                $url    = rtrim($domain, '/') . '/wp-admin/admin-ajax.php?action=mepr_onboarding_get_ea_license';
 
                 $response = wp_remote_post(
                     $url,
@@ -343,7 +341,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
                 $code = wp_remote_retrieve_response_code($response);
 
-                if ($code == 200) {
+                if ($code === 200) {
                     $data = json_decode(wp_remote_retrieve_body($response), true);
 
                     if (isset($data['success']) && is_bool($data['success'])) {
@@ -438,7 +436,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         $title = sanitize_text_field($data['title']);
 
         $post_id = wp_insert_post([
-            'post_type'   => $type == 'course' ? 'mpcs-course' : 'page',
+            'post_type'   => $type === 'course' ? 'mpcs-course' : 'page',
             'post_title'  => wp_slash($title), // The post_title is expected to be slashed.
             'post_status' => 'publish',
         ], true);
@@ -458,7 +456,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         MeprOnboardingHelper::maybe_set_steps_completed(2);
 
         wp_send_json_success([
-            'heading'   => $post->post_type == 'mpcs-course' ? esc_html__('Course Name', 'memberpress') : esc_html__('Page Title', 'memberpress'),
+            'heading'   => $post->post_type === 'mpcs-course' ? esc_html__('Course Name', 'memberpress') : esc_html__('Page Title', 'memberpress'),
             'post'      => $post,
             'rule_data' => MeprOnboardingHelper::get_rules_step_data(),
         ]);
@@ -474,10 +472,10 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
     {
         $posts      = [];
         $post_types = ['page'];
-        if (MeprOnboardingHelper::is_courses_addon_applicable()) {
+        if (MeprUtils::is_addon_active(MeprUtils::ADDON_COURSES)) {
             $post_types = ['mpcs-course', 'page'];
         }
-        if ('' == $search_query) {
+        if ('' === $search_query) {
             $content_id = MeprOnboardingHelper::get_content_post_id();
 
             $args = [
@@ -543,17 +541,17 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
         MeprOnboardingHelper::maybe_set_steps_completed(1);
 
-        if ('memberpress-onboarding' === (string) $_GET['page'] && 1 === (int) $_GET['step']) {
+        if ('memberpress-onboarding' === (string) sanitize_text_field(wp_unslash($_GET['page'])) && 1 === (int) $_GET['step']) {
             // To rebuild the mepr_license_info transient.
             MeprUpdateCtrl::manually_queue_update();
 
             $editions = MeprUtils::is_incorrect_edition_installed();
 
-            if (is_array($editions) && $editions['license']['index'] > $editions['installed']['index']) {
+            if (is_array($editions) && $editions['license']['priority'] > $editions['installed']['priority']) {
                 $li     = get_site_transient('mepr_license_info');
                 $result = MeprOptionsCtrl::install_plugin_silently($li['url'], ['overwrite_package' => true]);
                 if ($result === true) {
-                    do_action('mepr_plugin_edition_changed');
+                    MeprHooks::do_action('mepr_plugin_edition_changed');
                 }
             }
         }
@@ -582,8 +580,8 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         }
 
         $current_step = (int) $_GET['step'];
-        if ('memberpress-onboarding' === (string) $_GET['page'] && 0 < $current_step) {
-            if ($current_step == 4) {
+        if ('memberpress-onboarding' === (string) sanitize_text_field(wp_unslash($_GET['page'])) && 0 < $current_step) {
+            if ($current_step === 4) {
                 $content_id = MeprOnboardingHelper::get_content_post_id();
 
                 if (0 === (int) $content_id) {
@@ -592,7 +590,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                 }
             }
 
-            if ($current_step == 5) {
+            if ($current_step === 5) {
                 $content_id         = MeprOnboardingHelper::get_content_post_id();
                 $membership_post_id = MeprOnboardingHelper::get_membership_post_id();
 
@@ -773,7 +771,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             wp_send_json_error(esc_html__('Invalid request.', 'memberpress'));
         }
 
-        if (!in_array($post->post_type, ['page','mpcs-course'])) {
+        if (!in_array($post->post_type, ['page','mpcs-course'], true)) {
             wp_send_json_error(esc_html__('Invalid content.', 'memberpress'));
         }
 
@@ -1046,7 +1044,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             wp_send_json_error('Gateway already exists');
         }
 
-        if (1 === (int) $data['upgrade_required'] && ! MeprOnboardingHelper::is_pro_license()) {
+        if (1 === (int) $data['upgrade_required'] && ! MeprOnboardingHelper::is_pro_license() && ! MeprOnboardingHelper::is_scale_license()) {
             update_option('mepr_onboarding_payment_gateway', 'MeprAuthorizeGateway');
             MeprOnboardingHelper::maybe_set_steps_completed(6);
             wp_send_json_success([
@@ -1098,6 +1096,13 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             wp_send_json_success();
         }
 
+        // Check if MeprArtificialGateway class exists (not available in Launch edition).
+        if (!class_exists('MeprArtificialGateway')) {
+            // For editions without offline payment support, just mark step as complete and continue.
+            MeprOnboardingHelper::maybe_set_steps_completed(6);
+            wp_send_json_success();
+        }
+
         $gateway = new MeprArtificialGateway();
 
         if (isset($mepr_options->integrations[$gateway->id])) {
@@ -1143,7 +1148,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             return;
         }
 
-        if (empty($gateway_id) || empty($data['gateway_id']) || $gateway_id != $data['gateway_id']) {
+        if (empty($gateway_id) || empty($data['gateway_id']) || $gateway_id !== $data['gateway_id']) {
             wp_send_json_error(__('Bad request.', 'memberpress'));
         }
 
@@ -1188,7 +1193,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                 ],
             ];
 
-            if (apply_filters('mepr_onboarding_paypal_sandbox', false)) {
+            if (MeprHooks::apply_filters('mepr_onboarding_paypal_sandbox', false)) {
                 $endpoint = "/sandbox/credentials/{$gateway->id}";
             } else {
                 $endpoint = "/credentials/{$gateway->id}";
@@ -1375,7 +1380,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             if ($result instanceof WP_Error) {
                 wp_send_json_error($result->get_error_message());
             } elseif ($result === true) {
-                do_action('mepr_plugin_edition_changed');
+                MeprHooks::do_action('mepr_plugin_edition_changed');
                 wp_send_json_success(__('The correct edition of MemberPress has been installed successfully.', 'memberpress'));
             } else {
                 wp_send_json_error(__('Failed to install the correct edition of MemberPress, please download it from memberpress.com and install it manually.', 'memberpress'));
@@ -1438,7 +1443,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
                 // Let's try to install and activate add-on.
                 foreach ($features_data['addons_not_installed'] as $i => $addon_slug) {
-                    if ($addon_slug == $data['addon_slug']) {
+                    if ($addon_slug === $data['addon_slug']) {
                         $response   = self::maybe_install_activate_addons($license_addons, $addon_slug);
                         $next_addon = isset($features_data['addons_not_installed'][$i + 1]) ? $features_data['addons_not_installed'][$i + 1] : '';
 
@@ -1529,7 +1534,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         try {
             $tax_settings = (object) $pm->send_stripe_request('tax/settings', [], 'get');
 
-            if ($tax_settings->status != 'active') {
+            if ($tax_settings->status !== 'active') {
                 wp_send_json_error(false);
             }
 
@@ -1591,7 +1596,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
         wp_cache_flush();
         $wpdb->flush();
 
-        $onboarding_complete = $wpdb->get_var("SELECT option_value FROM {$wpdb->options} WHERE option_name = 'mepr_onboarding_complete'");
+        $onboarding_complete = get_option('mepr_onboarding_complete');
 
         if ($onboarding_complete === '1') {
             nocache_headers();
@@ -1611,7 +1616,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             return;
         }
 
-        if (!get_option('mepr_onboarded') || get_option('mepr_onboarding_complete') == '1' || get_transient('mepr_dismiss_notice_continue_onboarding')) {
+        if (!get_option('mepr_onboarded') || get_option('mepr_onboarding_complete') === '1' || get_transient('mepr_dismiss_notice_continue_onboarding')) {
             return;
         }
         ?>

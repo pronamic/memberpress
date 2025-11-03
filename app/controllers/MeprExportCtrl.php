@@ -120,7 +120,7 @@ class MeprExportCtrl extends MeprBaseCtrl
             return;
         }
 
-        if (isset($_GET['page']) && $_GET['page'] == 'memberpress-options' && isset($_GET['mepr-export-users-csv'])) {
+        if (isset($_GET['page']) && $_GET['page'] === 'memberpress-options' && isset($_GET['mepr-export-users-csv'])) {
             $q = "SELECT u.ID AS user_ID, u.user_login AS username, u.user_email AS email, f.meta_value AS first_name, l.meta_value AS last_name, a1.meta_value AS address1, a2.meta_value AS address2, c.meta_value AS city, s.meta_value AS state, z.meta_value AS zip, u.user_registered AS start_date, t.expires_at AS end_date, p.post_title AS membership, t.gateway, cp.post_title AS coupon
               FROM {$wpdb->users} AS u
                 LEFT JOIN {$wpdb->usermeta} AS f
@@ -138,7 +138,7 @@ class MeprExportCtrl extends MeprBaseCtrl
                 LEFT JOIN {$wpdb->usermeta} AS z
                   ON u.ID = z.user_id AND z.meta_key = 'mepr-address-zip'
                 INNER JOIN {$mepr_db->transactions} AS t
-                  ON u.ID = t.user_id AND (t.status = 'complete' OR t.status = 'confirmed') AND (t.expires_at IS NULL OR t.expires_at = 0 OR t.expires_at >= '" . date('c') . "')
+                  ON u.ID = t.user_id AND (t.status = 'complete' OR t.status = 'confirmed') AND (t.expires_at IS NULL OR t.expires_at = 0 OR t.expires_at >= %s)
                 LEFT JOIN {$wpdb->posts} AS p
                   ON t.product_id = p.ID
                 LEFT JOIN {$wpdb->posts} AS cp
@@ -171,8 +171,8 @@ class MeprExportCtrl extends MeprBaseCtrl
             ]);
 
             // Fetch the data.
-            $wpdb->query('SET SQL_BIG_SELECTS=1');
-            $rows = $wpdb->get_results($q, ARRAY_A);
+            $wpdb->query('SET SQL_BIG_SELECTS=1'); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $rows = $wpdb->get_results($wpdb->prepare($q, MeprUtils::db_now()), ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
             // Loop over the rows, outputting them.
             foreach ($rows as $row) {
@@ -180,7 +180,7 @@ class MeprExportCtrl extends MeprBaseCtrl
             }
 
             // Close the file and exit.
-            fclose($output);
+            fclose($output); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
             exit;
         }
     }
@@ -204,10 +204,8 @@ class MeprExportCtrl extends MeprBaseCtrl
             return;
         }
 
-        if (isset($_GET['page']) && $_GET['page'] == 'memberpress-options' && isset($_GET['mepr-export-inactive-users-csv'])) {
-            $db_now      = $wpdb->prepare('%s', MeprUtils::db_now());
-            $db_lifetime = $wpdb->prepare('%s', MeprUtils::db_lifetime());
-            $q           = "SELECT u.ID AS user_ID, u.user_login AS username, u.user_email AS email, f.meta_value AS first_name, l.meta_value AS last_name, a1.meta_value AS address1, a2.meta_value AS address2, c.meta_value AS city, s.meta_value AS state, z.meta_value AS zip, u.user_registered AS start_date, t.expires_at AS end_date, p.post_title AS membership, t.gateway, cp.post_title AS coupon
+        if (isset($_GET['page']) && $_GET['page'] === 'memberpress-options' && isset($_GET['mepr-export-inactive-users-csv'])) {
+            $q = "SELECT u.ID AS user_ID, u.user_login AS username, u.user_email AS email, f.meta_value AS first_name, l.meta_value AS last_name, a1.meta_value AS address1, a2.meta_value AS address2, c.meta_value AS city, s.meta_value AS state, z.meta_value AS zip, u.user_registered AS start_date, t.expires_at AS end_date, p.post_title AS membership, t.gateway, cp.post_title AS coupon
               FROM {$wpdb->users} AS u
                 LEFT JOIN {$wpdb->usermeta} AS f
                   ON u.ID = f.user_id AND f.meta_key = 'first_name'
@@ -227,9 +225,9 @@ class MeprExportCtrl extends MeprBaseCtrl
                               FROM {$mepr_db->transactions}
                               WHERE user_id NOT IN (SELECT user_id
                                                       FROM {$mepr_db->transactions}
-                                                      WHERE (expires_at >= {$db_now}
+                                                      WHERE (expires_at >= %s
                                                              OR expires_at IS NULL
-                                                             OR expires_at = {$db_lifetime})
+                                                             OR expires_at = %s)
                                                         AND status IN ('complete', 'confirmed')
                                                     GROUP BY user_id)
                             GROUP BY user_id) AS t ON u.ID = t.user_id
@@ -266,8 +264,8 @@ class MeprExportCtrl extends MeprBaseCtrl
             ]);
 
             // Fetch the data.
-            $wpdb->query('SET SQL_BIG_SELECTS=1');
-            $rows = $wpdb->get_results($q, ARRAY_A);
+            $wpdb->query('SET SQL_BIG_SELECTS=1'); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $rows = $wpdb->get_results($wpdb->prepare($q, MeprUtils::db_now(), MeprUtils::db_lifetime()), ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
             // Loop over the rows, outputting them.
             foreach ($rows as $row) {
@@ -275,7 +273,7 @@ class MeprExportCtrl extends MeprBaseCtrl
             }
 
             // Close the file and exit.
-            fclose($output);
+            fclose($output); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
             exit;
         }
     }

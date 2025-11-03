@@ -92,7 +92,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
         $this->settings->api_version = 69;
 
-        if ($this->settings->advanced_mode == 'on' or $this->settings->advanced_mode == true) {
+        if ($this->settings->advanced_mode === 'on' or $this->settings->advanced_mode === true) {
             $this->capabilities = [
                 'process-payments',
                 'process-refunds',
@@ -145,10 +145,10 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         $recurring_payment_txn_types = ['recurring_payment', 'subscr_payment', 'recurring_payment_outstanding_payment'];
         $failed_txn_types            = ['recurring_payment_skipped', 'subscr_failed'];
         $payment_status_types        = ['denied','expired','failed'];
-        $refunded_types              = ['refunded','reversed','voided'];
+        $refunded_types              = ['refunded','voided'];
         $cancel_sub_types            = ['recurring_payment_profile_cancel', 'subscr_cancel', 'recurring_payment_suspended_due_to_max_failed_payment'];
 
-        if (isset($_POST['txn_type']) && strtolower($_POST['txn_type']) == 'web_accept') {
+        if (isset($_POST['txn_type']) && strtolower(sanitize_text_field(wp_unslash($_POST['txn_type']))) === 'web_accept') {
             if ($this->is_ipn_for_me()) {
                 $txn_id = isset($_POST['item_number']) && is_numeric($_POST['item_number']) ? (int) $_POST['item_number'] : 0;
                 $txn    = new MeprTransaction($txn_id);
@@ -161,13 +161,13 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                     if (!$order->is_complete() && !$order->is_processing()) {
                         $order->update_meta('processing', true);
                         $transactions = array_merge([$txn], $order_bump_transactions);
-                        $trans_num    = $_POST['txn_id'];
+                        $trans_num    = sanitize_text_field(wp_unslash($_POST['txn_id'] ?? ''));
 
                         foreach ($transactions as $transaction) {
                             $_POST['txn_id'] = sprintf('mi_%d_%s', $order->id, uniqid());
 
                             if (!$transaction->is_payment_required()) {
-                                  MeprTransaction::create_free_transaction($transaction, false, $_POST['txn_id']);
+                                  MeprTransaction::create_free_transaction($transaction, false, sanitize_text_field(wp_unslash($_POST['txn_id'] ?? '')));
                             } else {
                                 $_POST['item_number'] = $transaction->id;
                                 $_POST['mc_gross']    = $transaction->total;
@@ -187,7 +187,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
                 $this->record_payment();
             }
-        } elseif (isset($_POST['txn_type']) && strtolower($_POST['txn_type']) == 'subscr_signup') {
+        } elseif (isset($_POST['txn_type']) && strtolower(sanitize_text_field(wp_unslash($_POST['txn_type']))) === 'subscr_signup') {
             // We're only going to use subscr_signup here for free trial periods
             // Otherwise the record_create_subscription will be called during subscr_payment
             // because PayPal decided it would be great to send the subscr_payment webhook before the subscr_signup DOH!
@@ -195,7 +195,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                 return; // Need a txn ID.
             }
 
-            $txn = new MeprTransaction($_POST['item_number']);
+            $txn = new MeprTransaction(sanitize_text_field(wp_unslash($_POST['item_number'])));
 
             if (!isset($txn->id) || empty($txn->id) || (int)$txn->id <= 0) {
                 return; // No txn.
@@ -229,20 +229,20 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
             }
         } elseif (
             isset($_POST['txn_type'], $_POST['payment_status']) &&
-            in_array(strtolower($_POST['txn_type']), $recurring_payment_txn_types) &&
-            in_array(strtolower($_POST['payment_status']), $payment_status_types)
+            in_array(strtolower($_POST['txn_type']), $recurring_payment_txn_types, true) &&
+            in_array(strtolower($_POST['payment_status']), $payment_status_types, true)
         ) {
             $this->record_payment_failure();
-        } elseif (isset($_POST['txn_type']) && in_array(strtolower($_POST['txn_type']), $recurring_payment_txn_types)) {
+        } elseif (isset($_POST['txn_type']) && in_array(strtolower($_POST['txn_type']), $recurring_payment_txn_types, true)) {
             if (!isset($_POST['recurring_payment_id']) && !isset($_POST['subscr_id'])) {
                 return;
             }
 
             // First see if the subscription has already been setup with the correct I- or S- number.
             if (isset($_POST['subscr_id']) && !empty($_POST['subscr_id'])) {
-                $sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_id']);
+                $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field(wp_unslash($_POST['subscr_id'])));
             } else {
-                $sub = MeprSubscription::get_one_by_subscr_id($_POST['recurring_payment_id']);
+                $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field(wp_unslash($_POST['recurring_payment_id'])));
             }
 
             // If no $sub at this point it's safe to assume this is a new signup so let's get the $sub from the $txn instead
@@ -253,7 +253,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                     return;
                 }
 
-                $txn = new MeprTransaction($_POST['item_number']);
+                $txn = new MeprTransaction(sanitize_text_field(wp_unslash($_POST['item_number'])));
 
                 // Check if this is a multi-item purchase.
                 $order                   = $txn->order();
@@ -263,14 +263,14 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                     if (!$order->is_complete() && !$order->is_processing()) {
                         $order->update_meta('processing', true);
                         $transactions = array_merge([$txn], $order_bump_transactions);
-                        $trans_num    = $_POST['txn_id'];
+                        $trans_num    = sanitize_text_field(wp_unslash($_POST['txn_id'] ?? ''));
 
                         foreach ($transactions as $transaction) {
                             $_POST['item_number'] = $transaction->id;
                             $_POST['txn_id']      = sprintf('mi_%d_%s', $order->id, uniqid());
 
                             if (!$transaction->is_payment_required()) {
-                                MeprTransaction::create_free_transaction($transaction, false, $_POST['txn_id']);
+                                MeprTransaction::create_free_transaction($transaction, false, sanitize_text_field(wp_unslash($_POST['txn_id'] ?? '')));
                             } elseif ($transaction->is_one_time_payment()) {
                                 $_POST['mc_gross'] = (float) $transaction->total;
 
@@ -282,7 +282,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                                     continue;
                                 }
 
-                                if ($subscription->gateway == $this->id) {
+                                if ($subscription->gateway === $this->id) {
                                     // The subscription hasn't been set up yet so let's set it up first.
                                     if (strpos($subscription->subscr_id, 'S-') === false && strpos($subscription->subscr_id, 'I-') === false) {
                                         $this->record_create_subscription();
@@ -318,7 +318,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                 }
             }
 
-            if ($sub !== false && $sub->gateway == $this->id) {
+            if ($sub !== false && $sub->gateway === $this->id) {
                 // The subscription hasn't been setup yet so let's set it up first.
                 if (strpos($sub->subscr_id, 'S-') === false && strpos($sub->subscr_id, 'I-') === false) {
                     $this->record_create_subscription(); // Is it even possible to get here?
@@ -329,18 +329,18 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                 $this->record_subscription_payment();
             }
         } elseif (isset($_POST['parent_txn_id']) && !isset($_POST['txn_type'])) {
-            if (in_array(strtolower($_POST['payment_status']), $refunded_types)) {
+            if (in_array(strtolower($_POST['payment_status']), $refunded_types, true)) {
                 return $this->record_refund();
             }
-        } elseif (isset($_POST['txn_type']) && strtolower($_POST['txn_type']) == 'recurring_payment_suspended') {
+        } elseif (isset($_POST['txn_type']) && strtolower(sanitize_text_field(wp_unslash($_POST['txn_type']))) === 'recurring_payment_suspended') {
             $this->record_suspend_subscription();
-        } elseif (isset($_POST['txn_type']) && in_array(strtolower($_POST['txn_type']), $cancel_sub_types)) {
+        } elseif (isset($_POST['txn_type']) && in_array(strtolower($_POST['txn_type']), $cancel_sub_types, true)) {
             $this->record_cancel_subscription();
         } elseif (
             ( isset($_POST['txn_type']) &&
-              in_array(strtolower($_POST['txn_type']), $failed_txn_types) ) ||
+              in_array(strtolower($_POST['txn_type']), $failed_txn_types, true) ) ||
             ( isset($_POST['payment_status']) &&
-              in_array(strtolower($_POST['payment_status']), $payment_status_types) )
+              in_array(strtolower($_POST['payment_status']), $payment_status_types, true) )
         ) {
             $this->record_payment_failure();
         }
@@ -358,14 +358,14 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         // is to override the IPN is for me check so customers sites can still operate.
         // CAUTION: Should ony be used for customers with this specific issue and that only have 1 PayPal payment gateway setup.
         // The same filter is in MeprPayPalCommerceGateway as well.
-        if (apply_filters('mepr_override_ipn_is_for_me', false)) {
+        if (MeprHooks::apply_filters('mepr_override_ipn_is_for_me', false)) {
             return true;
         }
 
         if (isset($_POST['custom']) && !empty($_POST['custom'])) {
-            $custom_vars = (array)json_decode(stripslashes($_POST['custom']));
+            $custom_vars = (array)json_decode(wp_unslash($_POST['custom'])); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-            if (isset($custom_vars['gateway_id']) && $custom_vars['gateway_id'] == $this->id) {
+            if (isset($custom_vars['gateway_id']) && $custom_vars['gateway_id'] === $this->id) {
                 return true;
             }
         }
@@ -385,13 +385,13 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         }
 
         if (isset($_POST['subscr_id']) && !empty($_POST['subscr_id'])) {
-            $sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_id']);
+            $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field(wp_unslash($_POST['subscr_id'])));
         } else {
-            $sub = MeprSubscription::get_one_by_subscr_id($_POST['recurring_payment_id']);
+            $sub = MeprSubscription::get_one_by_subscr_id(sanitize_text_field(wp_unslash($_POST['recurring_payment_id'])));
         }
 
         if ($sub) {
-            $timestamp = isset($_POST['payment_date']) ? strtotime($_POST['payment_date']) : time();
+            $timestamp = isset($_POST['payment_date']) ? strtotime(sanitize_text_field(wp_unslash($_POST['payment_date']))) : time();
             $first_txn = new MeprTransaction($sub->first_txn_id);
 
             if (!isset($first_txn->id) || empty($first_txn->id)) {
@@ -401,10 +401,10 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                 $first_txn->coupon_id  = $sub->coupon_id;
             }
 
-            $existing = MeprTransaction::get_one_by_trans_num($_POST['txn_id']);
+            $existing = MeprTransaction::get_one_by_trans_num(sanitize_text_field(wp_unslash($_POST['txn_id'] ?? '')));
 
             // There's a chance this may have already happened during the return handler, if so let's just get everything up to date on the existing one.
-            if ($existing != null && isset($existing->id) && (int)$existing->id > 0) {
+            if ($existing !== null && isset($existing->id) && (int)$existing->id > 0) {
                 $txn     = new MeprTransaction($existing->id);
                 $handled = $txn->get_meta('mepr_paypal_notification_handled');
 
@@ -421,16 +421,16 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                 $txn->created_at      = MeprUtils::ts_to_mysql_date($timestamp);
                 $txn->expires_at      = MeprUtils::ts_to_mysql_date(time() + MeprUtils::days($sub->trial_days), 'Y-m-d 23:59:59');
                 $txn->gateway         = $this->id;
-                $txn->trans_num       = $_POST['txn_id'];
+                $txn->trans_num       = sanitize_text_field(wp_unslash($_POST['txn_id'] ?? ''));
                 $txn->txn_type        = MeprTransaction::$payment_str;
                 $txn->status          = MeprTransaction::$complete_str;
                 $txn->subscription_id = $sub->id;
 
                 if (isset($_POST['mepr_order_id'])) {
-                    $txn->order_id = $_POST['mepr_order_id'];
+                    $txn->order_id = sanitize_text_field(wp_unslash($_POST['mepr_order_id']));
                 }
 
-                $txn->set_gross($_POST['mc_gross']);
+                $txn->set_gross(sanitize_text_field(wp_unslash($_POST['mc_gross'] ?? '')));
                 $txn->store();
             } else {
                 $txn->created_at      = MeprUtils::ts_to_mysql_date($timestamp);
@@ -438,20 +438,20 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                 $txn->product_id      = $first_txn->product_id;
                 $txn->coupon_id       = $first_txn->coupon_id;
                 $txn->gateway         = $this->id;
-                $txn->trans_num       = $_POST['txn_id'];
+                $txn->trans_num       = sanitize_text_field(wp_unslash($_POST['txn_id'] ?? ''));
                 $txn->txn_type        = MeprTransaction::$payment_str;
                 $txn->status          = MeprTransaction::$complete_str;
                 $txn->subscription_id = $sub->id;
 
                 if (isset($_POST['mepr_order_id'])) {
-                    $txn->order_id = $_POST['mepr_order_id'];
+                    $txn->order_id = sanitize_text_field(wp_unslash($_POST['mepr_order_id']));
                 }
 
-                $txn->set_gross($_POST['mc_gross']);
+                $txn->set_gross(sanitize_text_field(wp_unslash($_POST['mc_gross'] ?? '')));
                 $txn->store();
 
                 // Check that the subscription status is still enabled.
-                if ($sub->status != MeprSubscription::$active_str) {
+                if ($sub->status !== MeprSubscription::$active_str) {
                     $sub->status = MeprSubscription::$active_str;
                     $sub->store();
                 }
@@ -493,7 +493,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
               ($sub = MeprSubscription::get_one_by_subscr_id($_POST['subscr_id'])) ) // phpcs:ignore
         ) {
             $first_txn = $sub->first_txn();
-            if ($first_txn == false || !($first_txn instanceof MeprTransaction)) {
+            if (!($first_txn instanceof MeprTransaction)) {
                 $coupon_id = $sub->coupon_id;
             } else {
                 $coupon_id = $first_txn->coupon_id;
@@ -507,9 +507,9 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
             $txn->status          = MeprTransaction::$failed_str;
             $txn->subscription_id = $sub->id;
             // If ipn_track_id isn't set then just use uniqid.
-            $txn->trans_num = ( isset($_POST['ipn_track_id']) ? $_POST['ipn_track_id'] : uniqid() );
+            $txn->trans_num = ( isset($_POST['ipn_track_id']) ? sanitize_text_field(wp_unslash($_POST['ipn_track_id'])) : uniqid() );
             $txn->gateway   = $this->id;
-            $txn->set_gross((isset($_POST['mc_gross'])) ? $_POST['mc_gross'] : ((isset($_POST['amount'])) ? $_POST['amount'] : 0.00));
+            $txn->set_gross((isset($_POST['mc_gross'])) ? sanitize_text_field(wp_unslash($_POST['mc_gross'])) : ((isset($_POST['amount'])) ? sanitize_text_field(wp_unslash($_POST['amount'])) : 0.00));
             $txn->store();
 
             $sub->expire_txns(); // Expire associated transactions for the old subscription.
@@ -546,7 +546,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
             return false;
         }
 
-        $txn = new MeprTransaction($_POST['item_number']);
+        $txn = new MeprTransaction(sanitize_text_field(wp_unslash($_POST['item_number'])));
 
         // The amount can be fudged in the URL with PayPal Standard - so let's make sure no fudgyness is goin' on.
         if (isset($_POST['mc_gross']) && (float)$_POST['mc_gross'] < (float)$txn->total) {
@@ -556,21 +556,21 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
             $txn->tax_rate   = 0.00;
             $txn->status     = MeprTransaction::$pending_str;
             $txn->txn_type   = MeprTransaction::$payment_str;
-            $txn->trans_num  = $_POST['txn_id'];
+            $txn->trans_num  = sanitize_text_field(wp_unslash($_POST['txn_id'] ?? ''));
             $txn->store();
 
             return false;
         }
 
         // Already been here somehow?
-        if ($txn->status == MeprTransaction::$complete_str && $txn->trans_num == $_POST['txn_id']) {
+        if ($txn->status === MeprTransaction::$complete_str && $txn->trans_num === $_POST['txn_id']) {
             return false;
         }
 
-        if (isset($_POST['payment_status']) && strtolower($_POST['payment_status']) == 'completed') {
-            $timestamp = isset($_POST['payment_date']) ? strtotime($_POST['payment_date']) : time();
+        if (isset($_POST['payment_status']) && strtolower(sanitize_text_field(wp_unslash($_POST['payment_status']))) === 'completed') {
+            $timestamp = isset($_POST['payment_date']) ? strtotime(sanitize_text_field(wp_unslash($_POST['payment_date']))) : time();
 
-            $txn->trans_num  = $_POST['txn_id'];
+            $txn->trans_num  = sanitize_text_field(wp_unslash($_POST['txn_id'] ?? ''));
             $txn->txn_type   = MeprTransaction::$payment_str;
             $txn->status     = MeprTransaction::$complete_str;
             $txn->created_at = MeprUtils::ts_to_mysql_date($timestamp);
@@ -586,7 +586,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
             $prd = $txn->product();
 
-            if ($prd->period_type == 'lifetime') {
+            if ($prd->period_type === 'lifetime') {
                 if ($upgrade) {
                     $this->upgraded_sub($txn, $event_txn);
                 } elseif ($downgrade) {
@@ -629,8 +629,8 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         $res = $this->send_nvp_request('RefundTransaction', $args);
         $this->email_status("RefundTransaction Response:\n" . MeprUtils::object_to_string($res, true) . "\n", $this->settings->debug);
 
-        if (!isset($res['ACK']) or strtoupper($res['ACK']) != 'SUCCESS') {
-            throw new MeprGatewayException(__('The refund was unsuccessful. Please login at PayPal and refund the transaction there.', 'memberpress'));
+        if (!isset($res['ACK']) or strtoupper($res['ACK']) !== 'SUCCESS') {
+            throw new MeprGatewayException(esc_html__('The refund was unsuccessful. Please login at PayPal and refund the transaction there.', 'memberpress'));
         }
 
         $_POST['parent_txn_id'] = $txn->id;
@@ -644,13 +644,13 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
      */
     public function record_refund()
     {
-        $obj = MeprTransaction::get_one_by_trans_num($_POST['parent_txn_id']);
+        $obj = MeprTransaction::get_one_by_trans_num(sanitize_text_field(wp_unslash($_POST['parent_txn_id'] ?? '')));
 
         if (!is_null($obj) && (int)$obj->id > 0) {
             $txn = new MeprTransaction($obj->id);
 
             // Seriously ... if txn was already refunded what are we doing here?
-            if ($txn->status == MeprTransaction::$refunded_str) {
+            if ($txn->status === MeprTransaction::$refunded_str) {
                 return $txn;
             }
 
@@ -718,7 +718,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
         $this->email_status("Paypal Create Subscription Response \$_POST:\n" . MeprUtils::object_to_string($_POST, true) . "\n", $this->settings->debug);
 
-        $temp_txn = new MeprTransaction($_POST['item_number']);
+        $temp_txn = new MeprTransaction(sanitize_text_field(wp_unslash($_POST['item_number'] ?? '')));
 
         if ((int)$temp_txn->id <= 0) {
             return;
@@ -727,16 +727,16 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         $sub = $temp_txn->subscription();
 
         if ((int)$sub->id > 0) {
-            $timestamp = isset($_POST['payment_date']) ? strtotime($_POST['payment_date']) : time();
+            $timestamp = isset($_POST['payment_date']) ? strtotime(sanitize_text_field(wp_unslash($_POST['payment_date']))) : time();
 
-            $sub->subscr_id  = $_POST['subscr_id'];
+            $sub->subscr_id  = sanitize_text_field(wp_unslash($_POST['subscr_id'] ?? ''));
             $sub->status     = MeprSubscription::$active_str;
             $sub->created_at = gmdate('c', $timestamp);
             $sub->store();
 
             $txn = $sub->first_txn();
 
-            if ($txn == false || !($txn instanceof MeprTransaction)) {
+            if (!($txn instanceof MeprTransaction)) {
                 $txn                  = new MeprTransaction();
                 $txn->user_id         = $sub->user_id;
                 $txn->product_id      = $sub->product_id;
@@ -825,12 +825,12 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
     {
         $sub = new MeprSubscription($sub_id);
 
-        if ($sub->status == MeprSubscription::$suspended_str) {
-            throw new MeprGatewayException(__('This subscription has already been paused.', 'memberpress'));
+        if ($sub->status === MeprSubscription::$suspended_str) {
+            throw new MeprGatewayException(esc_html__('This subscription has already been paused.', 'memberpress'));
         }
 
         if ($sub->in_free_trial()) {
-            throw new MeprGatewayException(__('Sorry, subscriptions cannot be paused during a free trial.', 'memberpress'));
+            throw new MeprGatewayException(esc_html__('Sorry, subscriptions cannot be paused during a free trial.', 'memberpress'));
         }
 
         $this->update_paypal_payment_profile($sub_id, 'Suspend');
@@ -846,7 +846,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
      */
     public function record_suspend_subscription()
     {
-        $subscr_id = $_REQUEST['recurring_payment_id'];
+        $subscr_id = sanitize_text_field(wp_unslash($_REQUEST['recurring_payment_id'] ?? ''));
         $sub       = MeprSubscription::get_one_by_subscr_id($subscr_id);
 
         if (!$sub) {
@@ -854,7 +854,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         }
 
         // Seriously ... if sub was already suspended what are we doing here?
-        if ($sub->status == MeprSubscription::$suspended_str) {
+        if ($sub->status === MeprSubscription::$suspended_str) {
             return $sub;
         }
 
@@ -890,7 +890,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
     {
         // APPARENTLY PAYPAL DOES NOT SEND OUT AN IPN FOR THIS -- SO WE CAN'T ACTUALLY RECORD THIS HERE UGH
         // BUT WE DO SET THE SUBSCR STATUS BACK TO ACTIVE WHEN THE NEXT PAYMENT CLEARS.
-        $subscr_id = $_REQUEST['recurring_payment_id'];
+        $subscr_id = sanitize_text_field(wp_unslash($_REQUEST['recurring_payment_id'] ?? ''));
         $sub       = MeprSubscription::get_one_by_subscr_id($subscr_id);
 
         if (!$sub) {
@@ -898,7 +898,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         }
 
         // Seriously ... if sub was already active what are we doing here?
-        if ($sub->status == MeprSubscription::$active_str) {
+        if ($sub->status === MeprSubscription::$active_str) {
             return $sub;
         }
 
@@ -907,7 +907,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
         // Check if prior txn is expired yet or not, if so create a temporary txn so the user can access the content immediately.
         $prior_txn = $sub->latest_txn();
-        if ($prior_txn == false || !($prior_txn instanceof MeprTransaction) || strtotime($prior_txn->expires_at) < time()) {
+        if (!($prior_txn instanceof MeprTransaction) || strtotime($prior_txn->expires_at) < time()) {
             $txn                  = new MeprTransaction();
             $txn->subscription_id = $sub->id;
             $txn->trans_num       = $sub->subscr_id . '-' . uniqid();
@@ -955,7 +955,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
             return false;
         }
 
-        $subscr_id = (isset($_REQUEST['subscr_id'])) ? $_REQUEST['subscr_id'] : $_REQUEST['recurring_payment_id'];
+        $subscr_id = (isset($_REQUEST['subscr_id'])) ? sanitize_text_field(wp_unslash($_REQUEST['subscr_id'])) : sanitize_text_field(wp_unslash($_REQUEST['recurring_payment_id']));
         $sub       = MeprSubscription::get_one_by_subscr_id($subscr_id);
 
         if (!$sub) {
@@ -963,7 +963,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         }
 
         // Seriously ... if sub was already cancelled what are we doing here?
-        if ($sub->status == MeprSubscription::$cancelled_str) {
+        if ($sub->status === MeprSubscription::$cancelled_str) {
             return $sub;
         }
 
@@ -974,7 +974,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
             $sub->limit_reached_actions();
         }
 
-        if (!isset($_REQUEST['silent']) || ($_REQUEST['silent'] == false)) {
+        if (!isset($_REQUEST['silent']) || (bool) $_REQUEST['silent'] === false) {
             MeprUtils::send_cancelled_sub_notices($sub);
         }
 
@@ -1091,7 +1091,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         $sub          = null;
 
         if (empty($prd->ID)) {
-            throw new MeprGatewayException(__('Product not found', 'memberpress'));
+            throw new MeprGatewayException(esc_html__('Product not found', 'memberpress'));
         }
 
         $transactions = array_merge([$txn], $order_bumps);
@@ -1101,11 +1101,11 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                 $subscription = $transaction->subscription();
 
                 if (!($subscription instanceof MeprSubscription)) {
-                    throw new MeprGatewayException(__('Subscription not found', 'memberpress'));
+                    throw new MeprGatewayException(esc_html__('Subscription not found', 'memberpress'));
                 }
 
                 if ($sub instanceof MeprSubscription) {
-                    throw new MeprGatewayException(__('Multiple subscriptions are not supported', 'memberpress'));
+                    throw new MeprGatewayException(esc_html__('Multiple subscriptions are not supported', 'memberpress'));
                 }
 
                 $sub = $subscription;
@@ -1115,7 +1115,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         // Txn vars.
         $custom = MeprHooks::apply_filters('mepr_paypal_std_custom_payment_vars', [
             'gateway_id' => $this->id,
-            'ip_address' => $_SERVER['REMOTE_ADDR'],
+            'ip_address' => sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'] ?? '')),
         ], $txn);
 
         $cancel_url   = $this->notify_url('cancel');
@@ -1209,10 +1209,10 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                     $sub_trial_vars['p1'] = $trial_days;
                     $sub_trial_vars['t1'] = 'D';
                 } else {
-                    if ($trial_days % 30 == 0) { // 30 days in a month
+                    if ($trial_days % 30 === 0) { // 30 days in a month
                         $sub_trial_vars['p1'] = (int)($trial_days / 30);
                         $sub_trial_vars['t1'] = 'M';
-                    } elseif ($trial_days % 365 == 0) { // 365 days in a year
+                    } elseif ($trial_days % 365 === 0) { // 365 days in a year
                         $sub_trial_vars['p1'] = (int)($trial_days / 365);
                         $sub_trial_vars['t1'] = 'Y';
                     } else { // Force a round to the nearest week - that's the best we can do here.
@@ -1245,7 +1245,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                 $product = $transaction->product();
 
                 if (empty($product->ID)) {
-                    throw new MeprGatewayException(__('Product not found', 'memberpress'));
+                    throw new MeprGatewayException(esc_html__('Product not found', 'memberpress'));
                 }
 
                 $total += (float) $transaction->total;
@@ -1272,51 +1272,51 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         $api_username = trim($this->settings->api_username);
         $api_password = trim($this->settings->api_password);
         $signature    = trim($this->settings->signature);
-        $advanced     = ($this->settings->advanced_mode == 'on' or $this->settings->advanced_mode == true);
-        $sandbox      = ($this->settings->sandbox == 'on' or $this->settings->sandbox == true);
-        $debug        = ($this->settings->debug == 'on' or $this->settings->debug == true);
+        $advanced     = ($this->settings->advanced_mode === 'on' or $this->settings->advanced_mode === true);
+        $sandbox      = ($this->settings->sandbox === 'on' or $this->settings->sandbox === true);
+        $debug        = ($this->settings->debug === 'on' or $this->settings->debug === true);
 
         ?>
 
     <table >
       <tr>
-        <td><?php _e('Primary PayPal Email*:', 'memberpress'); ?></td>
-        <td><input type="text" class="mepr-auto-trim" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][paypal_email]" value="<?php echo $paypal_email; ?>" /></td>
+        <td><?php esc_html_e('Primary PayPal Email*:', 'memberpress'); ?></td>
+        <td><input type="text" class="mepr-auto-trim" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][paypal_email]" value="<?php echo esc_attr($paypal_email); ?>" /></td>
       </tr>
       <tr>
         <td colspan="2">
-          <input type="checkbox" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][advanced_mode]" id="advanced-mode-<?php echo $this->id; ?>" class="advanced_mode_checkbox" data-value="<?php echo $this->id;?>" <?php checked($advanced); ?> />
-          <label for="advanced-mode-<?php echo $this->id; ?>"><?php _e('Advanced Mode', 'memberpress'); ?></label>
+          <input type="checkbox" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][advanced_mode]" id="advanced-mode-<?php echo esc_attr($this->id); ?>" class="advanced_mode_checkbox" data-value="<?php echo esc_attr($this->id);?>" <?php checked($advanced); ?> />
+          <label for="advanced-mode-<?php echo esc_attr($this->id); ?>"><?php esc_html_e('Advanced Mode', 'memberpress'); ?></label>
         </td>
       </tr>
-      <tr class="advanced_mode_row-<?php echo $this->id;?> mepr_hidden">
-        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em><?php _e('API Username:', 'memberpress'); ?></em></td>
-        <td><input type="text" class="mepr-auto-trim" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][api_username]" value="<?php echo $api_username; ?>" /></td>
+      <tr class="advanced_mode_row-<?php echo esc_attr($this->id);?> mepr_hidden">
+        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em><?php esc_html_e('API Username:', 'memberpress'); ?></em></td>
+        <td><input type="text" class="mepr-auto-trim" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][api_username]" value="<?php echo esc_attr($api_username); ?>" /></td>
       </tr>
-      <tr class="advanced_mode_row-<?php echo $this->id;?> mepr_hidden">
-        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em><?php _e('API Password:', 'memberpress'); ?></em></td>
-        <td><input type="text" class="mepr-auto-trim" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][api_password]" value="<?php echo $api_password; ?>" /></td>
+      <tr class="advanced_mode_row-<?php echo esc_attr($this->id);?> mepr_hidden">
+        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em><?php esc_html_e('API Password:', 'memberpress'); ?></em></td>
+        <td><input type="text" class="mepr-auto-trim" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][api_password]" value="<?php echo esc_attr($api_password); ?>" /></td>
       </tr>
-      <tr class="advanced_mode_row-<?php echo $this->id;?> mepr_hidden">
-        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em><?php _e('Signature:', 'memberpress'); ?></em></td>
-        <td><input type="text" class="mepr-auto-trim" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][signature]" value="<?php echo $signature; ?>" /></td>
-      </tr>
-      <tr>
-        <td colspan="2"><input type="checkbox" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][sandbox]"<?php echo checked($sandbox); ?> />&nbsp;<?php _e('Use PayPal Sandbox', 'memberpress'); ?></td>
+      <tr class="advanced_mode_row-<?php echo esc_attr($this->id);?> mepr_hidden">
+        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em><?php esc_html_e('Signature:', 'memberpress'); ?></em></td>
+        <td><input type="text" class="mepr-auto-trim" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][signature]" value="<?php echo esc_attr($signature); ?>" /></td>
       </tr>
       <tr>
-        <td colspan="2"><input type="checkbox" name="<?php echo $mepr_options->integrations_str; ?>[<?php echo $this->id;?>][debug]"<?php echo checked($debug); ?> />&nbsp;<?php _e('Send PayPal Debug Emails', 'memberpress'); ?></td>
+        <td colspan="2"><input type="checkbox" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][sandbox]"<?php echo checked($sandbox); ?> />&nbsp;<?php esc_html_e('Use PayPal Sandbox', 'memberpress'); ?></td>
       </tr>
       <tr>
-        <td><?php _e('PayPal IPN URL:', 'memberpress'); ?></td>
+        <td colspan="2"><input type="checkbox" name="<?php echo esc_attr($mepr_options->integrations_str); ?>[<?php echo esc_attr($this->id);?>][debug]"<?php echo checked($debug); ?> />&nbsp;<?php esc_html_e('Send PayPal Debug Emails', 'memberpress'); ?></td>
+      </tr>
+      <tr>
+        <td><?php esc_html_e('PayPal IPN URL:', 'memberpress'); ?></td>
         <td><?php MeprAppHelper::clipboard_input($this->notify_url('ipn')); ?></td>
       </tr>
       <!-- THIS IS NOT ACTUALLY USED ANY LONGER - BUT IT IS REQUIRED FOR THE RETURN DATA TO BE SENT SO LEAVING IT IN PLACE FOR NOW -->
       <tr>
-        <td><?php _e('Return URL:', 'memberpress'); ?></td>
+        <td><?php esc_html_e('Return URL:', 'memberpress'); ?></td>
         <td><?php MeprAppHelper::clipboard_input($this->notify_url('return')); ?></td>
       </tr>
-        <?php MeprHooks::do_action('mepr-paypal-standard-options-form', $this); ?>
+        <?php MeprHooks::do_action('mepr_paypal_standard_options_form', $this); ?>
     </table>
 
         <?php
@@ -1336,7 +1336,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         if (
             !isset($_POST[$mepr_options->integrations_str][$this->id]['paypal_email']) or
             empty($_POST[$mepr_options->integrations_str][$this->id]['paypal_email']) or
-            !is_email(stripslashes($_POST[$mepr_options->integrations_str][$this->id]['paypal_email']))
+            !is_email(wp_unslash($_POST[$mepr_options->integrations_str][$this->id]['paypal_email']))
         ) {
             $errors[] = __("Primary PayPal Email field can't be blank.", 'memberpress');
         }
@@ -1355,12 +1355,12 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
     public function display_update_account_form($sub_id, $errors = [], $message = '')
     {
         ?>
-    <h3><?php _e('Updating your PayPal Account Information', 'memberpress'); ?></h3>
+    <h3><?php esc_html_e('Updating your PayPal Account Information', 'memberpress'); ?></h3>
     <div>
         <?php printf(
         // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
-            __('To update your PayPal Account Information, please go to %1$sPayPal.com%2$s, login and edit your account information there.', 'memberpress'),
-            '<a href="http://paypal.com" target="blank">',
+            esc_html__('To update your PayPal Account Information, please go to %1$sPayPal.com%2$s, login and edit your account information there.', 'memberpress'),
+            '<a href="https://www.paypal.com/" target="blank">',
             '</a>'
         ); ?>
     </div>
@@ -1449,15 +1449,15 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
         // If we're not blocking then the response is irrelevant
         // So we'll just return true.
-        if ($blocking == false) {
+        if ($blocking === false) {
             return true;
         }
 
         if (is_wp_error($resp)) {
             throw new MeprHttpException(sprintf(
                 // Translators: %s: gateway name.
-                __('You had an HTTP error connecting to %s', 'memberpress'),
-                $this->name
+                esc_html__('You had an HTTP error connecting to %s', 'memberpress'),
+                esc_html($this->name)
             ));
         } else {
             return wp_parse_args($resp['body']);
@@ -1489,8 +1489,8 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
 
         $this->email_status("PayPal Update subscription response: \n" . MeprUtils::object_to_string($res, true) . "\n", $this->settings->debug);
 
-        if (strtolower($res['ACK']) != 'success') {
-            throw new MeprGatewayException(__('There was a problem cancelling, try logging in directly at PayPal to update the status of your recurring profile.', 'memberpress'));
+        if (strtolower($res['ACK']) !== 'success') {
+            throw new MeprGatewayException(esc_html__('There was a problem cancelling, try logging in directly at PayPal to update the status of your recurring profile.', 'memberpress'));
         }
 
         $_REQUEST['recurring_payment_id'] = $sub->subscr_id;
@@ -1503,7 +1503,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
      */
     private function is_paypal_referrer()
     {
-        $referrer           = isset($_SERVER['HTTP_REFERER']) ? wp_unslash($_SERVER['HTTP_REFERER']) : '';
+        $referrer           = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : '';
         $is_paypal_referrer = (strpos($referrer, 'paypal.com') !== false);
 
         return MeprHooks::apply_filters('mepr_paypal_standard_is_paypal_referrer', $is_paypal_referrer);
@@ -1559,7 +1559,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         $mepr_options = MeprOptions::fetch();
 
         if (! $this->is_paypal_referrer()) {
-            wp_die(_x('Something unexpected has occurred. Please contact us for assistance.', 'ui', 'memberpress') . ' <br/><a href="' . $mepr_options->account_page_url('action=subscriptions') . '">View my Subscriptions</a>');
+            wp_die(esc_html_x('Something unexpected has occurred. Please contact us for assistance.', 'ui', 'memberpress') . ' <br/><a href="' . esc_url($mepr_options->account_page_url('action=subscriptions')) . '">View my Subscriptions</a>');
         }
 
         $this->email_status("Paypal Return \$_REQUEST:\n" . MeprUtils::object_to_string($_REQUEST, true) . "\n", $this->settings->debug);
@@ -1654,7 +1654,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
                     $txn->status   = MeprTransaction::$pending_str;
                     $txn->txn_type = MeprTransaction::$payment_str;
                     $txn->store();
-                    wp_die(_x('Your payment amount was lower than expected. Please contact us for assistance if necessary.', 'ui', 'memberpress') . ' <br/><a href="' . $mepr_options->account_page_url('action=subscriptions') . '">View my Subscriptions</a>');
+                    wp_die(esc_html_x('Your payment amount was lower than expected. Please contact us for assistance if necessary.', 'ui', 'memberpress') . ' <br/><a href="' . esc_url($mepr_options->account_page_url('action=subscriptions')) . '">View my Subscriptions</a>');
                 }
 
                 // Don't set a trans_num here - it will get updated when the IPN comes in.
@@ -1747,7 +1747,7 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
         $this->email_status("Paypal Cancel \$_REQUEST:\n" . MeprUtils::object_to_string($_REQUEST, true) . "\n", $this->settings->debug);
 
         if (isset($_REQUEST['txn_id']) && is_numeric($_REQUEST['txn_id'])) {
-            $txn = new MeprTransaction($_REQUEST['txn_id']);
+            $txn = new MeprTransaction(sanitize_text_field(wp_unslash($_REQUEST['txn_id'])));
 
             // Make sure the txn status is pending.
             $txn->status = MeprTransaction::$pending_str;
@@ -1779,11 +1779,11 @@ class MeprPayPalStandardGateway extends MeprBasePayPalGateway
     {
         $mepr_options = MeprOptions::fetch();
         ?>
-    <h4><?php _e('Your payment at PayPal was cancelled.', 'memberpress'); ?></h4>
-    <p><?php echo MeprHooks::apply_filters('mepr_paypal_cancel_message', sprintf(
+    <h4><?php esc_html_e('Your payment at PayPal was cancelled.', 'memberpress'); ?></h4>
+    <p><?php echo MeprHooks::apply_filters('mepr_paypal_cancel_message', sprintf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
-        __('You can retry your purchase by %1$sclicking here%2$s.', 'memberpress'),
-        '<a href="' . MeprUtils::get_permalink() . '">',
+        esc_html__('You can retry your purchase by %1$sclicking here%2$s.', 'memberpress'),
+        '<a href="' . esc_url(MeprUtils::get_permalink()) . '">',
         '</a>'
     )); ?><br/></p>
         <?php

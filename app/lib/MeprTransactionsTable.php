@@ -123,13 +123,13 @@ class MeprTransactionsTable extends WP_List_Table
      */
     public function extra_tablenav($which)
     {
-        if ($which == 'top') {
+        if ($which === 'top') {
             $search_cols = $this->_searchable;
 
             MeprView::render('/admin/table_controls', get_defined_vars());
         }
 
-        if ($which == 'bottom') {
+        if ($which === 'bottom') {
             $action     = 'mepr_transactions';
             $totalitems = $this->totalitems;
             $itemcount  = count($this->items);
@@ -170,7 +170,7 @@ class MeprTransactionsTable extends WP_List_Table
             'col_expires_at'     => ['expires_at', true],
         ];
 
-        return MeprHooks::apply_filters('mepr-admin-transactions-sortable-cols', $cols);
+        return MeprHooks::apply_filters('mepr_admin_transactions_sortable_cols', $cols);
     }
 
     /**
@@ -190,16 +190,17 @@ class MeprTransactionsTable extends WP_List_Table
             $perpage = !empty($perpage) && !is_array($perpage) ? $perpage : 10;
 
             // Specifically for the CSV export to work properly.
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidatedNotSanitized
             $_SERVER['QUERY_STRING'] = ( empty($_SERVER['QUERY_STRING']) ? '?' : "{$_SERVER['QUERY_STRING']}&" ) . "perpage={$perpage}";
         } else {
-            $perpage = !empty($_GET['perpage']) ? esc_sql($_GET['perpage']) : 10;
+            $perpage = !empty($_GET['perpage']) ? esc_sql(intval(wp_unslash($_GET['perpage']))) : 10;
         }
 
-        $orderby      = !empty($_GET['orderby']) ? esc_sql($_GET['orderby']) : 'created_at';
-        $order        = !empty($_GET['order'])   ? esc_sql($_GET['order'])   : 'DESC';
-        $paged        = !empty($_GET['paged'])   ? esc_sql($_GET['paged'])   : 1;
-        $search       = !empty($_GET['search'])  ? esc_sql($_GET['search'])  : '';
-        $search_field = !empty($_GET['search-field'])  ? esc_sql($_GET['search-field'])  : 'any';
+        $orderby      = !empty($_GET['orderby']) ? esc_sql(sanitize_text_field(wp_unslash($_GET['orderby']))) : 'created_at';
+        $order        = !empty($_GET['order'])   ? esc_sql(sanitize_text_field(wp_unslash($_GET['order'])))   : 'DESC';
+        $paged        = !empty($_GET['paged'])   ? esc_sql(max(1, intval(wp_unslash($_GET['paged']))))        : 1;
+        $search       = !empty($_GET['search'])  ? esc_sql(sanitize_text_field(wp_unslash($_GET['search'])))  : '';
+        $search_field = !empty($_GET['search-field'])  ? esc_sql(sanitize_text_field(wp_unslash($_GET['search-field'])))  : 'any';
         $search_field = isset($this->db_search_cols[$search_field]) ? $this->db_search_cols[$search_field] : 'any';
 
         $list_table = MeprTransaction::list_table($orderby, $order, $paged, $search, $search_field, $perpage);

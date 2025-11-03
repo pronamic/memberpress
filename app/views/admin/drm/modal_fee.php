@@ -7,16 +7,26 @@ $account_link = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general'
    <div class="mepr-notice-modal-wrapper">
     <a href='#' class='mepr-notice-modal-close'></a>
     <div class="mepr-notice-modal-content">
-     <h3 class="mepr-notice-title"><?php _e('<span>ALERT!</span> MemberPress is running without a license', 'memberpress'); ?></h3>
+     <h3 class="mepr-notice-title"><?php printf(
+         // Translators: %1$s: opening span tag, %2$s: closing span tag.
+         esc_html__('%1$sALERT!%2$s MemberPress is running without a license', 'memberpress'),
+         '<span>',
+         '</span>'
+     ); ?></h3>
      <div class="mepr-notice-desc">
-      <p><?php printf(
-          // Translators: %s: application fee percentage.
-          __('When using without a license, MemberPress will add an additional %s fee to each transaction.', 'memberpress'),
-          MeprDrmHelper::get_application_fee_percentage() . '%'
-      ); ?></p>
+      <p>
+          <?php
+              echo esc_html(
+                  sprintf(
+                      // Translators: %s: application fee percentage.
+                      __('When using without a license, MemberPress will add an additional %s fee to each transaction.', 'memberpress'),
+                      MeprDrmHelper::get_application_fee_percentage() . '%'
+                  )
+              ); ?>
+      </p>
 
       <p>
-        <a target="_blank" href="<?php echo $account_link; ?>" class="button button-primary"><?php _e('Click here to purchase or renew your license key', 'memberpress'); ?></a>
+        <a target="_blank" href="<?php echo esc_url($account_link); ?>" class="button button-primary"><?php esc_html_e('Click here to purchase or renew your license key', 'memberpress'); ?></a>
       </p>
 
       <p><?php printf(
@@ -62,7 +72,7 @@ $account_link = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general'
        $('.mepr-drm-messages').hide();
        var buttonText = $button.val();
        $button.val( '...' );
-      var generic_message = '<?php __('ERROR! License Key not valid. Try Again.', 'memberpress'); ?>';
+      var generic_message = '<?php esc_js(__('ERROR! License Key not valid. Try Again.', 'memberpress')); ?>';
 
        $.ajax({
        url: ajaxurl,
@@ -70,7 +80,7 @@ $account_link = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general'
        dataType: 'json',
        data: {
          action: 'mepr_drm_activate_license',
-         _ajax_nonce: '<?php echo wp_create_nonce('mepr_drm_activate_license'); ?>',
+         _ajax_nonce: '<?php echo esc_js(wp_create_nonce('mepr_drm_activate_license')); ?>',
          key: key
        }
        })
@@ -86,12 +96,12 @@ $account_link = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general'
          $('.mepr-key-success').show();
          $('#mepr-drm-form').remove();
          setTimeout(function(){
-           window.location.href="<?php echo admin_url('admin.php?page=memberpress-options'); ?>";
+           window.location.href="<?php echo esc_js(esc_url_raw(admin_url('admin.php?page=memberpress-options'))); ?>";
          }, 3000);
        }
        })
        .fail(function () {
-       $('.mepr-drm-error span').html( '<?php echo __('Ajax error.', 'memberpress'); ?>' );
+       $('.mepr-drm-error span').html( '<?php echo esc_js(__('Ajax error.', 'memberpress')); ?>' );
        $('.mepr-key-error').show();
        })
        .always(function () {

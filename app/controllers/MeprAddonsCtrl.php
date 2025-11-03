@@ -28,7 +28,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
      */
     public static function route()
     {
-        $force   = isset($_GET['refresh']) && $_GET['refresh'] == 'true';
+        $force   = isset($_GET['refresh']) && $_GET['refresh'] === 'true';
         $addons  = MeprUpdateCtrl::addons(true, $force, true);
         $plugins = get_plugins();
         wp_cache_delete('plugins', 'plugins');
@@ -94,18 +94,18 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             wp_send_json_error(__('Security check failed.', 'memberpress'));
         }
 
-        $result = activate_plugins(wp_unslash($_POST['plugin']));
+        $result = activate_plugins(sanitize_text_field(wp_unslash($_POST['plugin'])));
         $type   = isset($_POST['type']) ? sanitize_key($_POST['type']) : 'add-on';
 
         if (is_wp_error($result)) {
-            if ($type == 'plugin') {
+            if ($type === 'plugin') {
                 wp_send_json_error(__('Could not activate plugin. Please activate from the Plugins page manually.', 'memberpress'));
             } else {
                 wp_send_json_error(__('Could not activate add-on. Please activate from the Plugins page manually.', 'memberpress'));
             }
         }
 
-        if ($type == 'plugin') {
+        if ($type === 'plugin') {
             wp_send_json_success(__('Plugin activated.', 'memberpress'));
         } else {
             wp_send_json_success(__('Add-on activated.', 'memberpress'));
@@ -131,10 +131,10 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             wp_send_json_error(__('Security check failed.', 'memberpress'));
         }
 
-        deactivate_plugins(wp_unslash($_POST['plugin']));
+        deactivate_plugins(sanitize_text_field(wp_unslash($_POST['plugin'])));
         $type = isset($_POST['type']) ? sanitize_key($_POST['type']) : 'add-on';
 
-        if ($type == 'plugin') {
+        if ($type === 'plugin') {
             wp_send_json_success(__('Plugin deactivated.', 'memberpress'));
         } else {
             wp_send_json_success(__('Add-on deactivated.', 'memberpress'));
@@ -162,7 +162,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
 
         $type = isset($_POST['type']) ? sanitize_key($_POST['type']) : 'add-on';
 
-        if ($type == 'plugin') {
+        if ($type === 'plugin') {
             $error = esc_html__('Could not install plugin. Please download and install manually.', 'memberpress');
         } else {
             $error = esc_html__('Could not install add-on. Please download from memberpress.com and install manually.', 'memberpress');
@@ -201,14 +201,14 @@ class MeprAddonsCtrl extends MeprBaseCtrl
         // Create the plugin upgrader with our custom skin.
         $installer = new Plugin_Upgrader(new MeprAddonInstallSkin());
 
-        $plugin = wp_unslash($_POST['plugin']);
+        $plugin = esc_url_raw(wp_unslash($_POST['plugin']));
         $installer->install($plugin);
 
-        if ($plugin == 'https://downloads.wordpress.org/plugin/google-analytics-for-wordpress.latest-stable.zip') {
+        if ($plugin === 'https://downloads.wordpress.org/plugin/google-analytics-for-wordpress.latest-stable.zip') {
             update_option('memberpress_installed_monsterinsights', true);
         }
 
-        if ($plugin == 'https://downloads.wordpress.org/plugin/wp-mail-smtp.latest-stable.zip') {
+        if ($plugin === 'https://downloads.wordpress.org/plugin/wp-mail-smtp.latest-stable.zip') {
             update_option('memberpress_installed_wp_mail_smtp', true);
         }
 
@@ -223,11 +223,11 @@ class MeprAddonsCtrl extends MeprBaseCtrl
 
             if (!is_wp_error($activated)) {
                 if (isset($_POST['config']) && is_array($_POST['config'])) {
-                    $slug        = isset($_POST['config']['slug']) && is_string($_POST['config']['slug']) ? wp_unslash($_POST['config']['slug']) : '';
+                    $slug        = isset($_POST['config']['slug']) && is_string($_POST['config']['slug']) ? sanitize_text_field(wp_unslash($_POST['config']['slug'])) : '';
                     $license_key = isset($_POST['config']['license_key']) && is_string($_POST['config']['license_key']) ? sanitize_text_field(wp_unslash($_POST['config']['license_key'])) : '';
 
                     if (
-                        $slug == 'easy-affiliate/easy-affiliate.php' &&
+                        $slug === 'easy-affiliate/easy-affiliate.php' &&
                         !empty($license_key) &&
                         class_exists('EasyAffiliate\\Models\\Options') &&
                         class_exists('EasyAffiliate\\Controllers\\UpdateCtrl') &&
@@ -253,7 +253,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
 
                 wp_send_json_success(
                     [
-                        'message'   => $type == 'plugin' ? __('Plugin installed & activated.', 'memberpress') : __('Add-on installed & activated.', 'memberpress'),
+                        'message'   => $type === 'plugin' ? __('Plugin installed & activated.', 'memberpress') : __('Add-on installed & activated.', 'memberpress'),
                         'activated' => true,
                         'basename'  => $plugin_basename,
                     ]
@@ -261,7 +261,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             } else {
                 wp_send_json_success(
                     [
-                        'message'   => $type == 'plugin' ? __('Plugin installed.', 'memberpress') : __('Add-on installed.', 'memberpress'),
+                        'message'   => $type === 'plugin' ? __('Plugin installed.', 'memberpress') : __('Add-on installed.', 'memberpress'),
                         'activated' => false,
                         'basename'  => $plugin_basename,
                     ]
@@ -361,7 +361,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
         ];
 
         if (isset($_GET['data']) && is_string($_GET['data'])) {
-            $data = wp_unslash($_GET['data']);
+            $data = wp_unslash($_GET['data']); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             $data = base64_decode(strtr($data, '-_', '+/') . str_repeat('=', 3 - (3 + strlen($data)) % 4));
             $data = json_decode($data, true);
 

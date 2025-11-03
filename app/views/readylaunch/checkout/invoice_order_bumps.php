@@ -12,7 +12,7 @@
 <div class="mp_wrapper mp_invoice">
   <?php if (isset($sub_price_str)) : ?>
   <div class="mp_price_str">
-    <strong><?php _ex('Terms:', 'ui', 'memberpress'); ?></strong> <?php echo $sub_price_str; ?>
+    <strong><?php echo esc_html_x('Terms:', 'ui', 'memberpress'); ?></strong> <?php echo esc_html($sub_price_str); ?>
   </div>
   <div class="mp-spacer">&nbsp;</div>
   <?php endif; ?>
@@ -22,35 +22,49 @@
       <?php foreach ($invoice['items'] as $item_index => $item) : ?>
       <tr>
         <td>
-          <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/checkout/product.png'); ?>" />
+          <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/checkout/product.png'); ?>" alt="" role="presentation" />
         </td>
         <td>
-          <p><?php echo str_replace(MeprProductsHelper::renewal_str($prd), '', $item['description']); ?></p>
-            <?php if ($item_index == 0) : ?>
+          <p>
+            <?php
+                echo wp_kses(
+                    str_replace(
+                        MeprProductsHelper::renewal_str($prd),
+                        '',
+                        $item['description']
+                    ),
+                    [
+                        'br' => [],
+                        'small' => [],
+                    ]
+                );
+            ?>
+          </p>
+            <?php if ($item_index === 0) : ?>
                 <?php if (isset($txn, $sub) && !$txn->is_one_time_payment() && $sub instanceof MeprSubscription && $sub->id > 0) : ?>
-              <p class="desc"><?php echo MeprAppHelper::format_price_string($sub, $sub->price, true, $mepr_coupon_code); ?></p>
-                <?php elseif (!(isset($txn) && $txn->txn_type == 'sub_account')) : ?>
+              <p class="desc"><?php echo esc_html(MeprAppHelper::format_price_string($sub, $sub->price, true, $mepr_coupon_code)); ?></p>
+                <?php elseif (!(isset($txn) && $txn->txn_type === 'sub_account')) : ?>
               <p class="desc"><?php MeprProductsHelper::display_invoice($prd, $mepr_coupon_code); ?></p>
                 <?php endif; ?>
             <?php endif; ?>
         </td>
             <?php if ($show_quantity) : ?>
-        <td><?php echo $item['quantity']; ?></td>
+        <td><?php echo esc_html($item['quantity']); ?></td>
             <?php endif; ?>
-        <td class="mp-currency-cell"><?php echo MeprAppHelper::format_currency($item['amount'], true, false); ?></td>
+        <td class="mp-currency-cell"><?php echo esc_html(MeprAppHelper::format_currency($item['amount'], true, false)); ?></td>
       </tr>
       <?php endforeach; ?>
-      <?php if (isset($invoice['coupon']) && ! empty($invoice['coupon']) && $invoice['coupon']['id'] != 0) : ?>
+      <?php if (isset($invoice['coupon']) && ! empty($invoice['coupon']) && (int) $invoice['coupon']['id'] !== 0) : ?>
       <tr>
         <td></td>
         <td>
-            <?php echo $invoice['coupon']['desc']; ?>
+            <?php echo esc_html($invoice['coupon']['desc']); ?>
         </td>
             <?php if ($show_quantity) : ?>
         <td>&nbsp;</td>
             <?php endif; ?>
         <td class="mp-currency-cell">
-          -<?php echo MeprAppHelper::format_currency($invoice['coupon']['amount'], true, false); ?></td>
+          -<?php echo esc_html(MeprAppHelper::format_currency($invoice['coupon']['amount'], true, false)); ?></td>
       </tr>
       <?php endif; ?>
     </tbody>
@@ -61,8 +75,8 @@
             <?php if ($show_quantity) : ?>
         <th>&nbsp;</th>
             <?php endif; ?>
-        <th class="bb"><?php _ex('Sub-Total', 'ui', 'memberpress'); ?></th>
-        <th class="mp-currency-cell bb"><?php echo MeprAppHelper::format_currency($subtotal, true, false); ?></th>
+        <th class="bb"><?php echo esc_html_x('Sub-Total', 'ui', 'memberpress'); ?></th>
+        <th class="mp-currency-cell bb"><?php echo esc_html(MeprAppHelper::format_currency($subtotal, true, false)); ?></th>
       </tr>
             <?php foreach ($invoice['tax_items'] as $tax_item) : ?>
                 <?php if ($tax_item['amount'] > 0 || $tax_item['percent'] > 0) : ?>
@@ -72,25 +86,25 @@
             <th>&nbsp;</th>
                     <?php endif; ?>
             <th class="mepr-tax-invoice">
-                    <?php echo MeprUtils::format_tax_percent_for_display($tax_item['percent']) . '% ' . $tax_item['type']; ?>
+                    <?php echo esc_html(MeprUtils::format_tax_percent_for_display($tax_item['percent']) . '% ' . $tax_item['type']); ?>
               <br /><small><?php echo esc_html($tax_item['post_title']); ?></small>
             </th>
             <th class="mp-currency-cell">
-                    <?php echo MeprAppHelper::format_currency($tax_item['amount'], true, false); ?></th>
+                    <?php echo esc_html(MeprAppHelper::format_currency($tax_item['amount'], true, false)); ?></th>
           </tr>
                 <?php endif; ?>
             <?php endforeach; ?>
       <?php endif; ?>
       <tr>
-        <th></th>
+        <td></td>
         <?php if ($show_quantity) : ?>
         <th>&nbsp;</th>
         <?php endif; ?>
-        <th class="bt"><?php _ex('Total', 'ui', 'memberpress'); ?></th>
-        <th class="mp-currency-cell bt total_cell"><?php echo MeprAppHelper::format_currency($total, true, false); ?>
+        <th class="bt"><?php echo esc_html_x('Total', 'ui', 'memberpress'); ?></th>
+        <th class="mp-currency-cell bt total_cell"><?php echo esc_html(MeprAppHelper::format_currency($total, true, false)); ?>
         </th>
         <input type="hidden" name="mepr_stripe_txn_amount"
-          value="<?php echo MeprUtils::format_stripe_currency($total); ?>" />
+          value="<?php echo esc_attr(MeprUtils::format_stripe_currency($total)); ?>" />
       </tr>
     </tfoot>
   </table>

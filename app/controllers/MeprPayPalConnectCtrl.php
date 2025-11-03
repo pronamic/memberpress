@@ -30,8 +30,8 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
         });
 
         add_action('admin_init', [$this, 'admin_init']);
-        add_action('mepr-transaction-expired', [$this, 'check_for_renewal_transactions'], 10, 2);
-        add_action('mepr-saved-options', [$this, 'mepr_saved_options']);
+        add_action('mepr_transaction_expired', [$this, 'check_for_renewal_transactions'], 10, 2);
+        add_action('mepr_saved_options', [$this, 'mepr_saved_options']);
         $this->add_ajax_endpoints();
     }
 
@@ -67,10 +67,10 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
         $date     = new DateTime();
         $next_date = new DateTime();
 
-        if ($txn->txn_type == MeprTransaction::$subscription_confirmation_str) {
+        if ($txn->txn_type === MeprTransaction::$subscription_confirmation_str) {
             $next_date->add(new DateInterval('P1D'));
             $date->sub(new DateInterval('P1D'));
-        } elseif ($txn->txn_type == MeprTransaction::$payment_str) {
+        } elseif ($txn->txn_type === MeprTransaction::$payment_str) {
             $next_date->add(new DateInterval('P1D'));
             $date->sub(new DateInterval('P5D'));
         } else {
@@ -106,7 +106,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
         }
 
         foreach ($settings['mepr-integrations'] as $key => $integration) {
-            if ($integration['gateway'] == MeprPayPalCommerceGateway::class) {
+            if ($integration['gateway'] === MeprPayPalCommerceGateway::class) {
                 if (isset($mepr_options->legacy_integrations[ $key ])) {
                     $mepr_options->legacy_integrations[ $key ]['debug'] = isset($integration['enable_paypal_standard_debug_email']);
                     $mepr_options->store(false);
@@ -144,7 +144,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
 
         if (! isset($integrations[ $method_id ])) {
             $integrations[ $method_id ]  = [
-                'label'   => esc_html(__('PayPal', 'memberpress')),
+                'label'   => esc_html__('PayPal', 'memberpress'),
                 'id'      => $method_id,
                 'gateway' => 'MeprPayPalCommerceGateway',
                 'saved'   => true,
@@ -207,13 +207,13 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
             }
         }
 
-        if (! $has_commerce_gateway && ( ! isset($_COOKIE['mepr_paypal_connect_upgrade_dismissed']) || false == $_COOKIE['mepr_paypal_connect_upgrade_dismissed'] )) {
+        if (! $has_commerce_gateway && ( ! isset($_COOKIE['mepr_paypal_connect_upgrade_dismissed']) || false === (bool) $_COOKIE['mepr_paypal_connect_upgrade_dismissed'] )) {
             ?>
       <div class="notice notice-error mepr-notice is-dismissible" id="mepr_paypal_connect_upgrade_notice">
         <p>
-        <p><span class="dashicons dashicons-warning mepr-warning-notice-icon"></span><strong class="mepr-warning-notice-title"><?php _e('MemberPress Security Notice', 'memberpress'); ?></strong></p>
-        <p><strong><?php _e('Your current PayPal payment connection is out of date and may become insecure. Please click the button below to upgrade your PayPal payment method now.', 'memberpress'); ?></strong></p>
-        <p><a href="<?php echo admin_url('admin.php?page=memberpress-options#mepr-integration'); ?>" class="button button-primary"><?php _e('Upgrade PayPal Standard to Fix this Error Now', 'memberpress'); ?></a></p>
+        <p><span class="dashicons dashicons-warning mepr-warning-notice-icon"></span><strong class="mepr-warning-notice-title"><?php esc_html_e('MemberPress Security Notice', 'memberpress'); ?></strong></p>
+        <p><strong><?php esc_html_e('Your current PayPal payment connection is out of date and may become insecure. Please click the button below to upgrade your PayPal payment method now.', 'memberpress'); ?></strong></p>
+        <p><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-options#mepr-integration')); ?>" class="button button-primary"><?php esc_html_e('Upgrade PayPal Standard to Fix this Error Now', 'memberpress'); ?></a></p>
         </p>
             <?php wp_nonce_field('mepr_paypal_connect_upgrade_notice_dismiss', 'mepr_paypal_connect_upgrade_notice_dismiss'); ?>
       </div>
@@ -242,9 +242,9 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
             ?>
       <div class="notice notice-error mepr-notice" id="mepr_stripe_connect_upgrade_notice">
         <p>
-        <p><span class="dashicons dashicons-warning mepr-warning-notice-icon"></span><strong class="mepr-warning-notice-title"><?php _e('Your MemberPress PayPal Connection is incomplete', 'memberpress'); ?></strong></p>
-        <p><strong><?php _e('Your PayPal connection in MemberPress must be connected in order to accept PayPal payments. Please click the button below to finish connecting your PayPal payment method now.', 'memberpress'); ?></strong></p>
-        <p><a href="<?php echo admin_url('admin.php?page=memberpress-options#mepr-integration'); ?>" class="button button-primary"><?php _e('Connect PayPal Payment Method', 'memberpress'); ?></a></p>
+        <p><span class="dashicons dashicons-warning mepr-warning-notice-icon"></span><strong class="mepr-warning-notice-title"><?php esc_html_e('Your MemberPress PayPal Connection is incomplete', 'memberpress'); ?></strong></p>
+        <p><strong><?php esc_html_e('Your PayPal connection in MemberPress must be connected in order to accept PayPal payments. Please click the button below to finish connecting your PayPal payment method now.', 'memberpress'); ?></strong></p>
+        <p><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-options#mepr-integration')); ?>" class="button button-primary"><?php esc_html_e('Connect PayPal Payment Method', 'memberpress'); ?></a></p>
         </p>
       </div>
             <?php
@@ -264,10 +264,10 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
 
         if (isset($_REQUEST['paypal-gateway-message-success'])) {
             $class   = 'notice notice-success';
-            $message = sanitize_text_field($_REQUEST['paypal-gateway-message-success']);
+            $message = sanitize_text_field(wp_unslash($_REQUEST['paypal-gateway-message-success']));
         } else {
             $class   = 'notice notice-error';
-            $message = sanitize_text_field($_REQUEST['paypal-gateway-message']);
+            $message = sanitize_text_field(wp_unslash($_REQUEST['paypal-gateway-message']));
         }
 
         printf('<div class="%1$s"><p>%2$s</p></div>', esc_attr($class), esc_html($message));
@@ -335,11 +335,11 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
             return;
         }
 
-        if (isset($_GET['mepr-paypal-commerce-confirm-email']) && $_GET['mepr-paypal-commerce-confirm-email'] == '1') {
-            $sandbox         = isset($_GET['sandbox']) && $_GET['sandbox'] == '1';
+        if (isset($_GET['mepr-paypal-commerce-confirm-email']) && $_GET['mepr-paypal-commerce-confirm-email'] === '1') {
+            $sandbox         = isset($_GET['sandbox']) && $_GET['sandbox'] === '1';
             $mepr_options    = MeprOptions::fetch();
             $integrations    = $mepr_options->integrations;
-            $method_id       = filter_var($_GET['method-id']);
+            $method_id       = sanitize_text_field(wp_unslash($_GET['method-id'] ?? ''));
             $site_uuid       = get_option('mepr_authenticator_site_uuid');
             $buffer_settings = get_option('mepr_buff_integrations', []);
 
@@ -389,22 +389,22 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
                 $mepr_options->store(false);
             }
         }
-        if (isset($_GET['paypal-connect']) && $_GET['paypal-connect'] == '1') {
+        if (isset($_GET['paypal-connect']) && $_GET['paypal-connect'] === '1') {
             $mepr_options = MeprOptions::fetch();
-            $method_id    = filter_var($_GET['method_id']);
+            $method_id    = sanitize_text_field(wp_unslash($_GET['method_id'] ?? ''));
             $integrations = $mepr_options->integrations;
             self::debug_log($_GET);
             if (isset($_GET['merchantIdInPayPal'])) {
-                if (isset($_GET['sandbox']) && $_GET['sandbox'] == '1') {
-                    $integrations[ $method_id ]['test_merchant_id'] = esc_sql($_GET['merchantIdInPayPal']);
+                if (isset($_GET['sandbox']) && $_GET['sandbox'] === '1') {
+                    $integrations[ $method_id ]['test_merchant_id'] = sanitize_text_field(wp_unslash($_GET['merchantIdInPayPal']));
                 } else {
-                    $integrations[ $method_id ]['live_merchant_id'] = esc_sql($_GET['merchantIdInPayPal']);
+                    $integrations[ $method_id ]['live_merchant_id'] = sanitize_text_field(wp_unslash($_GET['merchantIdInPayPal']));
                 }
             }
             if (isset($_GET['isEmailConfirmed'])) {
-                $is_confirmed = ! ( $_GET['isEmailConfirmed'] == 'false' );
+                $is_confirmed = ! ( $_GET['isEmailConfirmed'] === 'false' );
 
-                if (isset($_GET['sandbox']) && $_GET['sandbox'] == '1') {
+                if (isset($_GET['sandbox']) && $_GET['sandbox'] === '1') {
                     $integrations[ $method_id ]['test_email_confirmed'] = $is_confirmed;
                 } else {
                     $integrations[ $method_id ]['live_email_confirmed'] = $is_confirmed;
@@ -425,7 +425,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
 
             $onboarding = isset($_GET['onboarding']) ? sanitize_text_field(wp_unslash($_GET['onboarding'])) : '';
 
-            if ($onboarding == 'true') {
+            if ($onboarding === 'true') {
                 update_option('mepr_onboarding_payment_gateway', $method_id);
 
                 $redirect_url = add_query_arg([
@@ -556,16 +556,10 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
      * Logs debug information to a file if debugging is enabled.
      *
      * @param mixed $data The data to log.
-     *
-     * @return void
      */
-    public static function debug_log($data)
+    public static function debug_log($data): void
     {
-        if (! defined('WP_MEPR_DEBUG')) {
-            return;
-        }
-
-        file_put_contents(WP_CONTENT_DIR . '/paypal-connect.log', print_r($data, true) . PHP_EOL, FILE_APPEND);
+        MeprUtils::debug_log('', [$data], WP_CONTENT_DIR . '/paypal-connect.log');
     }
 
     /**
@@ -599,13 +593,13 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
         $site_uuid    = get_option('mepr_authenticator_site_uuid');
-        $method_id    = sanitize_text_field($_REQUEST['method-id']);
+        $method_id    = sanitize_text_field(wp_unslash($_REQUEST['method-id'] ?? ''));
         $payload      = [
             'site_uuid' => $site_uuid,
         ];
 
-        $sandbox = filter_var(isset($_GET['sandbox']) ? $_GET['sandbox'] : 0);
-        $retry   = filter_var(isset($_GET['retry']) ? $_GET['retry'] : 0);
+        $sandbox = filter_var(isset($_GET['sandbox']) ? wp_unslash($_GET['sandbox']) : 0);
+        $retry   = filter_var(isset($_GET['retry']) ? wp_unslash($_GET['retry']) : 0);
 
         if ($retry) {
             $integrations                                = $mepr_options->integrations;
@@ -613,7 +607,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
             $integrations[ $method_id ]['test_auth_code'] = '';
             $mepr_options->integrations                  = $integrations;
             $mepr_options->store(false);
-            $message = esc_html(__('You have disconnected your PayPal. You should login to your PayPal account and go to Developer settings to delete the app created by this gateway unless you have active recurring subscriptions that were created with this gateway', 'memberpress'));
+            $message = esc_html__('You have disconnected your PayPal. You should login to your PayPal account and go to Developer settings to delete the app created by this gateway unless you have active recurring subscriptions that were created with this gateway', 'memberpress');
             $url     = admin_url('admin.php?page=memberpress-options&paypal-gateway-message-success=' . $message . '#mepr-integration');
             MeprUtils::wp_redirect($url);
         }
@@ -662,7 +656,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
 
         $mepr_options->integrations = $integrations;
         $mepr_options->store(false);
-        $message = esc_html(__('You have disconnected your PayPal. You should login to your PayPal account and go to Developer settings to delete the app created by this gateway unless you have active recurring subscriptions that were created with this gateway', 'memberpress'));
+        $message = esc_html__('You have disconnected your PayPal. You should login to your PayPal account and go to Developer settings to delete the app created by this gateway unless you have active recurring subscriptions that were created with this gateway', 'memberpress');
         $url     = admin_url('admin.php?page=memberpress-options&paypal-gateway-message-success=' . $message . '#mepr-integration');
 
         MeprUtils::wp_redirect($url);
@@ -688,12 +682,12 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
     public function process_update_creds($sandbox = false)
     {
         // Security check.
-        if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce($_GET['_wpnonce'], 'paypal-update-creds')) {
-            wp_die(__('Sorry, updating your credentials failed. (security)', 'memberpress'));
+        if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'paypal-update-creds')) {
+            wp_die(esc_html__('Sorry, updating your credentials failed. (security)', 'memberpress'));
         }
 
         if (! current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permission to perform this operation', 'memberpress'));
+            wp_die(esc_html__('You do not have sufficient permission to perform this operation', 'memberpress'));
         }
 
         $posted = json_decode(@file_get_contents('php://input'), true);
@@ -723,7 +717,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
 
         if (! isset($integrations[ $method_id ])) {
             $integrations[ $method_id ] = [
-                'label'   => esc_html(__('PayPal', 'memberpress')),
+                'label'   => esc_html__('PayPal', 'memberpress'),
                 'id'      => $method_id,
                 'gateway' => 'MeprPayPalCommerceGateway',
                 'saved'   => true,
@@ -739,14 +733,14 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
 
         if ($sandbox) {
             if (isset($integrations[ $method_id ]['test_auth_code']) && ! empty($integrations[ $method_id ]['test_auth_code'])) {
-                die('An auth code is being processed');
+                wp_die(esc_html__('An auth code is being processed', 'memberpress'));
             }
             $integrations[ $method_id ]['test_auth_code'] = $auth_code;
             $mepr_options->integrations                  = $integrations;
             $mepr_options->store(false);
         } else {
             if (isset($integrations[ $method_id ]['live_auth_code']) && ! empty($integrations[ $method_id ]['live_auth_code'])) {
-                die('An auth code is being processed');
+                wp_die(esc_html__('An auth code is being processed', 'memberpress'));
             }
             $integrations[ $method_id ]['live_auth_code'] = $auth_code;
             $mepr_options->integrations                  = $integrations;
@@ -823,7 +817,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
 
             $prd = $txn->product();
         } else {
-            $product_id = isset($_POST['mepr_product_id']) ? (int) $_POST['mepr_product_id'] : 0;
+            $product_id = intval(wp_unslash($_POST['mepr_product_id'] ?? 0));
             $prd        = new MeprProduct($product_id);
         }
 
@@ -866,7 +860,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
             wp_send_json_error(['errors' => [__('Invalid payment gateway', 'memberpress')]]);
         }
 
-        if ($pm->settings->enable_smart_button != 'on') {
+        if ($pm->settings->enable_smart_button !== 'on') {
             wp_send_json_error(['errors' => [__('Bad request', 'memberpress')]]);
         }
 
@@ -875,7 +869,8 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
         $checkout_ctrl->process_signup_form();
 
         if (isset($_REQUEST['errors'])) {
-            wp_send_json_error(['errors' => $_REQUEST['errors']]);
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            wp_send_json_error(['errors' => wp_unslash($_REQUEST['errors'])]);
         }
 
         wp_send_json($_REQUEST);
@@ -914,7 +909,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
         $mepr_options->integrations[ $id ]            = $mepr_options->legacy_integrations[ $id ];
         $mepr_options->integrations[ $id ]['gateway'] = MeprPayPalStandardGateway::class;
         $mepr_options->store(false);
-        $message = esc_html(__('You have reverted PayPal to legacy gateway', 'memberpress'));
+        $message = esc_html__('You have reverted PayPal to legacy gateway', 'memberpress');
         $url     = admin_url('admin.php?page=memberpress-options&paypal-gateway-message=' . $message . '#mepr-integration');
         MeprUtils::wp_redirect($url);
     }

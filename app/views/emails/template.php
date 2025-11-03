@@ -13,7 +13,7 @@
     }
     </style>
 
-    <?php echo $body; ?>
+    <?php echo wp_kses_post($body); ?>
   </body>
 </html>
 

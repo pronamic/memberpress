@@ -20,7 +20,7 @@ class MeprJobs
     public function __construct()
     {
         // Setup job configuration.
-        $this->config = MeprHooks::apply_filters('mepr-jobs-config', (object)[
+        $this->config = MeprHooks::apply_filters('mepr_jobs_config', (object)[
             'status'  => (object)[
                 'pending'  => 'pending',
                 'complete' => 'complete',
@@ -42,7 +42,7 @@ class MeprJobs
 
         // Setup the options page.
         add_action('mepr_display_general_options', [$this,'display_option_fields']);
-        add_action('mepr-process-options', [$this,'store_option_fields']);
+        add_action('mepr_process_options', [$this,'store_option_fields']);
 
         // Set a wp-cron.
         add_filter('cron_schedules', [$this,'intervals']);
@@ -69,12 +69,12 @@ class MeprJobs
     {
         $schedules['mepr_jobs_interval'] = [
             'interval' => $this->config->worker->interval,
-            'display'  => __('MemberPress Jobs Worker', 'memberpress'),
+            'display'  => 'MemberPress Jobs Worker',
         ];
 
         $schedules['mepr_jobs_cleanup_interval'] = [
             'interval' => $this->config->cleanup->interval,
-            'display'  => __('MemberPress Jobs Cleanup', 'memberpress'),
+            'display'  => 'MemberPress Jobs Cleanup',
         ];
 
         return $schedules;
@@ -142,45 +142,42 @@ class MeprJobs
         $mepr_db = new MeprDb();
 
         // Retry lingering jobs.
-        $query = "UPDATE {$mepr_db->jobs}
-                 SET status = %s
-               WHERE status IN (%s,%s)
-                 AND tries <= %d
-                 AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d";
-        $query = $wpdb->prepare(
-            $query,
+        $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "UPDATE {$mepr_db->jobs}
+            SET status = %s
+            WHERE status IN (%s,%s)
+            AND tries <= %d
+            AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d",
             $this->config->status->pending, // Set status to pending.
             $this->config->status->working, // If status = working or.
             $this->config->status->failed, // The status = failed and.
             $this->config->cleanup->num_retries, // Number of tries <= num_retries.
             MeprUtils::db_now(),
             $this->config->cleanup->retry_after // And the correct number of seconds since lastrun has elapsed.
-        );
-        $wpdb->query($query);
+        ));
 
         // Delete completed jobs that have been in the system for over a day?
-        $query = "DELETE FROM {$mepr_db->jobs}
-               WHERE status = %s
-                 AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d";
-        $query = $wpdb->prepare(
-            $query, // Delete jobs.
+        $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "DELETE FROM {$mepr_db->jobs}
+            WHERE status = %s
+            AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d",
             $this->config->status->complete, // Which have a status = complete.
             MeprUtils::db_now(),
             $this->config->cleanup->delete_completed_after // And the correct number of seconds since lastrun has elapsed.
-        );
-        $wpdb->query($query);
+        ));
 
         // Delete jobs that have been retried and are still in a working state.
-        $query = "DELETE FROM {$mepr_db->jobs}
-               WHERE tries > %d
-                 AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d";
-        $query = $wpdb->prepare(
-            $query, // Delete jobs.
+        $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "DELETE FROM {$mepr_db->jobs}
+            WHERE tries > %d
+            AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d",
             $this->config->cleanup->num_retries, // Which have only been 'n' retries.
             MeprUtils::db_now(),
             $this->config->cleanup->delete_failed_after // And the correct number of seconds since lastrun has elapsed.
-        );
-        $wpdb->query($query);
+        ));
     }
 
     /**
@@ -194,15 +191,15 @@ class MeprJobs
 
         $mepr_db = new MeprDb();
 
-        $query = "
-      SELECT * FROM {$mepr_db->jobs}
-       WHERE status = %s
-         AND runtime <= %s
-       ORDER BY priority ASC, runtime ASC
-    ";
-        $query = $wpdb->prepare($query, $this->config->status->pending, MeprUtils::db_now());
-
-        return $wpdb->get_results($query, OBJECT);
+        return $wpdb->get_results($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT * FROM {$mepr_db->jobs}
+            WHERE status = %s
+            AND runtime <= %s
+            ORDER BY priority ASC, runtime ASC",
+            $this->config->status->pending,
+            MeprUtils::db_now()
+        ), OBJECT);
     }
 
     /**
@@ -216,14 +213,16 @@ class MeprJobs
 
         $mepr_db = new MeprDb();
 
-        $query = "SELECT * FROM {$mepr_db->jobs}
-               WHERE status = %s
-                 AND runtime <= %s
-               ORDER BY priority ASC, runtime ASC
-               LIMIT 1";
-        $query = $wpdb->prepare($query, $this->config->status->pending, MeprUtils::db_now());
-
-        return $wpdb->get_row($query, OBJECT);
+        return $wpdb->get_row($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT * FROM {$mepr_db->jobs}
+            WHERE status = %s
+            AND runtime <= %s
+            ORDER BY priority ASC, runtime ASC
+            LIMIT 1",
+            $this->config->status->pending,
+            MeprUtils::db_now()
+        ), OBJECT);
     }
 
     /**
@@ -302,7 +301,7 @@ class MeprJobs
      */
     public function dequeue($job_id)
     {
-        if ($job_id == 0) {
+        if ((int) $job_id === 0) {
             return;
         }
 
@@ -418,17 +417,17 @@ class MeprJobs
             preg_match_all("/(\d+){$u}/", $interval, $matches);
             if (isset($matches[1])) {
                 foreach ($matches[1] as $m) {
-                    if ($u == 'm') {
+                    if ($u === 'm') {
                         $seconds += MeprUtils::minutes($m);
-                    } elseif ($u == 'h') {
+                    } elseif ($u === 'h') {
                         $seconds += MeprUtils::hours($m);
-                    } elseif ($u == 'd') {
+                    } elseif ($u === 'd') {
                         $seconds += MeprUtils::days($m);
-                    } elseif ($u == 'w') {
+                    } elseif ($u === 'w') {
                         $seconds += MeprUtils::weeks($m);
-                    } elseif ($u == 'M') {
+                    } elseif ($u === 'M') {
                         $seconds += MeprUtils::months($m);
-                    } elseif ($u == 'y') {
+                    } elseif ($u === 'y') {
                         $seconds += MeprUtils::years($m);
                     }
                 }
@@ -464,12 +463,12 @@ class MeprJobs
         ?>
     <div id="mp-bkg-email-jobs">
       <br/>
-      <h3><?php _e('Background Jobs', 'memberpress'); ?></h3>
+      <h3><?php esc_html_e('Background Jobs', 'memberpress'); ?></h3>
       <table class="form-table">
         <tbody>
           <tr valign="top">
             <th scope="row">
-              <label for="bkg_email_jobs_enabled"><?php _e('Asynchronous Emails', 'memberpress'); ?></label>
+              <label for="bkg_email_jobs_enabled"><?php esc_html_e('Asynchronous Emails', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip(
                   'mepr-asynchronous-emails',
                   __('Send Emails Asynchronously in the Background', 'memberpress'),

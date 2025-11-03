@@ -146,12 +146,27 @@
   line-height: 1.42857143;
   border-radius: 4px;
 }
+#mepr-template-login .mepro-form input:focus-visible,
+#mepr-template-login .mepr-form input:focus-visible {
+  border: 2px solid #bcbcbc;
+}
+#mepr-template-login .mepro-form input[type="submit"]:focus-visible {
+  outline: none;
+}
 #mepr-template-login .mepro-form input[type="checkbox"],
 #mepr-template-login .mepr-form input[type="checkbox"] {
   width: 14px;
   height: 14px;
   min-height: auto;
   margin: 0;
+}
+#mepr-template-login .mepro-form input[type="checkbox"]:focus-visible,
+#mepr-template-login .mepr-form input[type="checkbox"]:focus-visible {
+  outline: 2px solid #bcbcbc;
+}
+#mepr-template-login .mepro-form input[type="checkbox"]:focus-visible + label,
+#mepr-template-login .mepr-form input[type="checkbox"]:focus-visible + label {
+    font-weight: 500;
 }
 #mepr-template-login .mepro-form fieldset,
 #mepr-template-login .mepr-form fieldset {
@@ -181,9 +196,9 @@
 #mepr-template-login .mepr-form input[type="reset"],
 #mepr-template-login .mepr-form input[type="submit"] {
   border: 1px solid;
-  border-color: #06429e;
+  border-color: #737373;
   border-radius: 8px;
-  background: #06429e;
+  background: #737373;
   color: rgb(255, 255, 255);
   line-height: 1;
   padding: 0.6em 1em 0.6em;
@@ -252,6 +267,21 @@
   border: none;
   box-shadow: none;
 }
+#mepr-template-login .mepro-form button.mp-hide-pw:focus-visible,
+#mepr-template-login .mepro-form input[type="button"].mp-hide-pw:focus-visible,
+#mepr-template-login .mepro-form input[type="reset"].mp-hide-pw:focus-visible,
+#mepr-template-login .mepro-form input[type="submit"].mp-hide-pw:focus-visible,
+#mepr-template-login .mepr-form button.mp-hide-pw:focus-visible,
+#mepr-template-login .mepr-form input[type="button"].mp-hide-pw:focus-visible,
+#mepr-template-login .mepr-form input[type="reset"].mp-hide-pw:focus-visible,
+#mepr-template-login .mepr-form input[type="submit"].mp-hide-pw:focus-visible {
+  color: #06429e;
+}
+#mepr-template-login .mepro-form input[type="submit"]:focus-visible,
+#mepr-template-login .mepr-form input[type="submit"]:focus-visible {
+  background: #06429e;
+  border-color: #06429e;
+}
 #mepr-template-login .mepro-form button.mp-hide-pw .dashicons,
 #mepr-template-login .mepro-form input[type="button"].mp-hide-pw .dashicons,
 #mepr-template-login .mepro-form input[type="reset"].mp-hide-pw .dashicons,
@@ -272,7 +302,7 @@
 #mepr-template-login .mepr-form input[type="button"].disabled,
 #mepr-template-login .mepr-form input[type="reset"].disabled,
 #mepr-template-login .mepr-form input[type="submit"].disabled {
-  background-color: #d0d0d0;
+  background-color: #949494;
   border: 0;
   pointer-events: none;
 }
@@ -293,6 +323,10 @@
 
 .mepr-login-actions {
   font-size: 14px;
+}
+#mepr-template-login a:focus-visible {
+  font-weight: 500;
+  text-decoration: underline;
 }
 
 .mepr_error {

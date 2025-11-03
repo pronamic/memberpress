@@ -9,7 +9,7 @@ class MeprDeactivationSurveyCtrl extends MeprBaseCtrl
      */
     public function load_hooks()
     {
-        if (apply_filters('mepr_deactivation_survey_skip', $this->is_dev_url())) {
+        if (MeprHooks::apply_filters('mepr_deactivation_survey_skip', $this->is_dev_url())) {
             return;
         }
 
@@ -24,48 +24,7 @@ class MeprDeactivationSurveyCtrl extends MeprBaseCtrl
      */
     protected function is_dev_url()
     {
-        $url          = network_site_url('/');
-        $is_local_url = false;
-
-        // Trim it up.
-        $url = strtolower(trim($url));
-
-        // Need to get the host...so let's add the scheme so we can use parse_url.
-        if (false === strpos($url, 'http://') && false === strpos($url, 'https://')) {
-            $url = 'http://' . $url;
-        }
-        $url_parts = parse_url($url);
-        $host      = ! empty($url_parts['host']) ? $url_parts['host'] : false;
-        if (! empty($url) && ! empty($host)) {
-            if (false !== ip2long($host)) {
-                if (! filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                    $is_local_url = true;
-                }
-            } elseif ('localhost' === $host) {
-                $is_local_url = true;
-            }
-
-            $tlds_to_check = ['.dev', '.local', ':8888'];
-            foreach ($tlds_to_check as $tld) {
-                if (false !== strpos($host, $tld)) {
-                    $is_local_url = true;
-                    continue;
-                }
-            }
-            if (substr_count($host, '.') > 1) {
-                $subdomains_to_check =  ['dev.', '*.staging.', 'beta.', 'test.'];
-                foreach ($subdomains_to_check as $subdomain) {
-                    $subdomain = str_replace('.', '(.)', $subdomain);
-                    $subdomain = str_replace(['*', '(.)'], '(.*)', $subdomain);
-                    if (preg_match('/^(' . $subdomain . ')/', $host)) {
-                        $is_local_url = true;
-                        continue;
-                    }
-                }
-            }
-        }
-
-        return $is_local_url;
+        return MeprUtils::is_dev_url();
     }
 
     /**
@@ -133,6 +92,6 @@ class MeprDeactivationSurveyCtrl extends MeprBaseCtrl
      */
     protected function is_plugin_page()
     {
-        return in_array(MeprUtils::get_current_screen_id(), ['plugins', 'plugins-network']);
+        return in_array(MeprUtils::get_current_screen_id(), ['plugins', 'plugins-network'], true);
     }
 }

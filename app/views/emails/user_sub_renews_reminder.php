@@ -8,23 +8,22 @@
   <div id="receipt">
     <div class="section" style="display: block; margin-bottom: 24px;"><?php printf(
         // Translators: %1$s: User first name.
-        _x('Hi %1$s,', 'ui', 'memberpress'),
+        esc_html_x('Hi %1$s,', 'ui', 'memberpress'),
         '{$user_first_name}'
     ); ?></div>
     <div class="section" style="display: block; margin-bottom: 24px;"><?php printf(
-        // Translators: %1$s: Reminder description, %2$s: Subscription expiration date.
-        _x('Just a friendly reminder that your %1$s on <strong>%2$s</strong>.', 'ui', 'memberpress'),
+        // Translators: %1$s: reminder description, %2$s: expiration date.
+        esc_html_x('Just a friendly reminder that your %1$s on <strong>%2$s</strong>.', 'ui', 'memberpress'),
         '{$reminder_description}',
         '{$subscr_expires_at}'
     ); ?></div>
     <div class="section" style="display: block; margin-bottom: 24px;"><?php printf(
         // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
-        _x('If this isn\'t correct you can update your %1$saccount%2$s.', 'ui', 'memberpress'),
+        esc_html_x('If this isn\'t correct you can update your %1$saccount%2$s.', 'ui', 'memberpress'),
         '<a href="{$account_url}">',
         '</a>'
     ); ?></div>
-    <div class="section" style="display: block; margin-bottom: 24px;"><?php _ex('Cheers!', 'ui', 'memberpress'); ?></div>
-    <div class="section" style="display: block; margin-bottom: 24px;"><?php _ex('The {$blog_name} Team', 'ui', 'memberpress'); ?></div>
+    <div class="section" style="display: block; margin-bottom: 24px;"><?php echo esc_html_x('Cheers!', 'ui', 'memberpress'); ?></div>
+    <div class="section" style="display: block; margin-bottom: 24px;"><?php echo esc_html_x('The {$blog_name} Team', 'ui', 'memberpress'); ?></div>
   </div>
 </div>
-

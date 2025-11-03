@@ -112,9 +112,6 @@ function mepr_autocomplete_setup( type ) {
   };
 }
 
-//May need to move this to WP Ajax too
-//Actually we should just implement issue #222
-//https://github.com/Caseproof/memberpress/issues/222
 function mepr_update_rule_post_title( type, content ) {
   var post_title = MeprRule.types[type] + ': ' + content;
 

@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
 ?>
 
 <div class="wrap">
-  <h2><?php _e('Settings', 'memberpress'); ?><a href="http://memberpress.helpscoutdocs.com/" class="add-new-h2" target="_blank"><?php _e('User Manual', 'memberpress'); ?></a></h2>
+  <h2><?php esc_html_e('Settings', 'memberpress'); ?><a href="<?php echo esc_url(MeprUtils::get_link_url('docs')); ?>" class="add-new-h2" target="_blank"><?php esc_html_e('User Manual', 'memberpress'); ?></a></h2>
 
   <?php
     MeprHooks::do_action('mepr_admin_overview_before_table');
@@ -17,31 +17,36 @@ defined('ABSPATH') || exit;
     MeprHooks::do_action('mepr_before_options_form');
     ?>
 
-  <form name="mepr_options_form" id="mepr_options_form" class="mepr-form" method="post" action="<?php echo parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH); ?>" enctype="multipart/form-data">
+  <form name="mepr_options_form" id="mepr_options_form" class="mepr-form" method="post" action="<?php echo esc_url(wp_parse_url(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? '')), PHP_URL_PATH)); ?>" enctype="multipart/form-data">
     <input type="hidden" name="action" value="process-form">
     <?php wp_nonce_field('mepr_update_options', 'mepr_options_nonce'); ?>
 
     <h2 id="mepr-reports-column-selector" class="nav-tab-wrapper">
-      <a class="nav-tab nav-tab-active" id="license" href="#"><?php _e('License', 'memberpress'); ?></a>
-      <a class="nav-tab" id="pages" href="#"><?php _e('Pages', 'memberpress'); ?></a>
-      <a class="nav-tab" id="accounts" href="#"><?php _e('Account', 'memberpress'); ?></a>
-      <a class="nav-tab" id="fields" href="#"><?php _e('Fields', 'memberpress'); ?></a>
-      <a class="nav-tab" id="integration" href="#"><?php _e('Payments', 'memberpress'); ?></a>
-      <a class="nav-tab" id="emails" href="#"><?php _e('Emails', 'memberpress'); ?></a>
-      <a class="nav-tab" id="marketing" href="#"><?php _e('Marketing', 'memberpress'); ?></a>
-      <a class="nav-tab" id="info" href="#"><?php _e('Info', 'memberpress'); ?></a>
-      <a class="nav-tab" id="general" href="#"><?php _e('General', 'memberpress'); ?></a>
+      <?php if (class_exists('MeprUpdateCtrl')) : ?>
+        <a class="nav-tab nav-tab-active" id="license" href="#"><?php esc_html_e('License', 'memberpress'); ?></a>
+        <a class="nav-tab" id="pages" href="#"><?php esc_html_e('Pages', 'memberpress'); ?></a>
+      <?php else : ?>
+        <a class="nav-tab nav-tab-active" id="pages" href="#"><?php esc_html_e('Pages', 'memberpress'); ?></a>
+      <?php endif; ?>
+      <a class="nav-tab" id="accounts" href="#"><?php esc_html_e('Account', 'memberpress'); ?></a>
+      <a class="nav-tab" id="fields" href="#"><?php esc_html_e('Fields', 'memberpress'); ?></a>
+      <a class="nav-tab" id="integration" href="#"><?php esc_html_e('Payments', 'memberpress'); ?></a>
+      <a class="nav-tab" id="emails" href="#"><?php esc_html_e('Emails', 'memberpress'); ?></a>
+      <a class="nav-tab" id="marketing" href="#"><?php esc_html_e('Marketing', 'memberpress'); ?></a>
+      <a class="nav-tab" id="info" href="#"><?php esc_html_e('Info', 'memberpress'); ?></a>
+      <a class="nav-tab" id="general" href="#"><?php esc_html_e('General', 'memberpress'); ?></a>
       <?php MeprHooks::do_action('mepr_display_options_tabs'); ?>
     </h2>
 
-    <div id="license" class="mepr-options-hidden-pane">
+    <?php if (class_exists('MeprUpdateCtrl')) : ?>
+      <div id="license" class="mepr-options-hidden-pane">
 
-      <section id="mepr-section-license">
-        <h3><?php esc_html_e('MemberPress License', 'memberpress'); ?></h3>
+        <section id="mepr-section-license">
+          <h3><?php esc_html_e('MemberPress License', 'memberpress'); ?></h3>
 
-        <div id="mepr-license-container">
+          <div id="mepr-license-container">
 
-          <?php
+            <?php
             if (empty($li)) {
                 MeprView::render('/admin/options/inactive_license', get_defined_vars());
             } else {
@@ -49,46 +54,47 @@ defined('ABSPATH') || exit;
             }
             ?>
 
-        </div>
-      </section>
+          </div>
+        </section>
 
-      <section id="mepr-section-account-login">
-        <?php MeprView::render('/admin/options/account_login', get_defined_vars()); ?>
-      </section>
+        <section id="mepr-section-account-login">
+          <?php MeprView::render('/admin/options/account_login', get_defined_vars()); ?>
+        </section>
 
-      <div id="mepr-version-string">
+        <div id="mepr-version-string">
           <?php
-              printf(
+            printf(
                 // Translators: %s: version number.
-                  esc_html__("You're currently running version %s of MemberPress.", 'memberpress'),
-                  '<b>' . MEPR_VERSION . '</b>'
-              );
-                ?>
+                esc_html__("You're currently running version %s of MemberPress.", 'memberpress'),
+                '<b>' . esc_html(MEPR_VERSION) . '</b>'
+            );
+            ?>
+        </div>
+
+        <?php MeprHooks::do_action('mepr_activate_license_page'); ?>
+
       </div>
-
-      <?php MeprHooks::do_action('mepr_activate_license_page'); ?>
-
-    </div>
+    <?php endif; ?>
 
     <div id="pages" class="mepr-options-hidden-pane">
       <section id="mepr-section-reserved-pages">
-        <h3><?php _e('Reserved Pages', 'memberpress'); ?></h3>
+        <h3><?php esc_html_e('Reserved Pages', 'memberpress'); ?></h3>
         <table class="mepr-options-pane">
           <tr id="mepr-option-thankyou-page-id">
-            <td><?php _e('MemberPress Thank You Page', 'memberpress'); ?>*:</td>
+            <td><?php esc_html_e('MemberPress Thank You Page', 'memberpress'); ?>*:</td>
             <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->thankyou_page_id_str, $mepr_options->thankyou_page_id, __('Thank You', 'memberpress')); ?></td>
           </tr>
           <tr id="mepr-option-account-page-id">
-            <td><?php _e('MemberPress Account Page', 'memberpress'); ?>*:</td>
+            <td><?php esc_html_e('MemberPress Account Page', 'memberpress'); ?>*:</td>
             <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->account_page_id_str, $mepr_options->account_page_id, __('Account', 'memberpress')); ?></td>
           </tr>
           <tr id="mepr-option-login-page-id">
-            <td><?php _e('MemberPress Login Page', 'memberpress'); ?>*:</td>
+            <td><?php esc_html_e('MemberPress Login Page', 'memberpress'); ?>*:</td>
             <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->login_page_id_str, $mepr_options->login_page_id, __('Login', 'memberpress')); ?></td>
           </tr>
           <?php if (MeprAppHelper::is_coaching_enabled()) : ?>
           <tr id="mepr-option-coaching-page-id">
-            <td><?php _e('MemberPress Coaching Page', 'memberpress'); ?>*:</td>
+            <td><?php esc_html_e('MemberPress Coaching Page', 'memberpress'); ?>*:</td>
             <td><?php MeprOptionsHelper::wp_pages_dropdown($mepr_options->coaching_page_id_str, $mepr_options->coaching_page_id, __('Coaching', 'memberpress')); ?></td>
           </tr>
           <?php endif; ?>
@@ -97,7 +103,7 @@ defined('ABSPATH') || exit;
 
       <section id="mepr-section-page-slugs">
         <h3 class="mepr-field-label">
-          <?php _e('Pages Slugs:', 'memberpress'); ?>
+          <?php esc_html_e('Pages Slugs:', 'memberpress'); ?>
           <?php MeprAppHelper::info_tooltip(
               'mepr-group-and-product-pages-slugs',
               __('Pages Slugs', 'memberpress'),
@@ -108,15 +114,15 @@ defined('ABSPATH') || exit;
         <table class="mepr-options-pane">
           <tbody>
             <tr id="mepr-option-group-pages-slug" valign="top">
-              <td><label for="<?php echo $mepr_options->group_pages_slug_str; ?>"><?php _e('Group Pages Slug:', 'memberpress'); ?></td>
+              <td><label for="<?php echo esc_attr($mepr_options->group_pages_slug_str); ?>"><?php esc_html_e('Group Pages Slug:', 'memberpress'); ?></td>
               <td>
-                <input type="text" id="<?php echo $mepr_options->group_pages_slug_str; ?>" name="<?php echo $mepr_options->group_pages_slug_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->group_pages_slug); ?>" />
+                <input type="text" id="<?php echo esc_attr($mepr_options->group_pages_slug_str); ?>" name="<?php echo esc_attr($mepr_options->group_pages_slug_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->group_pages_slug)); ?>" />
               </td>
             </tr>
             <tr id="mepr-option-product-pages-slug" valign="top">
-              <td><label for="<?php echo $mepr_options->product_pages_slug_str; ?>"><?php _e('Membership Pages Slug:', 'memberpress'); ?></td>
+              <td><label for="<?php echo esc_attr($mepr_options->product_pages_slug_str); ?>"><?php esc_html_e('Membership Pages Slug:', 'memberpress'); ?></td>
               <td>
-                <input type="text" id="<?php echo $mepr_options->product_pages_slug_str; ?>" name="<?php echo $mepr_options->product_pages_slug_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->product_pages_slug); ?>" />
+                <input type="text" id="<?php echo esc_attr($mepr_options->product_pages_slug_str); ?>" name="<?php echo esc_attr($mepr_options->product_pages_slug_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->product_pages_slug)); ?>" />
               </td>
             </tr>
             <?php MeprHooks::do_action('mepr_display_pages_slugs_options'); ?>
@@ -125,11 +131,11 @@ defined('ABSPATH') || exit;
       </section>
 
       <section id="mepr-section-unauthorized-access">
-        <h3 class="mepr-field-label"><?php _e('Unauthorized Access', 'memberpress'); ?></h3>
+        <h3 class="mepr-field-label"><?php esc_html_e('Unauthorized Access', 'memberpress'); ?></h3>
         <div class="mepr-options-pane">
           <div id="mepr-option-redirect-on-unauthorized">
-            <input type="checkbox" name="<?php echo $mepr_options->redirect_on_unauthorized_str; ?>" id="<?php echo $mepr_options->redirect_on_unauthorized_str; ?>" <?php checked($mepr_options->redirect_on_unauthorized); ?> />
-            <label for="<?php echo $mepr_options->redirect_on_unauthorized_str; ?>"><?php _e('Redirect unauthorized visitors to a specific URL', 'memberpress'); ?></label>
+            <input type="checkbox" name="<?php echo esc_attr($mepr_options->redirect_on_unauthorized_str); ?>" id="<?php echo esc_attr($mepr_options->redirect_on_unauthorized_str); ?>" <?php checked($mepr_options->redirect_on_unauthorized); ?> />
+            <label for="<?php echo esc_attr($mepr_options->redirect_on_unauthorized_str); ?>"><?php esc_html_e('Redirect unauthorized visitors to a specific URL', 'memberpress'); ?></label>
             <?php MeprAppHelper::info_tooltip(
                 'mepr-unauthorized-handling',
                 __('Redirect Unauthorized Access', 'memberpress'),
@@ -138,41 +144,41 @@ defined('ABSPATH') || exit;
           </div>
 
           <div id="mepr-unauthorized-redirect" class="mepr_hidden mepr-options-sub-pane">
-            <label for="<?php echo $mepr_options->redirect_method_str; ?>"><?php _e('Redirect method:', 'memberpress'); ?></label>
+            <label for="<?php echo esc_attr($mepr_options->redirect_method_str); ?>"><?php esc_html_e('Redirect method:', 'memberpress'); ?></label>
             <?php MeprAppHelper::info_tooltip(
                 'mepr-unauthorized-redirect-method',
                 __('Redirect Method', 'memberpress'),
                 __('It is highly recommended that "template_redirect" should be your default redirect method.<br/><br/>However, this does not work with all WordPress themes. If you find that the unauthorized redirection is not happening when enabled try switching this to "init" instead.', 'memberpress')
             ); ?>
-            <select name="<?php echo $mepr_options->redirect_method_str; ?>" id="<?php echo $mepr_options->redirect_method_str; ?>">
-              <option value="template_redirect" <?php selected($mepr_options->redirect_method, 'template_redirect'); ?>>template_redirect <?php _e('(recommended)', 'memberpress'); ?></option>
+            <select name="<?php echo esc_attr($mepr_options->redirect_method_str); ?>" id="<?php echo esc_attr($mepr_options->redirect_method_str); ?>">
+              <option value="template_redirect" <?php selected($mepr_options->redirect_method, 'template_redirect'); ?>>template_redirect <?php esc_html_e('(recommended)', 'memberpress'); ?></option>
               <option value="init" <?php selected($mepr_options->redirect_method, 'init'); ?>>init</option>
               <option value="send_headers" <?php selected($mepr_options->redirect_method, 'send_headers'); ?>>send_headers</option>
             </select>
             <br/><br/>
-            <input type="checkbox" name="<?php echo $mepr_options->redirect_non_singular_str; ?>" id="<?php echo $mepr_options->redirect_non_singular_str; ?>" <?php checked($mepr_options->redirect_non_singular); ?> />
-            <label for="<?php echo $mepr_options->redirect_non_singular_str; ?>"><?php _e('Redirect non-singular views:', 'memberpress'); ?></label>
+            <input type="checkbox" name="<?php echo esc_attr($mepr_options->redirect_non_singular_str); ?>" id="<?php echo esc_attr($mepr_options->redirect_non_singular_str); ?>" <?php checked($mepr_options->redirect_non_singular); ?> />
+            <label for="<?php echo esc_attr($mepr_options->redirect_non_singular_str); ?>"><?php esc_html_e('Redirect non-singular views:', 'memberpress'); ?></label>
             <?php MeprAppHelper::info_tooltip(
                 'mepr-unauthorized-redirect-non-singular',
                 __('Redirect Non-Singular Views', 'memberpress'),
                 __('If any post in a non-singular view (EX: Blog page, category pages, archive pages etc) is protected, then do not allow the unauthorized members to see this non-singular view at all.', 'memberpress')
             ); ?>
             <br/><br/>
-            <label for="<?php echo $mepr_options->unauthorized_redirect_url_str; ?>"><?php _e('URL to direct unauthorized visitors to:', 'memberpress'); ?></label>
+            <label for="<?php echo esc_attr($mepr_options->unauthorized_redirect_url_str); ?>"><?php esc_html_e('URL to direct unauthorized visitors to:', 'memberpress'); ?></label>
             <?php MeprAppHelper::info_tooltip(
                 'mepr-unauthorized-redirect-url',
                 __('Unauthorized Redirection URL', 'memberpress'),
                 __('This is the URL that visitors will be redirected to when trying to access unauthorized content.', 'memberpress')
             ); ?>
-            <input type="text" id="<?php echo $mepr_options->unauthorized_redirect_url_str; ?>" name="<?php echo $mepr_options->unauthorized_redirect_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->unauthorized_redirect_url); ?>" />
+            <input type="text" id="<?php echo esc_attr($mepr_options->unauthorized_redirect_url_str); ?>" name="<?php echo esc_attr($mepr_options->unauthorized_redirect_url_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->unauthorized_redirect_url)); ?>" />
             <br/>
-            <span class="description"><?php _e('You can use the <strong>[mepr-unauthorized-message]</strong> shortcode on this unauthorized page (assuming this url points to a page on this site).', 'memberpress'); ?></span>
+            <span class="description"><?php esc_html_e('You can use the <strong>[mepr_unauthorized_message]</strong> shortcode on this unauthorized page (assuming this url points to a page on this site).', 'memberpress'); ?></span>
           </div>
 
           <div>&nbsp;</div>
           <div id="mepr-unauthorized-show-excerpts">
-            <input type="checkbox" name="<?php echo $mepr_options->unauth_show_excerpts_str; ?>" id="<?php echo $mepr_options->unauth_show_excerpts_str; ?>" <?php checked($mepr_options->unauth_show_excerpts); ?> />
-            <label for="<?php echo $mepr_options->unauth_show_excerpts_str; ?>"><?php _e('Show an excerpt to unauthorized visitors', 'memberpress'); ?></label>
+            <input type="checkbox" name="<?php echo esc_attr($mepr_options->unauth_show_excerpts_str); ?>" id="<?php echo esc_attr($mepr_options->unauth_show_excerpts_str); ?>" <?php checked($mepr_options->unauth_show_excerpts); ?> />
+            <label for="<?php echo esc_attr($mepr_options->unauth_show_excerpts_str); ?>"><?php esc_html_e('Show an excerpt to unauthorized visitors', 'memberpress'); ?></label>
           </div>
 
           <div id="mepr-unauthorized-show-excerpts-type" class="mepr-options-sub-pane mepr-hidden">
@@ -188,13 +194,13 @@ defined('ABSPATH') || exit;
           </div>
           <div>&nbsp;</div>
           <div id="mepr-unauthorized-show-login">
-            <input type="checkbox" name="<?php echo $mepr_options->unauth_show_login_str; ?>" id="<?php echo $mepr_options->unauth_show_login_str; ?>" <?php checked($mepr_options->unauth_show_login); ?> />
-            <label for="<?php echo $mepr_options->unauth_show_login_str; ?>"><?php _e('Show a login form on pages containing unauthorized message', 'memberpress'); ?></label>
+            <input type="checkbox" name="<?php echo esc_attr($mepr_options->unauth_show_login_str); ?>" id="<?php echo esc_attr($mepr_options->unauth_show_login_str); ?>" <?php checked($mepr_options->unauth_show_login); ?> />
+            <label for="<?php echo esc_attr($mepr_options->unauth_show_login_str); ?>"><?php esc_html_e('Show a login form on pages containing unauthorized message', 'memberpress'); ?></label>
           </div>
 
           <br/>
           <div class="mepr-field-label">
-            <a href="" class="mp-toggle-unauthorized-message"><?php _e('Default Unauthorized Message:', 'memberpress'); ?></a>
+            <a href="" class="mp-toggle-unauthorized-message"><?php esc_html_e('Default Unauthorized Message:', 'memberpress'); ?></a>
               <?php MeprAppHelper::info_tooltip(
                   'mepr-default-unauthorized-message',
                   __('Default Unauthorized Message', 'memberpress'),
@@ -211,32 +217,32 @@ defined('ABSPATH') || exit;
 
     <div id="accounts" class="mepr-options-hidden-pane">
       <section id="mepr-section-permissions">
-        <h3><?php _e('Permissions:', 'memberpress'); ?></h3>
+        <h3><?php esc_html_e('Permissions:', 'memberpress'); ?></h3>
         <div class="mepr-options-pane">
           <div class="mp-row">
             <div id="mepr-option-disable-wp-admin-bar" class="mp-col-5">
-              <label for="<?php echo $mepr_options->disable_wp_admin_bar_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->disable_wp_admin_bar_str; ?>" id="<?php echo $mepr_options->disable_wp_admin_bar_str; ?>" <?php checked($mepr_options->disable_wp_admin_bar); ?> />
-                <span><?php _e('Disable the WordPress admin bar for members', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->disable_wp_admin_bar_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->disable_wp_admin_bar_str); ?>" id="<?php echo esc_attr($mepr_options->disable_wp_admin_bar_str); ?>" <?php checked($mepr_options->disable_wp_admin_bar); ?> />
+                <span><?php esc_html_e('Disable the WordPress admin bar for members', 'memberpress'); ?></span>
               </label>
             </div>
             <div id="mepr-option-lock-wp-admin" class="mp-col-5">
-              <label for="<?php echo $mepr_options->lock_wp_admin_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->lock_wp_admin_str; ?>" id="<?php echo $mepr_options->lock_wp_admin_str; ?>" <?php checked($mepr_options->lock_wp_admin); ?> />
-                <span><?php _e('Keep members out of the WordPress Dashboard', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->lock_wp_admin_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->lock_wp_admin_str); ?>" id="<?php echo esc_attr($mepr_options->lock_wp_admin_str); ?>" <?php checked($mepr_options->lock_wp_admin); ?> />
+                <span><?php esc_html_e('Keep members out of the WordPress Dashboard', 'memberpress'); ?></span>
               </label>
             </div>
             <div id="mepr-option-allow-cancel-subs" class="mp-col-5">
-              <label for="<?php echo $mepr_options->allow_cancel_subs_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->allow_cancel_subs_str; ?>" id="<?php echo $mepr_options->allow_cancel_subs_str; ?>" <?php checked($mepr_options->allow_cancel_subs); ?> />
-                <span><?php _e('Allow Members to Cancel their own subscriptions', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->allow_cancel_subs_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->allow_cancel_subs_str); ?>" id="<?php echo esc_attr($mepr_options->allow_cancel_subs_str); ?>" <?php checked($mepr_options->allow_cancel_subs); ?> />
+                <span><?php esc_html_e('Allow Members to Cancel their own subscriptions', 'memberpress'); ?></span>
               </label>
             </div>
             <div id="mepr-option-allow-suspend-subs" class="mp-col-5">
-              <label for="<?php echo $mepr_options->allow_suspend_subs_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->allow_suspend_subs_str; ?>" id="<?php echo $mepr_options->allow_suspend_subs_str; ?>" <?php checked($mepr_options->allow_suspend_subs); ?> />
+              <label for="<?php echo esc_attr($mepr_options->allow_suspend_subs_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->allow_suspend_subs_str); ?>" id="<?php echo esc_attr($mepr_options->allow_suspend_subs_str); ?>" <?php checked($mepr_options->allow_suspend_subs); ?> />
                 <span>
-                  <?php _e('Allow Members to Pause &amp; Resume their own subscriptions', 'memberpress'); ?>
+                  <?php esc_html_e('Allow Members to Pause &amp; Resume their own subscriptions', 'memberpress'); ?>
                 </span>
               </label>
               <?php MeprAppHelper::info_tooltip(
@@ -250,47 +256,47 @@ defined('ABSPATH') || exit;
       </section>
 
       <section id="mepr-section-registration">
-        <h3><?php _e('Registration:', 'memberpress'); ?></h3>
+        <h3><?php esc_html_e('Registration:', 'memberpress'); ?></h3>
         <div class="mepr-options-pane">
           <div class="mp-row">
             <div id="mepr-option-enforce-strong-password" class="mp-col-10">
-              <label for="<?php echo $mepr_options->enforce_strong_password_str; ?>"><?php _e('Password Strength Meter:', 'memberpress'); ?></label>
-              <select name="<?php echo $mepr_options->enforce_strong_password_str; ?>" id="<?php echo $mepr_options->enforce_strong_password_str; ?>">
-                <option value="0" <?php selected($mepr_options->enforce_strong_password, 0); ?>><?php _e('Hide', 'memberpress'); ?></option>
-                <option value="show" <?php selected($mepr_options->enforce_strong_password, 'show'); ?>><?php _e('Show', 'memberpress'); ?></option>
-                <option value="weak" <?php selected($mepr_options->enforce_strong_password, 'weak'); // Mapped as "Medium". ?>><?php _e('Show &amp; Require Medium Password or Stronger (Recommended)', 'memberpress'); ?></option>
-                <option value="medium" <?php selected($mepr_options->enforce_strong_password, 'medium'); // Mapped as "Strong". ?>><?php _e('Show &amp; Require Strong Password or Stronger', 'memberpress'); ?></option>
-                <option value="strong" <?php selected($mepr_options->enforce_strong_password, 'strong'); // Mapped as "Very Strong". ?>><?php _e('Show &amp; Require Very Strong Password', 'memberpress'); ?></option>
+              <label for="<?php echo esc_attr($mepr_options->enforce_strong_password_str); ?>"><?php esc_html_e('Password Strength Meter:', 'memberpress'); ?></label>
+              <select name="<?php echo esc_attr($mepr_options->enforce_strong_password_str); ?>" id="<?php echo esc_attr($mepr_options->enforce_strong_password_str); ?>">
+                <option value="0" <?php selected($mepr_options->enforce_strong_password, 0); ?>><?php esc_html_e('Hide', 'memberpress'); ?></option>
+                <option value="show" <?php selected($mepr_options->enforce_strong_password, 'show'); ?>><?php esc_html_e('Show', 'memberpress'); ?></option>
+                <option value="weak" <?php selected($mepr_options->enforce_strong_password, 'weak'); // Mapped as "Medium". ?>><?php esc_html_e('Show &amp; Require Medium Password or Stronger (Recommended)', 'memberpress'); ?></option>
+                <option value="medium" <?php selected($mepr_options->enforce_strong_password, 'medium'); // Mapped as "Strong". ?>><?php esc_html_e('Show &amp; Require Strong Password or Stronger', 'memberpress'); ?></option>
+                <option value="strong" <?php selected($mepr_options->enforce_strong_password, 'strong'); // Mapped as "Very Strong". ?>><?php esc_html_e('Show &amp; Require Very Strong Password', 'memberpress'); ?></option>
               </select>
             </div>
             <div id="mepr-option-disable-wp-registration-form" class="mp-col-5">
-              <label for="<?php echo $mepr_options->disable_wp_registration_form_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->disable_wp_registration_form_str; ?>" id="<?php echo $mepr_options->disable_wp_registration_form_str; ?>" <?php checked($mepr_options->disable_wp_registration_form); ?> />
-                <span><?php _e('Disable the standard WordPress registration form', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->disable_wp_registration_form_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->disable_wp_registration_form_str); ?>" id="<?php echo esc_attr($mepr_options->disable_wp_registration_form_str); ?>" <?php checked($mepr_options->disable_wp_registration_form); ?> />
+                <span><?php esc_html_e('Disable the standard WordPress registration form', 'memberpress'); ?></span>
               </label>
             </div>
             <div id="mepr-option-coupon-field-enabled" class="mp-col-5">
-              <label for="<?php echo $mepr_options->coupon_field_enabled_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->coupon_field_enabled_str; ?>" id="<?php echo $mepr_options->coupon_field_enabled_str; ?>" <?php checked($mepr_options->coupon_field_enabled); ?> />
-                <span><?php _e('Enable Coupon Field on membership registration forms', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->coupon_field_enabled_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->coupon_field_enabled_str); ?>" id="<?php echo esc_attr($mepr_options->coupon_field_enabled_str); ?>" <?php checked($mepr_options->coupon_field_enabled); ?> />
+                <span><?php esc_html_e('Enable Coupon Field on membership registration forms', 'memberpress'); ?></span>
               </label>
             </div>
             <div id="mepr-option-username-is-email" class="mp-col-5">
-              <label for="<?php echo $mepr_options->username_is_email_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->username_is_email_str; ?>" id="<?php echo $mepr_options->username_is_email_str; ?>" <?php checked($mepr_options->username_is_email); ?> />
-                <span><?php _e('Members must use their email address for their Username', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->username_is_email_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->username_is_email_str); ?>" id="<?php echo esc_attr($mepr_options->username_is_email_str); ?>" <?php checked($mepr_options->username_is_email); ?> />
+                <span><?php esc_html_e('Members must use their email address for their Username', 'memberpress'); ?></span>
               </label>
             </div>
             <div id="mepr-option-pro-rated-upgrades" class="mp-col-5">
-              <label for="<?php echo $mepr_options->pro_rated_upgrades_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->pro_rated_upgrades_str; ?>" id="<?php echo $mepr_options->pro_rated_upgrades_str; ?>" <?php checked($mepr_options->pro_rated_upgrades); ?> />
-                <span><?php _e('Pro-rate subscription prices when a member upgrades', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->pro_rated_upgrades_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->pro_rated_upgrades_str); ?>" id="<?php echo esc_attr($mepr_options->pro_rated_upgrades_str); ?>" <?php checked($mepr_options->pro_rated_upgrades); ?> />
+                <span><?php esc_html_e('Pro-rate subscription prices when a member upgrades', 'memberpress'); ?></span>
               </label>
             </div>
             <div id="mepr-option-disable-grace-init-days" class="mp-col-5">
-              <label for="<?php echo $mepr_options->disable_grace_init_days_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->disable_grace_init_days_str; ?>" id="<?php echo $mepr_options->disable_grace_init_days_str; ?>" <?php checked($mepr_options->disable_grace_init_days); ?> />
-                <span><?php _e('Disable the 1 day grace period after signup', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->disable_grace_init_days_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->disable_grace_init_days_str); ?>" id="<?php echo esc_attr($mepr_options->disable_grace_init_days_str); ?>" <?php checked($mepr_options->disable_grace_init_days); ?> />
+                <span><?php esc_html_e('Disable the 1 day grace period after signup', 'memberpress'); ?></span>
               </label>
               <?php MeprAppHelper::info_tooltip(
                   'mepr-disable-init-grace-days',
@@ -299,9 +305,9 @@ defined('ABSPATH') || exit;
               ); ?>
             </div>
             <div id="mepr-option-disable-checkout-password-fields" class="mp-col-5">
-              <label for="<?php echo $mepr_options->disable_checkout_password_fields_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->disable_checkout_password_fields_str; ?>" id="<?php echo $mepr_options->disable_checkout_password_fields_str; ?>" <?php checked($mepr_options->disable_checkout_password_fields); ?> />
-                <span><?php _e('Disable Password Fields on membership registration forms', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->disable_checkout_password_fields_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->disable_checkout_password_fields_str); ?>" id="<?php echo esc_attr($mepr_options->disable_checkout_password_fields_str); ?>" <?php checked($mepr_options->disable_checkout_password_fields); ?> />
+                <span><?php esc_html_e('Disable Password Fields on membership registration forms', 'memberpress'); ?></span>
               </label>
               <?php MeprAppHelper::info_tooltip(
                   'mepr-disable-checkout-password-fields',
@@ -310,9 +316,9 @@ defined('ABSPATH') || exit;
               ); ?>
             </div>
             <div id="mepr-option-enable-spc" class="mp-col-5">
-              <label for="<?php echo $mepr_options->enable_spc_str; ?>">
-               <input type="checkbox" name="<?php echo $mepr_options->enable_spc_str; ?>" id="<?php echo $mepr_options->enable_spc_str; ?>" <?php checked($mepr_options->enable_spc); ?> />
-               <span><?php _e('Enable Single Page Checkout', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->enable_spc_str); ?>">
+               <input type="checkbox" name="<?php echo esc_attr($mepr_options->enable_spc_str); ?>" id="<?php echo esc_attr($mepr_options->enable_spc_str); ?>" <?php checked($mepr_options->enable_spc); ?> />
+               <span><?php esc_html_e('Enable Single Page Checkout', 'memberpress'); ?></span>
              </label>
              <?php MeprAppHelper::info_tooltip(
                  'mepr-enable-spc',
@@ -322,9 +328,9 @@ defined('ABSPATH') || exit;
                         ?>
             </div>
             <div id="mepr-option-enable-spc-invoice" class="mp-col-5">
-              <label for="<?php echo $mepr_options->enable_spc_invoice_str; ?>">
-               <input type="checkbox" name="<?php echo $mepr_options->enable_spc_invoice_str; ?>" id="<?php echo $mepr_options->enable_spc_invoice_str; ?>" <?php checked($mepr_options->enable_spc_invoice); ?> />
-               <span><?php _e('Enable Single Page Checkout Invoice', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->enable_spc_invoice_str); ?>">
+               <input type="checkbox" name="<?php echo esc_attr($mepr_options->enable_spc_invoice_str); ?>" id="<?php echo esc_attr($mepr_options->enable_spc_invoice_str); ?>" <?php checked($mepr_options->enable_spc_invoice); ?> />
+               <span><?php esc_html_e('Enable Single Page Checkout Invoice', 'memberpress'); ?></span>
              </label>
              <?php MeprAppHelper::info_tooltip(
                  'mepr-enable-spc-invoice',
@@ -333,10 +339,28 @@ defined('ABSPATH') || exit;
              );
                         ?>
             </div>
+            <div id="mepr-option-enable-math-captcha" class="mp-col-5">
+              <label for="<?php echo esc_attr($mepr_options->enable_math_captcha_str); ?>">
+                <input
+                  type="checkbox"
+                  name="<?php echo esc_attr($mepr_options->enable_math_captcha_str); ?>"
+                  id="<?php echo esc_attr($mepr_options->enable_math_captcha_str); ?>"
+                  <?php checked($mepr_options->enable_math_captcha); ?>
+                />
+                <span><?php esc_html_e('Enable Math Captcha', 'memberpress'); ?></span>
+              </label>
+                <?php
+                MeprAppHelper::info_tooltip(
+                    'mepr-enable-math-captcha',
+                    __('Enable Math Captcha', 'memberpress'),
+                    __('Enabling this will display a simple math challenge to protect forms.', 'memberpress')
+                );
+                ?>
+            </div>
             <div id="mepr-option-require-tos" class="mp-col-5">
-              <label for="<?php echo $mepr_options->require_tos_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->require_tos_str; ?>" id="<?php echo $mepr_options->require_tos_str; ?>" <?php checked($mepr_options->require_tos); ?> />
-                <span><?php _e('Require Terms of Service on membership registration forms', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->require_tos_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->require_tos_str); ?>" id="<?php echo esc_attr($mepr_options->require_tos_str); ?>" <?php checked($mepr_options->require_tos); ?> />
+                <span><?php esc_html_e('Require Terms of Service on membership registration forms', 'memberpress'); ?></span>
               </label>
             </div>
             <div class="mp-col-5">
@@ -345,40 +369,40 @@ defined('ABSPATH') || exit;
           <div id="mepr_tos_hidden" class="mepr-options-sub-pane mepr-hidden">
             <div class="mp-row">
               <div class="mp-col-3">
-                <label for="<?php echo $mepr_options->tos_url_str; ?>"><?php _e('URL to your Terms of Service page:', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->tos_url_str); ?>"><?php esc_html_e('URL to your Terms of Service page:', 'memberpress'); ?></label>
               </div>
               <div class="mp-col-4">
-                <input type="text" id="<?php echo $mepr_options->tos_url_str; ?>" name="<?php echo $mepr_options->tos_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->tos_url); ?>" />
+                <input type="text" id="<?php echo esc_attr($mepr_options->tos_url_str); ?>" name="<?php echo esc_attr($mepr_options->tos_url_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->tos_url)); ?>" />
               </div>
             </div>
             <div class="mp-row">
               <div class="mp-col-3">
-                <label for="<?php echo $mepr_options->tos_title_str; ?>"><?php _e('Terms of Service Checkbox Title:', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->tos_title_str); ?>"><?php esc_html_e('Terms of Service Checkbox Title:', 'memberpress'); ?></label>
               </div>
               <div class="mp-col-4">
-                <input type="text" id="<?php echo $mepr_options->tos_title_str; ?>" name="<?php echo $mepr_options->tos_title_str; ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->tos_title)); ?>" />
+                <input type="text" id="<?php echo esc_attr($mepr_options->tos_title_str); ?>" name="<?php echo esc_attr($mepr_options->tos_title_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->tos_title)); ?>" />
               </div>
             </div>
           </div>
           <div id="mepr-option-require-privacy-policy" class="mp-row">
             <div class="mp-col-10">
-              <label for="<?php echo $mepr_options->require_privacy_policy_str; ?>">
-                <input type="checkbox" name="<?php echo $mepr_options->require_privacy_policy_str; ?>" id="<?php echo $mepr_options->require_privacy_policy_str; ?>" <?php checked($mepr_options->require_privacy_policy); ?> />
-                <span><?php _e('Require Privacy Policy acceptance on membership registration forms', 'memberpress'); ?></span>
+              <label for="<?php echo esc_attr($mepr_options->require_privacy_policy_str); ?>">
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->require_privacy_policy_str); ?>" id="<?php echo esc_attr($mepr_options->require_privacy_policy_str); ?>" <?php checked($mepr_options->require_privacy_policy); ?> />
+                <span><?php esc_html_e('Require Privacy Policy acceptance on membership registration forms', 'memberpress'); ?></span>
               </label>
             </div>
           </div>
           <div id="mepr_privacy_hidden" class="mepr-options-sub-pane mepr-hidden">
             <div class="mp-row">
               <div class="mp-col-3">
-                <?php _e('Your Privacy Policy: ', 'memberpress'); ?>
+                <?php esc_html_e('Your Privacy Policy: ', 'memberpress'); ?>
               </div>
               <div class="mp-col-4">
                 <span>
                   <?php
                     $privacy_page_link = MeprAppHelper::privacy_policy_page_link();
                     if ($privacy_page_link) : ?>
-                    <a href="<?php echo $privacy_page_link; ?>"><?php echo $privacy_page_link; ?></a>
+                    <a href="<?php echo esc_url($privacy_page_link); ?>"><?php echo esc_url($privacy_page_link); ?></a>
                     <?php else : ?>
                         <?php
                         $privacy_link_text = sprintf(
@@ -395,7 +419,7 @@ defined('ABSPATH') || exit;
             </div>
             <div class="mp-row">
               <div class="mp-col-3">
-                <label for="<?php echo $mepr_options->privacy_policy_title_str; ?>"><?php _e('Privacy Policy Checkbox Title:', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->privacy_policy_title_str); ?>"><?php esc_html_e('Privacy Policy Checkbox Title:', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
                     $mepr_options->privacy_policy_title_str,
                     __('Privacy Policy Checkbox Title', 'memberpress'),
@@ -403,7 +427,7 @@ defined('ABSPATH') || exit;
                 ); ?>
               </div>
               <div class="mp-col-4">
-                <input type="text" id="<?php echo $mepr_options->privacy_policy_title_str; ?>" name="<?php echo $mepr_options->privacy_policy_title_str; ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->privacy_policy_title)); ?>" />
+                <input type="text" id="<?php echo esc_attr($mepr_options->privacy_policy_title_str); ?>" name="<?php echo esc_attr($mepr_options->privacy_policy_title_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->privacy_policy_title)); ?>" />
               </div>
             </div>
           </div>
@@ -411,12 +435,12 @@ defined('ABSPATH') || exit;
       </section>
 
       <section id="mepr-section-login-logout">
-        <h3><?php _e('Login & Logout:', 'memberpress'); ?></h3>
+        <h3><?php esc_html_e('Login & Logout:', 'memberpress'); ?></h3>
         <div class="mepr-options-pane">
           <div id="mepr-option-force-login-page-url">
-            <label for="<?php echo $mepr_options->force_login_page_url_str; ?>">
-              <input type="checkbox" name="<?php echo $mepr_options->force_login_page_url_str; ?>" id="<?php echo $mepr_options->force_login_page_url_str; ?>" <?php checked($mepr_options->force_login_page_url); ?> />
-              <span><?php _e('Use MemberPress login page URL', 'memberpress'); ?></span>
+            <label for="<?php echo esc_attr($mepr_options->force_login_page_url_str); ?>">
+              <input type="checkbox" name="<?php echo esc_attr($mepr_options->force_login_page_url_str); ?>" id="<?php echo esc_attr($mepr_options->force_login_page_url_str); ?>" <?php checked($mepr_options->force_login_page_url); ?> />
+              <span><?php esc_html_e('Use MemberPress login page URL', 'memberpress'); ?></span>
             </label>
             <?php MeprAppHelper::info_tooltip(
                 'mepr-force-login-page-url',
@@ -426,84 +450,84 @@ defined('ABSPATH') || exit;
             <br/><br/>
           </div>
           <div id="mepr-option-login-redirect-url">
-            <label for="<?php echo $mepr_options->login_redirect_url_str; ?>"><?php _e('URL to direct member to after login:', 'memberpress'); ?></label>&nbsp;&nbsp;&nbsp;
+            <label for="<?php echo esc_attr($mepr_options->login_redirect_url_str); ?>"><?php esc_html_e('URL to direct member to after login:', 'memberpress'); ?></label>&nbsp;&nbsp;&nbsp;
             <?php MeprAppHelper::info_tooltip(
                 'mepr-login-redirect-message',
                 __('Login Redirect URL', 'memberpress'),
                 __('For this to work you must have the Login page set in the MemberPress options. You can also override this option on a per-membership basis in the Advanced box when creating/editing a membership.', 'memberpress')
             ); ?>
-            <input type="text" id="<?php echo $mepr_options->login_redirect_url_str; ?>" name="<?php echo $mepr_options->login_redirect_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->login_redirect_url); ?>" /><br/><br/>
+            <input type="text" id="<?php echo esc_attr($mepr_options->login_redirect_url_str); ?>" name="<?php echo esc_attr($mepr_options->login_redirect_url_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->login_redirect_url)); ?>" /><br/><br/>
           </div>
           <div id="mepr-option-logout-redirect-url">
-            <label for="<?php echo $mepr_options->logout_redirect_url_str; ?>"><?php _e('URL to direct member to after logout:', 'memberpress'); ?></label>
+            <label for="<?php echo esc_attr($mepr_options->logout_redirect_url_str); ?>"><?php esc_html_e('URL to direct member to after logout:', 'memberpress'); ?></label>
             <?php MeprAppHelper::info_tooltip(
                 'mepr-logout-redirect-message',
                 __('Logout Redirect URL', 'memberpress'),
                 __('Set what URL you want the member to be taken to when they logout on your site. This setting applies to Administrators as well.', 'memberpress')
             ); ?>
-            <input type="text" id="<?php echo $mepr_options->logout_redirect_url_str; ?>" name="<?php echo $mepr_options->logout_redirect_url_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->logout_redirect_url); ?>" /><br/><br/>
+            <input type="text" id="<?php echo esc_attr($mepr_options->logout_redirect_url_str); ?>" name="<?php echo esc_attr($mepr_options->logout_redirect_url_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->logout_redirect_url)); ?>" /><br/><br/>
           </div>
         </div>
       </section>
 
       <section id="mepr-section-account-page-welcome-message">
-        <h3 class="mepr-field-label"><?php _e('Account Page Welcome Message', 'memberpress'); ?></h3>
+        <h3 class="mepr-field-label"><?php esc_html_e('Account Page Welcome Message', 'memberpress'); ?></h3>
         <div class="mepr-options-pane">
           <?php wp_editor($mepr_options->custom_message, $mepr_options->custom_message_str); ?>
-          <p class="description"><?php _e('This text will appear below the navigation on the Account Page.', 'memberpress'); ?></p>
+          <p class="description"><?php esc_html_e('This text will appear below the navigation on the Account Page.', 'memberpress'); ?></p>
         </div>
       </section>
       <?php MeprHooks::do_action('mepr_display_account_options'); ?>
     </div>
 
     <div id="fields" class="mepr-options-hidden-pane">
-    <h3><?php _e('Logged In Purchases:', 'memberpress'); ?></h3>
+    <h3><?php esc_html_e('Logged In Purchases:', 'memberpress'); ?></h3>
       <div class="mepr-options-pane">
-        <label for="<?php echo $mepr_options->show_fields_logged_in_purchases_str; ?>">
-          <input type="checkbox" name="<?php echo $mepr_options->show_fields_logged_in_purchases_str; ?>" id="<?php echo $mepr_options->show_fields_logged_in_purchases_str; ?>" <?php checked($mepr_options->show_fields_logged_in_purchases); ?>>
-          <span><?php _e('Show The Fields Below For Logged-in Purchases', 'memberpress'); ?></span>
+        <label for="<?php echo esc_attr($mepr_options->show_fields_logged_in_purchases_str); ?>">
+          <input type="checkbox" name="<?php echo esc_attr($mepr_options->show_fields_logged_in_purchases_str); ?>" id="<?php echo esc_attr($mepr_options->show_fields_logged_in_purchases_str); ?>" <?php checked($mepr_options->show_fields_logged_in_purchases); ?>>
+          <span><?php esc_html_e('Show The Fields Below For Logged-in Purchases', 'memberpress'); ?></span>
         </label>
       </div>
-      <h3><?php _e('Extended User Information Fields:', 'memberpress'); ?></h3>
+      <h3><?php esc_html_e('Extended User Information Fields:', 'memberpress'); ?></h3>
       <div class="mepr-options-pane">
         <div class="mp-row">
           <div class="mp-col-4">
-            <strong><?php _e('Name Fields:', 'memberpress'); ?></strong>
+            <strong><?php esc_html_e('Name Fields:', 'memberpress'); ?></strong>
           </div>
           <div class="mp-col-2">
             <label>
-              <input type="checkbox" name="<?php echo $mepr_options->show_fname_lname_str; ?>" id="<?php echo $mepr_options->show_fname_lname_str; ?>" <?php checked($mepr_options->show_fname_lname); ?> />
-              <span>&nbsp;<?php _e('Show', 'memberpress'); ?></span>
+              <input type="checkbox" name="<?php echo esc_attr($mepr_options->show_fname_lname_str); ?>" id="<?php echo esc_attr($mepr_options->show_fname_lname_str); ?>" <?php checked($mepr_options->show_fname_lname); ?> />
+              <span>&nbsp;<?php esc_html_e('Show', 'memberpress'); ?></span>
             </label>
           </div>
           <div class="mp-col-2">
             <label>
-              <input type="checkbox" name="<?php echo $mepr_options->require_fname_lname_str; ?>" id="<?php echo $mepr_options->require_fname_lname_str; ?>" <?php checked($mepr_options->require_fname_lname); ?> />
-              <span>&nbsp;<?php _e('Require', 'memberpress'); ?></span>
+              <input type="checkbox" name="<?php echo esc_attr($mepr_options->require_fname_lname_str); ?>" id="<?php echo esc_attr($mepr_options->require_fname_lname_str); ?>" <?php checked($mepr_options->require_fname_lname); ?> />
+              <span>&nbsp;<?php esc_html_e('Require', 'memberpress'); ?></span>
             </label>
           </div>
         </div>
         <div class="mp-row">
           <div class="mp-col-4">
-            <strong><?php _e('Address Fields:', 'memberpress'); ?></strong>
-            <span id="address-tax-info" class="mepr-hidden"><?php _e('(Required when taxes are enabled)', 'memberpress'); ?></span>
+            <strong><?php esc_html_e('Address Fields:', 'memberpress'); ?></strong>
+            <span id="address-tax-info" class="mepr-hidden"><?php esc_html_e('(Required when taxes are enabled)', 'memberpress'); ?></span>
           </div>
           <div class="mp-col-2">
             <label>
-              <input type="checkbox" name="<?php echo $mepr_options->show_address_fields_str; ?>" id="<?php echo $mepr_options->show_address_fields_str; ?>" <?php checked($mepr_options->show_address_fields); ?> />
-              <span>&nbsp;<?php _e('Show', 'memberpress'); ?></span>
+              <input type="checkbox" name="<?php echo esc_attr($mepr_options->show_address_fields_str); ?>" id="<?php echo esc_attr($mepr_options->show_address_fields_str); ?>" <?php checked($mepr_options->show_address_fields); ?> />
+              <span>&nbsp;<?php esc_html_e('Show', 'memberpress'); ?></span>
             </label>
           </div>
           <div class="mp-col-2">
             <label>
-              <input type="checkbox" name="<?php echo $mepr_options->require_address_fields_str; ?>" id="<?php echo $mepr_options->require_address_fields_str; ?>" <?php checked($mepr_options->require_address_fields); ?> />
-              <span>&nbsp;<?php _e('Require', 'memberpress'); ?></span>
+              <input type="checkbox" name="<?php echo esc_attr($mepr_options->require_address_fields_str); ?>" id="<?php echo esc_attr($mepr_options->require_address_fields_str); ?>" <?php checked($mepr_options->require_address_fields); ?> />
+              <span>&nbsp;<?php esc_html_e('Require', 'memberpress'); ?></span>
             </label>
           </div>
         </div>
       </div>
       <h3>
-        <?php _e('Custom User Information Fields:', 'memberpress'); ?>
+        <?php esc_html_e('Custom User Information Fields:', 'memberpress'); ?>
         <?php MeprAppHelper::info_tooltip(
             'mepr-custom-fields',
             __('Custom User Information Fields', 'memberpress'),
@@ -512,13 +536,13 @@ defined('ABSPATH') || exit;
       </h3>
       <ol id="custom_profile_fields">
         <?php MeprOptionsHelper::show_existing_custom_fields(); ?>
-        <a href="" id="mepr-add-new-custom-field" title="<?php _e('Add new Custom Field', 'memberpress'); ?>"><i class="mp-icon mp-icon-plus-circled mp-24"></i></a>
+        <a href="" id="mepr-add-new-custom-field" title="<?php esc_attr_e('Add new Custom Field', 'memberpress'); ?>"><i class="mp-icon mp-icon-plus-circled mp-24"></i></a>
       </ol>
       <br/>
     </div>
 
     <div id="integration" class="mepr-options-hidden-pane">
-      <h3><?php _e('Payment Methods', 'memberpress'); ?></h3>
+      <h3><?php esc_html_e('Payment Methods', 'memberpress'); ?></h3>
       <div id="integrations-list">
         <?php
         $objs      = $mepr_options->payment_methods(true, true);
@@ -532,16 +556,16 @@ defined('ABSPATH') || exit;
         ?>
       </div>
       <?php if ($no_method) { ?>
-        <p><?php _e('A gateway is required to accept payments.Click the (+) below to add your first payment gateway.', 'memberpress'); ?></p>
+        <p><?php esc_html_e('A gateway is required to accept payments.Click the (+) below to add your first payment gateway.', 'memberpress'); ?></p>
       <?php } ?>
-      <a href="" id="mepr-add-integration" title="<?php _e('Add a Payment Method', 'memberpress'); ?>"><i class="mp-icon mp-icon-plus-circled mp-24"></i> <?php _e('Add Payment Method', 'memberpress'); ?></a>
+      <a href="" id="mepr-add-integration" title="<?php esc_attr_e('Add a Payment Method', 'memberpress'); ?>"><i class="mp-icon mp-icon-plus-circled mp-24"></i> <?php esc_html_e('Add Payment Method', 'memberpress'); ?></a>
       <?php unset($objs['free']);
         unset($objs['manual']); ?>
       <div id="no_saved_pms" data-value="<?php echo (empty($objs)) ? 'true' : 'false'; ?>"></div>
     </div>
 
     <div id="emails" class="mepr-options-hidden-pane">
-      <h3><?php _e('Member Notices', 'memberpress'); ?>
+      <h3><?php esc_html_e('Member Notices', 'memberpress'); ?>
           <?php MeprAppHelper::info_tooltip(
               'mepr-member-notices',
               __('Member Notices', 'memberpress'),
@@ -551,7 +575,7 @@ defined('ABSPATH') || exit;
       <div class="mepr-options-pane">
         <?php MeprAppHelper::display_emails('MeprBaseOptionsUserEmail'); ?>
       </div>
-      <h3><?php _e('Admin Emails &amp; Notices', 'memberpress'); ?>
+      <h3><?php esc_html_e('Admin Emails &amp; Notices', 'memberpress'); ?>
           <?php MeprAppHelper::info_tooltip(
               'mepr-member-notices',
               __('Admin Notices', 'memberpress'),
@@ -559,59 +583,59 @@ defined('ABSPATH') || exit;
           ); ?>
       </h3>
       <div class="mepr-options-pane">
-        <label for="<?php echo $mepr_options->admin_email_addresses_str; ?>"><?php _e('Admin Email Addresses:', 'memberpress'); ?>
+        <label for="<?php echo esc_attr($mepr_options->admin_email_addresses_str); ?>"><?php esc_html_e('Admin Email Addresses:', 'memberpress'); ?>
           <?php MeprAppHelper::info_tooltip(
               'mepr-admin-email-addresses',
               __('Notification Email Addresses', 'memberpress'),
               __('This is a comma separated list of email addresses that will receive admin notifications. This defaults to your admin email set in "Settings" -> "General" -> "E-mail Address"', 'memberpress')
           ); ?>
         </label>
-        <input type="text" id="<?php echo $mepr_options->admin_email_addresses_str; ?>" name="<?php echo $mepr_options->admin_email_addresses_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->admin_email_addresses); ?>" />
+        <input type="text" id="<?php echo esc_attr($mepr_options->admin_email_addresses_str); ?>" name="<?php echo esc_attr($mepr_options->admin_email_addresses_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->admin_email_addresses)); ?>" />
       </div>
       <div class="mepr-options-pane">
         <?php MeprAppHelper::display_emails('MeprBaseOptionsAdminEmail'); ?>
       </div>
-      <h3><?php _e('Privacy Settings', 'memberpress'); ?></h3>
+      <h3><?php esc_html_e('Privacy Settings', 'memberpress'); ?></h3>
       <div class="mepr-options-pane">
-        <input type="checkbox" name="<?php echo $mepr_options->include_email_privacy_link_str; ?>" id="<?php echo $mepr_options->include_email_privacy_link_str; ?>" <?php checked($mepr_options->include_email_privacy_link); ?> />
-        <label for="<?php echo $mepr_options->include_email_privacy_link_str; ?>"><?php _e('Include Privacy Policy link', 'memberpress'); ?></label>
+        <input type="checkbox" name="<?php echo esc_attr($mepr_options->include_email_privacy_link_str); ?>" id="<?php echo esc_attr($mepr_options->include_email_privacy_link_str); ?>" <?php checked($mepr_options->include_email_privacy_link); ?> />
+        <label for="<?php echo esc_attr($mepr_options->include_email_privacy_link_str); ?>"><?php esc_html_e('Include Privacy Policy link', 'memberpress'); ?></label>
         <?php MeprAppHelper::info_tooltip(
             $mepr_options->include_email_privacy_link_str,
             __('Privacy Policy Link', 'memberpress'),
             __("When this option is checked, a link to your site's Privacy Policy page will be included in all email communication.", 'memberpress')
         ); ?>
       </div>
-      <h3><?php _e('Send Mail From', 'memberpress'); ?></h3>
+      <h3><?php esc_html_e('Send Mail From', 'memberpress'); ?></h3>
       <div class="mepr-options-pane">
-        <label for="<?php echo $mepr_options->mail_send_from_name_str; ?>"><?php _e('From Name:', 'memberpress'); ?></label>
-        <input type="text" id="<?php echo $mepr_options->mail_send_from_name_str; ?>" name="<?php echo $mepr_options->mail_send_from_name_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->mail_send_from_name); ?>" />
+        <label for="<?php echo esc_attr($mepr_options->mail_send_from_name_str); ?>"><?php esc_html_e('From Name:', 'memberpress'); ?></label>
+        <input type="text" id="<?php echo esc_attr($mepr_options->mail_send_from_name_str); ?>" name="<?php echo esc_attr($mepr_options->mail_send_from_name_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->mail_send_from_name)); ?>" />
         <br/>
-        <label for="<?php echo $mepr_options->mail_send_from_email_str; ?>"><?php _e('From Email:', 'memberpress'); ?>&nbsp;</label>
-        <input type="text" id="<?php echo $mepr_options->mail_send_from_email_str; ?>" name="<?php echo $mepr_options->mail_send_from_email_str; ?>" class="regular-text" value="<?php echo stripslashes($mepr_options->mail_send_from_email); ?>" />
+        <label for="<?php echo esc_attr($mepr_options->mail_send_from_email_str); ?>"><?php esc_html_e('From Email:', 'memberpress'); ?>&nbsp;</label>
+        <input type="text" id="<?php echo esc_attr($mepr_options->mail_send_from_email_str); ?>" name="<?php echo esc_attr($mepr_options->mail_send_from_email_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->mail_send_from_email)); ?>" />
       </div>
       <?php MeprHooks::do_action('mepr_display_emails_options'); ?>
     </div>
 
     <div id="marketing" class="mepr-options-hidden-pane">
-      <h3><?php _e('Settings', 'memberpress'); ?></h3>
+      <h3><?php esc_html_e('Settings', 'memberpress'); ?></h3>
       <div class="mepr-options-pane">
-        <input type="checkbox" name="<?php echo $mepr_options->disable_global_autoresponder_list_str; ?>" id="<?php echo $mepr_options->disable_global_autoresponder_list_str; ?>" <?php checked($mepr_options->disable_global_autoresponder_list); ?> />
-        <label for="<?php echo $mepr_options->disable_global_autoresponder_list_str; ?>"><?php _e('Disable global auto-responder lists', 'memberpress'); ?></label>
+        <input type="checkbox" name="<?php echo esc_attr($mepr_options->disable_global_autoresponder_list_str); ?>" id="<?php echo esc_attr($mepr_options->disable_global_autoresponder_list_str); ?>" <?php checked($mepr_options->disable_global_autoresponder_list); ?> />
+        <label for="<?php echo esc_attr($mepr_options->disable_global_autoresponder_list_str); ?>"><?php esc_html_e('Disable global auto-responder lists', 'memberpress'); ?></label>
         <?php MeprAppHelper::info_tooltip(
             'mepr-disable-global-autoresponder-list',
             __('Disable global auto-responder lists', 'memberpress'),
             __("When this option is checked, and a membership has its own auto-responder list set under its Advanced tab. The global list you set on this page will be disabled on that membership page. The member will only be added to the membership's list, and not the global list in this case.", 'memberpress')
         ); ?>
         <br/><br/>
-        <input type="checkbox" name="<?php echo $mepr_options->opt_in_checked_by_default_str; ?>" id="<?php echo $mepr_options->opt_in_checked_by_default_str; ?>" <?php checked($mepr_options->opt_in_checked_by_default); ?> />
-        <label for="<?php echo $mepr_options->opt_in_checked_by_default_str; ?>"><?php _e('Opt-in box checked by default', 'memberpress'); ?></label>
+        <input type="checkbox" name="<?php echo esc_attr($mepr_options->opt_in_checked_by_default_str); ?>" id="<?php echo esc_attr($mepr_options->opt_in_checked_by_default_str); ?>" <?php checked($mepr_options->opt_in_checked_by_default); ?> />
+        <label for="<?php echo esc_attr($mepr_options->opt_in_checked_by_default_str); ?>"><?php esc_html_e('Opt-in box checked by default', 'memberpress'); ?></label>
         <?php MeprAppHelper::info_tooltip(
             'mepr-opt-in-checked-by-default',
             __('Opt-in checkbox initial value', 'memberpress'),
             __('Use this option to set whether the opt-in checkbox shown at signup should be checked or unchecked by default. When enabled, the checkbox will be checked by default.', 'memberpress')
         ); ?>
       </div>
-      <h3><?php _e('Enable/Disable Integrations', 'memberpress'); ?></h3>
+      <h3><?php esc_html_e('Enable/Disable Integrations', 'memberpress'); ?></h3>
       <div class="mepr-options-pane">
         <?php MeprHooks::do_action('mepr_display_autoresponders'); ?>
       </div>
@@ -620,7 +644,7 @@ defined('ABSPATH') || exit;
 
     <div id="info" class="mepr-options-hidden-pane">
       <h3>
-        <?php _e('Merchant Business Address', 'memberpress'); ?>
+        <?php esc_html_e('Merchant Business Address', 'memberpress'); ?>
         <?php MeprAppHelper::info_tooltip(
             'mepr-business-address',
             __('Merchant Business Address', 'memberpress'),
@@ -631,58 +655,58 @@ defined('ABSPATH') || exit;
         <tbody>
           <tr valign="top">
             <th scope="row">
-              <label for="<?php echo $mepr_options->attr_slug('biz_name'); ?>"><?php _e('Business Name*', 'memberpress'); ?></label>
+              <label for="<?php echo esc_attr($mepr_options->attr_slug('biz_name')); ?>"><?php esc_html_e('Business Name*', 'memberpress'); ?></label>
             </th>
             <td>
-              <input type="text" class="regular-text" name="<?php echo $mepr_options->attr_slug('biz_name'); ?>" value="<?php echo $mepr_options->attr('biz_name'); ?>" />
+              <input type="text" class="regular-text" name="<?php echo esc_attr($mepr_options->attr_slug('biz_name')); ?>" value="<?php echo esc_attr($mepr_options->attr('biz_name')); ?>" />
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="<?php echo $mepr_options->attr_slug('biz_address1'); ?>"><?php _e('Address Line 1*', 'memberpress'); ?></label>
+              <label for="<?php echo esc_attr($mepr_options->attr_slug('biz_address1')); ?>"><?php esc_html_e('Address Line 1*', 'memberpress'); ?></label>
             </th>
             <td>
-              <input type="text" class="regular-text" name="<?php echo $mepr_options->attr_slug('biz_address1'); ?>" value="<?php echo $mepr_options->attr('biz_address1'); ?>" />
+              <input type="text" class="regular-text" name="<?php echo esc_attr($mepr_options->attr_slug('biz_address1')); ?>" value="<?php echo esc_attr($mepr_options->attr('biz_address1')); ?>" />
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="<?php echo $mepr_options->attr_slug('biz_address2'); ?>"><?php _e('Address Line 2', 'memberpress'); ?></label>
+              <label for="<?php echo esc_attr($mepr_options->attr_slug('biz_address2')); ?>"><?php esc_html_e('Address Line 2', 'memberpress'); ?></label>
             </th>
             <td>
-              <input type="text" class="regular-text" name="<?php echo $mepr_options->attr_slug('biz_address2'); ?>" value="<?php echo $mepr_options->attr('biz_address2'); ?>" />
+              <input type="text" class="regular-text" name="<?php echo esc_attr($mepr_options->attr_slug('biz_address2')); ?>" value="<?php echo esc_attr($mepr_options->attr('biz_address2')); ?>" />
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="<?php echo $mepr_options->attr_slug('biz_city'); ?>"><?php _e('City*', 'memberpress'); ?></label>
+              <label for="<?php echo esc_attr($mepr_options->attr_slug('biz_city')); ?>"><?php esc_html_e('City*', 'memberpress'); ?></label>
             </th>
             <td>
-              <input type="text" class="regular-text" name="<?php echo $mepr_options->attr_slug('biz_city'); ?>" value="<?php echo $mepr_options->attr('biz_city'); ?>" />
+              <input type="text" class="regular-text" name="<?php echo esc_attr($mepr_options->attr_slug('biz_city')); ?>" value="<?php echo esc_attr($mepr_options->attr('biz_city')); ?>" />
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="<?php echo $mepr_options->attr_slug('biz_country'); ?>"><?php _e('Country*', 'memberpress'); ?></label>
+              <label for="<?php echo esc_attr($mepr_options->attr_slug('biz_country')); ?>"><?php esc_html_e('Country*', 'memberpress'); ?></label>
             </th>
             <td>
-              <?php echo MeprAppHelper::countries_dropdown($mepr_options->attr_slug('biz_country'), $mepr_options->attr('biz_country'), 'regular-text', '', false); ?>
+              <?php echo MeprAppHelper::countries_dropdown($mepr_options->attr_slug('biz_country'), $mepr_options->attr('biz_country'), 'regular-text', '', false); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="<?php echo $mepr_options->attr_slug('biz_state'); ?>"><?php _e('State*', 'memberpress'); ?></label>
+              <label for="<?php echo esc_attr($mepr_options->attr_slug('biz_state')); ?>"><?php esc_html_e('State*', 'memberpress'); ?></label>
             </th>
             <td>
-              <input type="text" class="regular-text" name="<?php echo $mepr_options->attr_slug('biz_state'); ?>" value="<?php echo $mepr_options->attr('biz_state'); ?>" />
+              <input type="text" class="regular-text" name="<?php echo esc_attr($mepr_options->attr_slug('biz_state')); ?>" value="<?php echo esc_attr($mepr_options->attr('biz_state')); ?>" />
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="<?php echo $mepr_options->attr_slug('biz_postcode'); ?>"><?php _e('Postcode*', 'memberpress'); ?></label>
+              <label for="<?php echo esc_attr($mepr_options->attr_slug('biz_postcode')); ?>"><?php esc_html_e('Postcode*', 'memberpress'); ?></label>
             </th>
             <td>
-              <input type="text" class="regular-text" name="<?php echo $mepr_options->attr_slug('biz_postcode'); ?>" value="<?php echo $mepr_options->attr('biz_postcode'); ?>" />
+              <input type="text" class="regular-text" name="<?php echo esc_attr($mepr_options->attr_slug('biz_postcode')); ?>" value="<?php echo esc_attr($mepr_options->attr('biz_postcode')); ?>" />
             </td>
           </tr>
         </tbody>
@@ -692,12 +716,12 @@ defined('ABSPATH') || exit;
 
     <div id="general" class="mepr-options-hidden-pane">
       <section id="mepr-section-internationalization">
-        <h3><?php _e('Internationalization', 'memberpress'); ?></h3>
+        <h3><?php esc_html_e('Internationalization', 'memberpress'); ?></h3>
         <table class="form-table">
           <tbody>
             <tr id="mepr-option-language-code" valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->language_code_str; ?>"><?php _e('Language Code:', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->language_code_str); ?>"><?php esc_html_e('Language Code:', 'memberpress'); ?></label>
               </th>
               <td>
                 <?php MeprOptionsHelper::payment_language_code_dropdown($mepr_options->language_code_str, $mepr_options->language_code); ?>
@@ -705,7 +729,7 @@ defined('ABSPATH') || exit;
             </tr>
             <tr id="mepr-option-currency-code" valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->currency_code_str; ?>"><?php _e('Currency Code:', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->currency_code_str); ?>"><?php esc_html_e('Currency Code:', 'memberpress'); ?></label>
               </th>
               <td>
                 <?php MeprOptionsHelper::payment_currency_code_dropdown($mepr_options->currency_code_str, $mepr_options->currency_code); ?>
@@ -713,7 +737,7 @@ defined('ABSPATH') || exit;
             </tr>
             <tr id="currency-symbol" valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->currency_symbol_str; ?>"><?php _e('Currency Symbol:', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->currency_symbol_str); ?>"><?php esc_html_e('Currency Symbol:', 'memberpress'); ?></label>
               </th>
               <td>
                 <?php MeprOptionsHelper::payment_currencies_dropdown($mepr_options->currency_symbol_str, $mepr_options->currency_symbol); ?>
@@ -721,7 +745,7 @@ defined('ABSPATH') || exit;
             </tr>
             <tr id="mepr-option-currency-symbol-after" valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->currency_symbol_after_str; ?>"><?php _e('Symbol After Amount', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->currency_symbol_after_str); ?>"><?php esc_html_e('Symbol After Amount', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
                     'mepr-currency-symbol-after',
                     __('Display Currency Symbol After Amount', 'memberpress'),
@@ -729,7 +753,7 @@ defined('ABSPATH') || exit;
                 ); ?>
               </th>
               <td>
-                <input type="checkbox" name="<?php echo $mepr_options->currency_symbol_after_str; ?>" id="<?php echo $mepr_options->currency_symbol_after_str; ?>" <?php checked($mepr_options->currency_symbol_after); ?> />
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->currency_symbol_after_str); ?>" id="<?php echo esc_attr($mepr_options->currency_symbol_after_str); ?>" <?php checked($mepr_options->currency_symbol_after); ?> />
               </td>
             </tr>
           </tbody>
@@ -738,12 +762,12 @@ defined('ABSPATH') || exit;
       </section>
 
       <section id="mepr-section-theme-compatibility">
-        <h3><?php _e('Theme Compatibility', 'memberpress'); ?></h3>
+        <h3><?php esc_html_e('Theme Compatibility', 'memberpress'); ?></h3>
         <table class="form-table">
           <tbody>
             <tr id="mepr-option-global-styles" valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->global_styles_str; ?>"><?php _e('Global CSS Styles', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->global_styles_str); ?>"><?php esc_html_e('Global CSS Styles', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
                     'mepr-global-styles',
                     __('Load all of MemberPress\'s CSS Styles on Each Page', 'memberpress'),
@@ -751,7 +775,7 @@ defined('ABSPATH') || exit;
                 ); ?>
               </th>
               <td>
-                <input type="checkbox" name="<?php echo $mepr_options->global_styles_str; ?>" id="<?php echo $mepr_options->global_styles_str; ?>" <?php checked($mepr_options->global_styles); ?> />
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->global_styles_str); ?>" id="<?php echo esc_attr($mepr_options->global_styles_str); ?>" <?php checked($mepr_options->global_styles); ?> />
               </td>
             </tr>
           </tbody>
@@ -760,12 +784,12 @@ defined('ABSPATH') || exit;
       </section>
 
       <section id="mepr-section-seo-paywall">
-        <h3><?php _e('SEO & PayWall', 'memberpress'); ?></h3>
+        <h3><?php esc_html_e('SEO & PayWall', 'memberpress'); ?></h3>
         <table id="mepr-option-authorize-seo-views" class="form-table">
           <tbody>
             <tr valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->authorize_seo_views_str; ?>"><?php _e('Authorize Search Engines', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->authorize_seo_views_str); ?>"><?php esc_html_e('Authorize Search Engines', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
                     'mepr-authorize-seo-views',
                     __('Treat popular search engines as authorized members?', 'memberpress'),
@@ -773,7 +797,7 @@ defined('ABSPATH') || exit;
                 ); ?>
               </th>
               <td>
-                <input type="checkbox" name="<?php echo $mepr_options->authorize_seo_views_str; ?>" id="<?php echo $mepr_options->authorize_seo_views_str; ?>" <?php checked($mepr_options->authorize_seo_views); ?> />
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->authorize_seo_views_str); ?>" id="<?php echo esc_attr($mepr_options->authorize_seo_views_str); ?>" <?php checked($mepr_options->authorize_seo_views); ?> />
               </td>
             </tr>
           </tbody>
@@ -784,7 +808,7 @@ defined('ABSPATH') || exit;
             <tbody>
               <tr valign="top">
                 <th scope="row">
-                  <label for="<?php echo $mepr_options->seo_unauthorized_noindex_str; ?>"><?php _e('Block Search Engines', 'memberpress'); ?></label>
+                  <label for="<?php echo esc_attr($mepr_options->seo_unauthorized_noindex_str); ?>"><?php esc_html_e('Block Search Engines', 'memberpress'); ?></label>
                   <?php MeprAppHelper::info_tooltip(
                       'mepr-seo-unauthorized-noindex',
                       __('Ask search engines to not index protected content?', 'memberpress'),
@@ -792,7 +816,7 @@ defined('ABSPATH') || exit;
                   ); ?>
                 </th>
                 <td>
-                  <input type="checkbox" name="<?php echo $mepr_options->seo_unauthorized_noindex_str; ?>" id="<?php echo $mepr_options->seo_unauthorized_noindex_str; ?>" <?php checked($mepr_options->seo_unauthorized_noindex); ?> />
+                  <input type="checkbox" name="<?php echo esc_attr($mepr_options->seo_unauthorized_noindex_str); ?>" id="<?php echo esc_attr($mepr_options->seo_unauthorized_noindex_str); ?>" <?php checked($mepr_options->seo_unauthorized_noindex); ?> />
                 </td>
               </tr>
             </tbody>
@@ -803,7 +827,7 @@ defined('ABSPATH') || exit;
           <tbody>
             <tr valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->paywall_enabled_str; ?>"><?php _e('Enable PayWall', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->paywall_enabled_str); ?>"><?php esc_html_e('Enable PayWall', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
                     'mepr-paywall-enabled',
                     __('Enable PayWall', 'memberpress'),
@@ -811,7 +835,7 @@ defined('ABSPATH') || exit;
                 ); ?>
               </th>
               <td>
-                <input type="checkbox" name="<?php echo $mepr_options->paywall_enabled_str; ?>" id="<?php echo $mepr_options->paywall_enabled_str; ?>" <?php checked($mepr_options->paywall_enabled); ?> />
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->paywall_enabled_str); ?>" id="<?php echo esc_attr($mepr_options->paywall_enabled_str); ?>" <?php checked($mepr_options->paywall_enabled); ?> />
               </td>
             </tr>
           </tbody>
@@ -823,7 +847,7 @@ defined('ABSPATH') || exit;
             <tbody>
               <tr valign="top">
                 <th scope="row">
-                  <label for="<?php echo $mepr_options->paywall_num_free_views_str; ?>"><?php _e('# Free Views', 'memberpress'); ?></label>
+                  <label for="<?php echo esc_attr($mepr_options->paywall_num_free_views_str); ?>"><?php esc_html_e('# Free Views', 'memberpress'); ?></label>
                   <?php MeprAppHelper::info_tooltip(
                       'mepr-num-unauthorized-views',
                       __('Number of Free Views per Guest', 'memberpress'),
@@ -831,7 +855,7 @@ defined('ABSPATH') || exit;
                   ); ?>
                 </th>
                 <td>
-                  <input type="text" size="2" name="<?php echo $mepr_options->paywall_num_free_views_str; ?>" id="<?php echo $mepr_options->paywall_num_free_views_str; ?>" value="<?php echo (int)$mepr_options->paywall_num_free_views; ?>" />
+                  <input type="text" size="2" name="<?php echo esc_attr($mepr_options->paywall_num_free_views_str); ?>" id="<?php echo esc_attr($mepr_options->paywall_num_free_views_str); ?>" value="<?php echo (int)$mepr_options->paywall_num_free_views; ?>" />
                 </td>
               </tr>
             </tbody>
@@ -841,12 +865,12 @@ defined('ABSPATH') || exit;
       </section>
 
       <section id="mepr-section-weekly-summary-email">
-        <h3><?php _e('Weekly Summary Email', 'memberpress'); ?></h3>
+        <h3><?php esc_html_e('Weekly Summary Email', 'memberpress'); ?></h3>
         <table class="form-table">
           <tbody>
             <tr valign="top">
               <th scope="row">
-                <label for="<?php echo esc_attr($mepr_options->disable_summary_email_str); ?>"><?php _e('Disable Weekly Summary Email', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->disable_summary_email_str); ?>"><?php esc_html_e('Disable Weekly Summary Email', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
                     $mepr_options->disable_summary_email_str,
                     __('Disable Weekly Summary Email', 'memberpress'),
@@ -863,12 +887,12 @@ defined('ABSPATH') || exit;
       </section>
 
       <section id="mepr-section-rewrite-rules">
-        <h3><?php _e('Rewrite Rules', 'memberpress'); ?></h3>
+        <h3><?php esc_html_e('Rewrite Rules', 'memberpress'); ?></h3>
         <table class="form-table">
           <tbody>
             <tr valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->disable_mod_rewrite_str; ?>"><?php _e('Disable Rewrite Rules', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->disable_mod_rewrite_str); ?>"><?php esc_html_e('Disable Rewrite Rules', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
                     'mepr-disable-mod-rewrite',
                     __('Disable mod_rewrite (.htaccess) Rules', 'memberpress'),
@@ -876,7 +900,7 @@ defined('ABSPATH') || exit;
                 ); ?>
               </th>
               <td>
-                <input type="checkbox" name="<?php echo $mepr_options->disable_mod_rewrite_str; ?>" id="<?php echo $mepr_options->disable_mod_rewrite_str; ?>" <?php checked($mepr_options->disable_mod_rewrite); ?> />
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->disable_mod_rewrite_str); ?>" id="<?php echo esc_attr($mepr_options->disable_mod_rewrite_str); ?>" <?php checked($mepr_options->disable_mod_rewrite); ?> />
               </td>
             </tr>
           </tbody>
@@ -890,7 +914,7 @@ defined('ABSPATH') || exit;
           <tbody>
             <tr valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>"><?php esc_html_e('Hide MemberPress Menu in Admin Bar', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->hide_admin_bar_menu_str); ?>"><?php esc_html_e('Hide MemberPress Menu in Admin Bar', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
                     'mepr-hide-mp-top-menu',
                     esc_html__('Hide MemberPress Menu in Admin Bar', 'memberpress'),
@@ -898,12 +922,12 @@ defined('ABSPATH') || exit;
                 ); ?>
               </th>
               <td>
-                <input type="checkbox" name="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" id="<?php echo $mepr_options->hide_admin_bar_menu_str; ?>" <?php checked($mepr_options->hide_admin_bar_menu); ?> />
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->hide_admin_bar_menu_str); ?>" id="<?php echo esc_attr($mepr_options->hide_admin_bar_menu_str); ?>" <?php checked($mepr_options->hide_admin_bar_menu); ?> />
               </td>
             </tr>
             <tr valign="top">
               <th scope="row">
-                <label for="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>"><?php esc_html_e('Enable WP Rest API search discovery protection', 'memberpress'); ?></label>
+                <label for="<?php echo esc_attr($mepr_options->enable_wp_rest_api_protection_str); ?>"><?php esc_html_e('Enable WP Rest API search discovery protection', 'memberpress'); ?></label>
                 <?php MeprAppHelper::info_tooltip(
                     'mepr-enable-wp-rest-api-protection',
                     esc_html__('Enable WP Rest API search discovery protection', 'memberpress'),
@@ -911,7 +935,7 @@ defined('ABSPATH') || exit;
                 ); ?>
               </th>
               <td>
-                <input type="checkbox" name="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>" id="<?php echo $mepr_options->enable_wp_rest_api_protection_str; ?>" <?php checked($mepr_options->enable_wp_rest_api_protection); ?> />
+                <input type="checkbox" name="<?php echo esc_attr($mepr_options->enable_wp_rest_api_protection_str); ?>" id="<?php echo esc_attr($mepr_options->enable_wp_rest_api_protection_str); ?>" <?php checked($mepr_options->enable_wp_rest_api_protection); ?> />
               </td>
             </tr>
           </tbody>
@@ -925,7 +949,7 @@ defined('ABSPATH') || exit;
     <?php MeprHooks::do_action('mepr_display_options'); ?>
 
     <p class="submit">
-      <input type="submit" class="button button-primary" name="Submit" value="<?php _e('Update Options', 'memberpress') ?>" />
+      <input type="submit" class="button button-primary" name="Submit" value="<?php esc_attr_e('Update Options', 'memberpress'); ?>" />
     </p>
 
   </form>

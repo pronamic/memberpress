@@ -86,7 +86,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
     public function ajax_coachkit_action()
     {
 
-        if (empty($_POST['nonce']) || ! wp_verify_nonce($_POST['nonce'], 'mepr_coachkit_action')) {
+        if (empty($_POST['nonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'mepr_coachkit_action')) {
             die();
         }
 
@@ -94,7 +94,7 @@ class MeprCoachkitCtrl extends MeprBaseCtrl
             wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
-        $type      = sanitize_text_field($_POST['type']);
+        $type      = sanitize_text_field(wp_unslash($_POST['type'] ?? ''));
         $installed = false;
         $activated = false;
         $message   = '';

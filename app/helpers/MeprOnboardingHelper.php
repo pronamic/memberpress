@@ -7,22 +7,6 @@ if (! defined('ABSPATH')) {
 class MeprOnboardingHelper
 {
     /**
-     * Check if the current step is step 1 in the onboarding process.
-     *
-     * @param string $hook The current page hook.
-     *
-     * @return boolean True if the current step is step 1, false otherwise.
-     */
-    public static function is_step1($hook)
-    {
-        if ($hook == 'memberpress_page_memberpress-onboarding' && isset($_GET['step']) && 1 === intVal($_GET['step'])) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Set the steps completed in the onboarding process.
      *
      * @param integer $step The step number to set as completed.
@@ -31,12 +15,12 @@ class MeprOnboardingHelper
      */
     public static function maybe_set_steps_completed($step)
     {
-        $steps_completed = self::get_steps_completed();
+        $steps_completed = (int) self::get_steps_completed();
         if ($step > $steps_completed) {
             self::set_steps_completed($step);
         }
 
-        if ($steps_completed == 7) {
+        if ($steps_completed === 7) {
             update_option('mepr_onboarding_complete', '1');
         }
     }
@@ -52,7 +36,7 @@ class MeprOnboardingHelper
     {
         update_option('mepr_onboarding_steps_completed', $step, false);
 
-        if ($step == 0) {
+        if ($step === 0) {
             self::unmark_content_steps_skipped();
         }
     }
@@ -104,41 +88,6 @@ class MeprOnboardingHelper
     }
 
     /**
-     * Get the features for a specific Mepr edition.
-     *
-     * @param string $edition      The edition to get features for.
-     * @param string $request_type The type of request (optional).
-     *
-     * @return array The features for the specified edition.
-     */
-    public static function get_mepr_edition_features($edition, $request_type = '')
-    {
-        // Raw data.
-        $dataset = require(MEPR_DATA_PATH . '/features/editions.php');
-
-        $data = [];
-        if (!isset($dataset[$edition])) {
-            return $data;
-        }
-
-        // Mepr edition data.
-        $data        = $dataset[$edition];
-        $valid_types = ['payments','addons'];
-
-        $type = '';
-        if ($request_type != '') {
-            if (in_array($request_type, $valid_types, true)) {
-                $type = $request_type;
-            }
-        }
-
-        if (isset($data[$type])) {
-            return $data[$type];
-        }
-        return $data;
-    }
-
-    /**
      * Check if an addon is selectable.
      *
      * @param string $plugin_slug The slug of the plugin to check.
@@ -167,16 +116,50 @@ class MeprOnboardingHelper
      */
     public static function features_addons_selectable_list()
     {
-        return [
-            'memberpress-courses'         => MeprOnboardingHelper::is_addon_selectable('memberpress-courses/main'),
-            'memberpress-downloads'       => MeprOnboardingHelper::is_addon_selectable('memberpress-downloads/main'),
-            'memberpress-buddypress'      => MeprOnboardingHelper::is_addon_selectable('memberpress-buddypress/main'),
-            'memberpress-gifting'         => MeprOnboardingHelper::is_addon_selectable('memberpress-gifting/memberpress-gifting'),
-            'memberpress-corporate'       => MeprOnboardingHelper::is_addon_selectable('memberpress-corporate/main'),
-            'memberpress-developer-tools' => MeprOnboardingHelper::is_addon_selectable('memberpress-developer-tools/main'),
-            'easy-affiliate'             => MeprOnboardingHelper::is_addon_selectable('easy-affiliate/easy-affiliate'),
-            'memberpress-coachkit'        => MeprOnboardingHelper::is_addon_selectable('memberpress-coachkit/main'),
+        $addons = [
+            'memberpress-courses'         => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-courses/main'),
+                'title'       => __('Course Creator', 'memberpress'),
+                'description' => __('Sell what you know. Create memorable online courses, including quizzes and progress tracking.', 'memberpress'),
+            ],
+            'memberpress-coachkit'        => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-coachkit/main'),
+                'title'       => __('CoachKit™', 'memberpress'),
+                'description' => __('Seamlessly integrates with your existing Members, Memberships and Courses to provide a dynamic platform to sell an Unlimited number of coaching programs.', 'memberpress'),
+            ],
+            'memberpress-downloads'       => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-downloads/main'),
+                'title'       => __('Digital Downloads', 'memberpress'),
+                'description' => __('Add value to your memberships by giving users access to downloadable files like white papers, guides, checklists, and videos – the sky’s the limit.', 'memberpress'),
+            ],
+            'memberpress-buddypress'      => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-buddypress/main'),
+                'title'       => __('Member Community', 'memberpress'),
+                'description' => __('Keep users coming back for more with a VIP forum or chat room they can access based on membership level. Available with MemberPress Plus or Pro.', 'memberpress'),
+            ],
+            'memberpress-developer-tools' => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-developer-tools/main'),
+                'title'       => __('Zapier Integration', 'memberpress'),
+                'description' => __('Work smarter not harder. Connect MemberPress with thousands of your favorite productivity and functionality apps and services. Available with MemberPress Plus or Pro.', 'memberpress'),
+            ],
+            'memberpress-gifting'         => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-gifting/memberpress-gifting'),
+                'title'       => __('Gifting', 'memberpress'),
+                'description' => __('Expand your audience and sell more memberships. With Gifting, you can market to people who know people who could use your membership. Available with MemberPress Pro.', 'memberpress'),
+            ],
+            'memberpress-corporate'       => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-corporate/main'),
+                'title'       => __('Corporate Accounts', 'memberpress'),
+                'description' => __('Allow your members to add sub-accounts to their memberships based on subscription level. Great for families and groups. Available with MemberPress Pro.', 'memberpress'),
+            ],
+            'easy-affiliate'             => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('easy-affiliate/easy-affiliate'),
+                'title'       => __('Affiliate Program', 'memberpress'),
+                'description' => __('Create your own non-salaried sales team, and make up to 30% more in membership sales with referral marketing.', 'memberpress'),
+            ],
         ];
+
+        return MeprHooks::apply_filters('mepr_onboarding_selectable_addons', $addons);
     }
 
     /**
@@ -187,8 +170,8 @@ class MeprOnboardingHelper
     public static function features_addons_purchase_links()
     {
         return [
-            'easy-affiliate'      => 'https://memberpress.com/sign-in/?redirect_to=/register/easy-affiliate-pro/',
-            'memberpress-coachkit' => 'https://memberpress.com/sign-in/?redirect_to=/register/coachkit-add-on/',
+            'easy-affiliate'      => MeprUtils::get_link_url('login_redirect_ea'),
+            'memberpress-coachkit' => MeprUtils::get_link_url('login_redirect_coachkit'),
         ];
     }
 
@@ -340,7 +323,7 @@ class MeprOnboardingHelper
                 'connected' => !empty($gateway->settings->login_name) && !empty($gateway->settings->transaction_key) && !empty($gateway->settings->signature_key),
                 'account'   => '',
             ];
-        } elseif ($gateway_id == 'MeprAuthorizeGateway') {
+        } elseif ($gateway_id === 'MeprAuthorizeGateway') {
             return [
                 'id'        => 'MeprAuthorizeGateway',
                 'key'       => 'authorize',
@@ -393,12 +376,12 @@ class MeprOnboardingHelper
             ?>
           </div>
         <?php endif; ?>
-          <?php if ($data['id'] == 'MeprAuthorizeGateway') : ?>
+          <?php if ($data['id'] === 'MeprAuthorizeGateway') : ?>
           <div class="mepr-wizard-payment-gateway-status">
                 <?php esc_html_e('Pro feature', 'memberpress'); ?>
           </div>
           <?php endif; ?>
-          <?php if ($transaction_count == 0) : ?>
+          <?php if ($transaction_count === 0) : ?>
           <div id="mepr-wizard-payment-gateway-expand-menu">
             <img src="<?php echo esc_url(MEPR_IMAGES_URL . '/onboarding/expand-menu.svg'); ?>" alt="">
           </div>
@@ -465,8 +448,8 @@ class MeprOnboardingHelper
         if ($content) {
             $data['content_title'] = $content->post_title;
             $data['content_id']    = $content_id;
-            $data['mepr_type']     = $content->post_type == 'mpcs-course' ? 'single_mpcs-course' : 'single_page';
-            $data['content_type']  = $content->post_type == 'mpcs-course' ? esc_html__('Course', 'memberpress') : esc_html__('Page', 'memberpress');
+            $data['mepr_type']     = $content->post_type === 'mpcs-course' ? 'single_mpcs-course' : 'single_page';
+            $data['content_type']  = $content->post_type === 'mpcs-course' ? esc_html__('Course', 'memberpress') : esc_html__('Page', 'memberpress');
         }
 
         if ($membership) {
@@ -545,10 +528,92 @@ class MeprOnboardingHelper
         $is_pro = false;
 
         if ($li) {
-            $is_pro = MeprUtils::is_pro_edition($li['product_slug']);
+            $is_pro = self::is_pro_edition($li['product_slug']);
         }
 
         return $is_pro;
+    }
+
+    /**
+     * Is the given product slug a Pro edition of MemberPress?
+     *
+     * @param  string $product_slug The product slug.
+     * @return boolean
+     */
+    public static function is_pro_edition($product_slug)
+    {
+        if (empty($product_slug)) {
+            return false;
+        }
+
+        return in_array($product_slug, ['memberpress-pro', 'memberpress-pro-5'], true) || self::is_oem_edition($product_slug);
+    }
+
+    /**
+     * Is the given product slug an OEM/reseller edition of MemberPress?
+     *
+     * @param  string $product_slug The product slug.
+     * @return boolean
+     */
+    public static function is_oem_edition($product_slug)
+    {
+        if (empty($product_slug)) {
+            return false;
+        }
+
+        return in_array($product_slug, ['memberpress-oem', 'memberpress-reseller-nhw', 'memberpress-reseller-sng'], true);
+    }
+
+    /**
+     * Is the given product slug an Elite edition of MemberPress?
+     *
+     * @param  string $product_slug The product slug.
+     * @return boolean
+     */
+    public static function is_elite_edition($product_slug)
+    {
+        if (empty($product_slug)) {
+            return false;
+        }
+
+        return 'memberpress-elite' === $product_slug;
+    }
+
+    /**
+     * Is the given product slug a Scale edition of MemberPress?
+     *
+     * @param  string $product_slug The product slug.
+     * @return boolean
+     */
+    public static function is_scale_edition($product_slug)
+    {
+        return 'memberpress-scale' === $product_slug;
+    }
+
+    /**
+     * Check if the license is a Scale license.
+     *
+     * @return boolean True if the license is a Scale license, false otherwise.
+     */
+    public static function is_scale_license()
+    {
+        $li = get_site_transient('mepr_license_info');
+        if ($li) {
+            return self::is_scale_edition($li['product_slug']);
+        }
+
+        return false;
+    }
+
+    /**
+     * Is the given product slug a Growth edition of MemberPress?
+     *
+     * @param  string $product_slug The product slug.
+     * @return boolean
+     */
+    public static function is_growth_edition($product_slug)
+    {
+        return 'memberpress-growth' === $product_slug;
     }
 
     /**
@@ -560,11 +625,11 @@ class MeprOnboardingHelper
     {
         $li = get_site_transient('mepr_license_info');
         if ($li) {
-            if (MeprUtils::is_elite_edition($li['product_slug'])) {
+            if (self::is_elite_edition($li['product_slug'])) {
                 return 'memberpress-elite';
             }
 
-            if (MeprUtils::is_pro_edition($li['product_slug'])) {
+            if (self::is_pro_edition($li['product_slug'])) {
                 return 'memberpress-pro-5';
             }
 
@@ -592,15 +657,15 @@ class MeprOnboardingHelper
         $mepr_options       = MeprOptions::fetch();
 
         // Auto genrate required page.
-        if (!is_numeric($mepr_options->login_page_id) || $mepr_options->login_page_id == 0) {
+        if (!is_numeric($mepr_options->login_page_id) || $mepr_options->login_page_id === 0) {
             $mepr_options->login_page_id = MeprAppHelper::auto_add_page(__('Login', 'memberpress'));
         }
 
-        if (!is_numeric($mepr_options->thankyou_page_id) || $mepr_options->thankyou_page_id == 0) {
+        if (!is_numeric($mepr_options->thankyou_page_id) || $mepr_options->thankyou_page_id === 0) {
             $mepr_options->thankyou_page_id = MeprAppHelper::auto_add_page(__('Thank You', 'memberpress'), esc_html__('Your subscription has been set up successfully.', 'memberpress'));
         }
 
-        if (!is_numeric($mepr_options->account_page_id) || $mepr_options->account_page_id == 0) {
+        if (!is_numeric($mepr_options->account_page_id) || $mepr_options->account_page_id === 0) {
             $mepr_options->account_page_id = MeprAppHelper::auto_add_page(__('Account', 'memberpress'));
         }
 
@@ -670,13 +735,16 @@ class MeprOnboardingHelper
             $addons_not_installed = [];
         }
 
-        // Check if license type is not elite and CoachKit is selected.
-        // if( ! MeprUtils::is_elite_edition($license_type) && ! empty($addons_not_installed) && in_array( 'memberpress-coachkit', $addons_not_installed, true )  ){
-        // return 'memberpress-elite'; // upgrade to elite required.
-        // }
         // Check if license type is not pro or developer and Auth.net payment gateway selected.
-        if (! (MeprUtils::is_pro_edition($license_type) || $license_type == 'developer') && $payment_gateway == 'MeprAuthorizeGateway') {
-            return 'memberpress-pro-5'; // Upgrade to pro required.
+        if (
+            !(
+                self::is_pro_edition($license_type)
+                || self::is_scale_edition($license_type)
+                || $license_type === 'developer'
+            )
+            && $payment_gateway === 'MeprAuthorizeGateway'
+        ) {
+            return 'memberpress-scale'; // Upgrade to Scale required (new plan).
         }
 
         // If there are no addons required installation bail out.
@@ -695,19 +763,22 @@ class MeprOnboardingHelper
             return false;
         }
 
-
-        if (in_array($license_type, ['developer','memberpress-plus','memberpress-plus-2'], true)) {
-            return 'memberpress-pro-5'; // Upgrade to pro required.
+        if (in_array($license_type, ['developer','memberpress-plus','memberpress-plus-2','memberpress-growth'], true)) {
+            return 'memberpress-scale'; // Upgrade to Scale required (new plan).
         }
 
-        $pro_addons   = self::get_mepr_edition_features('memberpress-pro-5', 'addons');
-        $plus_addons  = self::get_mepr_edition_features('memberpress-plus-2', 'addons');
-        $elite_addons = self::get_mepr_edition_features('memberpress-elite', 'addons');
+        $pro_addons   = self::get_edition_addons('memberpress-pro-5');
+        $plus_addons  = self::get_edition_addons('memberpress-plus-2');
+        $elite_addons = self::get_edition_addons('memberpress-elite');
+        $scale_addons = self::get_edition_addons('memberpress-scale');
+        $growth_addons = self::get_edition_addons('memberpress-growth');
 
         // Time to check what kind of plan we should offer based on features selection.
         $pro_count   = 0;
         $plus_count  = 0;
         $elite_count = 0;
+        $scale_count = 0;
+        $growth_count = 0;
         foreach ($addons_not_installed as $addon_slug) {
             if (in_array($addon_slug, $pro_addons, true)) {
                 $pro_count++;
@@ -720,15 +791,47 @@ class MeprOnboardingHelper
             if (in_array($addon_slug, $elite_addons, true)) {
                 $elite_count++;
             }
+
+            if (in_array($addon_slug, $scale_addons, true)) {
+                $scale_count++;
+            }
+
+            if (in_array($addon_slug, $growth_addons, true)) {
+                $growth_count++;
+            }
         }
 
-        if ($elite_count > $pro_count) {
-            return 'memberpress-elite'; // Upgrade to elite required.
+        if (
+            $elite_count > $scale_count
+            && $elite_count > $pro_count
+        ) {
+            return 'memberpress-elite'; // Upgrade to Elite required (legacy, kept for OEM/reseller).
+        } elseif (
+            $scale_count > $growth_count
+            && $scale_count > $pro_count
+            && $scale_count > $plus_count
+        ) {
+            return 'memberpress-scale'; // Upgrade to Scale required (new plan).
         } elseif ($pro_count > $plus_count) {
-            return 'memberpress-pro-5'; // Upgrade to pro required.
+            return 'memberpress-scale'; // Upgrade to Scale required (new plan, replaces Pro).
+        } elseif ($growth_count > $plus_count) {
+            return 'memberpress-growth'; // Upgrade to Growth required (new plan).
         } else {
-            return 'memberpress-plus-2'; // Upgrade to plus required.
+            return 'memberpress-growth'; // Upgrade to Growth required (new plan, replaces Plus).
         }
+    }
+
+    /**
+     * Returns the addons for a specific edition.
+     *
+     * @param string $edition The edition to get addons for.
+     *
+     * @return array The list of addons for the specified edition.
+     */
+    public static function get_edition_addons(string $edition): array
+    {
+        $editions = MeprUtils::get_editions();
+        return $editions[$edition]['addons'] ?? [];
     }
 
     /**
@@ -743,15 +846,29 @@ class MeprOnboardingHelper
         $data = [
             'memberpress-pro-5'  => [
                 'token'   => esc_html__('Pro', 'memberpress'),
-                'url'     => 'https://memberpress.com/ipob/upgrade-pro/',
+                'url'     => MeprUtils::get_link_url('onboarding_upgrade_pro'),
                 'label'   => esc_html__('Upgrade to Pro', 'memberpress'),
                 'heading' => esc_html__('To unlock selected features, upgrade to Pro.', 'memberpress'),
             ],
             'memberpress-plus-2' => [
                 'token'   => esc_html__('Plus', 'memberpress'),
-                'url'     => 'https://memberpress.com/ipob/upgrade-plus/',
+                'url'     => MeprUtils::get_link_url('onboarding_upgrade_plus'),
                 'label'   => esc_html__('Upgrade to Plus', 'memberpress'),
                 'heading' => esc_html__('To unlock selected features, upgrade to Plus.', 'memberpress'),
+            ],
+
+            'memberpress-scale' => [
+                'token'   => esc_html__('Scale', 'memberpress'),
+                'url'     => MeprUtils::get_link_url('onboarding_upgrade_scale'),
+                'label'   => esc_html__('Upgrade to Scale', 'memberpress'),
+                'heading' => esc_html__('To unlock selected features, upgrade to Scale.', 'memberpress'),
+            ],
+
+            'memberpress-growth' => [
+                'token'   => esc_html__('Growth', 'memberpress'),
+                'url'     => MeprUtils::get_link_url('onboarding_upgrade_growth'),
+                'label'   => esc_html__('Upgrade to Growth', 'memberpress'),
+                'heading' => esc_html__('To unlock selected features, upgrade to Growth.', 'memberpress'),
             ],
 
             /*
@@ -760,14 +877,14 @@ class MeprOnboardingHelper
              *
                 'memberpress-elite' => array(
                     'token' => esc_html__('Elite','memberpress'),
-                    'url' => 'https://memberpress.com/ipob/upgrade-elite/',
+                    'url' => MeprUtils::get_link_url('onboarding_upgrade_elite'),
                     'label' => esc_html__('Upgrade to Elite','memberpress'),
                     'heading' => esc_html__('To unlock selected features, upgrade to Elite.', 'memberpress')
                 )
              */
         ];
 
-        $data = apply_filters('mepr_onboarding_cta_data', $data);
+        $data = MeprHooks::apply_filters('mepr_onboarding_cta_data', $data);
 
         $cta_data = [];
         if (isset($data[$type])) {
@@ -775,19 +892,5 @@ class MeprOnboardingHelper
         }
 
         return $cta_data;
-    }
-
-    /**
-     * Check if the courses addon is applicable.
-     *
-     * @return boolean True if the courses addon is applicable, false otherwise.
-     */
-    public static function is_courses_addon_applicable()
-    {
-        if (is_plugin_active('memberpress-courses/main.php')) {
-            return true;
-        } else {
-            return false;
-        }
     }
 }

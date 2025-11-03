@@ -3,7 +3,7 @@
 } ?>
 <?php
   $ld_migration_possible = MeprMigratorLearnDash::is_migration_possible();
-  $courses_active        = MeprOnboardingHelper::is_courses_addon_applicable();
+  $courses_active        = MeprUtils::is_addon_active(MeprUtils::ADDON_COURSES);
 ?>
 <?php if ($ld_migration_possible) : ?>
   <div id="mepr-wizard-ld-migrator-success" class="mepr-hidden">
@@ -66,7 +66,7 @@
     <input type="text" id="mepr-wizard-choose-content-search" placeholder="<?php esc_attr_e('Search...', 'memberpress'); ?>">
   </div>
   <div id="mepr-wizard-choose-content-results">
-    <?php echo MeprOnboardingCtrl::get_content_search_results_html(); ?>
+    <?php echo MeprOnboardingCtrl::get_content_search_results_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
   </div>
   <div class="mepr-wizard-popup-button-row">
     <button type="button" id="mepr-wizard-choose-content-save" class="mepr-wizard-button-blue"><?php esc_html_e('Save', 'memberpress'); ?></button>

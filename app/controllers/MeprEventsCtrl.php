@@ -19,7 +19,7 @@ class MeprEventsCtrl extends MeprBaseCtrl
     {
         add_action('user_register', [$this, 'user_register']);
         add_action('delete_user', [$this, 'delete_user']);
-        add_action('mepr-txn-expired', [$this, 'txn_expired'], 10, 2);
+        add_action('mepr_txn_expired', [$this, 'txn_expired'], 10, 2);
         add_filter('mepr_create_subscription', [$this, 'sub_created']);
     }
 
@@ -72,7 +72,7 @@ class MeprEventsCtrl extends MeprBaseCtrl
             (int)$txn->subscription_id > 0
         ) {
             $sub = $txn->subscription();
-            if ($sub && $sub->status == MeprSubscription::$cancelled_str && $sub->is_expired()) {
+            if ($sub && $sub->status === MeprSubscription::$cancelled_str && $sub->is_expired()) {
                 MeprEvent::record('subscription-expired', $sub, $txn);
             }
         }

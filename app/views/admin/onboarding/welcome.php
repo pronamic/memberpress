@@ -106,14 +106,21 @@
       </div>
     </div>
   </div>
-  <?php if (!MeprUtils::is_elite_edition(MEPR_EDITION)) : ?>
+  <?php
+    // Hide pricing table for top-tier plans only (Scale, Pro, Elite)
+    // Growth can still see pricing to upgrade to Scale.
+    if (
+        !MeprOnboardingHelper::is_elite_edition(MEPR_EDITION) &&
+        !MeprOnboardingHelper::is_pro_edition(MEPR_EDITION) &&
+        !MeprOnboardingHelper::is_scale_edition(MEPR_EDITION)
+    ) : ?>
     <div class="mepr-onboarding-pricing">
       <h2>The Most Powerful WordPress Membership Plugin ... <span class="mepr-onb-underline">Without the Hidden Costs</span></h2>
       <p>Join thousands of professionals who have together sold <strong>over $1 billion in memberships</strong>.</p>
     </div>
     <div class="mepr-onboarding-pricing-table">
 
-        <?php if (!MeprUtils::is_pro_edition(MEPR_EDITION) && !in_array(MEPR_EDITION, ['developer', 'memberpress-plus-2', 'memberpress-plus'])) : ?>
+        <?php if (!in_array(MEPR_EDITION, ['developer', 'memberpress-plus-2', 'memberpress-plus'], true)) : ?>
         <div class="mepr-onboarding-pricing-plus">
           <div class="mepr-onboarding-price-popular">Most Popular</div>
           <div class="mepr-onboarding-pricing-content">
@@ -126,20 +133,19 @@
             </div>
             <div class="mepr-onboarding-price-savings">$150 savings*</div>
             <p class="mepr-onboarding-price-desc">Great for Entrepreneurs, Freelancers and other small businesses.</p>
-            <a href="https://memberpress.com/ipob/pricing-box/plus" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
+            <a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_plus')); ?>" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
             <div class="mepr-onboarding-price-features">
               <div class="mepr-onboarding-price-feature">Everything in Basic, and:</div>
               <div class="mepr-onboarding-price-feature">Use on up to 2 Sites</div>
               <div class="mepr-onboarding-price-feature">Advanced Marketing Integrations</div>
               <div class="mepr-onboarding-price-feature">Zapier – 2000+ Custom Integrations</div>
               <div class="mepr-onboarding-price-feature">Developer Tools</div>
-              <div class="mepr-onboarding-price-feature"><a href="https://memberpress.com/ipob/pricing-box/features">See all features...</a></div>
+              <div class="mepr-onboarding-price-feature"><a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_features')); ?>">See all features...</a></div>
             </div>
           </div>
         </div>
         <?php endif; ?>
 
-        <?php if (!MeprUtils::is_pro_edition(MEPR_EDITION)) : ?>
         <div class="mepr-onboarding-pricing-pro">
           <div class="mepr-onboarding-pricing-content">
             <div class="mepr-onboarding-price-title">Pro</div>
@@ -151,19 +157,18 @@
             </div>
             <div class="mepr-onboarding-price-savings">$200 savings*</div>
             <p class="mepr-onboarding-price-desc">Perfect for Pros and Advanced Membership Sites to drive big results.</p>
-            <a href="https://memberpress.com/ipob/pricing-box/pro" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
+            <a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_pro')); ?>" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
             <div class="mepr-onboarding-price-features">
               <div class="mepr-onboarding-price-feature">Everything in Plus, and:</div>
               <div class="mepr-onboarding-price-feature">Use on up to 5 Sites</div>
               <div class="mepr-onboarding-price-feature">Sell Corporate Accounts</div>
               <div class="mepr-onboarding-price-feature">Exclusive Pro Add-Ons*</div>
-              <div class="mepr-onboarding-price-feature"><a href="https://memberpress.com/ipob/pricing-box/features">See all features...</a></div>
+              <div class="mepr-onboarding-price-feature"><a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_features')); ?>">See all features...</a></div>
             </div>
           </div>
         </div>
-        <?php endif; ?>
     </div>
-  <?php endif; ?>
+    <?php endif; ?>
   <div class="mepr-onboarding-endorsements-section">
     <p>Join thousands of professionals who have together sold <strong>over $1 billion in memberships.</strong></p>
     <div class="mepr-onboarding-endorsements">

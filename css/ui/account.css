@@ -4,6 +4,15 @@ div#mepr-account-nav {
   width: auto !important;
 }
 
+#mepr-account-nav ul {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 #mepr-subscriptions-paging,
 #mepr-payments-paging {
   width:auto !important;
@@ -25,7 +34,7 @@ div#mepr-account-nav {
 }
 
 .mepr-active {
-  color: limegreen;
+  color: #208320;
 }
 
 .mepr-inactive {
@@ -75,6 +84,10 @@ div#mepr-account-nav {
 
 .mp_wrapper table.mepr-account-table .mepr-account-actions a {
   display: block;
+}
+
+.mp_wrapper .mepr-account-form .mepr-submit {
+  padding: 13px 16px;
 }
 
 @media screen and (max-width: 600px) {

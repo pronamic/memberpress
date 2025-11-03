@@ -18,8 +18,8 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
      */
     public function load_hooks()
     {
-        add_action('mepr-txn-store', [$this, 'handle_txn_store'], 99, 2);
-        add_action('mepr-txn-expired', [$this, 'handle_txn_expired'], 11, 2);
+        add_action('mepr_txn_store', [$this, 'handle_txn_store'], 99, 2);
+        add_action('mepr_txn_expired', [$this, 'handle_txn_expired'], 11, 2);
         add_action('delete_user', [$this, 'handle_delete_user']);
     }
 
@@ -33,12 +33,12 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
     public function handle_txn_store($txn, $old_txn)
     {
         // Already been here?
-        if ($old_txn->status == $txn->status) {
+        if ($old_txn->status === $txn->status) {
             return;
         }
 
         // Allow third party plugins to stop the running of the method.
-        if (MeprHooks::apply_filters('mepr-active-inactive-hooks-skip', false, $txn)) {
+        if (MeprHooks::apply_filters('mepr_active_inactive_hooks_skip', false, $txn)) {
             return;
         }
 
@@ -48,7 +48,7 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
         }
 
         // Ignore "pending" txns.
-        if (!isset($txn->status) || empty($txn->status) || $txn->status == MeprTransaction::$pending_str) {
+        if (!isset($txn->status) || empty($txn->status) || $txn->status === MeprTransaction::$pending_str) {
             return;
         }
 
@@ -56,18 +56,21 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
         $now           = time();
         $expires       = 0; // Lifetime.
 
-        if (! empty($txn->expires_at) && $txn->expires_at != MeprUtils::db_lifetime()) {
+        if (! empty($txn->expires_at) && $txn->expires_at !== MeprUtils::db_lifetime()) {
             $expires = strtotime($txn->expires_at);
         }
 
-        if (in_array($txn->status, $active_status)) {
+        if (in_array($txn->status, $active_status, true)) {
             if ($expires === 0 || $expires >= $now) {
-                MeprHooks::do_action('mepr-account-is-active', $txn);
+                MeprHooks::do_action('mepr_account_is_active', $txn);
+                MeprEvent::record('account-is-active', $txn);
             } else {
-                MeprHooks::do_action('mepr-account-is-inactive', $txn);
+                MeprHooks::do_action('mepr_account_is_inactive', $txn);
+                MeprEvent::record('account-is-inactive', $txn);
             }
         } else {
-            MeprHooks::do_action('mepr-account-is-inactive', $txn);
+            MeprHooks::do_action('mepr_account_is_inactive', $txn);
+            MeprEvent::record('account-is-inactive', $txn);
         }
     }
 
@@ -83,12 +86,12 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
         global $wpdb;
 
         // Part of an Enabled subscription, so let's bail.
-        if ($sub_status == MeprSubscription::$active_str) {
+        if ($sub_status === MeprSubscription::$active_str) {
             return;
         }
 
         // Allow third party plugins to stop the running of the method.
-        if (MeprHooks::apply_filters('mepr-active-inactive-hooks-skip', false, $txn)) {
+        if (MeprHooks::apply_filters('mepr_active_inactive_hooks_skip', false, $txn)) {
             return;
         }
 
@@ -98,7 +101,7 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
         }
 
         // Go directly to the database and maybe flush caches beforehand.
-        if (MeprHooks::apply_filters('mepr-autoresponder-flush-caches', true)) {
+        if (MeprHooks::apply_filters('mepr_autoresponder_flush_caches', true)) {
             wp_cache_flush();
             $wpdb->flush();
         }
@@ -113,12 +116,14 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
             MeprUtils::db_lifetime()
         );
 
-        $active_on_membership = $wpdb->get_var($query);
+        $active_on_membership = $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         if ($active_on_membership) {
-            MeprHooks::do_action('mepr-account-is-active', $txn);
+            MeprHooks::do_action('mepr_account_is_active', $txn);
+            MeprEvent::record('account-is-active', $txn);
         } else {
-            MeprHooks::do_action('mepr-account-is-inactive', $txn);
+            MeprHooks::do_action('mepr_account_is_inactive', $txn);
+            MeprEvent::record('account-is-inactive', $txn);
         }
     }
 
@@ -133,7 +138,8 @@ class MeprActiveInactiveHooksCtrl extends MeprBaseCtrl
         $user         = new MeprUser($user_id);
         $transactions = (array) $user->active_product_subscriptions('transactions', true, true);
         foreach ($transactions as $transaction) {
-            do_action('mepr-account-is-inactive', $transaction);
+            MeprHooks::do_action('mepr_account_is_inactive', $transaction);
+            MeprEvent::record('account-is-inactive', $transaction);
         }
     }
 }

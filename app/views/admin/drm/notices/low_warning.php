@@ -2,43 +2,47 @@
     die('You are not allowed to call this page directly.');
 } ?>
 <div class="mepr-notice-wrapper">
-   <h3 class="mepr-notice-title"><?php echo $drm_info['heading']; ?></h3>
-   <p class="mepr-notice-desc"><?php echo $drm_info['simple_message']; ?></p>
-   <?php if ($drm_info['event_name'] == MeprDrmHelper::INVALID_LICENSE_EVENT) : ?>
+   <h3 class="mepr-notice-title"><?php echo esc_html($drm_info['heading']); ?></h3>
+   <p class="mepr-notice-desc"><?php echo wp_kses_post($drm_info['simple_message']); ?></p>
+   <?php if ($drm_info['event_name'] === MeprDrmHelper::INVALID_LICENSE_EVENT) : ?>
      <ul class="mepr-drm-action-items">
        <li>
-           <?php echo sprintf(
-             // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
-               __('Go to MemberPress.com and make your selection. <a target="_blank" href="%s">Pricing Page</a>.', 'memberpress'),
-               $drm_info['pricing_link']
+           <?php printf(
+               // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+               esc_html__('Go to MemberPress.com and make your selection. %1$sPricing Page%2$s.', 'memberpress'),
+               '<a target="_blank" href="' . esc_url($drm_info['pricing_link']) . '">',
+               '</a>'
            ); ?>
        </li>
        <li>
-           <?php echo sprintf(
-             // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
-               __('<a href="%s">Click here</a> to enter and activate your new license key.', 'memberpress'),
-               $drm_info['activation_link']
+           <?php printf(
+               // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+               esc_html__('%1$sClick here%2$s to enter and activate your new license key.', 'memberpress'),
+               '<a href="' . esc_url($drm_info['activation_link']) . '">',
+               '</a>'
            ); ?>
        </li>
-       <li><?php _e('That’s it!.', 'memberpress'); ?></li>
+       <li><?php esc_html_e('That’s it!.', 'memberpress'); ?></li>
      </ul>
    <?php else : ?>
      <ul class="mepr-drm-action-items">
        <li>
-           <?php echo sprintf(
-             // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
-               __('Grab your key from your <a target="_blank" href="%s">Account Page</a>.', 'memberpress'),
-               $drm_info['account_link']
+           <?php printf(
+               // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+               esc_html__('Grab your key from your %1$sAccount Page%2$s.', 'memberpress'),
+               '<a target="_blank" href="' . esc_url($drm_info['account_link']) . '">',
+               '</a>'
            ); ?>
        </li>
        <li>
-           <?php echo sprintf(
-             // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
-               __('<a href="%s">Click here</a> to enter and activate it.', 'memberpress'),
-               $drm_info['activation_link']
+           <?php printf(
+               // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
+               esc_html__('%1$sClick here%2$s to enter and activate it.', 'memberpress'),
+               '<a href="' . esc_url($drm_info['activation_link']) . '">',
+               '</a>'
            ); ?>
        </li>
-       <li><?php _e('That’s it!', 'memberpress'); ?></li>
+       <li><?php esc_html_e('That’s it!', 'memberpress'); ?></li>
      </ul>
    <?php endif; ?>
 </div>

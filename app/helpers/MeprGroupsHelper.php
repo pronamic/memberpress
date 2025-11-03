@@ -48,18 +48,18 @@ class MeprGroupsHelper
     {
         $themes = MeprGroup::group_themes();
         ?>
-    <select name="<?php echo MeprGroup::$group_theme_str; ?>" class="group_theme_dropdown">
+    <select name="<?php echo esc_attr(MeprGroup::$group_theme_str); ?>" class="group_theme_dropdown">
         <?php
         foreach ($themes as $theme) {
             $css  = basename($theme);
             $name = preg_replace('#\.css$#', '', $css);
             $name = ucwords(preg_replace('#_#', ' ', $name));
             ?>
-        <option value="<?php echo $css; ?>" <?php selected($css, $selected) ?>><?php echo $name; ?></option>
+        <option value="<?php echo esc_attr($css); ?>" <?php selected($css, $selected) ?>><?php echo esc_html($name); ?></option>
             <?php
         }
         ?>
-      <option value="custom" <?php selected('custom', $selected) ?>><?php _e('None / Custom', 'memberpress'); ?></option>
+      <option value="custom" <?php selected('custom', $selected) ?>><?php esc_html_e('None / Custom', 'memberpress'); ?></option>
     </select>
         <?php
     }
@@ -77,9 +77,9 @@ class MeprGroupsHelper
             'order'   => 'ASC',
         ]);
         ?>
-      <select name="<?php echo MeprGroup::$products_str; ?>[product][]" class="group_products_dropdown">
+      <select name="<?php echo esc_attr(MeprGroup::$products_str); ?>[product][]" class="group_products_dropdown">
         <?php foreach ($products as $p) : ?>
-          <option value="<?php echo $p->ID; ?>" <?php selected($p->ID, $chosen) ?>><?php echo $p->post_title; ?></option>
+          <option value="<?php echo esc_attr($p->ID); ?>" <?php selected($p->ID, $chosen) ?>><?php echo esc_html($p->post_title); ?></option>
         <?php endforeach; ?>
       </select>
         <?php
@@ -96,10 +96,10 @@ class MeprGroupsHelper
         $products = $group->products();
         $selected = $group->fallback_membership;
         ?>
-      <select name="<?php echo MeprGroup::$fallback_membership_str; ?>" class="group_theme_dropdown">
-        <option value="" <?php selected('', $selected) ?>><?php echo _e('Default', 'memberpress'); ?></option>
+      <select name="<?php echo esc_attr(MeprGroup::$fallback_membership_str); ?>" class="group_theme_dropdown">
+        <option value="" <?php selected('', $selected) ?>><?php esc_html_e('Default', 'memberpress'); ?></option>
         <?php foreach ($products as $p) : ?>
-          <option value="<?php echo $p->ID; ?>" <?php selected($p->ID, $selected) ?>><?php echo $p->post_title; ?></option>
+          <option value="<?php echo esc_attr($p->ID); ?>" <?php selected($p->ID, $selected) ?>><?php echo esc_html($p->post_title); ?></option>
         <?php endforeach; ?>
       </select>
         <?php
@@ -138,57 +138,57 @@ class MeprGroupsHelper
         $active = true; // Always true for now - that way users can click the button and see the custom "you don't have access" message now.
 
         $group_classes_str = ($product->is_highlighted) ? 'highlighted' : '';
-        $group_classes_str = MeprHooks::apply_filters('mepr-group-css-classes-string', $group_classes_str, $product, $group, $preview);
+        $group_classes_str = MeprHooks::apply_filters('mepr_group_css_classes_string', $group_classes_str, $product, $group, $preview);
 
         ?>
-    <div id="mepr-price-box-<?php echo $product->ID; ?>" class="mepr-price-box <?php echo $group_classes_str; ?>">
+    <div id="mepr-price-box-<?php echo esc_attr($product->ID); ?>" class="mepr-price-box <?php echo esc_attr($group_classes_str); ?>">
         <?php if ($product->is_highlighted) : ?>
-        <div class="mepr-most-popular"><?php _e('Most Popular', 'memberpress'); ?></div>
+        <div class="mepr-most-popular"><?php esc_html_e('Most Popular', 'memberpress'); ?></div>
         <?php endif; ?>
       <div class="mepr-price-box-head">
-        <div class="mepr-price-box-title"><?php echo $product->pricing_title; ?></div>
+        <div class="mepr-price-box-title"><?php echo esc_html($product->pricing_title); ?></div>
         <?php if ($preview) : ?>
           <div class="mepr-price-box-price"></div>
-          <span class="mepr-price-box-price-loading"><img src="<?php echo admin_url('/images/wpspin_light.gif'); ?>"/></span>
+          <span class="mepr-price-box-price-loading"><img src="<?php echo esc_url(admin_url('/images/wpspin_light.gif')); ?>"/></span>
         <?php elseif ($product->pricing_display !== 'none') : ?>
           <div class="mepr-price-box-price">
             <?php
-            if (isset($_GET['coupon']) && !empty($_GET['coupon']) && MeprCoupon::is_valid_coupon_code($_GET['coupon'], $product->ID)) {
-                $mepr_coupon_code = htmlentities(sanitize_text_field($_GET['coupon']));
+            if (isset($_GET['coupon']) && !empty($_GET['coupon']) && MeprCoupon::is_valid_coupon_code(sanitize_text_field(wp_unslash($_GET['coupon'])), $product->ID)) {
+                $mepr_coupon_code = htmlentities(sanitize_text_field(wp_unslash($_GET['coupon'])));
             } else {
                 $mepr_coupon_code = null;
             }
 
-            if ($product->pricing_display == 'auto') {
-                echo MeprProductsHelper::format_currency($product, true, $mepr_coupon_code, false);
+            if ($product->pricing_display === 'auto') {
+                echo wp_kses_post(MeprProductsHelper::format_currency($product, true, $mepr_coupon_code, false));
             } else {
-                echo $product->custom_price;
+                echo esc_html($product->custom_price);
             }
             ?>
           </div>
         <?php endif; ?>
           <?php if (!empty($product->pricing_heading_txt)) : ?>
-          <div class="mepr-price-box-heading"><?php echo $product->pricing_heading_txt; ?></div>
+          <div class="mepr-price-box-heading"><?php echo esc_html($product->pricing_heading_txt); ?></div>
           <?php endif; ?>
           <?php
-            if (in_array($product->pricing_button_position, ['header','both'])) {
-                echo self::price_box_button($user, $group, $product, $active);
+            if (in_array($product->pricing_button_position, ['header','both'], true)) {
+                echo wp_kses_post(self::price_box_button($user, $group, $product, $active));
             }
             ?>
       </div>
-      <div class="mepr-price-box-benefits"><?php echo $benefits; ?></div>
+      <div class="mepr-price-box-benefits"><?php echo wp_kses_post($benefits); ?></div>
       <div class="mepr-price-box-foot">
-        <div class="mepr-price-box-footer"><?php echo $product->pricing_footer_txt; ?></div>
+        <div class="mepr-price-box-footer"><?php echo esc_html($product->pricing_footer_txt); ?></div>
         <?php
-        if (in_array($product->pricing_button_position, ['footer','both'])) {
-            echo self::price_box_button($user, $group, $product, $active);
+        if (in_array($product->pricing_button_position, ['footer','both'], true)) {
+            echo wp_kses_post(self::price_box_button($user, $group, $product, $active));
         }
         ?>
       </div>
     </div>
         <?php
         $output = ob_get_clean();
-        echo MeprHooks::apply_filters('mepr-group-page-item-output', $output, $product, $group, $preview);
+        echo wp_kses_post(MeprHooks::apply_filters('mepr_group_page_item_output', $output, $product, $group, $preview));
     }
 
     /**
@@ -240,9 +240,9 @@ class MeprGroupsHelper
             !empty($product->access_url)
         ) :
             ?>
-          <a <?php echo 'href="' . $product->access_url . '"'; ?> class="<?php echo self::price_box_button_classes($group, $product, true); ?>"><?php _e('View', 'memberpress'); ?></a>
+          <a href="<?php echo esc_url($product->access_url); ?>" class="<?php echo esc_attr(self::price_box_button_classes($group, $product, true)); ?>"><?php esc_html_e('View', 'memberpress'); ?></a>
         <?php else : ?>
-          <a <?php echo $active ? 'href="' . $product->url() . '"' : ''; ?> class="<?php echo self::price_box_button_classes($group, $product, $active); ?>"><?php echo $product->pricing_button_txt; ?></a>
+          <a <?php echo $active ? 'href="' . esc_url($product->url()) . '"' : ''; ?> class="<?php echo esc_attr(self::price_box_button_classes($group, $product, $active)); ?>"><?php echo esc_html($product->pricing_button_txt); ?></a>
         <?php endif; ?>
     </div>
         <?php

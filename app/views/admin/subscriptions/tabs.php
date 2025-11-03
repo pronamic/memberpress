@@ -1,17 +1,29 @@
 <h2 class="nav-tab-wrapper">
   <a class="nav-tab main-nav-tab <?php if (!$table->lifetime) {
       echo 'nav-tab-active';
-                                 } ?>" href="<?php echo admin_url('admin.php?page=memberpress-subscriptions' . $member . $search . $search_field . $perpage); ?>" id="mepr-subscriptions"><?php printf(
-                                  // Translators: %d: number of recurring subscriptions.
-                                     __('Recurring (%d)', 'memberpress'),
-                                     $table->periodic_count
-                                 ); ?></a>
+                                 } ?>" href="<?php echo esc_url(admin_url('admin.php?page=memberpress-subscriptions' . $member . $search . $search_field . $perpage)); ?>" id="mepr-subscriptions">
+    <?php
+    echo esc_html(
+        sprintf(
+            // Translators: %d: number of recurring subscriptions.
+            __('Recurring (%d)', 'memberpress'),
+            $table->periodic_count
+        )
+    );
+    ?>
+  </a>
   <a class="nav-tab main-nav-tab <?php if ($table->lifetime) {
         echo 'nav-tab-active';
-                                 } ?>" href="<?php echo admin_url('admin.php?page=memberpress-lifetimes' . $member . $search . $search_field . $perpage); ?>" id="mepr-lifetime-subscriptions"><?php printf(
-                                  // Translators: %d: number of non-recurring subscriptions.
-                                     __('Non-Recurring (%d)', 'memberpress'),
-                                     $table->lifetime_count
-                                 ); ?></a>
+                                 } ?>" href="<?php echo esc_url(admin_url('admin.php?page=memberpress-lifetimes' . $member . $search . $search_field . $perpage)); ?>" id="mepr-lifetime-subscriptions">
+    <?php
+    echo esc_html(
+        sprintf(
+            // Translators: %d: number of non-recurring subscriptions.
+            __('Non-Recurring (%d)', 'memberpress'),
+            $table->lifetime_count
+        )
+    );
+    ?>
+  </a>
 </h2>
 <div>&nbsp;</div>

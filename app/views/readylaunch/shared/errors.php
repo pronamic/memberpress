@@ -2,7 +2,7 @@
     die('You are not allowed to call this page directly.');
 } ?>
 
-<?php if (isset($errors) && $errors != null && count($errors) > 0) : ?>
+<?php if (isset($errors) && is_array($errors) && count($errors) > 0) : ?>
   <div class="mp_wrapper">
     <div class="mepr_pro_error" id="mepr_jump">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -12,8 +12,8 @@
       </svg>
 
       <ul>
-        <?php foreach ($errors as $error) : ?>
-          <li><?php print MeprAppHelper::wp_kses($error); ?></li>
+        <?php foreach ($errors as $single_error) : ?>
+          <li id="mepr_error_msg"><?php echo wp_kses($single_error, MeprAppHelper::kses_allowed_tags()); ?></li>
         <?php endforeach; ?>
       </ul>
     </div>
@@ -22,6 +22,6 @@
 
 <?php if (isset($message) and !empty($message)) : ?>
   <div class="mp_wrapper">
-    <div class="mepr_updated"><?php echo MeprAppHelper::wp_kses($message); ?></div>
+    <div class="mepr_updated"><?php echo wp_kses($message, MeprAppHelper::kses_allowed_tags()); ?></div>
   </div>
 <?php endif; ?>

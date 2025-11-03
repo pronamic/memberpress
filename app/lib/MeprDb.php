@@ -4,6 +4,7 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery
 class MeprDb
 {
     /**
@@ -546,14 +547,16 @@ class MeprDb
     {
         global $wpdb;
 
-        $query = 'SELECT * ' .
-               'FROM information_schema.COLUMNS ' .
-              'WHERE TABLE_SCHEMA = %s ' .
-                'AND TABLE_NAME = %s ' .
-                'AND COLUMN_NAME = %s';
-
-        $query = $wpdb->prepare($query, DB_NAME, $table, $column);
-        $res   = $wpdb->get_results($query);
+        $res = $wpdb->get_results($wpdb->prepare(
+            'SELECT * ' .
+            'FROM information_schema.COLUMNS ' .
+            'WHERE TABLE_SCHEMA = %s ' .
+            'AND TABLE_NAME = %s ' .
+            'AND COLUMN_NAME = %s',
+            DB_NAME,
+            $table,
+            $column
+        ));
 
         return !empty($res);
     }
@@ -577,7 +580,7 @@ class MeprDb
             $query .= ", ADD INDEX mp_{$column} ({$column})";
         }
 
-        return $wpdb->query($query);
+        return $wpdb->query($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
     }
 
     /**
@@ -595,7 +598,7 @@ class MeprDb
 
         $query = "ALTER TABLE {$table} DROP {$type} {$column}";
 
-        return $wpdb->query($query);
+        return $wpdb->query($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
     }
 
     /**
@@ -621,7 +624,7 @@ class MeprDb
 
         $query = "ALTER TABLE {$table} {$drop_string}";
 
-        return $wpdb->query($query);
+        return $wpdb->query($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
     }
 
     /**
@@ -644,9 +647,8 @@ class MeprDb
         $i = 0;
 
         foreach ($args as $key => $value) {
-            if ($key == 'id' && empty($value)) {
-                // To prevent issue with SQL MODE NO_AUTO_VALUE_ON_ZERO
-                // https://github.com/caseproof/memberpress/commit/55d2f9d69a6adc73ced127d226fd6cba6cca0b9c.
+            if ($key === 'id' && empty($value)) {
+                // To prevent issue with SQL MODE NO_AUTO_VALUE_ON_ZERO.
                 continue;
             }
 
@@ -672,7 +674,7 @@ class MeprDb
 
         if ($record_created_at) {
             $cols[$i] = 'created_at';
-            $vars[$i] = "'" . date('c') . "'";
+            $vars[$i] = "'" . MeprUtils::db_now() . "'";
         }
 
         if (empty($cols)) {
@@ -682,12 +684,13 @@ class MeprDb
         $cols_str = implode(',', $cols);
         $vars_str = implode(',', $vars);
 
-        $query = "INSERT INTO {$table} ({$cols_str}) VALUES ({$vars_str})";
-        $query = $wpdb->prepare($query, $values);
-
-        // This will fail to insert the row if NO_AUTO_VALUE_ON_ZERO is set in the database SQL_MODE
-        // See notes on this commit: https://github.com/caseproof/memberpress/commit/55d2f9d69a6adc73ced127d226fd6cba6cca0b9c.
-        $query_results = $wpdb->query($query);
+        $query_results = $wpdb->query(
+            $wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                "INSERT INTO {$table} ({$cols_str}) VALUES ({$vars_str})",
+                $values
+            )
+        );
 
         if ($query_results) {
             return $wpdb->insert_id;
@@ -742,9 +745,8 @@ class MeprDb
         }
 
         $values[] = $id;
-        $query    = "UPDATE {$table}{$set} WHERE id=%d";
-        $query    = $wpdb->prepare($query, $values);
-        $wpdb->query($query);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $wpdb->query($wpdb->prepare("UPDATE {$table}{$set} WHERE id=%d", $values));
 
         return $id;
     }
@@ -762,12 +764,13 @@ class MeprDb
         global $wpdb;
         extract(MeprDb::get_where_clause_and_values($table, $args));
 
-        $query = "DELETE FROM {$table}{$where}";
         if (!empty($values)) {
-            $query = $wpdb->prepare($query, $values);
+            // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            return $wpdb->query($wpdb->prepare("DELETE FROM {$table}{$where}", $values));
         }
 
-        return $wpdb->query($query);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        return $wpdb->query("DELETE FROM {$table}{$where}");
     }
 
     /**
@@ -797,12 +800,13 @@ class MeprDb
         global $wpdb;
         extract(MeprDb::get_where_clause_and_values($table, $args));
 
-        $query = "SELECT COUNT(*) FROM {$table}{$where}";
         if (!empty($values)) {
-            $query = $wpdb->prepare($query, $values);
+            // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            return (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table}{$where}", $values));
         }
 
-        return $wpdb->get_var($query);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}{$where}");
     }
 
     /**
@@ -848,13 +852,14 @@ class MeprDb
         global $wpdb;
 
         extract(MeprDb::get_where_clause_and_values($table, $args));
-        $query = "SELECT * FROM {$table}{$where} LIMIT 1";
 
         if (!empty($values)) {
-            $query = $wpdb->prepare($query, $values);
+            // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            return $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table}{$where} LIMIT 1", $values), $return_type);
         }
 
-        return $wpdb->get_row($query, $return_type);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        return $wpdb->get_row("SELECT * FROM {$table}{$where} LIMIT 1", $return_type);
     }
 
     /**
@@ -909,12 +914,13 @@ class MeprDb
             $limit = " LIMIT {$limit}";
         }
 
-        $query = "SELECT * FROM {$table}{$where}{$order_by}{$limit}";
         if (!empty($values)) {
-            $query = $wpdb->prepare($query, $values);
+            // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            return $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table}{$where}{$order_by}{$limit}", $values), $return_type);
         }
 
-        return $wpdb->get_results($query, $return_type);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        return $wpdb->get_results("SELECT * FROM {$table}{$where}{$order_by}{$limit}", $return_type);
     }
 
     // Same as get_records but will return an array of MeprBaseModel objects.
@@ -977,12 +983,13 @@ class MeprDb
             $limit = " LIMIT {$limit}";
         }
 
-        $query = "SELECT {$table}.{$col} FROM {$table}{$where}{$order_by}{$limit}";
         if (!empty($values)) {
-            $query = $wpdb->prepare($query, $values);
+            // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            return $wpdb->get_col($wpdb->prepare("SELECT {$table}.{$col} FROM {$table}{$where}{$order_by}{$limit}", $values));
         }
 
-        return $wpdb->get_col($query);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        return $wpdb->get_col("SELECT {$table}.{$col} FROM {$table}{$where}{$order_by}{$limit}");
     }
 
     // Built to work with WordPress' built in WP_List_Table class.
@@ -1020,8 +1027,8 @@ class MeprDb
     ) {
         global $wpdb;
 
-        $joins = MeprHooks::apply_filters('mepr-list-table-joins', $joins);
-        $args  = MeprHooks::apply_filters('mepr-list-table-args', $args);
+        $joins = MeprHooks::apply_filters('mepr_list_table_joins', $joins);
+        $args  = MeprHooks::apply_filters('mepr_list_table_args', $args);
 
         // Setup selects.
         $col_str_array = [];
@@ -1086,11 +1093,12 @@ class MeprDb
         $search_str = '';
         $searches   = [];
         if (!empty($search)) {
-            if ($search_field == 'any' || empty($search_field)) {
+            if ($search_field === 'any' || empty($search_field)) {
                 $terms = explode(' ', $search); // BOOM, much more robust search now.
 
                 foreach ($terms as $term) {
                     foreach ($cols as $col => $code) {
+                        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                         $searches[] = $wpdb->prepare("{$code} LIKE %s", "%{$term}%");
                     }
                 }
@@ -1118,6 +1126,7 @@ class MeprDb
                         $important_join_str = ' ' . implode(' ', $important_joins);
                     }
 
+                    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                     $searches[] = $wpdb->prepare("{$search_field} LIKE %s", "%{$search}%");
                 }
 
@@ -1155,13 +1164,13 @@ class MeprDb
             $wpdb->query('SET SQL_BIG_SELECTS=1');
 
             $st      = microtime(true);
-            $results = $wpdb->get_results($query);
+            $results = $wpdb->get_results($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
             $results_exetime = microtime(true) - $st;
             MeprUtils::debug_log("List Table Query Time: {$results_exetime} sec");
 
             $st    = microtime(true);
-            $count = $wpdb->get_var($total_query);
+            $count = $wpdb->get_var($total_query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
             $count_exetime = microtime(true) - $st;
             MeprUtils::debug_log("List Table Total Query Time: {$count_exetime} sec");
@@ -1222,7 +1231,7 @@ class MeprDb
      */
     public function __get($name)
     {
-        if (in_array($name, $this->tables)) {
+        if (in_array($name, $this->tables, true)) {
             global $wpdb;
             return "{$wpdb->prefix}mepr_{$name}";
         }
@@ -1238,10 +1247,9 @@ class MeprDb
     public function table_exists($table)
     {
         global $wpdb;
-        $q         = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
-        $table_res = $wpdb->get_var($q);
+        $table_res = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
 
-        return is_null($table_res) ? false : (strtolower($table_res) == strtolower($table));
+        return is_null($table_res) ? false : (strtolower($table_res) === strtolower($table));
     }
 
     /**
@@ -1255,6 +1263,7 @@ class MeprDb
     {
         global $wpdb;
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
         $statuses = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS FROM ' . DB_NAME . ' WHERE Name=%s', $table));
 
         if (!empty($statuses)) {
@@ -1275,6 +1284,7 @@ class MeprDb
     {
         global $wpdb;
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $create = $wpdb->get_row("SHOW CREATE TABLE {$table}", ARRAY_A);
 
         if (
@@ -1305,16 +1315,13 @@ class MeprDb
         }
 
         if (!isset($table_columns_info[$table])) {
-            $q = $wpdb->prepare(
-                '
-          SELECT *
-            FROM INFORMATION_SCHEMA.COLUMNS
-           WHERE table_name = %s
-        ',
-                $table
+            $columns_info = $wpdb->get_results(
+                $wpdb->prepare(
+                    'SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = %s',
+                    $table
+                ),
+                ARRAY_A
             );
-
-            $columns_info = $wpdb->get_results($q, ARRAY_A);
 
             $table_columns_info[$table] = [];
             foreach ($columns_info as $c) {
@@ -1434,6 +1441,7 @@ class MeprDb
         $object_id = absint($object_id);
         if (
             $unique && $wpdb->get_var($wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 "SELECT COUNT(*) FROM $table WHERE meta_key = %s AND $object_col = %d",
                 $meta_key,
                 $object_id
@@ -1555,9 +1563,11 @@ class MeprDb
 
         $meta_value = maybe_serialize($meta_value);
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $query = $wpdb->prepare("SELECT id FROM {$table} WHERE meta_key = %s", $meta_key);
 
         if (!$delete_all) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             $query .= $wpdb->prepare(" AND {$object_col} = %d", $object_id);
         }
 
@@ -1565,22 +1575,24 @@ class MeprDb
             $query .= $wpdb->prepare(' AND meta_value = %s', $meta_value);
         }
 
-        $meta_ids = $wpdb->get_col($query);
+        $meta_ids = $wpdb->get_col($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
         if (!count($meta_ids)) {
             return false;
         }
 
         if ($delete_all) {
             if ('' !== $meta_value && null !== $meta_value && false !== $meta_value) {
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 $object_ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM $table WHERE meta_key = %s AND meta_value = %s", $meta_key, $meta_value));
             } else {
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 $object_ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM $table WHERE meta_key = %s", $meta_key));
             }
         }
 
-        $query = "DELETE FROM $table WHERE id IN( " . implode(',', $meta_ids) . ' )';
-
-        $count = $wpdb->query($query);
+        $placeholders = implode(',', array_fill(0, count($meta_ids), '%d'));
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $count = $wpdb->query($wpdb->prepare("DELETE FROM $table WHERE id IN( $placeholders )", $meta_ids));
         return !empty($count);
     }
 
@@ -1599,3 +1611,4 @@ class MeprDb
         }
     }
 }
+// phpcs:enable WordPress.DB.DirectDatabaseQuery

@@ -34,7 +34,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
         add_action('mepr_subscription_status_suspended', [$this, 'update_member_data_from_subscription']);
         add_action('mepr_subscription_status_pending', [$this, 'update_member_data_from_subscription']);
         add_action('mepr_subscription_status_active', [$this, 'update_member_data_from_subscription']);
-        add_action('mepr-transaction-expired', [$this, 'update_txn_meta'], 11, 2);
+        add_action('mepr_transaction_expired', [$this, 'update_txn_meta'], 11, 2);
 
         if (is_multisite()) {
             add_action('add_user_to_blog', [$this, 'update_member_meta']);
@@ -66,7 +66,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
     {
         $schedules['mepr_member_data_updater_interval'] = [
             'interval' => MeprUtils::hours(6), // Run four times a day.
-            'display'  => __('MemberPress Member Data Update Interval', 'memberpress'),
+            'display'  => 'MemberPress Member Data Update Interval',
         ];
 
         return $schedules;
@@ -93,7 +93,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
      */
     public function enqueue_scripts($hook)
     {
-        if ($hook == 'memberpress_page_memberpress-members' || $hook == 'memberpress_page_memberpress-new-member') {
+        if ($hook === 'memberpress_page_memberpress-members' || $hook === 'memberpress_page_memberpress-new-member') {
             wp_register_script('mepr-table-controls-js', MEPR_JS_URL . '/table_controls.js', ['jquery'], MEPR_VERSION);
             wp_register_script('mepr-timepicker-js', MEPR_JS_URL . '/vendor/jquery-ui-timepicker-addon.js', ['jquery-ui-datepicker']);
             wp_register_script('mepr-date-picker-js', MEPR_JS_URL . '/date_picker.js', ['mepr-timepicker-js'], MEPR_VERSION);
@@ -118,10 +118,10 @@ class MeprMembersCtrl extends MeprBaseCtrl
      */
     public function listing()
     {
-        $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? $_REQUEST['action'] : false;
-        if ($action == 'new') {
+        $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? sanitize_text_field(wp_unslash($_REQUEST['action'])) : false;
+        if ($action === 'new') {
             $this->new_member();
-        } elseif (MeprUtils::is_post_request() && $action == 'create') {
+        } elseif (MeprUtils::is_post_request() && $action === 'create') {
             $this->create_member();
         } else {
             $this->display_list();
@@ -161,7 +161,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
             'col_registered'           => __('Registered', 'memberpress'),
         ];
 
-        return MeprHooks::apply_filters('mepr-admin-members-cols', $cols);
+        return MeprHooks::apply_filters('mepr_admin_members_cols', $cols);
     }
 
     /**
@@ -225,28 +225,30 @@ class MeprMembersCtrl extends MeprBaseCtrl
         $message      = '';
 
         $member = new MeprUser();
-        $member->load_from_array($_POST['member']);
+        $member->load_from_array(array_map('sanitize_text_field', wp_unslash($_POST['member'] ?? [])));
         $member->send_notification = isset($_POST['member']['send_notification']);
 
         // Just here in case things fail so we can show the same password when the new_member page is re-displayed.
-        $member->password   = $_POST['member']['user_pass'];
-        $member->user_email = sanitize_email($_POST['member']['user_email']);
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        $member->password   = $_POST['member']['user_pass'] ?? '';
+        $member->user_email = sanitize_email(wp_unslash($_POST['member']['user_email'] ?? ''));
 
         $transaction = new MeprTransaction();
-        $transaction->load_from_array($_POST['transaction']);
+        $transaction->load_from_array(array_map('sanitize_text_field', wp_unslash($_POST['transaction'] ?? [])));
         $transaction->send_welcome      = isset($_POST['transaction']['send_welcome']);
-        $_POST['transaction']['amount'] = MeprUtils::format_currency_us_float($_POST['transaction']['amount']); // Don't forget this, or the members page and emails will have $0.00 for amounts.
+        $_POST['transaction']['amount'] = MeprUtils::format_currency_us_float(sanitize_text_field(wp_unslash($_POST['transaction']['amount'] ?? ''))); // Don't forget this, or the members page and emails will have $0.00 for amounts.
         if ($transaction->total <= 0) {
-            $transaction->total = $_POST['transaction']['amount']; // Don't forget this, or the members page and emails will have $0.00 for amounts.
+            $transaction->total = sanitize_text_field(wp_unslash($_POST['transaction']['amount'])); // Don't forget this, or the members page and emails will have $0.00 for amounts.
         }
 
         if (count($errors) <= 0) {
             try {
-                $member->set_password($_POST['member']['user_pass']);
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $member->set_password($_POST['member']['user_pass'] ?? '');
                 $member->store();
 
                 // Needed for autoresponders - call before storing txn.
-                MeprHooks::do_action('mepr-signup-user-loaded', $member);
+                MeprHooks::do_action('mepr_signup_user_loaded', $member);
 
                 if ($member->send_notification) {
                       $member->send_password_notification('new');
@@ -260,8 +262,8 @@ class MeprMembersCtrl extends MeprBaseCtrl
                 MeprEvent::record('non-recurring-transaction-completed', $transaction);
 
                 // Run the signup hooks.
-                MeprHooks::do_action('mepr-non-recurring-signup', $transaction);
-                MeprHooks::do_action('mepr-signup', $transaction);
+                MeprHooks::do_action('mepr_non_recurring_signup', $transaction);
+                MeprHooks::do_action('mepr_signup', $transaction);
 
                 if ($transaction->send_welcome) {
                     MeprUtils::send_signup_notices($transaction);
@@ -401,11 +403,11 @@ class MeprMembersCtrl extends MeprBaseCtrl
             $errors[] = __('The username field can\'t be blank.', 'memberpress');
         }
 
-        if (username_exists($_POST['member']['user_login'])) {
+        if (username_exists(sanitize_user(wp_unslash($_POST['member']['user_login'])))) {
             $errors[] = __('This username is already taken.', 'memberpress');
         }
 
-        if (!validate_username($_POST['member']['user_login'])) {
+        if (!validate_username(sanitize_user(wp_unslash($_POST['member']['user_login'])))) {
             $errors[] = __('The username must be valid.', 'memberpress');
         }
 
@@ -413,12 +415,18 @@ class MeprMembersCtrl extends MeprBaseCtrl
             $errors[] = __('The email field can\'t be blank.', 'memberpress');
         }
 
-        if (email_exists($_POST['member']['user_email'])) {
+        if (email_exists(sanitize_email(wp_unslash($_POST['member']['user_email'])))) {
             $errors[] = __('This email is already being used by another user.', 'memberpress');
         }
 
-        if (!is_email(stripslashes($_POST['member']['user_email']))) {
+        if (!is_email(sanitize_email(wp_unslash($_POST['member']['user_email'])))) {
             $errors[] = __('A valid email must be entered.', 'memberpress');
+        }
+
+        // Check password length.
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        if (isset($_POST['member']['user_pass']) && ! MeprUser::validate_password_length($_POST['member']['user_pass'])) {
+            $errors[] = __('Password is too long.', 'memberpress');
         }
 
         // Simple validation here.
@@ -426,11 +434,11 @@ class MeprMembersCtrl extends MeprBaseCtrl
             $errors[] = __('The transaction amount must be set.', 'memberpress');
         }
 
-        if (preg_match('/[^0-9., ]/', $_POST['transaction']['amount'])) {
+        if (preg_match('/[^0-9., ]/', sanitize_text_field(wp_unslash($_POST['transaction']['amount'])))) {
             $errors[] = __('The transaction amount must be a number.', 'memberpress');
         }
 
-        if (empty($_POST['transaction']['trans_num']) || preg_match('#[^a-zA-z0-9_\-]#', $_POST['transaction']['trans_num'])) {
+        if (empty($_POST['transaction']['trans_num']) || preg_match('#[^a-zA-z0-9_\-]#', sanitize_text_field(wp_unslash($_POST['transaction']['trans_num'])))) {
             $errors[] = __('The Transaction Number is required, and must contain only letters, numbers, underscores and hyphens.', 'memberpress');
         }
 
@@ -444,9 +452,9 @@ class MeprMembersCtrl extends MeprBaseCtrl
      */
     public function table_search_box()
     {
-        if (isset($_REQUEST['page']) && $_REQUEST['page'] == 'memberpress-members') {
-            $membership = (isset($_REQUEST['membership']) ? $_REQUEST['membership'] : false);
-            $status     = (isset($_REQUEST['status']) ? $_REQUEST['status'] : 'all');
+        if (isset($_REQUEST['page']) && $_REQUEST['page'] === 'memberpress-members') {
+            $membership = (isset($_REQUEST['membership']) ? sanitize_text_field(wp_unslash($_REQUEST['membership'])) : false);
+            $status     = (isset($_REQUEST['status']) ? sanitize_text_field(wp_unslash($_REQUEST['status'])) : 'all');
             $prds       = MeprCptModel::all('MeprProduct', false, [
                 'orderby' => 'title',
                 'order'   => 'ASC',
@@ -467,14 +475,15 @@ class MeprMembersCtrl extends MeprBaseCtrl
         $filename = 'members-' . time();
 
         // Since we're running WP_List_Table headless we need to do this.
+        // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
         $GLOBALS['hook_suffix'] = false;
 
         $screen = get_current_screen();
         $tab    = new MeprMembersTable($screen, $this->get_columns());
 
         if (isset($_REQUEST['all']) && !empty($_REQUEST['all'])) {
-            $search       = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql($_REQUEST['search'])  : '';
-            $search_field = isset($_REQUEST['search']) && !empty($_REQUEST['search-field'])  ? esc_sql($_REQUEST['search-field'])  : 'any';
+            $search       = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql(sanitize_text_field(wp_unslash($_REQUEST['search'])))  : '';
+            $search_field = isset($_REQUEST['search']) && !empty($_REQUEST['search-field'])  ? esc_sql(sanitize_text_field(wp_unslash($_REQUEST['search-field'])))  : 'any';
             $search_field = isset($tab->db_search_cols[$search_field]) ? $tab->db_search_cols[$search_field] : 'any';
 
             $all = MeprUser::list_table(
@@ -516,10 +525,10 @@ class MeprMembersCtrl extends MeprBaseCtrl
                 return $field;
             }
 
-            if ($field_settings->field_type == 'multiselect') {
+            if ($field_settings->field_type === 'multiselect') {
                 $field = unserialize($field);
                 return implode(',', $field);
-            } elseif ($field_settings->field_type == 'checkboxes') {
+            } elseif ($field_settings->field_type === 'checkboxes') {
                 $field = unserialize($field);
                 return implode(',', array_keys($field));
             }
@@ -539,7 +548,7 @@ class MeprMembersCtrl extends MeprBaseCtrl
      */
     public function export_footer_link($action, $totalitems, $itemcount)
     {
-        if ($action == 'mepr_members') {
+        if ($action === 'mepr_members') {
             MeprAppHelper::export_table_link($action, 'export_members', 'mepr_members_nonce', $itemcount);
             ?> | <?php
       MeprAppHelper::export_table_link($action, 'export_members', 'mepr_members_nonce', $totalitems, true);

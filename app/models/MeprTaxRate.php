@@ -53,9 +53,9 @@ class MeprTaxRate extends MeprBaseModel
 
             if (is_array($locations) && !empty($locations)) {
                 foreach ($locations as $location) {
-                    if ($location->location_type == 'city') {
+                    if ($location->location_type === 'city') {
                         $this->rec->cities[] = $location->location_code;
-                    } elseif ($location->location_type == 'postcode') {
+                    } elseif ($location->location_type === 'postcode') {
                         $this->rec->postcodes[] = $location->location_code;
                     }
                 }
@@ -156,6 +156,10 @@ class MeprTaxRate extends MeprBaseModel
         $tax_rate           = get_transient($rate_transient_key);
 
         if (!$tax_rate instanceof MeprTaxRate) {
+            // Create placeholders for the valid_postcodes IN clauses.
+            $postcode_placeholders = array_fill(0, count($valid_postcodes), '%s');
+            $postcode_in_clause = join(', ', $postcode_placeholders);
+
             $q = "
         SELECT txr.*, pc.location_code AS postcode, ct.location_code AS city
           FROM {$mepr_db->tax_rates} AS txr
@@ -170,13 +174,13 @@ class MeprTaxRate extends MeprBaseModel
            AND txr.tax_class = %s
            AND (
              (
-                pc.location_code IN ('" . implode("','", $valid_postcodes) . "')
+                pc.location_code IN ($postcode_in_clause)
                 AND ct.location_code = %s
              ) OR (
                 pc.location_code IS NULL
                 AND ct.location_code = %s
              ) OR (
-                pc.location_code IN ('" . implode("','", $valid_postcodes) . "')
+                pc.location_code IN ($postcode_in_clause)
                 AND ct.location_code IS NULL
              ) OR (
                 pc.location_code IS NULL
@@ -185,16 +189,22 @@ class MeprTaxRate extends MeprBaseModel
            )
          ORDER BY txr.tax_priority, txr.tax_order";
 
-            $q = $wpdb->prepare(
-                $q,
-                strtoupper($country),
-                strtoupper($state),
-                strtolower($tax_class),
-                strtoupper($city),
-                strtoupper($city)
+            // Prepare the parameters array.
+            $prepare_params = array_merge(
+                [
+                    strtoupper($country),
+                    strtoupper($state),
+                    strtolower($tax_class),
+                ],
+                $valid_postcodes, // First set of postcodes for first IN clause.
+                [strtoupper($city)], // First city parameter.
+                [strtoupper($city)], // Second city parameter.
+                $valid_postcodes  // Second set of postcodes for second IN clause.
             );
 
-            $found_rates = $wpdb->get_results($q);
+            $q = $wpdb->prepare($q, ...$prepare_params); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+            $found_rates = $wpdb->get_results($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
             if (!empty($found_rates)) {
                 $tax_rate = new MeprTaxRate($found_rates[0]->id);
@@ -238,12 +248,13 @@ class MeprTaxRate extends MeprBaseModel
         global $wpdb;
         $mepr_db = new MeprDb();
 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $q = $wpdb->prepare(
             "SELECT txr.*,
               ( SELECT GROUP_CONCAT(
                          DISTINCT txrp.location_code
                          ORDER BY txrp.location_code
-                         SEPARATOR '{$separator}'
+                         SEPARATOR %s
                        )
                   FROM {$mepr_db->tax_rate_locations} AS txrp
                  WHERE txrp.location_type = %s
@@ -252,7 +263,7 @@ class MeprTaxRate extends MeprBaseModel
               ( SELECT GROUP_CONCAT(
                          DISTINCT txrc.location_code
                          ORDER BY txrc.location_code
-                         SEPARATOR '{$separator}'
+                         SEPARATOR %s
                        )
                   FROM {$mepr_db->tax_rate_locations} AS txrc
                  WHERE txrc.location_type = %s
@@ -260,11 +271,13 @@ class MeprTaxRate extends MeprBaseModel
               ) AS cities
          FROM {$mepr_db->tax_rates} AS txr
         ORDER BY txr.tax_country, txr.tax_state, postcodes, cities",
+            $separator,
             'postcode',
+            $separator,
             'city'
-        );
+        ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-        return $wpdb->get_results($q, $return_type);
+        return $wpdb->get_results($q, $return_type); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
     }
 
     /**
@@ -283,7 +296,7 @@ class MeprTaxRate extends MeprBaseModel
         }
 
         // We should prolly clear out all transients here yo!
-        $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '%_mepr_tax_rate_id_%'");
+        $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '%_mepr_tax_rate_id_%'"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     }
 
     /**
@@ -309,9 +322,9 @@ class MeprTaxRate extends MeprBaseModel
         $this->destroy_locations_by_tax_rate();
 
         if (isset($this->id) && !is_null($this->id) && (int)$this->id > 0) {
-            MeprHooks::apply_filters('mepr-tax-rate-update', $mepr_db->update_record($mepr_db->tax_rates, $this->id, $create_update_vals), $create_update_vals);
+            MeprHooks::apply_filters('mepr_tax_rate_update', $mepr_db->update_record($mepr_db->tax_rates, $this->id, $create_update_vals), $create_update_vals);
         } else {
-            $this->id = MeprHooks::apply_filters('mepr-tax-rate-create', $mepr_db->create_record($mepr_db->tax_rates, $create_update_vals, false), $create_update_vals);
+            $this->id = MeprHooks::apply_filters('mepr_tax_rate_create', $mepr_db->create_record($mepr_db->tax_rates, $create_update_vals, false), $create_update_vals);
         }
 
         $locations = [
@@ -324,7 +337,7 @@ class MeprTaxRate extends MeprBaseModel
             }
         }
 
-        return MeprHooks::apply_filters('mepr-tax-rate-store', $this->id, $vals);
+        return MeprHooks::apply_filters('mepr_tax_rate_store', $this->id, $vals);
     }
 
     /**
@@ -394,7 +407,7 @@ class MeprTaxRate extends MeprBaseModel
         $id      = $this->id;
         $args    = compact('id');
         $this->destroy_locations_by_tax_rate();
-        return MeprHooks::apply_filters('mepr-tax-rate-destroy', $mepr_db->delete_records($mepr_db->tax_rates, $args), $args);
+        return MeprHooks::apply_filters('mepr_tax_rate_destroy', $mepr_db->delete_records($mepr_db->tax_rates, $args), $args);
     }
 
     /**
@@ -415,7 +428,7 @@ class MeprTaxRate extends MeprBaseModel
                 'location_type' => $type,
                 'tax_rate_id'   => $tax_rate_id,
             ];
-            MeprHooks::apply_filters('mepr-tax-rate-location-create', $mepr_db->create_record($mepr_db->tax_rate_locations, $vals, false), $vals);
+            MeprHooks::apply_filters('mepr_tax_rate_location_create', $mepr_db->create_record($mepr_db->tax_rate_locations, $vals, false), $vals);
         }
     }
 
@@ -429,7 +442,7 @@ class MeprTaxRate extends MeprBaseModel
         $mepr_db     = new MeprDb();
         $tax_rate_id = $this->id;
         $args        = compact('tax_rate_id');
-        return MeprHooks::apply_filters('mepr-tax-rate-locations-destroy', $mepr_db->delete_records($mepr_db->tax_rate_locations, $args), $args);
+        return MeprHooks::apply_filters('mepr_tax_rate_locations_destroy', $mepr_db->delete_records($mepr_db->tax_rate_locations, $args), $args);
     }
 
     /**
@@ -440,10 +453,10 @@ class MeprTaxRate extends MeprBaseModel
     private function prepare_fields()
     {
         $this->tax_country = MeprUtils::clean(strtoupper($this->tax_country));
-        $this->tax_country = $this->tax_country == '*' ? '' : $this->tax_country;
+        $this->tax_country = $this->tax_country === '*' ? '' : $this->tax_country;
 
         $this->tax_state = MeprUtils::clean(strtoupper($this->tax_state));
-        $this->tax_state = $this->tax_state == '*' ? '' : $this->tax_state;
+        $this->tax_state = $this->tax_state === '*' ? '' : $this->tax_state;
 
         foreach ($this->postcodes as $i => $postcode) {
             $postcode = trim(MeprUtils::clean($postcode));

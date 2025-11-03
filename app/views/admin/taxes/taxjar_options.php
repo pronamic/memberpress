@@ -3,7 +3,7 @@
 } ?>
 <tr valign="top">
   <th scope="row">
-    <label for="mepr_tax_taxjar_enabled"><a href="#" target="_blank"><?php _e('Enable TaxJar', 'memberpress'); ?></a></label>
+    <label for="mepr_tax_taxjar_enabled"><a href="#" target="_blank"><?php esc_html_e('Enable TaxJar', 'memberpress'); ?></a></label>
     <?php MeprAppHelper::info_tooltip(
         'mepr-enable-tax-taxjar',
         __('Get US Tax Rates from TaxJar', 'memberpress'),
@@ -23,7 +23,7 @@
         <tbody>
           <tr valign="top">
             <th scope="row">
-              <label for="mepr_tax_taxjar_api_key_live"><?php _e('TaxJar API Key (Live)', 'memberpress'); ?></label>
+              <label for="mepr_tax_taxjar_api_key_live"><?php esc_html_e('TaxJar API Key (Live)', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip(
                   'mepr-merchant-tax-taxjar-api-key-live',
                   __('TaxJar API Key (Live)', 'memberpress'),
@@ -36,7 +36,7 @@
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="mepr_tax_taxjar_api_key_sandbox"><?php _e('TaxJar API Key (Sandbox)', 'memberpress'); ?></label>
+              <label for="mepr_tax_taxjar_api_key_sandbox"><?php esc_html_e('TaxJar API Key (Sandbox)', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip(
                   'mepr-merchant-tax-taxjar-api-key-sandbox',
                   __('TaxJar API Key (Sandbox)', 'memberpress'),
@@ -49,7 +49,7 @@
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="mepr_tax_taxjar_enable_sandbox"><?php _e('Enable TaxJar Sandbox', 'memberpress'); ?></label>
+              <label for="mepr_tax_taxjar_enable_sandbox"><?php esc_html_e('Enable TaxJar Sandbox', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip(
                   'mepr-merchant-tax-taxjar-enable-sandbox',
                   __('Enable TaxJar Sandbox', 'memberpress'),

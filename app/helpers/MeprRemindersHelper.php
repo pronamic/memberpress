@@ -63,7 +63,7 @@ class MeprRemindersHelper
      */
     public static function get_reminder_info($reminder, $field)
     {
-        if (!in_array($field, ['name', 'description'])) {
+        if (!in_array($field, ['name', 'description'], true)) {
             return false;
         }
 
@@ -199,13 +199,13 @@ class MeprRemindersHelper
         }
 
         ?>
-      <select name="<?php echo $field_name; ?>[]" id="<?php echo $field_name; ?>" class="mepr-multi-select" multiple="true">
+      <select name="<?php echo esc_attr($field_name); ?>[]" id="<?php echo esc_attr($field_name); ?>" class="mepr-multi-select" multiple="true">
         <?php foreach ($formatted as $id => $name) : ?>
-        <option value="<?php echo $id; ?>" <?php selected((empty($selected) || in_array($id, $selected))); ?>><?php echo $name; ?>&nbsp;</option>
+        <option value="<?php echo esc_attr($id); ?>" <?php selected((empty($selected) || in_array($id, array_map('intval', $selected), true))); ?>><?php echo esc_html($name); ?>&nbsp;</option>
         <?php endforeach; ?>
       </select>
       <span class="description">
-        <small><?php _e('Hold the Control Key (Command Key on the Mac) in order to select or deselect multiple memberships', 'memberpress'); ?></small>
+        <small><?php esc_html_e('Hold the Control Key (Command Key on the Mac) in order to select or deselect multiple memberships', 'memberpress'); ?></small>
       </span>
         <?php
     }

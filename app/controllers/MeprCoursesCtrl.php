@@ -20,12 +20,14 @@ class MeprCoursesCtrl extends MeprBaseCtrl
      */
     public function load_hooks()
     {
-        if (! is_plugin_active($this->courses_slug)) {
-            add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
-            add_action('wp_ajax_mepr_courses_action', [$this, 'ajax_courses_action']);
-            add_action('mepr_display_options_tabs', [$this, 'courses_tab'], 99);
-            add_action('mepr_display_options', [$this, 'courses_tab_content']);
-        }
+        add_action('plugins_loaded', function () {
+            if (!MeprUtils::is_addon_active(MeprUtils::ADDON_COURSES)) {
+                add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+                add_action('wp_ajax_mepr_courses_action', [$this, 'ajax_courses_action']);
+                add_action('mepr_display_options_tabs', [$this, 'courses_tab'], 99);
+                add_action('mepr_display_options', [$this, 'courses_tab_content']);
+            }
+        });
     }
 
     /**
@@ -60,7 +62,7 @@ class MeprCoursesCtrl extends MeprBaseCtrl
     public function courses_tab()
     {
         ?>
-      <a class="nav-tab" id="courses" href="#"><?php _e('Courses', 'memberpress'); ?></a>
+      <a class="nav-tab" id="courses" href="#"><?php esc_html_e('Courses', 'memberpress'); ?></a>
         <?php
     }
 
@@ -86,7 +88,7 @@ class MeprCoursesCtrl extends MeprBaseCtrl
     public function ajax_courses_action()
     {
 
-        if (empty($_POST['nonce']) || ! wp_verify_nonce($_POST['nonce'], 'mepr_courses_action')) {
+        if (empty($_POST['nonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'mepr_courses_action')) {
             die();
         }
 
@@ -94,7 +96,7 @@ class MeprCoursesCtrl extends MeprBaseCtrl
             wp_send_json_error(__('Sorry, you don\'t have permission to do this.', 'memberpress'));
         }
 
-        $type      = sanitize_text_field($_POST['type']);
+        $type      = sanitize_text_field(wp_unslash($_POST['type'] ?? ''));
         $installed = false;
         $activated = false;
         $message   = '';
@@ -145,7 +147,7 @@ class MeprCoursesCtrl extends MeprBaseCtrl
     public function install_courses($activate = false)
     {
 
-        $force         = isset($_GET['refresh']) && $_GET['refresh'] == 'true';
+        $force         = isset($_GET['refresh']) && $_GET['refresh'] === 'true';
         $addons        = (array) MeprUpdateCtrl::addons(true, $force, true);
         $courses_addon = ! empty($addons['memberpress-courses']) ? $addons['memberpress-courses'] : [];
         $plugins       = get_plugins();

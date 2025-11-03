@@ -19,7 +19,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             add_action('init', [$this, 'register_block_types_serverside']);
             add_action('enqueue_block_editor_assets', [$this, 'enqueue_editor_block_scripts']);
             add_action('enqueue_block_assets', [$this, 'enqueue_block_scripts']);
-            add_filter('mepr-is-product-page', [$this, 'signup_block_enqueues'], 10, 2);
+            add_filter('mepr_is_product_page', [$this, 'signup_block_enqueues'], 10, 2);
             add_filter('mepr_is_account_page', [$this, 'account_block_enqueues'], 10, 2);
             add_filter('register_block_type_args', [$this, 'add_protection_attributes']);
             add_filter('render_block', [$this, 'block_content_protection'], 10, 2);
@@ -258,7 +258,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
 
         if ($membership_id > 0) {
             ob_start();
-            echo do_shortcode("[mepr-membership-registration-form id='{$membership_id}']");
+            echo do_shortcode("[mepr_membership_registration_form id='{$membership_id}']");
             return ob_get_clean();
         }
 
@@ -273,7 +273,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     public function render_account_block()
     {
         ob_start();
-        echo do_shortcode('[mepr-account-form]');
+        echo do_shortcode('[mepr_account_form]');
         return ob_get_clean();
     }
 
@@ -286,7 +286,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
      */
     public function render_login_block($props)
     {
-        $shortcode = isset($props['use_redirect']) && true === $props['use_redirect'] ? "[mepr-login-form use_redirect='true']" : '[mepr-login-form]';
+        $shortcode = isset($props['use_redirect']) && true === $props['use_redirect'] ? "[mepr_login_form use_redirect='true']" : '[mepr_login_form]';
         ob_start();
         echo do_shortcode($shortcode);
         return ob_get_clean();
@@ -332,7 +332,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         $welcome_image = isset($atts['welcome_image']) ?
         esc_url_raw($atts['welcome_image']) : '';
 
-        $shortcode = "[mepr-pro-login-form
+        $shortcode = "[mepr_pro_login_form
     show_welcome_image='$show_welcome_image'
     welcome_image='$welcome_image'
     admin_view='$admin_view']";
@@ -363,7 +363,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         $group_id = isset($atts['group_id']) ?
         absint($atts['group_id']) : '';
 
-        $shortcode = "[mepr-pro-pricing-table
+        $shortcode = "[mepr_pro_pricing_table
     show_title='$show_title'
     button_highlight_color='$button_highlight_color'
     group_id='$group_id']";
@@ -392,7 +392,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         $welcome_image = isset($atts['welcome_image']) ?
         esc_url_raw($atts['welcome_image']) : '';
 
-        $shortcode = "[mepr-pro-account-tabs
+        $shortcode = "[mepr_pro_account_tabs
     show_welcome_image='$show_welcome_image'
     welcome_image='$welcome_image']";
 
@@ -415,7 +415,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         $membership_id = isset($atts['membership_id']) ?
         absint($atts['membership_id']) : '';
 
-        $shortcode = "[mepr-pro-checkout membership_id='$membership_id']";
+        $shortcode = "[mepr_pro_checkout membership_id='$membership_id']";
         ob_start();
         echo do_shortcode($shortcode);
         return ob_get_clean();
@@ -486,8 +486,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl
     public function render_account_info(array $props)
     {
         $shortcode = isset($props['field'])
-        ? '[mepr-account-info field="' . sanitize_text_field($props['field']) . '"]'
-        : '[mepr-account-info field="full_name"]';
+            ? '[mepr_account_info field="' . sanitize_text_field($props['field']) . '"]'
+            : '[mepr_account_info field="full_name"]';
         ob_start();
         echo '<p>' . do_shortcode($shortcode) . '</p>';
         return ob_get_clean();
@@ -601,7 +601,7 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         wp_register_style('mp-pro-pricing', MEPR_CSS_URL . '/readylaunch/pricing.css', null, MEPR_VERSION);
 
         // Register checkout scripts.
-        $prereqs = MeprHooks::apply_filters('mepr-signup-styles', []);
+        $prereqs = MeprHooks::apply_filters('mepr_signup_styles', []);
         wp_register_style('mp-signup', MEPR_CSS_URL . '/signup.css', $prereqs, MEPR_VERSION);
         wp_register_style('mp-pro-checkout', MEPR_CSS_URL . '/readylaunch/checkout.css', ['mp-signup'], MEPR_VERSION);
     }
@@ -739,9 +739,9 @@ class MeprBlocksCtrl extends MeprBaseCtrl
             $post            = MeprUtils::get_current_post();
             $post_settings   = $post instanceof WP_Post ? MeprRule::get_post_unauth_settings($post) : null;
 
-            if (is_object($post_settings) && $post_settings->unauth_message_type != 'default') {
+            if (is_object($post_settings) && $post_settings->unauth_message_type !== 'default') {
                 $unauth_message = $post_settings->unauth_message;
-            } elseif ($rule->unauth_message_type != 'default') {
+            } elseif ($rule->unauth_message_type !== 'default') {
                 $unauth_message = $rule->unauth_message;
             } else {
                 $unauth_message = $global_settings->message;

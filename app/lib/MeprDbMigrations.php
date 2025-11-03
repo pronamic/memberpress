@@ -25,8 +25,6 @@ class MeprDbMigrations
      */
     public static function run($from_version, $to_version)
     {
-        global $wpdb;
-
         $mig                = new MeprDbMigrations();
         $migration_versions = $mig->get_migration_versions($from_version, $to_version);
 
@@ -83,6 +81,10 @@ class MeprDbMigrations
     public function __construct()
     {
         // Ensure migration versions are sequential when adding new migration callbacks.
+        // During an upgrade, the "from" (old) version is compared to the keys of the array below. If the "from" (old)
+        // version number is lower than the version number in the array key, then that migration will run. For this
+        // reason, when adding a new migration, the array key should be set to the next (unreleased) version number, not
+        // the current version number.
         $this->migrations = [
             '1.3.0'    => [
                 'show_ui'    => false,
@@ -214,6 +216,16 @@ class MeprDbMigrations
                     ],
                 ],
             ],
+            '1.12.7'   => [
+                'show_ui'    => false,
+                'migrations' => [
+                    [
+                        'migration' => 'migrate_square_gateway_class_name_018',
+                        'check'     => false,
+                        'message'   => false,
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -264,11 +276,13 @@ class MeprDbMigrations
 
         MeprSubscription::upgrade_table(null, true);
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
         $max_sub_id = $wpdb->get_var("SELECT max(ID) FROM {$wpdb->posts} WHERE post_type='mepr-subscriptions'");
 
         if (!empty($max_sub_id)) {
             $max_sub_id = (int)$max_sub_id + 1; // Just in case.
-            $wpdb->query("ALTER TABLE {$mepr_db->subscriptions} AUTO_INCREMENT={$max_sub_id}");
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+            $wpdb->query($wpdb->prepare("ALTER TABLE {$mepr_db->subscriptions} AUTO_INCREMENT=%d", $max_sub_id));
         }
     }
 
@@ -281,32 +295,24 @@ class MeprDbMigrations
 
         $mepr_db = MeprDb::fetch();
 
-        $q = $wpdb->prepare(
-            "
-        SELECT *
-          FROM {$wpdb->postmeta}
-         WHERE meta_key IN (%s,%s,%s,%s)
-      ",
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $tokens = $wpdb->get_results($wpdb->prepare(
+            "SELECT *
+             FROM {$wpdb->postmeta}
+             WHERE meta_key IN (%s,%s,%s,%s)",
             '_mepr_authnet_order_invoice', // Use actual string here, becasue Authorize.net Class doens't exist in business edition and what if we change the class names in the future?
             '_mepr_paypal_token',
             '_mepr_paypal_pro_token',
             '_mepr_stripe_plan_id'
-        );
-
-        $tokens = $wpdb->get_results($q);
+        ));
 
         foreach ($tokens as $token) {
-            $q = $wpdb->prepare(
-                "
-          UPDATE {$mepr_db->subscriptions}
-             SET token=%s
-           WHERE id=%d
-        ",
+            $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                "UPDATE {$mepr_db->subscriptions} SET token=%s WHERE id=%d",
                 $token->meta_value,
                 $token->post_id
-            );
-
-            $wpdb->query($q);
+            ));
         }
     }
 
@@ -319,20 +325,11 @@ class MeprDbMigrations
         $mepr_db = MeprDb::fetch();
 
         // Gimme all the transactions since 2017-07-15 with trials.
-        $query = $wpdb->prepare(
-            "
-      SELECT t.id
-      FROM {$mepr_db->transactions} t
-      JOIN {$mepr_db->subscriptions} s
-        ON s.id = t.subscription_id
-      WHERE s.trial_days > 0
-        AND t.status = %s
-        AND t.created_at > '2017-07-15'
-    ",
+        $transactions = $wpdb->get_results($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT t.id FROM {$mepr_db->transactions} t JOIN {$mepr_db->subscriptions} s ON s.id = t.subscription_id WHERE s.trial_days > 0 AND t.status = %s AND t.created_at > '2017-07-15'",
             MeprTransaction::$complete_str
-        );
-
-        $transactions = $wpdb->get_results($query);
+        ));
         foreach ($transactions as $transaction_id) {
             $transaction  = new MeprTransaction($transaction_id->id);
             $subscription = $transaction->subscription();
@@ -341,9 +338,10 @@ class MeprDbMigrations
             $expected_expiration = $subscription->get_expires_at($txn_created_at);
             $expires_at          = MeprUtils::ts_to_mysql_date($expected_expiration);
             // Do we actually need to fix anything?
-            if ($expires_at != $transaction->expires_at) {
+            if ($expires_at !== $transaction->expires_at) {
                 // We're just going to do this via SQL to skip hooks.
                 MeprUtils::debug_log("Found transaction {$transaction->id} to update from {$transaction->expires_at} to {$expires_at}");
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery
                 $wpdb->update($mepr_db->transactions, ['expires_at' => $expires_at], ['id' => $transaction->id]);
             }
         }
@@ -403,14 +401,11 @@ class MeprDbMigrations
         $mepr_db        = new MeprDb();
         $update_columns = ['txn_count', 'active_txn_count', 'expired_txn_count'];
 
-        $query   = $wpdb->prepare(
-            "SELECT DISTINCT(m.user_id) FROM {$mepr_db->members} m
-         JOIN {$mepr_db->transactions} t
-           ON t.user_id = m.user_id
-          AND t.txn_type = %s",
+        $results = $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT DISTINCT(m.user_id) FROM {$mepr_db->members} m JOIN {$mepr_db->transactions} t ON t.user_id = m.user_id AND t.txn_type = %s",
             MeprTransaction::$sub_account_str
-        );
-        $results = $wpdb->get_col($query);
+        ));
         $count   = sizeOf($results);
         MeprUtils::debug_log("Found {$count} members to update");
 
@@ -438,6 +433,7 @@ class MeprDbMigrations
             $db->remove_columns($db->transactions, ['ip_addr', 'response']);
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
         $wpdb->delete($wpdb->prefix . 'usermeta', ['meta_key' => 'user_ip']);
     }
 
@@ -460,7 +456,7 @@ class MeprDbMigrations
                     update_post_meta($c->ID, MeprCoupon::$discount_mode_str, 'trial-override');
                 }
 
-                error_log('Migrating Coupon: Deleting trial post_meta');
+                MeprUtils::debug_log('Migrating Coupon: Deleting trial post_meta');
                 delete_post_meta($c->ID, '_mepr_coupons_trial');
             }
         }
@@ -494,7 +490,7 @@ class MeprDbMigrations
         foreach ($posts as $p) {
             $c = new MeprCoupon($p->ID);
 
-            if ($c->discount_mode == 'first-payment') {
+            if ($c->discount_mode === 'first-payment') {
                 MeprUtils::debug_log('Migrating Coupon (first-payment): ' . $c->post_title);
                 if ($c->discount_amount > 0 && empty($c->first_payment_discount_amount)) { // Prevent duplicate runs.
                     $c->first_payment_discount_amount = $c->discount_amount;
@@ -574,7 +570,8 @@ class MeprDbMigrations
 
         // For transactions between 01 Mar 2019 and 31 Dec 2019 that expire in 365 days, set them to expire in 366 days
         // to account for the leap day.
-        $wpdb->query(
+        $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             "UPDATE {$mepr_db->transactions}
       SET expires_at = DATE_ADD(expires_at, INTERVAL 1 DAY)
       WHERE DATE(expires_at) = DATE(DATE_ADD(created_at, INTERVAL 365 DAY))
@@ -588,7 +585,8 @@ class MeprDbMigrations
 
         // For transactions between 01 Mar 2020 and 31 Dec 2020 that expire in 366 days, set them to expire in 365 days
         // since there is no leap day in the period.
-        $wpdb->query(
+        $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             "UPDATE {$mepr_db->transactions}
       SET expires_at = DATE_SUB(expires_at, INTERVAL 1 DAY)
       WHERE DATE(expires_at) = DATE(DATE_ADD(created_at, INTERVAL 366 DAY))
@@ -627,10 +625,11 @@ class MeprDbMigrations
         // Get the next 100 user ids that have not been updated since the migration started
         // Note: If the member data was already updated by some other process since the migration started
         // that is okay, it will have the correct data and will be skipped here.
-        $batch_query = 'SELECT user_id FROM ' . $mepr_db->members . ' WHERE updated_at < %s LIMIT 25';
-        $batch_query = $wpdb->prepare($batch_query, $started);
-
-        $batch_ids = $wpdb->get_col($batch_query);
+        $batch_ids = $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            "SELECT user_id FROM {$mepr_db->members} WHERE updated_at < %s LIMIT 25",
+            $started
+        ));
 
         if (empty($batch_ids)) {
             // Nothing left to update so remove transient and cancel cron job.
@@ -661,7 +660,8 @@ class MeprDbMigrations
         global $wpdb;
         $mepr_db = new MeprDb();
 
-        $wpdb->query(
+        $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             "UPDATE {$mepr_db->transactions}
        SET amount = total,
            tax_reversal_amount = -tax_amount,
@@ -670,7 +670,8 @@ class MeprDbMigrations
     "
         );
 
-        $wpdb->query(
+        $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             "UPDATE {$mepr_db->subscriptions}
        SET price = total,
            tax_reversal_amount = -tax_amount,
@@ -679,7 +680,8 @@ class MeprDbMigrations
     "
         );
 
-        $wpdb->query(
+        $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             "UPDATE {$mepr_db->subscriptions}
        SET trial_amount = trial_total,
            trial_tax_reversal_amount = -trial_tax_amount,
@@ -726,7 +728,38 @@ class MeprDbMigrations
             }
             $store->persist();
         } catch (Exception $e) {
+            // Ignore failures during notification migration to avoid blocking other migrations.
         }
         delete_option('mepr_notifications');
+    }
+
+    /**
+     * Migrates the Square gateway class name for stored integrations.
+     */
+    public function migrate_square_gateway_class_name_018()
+    {
+        $mepr_options = MeprOptions::fetch();
+
+        if (!isset($mepr_options->integrations) || !is_array($mepr_options->integrations)) {
+            return;
+        }
+
+        $updated = false;
+
+        foreach ($mepr_options->integrations as $id => $integration) {
+            if (
+                is_array($integration) &&
+                isset($integration['gateway']) &&
+                $integration['gateway'] === 'MeprSquareGateway' &&
+                array_key_exists('production_connected', $integration)
+            ) {
+                $mepr_options->integrations[$id]['gateway'] = 'MeprSquarePaymentsGateway';
+                $updated = true;
+            }
+        }
+
+        if ($updated) {
+            $mepr_options->store(false);
+        }
     }
 }

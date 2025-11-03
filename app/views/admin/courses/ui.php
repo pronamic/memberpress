@@ -71,7 +71,7 @@
         type: 'POST',
         data: {
           action: 'mepr_courses_action',
-          nonce: "<?php echo wp_create_nonce('mepr_courses_action'); ?>",
+          nonce: "<?php echo esc_js(wp_create_nonce('mepr_courses_action')); ?>",
           type: $this.data('action')
         },
       })

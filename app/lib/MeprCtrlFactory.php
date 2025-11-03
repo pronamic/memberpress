@@ -37,7 +37,7 @@ class MeprCtrlFactory
         }
 
         if (!class_exists($class)) {
-            throw new Exception(__('Ctrl wasn\'t found', 'memberpress'));
+            throw new Exception(esc_html__('Ctrl wasn\'t found', 'memberpress'));
         }
 
         // We'll let the autoloader in memberpress.php
@@ -61,7 +61,10 @@ class MeprCtrlFactory
         $objs = [];
 
         foreach (self::paths() as $path) {
-            $ctrls = @glob($path . '/Mepr*Ctrl.php', GLOB_NOSORT);
+            $ctrls = glob($path . '/Mepr*Ctrl.php', GLOB_NOSORT);
+            if ($ctrls === false) {
+                continue;
+            }
             foreach ($ctrls as $ctrl) {
                 $class        = preg_replace('#\.php#', '', basename($ctrl));
                 $objs[$class] = self::fetch($class, $args);
@@ -78,6 +81,6 @@ class MeprCtrlFactory
      */
     public static function paths()
     {
-        return MeprHooks::apply_filters('mepr-ctrls-paths', [MEPR_CTRLS_PATH, MEPR_BRAND_CTRLS_PATH]);
+        return MeprHooks::apply_filters('mepr_ctrls_paths', [MEPR_CTRLS_PATH, MEPR_BRAND_CTRLS_PATH]);
     }
 }

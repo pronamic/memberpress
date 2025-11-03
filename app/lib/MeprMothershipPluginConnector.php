@@ -23,7 +23,7 @@ class MeprMothershipPluginConnector extends AbstractPluginConnection
      */
     public function getLicenseActivationStatus(): bool
     {
-        return MeprUpdateCtrl::is_activated();
+        return class_exists('MeprUpdateCtrl') && MeprUpdateCtrl::is_activated();
     }
 
     /**

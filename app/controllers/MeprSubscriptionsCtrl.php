@@ -79,7 +79,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
      */
     public function listing()
     {
-        $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : 'list';
+        $action = isset($_REQUEST['action']) ? sanitize_text_field(wp_unslash($_REQUEST['action'])) : 'list';
 
         switch ($action) {
             case 'new':
@@ -151,7 +151,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
         if (isset($_REQUEST['id'])) {
-            $sub = new MeprSubscription($_REQUEST['id']);
+            $sub = new MeprSubscription(sanitize_text_field(wp_unslash($_REQUEST['id'])));
             if ($sub->id > 0) {
                 $user            = $sub->user();
                 $sub->user_login = $user->user_login;
@@ -332,21 +332,21 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
             !isset($_POST['id']) || empty($_POST['id']) ||
             !isset($_POST['value']) || empty($_POST['value'])
         ) {
-            die(__('Save Failed', 'memberpress'));
+            wp_die(esc_html__('Save Failed', 'memberpress'));
         }
 
         $id    = sanitize_key($_POST['id']);
-        $value = sanitize_text_field($_POST['value']);
+        $value = sanitize_text_field(wp_unslash($_POST['value']));
 
         $sub = new MeprSubscription($id);
         if (empty($sub->id)) {
-            die(__('Save Failed', 'memberpress'));
+            wp_die(esc_html__('Save Failed', 'memberpress'));
         }
 
         $sub->status = $value;
         $sub->store();
 
-        echo MeprAppHelper::human_readable_status($value, 'subscription');
+        echo esc_html(MeprAppHelper::human_readable_status($value, 'subscription'));
         die();
     }
 
@@ -360,14 +360,14 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
         check_ajax_referer('delete_subscription', 'mepr_subscriptions_nonce');
 
         if (!MeprUtils::is_mepr_admin()) {
-            die(__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'));
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            die(__('Could not delete subscription', 'memberpress'));
+            wp_die(esc_html__('Could not delete subscription', 'memberpress'));
         }
 
-        $sub = new MeprSubscription($_POST['id']);
+        $sub = new MeprSubscription(sanitize_text_field(wp_unslash($_POST['id'])));
         $sub->destroy();
 
         die('true'); // Don't localize this string.
@@ -383,14 +383,14 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
         check_ajax_referer('suspend_subscription', 'mepr_subscriptions_nonce');
 
         if (!MeprUtils::is_mepr_admin()) {
-            die(__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'));
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            die(__('Could not pause subscription', 'memberpress'));
+            wp_die(esc_html__('Could not pause subscription', 'memberpress'));
         }
 
-        $sub = new MeprSubscription($_POST['id']);
+        $sub = new MeprSubscription(sanitize_text_field(wp_unslash($_POST['id'])));
         $sub->suspend();
 
         die('true'); // Don't localize this string.
@@ -424,7 +424,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
             ]);
         }
 
-        $sub = new MeprSubscription($_POST['id']);
+        $sub = new MeprSubscription(sanitize_text_field(wp_unslash($_POST['id'])));
 
         try {
             $sub->resume();
@@ -470,7 +470,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
             ]);
         }
 
-        $sub = new MeprSubscription($_POST['id']);
+        $sub = new MeprSubscription(sanitize_text_field(wp_unslash($_POST['id'])));
 
         if (!$sub->id) {
             wp_send_json([
@@ -510,19 +510,19 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
         check_ajax_referer('cancel_subscription', 'mepr_subscriptions_nonce');
 
         if (!MeprUtils::is_mepr_admin()) {
-            die(__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'));
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            die(__('Could not cancel subscription', 'memberpress'));
+            wp_die(esc_html__('Could not cancel subscription', 'memberpress'));
         }
 
-        $sub = new MeprSubscription($_POST['id']);
+        $sub = new MeprSubscription(sanitize_text_field(wp_unslash($_POST['id'])));
 
         try {
             $sub->cancel();
         } catch (Exception $e) {
-            die($e->getMessage());
+            wp_die(esc_html($e->getMessage()));
         }
 
         die('true'); // Don't localize this string.
@@ -541,7 +541,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
 
         // The jQuery suggest plugin has already trimmed and escaped user input (\ becomes \\)
         // so we just need to sanitize the username.
-        $s = sanitize_user($_GET['q']);
+        $s = sanitize_user(wp_unslash($_GET['q'] ?? ''));
 
         // Require 5 chars for matching.
         if (strlen($s) < 5) {
@@ -567,14 +567,15 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
         $filename = ( $lifetime ? 'non-recurring-' : '' ) . 'subscriptions-' . time();
 
         // Since we're running WP_List_Table headless we need to do this.
+        // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
         $GLOBALS['hook_suffix'] = false;
 
         $screen = get_current_screen();
         $tab    = new MeprSubscriptionsTable($screen, $this->get_columns(), $lifetime);
 
         if (isset($_REQUEST['all']) && !empty($_REQUEST['all'])) {
-            $search       = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql($_REQUEST['search'])  : '';
-            $search_field = isset($_REQUEST['search']) && !empty($_REQUEST['search-field'])  ? esc_sql($_REQUEST['search-field'])  : 'any';
+            $search       = isset($_REQUEST['search']) && !empty($_REQUEST['search']) ? esc_sql(sanitize_text_field(wp_unslash($_REQUEST['search'])))  : '';
+            $search_field = isset($_REQUEST['search']) && !empty($_REQUEST['search-field'])  ? esc_sql(sanitize_text_field(wp_unslash($_REQUEST['search-field'])))  : 'any';
             $search_field = isset($tab->db_search_cols[$search_field]) ? $tab->db_search_cols[$search_field] : 'any';
 
             if ($lifetime) {
@@ -629,7 +630,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
      */
     public function export_footer_link($action, $totalitems, $itemcount)
     {
-        if ($action == 'mepr_subscriptions' || $action == 'mepr_lifetime_subscriptions') {
+        if ($action === 'mepr_subscriptions' || $action === 'mepr_lifetime_subscriptions') {
             MeprAppHelper::export_table_link($action, 'export_subscriptions', 'mepr_subscriptions_nonce', $itemcount);
             ?> | <?php
       MeprAppHelper::export_table_link($action, 'export_subscriptions', 'mepr_subscriptions_nonce', $totalitems, true);
@@ -668,7 +669,7 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
             $cols[$prefix . 'product_meta'] = __('Price', 'memberpress');
         }
 
-        return MeprHooks::apply_filters('mepr-admin-subscriptions-cols', $cols, $prefix, $lifetime);
+        return MeprHooks::apply_filters('mepr_admin_subscriptions_cols', $cols, $prefix, $lifetime);
     }
 
     /**
@@ -756,12 +757,12 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
      */
     public function table_search_box()
     {
-        if (isset($_REQUEST['page']) && ($_REQUEST['page'] == 'memberpress-subscriptions' || $_REQUEST['page'] == 'memberpress-lifetimes')) {
+        if (isset($_REQUEST['page']) && ($_REQUEST['page'] === 'memberpress-subscriptions' || $_REQUEST['page'] === 'memberpress-lifetimes')) {
             $mepr_options = MeprOptions::fetch();
 
-            $membership = (isset($_REQUEST['membership']) ? $_REQUEST['membership'] : false);
-            $status     = (isset($_REQUEST['status']) ? $_REQUEST['status'] : 'all');
-            $gateway    = (isset($_REQUEST['gateway']) ? $_REQUEST['gateway'] : 'all');
+            $membership = (isset($_REQUEST['membership']) ? sanitize_text_field(wp_unslash($_REQUEST['membership'])) : false);
+            $status     = (isset($_REQUEST['status']) ? sanitize_text_field(wp_unslash($_REQUEST['status'])) : 'all');
+            $gateway    = (isset($_REQUEST['gateway']) ? sanitize_text_field(wp_unslash($_REQUEST['gateway'])) : 'all');
 
             $args     = [
                 'orderby' => 'title',

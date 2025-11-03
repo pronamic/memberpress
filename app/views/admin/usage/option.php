@@ -37,7 +37,7 @@ defined('ABSPATH') || exit;
         <tbody>
             <tr valign="top">
                 <th scope="row">
-                    <label for="mepr_hide_announcements"><?php _e('Hide Announcements', 'memberpress'); ?></label>
+                    <label for="mepr_hide_announcements"><?php esc_html_e('Hide Announcements', 'memberpress'); ?></label>
                     <?php
                     MeprAppHelper::info_tooltip(
                         'mepr-announcements',

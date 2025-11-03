@@ -23,19 +23,19 @@ class MeprProductsCtrl extends MeprCptCtrl
         add_action('admin_init', 'MeprProduct::cleanup_db');
         add_action('before_delete_post', 'MeprProductsCtrl::nullify_records_on_delete');
         add_filter('login_redirect', 'MeprProductsCtrl::track_and_override_login_redirect_wp', 999999, 3);
-        add_filter('mepr-process-login-redirect-url', 'MeprProductsCtrl::track_and_override_login_redirect_mepr', 10, 2);
+        add_filter('mepr_process_login_redirect_url', 'MeprProductsCtrl::track_and_override_login_redirect_mepr', 10, 2);
 
-        MeprHooks::add_shortcode('mepr-product-link', 'MeprProductsCtrl::shortcode_product_link'); // DEPRECATED.
-        MeprHooks::add_shortcode('mepr-product-registration-form', 'MeprProductsCtrl::shortcode_registration_form'); // DEPRECATED.
-        MeprHooks::add_shortcode('mepr-product-purchased', 'MeprProductsCtrl::shortcode_if_product_was_purchased'); // DEPRECATED.
-        MeprHooks::add_shortcode('mepr-product-access-url', 'MeprProductsCtrl::shortcode_access_url_link'); // DEPRECATED.
+        MeprHooks::add_shortcode('mepr_product_link', 'MeprProductsCtrl::shortcode_product_link'); // DEPRECATED.
+        MeprHooks::add_shortcode('mepr_product_registration_form', 'MeprProductsCtrl::shortcode_registration_form'); // DEPRECATED.
+        MeprHooks::add_shortcode('mepr_product_purchased', 'MeprProductsCtrl::shortcode_if_product_was_purchased'); // DEPRECATED.
+        MeprHooks::add_shortcode('mepr_product_access_url', 'MeprProductsCtrl::shortcode_access_url_link'); // DEPRECATED.
 
-        MeprHooks::add_shortcode('mepr-membership-link', 'MeprProductsCtrl::shortcode_product_link');
-        MeprHooks::add_shortcode('mepr-membership-registration-form', 'MeprProductsCtrl::shortcode_registration_form');
-        MeprHooks::add_shortcode('mepr-membership-purchased', 'MeprProductsCtrl::shortcode_if_product_was_purchased');
-        MeprHooks::add_shortcode('mepr-membership-access-url', 'MeprProductsCtrl::shortcode_access_url_link');
+        MeprHooks::add_shortcode('mepr_membership_link', 'MeprProductsCtrl::shortcode_product_link');
+        MeprHooks::add_shortcode('mepr_membership_registration_form', 'MeprProductsCtrl::shortcode_registration_form');
+        MeprHooks::add_shortcode('mepr_membership_purchased', 'MeprProductsCtrl::shortcode_if_product_was_purchased');
+        MeprHooks::add_shortcode('mepr_membership_access_url', 'MeprProductsCtrl::shortcode_access_url_link');
 
-        MeprHooks::add_shortcode('mepr-membership-price', 'MeprProductsCtrl::shortcode_price');
+        MeprHooks::add_shortcode('mepr_membership_price', 'MeprProductsCtrl::shortcode_price');
 
         add_action('wp_ajax_mepr_get_product_price_str', 'MeprProductsCtrl::get_price_str_ajax');
 
@@ -74,7 +74,7 @@ class MeprProductsCtrl extends MeprCptCtrl
                     'parent_item_colon'  => __('Parent Membership:', 'memberpress'),
                 ],
                 'public'               => true,
-                'show_ui'              => true, // MeprUpdateCtrl::is_activated().
+                'show_ui'              => true,
                 'show_in_menu'         => 'memberpress',
                 'capability_type'      => 'page',
                 'hierarchical'         => true,
@@ -150,7 +150,7 @@ class MeprProductsCtrl extends MeprCptCtrl
             'terms' => esc_html__('Terms', 'memberpress'),
             'url'   => esc_html__('URL', 'memberpress'),
         ];
-        return MeprHooks::apply_filters('mepr-admin-memberships-columns', $columns);
+        return MeprHooks::apply_filters('mepr_admin_memberships_columns', $columns);
     }
 
     /**
@@ -178,12 +178,12 @@ class MeprProductsCtrl extends MeprCptCtrl
         $product      = new MeprProduct($post_id);
 
         if ($product->ID !== null) {
-            if ('ID' == $column) {
-                echo $product->ID;
-            } elseif ('terms' == $column) {
-                echo MeprProductsHelper::format_currency($product, true, null, false); // $product, $show_symbol, $coupon_code, $show_prorated
-            } elseif ('url' == $column) {
-                echo $product->url();
+            if ('ID' === $column) {
+                echo esc_html($product->ID);
+            } elseif ('terms' === $column) {
+                echo esc_html(MeprProductsHelper::format_currency($product, true, null, false)); // $product, $show_symbol, $coupon_code, $show_prorated
+            } elseif ('url' === $column) {
+                echo esc_html($product->url());
             }
         }
     }
@@ -202,7 +202,7 @@ class MeprProductsCtrl extends MeprCptCtrl
             return $template;
         }
 
-        if (isset($post) && is_a($post, 'WP_Post') && $post->post_type == MeprProduct::$cpt) {
+        if (isset($post) && is_a($post, 'WP_Post') && $post->post_type === MeprProduct::$cpt) {
             $product      = new MeprProduct($post->ID);
             $new_template = $product->get_page_template();
         }
@@ -231,8 +231,8 @@ class MeprProductsCtrl extends MeprCptCtrl
 
         add_meta_box('memberpress-product-options', __('Membership Options', 'memberpress'), 'MeprProductsCtrl::product_options_meta_box', MeprProduct::$cpt, 'normal', 'high', ['product' => $product]);
 
-        MeprHooks::do_action('mepr-product-meta-boxes', $product); // DEPRECATED.
-        MeprHooks::do_action('mepr-membership-meta-boxes', $product);
+        MeprHooks::do_action('mepr_product_meta_boxes', $product); // DEPRECATED.
+        MeprHooks::do_action('mepr_membership_meta_boxes', $product);
     }
 
     /**
@@ -245,7 +245,7 @@ class MeprProductsCtrl extends MeprCptCtrl
     {
         $post = get_post($post_id);
 
-        if (!wp_verify_nonce((isset($_POST[MeprProduct::$nonce_str])) ? $_POST[MeprProduct::$nonce_str] : '', MeprProduct::$nonce_str . wp_salt())) {
+        if (!wp_verify_nonce((isset($_POST[MeprProduct::$nonce_str])) ? sanitize_text_field(wp_unslash($_POST[MeprProduct::$nonce_str])) : '', MeprProduct::$nonce_str . wp_salt())) {
             return $post_id; // Nonce prevents meta data from being wiped on move to trash.
         }
 
@@ -257,7 +257,7 @@ class MeprProductsCtrl extends MeprCptCtrl
             return;
         }
 
-        if (!empty($post) && $post->post_type == MeprProduct::$cpt) {
+        if (!empty($post) && $post->post_type === MeprProduct::$cpt) {
             $product = new MeprProduct($post_id);
 
             extract($_POST, EXTR_SKIP);
@@ -308,7 +308,7 @@ class MeprProductsCtrl extends MeprCptCtrl
             /**
             * Sets thank_you_page_id to the id from the POST or Adds the new page.
             */
-            if ($product->thank_you_page_type == 'page' && isset($_mepr_product_thank_you_page_id)) {
+            if ($product->thank_you_page_type === 'page' && isset($_mepr_product_thank_you_page_id)) {
                 if (is_numeric($_mepr_product_thank_you_page_id) && (int)$_mepr_product_thank_you_page_id > 0) {
                     $product->thank_you_page_id = (int)$_mepr_product_thank_you_page_id;
                 } elseif ($product->thank_you_page_enabled && preg_match('#^__auto_page:(.*?)$#', $_mepr_product_thank_you_page_id, $matches)) {
@@ -324,28 +324,29 @@ class MeprProductsCtrl extends MeprCptCtrl
             $product->customize_payment_methods  = isset($_mepr_customize_payment_methods);
             $product->customize_profile_fields   = isset($_mepr_customize_profile_fields);
             $product->custom_profile_fields      = []; // We'll populate it below if we need to.
-            $custom_payment_methods              = json_decode(sanitize_text_field(wp_unslash($_POST['mepr-product-payment-methods-json'])));
+            $custom_payment_methods              = json_decode(sanitize_text_field(wp_unslash($_POST['mepr-product-payment-methods-json'] ?? '')));
             $product->custom_payment_methods     = is_array($custom_payment_methods) ? $custom_payment_methods : [];
             $product->custom_login_urls_enabled  = isset($_mepr_custom_login_urls_enabled);
-            $product->expire_type                = isset(${MeprProduct::$expire_type_str}) ? sanitize_text_field($_POST[MeprProduct::$expire_type_str]) : $product->attrs['expire_type'];
-            $product->expire_after               = isset(${MeprProduct::$expire_after_str}) ? sanitize_text_field($_POST[MeprProduct::$expire_after_str]) : $product->attrs['expire_after'];
-            $product->expire_unit                = isset(${MeprProduct::$expire_unit_str}) ? sanitize_text_field($_POST[MeprProduct::$expire_unit_str]) : $product->attrs['expire_unit'];
-            $product->expire_fixed               = isset(${MeprProduct::$expire_fixed_str}) ? sanitize_text_field($_POST[MeprProduct::$expire_fixed_str]) : $product->attrs['expire_fixed'];
+            $product->expire_type                = isset($_POST[MeprProduct::$expire_type_str]) ? sanitize_text_field(wp_unslash($_POST[MeprProduct::$expire_type_str])) : $product->attrs['expire_type'];
+            $product->expire_after               = isset($_POST[MeprProduct::$expire_after_str]) ? sanitize_text_field(wp_unslash($_POST[MeprProduct::$expire_after_str])) : $product->attrs['expire_after'];
+            $product->expire_unit                = isset($_POST[MeprProduct::$expire_unit_str]) ? sanitize_text_field(wp_unslash($_POST[MeprProduct::$expire_unit_str])) : $product->attrs['expire_unit'];
+            $product->expire_fixed               = isset($_POST[MeprProduct::$expire_fixed_str]) ? sanitize_text_field(wp_unslash($_POST[MeprProduct::$expire_fixed_str])) : $product->attrs['expire_fixed'];
             $product->tax_exempt                 = isset($_POST[MeprProduct::$tax_exempt_str]);
-            $product->tax_class                  = isset(${MeprProduct::$tax_class_str}) ? sanitize_text_field($_POST[MeprProduct::$tax_class_str]) : $product->attrs['tax_class'];
-            $product->allow_renewal              = (($product->period_type == 'lifetime' || $product->price == 0.00) && (($product->expire_type == 'delay' && isset($_POST[MeprProduct::$allow_renewal_str])) || ($product->expire_type == 'fixed' && isset($_POST[MeprProduct::$allow_renewal_str . '-fixed']))));
+            $product->tax_class                  = isset($_POST[MeprProduct::$tax_class_str]) ? sanitize_text_field(wp_unslash($_POST[MeprProduct::$tax_class_str])) : $product->attrs['tax_class'];
+            $product->allow_renewal              = (($product->period_type === 'lifetime' || (float) $product->price === 0.00) && (($product->expire_type === 'delay' && isset($_POST[MeprProduct::$allow_renewal_str])) || ($product->expire_type === 'fixed' && isset($_POST[MeprProduct::$allow_renewal_str . '-fixed']))));
             $product->access_url                 = isset($_mepr_access_url) ? sanitize_text_field(wp_unslash(trim($_mepr_access_url))) : $product->attrs['access_url'];
             $product->disable_address_fields     = (isset($_mepr_disable_address_fields) && $product->price <= 0.00);
             $product->cannot_purchase_message    = (!empty($meprcannotpurchasemessage)) ? wp_kses_post(wp_unslash($meprcannotpurchasemessage)) : $product->cannot_purchase_message;
 
             // Notification Settings.
             $emails = [];
-            foreach ($_POST[MeprProduct::$emails_str] as $email => $vals) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            foreach (wp_unslash($_POST[MeprProduct::$emails_str] ?? []) as $email => $vals) {
                 $emails[$email] = [
                     'enabled'      => isset($vals['enabled']),
                     'use_template' => isset($vals['use_template']),
-                    'subject'      => sanitize_text_field(wp_unslash($vals['subject'])),
-                    'body'         => MeprUtils::maybe_wpautop(wp_kses_post(wp_unslash($vals['body']))),
+                    'subject'      => sanitize_text_field($vals['subject']),
+                    'body'         => MeprUtils::maybe_wpautop(wp_kses_post($vals['body'])),
                 ];
             }
             $product->emails = $emails;
@@ -358,7 +359,9 @@ class MeprProductsCtrl extends MeprCptCtrl
             if ($product->customize_profile_fields && isset($_POST['product-profile-fields'])) {
                 $slugs = [];
 
-                foreach ($_POST['product-profile-fields'] as $key => $value) {
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $profile_fields = wp_unslash($_POST['product-profile-fields'] ?? []);
+                foreach ($profile_fields as $key => $value) {
                     $slugs[] = sanitize_title_with_dashes($key);
                 }
 
@@ -375,8 +378,8 @@ class MeprProductsCtrl extends MeprCptCtrl
                 update_post_meta($product->ID, '_wp_page_template', '');
             }
 
-            MeprHooks::do_action('mepr-product-save-meta', $product); // DEPRECATED.
-            MeprHooks::do_action('mepr-membership-save-meta', $product);
+            MeprHooks::do_action('mepr_product_save_meta', $product); // DEPRECATED.
+            MeprHooks::do_action('mepr_membership_save_meta', $product);
         }
     }
 
@@ -426,9 +429,9 @@ class MeprProductsCtrl extends MeprCptCtrl
         $count = count($_POST[MeprProduct::$who_can_purchase_str . '-user_type']) - 1;
 
         for ($i = 0; $i < $count; $i++) {
-            $user_type     = sanitize_text_field($_POST[MeprProduct::$who_can_purchase_str . '-user_type'][$i]);
-            $product_id    = sanitize_text_field($_POST[MeprProduct::$who_can_purchase_str . '-product_id'][$i]);
-            $purchase_type = sanitize_text_field($_POST[MeprProduct::$have_or_had_str . '-type'][$i]);
+            $user_type     = sanitize_text_field(wp_unslash($_POST[MeprProduct::$who_can_purchase_str . '-user_type'][$i] ?? ''));
+            $product_id    = sanitize_text_field(wp_unslash($_POST[MeprProduct::$who_can_purchase_str . '-product_id'][$i] ?? ''));
+            $purchase_type = sanitize_text_field(wp_unslash($_POST[MeprProduct::$have_or_had_str . '-type'][$i] ?? ''));
             $rows[]        = (object)[
                 'user_type'     => $user_type,
                 'product_id'    => $product_id,
@@ -448,11 +451,11 @@ class MeprProductsCtrl extends MeprCptCtrl
     public static function validate_product($product)
     {
         // Validate Periods.
-        if ($product->period_type == 'weeks' && $product->period > 52) {
+        if ($product->period_type === 'weeks' && $product->period > 52) {
             $product->period = 52;
         }
 
-        if ($product->period_type == 'months' && $product->period > 12) {
+        if ($product->period_type === 'months' && $product->period > 12) {
             $product->period = 12;
         }
 
@@ -479,7 +482,7 @@ class MeprProductsCtrl extends MeprCptCtrl
         }
 
         // Disable trial && cycles limit if lifetime is set and set period to 1.
-        if ($product->period_type == 'lifetime') {
+        if ($product->period_type === 'lifetime') {
             $product->limit_cycles = false;
             $product->trial        = false;
             $product->period       = 1;
@@ -491,24 +494,24 @@ class MeprProductsCtrl extends MeprCptCtrl
         }
 
         // If price = 0.00 and period type is not lifetime, we need to disable cycles and trials.
-        if ($product->price == 0.00 && $product->period_type != 'lifetime') {
+        if ((float) $product->price === 0.00 && $product->period_type !== 'lifetime') {
             $product->limit_cycles = false;
             $product->trial        = false;
         }
 
         // Handle delayed expirations on one-time payments.
-        if ($product->period_type == 'lifetime' && $product->expire_type == 'delay') {
+        if ($product->period_type === 'lifetime' && $product->expire_type === 'delay') {
             if (!is_numeric($product->expire_after) || $product->expire_after < 0) {
                 $product->expire_after = 1;
             }
 
-            if (!in_array($product->expire_unit, ['days', 'weeks', 'months', 'years'])) {
+            if (!in_array($product->expire_unit, ['days', 'weeks', 'months', 'years'], true)) {
                 $product->expire_unit = 'days';
             }
         }
 
         // Handle fixed expirations on one-time payments.
-        if ($product->period_type == 'lifetime' && $product->expire_type == 'fixed') {
+        if ($product->period_type === 'lifetime' && $product->expire_type === 'fixed') {
             if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $product->expire_fixed, $datebit)) {
                 if (!checkdate($datebit[2], $datebit[3], $datebit[1])) {
                     $product->expire_type = 'none'; // An invalid date was set, so let's just make this a lifetime.
@@ -620,14 +623,14 @@ class MeprProductsCtrl extends MeprCptCtrl
             $content_length[$current_post->ID] = -1;
         }
 
-        if ($already_run[$current_post->ID] && strlen($content) == $content_length[$current_post->ID] && !$manual) { // Shortcode may pass.
+        if ($already_run[$current_post->ID] && strlen($content) === $content_length[$current_post->ID] && !$manual) { // Shortcode may pass.
             return $new_content[$current_post->ID];
         }
 
         $content_length[$current_post->ID] = strlen($content);
         $already_run[$current_post->ID]    = true;
 
-        if (isset($current_post) && is_a($current_post, 'WP_Post') && $current_post->post_type == MeprProduct::$cpt) {
+        if (isset($current_post) && is_a($current_post, 'WP_Post') && $current_post->post_type === MeprProduct::$cpt) {
             if (post_password_required($current_post)) {
                 // See notes above.
                 $new_content[$current_post->ID] = $content;
@@ -661,7 +664,7 @@ class MeprProductsCtrl extends MeprCptCtrl
                     $checkout_ctrl->display_payment_form();
                 } catch (Exception $e) {
                     ?>
-          <div class="mepr_error"><?php _e('There was a problem with our payment system. Please come back soon and try again.', 'memberpress'); ?></div>
+          <div class="mepr_error"><?php esc_html_e('There was a problem with our payment system. Please come back soon and try again.', 'memberpress'); ?></div>
                     <?php
                 }
 
@@ -720,11 +723,11 @@ class MeprProductsCtrl extends MeprCptCtrl
                 $cant_purchase_str = wpautop(do_shortcode($prd->cannot_purchase_message));
             }
 
-            $cant_purchase_str = MeprHooks::apply_filters('mepr-product-cant-purchase-string', $cant_purchase_str, $prd); // DEPRECATED.
-            echo MeprHooks::apply_filters('mepr-membership-cant-purchase-string', $cant_purchase_str, $prd);
+            $cant_purchase_str = MeprHooks::apply_filters('mepr_product_cant_purchase_string', $cant_purchase_str, $prd); // DEPRECATED.
+            echo MeprHooks::apply_filters('mepr_membership_cant_purchase_string', $cant_purchase_str, $prd); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         } else {
-            $pm   = isset($_GET['pmt']) ? $mepr_options->payment_method($_GET['pmt']) : null;
-            $msgp = ($pm && isset($_GET['action'])) ? $pm->message_page($_GET['action']) : null;
+            $pm   = isset($_GET['pmt']) ? $mepr_options->payment_method(sanitize_text_field(wp_unslash($_GET['pmt']))) : null;
+            $msgp = ($pm && isset($_GET['action'])) ? $pm->message_page(sanitize_text_field(wp_unslash($_GET['action']))) : null;
             if ($pm && $msgp) {
                 $enabled = false;
                 call_user_func([$pm, $msgp]);
@@ -732,11 +735,11 @@ class MeprProductsCtrl extends MeprCptCtrl
                 $enabled = true;
                 try {
                     $checkout_ctrl = MeprCtrlFactory::fetch('checkout');
-                    echo $product_access_str;
+                    echo $product_access_str; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     $checkout_ctrl->display_signup_form($prd);
                 } catch (Exception $e) {
                     ?>
-                    <div class="mepr_error"><?php _e('There was a problem with our payment system. Please come back soon and try again.', 'memberpress'); ?></div>
+                    <div class="mepr_error"><?php esc_html_e('There was a problem with our payment system. Please come back soon and try again.', 'memberpress'); ?></div>
                     <?php
                 }
             }
@@ -756,7 +759,7 @@ class MeprProductsCtrl extends MeprCptCtrl
     {
         global $current_screen;
 
-        if ($current_screen->post_type == MeprProduct::$cpt) {
+        if ($current_screen->post_type === MeprProduct::$cpt) {
             wp_register_style('mepr-jquery-ui-smoothness', MEPR_CSS_URL . '/vendor/jquery-ui/smoothness.min.css', [], '1.13.3');
             wp_register_style('jquery-ui-timepicker-addon', MEPR_CSS_URL . '/vendor/jquery-ui-timepicker-addon.css', ['mepr-jquery-ui-smoothness'], MEPR_VERSION);
             wp_enqueue_style('mepr-transactions-css', MEPR_CSS_URL . '/admin-transactions.css', ['jquery-ui-timepicker-addon'], MEPR_VERSION);
@@ -790,8 +793,8 @@ class MeprProductsCtrl extends MeprCptCtrl
             ];
             wp_localize_script('mepr-products-js', 'MeprProducts', $options);
 
-            MeprHooks::do_action('mepr-product-admin-enqueue-script', $hook); // DEPRECATED.
-            MeprHooks::do_action('mepr-membership-admin-enqueue-script', $hook);
+            MeprHooks::do_action('mepr_product_admin_enqueue_script', $hook); // DEPRECATED.
+            MeprHooks::do_action('mepr_membership_admin_enqueue_script', $hook);
         }
     }
 
@@ -872,10 +875,10 @@ class MeprProductsCtrl extends MeprCptCtrl
         }
 
         $txn  = new MeprTransaction();
-        $data = MeprTransaction::get_one_by_trans_num($_REQUEST['trans_num']);
+        $data = MeprTransaction::get_one_by_trans_num(sanitize_text_field(wp_unslash($_REQUEST['trans_num'])));
         $txn->load_data($data);
 
-        if (!$txn->id or $txn->product_id != $atts['id']) {
+        if (!$txn->id or $txn->product_id !== $atts['id']) {
             return '';
         }
 
@@ -897,7 +900,7 @@ class MeprProductsCtrl extends MeprCptCtrl
             }
 
             $txn  = new MeprTransaction();
-            $data = MeprTransaction::get_one_by_trans_num($_REQUEST['trans_num']);
+            $data = MeprTransaction::get_one_by_trans_num(sanitize_text_field(wp_unslash($_REQUEST['trans_num'])));
             $txn->load_data($data);
 
             if (! $txn->id || ! $txn->product_id) {
@@ -912,7 +915,7 @@ class MeprProductsCtrl extends MeprCptCtrl
         }
 
         // Backwards compatibility check.
-        if (!empty($product->thank_you_page_type) && $product->thank_you_page_type != 'message') {
+        if (!empty($product->thank_you_page_type) && $product->thank_you_page_type !== 'message') {
             return '';
         }
 
@@ -921,7 +924,7 @@ class MeprProductsCtrl extends MeprCptCtrl
         $message = MeprHooks::apply_filters('mepr_custom_thankyou_message', $message);
 
         if (isset($txn)) {
-            MeprHooks::do_action('mepr-thank-you-page', $txn);
+            MeprHooks::do_action('mepr_thank_you_page', $txn);
         }
 
         return '<div id="mepr-thank-you-page-message">' . $message . '</div>';
@@ -961,7 +964,7 @@ class MeprProductsCtrl extends MeprCptCtrl
             return $url;
         }
 
-        $is_login_page = ((isset($_POST['mepr_is_login_page']) && $_POST['mepr_is_login_page'] == 'true') || $is_wp_login_page);
+        $is_login_page = ((isset($_POST['mepr_is_login_page']) && $_POST['mepr_is_login_page'] === 'true') || $is_wp_login_page);
 
         // Track this login, then get the num total logins for this user.
         $user = new MeprUser($wp_user->ID);
@@ -994,7 +997,7 @@ class MeprProductsCtrl extends MeprCptCtrl
         if ($membership->custom_login_urls_enabled && (!empty($membership->custom_login_urls_default) || !empty($membership->custom_login_urls))) {
             if (!empty($membership->custom_login_urls)) {
                 foreach ($membership->custom_login_urls as $custom_url) {
-                    if (!empty($custom_url) && $custom_url->count == $num_logins) {
+                    if (!empty($custom_url) && $custom_url->count === $num_logins) {
                         return stripslashes($custom_url->url);
                     }
                 }
@@ -1014,16 +1017,16 @@ class MeprProductsCtrl extends MeprCptCtrl
     public static function get_price_str_ajax()
     {
         if (!isset($_POST['product_id']) || !is_numeric($_POST['product_id'])) {
-            die(__('An unknown error has occurred', 'memberpress'));
+            die(esc_html__('An unknown error has occurred', 'memberpress'));
         }
 
-        $product = new MeprProduct($_POST['product_id']);
+        $product = new MeprProduct(sanitize_text_field(wp_unslash($_POST['product_id'])));
 
         if (!isset($product->ID) || (int)$product->ID <= 0) {
-            die(__('Please save membership first to see the Price here.', 'memberpress'));
+            die(esc_html__('Please save membership first to see the Price here.', 'memberpress'));
         }
 
-        die(MeprAppHelper::format_price_string($product, $product->price));
+        wp_die(esc_html(MeprAppHelper::format_price_string($product, $product->price)));
     }
 
     /**
@@ -1065,7 +1068,7 @@ class MeprProductsCtrl extends MeprCptCtrl
     {
         global $post;
 
-        if (!isset($atts['id']) && !empty($post) && $post->post_type == MeprProduct::$cpt) {
+        if (!isset($atts['id']) && !empty($post) && $post->post_type === MeprProduct::$cpt) {
             $membership = new MeprProduct($post->ID);
         } elseif (isset($atts['id'])) {
             $membership = new MeprProduct($atts['id']);
@@ -1076,8 +1079,8 @@ class MeprProductsCtrl extends MeprCptCtrl
         $coupon_code = null;
         $diff        = false;
         if (isset($atts['coupon'])) {
-            if ($atts['coupon'] == 'param' && isset($_REQUEST['coupon'])) {
-                $coupon_code = $_REQUEST['coupon'];
+            if ($atts['coupon'] === 'param' && isset($_REQUEST['coupon'])) {
+                $coupon_code = sanitize_text_field(wp_unslash($_REQUEST['coupon']));
             } else {
                 $coupon_code = $atts['coupon'];
             }
@@ -1107,9 +1110,9 @@ class MeprProductsCtrl extends MeprCptCtrl
 
         if (isset($atts['format'])) {
             preg_match('!^(\d*)(\.\d*)?$!', $display_price, $price_matches);
-            if ($atts['format'] == 'cents') {
+            if ($atts['format'] === 'cents') {
                 return (isset($price_matches[2]) ? $price_matches[2] : '&nbsp;&nbsp;&nbsp;');
-            } elseif ($atts['format'] == 'dollars') {
+            } elseif ($atts['format'] === 'dollars') {
                 return $price_matches[1];
             }
         }
@@ -1127,7 +1130,7 @@ class MeprProductsCtrl extends MeprCptCtrl
     {
         if ($post_type === MeprProduct::$cpt) {
             $taxonomy      = MeprProduct::$taxonomy_product_category;
-            $selected      = isset($_GET[$taxonomy]) ? $_GET[$taxonomy] : '';
+            $selected      = isset($_GET[$taxonomy]) ? sanitize_text_field(wp_unslash($_GET[$taxonomy])) : '';
             $info_taxonomy = get_taxonomy($taxonomy);
 
             if (false === $info_taxonomy) {
@@ -1197,7 +1200,7 @@ class MeprProductsCtrl extends MeprCptCtrl
         global $pagenow;
         $taxonomy = MeprProduct::$taxonomy_product_category;
         if (
-            $pagenow == 'edit.php' && is_admin()
+            $pagenow === 'edit.php' && is_admin()
             && isset($query->query_vars['post_type'])
             && $query->query_vars['post_type'] === MeprProduct::$cpt
             && isset($query->query_vars[$taxonomy])
@@ -1221,33 +1224,34 @@ class MeprProductsCtrl extends MeprCptCtrl
         if (empty($_GET['post_type']) || MeprProduct::$cpt !== $_GET['post_type']) {
             return;
         }
+
         $category_link = add_query_arg(
             [
                 'taxonomy'  => MeprProduct::$taxonomy_product_category,
                 'post_type' => MeprProduct::$cpt,
             ],
-            esc_url(admin_url('edit-tags.php'))
+            admin_url('edit-tags.php')
         );
-        $category_btn  = wp_kses(
-            sprintf(
-                '<a href="%1$s" class="page-title-action" target = _blank>%2$s</a>',
-                $category_link,
-                esc_html__('Categories', 'memberpress')
-            ),
-            [
-                'a' => [
-                    'href'   => [],
-                    'class'  => [],
-                    'target' => [],
-                ],
-            ]
+
+        $content = sprintf(
+            '<a href="%1$s" class="page-title-action" target="_blank">%2$s</a>',
+            esc_url($category_link),
+            esc_html__('Categories', 'memberpress')
         );
+
+        $allowed_html = [
+            'a' => [
+                'href'   => [],
+                'class'  => [],
+                'target' => [],
+            ],
+        ];
         ?>
-    <script>
-      jQuery(document).ready(function($) {
-        $('.wrap .wp-header-end').before("<?php echo addslashes($category_btn); ?>");
-      });
-    </script>
+        <script>
+            jQuery(document).ready(function($) {
+                $('.wrap .wp-header-end').before(`<?php echo wp_kses($content, $allowed_html); ?>`);
+            });
+        </script>
         <?php
     }
 }

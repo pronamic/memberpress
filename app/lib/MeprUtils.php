@@ -6,6 +6,9 @@ if (!defined('ABSPATH')) {
 
 class MeprUtils
 {
+    public const ADDON_COURSES        = 'courses';
+    public const ADDON_COURSE_QUIZZES = 'course-quizzes';
+
     /**
      * Get the user ID by email.
      * Maybe this should be in MeprUser?
@@ -69,7 +72,7 @@ class MeprUtils
             return false;
         }
 
-        $file_meta = @getimagesize($filename); // @ suppress errors if $filename is not an image
+        $file_meta = @getimagesize($filename); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
         if (!is_array($file_meta)) {
             return false;
@@ -77,7 +80,7 @@ class MeprUtils
 
         $image_mimes = ['image/gif', 'image/jpeg', 'image/png'];
 
-        return in_array($file_meta['mime'], $image_mimes);
+        return in_array($file_meta['mime'], $image_mimes, true);
     }
 
     /**
@@ -209,7 +212,7 @@ class MeprUtils
     {
         $current_user = self::get_currentuserinfo();
 
-        return (self::is_user_logged_in() and (is_object($current_user) && $current_user->ID == $user_id));
+        return (self::is_user_logged_in() and (is_object($current_user) && $current_user->ID === (int) $user_id));
     }
 
     /**
@@ -239,7 +242,7 @@ class MeprUtils
      */
     public static function get_mepr_admin_capability()
     {
-        return MeprHooks::apply_filters('mepr-admin-capability', 'remove_users');
+        return MeprHooks::apply_filters('mepr_admin_capability', 'remove_users');
     }
 
     /**
@@ -267,7 +270,7 @@ class MeprUtils
      */
     public static function is_subscriber()
     {
-        return (current_user_can('subscriber'));
+        return (current_user_can('read') && !current_user_can('edit_posts'));
     }
 
     /**
@@ -417,7 +420,7 @@ class MeprUtils
 
         // If we're counting from Feb 29th on a Leap Year to a non-leap year we need to minus 1 day
         // or we'll end up with a March 1st date.
-        if ($day_num == 29 && $month_num == 2 && $calc_date->format('L') == 0) {
+        if ((int) $day_num === 29 && (int) $month_num === 2 && (int) $calc_date->format('L') === 0) {
             $calc_date->modify('-1 day');
         }
 
@@ -614,10 +617,7 @@ class MeprUtils
      */
     public static function object_to_string($object)
     {
-        ob_start();
-        print_r($object);
-
-        return ob_get_clean();
+        return print_r($object, true); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
     }
 
     /**
@@ -727,7 +727,7 @@ class MeprUtils
     public static function format_float_drop_zero_decimals($n, $num_decimals = 2)
     {
         return (
-            (floor($n) == round($n, $num_decimals))
+            (floor($n) === round($n, $num_decimals))
             ? number_format($n, 0, '.', '')
             : number_format($n, $num_decimals, '.', '')
         );
@@ -772,10 +772,10 @@ class MeprUtils
     /**
      * Converts number to US format
      *
-     * @param mixed $number       The number to format.
-     * @param mixed $num_decimals The number of decimal places.
+     * @param mixed   $number       The number to format.
+     * @param integer $num_decimals The number of decimal places.
      *
-     * @return mixed
+     * @return float|string
      */
     public static function format_currency_us_float($number, $num_decimals = 2)
     {
@@ -785,8 +785,34 @@ class MeprUtils
             return self::format_float($number, $num_decimals);
         }
 
+        // If it's already a float or int, no processing needed - just return it.
+        if (is_float($number) || is_int($number)) {
+            return (float) $number;
+        }
+
         $decimal_point = $wp_locale->number_format['decimal_point'];
         $thousands_sep = $wp_locale->number_format['thousands_sep'];
+
+        // Convert to string and trim whitespace.
+        $number = trim((string) $number);
+
+        // Detect misused separators: if the "thousands separator" appears with only 1-2 digits after it
+        // (and nothing after those digits), it's likely being misused as a decimal separator.
+        // This handles cases like entering "49,99" in an English locale or "49.99" in a European locale.
+        if (! empty($thousands_sep) && $thousands_sep !== ' ' && $thousands_sep !== '&nbsp;' && $thousands_sep !== "\xc2\xa0") {
+            // Look for the thousands separator followed by exactly 1-2 digits at the end of the string.
+            // This pattern specifically avoids matching 3-digit groups (legitimate thousands separators).
+            $pattern = '/' . preg_quote($thousands_sep, '/') . '(\d{1,2})$/';
+            if (preg_match($pattern, $number, $matches)) {
+                $digits_after = $matches[1];
+                $pos          = strrpos($number, $thousands_sep);
+                $before       = substr($number, 0, $pos);
+
+                // This is likely a misused decimal separator.
+                // Convert it to the locale's actual decimal separator.
+                $number = $before . $decimal_point . $digits_after;
+            }
+        }
 
         // Remove thousand separator.
         $number = str_replace($thousands_sep, '', $number);
@@ -794,7 +820,7 @@ class MeprUtils
         // Fix for locales where the thousand seperator is a space -
         // need to check for the html code, (above) as well as the actual space (handled with preg_replace below) and ascii 160 (str_replace below)
         // and for some reason str_replace doesn't always work on spaces but the preg_replace does.
-        if ($thousands_sep == '&nbsp;' || $thousands_sep == ' ' || $thousands_sep == "\xc2\xa0") {
+        if ($thousands_sep === '&nbsp;' || $thousands_sep === ' ' || $thousands_sep === "\xc2\xa0") {
             $number = preg_replace('/\s+/', '', $number);
             $number = str_replace("\xc2\xa0", '', $number);
         }
@@ -818,30 +844,7 @@ class MeprUtils
         $mepr_options  = MeprOptions::fetch();
         $zero_decimals = ['BIF', 'DJF', 'JPY', 'KRW', 'PYG', 'VND', 'XAF', 'XPF', 'CLP', 'GNF', 'KMF', 'MGA', 'RWF', 'VUV', 'XOF', 'HUF'];
 
-        return in_array($mepr_options->currency_code, $zero_decimals, false);
-    }
-
-    /**
-     * Get all published pages.
-     *
-     * @return array The pages.
-     */
-    public static function get_pages()
-    {
-        global $wpdb;
-
-        $orderby_allowed = ['ID', 'post_title', 'post_date'];
-        $orderby         = MeprHooks::apply_filters('mepr_page_orderby', 'ID');
-        $orderby         = in_array($orderby, $orderby_allowed) ? $orderby : 'ID';
-        $query           = "SELECT * FROM {$wpdb->posts} WHERE post_status = %s AND post_type = %s ORDER BY $orderby";
-        $query           = $wpdb->prepare($query, 'publish', 'page');
-        $results         = $wpdb->get_results($query);
-
-        if ($results) {
-            return $results;
-        } else {
-            return [];
-        }
+        return in_array($mepr_options->currency_code, $zero_decimals, true);
     }
 
     /**
@@ -853,7 +856,7 @@ class MeprUtils
     {
         $current_post = self::get_current_post();
 
-        return is_object($current_post) and $current_post->post_type == 'memberpressproduct';
+        return is_object($current_post) and $current_post->post_type === 'memberpressproduct';
     }
 
     /**
@@ -867,7 +870,7 @@ class MeprUtils
             is_ssl() ||
             ( defined('MEPR_SECURE_PROXY') && // USER must define this in wp-config.php if they're doing HTTPS between the proxy.
             isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
-            strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https' )
+            strtolower(sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_PROTO']))) === 'https' )
         ) {
             return 'https';
         } else {
@@ -928,7 +931,7 @@ class MeprUtils
         $max_index   = strlen($characters) - 1;
 
         for ($p = 0; $p < $length; $p++) {
-            $string .= $characters[mt_rand(0, $max_index)];
+            $string .= $characters[wp_rand(0, $max_index)];
         }
 
         return $string;
@@ -955,17 +958,18 @@ class MeprUtils
     public static function flush_rewrite_rules()
     {
         // Load our controllers.
-        $controllers = @glob(MEPR_CTRLS_PATH . '/Mepr*Ctrl.php', GLOB_NOSORT);
+        $controllers = glob(MEPR_CTRLS_PATH . '/Mepr*Ctrl.php', GLOB_NOSORT);
+        if (is_array($controllers)) {
+            foreach ($controllers as $controller) {
+                $class = preg_replace('#\.php#', '', basename($controller));
 
-        foreach ($controllers as $controller) {
-            $class = preg_replace('#\.php#', '', basename($controller));
+                if (preg_match('#Mepr.*Ctrl#', $class)) {
+                    $obj = new $class();
 
-            if (preg_match('#Mepr.*Ctrl#', $class)) {
-                $obj = new $class();
-
-                // Only act on MeprCptCtrls.
-                if ($obj instanceof MeprCptCtrl) {
-                    $obj->register_post_type();
+                    // Only act on MeprCptCtrls.
+                    if ($obj instanceof MeprCptCtrl) {
+                        $obj->register_post_type();
+                    }
                 }
             }
         }
@@ -1007,7 +1011,7 @@ class MeprUtils
 
         // If the subscription has a trial and we're in that first trial payment use trial amount
         // Otherwise use regular price.
-        if ($old_sub->trial && $old_sub->trial_amount > 0.00 && $old_sub->txn_count == 1) {
+        if ($old_sub->trial && $old_sub->trial_amount > 0.00 && (int) $old_sub->txn_count === 1) {
             $old_price = $old_sub->trial_amount; // May need to be updated to trial_total when taxes in paid trials feature is in place.
         } else {
             $old_price = $old_sub->price;
@@ -1019,7 +1023,7 @@ class MeprUtils
         $coupon = $new_sub->coupon();
         if (
             $new_sub->trial && $new_sub->trial_amount > 0.00 ||
-            ($coupon && ($coupon->discount_mode == 'first-payment' || $coupon->discount_mode == 'trial-override'))
+            ($coupon && ($coupon->discount_mode === 'first-payment' || $coupon->discount_mode === 'trial-override'))
         ) {
             $new_price          = $new_sub->trial_amount;
             $days_in_new_period = $new_sub->trial_days;
@@ -1093,7 +1097,7 @@ class MeprUtils
                     $days = ($new_amount > 0 ? ((abs($proration) + $new_amount) / $new_amount) * $new_days_left : 0);
                 }
             }
-        } elseif (is_numeric($old_period) && is_numeric($old_days_left) && ($new_period == 'lifetime' || $new_sub === false) && $old_amount > 0) {
+        } elseif (is_numeric($old_period) && is_numeric($old_days_left) && ($new_period === 'lifetime' || $new_sub === false) && $old_amount > 0) {
             // Recurring to lifetime
             // Apply outstanding amount to lifetime purchase
             // Calculate amount of money left on old sub.
@@ -1101,11 +1105,11 @@ class MeprUtils
 
             $proration = max($new_amount - $old_outstanding_amount, 0.00);
             $days      = 0; // We just do this thing.
-        } elseif ($old_period == 'lifetime' && is_numeric($new_period) && $old_amount > 0) {
+        } elseif ($old_period === 'lifetime' && is_numeric($new_period) && $old_amount > 0) {
             // Lifetime to recurring.
             $proration = max($new_amount - $old_amount, 0.00);
             $days      = $new_period; // (is_numeric($old_days_left) && !$reset_period)?$old_days_left:$new_period;
-        } elseif ($old_period == 'lifetime' && $new_period == 'lifetime' && $old_amount > 0) {
+        } elseif ($old_period === 'lifetime' && $new_period === 'lifetime' && $old_amount > 0) {
             // Lifetime to lifetime.
             $proration = max(($new_amount - $old_amount), 0.00);
             $days      = 0; // We be lifetime brah.
@@ -1127,7 +1131,7 @@ class MeprUtils
 
         $prorations = (object)compact('proration', 'days');
 
-        return MeprHooks::apply_filters('mepr-proration', $prorations, $old_amount, $new_amount, $old_period, $new_period, $old_days_left, $old_sub, $new_sub, $reset_period);
+        return MeprHooks::apply_filters('mepr_proration', $prorations, $old_amount, $new_amount, $old_period, $new_period, $old_days_left, $old_sub, $new_sub, $reset_period);
     }
 
     /**
@@ -1155,7 +1159,7 @@ class MeprUtils
         $pms = get_post_custom($post_id);
         $var = get_post_meta($post_id, $meta_key, $single);
 
-        if (($single and $var == '') or (!$single and $var == [])) {
+        if (($single and $var === '') or (!$single and $var === [])) {
             // Since false bools are stored as empty string ('') we need
             // to see if the meta_key is actually stored in the db and
             // it's a bool value before we blindly return default.
@@ -1170,27 +1174,6 @@ class MeprUtils
     }
 
     /**
-     * Get post meta values.
-     *
-     * @param string $meta_key The meta key.
-     *
-     * @return array The post meta values.
-     */
-    public static function get_post_meta_values($meta_key)
-    {
-        global $wpdb;
-
-        $query = $wpdb->prepare("SELECT * FROM {$wpdb->postmeta} WHERE meta_key=%s", $meta_key);
-        $metas = $wpdb->get_results($query);
-
-        for ($i = 0; $i < count($metas); $i++) {
-            $metas[$i]->meta_value = maybe_unserialize($metas[$i]->meta_value);
-        }
-
-        return $metas;
-    }
-
-    /**
      * Convert to plain text.
      *
      * @param string $text The text to convert.
@@ -1200,7 +1183,7 @@ class MeprUtils
     public static function convert_to_plain_text($text)
     {
         $text = preg_replace('~<style[^>]*>[^<]*</style>~', '', $text);
-        $text = strip_tags($text);
+        $text = wp_strip_all_tags($text);
         $text = trim($text);
         $text = preg_replace("~\r~", '', $text); // Make sure we're only dealing with \n's here.
         $text = preg_replace("~\n\n+~", "\n\n", $text); // Reduce 1 or more blank lines to 1.
@@ -1326,7 +1309,7 @@ class MeprUtils
             header("Content-Disposition: attachment; filename=\"{$filename}.xml\"");
         }
 
-        die(self::to_xml($struct));
+        die(self::to_xml($struct)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     /**
@@ -1350,7 +1333,7 @@ class MeprUtils
 
         header('Content-Type: text/plain');
 
-        die(self::to_csv($struct));
+        die(self::to_csv($struct)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     /**
@@ -1364,11 +1347,16 @@ class MeprUtils
     {
         header('WWW-Authenticate: Basic realm="' . self::blogname() . '"');
         header('HTTP/1.0 401 Unauthorized');
-        die(sprintf(
-            // Translators: %s: unauthorized message.
-            __('UNAUTHORIZED: %s', 'memberpress'),
-            $message
-        ));
+
+        wp_die(
+            esc_html(
+                sprintf(
+                    // Translators: %s: error message.
+                    __('UNAUTHORIZED: %s', 'memberpress'),
+                    $message
+                )
+            )
+        );
     }
 
     /**
@@ -1571,7 +1559,7 @@ class MeprUtils
      */
     public static function array_insert($array, $index, $insert)
     {
-        $pos    = array_search($index, array_keys($array));
+        $pos    = array_search($index, array_keys($array), true);
         $pos    = empty($pos) ? 0 : (int)$pos;
         $before = array_slice($array, 0, $pos + 1);
         $after  = array_slice($array, $pos);
@@ -1600,7 +1588,7 @@ class MeprUtils
         // Now get rid of the spaces.
         $str = preg_replace('/ /', '', $str);
 
-        if ($type == 'lower') {
+        if ($type === 'lower') {
             // Lowercase the first character of the string.
             $str[0] = strtolower($str[0]);
         }
@@ -1727,28 +1715,6 @@ class MeprUtils
     }
 
     /**
-     * Check if user meta exists.
-     *
-     * @param integer $user_id  The user ID.
-     * @param string  $meta_key The meta key.
-     *
-     * @return boolean True if the user meta exists, false otherwise.
-     */
-    public static function user_meta_exists($user_id, $meta_key)
-    {
-        global $wpdb;
-
-        $q     = "SELECT COUNT(*)
-            FROM {$wpdb->usermeta} AS um
-           WHERE um.user_id=%d
-             AND um.meta_key=%s";
-        $q     = $wpdb->prepare($q, $user_id, $meta_key);
-        $count = $wpdb->get_var($q);
-
-        return ($count > 0);
-    }
-
-    /**
      * Parses a CSV file and returns an associative array
      *
      * @param string $filepath    The path to the CSV file.
@@ -1764,22 +1730,34 @@ class MeprUtils
         $col_count = 0;
         $row       = 1;
 
-        $handle = fopen($filepath, 'r');
-        if ($handle !== false) {
+        try {
+            $filesystem = MeprFilesystem::get();
+            $content    = $filesystem->get_contents($filepath);
+        } catch (Exception $e) {
+            MeprUtils::debug_log($e->getMessage());
+            $content = false;
+        }
+
+        if ($content !== false) {
             $delimiter = self::get_file_delimiter($filepath);
+
             // Check for BOM - Byte Order Mark.
             $bom = "\xef\xbb\xbf";
-            // Move pointer to the 4th byte to check if we have a BOM.
-            if (fgets($handle, 4) !== $bom) {
-                // BOM not found - rewind pointer to start of file.
-                rewind($handle);
+            if (strpos($content, $bom) === 0) {
+                // Remove BOM from the beginning of the content.
+                $content = substr($content, 3);
             }
 
-            while (true) {
-                $data = fgetcsv($handle, 1000, $delimiter);
-                if ($data === false) {
-                    break;
+            // Split the content into lines.
+            $lines = explode("\n", $content);
+
+            foreach ($lines as $line) {
+                // Skip empty lines.
+                if (empty(trim($line))) {
+                    continue;
                 }
+
+                $data = str_getcsv($line, $delimiter);
 
                 if ($row === 1) {
                     foreach ($data as $i => $header) {
@@ -1791,11 +1769,11 @@ class MeprUtils
                             }
                         }
                         foreach ($validations as $col => $v) {
-                            if (in_array('required', $v) && !in_array($col, $headers)) {
+                            if (in_array('required', $v, true) && !in_array($col, $headers, true)) {
                                 throw new Exception(sprintf(
                                     // Translators: %s: column name.
-                                    __('Your CSV file must contain the column: %s', 'memberpress'),
-                                    $col
+                                    esc_html__('Your CSV file must contain the column: %s', 'memberpress'),
+                                    esc_html($col)
                                 ));
                             }
                         }
@@ -1808,11 +1786,11 @@ class MeprUtils
                             $new_row[$headers[$i]] = $data[$i];
                         }
                         foreach ($validations as $col => $v) {
-                            if (in_array('required', $v) && !in_array($col, $headers)) {
+                            if (in_array('required', $v, true) && !in_array($col, $headers, true)) {
                                 throw new Exception(sprintf(
                                     // Translators: %s: column name.
-                                    __('Your CSV file must contain the column: %s', 'memberpress'),
-                                    $col
+                                    esc_html__('Your CSV file must contain the column: %s', 'memberpress'),
+                                    esc_html($col)
                                 ));
                             }
                         }
@@ -1821,7 +1799,6 @@ class MeprUtils
                 }
                 $row++;
             }
-            fclose($handle);
         }
 
         return $assoc;
@@ -1835,8 +1812,8 @@ class MeprUtils
      */
     private static function get_file_delimiter($filepath)
     {
-        $delimiters = apply_filters(
-            'mepr-csv-tax-rate-delimiters',
+        $delimiters = MeprHooks::apply_filters(
+            'mepr_csv_tax_rate_delimiters',
             [
                 ';'  => 0,
                 ','  => 0,
@@ -1846,18 +1823,31 @@ class MeprUtils
             $filepath
         );
 
-        $handle = fopen($filepath, 'r');
+        try {
+            $filesystem = MeprFilesystem::get();
+            $content    = $filesystem->get_contents($filepath);
+        } catch (Exception $e) {
+            MeprUtils::debug_log($e->getMessage());
+            $content = false;
+        }
 
-        if ($handle) {
-            $first_line = fgets($handle);
-            fclose($handle);
+        if ($content !== false) {
+            // Get the first line.
+            $lines      = explode("\n", $content);
+            $first_line = trim($lines[0]);
+
+            // Check for BOM and remove it if present.
+            $bom = "\xef\xbb\xbf";
+            if (strpos($first_line, $bom) === 0) {
+                $first_line = substr($first_line, 3);
+            }
 
             foreach ($delimiters as $delimiter => &$count) {
                 $count = count(str_getcsv($first_line, $delimiter));
             }
 
             if (max($delimiters) > 0) {
-                return array_search(max($delimiters), $delimiters);
+                return array_search(max($delimiters), $delimiters, true);
             }
         }
 
@@ -1931,9 +1921,11 @@ class MeprUtils
     public static function states()
     {
         $states = [];
-        $sfiles = @glob(MEPR_I18N_PATH . '/states/[A-Z][A-Z].php', GLOB_NOSORT);
-        foreach ($sfiles as $sfile) {
-            require($sfile);
+        $sfiles = glob(MEPR_I18N_PATH . '/states/[A-Z][A-Z].php', GLOB_NOSORT);
+        if (is_array($sfiles)) {
+            foreach ($sfiles as $sfile) {
+                require($sfile);
+            }
         }
 
         return MeprHooks::apply_filters(
@@ -1989,7 +1981,7 @@ class MeprUtils
                     $cond  .= preg_match('/^`[\w\.]+`$/', $qv['var']) ? $qv['var'] : '`' . $qv['var'] . '`';
                     $cond  .= ((isset($qv['op']) && preg_match('/^(<>|<|>|<=|>=)$/i', $qv['op'])) ? $qv['op'] : '=');
                     $cond  .= is_numeric($qv['val']) ? '%d' : '%s';
-                    $where .= $wpdb->prepare($cond, $qv['val']);
+                    $where .= $wpdb->prepare($cond, $qv['val']); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
                 }
             }
         }
@@ -2035,7 +2027,7 @@ class MeprUtils
      */
     public static function locate_by_ip($ip = null, $source = 'geoplugin')
     {
-        $ip = (is_null($ip) ? $_SERVER['REMOTE_ADDR'] : $ip);
+        $ip = is_null($ip) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'] ?? '')) : $ip;
         if (!self::is_ip($ip)) {
             return false;
         }
@@ -2044,7 +2036,7 @@ class MeprUtils
         $loc    = get_transient($lockey);
 
         if (false === $loc) {
-            if ($source == 'freegeoip') {
+            if ($source === 'freegeoip') {
                 $url    = "https://freegeoip.net/json/{$ip}";
                 $cindex = 'country_code';
                 $sindex = 'region_code';
@@ -2098,7 +2090,8 @@ class MeprUtils
      */
     public static function country_by_ip($ip = null, $source = 'geoplugin')
     {
-        return (($loc = self::locate_by_ip()) ? $loc->country : '' );
+        $loc = self::locate_by_ip();
+        return ($loc && is_object($loc) ? $loc->country : '');
     }
 
     /**
@@ -2111,7 +2104,8 @@ class MeprUtils
      */
     public static function state_by_ip($ip = null, $source = 'geoplugin')
     {
-        return (($loc = self::locate_by_ip()) ? $loc->state : '' );
+        $loc = self::locate_by_ip();
+        return ($loc && is_object($loc) ? $loc->state : '');
     }
 
     /**
@@ -2332,37 +2326,59 @@ class MeprUtils
     {
         $codes = self::http_status_codes();
         header("HTTP/1.1 {$status} {$codes[$status]}", true, $status);
-        exit($message);
+        exit(esc_html($message));
     }
 
     /**
      * Log an error.
      *
+     * @deprecated Use MeprUtils::debug_log() instead.
+     *
      * @param string $error The error.
      */
-    public static function error_log($error)
+    public static function error_log($error): void
     {
-        error_log(sprintf(
-            // Translators: %s: error message.
-            __('*** MemberPress Error: %s', 'memberpress'),
-            $error
-        ));
+        _deprecated_function(__METHOD__, '1.12.7', 'MeprUtils::debug_log()');
+        self::debug_log($error);
     }
 
     /**
      * Debug log.
      *
-     * @param string $message The message.
+     * @param string      $message The message to log.
+     * @param mixed[]     $vars    Optional array of variables to be printed in a human-readable format. Default [].
+     * @param string|null $path    Optional path to log the message to. Default null.
      */
-    public static function debug_log($message)
+    public static function debug_log($message, $vars = [], $path = null): void
     {
-        // Getting some complaints about using WP_DEBUG here.
-        if (defined('WP_MEPR_DEBUG') && WP_MEPR_DEBUG) {
-            error_log(sprintf(
-                // Translators: %s: debug message.
-                __('*** MemberPress Debug: %s', 'memberpress'),
-                $message
-            ));
+        if (!defined('WP_MEPR_DEBUG') || !WP_MEPR_DEBUG) {
+            return;
+        }
+
+        // Calling error_log with message_type 3 (file path) does not add a timestamp.
+        $timestamp = '[' . gmdate('d-M-Y H:i:s') . ' UTC] ';
+        $prefix    = ($path ? $timestamp : '') . 'MemberPress: ';
+        $log       = '';
+
+        if (!empty($message)) {
+            // Calling error_log with message_type 3 (file path) does not add a newline.
+            $log .= ($path ? "\n" : '') . $prefix . $message;
+        }
+
+        if (!empty($vars)) {
+            foreach ($vars as $var) {
+                $log .= "\n" . print_r($var, true); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+            }
+        }
+
+        if (empty($log)) {
+            return;
+        }
+
+        if ($path) {
+            error_log($log, 3, $path); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+        } else {
+            error_log($log); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
         }
     }
 
@@ -2376,7 +2392,7 @@ class MeprUtils
     public static function is_wp_error($obj)
     {
         if (is_wp_error($obj)) {
-            self::error_log($obj->get_error_message());
+            self::debug_log($obj->get_error_message());
             return true;
         }
 
@@ -2410,7 +2426,7 @@ class MeprUtils
         $disable_email = MeprHooks::apply_filters('mepr_send_email_disable', false, $obj, $user_class, $admin_class);
 
         try {
-            if (!is_null($user_class) && false == $disable_email) {
+            if (!is_null($user_class) && false === (bool) $disable_email) {
                 $uemail     = MeprEmailFactory::fetch($user_class);
                 $uemail->to = $usr->formatted_email();
 
@@ -2421,7 +2437,7 @@ class MeprUtils
                 }
             }
 
-            if (!is_null($admin_class) && false == $disable_email) {
+            if (!is_null($admin_class) && false === (bool) $disable_email) {
                 $aemail = MeprEmailFactory::fetch($admin_class);
 
                 if ($force) {
@@ -2815,7 +2831,7 @@ class MeprUtils
     {
         $rarray = [];
         foreach ($sarray as $key => $value) {
-            if (in_array($key, $keys)) {
+            if (in_array($key, $keys, true)) {
                 $rarray[$key] = $value;
             }
         }
@@ -2882,9 +2898,9 @@ class MeprUtils
         if (!empty($method)) {
             $method = strtoupper($method);
 
-            if ($method == 'GET') {
+            if ($method === 'GET') {
                 $params = $_GET;
-            } elseif ($method == 'POST') {
+            } elseif ($method === 'POST') {
                 $params = $_POST;
             }
         }
@@ -2892,7 +2908,7 @@ class MeprUtils
         $verified = isset($params[$name]);
 
         if ($verified && !empty($value)) {
-            $verified = ($params[$name] == $value);
+            $verified = ($params[$name] === $value);
         }
 
         return $verified;
@@ -2916,7 +2932,7 @@ class MeprUtils
     ) {
         $query_string = '';
         if ($include_query_string) {
-            $query_string = $_SERVER['QUERY_STRING'];
+            $query_string = sanitize_text_field(wp_unslash($_SERVER['QUERY_STRING'] ?? ''));
         }
 
         if (empty($query_string)) {
@@ -3045,7 +3061,7 @@ class MeprUtils
         $server_header_name = 'HTTP_' . str_replace('-', '_', $header_name);
 
         if (isset($_SERVER[$server_header_name])) {
-            return $_SERVER[$server_header_name];
+            return sanitize_text_field(wp_unslash($_SERVER[$server_header_name]));
         } elseif (function_exists('getallheaders')) {
             $myheaders = getallheaders();
 
@@ -3141,10 +3157,10 @@ class MeprUtils
 
         // We just send individual emails.
         $recipients = explode(',', $recipient);
-        $recipients = MeprHooks::apply_filters('mepr-wp-mail-recipients', $recipients, $subject, $message, $headers);
-        $subject    = MeprHooks::apply_filters('mepr-wp-mail-subject', $subject, $recipients, $message, $headers);
-        $message    = MeprHooks::apply_filters('mepr-wp-mail-message', $message, $recipients, $subject, $headers);
-        $headers    = MeprHooks::apply_filters('mepr-wp-mail-headers', $headers, $recipients, $subject, $message, $attachments);
+        $recipients = MeprHooks::apply_filters('mepr_wp_mail_recipients', $recipients, $subject, $message, $headers);
+        $subject    = MeprHooks::apply_filters('mepr_wp_mail_subject', $subject, $recipients, $message, $headers);
+        $message    = MeprHooks::apply_filters('mepr_wp_mail_message', $message, $recipients, $subject, $headers);
+        $headers    = MeprHooks::apply_filters('mepr_wp_mail_headers', $headers, $recipients, $subject, $message, $attachments);
 
         MeprHooks::do_action('mepr_before_send_email', $recipients, $subject, $message, $headers, $attachments);
 
@@ -3302,7 +3318,7 @@ class MeprUtils
      */
     public static function get_current_url()
     {
-        return (is_ssl() ? 'https' : 'http') . '://' . wp_unslash($_SERVER['HTTP_HOST']) . wp_unslash($_SERVER['REQUEST_URI']);
+        return (is_ssl() ? 'https' : 'http') . '://' . sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'] ?? '')) . esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
     }
 
     /**
@@ -3312,7 +3328,7 @@ class MeprUtils
      */
     public static function get_current_url_without_params()
     {
-        return explode('?', $_SERVER['REQUEST_URI'], 2)[0];
+        return explode('?', esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? '')), 2)[0];
     }
 
     /**
@@ -3437,7 +3453,7 @@ class MeprUtils
      */
     public static function logout_url()
     {
-        return MeprHooks::apply_filters('mepr-logout-url', wp_logout_url(self::login_url()));
+        return MeprHooks::apply_filters('mepr_logout_url', wp_logout_url(self::login_url()));
     }
 
     /**
@@ -3468,7 +3484,7 @@ class MeprUtils
     public static function is_post_request()
     {
         if (isset($_SERVER['REQUEST_METHOD'])) {
-            return (strtolower($_SERVER['REQUEST_METHOD']) == 'post');
+            return (strtolower(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) === 'post');
         } else {
             return (isset($_POST) && !empty($_POST));
         }
@@ -3482,7 +3498,7 @@ class MeprUtils
     public static function is_get_request()
     {
         if (isset($_SERVER['REQUEST_METHOD'])) {
-            return (strtolower($_SERVER['REQUEST_METHOD']) == 'get');
+            return (strtolower(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) === 'get');
         } else {
             return (!isset($_POST) || empty($_POST));
         }
@@ -3497,10 +3513,10 @@ class MeprUtils
     {
         $url = (self::is_ssl()) ? 'https://' : 'http://';
 
-        if ($_SERVER['SERVER_PORT'] != '80') {
-            $url .= $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] . $_SERVER['REQUEST_URI'];
+        if (intval($_SERVER['SERVER_PORT'] ?? 80) !== 80) {
+            $url .= sanitize_text_field(wp_unslash($_SERVER['SERVER_NAME'] ?? '')) . ':' . intval(wp_unslash($_SERVER['SERVER_PORT'] ?? '')) . esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
         } else {
-            $url .= $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+            $url .= sanitize_text_field(wp_unslash($_SERVER['SERVER_NAME'] ?? '')) . esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
         }
 
         return $url;
@@ -3518,7 +3534,7 @@ class MeprUtils
         $mepr_options    = MeprOptions::fetch();
         $ums             = get_user_meta($user_id);
         $new_ums         = [];
-        $return_ugly_val = MeprHooks::apply_filters('mepr-return-ugly-usermeta-vals', false);
+        $return_ugly_val = MeprHooks::apply_filters('mepr_return_ugly_usermeta_vals', false);
 
         if (!empty($ums)) {
             foreach ($ums as $umkey => $um) {
@@ -3544,7 +3560,7 @@ class MeprUtils
                     } else { // Convert empty array to empty string.
                         $strval = '';
                     }
-                } elseif ($val == 'on') { // Single checkbox.
+                } elseif ($val === 'on') { // Single checkbox.
                     $strval = _x('Checked', 'ui', 'memberpress');
                 } elseif ($return_ugly_val) { // Return the ugly value.
                     $strval = $val;
@@ -3553,7 +3569,7 @@ class MeprUtils
 
                     if (!is_null($mepr_field) && !empty($mepr_field->options)) {
                         foreach ($mepr_field->options as $option) {
-                            if ($option->option_value == $val) {
+                            if ($option->option_value === $val) {
                                 $strval = stripslashes($option->option_name);
                                 break; // Found a match, so stop here.
                             }
@@ -3653,12 +3669,12 @@ class MeprUtils
     /**
      * Formats and translates a date or time
      *
-     * @param  string            $format   The format of the returned date.
-     * @param  DateTimeInterface $date     The DateTime or DateTimeImmutable instance representing the moment of time in UTC, or null to use the current time.
-     * @param  DateTimeZone      $timezone The timezone of the returned date, will default to the WP timezone if omitted.
-     * @return string|false                The formatted date or false if there was an error
+     * @param  string                 $format   The format of the returned date.
+     * @param  DateTimeInterface|null $date     The DateTime or DateTimeImmutable instance representing the moment of time in UTC, or null to use the current time.
+     * @param  DateTimeZone|null      $timezone The timezone of the returned date, will default to the WP timezone if omitted.
+     * @return string|false                     The formatted date or false if there was an error
      */
-    public static function date($format, DateTimeInterface $date = null, DateTimeZone $timezone = null)
+    public static function date($format, ?DateTimeInterface $date = null, ?DateTimeZone $timezone = null)
     {
         if (!$date) {
             $date = date_create('@' . time());
@@ -3806,6 +3822,16 @@ class MeprUtils
     }
 
     /**
+     * Returns the available editions of MemberPress.
+     *
+     * @return array
+     */
+    public static function get_editions()
+    {
+        return file_exists(MEPR_BRAND_DATA_PATH . '/editions.php') ? require(MEPR_BRAND_DATA_PATH . '/editions.php') : [];
+    }
+
+    /**
      * Get the edition data from a product slug
      *
      * @param  string $product_slug The product slug.
@@ -3813,70 +3839,8 @@ class MeprUtils
      */
     public static function get_edition($product_slug)
     {
-        $editions = [
-            [
-                'index' => 0,
-                'slug'  => 'business',
-                'name'  => 'MemberPress Business',
-            ],
-            [
-                'index' => 1,
-                'slug'  => 'memberpress-basic',
-                'name'  => 'MemberPress Basic',
-            ],
-            [
-                'index' => 2,
-                'slug'  => 'memberpress-plus',
-                'name'  => 'MemberPress Plus',
-            ],
-            [
-                'index' => 3,
-                'slug'  => 'memberpress-plus-2',
-                'name'  => 'MemberPress Plus',
-            ],
-            [
-                'index' => 4,
-                'slug'  => 'developer',
-                'name'  => 'MemberPress Developer',
-            ],
-            [
-                'index' => 5,
-                'slug'  => 'memberpress-pro',
-                'name'  => 'MemberPress Pro',
-            ],
-            [
-                'index' => 6,
-                'slug'  => 'memberpress-pro-5',
-                'name'  => 'MemberPress Pro',
-            ],
-            [
-                'index' => 7,
-                'slug'  => 'memberpress-reseller',
-                'name'  => 'MemberPress Reseller',
-            ],
-            [
-                'index' => 8,
-                'slug'  => 'memberpress-oem',
-                'name'  => 'MemberPress OEM',
-            ],
-            [
-                'index' => 9,
-                'slug'  => 'memberpress-elite',
-                'name'  => 'MemberPress Elite',
-            ],
-        ];
-
-        if (preg_match('/^memberpress-reseller-.+$/', $product_slug)) {
-            $editions[7]['slug'] = $product_slug;
-        }
-
-        foreach ($editions as $edition) {
-            if ($product_slug == $edition['slug']) {
-                return $edition;
-            }
-        }
-
-        return null;
+        $editions = self::get_editions();
+        return $editions[$product_slug] ?? null;
     }
 
     /**
@@ -3892,7 +3856,7 @@ class MeprUtils
         if (
             empty($license_product_slug) ||
             empty(MEPR_EDITION) ||
-            $license_product_slug == MEPR_EDITION ||
+            $license_product_slug === MEPR_EDITION ||
             !current_user_can('update_plugins') ||
             @is_dir(MEPR_PATH . '/.git')
         ) {
@@ -3913,43 +3877,13 @@ class MeprUtils
     }
 
     /**
-     * Is the given product slug a Pro edition of MemberPress?
-     *
-     * @param  string $product_slug The product slug.
-     * @return boolean
-     */
-    public static function is_pro_edition($product_slug)
-    {
-        if (empty($product_slug)) {
-            return false;
-        }
-
-        return in_array($product_slug, ['memberpress-pro', 'memberpress-pro-5'], true) || MeprUtils::is_oem_edition($product_slug);
-    }
-
-    /**
-     * Is the given product slug an OEM/reseller edition of MemberPress?
-     *
-     * @param  string $product_slug The product slug.
-     * @return boolean
-     */
-    public static function is_oem_edition($product_slug)
-    {
-        if (empty($product_slug)) {
-            return false;
-        }
-
-        return $product_slug == 'memberpress-oem' || preg_match('/^memberpress-reseller-.+$/', $product_slug);
-    }
-
-    /**
      * Determines whether or not the provided gateway is connected.
      *
      * @param  object           $gateway The gateway object.
      * @param  MeprProduct|null $product The product being purchased.
      * @return boolean
      */
-    public static function is_gateway_connected($gateway, MeprProduct $product = null)
+    public static function is_gateway_connected($gateway, ?MeprProduct $product = null)
     {
         if (!is_object($gateway) || !isset($gateway->key)) {
             return false;
@@ -3963,7 +3897,7 @@ class MeprUtils
             case 'paypalcommerce':
                 return ($gateway->is_paypal_connected() || $gateway->is_paypal_connected_live());
             case 'square':
-                return $gateway instanceof MeprSquareGateway && $gateway->is_usable($product);
+                return $gateway instanceof MeprSquarePaymentsGateway && $gateway->is_usable($product);
             default:
                 return true;
         }
@@ -4039,21 +3973,6 @@ class MeprUtils
     }
 
     /**
-     * Is the given product slug an Elite edition of MemberPress?
-     *
-     * @param  string $product_slug The product slug.
-     * @return boolean
-     */
-    public static function is_elite_edition($product_slug)
-    {
-        if (empty($product_slug)) {
-            return false;
-        }
-
-        return in_array($product_slug, ['memberpress-elite'], true);
-    }
-
-    /**
      * Validate a JSON request
      *
      * @param string $nonce_action The nonce action to verify.
@@ -4087,6 +4006,7 @@ class MeprUtils
             wp_send_json_error(__('Bad request.', 'memberpress'));
         }
 
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
         $data = json_decode(wp_unslash($_POST['data']), true);
 
         if (!is_array($data)) {
@@ -4182,4 +4102,269 @@ class MeprUtils
         return $plaintext;
     }
     // phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber
+
+    /**
+     * Renders the row action links with proper formatting and separators.
+     *
+     * This method takes an array of link definitions and renders them as HTML with consistent
+     * formatting, including separators between links and proper attribute escaping. Links are
+     * sorted by priority before rendering.
+     *
+     * @param array $links Array of link definitions.
+     * @type  string  $href        The URL for the link
+     * @type  string  $text        The link text to display
+     * @type  string  $class       CSS class(es) for the link (optional)
+     * @type  string  $title       Title attribute for the link (optional)
+     * @type  string  $target      Target attribute for the link (optional)
+     * @type  array   $data        Array of data attributes (optional)
+     * @type  string  $wrapper     CSS class for wrapper span (optional)
+     * @type  string  $wrapper_id  ID for wrapper span (optional)
+     * @type  integer $priority    Rendering priority - lower numbers render first (optional, default: 50)
+     *
+     * @return string|null HTML output of rendered links with separators, or null if no valid links
+     */
+    public static function render_row_action_links($links)
+    {
+        if (!is_array($links)) {
+            return null;
+        }
+
+        // Sort links by priority.
+        uasort($links, function ($a, $b) {
+            $a_priority = isset($a['priority']) ? $a['priority'] : 50;
+            $b_priority = isset($b['priority']) ? $b['priority'] : 50;
+            return $a_priority - $b_priority;
+        });
+
+        $output = '';
+        $first = true;
+
+        foreach ($links as $link) {
+            // Skip links without priority (optional safety check).
+            if (!isset($link['priority'])) {
+                continue;
+            }
+
+            // Add separator.
+            if (!$first) {
+                $output .= ' | ';
+            }
+
+            // Open wrapper if exists.
+            if (!empty($link['wrapper'])) {
+                $wrapper_attrs = ['class="' . esc_attr($link['wrapper']) . '"'];
+                if (!empty($link['wrapper_id'])) {
+                    $wrapper_attrs[] = 'id="' . esc_attr($link['wrapper_id']) . '"';
+                }
+                $output .= '<span ' . implode(' ', $wrapper_attrs) . '>';
+            }
+
+            // Build attributes.
+            $attributes = [];
+            if (!empty($link['id'])) {
+                $attributes[] = 'id="' . esc_attr($link['id']) . '"';
+            }
+            if (!empty($link['class'])) {
+                $attributes[] = 'class="' . esc_attr($link['class']) . '"';
+            }
+            if (!empty($link['title'])) {
+                $attributes[] = 'title="' . esc_attr($link['title']) . '"';
+            }
+            if (!empty($link['target'])) {
+                $attributes[] = 'target="' . esc_attr($link['target']) . '"';
+            }
+            if (!empty($link['data'])) {
+                foreach ($link['data'] as $key => $value) {
+                    $attributes[] = 'data-' . $key . '="' . esc_attr($value) . '"';
+                }
+            }
+            // Render link.
+            $output .= sprintf(
+                '<a href="%s" %s>%s</a>',
+                esc_url($link['href']),
+                implode(' ', $attributes),
+                esc_html($link['text'])
+            );
+            // Close wrapper if exists.
+            if (!empty($link['wrapper'])) {
+                $output .= '</span>';
+            }
+            $first = false;
+        }
+
+        return $output;
+    }
+
+    /**
+     * Get countries that don't typically have states/provinces
+     *
+     * @return array Array of country codes
+     */
+    public static function get_countries_without_states()
+    {
+        static $countries = null;
+
+        if ($countries === null) {
+            $countries = include MEPR_PATH . '/i18n/states/countries-without-states.php';
+        }
+
+        return $countries;
+    }
+
+    /**
+     * Get the href/URL for a specific link slug.
+     *
+     * @param string $slug The link slug to retrieve.
+     *
+     * @return string The URL/href, or empty string if slug not found.
+     */
+    public static function get_link_url(string $slug): string
+    {
+        static $links;
+
+        if ($links === null) {
+            $links = require MEPR_BRAND_PATH . '/data/links.php';
+        }
+
+        return $links[$slug] ?? '';
+    }
+
+    /**
+     * Check if an addon is active.
+     *
+     * Important: This function must only be called during or after the
+     * `plugins_loaded` action. Calling it earlier may result in missing dependencies.
+     *
+     * @param string $addon The addon to check.
+     */
+    public static function is_addon_active(string $addon): bool
+    {
+        if (!did_action('plugins_loaded')) {
+            _doing_it_wrong(
+                __METHOD__,
+                esc_html__('MeprUtils::is_addon_active() should not be called before the plugins_loaded action.', 'memberpress'),
+                '1.12.7'
+            );
+        }
+
+        switch ($addon) {
+            case self::ADDON_COURSES:
+                return defined('memberpress\courses\PATH');
+            case self::ADDON_COURSE_QUIZZES:
+                return defined('memberpress\quizzes\PATH');
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if the current URL is a development URL.
+     *
+     * @return boolean
+     */
+    public static function is_dev_url(): bool
+    {
+        // Check both network site URL and HTTP_HOST.
+        $hosts_to_check = [];
+
+        // Get host from network_site_url.
+        $url = network_site_url('/');
+        $url = strtolower(trim($url));
+
+        // Need to get the host...so let's add the scheme so we can use wp_parse_url.
+        if (false === strpos($url, 'http://') && false === strpos($url, 'https://')) {
+            $url = 'http://' . $url;
+        }
+        $url_parts = wp_parse_url($url);
+        if (!empty($url_parts['host'])) {
+            $hosts_to_check[] = $url_parts['host'];
+        }
+
+        // Get host from $_SERVER['HTTP_HOST'] if available.
+        if (!empty($_SERVER['HTTP_HOST'])) {
+            $http_host = strtolower(trim($_SERVER['HTTP_HOST']));
+            // Remove port if present for consistency.
+            $http_host = preg_replace('/:\d+$/', '', $http_host);
+            if (!in_array($http_host, $hosts_to_check, true)) {
+                $hosts_to_check[] = $http_host;
+            }
+        }
+
+        // Check each host for development indicators.
+        foreach ($hosts_to_check as $host) {
+            if (self::is_host_dev_environment($host)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a given host indicates a development environment
+     *
+     * @param  string $host The host to check.
+     * @return boolean True if host indicates development environment
+     */
+    private static function is_host_dev_environment(string $host): bool
+    {
+        if (empty($host)) {
+            return false;
+        }
+
+        // Check if host is an IP address.
+        if (false !== ip2long($host)) {
+            if (! filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return true;
+            }
+        } elseif ('localhost' === $host) {
+            return true;
+        }
+
+        // Check for common development TLDs and ports.
+        $tlds_to_check = ['.dev', '.local', ':8888'];
+        foreach ($tlds_to_check as $tld) {
+            if (false !== strpos($host, $tld)) {
+                return true;
+            }
+        }
+
+        // Check for development subdomains.
+        if (substr_count($host, '.') > 1) {
+            $subdomains_to_check = ['dev.', '*.staging.', 'beta.', 'test.'];
+            foreach ($subdomains_to_check as $subdomain) {
+                $subdomain = str_replace('.', '(.)', $subdomain);
+                $subdomain = str_replace(['*', '(.)'], '(.*)', $subdomain);
+                if (preg_match('/^(' . $subdomain . ')/', $host)) {
+                    return true;
+                }
+            }
+        }
+
+        // Final check using licensing portal.
+        // Check transient first.
+        $type = get_transient('mepr_rp_activation_type_' . $host);
+        if ($type) {
+            return 'fail' === $type ? false : 'test' === $type;
+        }
+
+        try {
+            MeprGrdLvlCtrl::init(true);
+            $response = \MemberPress\GroundLevel\Mothership\Api\Request::post(
+                'licenses/activations/check-type',
+                ['domain' => $host]
+            );
+            if ($response->isSuccess()) {
+                // Save domain activation type to transient for one month.
+                set_transient('mepr_rp_activation_type_' . $host, $response->type, MONTH_IN_SECONDS); // Cache the result for a month.
+                return 'test' === $response->type;
+            } else {
+                // Request failed. Remember this for an hour.
+                set_transient('mepr_rp_activation_type_' . $host, 'fail', HOUR_IN_SECONDS);
+            }
+        } catch (\Exception $e) {
+            return false;
+        }
+        return false;
+    }
 }

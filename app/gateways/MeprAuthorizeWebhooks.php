@@ -52,7 +52,7 @@ class MeprAuthorizeWebhooks
                 MeprUtils::debug_log('Authorize.net Valid eventType');
                 $auth_transaction = $this->authorize_api->get_transaction_details($request_json->payload->id);
                 if ($auth_transaction && $auth_transaction !== '') {
-                    MeprUtils::debug_log('Authorize.net auth_transaction: ' . MeprUtils::object_to_string($auth_transaction));
+                    MeprUtils::debug_log('Authorize.net auth_transaction: ', [$auth_transaction]);
                     switch ($request_json->eventType) {
                         case 'net.authorize.payment.authcapture.created':
                         case 'net.authorize.payment.capture.created':
@@ -71,19 +71,19 @@ class MeprAuthorizeWebhooks
                     }
                 } else {
                     // Transaction details are null.
-                    throw new MeprGatewayException(__('MeprAuthorizeAPI Error: Unable to retrieve transaction details. Check your logs for errors.', 'memberpress'));
+                    throw new MeprGatewayException(esc_html__('MeprAuthorizeAPI Error: Unable to retrieve transaction details. Check your logs for errors.', 'memberpress'));
                 }
-            } elseif ($request_json && $request_json->eventType == 'net.authorize.customer.subscription.failed') {
+            } elseif ($request_json && $request_json->eventType === 'net.authorize.customer.subscription.failed') {
                 MeprUtils::debug_log('Received net.authorize.customer.subscription.failed eventType');
                 $auth_transaction = $this->authorize_api->get_transaction_details($request_json->payload->transactionDetails->transId);
 
                 if (is_object($auth_transaction)) {
-                    MeprUtils::debug_log('Authorize.net auth_transaction: ' . MeprUtils::object_to_string($auth_transaction));
+                    MeprUtils::debug_log('Authorize.net auth_transaction: ', [$auth_transaction]);
                     return $this->record_payment_failure($auth_transaction->transaction);
                 }
             }
         } else {
-            throw new MeprGatewayException(__('This is not a valid Webhook! Check your settings.', 'memberpress'));
+            throw new MeprGatewayException(esc_html__('This is not a valid Webhook! Check your settings.', 'memberpress'));
         }
 
         return false;
@@ -108,7 +108,7 @@ class MeprAuthorizeWebhooks
     private function validate_webhook($request_body)
     {
         if (isset($_SERVER['HTTP_X_ANET_SIGNATURE'])) {
-            $webhook_signature = strtoupper(explode('=', $_SERVER['HTTP_X_ANET_SIGNATURE'])[1]);
+            $webhook_signature = strtoupper(explode('=', sanitize_text_field(wp_unslash($_SERVER['HTTP_X_ANET_SIGNATURE'])))[1]);
             $hashed_body       = strtoupper(hash_hmac('sha512', $request_body, $this->gateway_settings->signature_key));
             return $webhook_signature === $hashed_body;
         }
@@ -155,11 +155,13 @@ class MeprAuthorizeWebhooks
                 }
             }
 
-            if (!defined('TESTS_RUNNING')) {
-                MeprUtils::send_failed_txn_notices($txn);
-            }
+            if (isset($txn) && $txn instanceof MeprTransaction) {
+                if (!defined('TESTS_RUNNING')) {
+                    MeprUtils::send_failed_txn_notices($txn);
+                }
 
-            return $txn;
+                return $txn;
+            }
         }
 
         return false;
@@ -174,11 +176,7 @@ class MeprAuthorizeWebhooks
      */
     public function log($data)
     {
-        if (! defined('WP_MEPR_DEBUG')) {
-            return;
-        }
-
-        file_put_contents(WP_CONTENT_DIR . '/authorize-net.log', print_r($data, true) . PHP_EOL, FILE_APPEND);
+        MeprUtils::debug_log('', [$data], WP_CONTENT_DIR . '/authorize-net.log');
     }
 
     /**
@@ -244,7 +242,7 @@ class MeprAuthorizeWebhooks
 
         $txn = new MeprTransaction($txn_res->id);
 
-        if ($txn->status == MeprTransaction::$refunded_str) {
+        if ($txn->status === MeprTransaction::$refunded_str) {
             return $txn;
         }
 
@@ -269,7 +267,7 @@ class MeprAuthorizeWebhooks
     private function insert_transaction($sub, $auth_transaction, $status)
     {
         $first_txn = $sub->first_txn();
-        if ($first_txn == false || !($first_txn instanceof MeprTransaction)) {
+        if (!($first_txn instanceof MeprTransaction)) {
             $coupon_id = $sub->coupon_id;
         } else {
             $coupon_id = $first_txn->coupon_id;

@@ -176,7 +176,7 @@ class MeprAddonUpdates
                 'slug'        => $this->slug,
                 'plugin'      => $this->main_file,
                 'new_version' => $curr_version,
-                'url'         => 'https://memberpress.com/',
+                'url'         => MeprUtils::get_link_url('home'),
                 'package'     => $download_url,
             ];
         } else {
@@ -220,22 +220,22 @@ class MeprAddonUpdates
 
         // If we're not blocking then the response is irrelevant
         // So we'll just return true.
-        if ($blocking == false) {
+        if ($blocking === false) {
             return true;
         }
 
         if (is_wp_error($resp)) {
-            throw new Exception(__('You had an HTTP error connecting to Caseproof\'s Mothership API', 'memberpress'));
+            throw new Exception(esc_html__('You had an HTTP error connecting to Caseproof\'s Mothership API', 'memberpress'));
         } else {
             $json_res = json_decode($resp['body'], true);
             if (null !== $json_res) {
                 if (isset($json_res['error'])) {
-                    throw new Exception($json_res['error']);
+                    throw new Exception(esc_html($json_res['error']));
                 } else {
                     return $json_res;
                 }
             } else {
-                throw new Exception(__('Your License Key was invalid', 'memberpress'));
+                throw new Exception(esc_html__('Your License Key was invalid', 'memberpress'));
             }
         }
 

@@ -114,9 +114,9 @@ class MeprOrder extends MeprBaseMetaModel
             $this->id = self::create($this);
         }
 
-        MeprHooks::do_action('mepr-order-transition-status', $old_order->status, $this->status, $this);
-        MeprHooks::do_action('mepr-order-store', $this, $old_order);
-        MeprHooks::do_action('mepr-order-status-' . $this->status, $this);
+        MeprHooks::do_action('mepr_order_transition_status', $old_order->status, $this->status, $this);
+        MeprHooks::do_action('mepr_order_store', $this, $old_order);
+        MeprHooks::do_action('mepr_order_status_' . $this->status, $this);
 
         return $this->id;
     }
@@ -188,7 +188,7 @@ class MeprOrder extends MeprBaseMetaModel
      */
     public function is_complete()
     {
-        return $this->status == MeprOrder::$complete_str;
+        return $this->status === MeprOrder::$complete_str;
     }
 
     /**
@@ -198,6 +198,6 @@ class MeprOrder extends MeprBaseMetaModel
      */
     public function is_processing()
     {
-        return $this->get_meta('processing', true) == '1';
+        return $this->get_meta('processing', true) === '1';
     }
 }

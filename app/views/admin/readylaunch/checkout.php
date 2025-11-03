@@ -1,9 +1,9 @@
-<div x-show="checkout.openModal" class="mepr_modal" aria-labelledby="mepr-checkout-modal" id="mepr-checkout-modal" role="dialog" aria-modal="true" x-cloak>
+<div class="mepr_modal" aria-labelledby="mepr-checkout-modal" id="mepr-checkout-modal" role="dialog" aria-modal="true" style="display: none;">
   <div class="mepr_modal__overlay"></div>
   <div class="mepr_modal__content_wrapper">
     <div class="mepr_modal__content">
-      <div class="mepr_modal__box" @click.away="checkout.openModal = false">
-        <button x-on:click="checkout.openModal=false" type="button" class="mepr_modal__close">&#x2715;</button>
+      <div class="mepr_modal__box">
+        <button type="button" class="mepr_modal__close">&#x2715;</button>
         <div>
           <h3>
             <?php esc_html_e('Registration Page Settings', 'memberpress'); ?>
@@ -13,7 +13,7 @@
               <tr>
                 <td>
                   <label class="switch">
-                    <input x-model="checkout.showPriceTerms" id="<?php echo esc_attr($mepr_options->design_show_checkout_price_terms_str); ?>" name="<?php echo esc_attr($mepr_options->design_show_checkout_price_terms_str); ?>" class="mepr-template-enablers" type="checkbox" checked="<?php checked(1, (!isset($mepr_options->design_show_checkout_price_terms) || (isset($mepr_options->design_show_checkout_price_terms) && $mepr_options->design_show_checkout_price_terms) )) ?>">
+                    <input id="<?php echo esc_attr($mepr_options->design_show_checkout_price_terms_str); ?>" name="<?php echo esc_attr($mepr_options->design_show_checkout_price_terms_str); ?>" class="mepr-template-enablers" type="checkbox" value="1" <?php checked($mepr_options->design_show_checkout_price_terms, true); ?>>
                     <span class="slider round"></span>
                   </label>
                 </td>

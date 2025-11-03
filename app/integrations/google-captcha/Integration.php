@@ -25,10 +25,10 @@ class MeprGoogleCaptchaIntegration
             return;
         }
 
-        add_filter('mepr-validate-signup', [$this, 'remove_authenticate_action']);
-        add_filter('mepr-validate-login', [$this, 'remove_authenticate_action']);
-        add_filter('mepr-validate-forgot-password', [$this, 'remove_allow_password_reset_action']);
-        add_filter('mepr-validate-reset-password', [$this, 'remove_authenticate_action']);
+        add_filter('mepr_validate_signup', [$this, 'remove_authenticate_action']);
+        add_filter('mepr_validate_login', [$this, 'remove_authenticate_action']);
+        add_filter('mepr_validate_forgot_password', [$this, 'remove_allow_password_reset_action']);
+        add_filter('mepr_validate_reset_password', [$this, 'remove_authenticate_action']);
         add_filter('gglcptch_is_recaptcha_required', [$this, 'disable_recaptcha_pro_checks'], 10, 2);
     }
 

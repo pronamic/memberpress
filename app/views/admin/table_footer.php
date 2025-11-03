@@ -1,3 +1,3 @@
 <div class="alignleft">
-  <?php MeprHooks::do_action('mepr-control-table-footer', $action, $totalitems, $itemcount); ?>
+  <?php MeprHooks::do_action('mepr_control_table_footer', $action, $totalitems, $itemcount); ?>
 </div>

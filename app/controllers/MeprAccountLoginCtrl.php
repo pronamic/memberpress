@@ -30,7 +30,7 @@ class MeprAccountLoginCtrl extends MeprBaseCtrl
         remove_submenu_page('memberpress', 'memberpress-account-login');
 
         // Set the highlighted menu item to "Settings".
-        if ($current_screen instanceof WP_Screen && $current_screen->id == 'memberpress_page_memberpress-account-login') {
+        if ($current_screen instanceof WP_Screen && $current_screen->id === 'memberpress_page_memberpress-account-login') {
             $submenu_file = 'memberpress-options';
         }
 

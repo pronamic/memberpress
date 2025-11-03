@@ -19,8 +19,8 @@ class MeprJobFactory
         if (!class_exists($class)) {
             throw new MeprInvalidJobException(sprintf(
                 // Translators: %s: Job class.
-                __('Job class wasn\'t found for %s', 'memberpress'),
-                $class
+                esc_html__('Job class wasn\'t found for %s', 'memberpress'),
+                esc_html($class)
             ));
         }
 
@@ -32,8 +32,8 @@ class MeprJobFactory
         if (!( $job instanceof MeprBaseJob )) {
             throw new MeprInvalidJobException(sprintf(
                 // Translators: %s: Job class.
-                __('%s is not a valid job object.', 'memberpress'),
-                $class
+                esc_html__('%s is not a valid job object.', 'memberpress'),
+                esc_html($class)
             ));
         }
 
@@ -47,7 +47,7 @@ class MeprJobFactory
      */
     public static function paths()
     {
-        $paths = MeprHooks::apply_filters('mepr-job-paths', [MEPR_JOBS_PATH]);
+        $paths = MeprHooks::apply_filters('mepr_job_paths', [MEPR_JOBS_PATH]);
         MeprUtils::debug_log(sprintf(
             // Translators: %s: Job paths.
             __('Job Paths %s', 'memberpress'),

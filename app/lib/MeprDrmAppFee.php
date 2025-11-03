@@ -176,8 +176,10 @@ class MeprDrmAppFee
     ';
 
         if (isset($params['mepr_app_not_fee_version']) && true === $params['mepr_app_not_fee_version']) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $sql = $wpdb->prepare($sql, MeprTransaction::$complete_str, MeprTransaction::$confirmed_str, MeprSubscription::$active_str, MeprUtils::db_now(), $params['drm_fee_api_version']);
         } else {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $sql = $wpdb->prepare($sql, MeprTransaction::$complete_str, MeprTransaction::$confirmed_str, MeprSubscription::$active_str, MeprUtils::db_now());
         }
 
@@ -186,8 +188,10 @@ class MeprDrmAppFee
     ";
 
         if ($count) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
             return $wpdb->get_var($sql);
         } else {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
             return $wpdb->get_results($sql);
         }
     }
@@ -233,6 +237,7 @@ class MeprDrmAppFee
                     }
                 }
             } catch (Exception $ex) {
+                // Silently continue processing other subscriptions if API call fails.
             }
         }
 

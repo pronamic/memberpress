@@ -70,7 +70,7 @@ if (!defined('ABSPATH')) {
                                 data-action="install-activate"><?php esc_html_e('Install & Activate MemberPress CoachKit™ Add-On', 'memberpress'); ?></button>
                     <?php else : ?>
                         <a target="_blank"
-                           href="https://memberpress.com/sign-in/?redirect_to=/register/coachkit-add-on/">
+                           href="<?php echo esc_url(MeprUtils::get_link_url('login_redirect_coachkit')); ?>">
                             <button type="button"
                                     class=" button button-primary button-hero"><?php esc_html_e('Purchase', 'memberpress'); ?></button>
                         </a>
@@ -95,7 +95,7 @@ if (!defined('ABSPATH')) {
         type: 'POST',
         data: {
           action: 'mepr_coachkit_action',
-          nonce: "<?php echo wp_create_nonce('mepr_coachkit_action'); ?>",
+          nonce: "<?php echo esc_js(wp_create_nonce('mepr_coachkit_action')); ?>",
           type: $this.data('action')
         },
       })

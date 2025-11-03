@@ -119,10 +119,11 @@
   height: 100%;
 }
 .mepr-price-menu .mepr-price-boxes .mepr-price-box-title {
+  margin-top: 0;
+  margin-bottom: 7px;
   font-size: 2rem;
   font-weight: 500;
   color: #000;
-  margin-bottom: 7px;
   line-height: 1.1;
 }
 .mepr-price-menu .mepr-price-boxes .mepr-price-box-price {

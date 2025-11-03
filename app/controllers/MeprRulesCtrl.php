@@ -45,12 +45,12 @@ class MeprRulesCtrl extends MeprCptCtrl
         add_filter('user_has_cap', 'MeprRulesCtrl::rule_authorized_cap', 10, 3);  // Deprecated.
         add_filter('user_has_cap', 'MeprRulesCtrl::active_cap', 10, 3);
 
-        MeprHooks::add_shortcode('mepr-rule', 'MeprRulesCtrl::rule_shortcode'); // Deprecated.
-        MeprHooks::add_shortcode('mepr-active', 'MeprRulesCtrl::active_shortcode');
-        MeprHooks::add_shortcode('mepr-unauthorized-message', 'MeprRulesCtrl::unauthorized_message_shortcode');
+        MeprHooks::add_shortcode('mepr_rule', 'MeprRulesCtrl::rule_shortcode'); // Deprecated.
+        MeprHooks::add_shortcode('mepr_active', 'MeprRulesCtrl::active_shortcode');
+        MeprHooks::add_shortcode('mepr_unauthorized_message', 'MeprRulesCtrl::unauthorized_message_shortcode');
 
-        MeprHooks::add_shortcode('mepr-show', 'MeprRulesCtrl::show_shortcode');
-        MeprHooks::add_shortcode('mepr-hide', 'MeprRulesCtrl::hide_shortcode');
+        MeprHooks::add_shortcode('mepr_show', 'MeprRulesCtrl::show_shortcode');
+        MeprHooks::add_shortcode('mepr_hide', 'MeprRulesCtrl::hide_shortcode');
 
         // Cleanup list view.
         add_filter('views_edit-' . MeprRule::$cpt, 'MeprAppCtrl::cleanup_list_view');
@@ -61,7 +61,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             add_filter('woocommerce_is_purchasable', 'MeprRulesCtrl::override_wc_is_purchasable', 11, 2);
             add_filter('woocommerce_product_is_visible', 'MeprRulesCtrl::override_wc_is_visible', 11, 2);
             add_filter('woocommerce_variation_is_visible', 'MeprRulesCtrl::override_wc_is_visible', 11, 4);
-            add_filter('mepr-pre-run-rule-content', 'MeprRulesCtrl::dont_hide_wc_product_content', 11, 3);
+            add_filter('mepr_pre_run_rule_content', 'MeprRulesCtrl::dont_hide_wc_product_content', 11, 3);
         }
     }
 
@@ -89,7 +89,7 @@ class MeprRulesCtrl extends MeprCptCtrl
                     'parent_item_colon'  => __('Parent Rule:', 'memberpress'),
                 ],
                 'public'               => false,
-                'show_ui'              => true, // MeprUpdateCtrl::is_activated().
+                'show_ui'              => true,
                 'show_in_menu'         => 'memberpress',
                 'capability_type'      => 'page',
                 'hierarchical'         => false,
@@ -113,7 +113,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     {
         global $current_screen;
 
-        if (empty($title) && isset($current_screen->post_type) && $current_screen->post_type == MeprRule::$cpt) {
+        if (empty($title) && isset($current_screen->post_type) && $current_screen->post_type === MeprRule::$cpt) {
             return __('All Content: ', 'memberpress');
         } else {
             return $title;
@@ -197,53 +197,63 @@ class MeprRulesCtrl extends MeprCptCtrl
             $rule_contents = MeprRule::get_contents_array($rule->mepr_type);
             $types         = MeprRule::get_types();
 
-            if ('ID' == $column) {
-                echo $rule->ID;
-            } elseif ('rule-type' == $column and isset($types[$rule->mepr_type])) {
-                echo $types[$rule->mepr_type];
+            if ('ID' === $column) {
+                echo esc_html($rule->ID);
+            } elseif ('rule-type' === $column and isset($types[$rule->mepr_type])) {
+                echo esc_html($types[$rule->mepr_type]);
             } elseif (
-                'rule-content' == $column and $rule->mepr_type != 'custom' and
+                'rule-content' === $column and $rule->mepr_type !== 'custom' and
                 isset($rule_contents[$rule->mepr_content])
             ) {
-                echo $rule_contents[$rule->mepr_content];
+                echo esc_html($rule_contents[$rule->mepr_content]);
             } elseif (
-                'rule-content' == $column and $rule->mepr_type == 'custom' and
+                'rule-content' === $column and $rule->mepr_type === 'custom' and
                 isset($rule->mepr_content)
             ) {
-                echo $rule->mepr_content;
+                echo esc_html($rule->mepr_content);
             } elseif (
-                'rule-content' == $column and
+                'rule-content' === $column and
                 strstr($rule->mepr_type, 'all_') !== false and
                 isset($rule->mepr_content)
             ) {
-                echo __('Except', 'memberpress') . ': ' . $rule->mepr_content;
-            } elseif ('rule-products' == $column) {
-                echo implode(', ', $rule->get_formatted_accesses());
-            } elseif ('rule-drip' == $column) {
+                echo esc_html(
+                    sprintf(
+                        '%s: %s',
+                        __('Except', 'memberpress'),
+                        $rule->mepr_content
+                    )
+                );
+            } elseif ('rule-products' === $column) {
+                echo esc_html(implode(', ', $rule->get_formatted_accesses()));
+            } elseif ('rule-drip' === $column) {
                 if ($rule->drip_enabled) {
-                    $time = array_keys(MeprRule::get_time_units(), $rule->drip_unit);
-                    printf(
-                        // Translators: %1$s: drip amount, %2$s: drip unit, %3$s: drip after.
-                        __('%1$s %2$s after %3$s', 'memberpress'),
-                        $rule->drip_amount,
-                        $time[0],
-                        MeprRule::get_expires_after($rule->drip_after, $rule->drip_after_fixed)
+                    $time = array_keys(MeprRule::get_time_units(), $rule->drip_unit, true);
+                    echo esc_html(
+                        sprintf(
+                            // Translators: %1$s: time period, %2$s: time unit, %3$s: trigger.
+                            __('%1$s %2$s after %3$s', 'memberpress'),
+                            $rule->drip_amount,
+                            $time[0],
+                            MeprRule::get_expires_after($rule->drip_after, $rule->drip_after_fixed)
+                        )
                     );
                 } else {
-                    echo __('--', 'memberpress');
+                    echo '--';
                 }
-            } elseif ('rule-expiration' == $column) {
+            } elseif ('rule-expiration' === $column) {
                 if ($rule->expires_enabled) {
-                    $time = array_keys(MeprRule::get_time_units(), $rule->expires_unit);
-                    printf(
-                        // Translators: %1$s: expiration amount, %2$s: expiration unit, %3$s: expiration after.
-                        __('%1$s %2$s after %3$s', 'memberpress'),
-                        $rule->expires_amount,
-                        $time[0],
-                        MeprRule::get_expires_after($rule->expires_after, $rule->expires_after_fixed)
+                    $time = array_keys(MeprRule::get_time_units(), $rule->expires_unit, true);
+                    echo esc_html(
+                        sprintf(
+                            // Translators: %1$s: time period, %2$s: time unit, %3$s: trigger.
+                            __('%1$s %2$s after %3$s', 'memberpress'),
+                            $rule->expires_amount,
+                            $time[0],
+                            MeprRule::get_expires_after($rule->expires_after, $rule->expires_after_fixed)
+                        )
                     );
                 } else {
-                    echo __('--', 'memberpress');
+                    echo '--';
                 }
             }
         }
@@ -263,7 +273,7 @@ class MeprRulesCtrl extends MeprCptCtrl
 
         if (isset($current_post)) {
             if (MeprRule::is_locked($current_post)) {
-                if (MeprHooks::apply_filters('mepr-rule-comments', true)) {
+                if (MeprHooks::apply_filters('mepr_rule_comments', true)) {
                     return MeprView::file('/shared/unauthorized_comments');
                 }
             }
@@ -281,11 +291,11 @@ class MeprRulesCtrl extends MeprCptCtrl
         global $post;
 
         // Prevents us double matching a URI and causing a redirect loop.
-        if (isset($_GET['action']) && $_GET['action'] == 'mepr_unauthorized') {
+        if (isset($_GET['action']) && $_GET['action'] === 'mepr_unauthorized') {
             return;
         }
 
-        $uri          = esc_url($_SERVER['REQUEST_URI']);
+        $uri          = esc_url(sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '')));
         $mepr_options = MeprOptions::fetch();
         $delim        = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
         $is_ssl       = MeprUtils::is_ssl();
@@ -293,7 +303,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         // Add this filter to allow external resources
         // to control whether to redirect away from this content
         // if the resource sets the filter to FALSE then no redirect will occur.
-        if (!MeprHooks::apply_filters('mepr-pre-run-rule-redirection', true, $uri, $delim)) {
+        if (!MeprHooks::apply_filters('mepr_pre_run_rule_redirection', true, $uri, $delim)) {
             return;
         }
 
@@ -308,24 +318,24 @@ class MeprRulesCtrl extends MeprCptCtrl
 
             // Handle SSL.
             $redirect_url = ($is_ssl) ? str_replace('http:', 'https:', $redirect_url) : $redirect_url;
-            MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr-rule-redirect-unauthorized-url', $redirect_url, $delim, $uri));
+            MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr_rule_redirect_unauthorized_url', $redirect_url, $delim, $uri));
             exit;
         }
 
         // If the URI isn't protected, let's check the other Rules.
         if ($mepr_options->redirect_on_unauthorized) {
-            $do_redirect = MeprHooks::apply_filters('mepr-rule-do-redirection', self::should_do_redirect());
+            $do_redirect = MeprHooks::apply_filters('mepr_rule_do_redirection', self::should_do_redirect());
 
             if (
                 (!is_singular() && $do_redirect) ||
                 ($do_redirect && isset($post) && MeprRule::is_locked($post)) ||
-                (!is_user_logged_in() && isset($post) && $post->ID == $mepr_options->account_page_id)
+                (!is_user_logged_in() && isset($post) && $post->ID === $mepr_options->account_page_id)
             ) {
                 $redirect_url = "{$mepr_options->unauthorized_redirect_url}{$delim}mepr-unauth-page={$post->ID}&redirect_to=" . urlencode($uri);
 
                 // Handle SSL.
                 $redirect_url = ($is_ssl) ? str_replace('http:', 'https:', $redirect_url) : $redirect_url;
-                MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr-rule-redirect-unauthorized-url', $redirect_url, $delim, $uri));
+                MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr_rule_redirect_unauthorized_url', $redirect_url, $delim, $uri));
                 exit;
             }
         }
@@ -338,7 +348,7 @@ class MeprRulesCtrl extends MeprCptCtrl
      */
     public static function admin_rule_redirection()
     {
-        $uri          = esc_url($_SERVER['REQUEST_URI']);
+        $uri          = esc_url(sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '')));
         $mepr_options = MeprOptions::fetch();
         $delim        = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
 
@@ -367,7 +377,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     public static function redirect_unauthorized($post)
     {
         $mepr_options = MeprOptions::fetch();
-        $uri          = urlencode(esc_url($_SERVER['REQUEST_URI']));
+        $uri          = urlencode(esc_url(sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? ''))));
 
         if ($mepr_options->redirect_on_unauthorized) {
             $delim       = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
@@ -376,7 +386,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             $redirect_to = $mepr_options->login_page_url("action=mepr_unauthorized&mepr-unauth-page={$post->ID}&redirect_to=" . $uri);
             $redirect_to = (MeprUtils::is_ssl()) ? str_replace('http:', 'https:', $redirect_to) : $redirect_to;
         }
-        MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr-rule-redirect-unauthorized', $redirect_to, $uri));
+        MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr_rule_redirect_unauthorized', $redirect_to, $uri));
         exit;
     }
 
@@ -432,7 +442,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             $content_length[$current_post->ID] = -1;
         }
 
-        if ($already_run[$current_post->ID] && strlen($content) == $content_length[$current_post->ID]) {
+        if ($already_run[$current_post->ID] && strlen($content) === $content_length[$current_post->ID]) {
             return $new_content[$current_post->ID];
         }
 
@@ -440,12 +450,12 @@ class MeprRulesCtrl extends MeprCptCtrl
         $already_run[$current_post->ID]    = true;
 
         // Get the URI.
-        $uri = $_SERVER['REQUEST_URI'];
+        $uri = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
 
         // Add this filter to allow external resources
         // to control whether to show or hide this content
         // if the resource sets the filter to FALSE then it will not be protected.
-        if (!MeprHooks::apply_filters('mepr-pre-run-rule-content', true, $current_post, $uri)) {
+        if (!MeprHooks::apply_filters('mepr_pre_run_rule_content', true, $current_post, $uri)) {
             // See notes above.
             $new_content[$current_post->ID] = $content;
             return $new_content[$current_post->ID];
@@ -457,7 +467,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             // The user is allowed to see this content, but let's give developers one last chance to
             // block it if necessary - will be very helpful for magazine style membership sites
             // return TRUE here to block the content from this user.
-            if (MeprHooks::apply_filters('mepr-last-chance-to-block-content', false, $current_post, $uri)) {
+            if (MeprHooks::apply_filters('mepr_last_chance_to_block_content', false, $current_post, $uri)) {
                 $content = do_shortcode(self::unauthorized_message($current_post));
             }
         }
@@ -479,7 +489,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         $mepr_options = MeprOptions::fetch();
         $message      = '';
 
-        $post = isset($_REQUEST['mepr-unauth-page']) ? get_post(esc_html($_REQUEST['mepr-unauth-page'])) : false;
+        $post = isset($_REQUEST['mepr-unauth-page']) ? get_post(esc_html(sanitize_text_field(wp_unslash($_REQUEST['mepr-unauth-page'])))) : false;
         if (
             isset($_REQUEST['mepr-unauth-page']) &&
             is_numeric($_REQUEST['mepr-unauth-page']) &&
@@ -520,7 +530,7 @@ class MeprRulesCtrl extends MeprCptCtrl
 
         try {
             $login_ctrl = MeprCtrlFactory::fetch('login');
-            $form       = MeprHooks::apply_filters('mepr-unauthorized-login-form', $login_ctrl->render_login_form(null, null, true), $post);
+            $form       = MeprHooks::apply_filters('mepr_unauthorized_login_form', $login_ctrl->render_login_form(null, null, true), $post);
         } catch (Exception $e) {
             $form = '<a href="' . $mepr_options->login_page_url() . '">' . __('Login', 'memberpress') . '</a>';
         }
@@ -541,7 +551,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         $content = ob_get_clean();
 
         // TODO: oEmbed still not working for some strange reason.
-        return MeprHooks::apply_filters('mepr-unauthorized-content', $content, $post);
+        return MeprHooks::apply_filters('mepr_unauthorized_content', $content, $post);
     }
 
     /**
@@ -567,7 +577,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     {
         $post = get_post($post_id);
 
-        if (!wp_verify_nonce((isset($_POST[MeprRule::$mepr_nonce_str])) ? $_POST[MeprRule::$mepr_nonce_str] : '', MeprRule::$mepr_nonce_str . wp_salt())) {
+        if (!wp_verify_nonce((isset($_POST[MeprRule::$mepr_nonce_str])) ? sanitize_text_field(wp_unslash($_POST[MeprRule::$mepr_nonce_str])) : '', MeprRule::$mepr_nonce_str . wp_salt())) {
             return $post_id; // Nonce prevents meta data from being wiped on move to trash.
         }
 
@@ -579,26 +589,26 @@ class MeprRulesCtrl extends MeprCptCtrl
             return;
         }
 
-        if (!empty($post) && $post->post_type == MeprRule::$cpt) {
+        if (!empty($post) && $post->post_type === MeprRule::$cpt) {
             $rule                        = new MeprRule($post_id);
-            $rule->mepr_type             = sanitize_text_field($_POST[MeprRule::$mepr_type_str]);
-            $rule->mepr_content          = (('partial' != $_POST[MeprRule::$mepr_type_str] && isset($_POST[MeprRule::$mepr_content_str])) ? sanitize_text_field($_POST[MeprRule::$mepr_content_str]) : '');
+            $rule->mepr_type             = sanitize_text_field(wp_unslash($_POST[MeprRule::$mepr_type_str] ?? ''));
+            $rule->mepr_content          = (('partial' !== $rule->mepr_type && isset($_POST[MeprRule::$mepr_content_str])) ? sanitize_text_field(wp_unslash($_POST[MeprRule::$mepr_content_str] ?? '')) : '');
             $rule->drip_enabled          = isset($_POST[MeprRule::$drip_enabled_str]);
-            $rule->drip_amount           = sanitize_text_field($_POST[MeprRule::$drip_amount_str]);
-            $rule->drip_unit             = sanitize_text_field($_POST[MeprRule::$drip_unit_str]);
-            $rule->drip_after            = sanitize_text_field($_POST[MeprRule::$drip_after_str]);
-            $rule->drip_after_fixed      = sanitize_text_field($_POST[MeprRule::$drip_after_fixed_str]);
+            $rule->drip_amount           = sanitize_text_field(wp_unslash($_POST[MeprRule::$drip_amount_str] ?? ''));
+            $rule->drip_unit             = sanitize_text_field(wp_unslash($_POST[MeprRule::$drip_unit_str] ?? ''));
+            $rule->drip_after            = sanitize_text_field(wp_unslash($_POST[MeprRule::$drip_after_str] ?? ''));
+            $rule->drip_after_fixed      = sanitize_text_field(wp_unslash($_POST[MeprRule::$drip_after_fixed_str] ?? ''));
             $rule->expires_enabled       = isset($_POST[MeprRule::$expires_enabled_str]);
-            $rule->expires_amount        = sanitize_text_field($_POST[MeprRule::$expires_amount_str]);
-            $rule->expires_unit          = sanitize_text_field($_POST[MeprRule::$expires_unit_str]);
-            $rule->expires_after         = sanitize_text_field($_POST[MeprRule::$expires_after_str]);
-            $rule->expires_after_fixed   = sanitize_text_field($_POST[MeprRule::$expires_after_fixed_str]);
-            $rule->unauth_excerpt_type   = sanitize_text_field($_POST[MeprRule::$unauth_excerpt_type_str]);
-            $rule->unauth_excerpt_size   = sanitize_text_field($_POST[MeprRule::$unauth_excerpt_size_str]);
-            $rule->unauth_message_type   = sanitize_text_field($_POST[MeprRule::$unauth_message_type_str]);
-            $rule->unauth_message        = wp_kses_post(wp_unslash($_POST[MeprRule::$unauth_message_str]));
-            $rule->unauth_login          = sanitize_text_field($_POST[MeprRule::$unauth_login_str]);
-            $rule->auto_gen_title        = ($_POST[MeprRule::$auto_gen_title_str] == 'true');
+            $rule->expires_amount        = sanitize_text_field(wp_unslash($_POST[MeprRule::$expires_amount_str] ?? ''));
+            $rule->expires_unit          = sanitize_text_field(wp_unslash($_POST[MeprRule::$expires_unit_str] ?? ''));
+            $rule->expires_after         = sanitize_text_field(wp_unslash($_POST[MeprRule::$expires_after_str] ?? ''));
+            $rule->expires_after_fixed   = sanitize_text_field(wp_unslash($_POST[MeprRule::$expires_after_fixed_str] ?? ''));
+            $rule->unauth_excerpt_type   = sanitize_text_field(wp_unslash($_POST[MeprRule::$unauth_excerpt_type_str] ?? ''));
+            $rule->unauth_excerpt_size   = sanitize_text_field(wp_unslash($_POST[MeprRule::$unauth_excerpt_size_str] ?? ''));
+            $rule->unauth_message_type   = sanitize_text_field(wp_unslash($_POST[MeprRule::$unauth_message_type_str] ?? ''));
+            $rule->unauth_message        = wp_kses_post(wp_unslash($_POST[MeprRule::$unauth_message_str] ?? ''));
+            $rule->unauth_login          = sanitize_text_field(wp_unslash($_POST[MeprRule::$unauth_login_str] ?? ''));
+            $rule->auto_gen_title        = isset($_POST[MeprRule::$auto_gen_title_str]) && $_POST[MeprRule::$auto_gen_title_str] === 'true';
             $rule->unauth_modern_paywall = isset($_POST[MeprRule::$unauth_modern_paywall_str]);
 
             $rule->is_mepr_content_regexp = isset($_POST[MeprRule::$is_mepr_content_regexp_str]);
@@ -612,12 +622,13 @@ class MeprRulesCtrl extends MeprCptCtrl
 
             // Let's store the access rules.
             if (isset($_POST['mepr_access_row']) && !empty($_POST['mepr_access_row'])) {
-                foreach ($_POST['mepr_access_row']['type'] as $index => $access_type) {
-                    $rule_access_condition                   = new MeprRuleAccessCondition($_POST['mepr_access_row']['rule_access_condition_id'][$index]);
+                $access_types = array_map('sanitize_text_field', wp_unslash($_POST['mepr_access_row']['type'] ?? []));
+                foreach ($access_types as $index => $access_type) {
+                    $rule_access_condition                   = new MeprRuleAccessCondition(intval(wp_unslash($_POST['mepr_access_row']['rule_access_condition_id'][$index] ?? 0)));
                     $rule_access_condition->rule_id          = $post_id;
-                    $rule_access_condition->access_type      = sanitize_text_field($access_type);
-                    $rule_access_condition->access_operator  = isset($_POST['mepr_access_row']['operator'][$index]) ? sanitize_text_field($_POST['mepr_access_row']['operator'][$index]) : '';
-                    $rule_access_condition->access_condition = isset($_POST['mepr_access_row']['condition'][$index]) ? sanitize_text_field($_POST['mepr_access_row']['condition'][$index]) : '';
+                    $rule_access_condition->access_type      = $access_type;
+                    $rule_access_condition->access_operator  = isset($_POST['mepr_access_row']['operator'][$index]) ? sanitize_text_field(wp_unslash($_POST['mepr_access_row']['operator'][$index])) : '';
+                    $rule_access_condition->access_condition = isset($_POST['mepr_access_row']['condition'][$index]) ? sanitize_text_field(wp_unslash($_POST['mepr_access_row']['condition'][$index])) : '';
                     $rule_access_condition->store();
                 }
             }
@@ -645,21 +656,8 @@ class MeprRulesCtrl extends MeprCptCtrl
     public static function rule_meta_box()
     {
         global $post_id;
-        $mepr_options = MeprOptions::fetch();
 
-        $rule                   = new MeprRule($post_id);
-        $rule_access_conditions = $rule->access_conditions();
-        $server                 = strtolower($_SERVER['SERVER_SOFTWARE']);
-
-        if (preg_match('/(apache|litespeed)/', $server)) { // LiteSpeed is essentially the same as Apache, only it claims to be twice as fast.
-            $server            = 'apache';
-            $htaccess          = ABSPATH . '.htaccess';
-            $htaccess_writable = (file_exists($htaccess) and is_writable($htaccess));
-        } elseif (preg_match('/nginx/', $server)) {
-            $server = 'nginx';
-        } else {
-            $server = 'unknown';
-        }
+        $rule = new MeprRule($post_id);
 
         MeprView::render('/admin/rules/form', get_defined_vars());
     }
@@ -702,11 +700,11 @@ class MeprRulesCtrl extends MeprCptCtrl
         check_ajax_referer('content_dropdown', 'content_dropdown_nonce');
 
         if (!isset($_POST['field_name']) || !isset($_POST['type'])) {
-            die(__('Error', 'memberpress'));
+            wp_die(esc_html__('Error', 'memberpress'));
         }
 
         if (MeprUtils::is_logged_in_and_an_admin()) {
-            MeprRulesHelper::content_dropdown($_POST['field_name'], '', $_POST['type']);
+            MeprRulesHelper::content_dropdown(sanitize_text_field(wp_unslash($_POST['field_name'])), '', sanitize_text_field(wp_unslash($_POST['type'])));
         }
 
         die();
@@ -722,11 +720,11 @@ class MeprRulesCtrl extends MeprCptCtrl
         check_ajax_referer('remove_access_condition', 'remove_access_condition_nonce');
 
         if (!isset($_POST['rule_access_condition_id'])) {
-            wp_die(__('Error', 'memberpress'));
+            wp_die(esc_html__('Error', 'memberpress'));
         }
 
         if (MeprUtils::is_logged_in_and_an_admin()) {
-            $rule_access_condition = new MeprRuleAccessCondition($_POST['rule_access_condition_id']);
+            $rule_access_condition = new MeprRuleAccessCondition(sanitize_text_field(wp_unslash($_POST['rule_access_condition_id'])));
             $rule_access_condition->destroy();
         }
 
@@ -745,7 +743,7 @@ class MeprRulesCtrl extends MeprCptCtrl
     {
         global $current_screen;
 
-        if (!isset($current_screen->post_type) || $current_screen->post_type != MeprRule::$cpt) {
+        if (!isset($current_screen->post_type) || $current_screen->post_type !== MeprRule::$cpt) {
             return $actions;
         }
 
@@ -777,45 +775,51 @@ class MeprRulesCtrl extends MeprCptCtrl
     {
         global $current_screen;
 
-        if ($current_screen->post_type == MeprRule::$cpt) {
+        if ($current_screen->post_type === MeprRule::$cpt) {
             $rules_json = [
                 'mepr_no_products_message'      => __('Please select at least one Membership before saving.', 'memberpress'),
                 'types'                         => MeprRule::get_types(),
                 'content_dropdown_nonce'        => wp_create_nonce('content_dropdown'),
                 'content_search_nonce'          => wp_create_nonce('content_search'),
                 'remove_access_condition_nonce' => wp_create_nonce('remove_access_condition'),
-                'access_row'                    => [
+                'access_row'                    => MeprHooks::apply_filters('mepr_rules_js_access_row', [
                     'role'       => [
                         'row_tpl'       => MeprRulesHelper::access_row_string(new MeprRuleAccessCondition(['access_type' => 'role']), 1),
                         'types_tpl'     => MeprRulesHelper::access_types_dropdown_string('role'),
                         'operator_tpl'  => MeprRulesHelper::access_operators_dropdown_string('role'),
-                        'condition_tpl' => MeprRulesHelper::access_conditions_dropdown_string('role'),
+                        'condition_tpl' => MeprRulesHelper::access_conditions_field_string('role'),
+                    ],
+                    'login_state' => [
+                        'row_tpl'       => MeprRulesHelper::access_row_string(new MeprRuleAccessCondition(['access_type' => 'role']), 1),
+                        'types_tpl'     => MeprRulesHelper::access_types_dropdown_string('login_state'),
+                        'operator_tpl'  => MeprRulesHelper::access_operators_dropdown_string('login_state'),
+                        'condition_tpl' => MeprRulesHelper::access_conditions_field_string('login_state'),
                     ],
                     'capability' => [
                         'row_tpl'       => MeprRulesHelper::access_row_string(new MeprRuleAccessCondition(['access_type' => 'capability']), 1),
                         'types_tpl'     => MeprRulesHelper::access_types_dropdown_string('capability'),
                         'operator_tpl'  => MeprRulesHelper::access_operators_dropdown_string('capability'),
-                        'condition_tpl' => MeprRulesHelper::access_conditions_dropdown_string('capability'),
+                        'condition_tpl' => MeprRulesHelper::access_conditions_field_string('capability'),
                     ],
                     'membership' => [
                         'row_tpl'       => MeprRulesHelper::access_row_string(new MeprRuleAccessCondition(['access_type' => 'membership']), 1),
                         'types_tpl'     => MeprRulesHelper::access_types_dropdown_string('membership'),
                         'operator_tpl'  => MeprRulesHelper::access_operators_dropdown_string('membership'),
-                        'condition_tpl' => MeprRulesHelper::access_conditions_dropdown_string('membership'),
+                        'condition_tpl' => MeprRulesHelper::access_conditions_field_string('membership'),
                     ],
-                    'member'     => [
+                    'member' => [
                         'row_tpl'       => MeprRulesHelper::access_row_string(new MeprRuleAccessCondition(['access_type' => 'member']), 1),
                         'types_tpl'     => MeprRulesHelper::access_types_dropdown_string('member'),
                         'operator_tpl'  => MeprRulesHelper::access_operators_dropdown_string('member'),
-                        'condition_tpl' => MeprRulesHelper::access_conditions_dropdown_string('member'),
+                        'condition_tpl' => MeprRulesHelper::access_conditions_field_string('member'),
                     ],
-                    'blank'      => [
+                    'blank' => [
                         'row_tpl'       => MeprRulesHelper::access_row_string(new MeprRuleAccessCondition(), 1),
                         'types_tpl'     => MeprRulesHelper::access_types_dropdown_string(),
                         'operator_tpl'  => MeprRulesHelper::access_operators_dropdown_string(),
-                        'condition_tpl' => MeprRulesHelper::access_conditions_dropdown_string(),
+                        'condition_tpl' => MeprRulesHelper::access_conditions_field_string(),
                     ],
-                ],
+                ]),
             ];
 
             wp_register_style('mepr-jquery-ui-smoothness', MEPR_CSS_URL . '/vendor/jquery-ui/smoothness.min.css', [], '1.13.3');
@@ -899,7 +903,7 @@ class MeprRulesCtrl extends MeprCptCtrl
      */
     public static function rule_shortcode($atts, $content = '')
     {
-        return self::protect_shortcode_content($atts, $content, 'mp-rule');
+        return self::protect_shortcode_content($atts, $content, 'mepr_rule');
     }
 
     /**
@@ -925,7 +929,7 @@ class MeprRulesCtrl extends MeprCptCtrl
      */
     public static function show_shortcode($atts, $content = '')
     {
-        return self::protect_shortcode_content($atts, $content, 'mepr-show');
+        return self::protect_shortcode_content($atts, $content, 'mepr_show');
     }
 
     /**
@@ -938,7 +942,7 @@ class MeprRulesCtrl extends MeprCptCtrl
      */
     public static function hide_shortcode($atts, $content = '')
     {
-        return self::protect_shortcode_content($atts, $content, 'mepr-hide');
+        return self::protect_shortcode_content($atts, $content, 'mepr_hide');
     }
 
     /**
@@ -950,7 +954,7 @@ class MeprRulesCtrl extends MeprCptCtrl
      *
      * @return string The modified content
      */
-    public static function protect_shortcode_content($atts, $content = '', $shortcode_type = 'mp-active')
+    public static function protect_shortcode_content($atts, $content = '', $shortcode_type = 'mepr_active')
     {
         $mepr_options = MeprOptions::fetch();
 
@@ -958,38 +962,38 @@ class MeprRulesCtrl extends MeprCptCtrl
         // This only works if the inner shortcode does NOT have an ending tag.
         $content = do_shortcode($content);
 
-        if ($shortcode_type === 'mepr-show') {
+        if ($shortcode_type === 'mepr_show') {
             $hide_if_allowed = false;
-        } elseif ($shortcode_type === 'mepr-hide') {
+        } elseif ($shortcode_type === 'mepr_hide') {
             $hide_if_allowed = true;
         } else {
             $hide_if_allowed = (
-            ((isset($atts['hide']) && trim($atts['hide']) == 'true') ||
-             (isset($atts['ifallowed']) && trim($atts['ifallowed']) == 'hide'))
+            ((isset($atts['hide']) && trim($atts['hide']) === 'true') ||
+             (isset($atts['ifallowed']) && trim($atts['ifallowed']) === 'hide'))
             );
+        }
+
+        $rule_ids = [];
+
+        if (isset($atts['rule'])) {
+            $rule_ids = array_map('trim', explode(',', $atts['rule']));
+        }
+        if (isset($atts['rules'])) {
+            $rule_ids = array_map('trim', explode(',', $atts['rules']));
         }
 
         $unauth = '';
         if (isset($atts['unauth'])) {
-            if (trim($atts['unauth']) == 'message' || trim($atts['unauth']) == 'both') {
+            if (trim($atts['unauth']) === 'message' || trim($atts['unauth']) === 'both') {
                 if (isset($atts['unauth_message'])) {
                     $class = doing_action('render_block') ? 'mepr_block_error' : 'mepr_error';
                     $unauth = '<div class="' . esc_attr($class) . '">' . trim($atts['unauth_message']) . '</div>';
                 } else {
-                    $rule_ids = [];
-
-                    if (isset($atts['rule'])) {
-                        $rule_ids = array_map('trim', explode(',', $atts['rule']));
-                    }
-                    if (isset($atts['rules'])) {
-                        $rule_ids = array_map('trim', explode(',', $atts['rules']));
-                    }
-
                     $unauth = MeprRule::get_custom_unauth_message_from_rule_ids($rule_ids);
                 }
             }
 
-            if (trim($atts['unauth']) == 'login' || trim($atts['unauth']) == 'both') {
+            if (trim($atts['unauth']) === 'login' || trim($atts['unauth']) === 'both') {
                 try {
                     $login_ctrl = MeprCtrlFactory::fetch('login');
                     $unauth    .= '<div>' . $login_ctrl->render_login_form() . '</div>';
@@ -1011,9 +1015,34 @@ class MeprRulesCtrl extends MeprCptCtrl
                 return ($hide_if_allowed ? $unauth : $content);
             }
 
-            if (MeprUtils::is_user_logged_in()) {
+            // Check if any of the rules has a login_state access condition.
+            $login_state_allowed = null;
+            foreach ($rule_ids as $rule_id) {
+                $rule = new MeprRule($rule_id);
+
+                foreach ($rule->access_conditions() as $condition) {
+                    if ('login_state' === $condition->access_type) {
+                        // Access condition is either 'logged_in' or 'guest'.
+                        if ('logged_in' === $condition->access_condition) {
+                            $login_state_allowed = MeprUtils::is_user_logged_in(); // Allowed if logged-in.
+                        } else {
+                            $login_state_allowed = !MeprUtils::is_user_logged_in(); // Allowed if guest.
+                        }
+
+                        break;
+                    }
+                }
+
+                if (null !== $login_state_allowed) {
+                    break;
+                }
+            }
+
+            if (null !== $login_state_allowed) {
+                $allowed = $login_state_allowed;
+            } else if (MeprUtils::is_user_logged_in()) {
                 // Deprecated.
-                if ($shortcode_type == 'mp-rule') {
+                if ($shortcode_type === 'mepr_rule') {
                     $allowed = (
                     (isset($atts['id']) && current_user_can('mepr-active', "rule: {$atts['id']}")) ||
                     (isset($atts['ids']) && current_user_can('mepr-active', "rules: {$atts['ids']}"))
@@ -1028,13 +1057,13 @@ class MeprRulesCtrl extends MeprCptCtrl
                     (isset($atts['product']) && current_user_can('mepr-active', "product: {$atts['product']}")) ||
                     (isset($atts['products']) && current_user_can('mepr-active', "products: {$atts['products']}")) ||
                     (isset($atts['membership']) && current_user_can('mepr-active', "membership: {$atts['membership']}")) ||
-                    (isset($atts['memberships']) && current_user_can('mepr-active', "membership: {$atts['memberships']}"))
+                    (isset($atts['memberships']) && current_user_can('mepr-active', "memberships: {$atts['memberships']}"))
                     );
                 }
             }
         }
 
-        $allowed = MeprHooks::apply_filters('mepr-pre-run-partial-rule', $allowed, $hide_if_allowed, $atts);
+        $allowed = MeprHooks::apply_filters('mepr_pre_run_partial_rule', $allowed, $hide_if_allowed, $atts);
 
         return ((($allowed && !$hide_if_allowed) || (!$allowed && $hide_if_allowed)) ? $content : $unauth);
     }
@@ -1063,7 +1092,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         // General MemberPress Authorized for this page.
         if (
             ($current_post !== false && MeprRule::is_locked($current_post)) ||
-            MeprRule::is_uri_locked($_SERVER['REQUEST_URI'])
+            MeprRule::is_uri_locked(sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '')))
         ) {
             unset($caps[$cap[0]]);
         }
@@ -1096,7 +1125,7 @@ class MeprRulesCtrl extends MeprCptCtrl
         $user = new MeprUser($args[1]);
         $ids  = $user->active_product_subscriptions();
 
-        if (MeprUtils::is_mepr_admin() || in_array($m[4], $ids)) {
+        if (MeprUtils::is_mepr_admin() || in_array((int) $m[4], array_map('intval', $ids), true)) {
             $caps[$cap[0]] = 1;
         }
 
@@ -1173,7 +1202,7 @@ class MeprRulesCtrl extends MeprCptCtrl
             if (isset($args[2])) {
                 // If it's a membership then check that it's in the active membership subscriptions array.
                 if (is_numeric($args[2]) && is_array($ids) && !empty($ids)) {
-                    if (in_array($args[2], $ids)) {
+                    if (in_array((int) $args[2], array_map('intval', $ids), true)) {
                         $caps[$active_str] = 1;
                     }
                 } elseif (preg_match('/^((product|membership)s?\s*[=:_-]?\s*)?((\d+\s*,\s*)*\d+)$/i', $args[2], $m) && is_array($ids) && !empty($ids)) {
@@ -1221,8 +1250,8 @@ class MeprRulesCtrl extends MeprCptCtrl
         // Array( [action] => mepr_rule_content_search [type] => single_post [term] => you).
         check_ajax_referer('content_search', 'content_search_nonce');
 
-        $type = sanitize_text_field($_REQUEST['type']);
-        $term = sanitize_text_field($_REQUEST['term']);
+        $type = sanitize_text_field(wp_unslash($_REQUEST['type'] ?? ''));
+        $term = sanitize_text_field(wp_unslash($_REQUEST['term'] ?? ''));
 
         $data = MeprRule::search_content($type, $term);
         die(json_encode($data));
@@ -1306,7 +1335,7 @@ class MeprRulesCtrl extends MeprCptCtrl
      */
     public static function dont_hide_wc_product_content($protect, $post, $uri)
     {
-        if (isset($post) && isset($post->post_type) && $post->post_type == 'product') {
+        if (isset($post) && isset($post->post_type) && $post->post_type === 'product') {
             return false;
         }
 
@@ -1324,11 +1353,11 @@ class MeprRulesCtrl extends MeprCptCtrl
     public static function validate_rule_content($rule, $post_id)
     {
         // If the rule requires exclusion - Bailout.
-        if (0 === (int) $post_id || $rule->mepr_type == 'all' || (strstr($rule->mepr_type, 'all_') !== false && !preg_match('#^all_tax_#', $rule->mepr_type)) || $rule->mepr_type == 'partial') {
+        if (0 === (int) $post_id || $rule->mepr_type === 'all' || (strstr($rule->mepr_type, 'all_') !== false && !preg_match('#^all_tax_#', $rule->mepr_type)) || $rule->mepr_type === 'partial') {
             return;
         }
 
-        $mepr_rules_content = isset($_POST[MeprRule::$mepr_content_str]) ? trim($_POST[MeprRule::$mepr_content_str]) : '';
+        $mepr_rules_content = isset($_POST[MeprRule::$mepr_content_str]) ? trim(sanitize_text_field(wp_unslash($_POST[MeprRule::$mepr_content_str]))) : '';
         // If no content is added, force the status to draft.
         if (empty($mepr_rules_content)) {
             // Unhook so it doesn't loop infinitely.

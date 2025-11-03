@@ -14,10 +14,9 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
     public function load_hooks()
     {
         add_action('wp_enqueue_scripts', [$this,'enqueue_scripts']);
-        add_action('mepr-signup', [$this, 'process_spc_payment_form'], 100); // 100 priority to give other things a chance to hook in before SPC takes over the world
+        add_action('mepr_signup', [$this, 'process_spc_payment_form'], 100); // 100 priority to give other things a chance to hook in before SPC takes over the world
         add_filter('mepr_signup_form_payment_description', [$this, 'maybe_render_payment_form'], 10, 4);
-        MeprHooks::add_shortcode('mepr-ecommerce-tracking', [$this, 'replace_tracking_codes']);
-        add_filter('mepr-signup-checkout-url', [$this, 'handle_spc_checkout_url'], 10, 2);
+        add_filter('mepr_signup_checkout_url', [$this, 'handle_spc_checkout_url'], 10, 2);
         add_action('mepr_readylaunch_thank_you_page_after_content', [$this, 'maybe_show_order_bumps_error_message_in_readylaunch']);
         add_filter('mepr_options_helper_payment_methods', [$this, 'exclude_disconnected_gateways'], 10, 3);
         add_filter('the_content', [$this, 'maybe_show_order_bumps_error_message'], 1);
@@ -29,6 +28,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         add_action('wp_ajax_nopriv_mepr_process_payment_form', [$this, 'process_payment_form_ajax']);
         add_action('wp_ajax_mepr_debug_checkout_error', [$this, 'debug_checkout_error']);
         add_action('wp_ajax_nopriv_mepr_debug_checkout_error', [$this, 'debug_checkout_error']);
+
+        MeprHooks::add_shortcode('mepr_ecommerce_tracking', [$this, 'replace_tracking_codes']);
     }
 
     /**
@@ -100,7 +101,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         if (is_singular() && in_the_loop() && is_main_query()) {
             $mepr_options = MeprOptions::fetch();
 
-            if ($mepr_options->thankyou_page_id != get_the_ID()) {
+            if ($mepr_options->thankyou_page_id !== (int) get_the_ID()) {
                 return $content;
             }
 
@@ -175,7 +176,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 'membership' => null,
             ],
             $atts,
-            'mepr-ecommerce-tracking'
+            'mepr_ecommerce_tracking'
         );
 
         if (
@@ -215,7 +216,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                               // Only fetch the object once!
                             if (!isset($txn)) {
                                 if (isset($_GET['trans_num']) && !empty($_GET['trans_num'])) {
-                                          $rec = $model::get_one_by_trans_num($_GET['trans_num']);
+                                          $rec = $model::get_one_by_trans_num(sanitize_text_field(wp_unslash($_GET['trans_num'])));
                                           $txn = $obj = new MeprTransaction($rec->id);
                                 } elseif (isset($_GET['transaction_id']) && !empty($_GET['transaction_id'])) {
                                     $txn = $obj = new MeprTransaction((int) $_GET['transaction_id']);
@@ -225,7 +226,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                         case 'MeprSubscription':
                             if (!isset($sub)) {
                                 if (isset($_GET['subscr_id']) && !empty($_GET['subscr_id'])) {
-                                    $sub = $obj = $model::get_one_by_subscr_id($_GET['subscr_id']);
+                                    $sub = $obj = $model::get_one_by_subscr_id(sanitize_text_field(wp_unslash($_GET['subscr_id'])));
                                 } elseif (isset($_GET['subscription_id']) && !empty($_GET['subscription_id'])) {
                                     $sub = $obj = $model::get_one((int) $_GET['subscription_id']);
                                 }
@@ -238,7 +239,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                             break;
                         case 'MeprProduct':
                             if (!isset($prod) && isset($_GET['membership_id']) && !empty($_GET['membership_id'])) {
-                                $prod = $obj = new $model($_GET['membership_id']);
+                                $prod = $obj = new $model(intval(wp_unslash($_GET['membership_id'])));
                             }
                             break;
                         default:
@@ -284,10 +285,17 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 wp_enqueue_style('mepr-tel-config-css', MEPR_CSS_URL . '/tel_input.css', '', MEPR_VERSION);
                 wp_enqueue_script('mepr-phone-js', MEPR_JS_URL . '/vendor/intlTelInput.js', '', '16.0.0', true);
                 wp_enqueue_script('mepr-tel-config-js', MEPR_JS_URL . '/tel_input.js', ['mepr-phone-js', 'mp-signup'], MEPR_VERSION, true);
-                wp_localize_script('mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters('mepr-phone-input-config', [
+                wp_localize_script('mepr-tel-config-js', 'meprTel', MeprHooks::apply_filters('mepr_phone_input_config', [
                     'defaultCountry' => strtolower(get_option('mepr_biz_country')),
                     'utilsUrl'       => MEPR_JS_URL . '/vendor/intlTelInputUtils.js',
                     'onlyCountries'  => '',
+                    'i18n' => [
+                        'selectCountryCode' => esc_html__('Select country code', 'memberpress'),
+                        'countryCodeOptions' => esc_html__('Country code options', 'memberpress'),
+                        'countryChangedTo' => esc_html__('Country changed to', 'memberpress'),
+                        'countryCode' => esc_html__('country code', 'memberpress'),
+                        'phoneNumberInput' => esc_html__('Phone number input', 'memberpress'),
+                    ],
                 ]));
             }
 
@@ -296,9 +304,9 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'checkout') {
                 if (isset($_REQUEST['mepr_transaction_id'])) {
-                    $txn = new MeprTransaction($_REQUEST['mepr_transaction_id']);
+                    $txn = new MeprTransaction(intval(wp_unslash($_REQUEST['mepr_transaction_id'])));
                 } elseif (isset($_REQUEST['txn'])) {
-                    $txn = new MeprTransaction($_REQUEST['txn']);
+                    $txn = new MeprTransaction(intval(wp_unslash($_REQUEST['txn'])));
                 }
 
                 if ($txn && $txn->id > 0) {
@@ -309,7 +317,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 isset($_REQUEST['action']) && $_REQUEST['action'] === 'update' &&
                 isset($_REQUEST['sub'])
             ) {
-                $sub = new MeprSubscription($_REQUEST['sub']);
+                $sub = new MeprSubscription(intval(wp_unslash($_REQUEST['sub'])));
                 if ($sub->id > 0) {
                     $pm = $sub->payment_method();
                 }
@@ -363,15 +371,15 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         extract($_REQUEST, EXTR_SKIP);
         if (isset($_REQUEST['errors'])) {
             if (is_array($_REQUEST['errors'])) {
-                $errors = array_map('wp_kses_post', $_REQUEST['errors']); // Use kses here so our error HTML isn't stripped.
+                $errors = array_map('wp_kses_post', wp_unslash($_REQUEST['errors'])); // Use kses here so our error HTML isn't stripped.
             } else {
-                $errors = [wp_kses_post($_REQUEST['errors'])];
+                $errors = [wp_kses_post(wp_unslash($_REQUEST['errors']))];
             }
         }
         // See if Coupon was passed via GET.
         if (isset($_GET['coupon']) && !empty($_GET['coupon'])) {
-            if (MeprCoupon::is_valid_coupon_code($_GET['coupon'], $product->ID)) {
-                $mepr_coupon_code = htmlentities(sanitize_text_field($_GET['coupon']));
+            if (MeprCoupon::is_valid_coupon_code(sanitize_text_field(wp_unslash($_GET['coupon'])), $product->ID)) {
+                $mepr_coupon_code = htmlentities(sanitize_text_field(wp_unslash($_GET['coupon'])));
             }
         }
 
@@ -440,7 +448,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         // Validate the form post.
-        $errors = MeprHooks::apply_filters('mepr-validate-signup', MeprUser::validate_signup($_POST, []));
+        $errors = MeprHooks::apply_filters('mepr_validate_signup', MeprUser::validate_signup($_POST, []));
         if (!empty($errors)) {
             $_POST['errors']    = $errors; // Deprecated?
             $_REQUEST['errors'] = $errors;
@@ -455,12 +463,15 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             $usr = MeprUtils::get_currentuserinfo();
         } else { // If new user we've got to create them and sign them in.
             $usr             = new MeprUser();
-            $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email($_POST['user_email']) : sanitize_user($_POST['user_login']);
-            $usr->user_email = sanitize_email($_POST['user_email']);
-            $usr->first_name = !empty($_POST['user_first_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
-            $usr->last_name  = !empty($_POST['user_last_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
+            $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email(wp_unslash($_POST['user_email'] ?? '')) : sanitize_user(wp_unslash($_POST['user_login'] ?? ''));
+            $usr->user_email = sanitize_email(wp_unslash($_POST['user_email'] ?? ''));
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $usr->first_name = MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'] ?? ''));
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $usr->last_name  = MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'] ?? ''));
 
-            $password = ($mepr_options->disable_checkout_password_fields === true) ? wp_generate_password() : $_POST['mepr_user_password'];
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $password = ($mepr_options->disable_checkout_password_fields === true) ? wp_generate_password() : ($_POST['mepr_user_password'] ?? '');
             // Have to use rec here because we unset user_pass on __construct.
             $usr->set_password($password);
 
@@ -472,7 +483,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 $usr = new MeprUser($usr->ID);
 
                 // Log the new user in.
-                if (MeprHooks::apply_filters('mepr-auto-login', true, $_POST['mepr_product_id'], $usr)) {
+                if (MeprHooks::apply_filters('mepr_auto_login', true, intval(wp_unslash($_POST['mepr_product_id'] ?? 0)), $usr)) {
                     wp_signon(
                         [
                             'user_login'    => $usr->user_login,
@@ -495,7 +506,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         $txn->user_id = $usr->ID;
 
         // Get the membership in place.
-        $txn->product_id = sanitize_text_field($_POST['mepr_product_id']);
+        $txn->product_id = intval(wp_unslash($_POST['mepr_product_id'] ?? 0));
         $product         = $txn->product();
 
         if (empty($product->ID)) {
@@ -511,7 +522,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         }
 
         // Needed for autoresponders (SPC + Stripe + Free Trial issue).
-        MeprHooks::do_action('mepr-signup-user-loaded', $usr);
+        MeprHooks::do_action('mepr_signup_user_loaded', $usr);
 
         // Set default price, adjust it later if coupon applies.
         $price = $product->adjusted_price();
@@ -525,8 +536,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         // Adjust membership price from the coupon code.
         if (isset($_POST['mepr_coupon_code']) && !empty($_POST['mepr_coupon_code'])) {
             // Coupon object has to be loaded here or else txn create will record a 0 for coupon_id.
-            $mepr_coupon_code = htmlentities(sanitize_text_field($_POST['mepr_coupon_code']));
-            $cpn              = MeprCoupon::get_one_from_code(sanitize_text_field($_POST['mepr_coupon_code']));
+            $mepr_coupon_code = htmlentities(sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])));
+            $cpn              = MeprCoupon::get_one_from_code(sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])));
 
             if (($cpn !== false) || ($cpn instanceof MeprCoupon)) {
                 $price = $product->adjusted_price($cpn->post_title);
@@ -540,7 +551,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
 
         // Figure out the Payment Method.
         if (isset($_POST['mepr_payment_method']) && !empty($_POST['mepr_payment_method'])) {
-            $txn->gateway = sanitize_text_field($_POST['mepr_payment_method']);
+            $txn->gateway = sanitize_text_field(wp_unslash($_POST['mepr_payment_method']));
         } else {
             $txn->gateway = MeprTransaction::$free_gateway_str;
         }
@@ -583,7 +594,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 // Adjust membership price from the coupon code.
                 if (isset($_POST['mepr_coupon_code']) && !empty($_POST['mepr_coupon_code'])) {
                     // Coupon object has to be loaded here or else txn create will record a 0 for coupon_id.
-                    $cpn = MeprCoupon::get_one_from_code(sanitize_text_field($_POST['mepr_coupon_code']));
+                    $cpn = MeprCoupon::get_one_from_code(sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])));
                     if (($cpn !== false) || ($cpn instanceof MeprCoupon)) {
                         $price = $product->adjusted_price($cpn->post_title);
                     }
@@ -632,22 +643,22 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             }
 
             // DEPRECATED: These 2 actions here for backwards compatibility ... use mepr-signup instead.
-            MeprHooks::do_action('mepr-track-signup', $txn->amount, $usr, $product->ID, $txn->id);
-            MeprHooks::do_action('mepr-process-signup', $txn->amount, $usr, $product->ID, $txn->id);
+            MeprHooks::do_action('mepr_track_signup', $txn->amount, $usr, $product->ID, $txn->id);
+            MeprHooks::do_action('mepr_process_signup', $txn->amount, $usr, $product->ID, $txn->id);
 
             if (('free' !== $signup_type) && isset($pm) && ($pm instanceof MeprBaseRealGateway)) {
                 $pm->process_signup_form($txn);
             }
 
             // Signup type can be 'free', 'non-recurring' or 'recurring'.
-            MeprHooks::do_action("mepr-{$signup_type}-signup", $txn);
-            MeprHooks::do_action('mepr-signup', $txn);
+            MeprHooks::do_action("mepr_{$signup_type}_signup", $txn);
+            MeprHooks::do_action('mepr_signup', $txn);
 
             // Pass order bump product IDs to the checkout second page.
             $obs  = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_filter(array_map('intval', $_POST['mepr_order_bumps'])) : [];
             $args = count($obs) ? ['obs' => $obs] : [];
 
-            MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr-signup-checkout-url', $txn->checkout_url($args), $txn));
+            MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr_signup_checkout_url', $txn->checkout_url($args), $txn));
         } catch (Exception $e) {
             $_POST['errors'] = $_REQUEST['errors'] = [$e->getMessage()];
         }
@@ -667,19 +678,20 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
         if (isset($_POST['mepr_payment_method'])) {
-            $payment_method = $mepr_options->payment_method($_POST['mepr_payment_method']);
+            $payment_method = $mepr_options->payment_method(sanitize_text_field(wp_unslash($_POST['mepr_payment_method'])));
             if ($mepr_options->enable_spc && $payment_method->has_spc_form && !empty($_POST['errors'])) {
-                $errors       = $_POST['errors'];
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $errors       = wp_unslash($_POST['errors']);
                 $errors       = array_map('urlencode', $errors);
                 $query_params = [
                     'errors'                    => $errors,
                     'mepr_transaction_id'       => $txn->id,
                     'mepr_process_signup_form'  => 0,
                     'mepr_process_payment_form' => 1,
-                    'mepr_payment_method'       => sanitize_text_field($_POST['mepr_payment_method']),
+                    'mepr_payment_method'       => sanitize_text_field(wp_unslash($_POST['mepr_payment_method'])),
                 ];
                 if (!empty($_POST['mepr_coupon_code'])) {
-                    $query_params = array_merge(['mepr_coupon_code' => htmlentities(sanitize_text_field($_POST['mepr_coupon_code']))], $query_params);
+                    $query_params = array_merge(['mepr_coupon_code' => htmlentities(sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])))], $query_params);
                 }
                 $product      = $txn->product();
                 $checkout_url = add_query_arg($query_params, $product->url());
@@ -702,13 +714,13 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             return;
         }
 
-        if (isset($_POST['smart-payment-button']) && $_POST['smart-payment-button']) {
+        if (isset($_POST['smart-payment-button']) && sanitize_text_field(wp_unslash($_POST['smart-payment-button']))) {
             return;
         }
 
         $mepr_options = MeprOptions::fetch();
         if (isset($_POST['mepr_payment_method'])) {
-            $payment_method = $mepr_options->payment_method($_POST['mepr_payment_method']);
+            $payment_method = $mepr_options->payment_method(sanitize_text_field(wp_unslash($_POST['mepr_payment_method'])));
             if ($mepr_options->enable_spc && $payment_method->has_spc_form || ($mepr_options->design_enable_checkout_template)) {
                 $_POST = array_merge(
                     $_POST,
@@ -731,11 +743,11 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
     {
         $mepr_options = MeprOptions::fetch();
 
-        $txn_id = $_REQUEST['txn'];
+        $txn_id = intval(wp_unslash($_REQUEST['txn'] ?? 0));
         $txn    = new MeprTransaction($txn_id);
 
         if (!isset($txn->id) || $txn->id <= 0) {
-            wp_die(__('ERROR: Invalid Transaction ID. Use your browser back button and try registering again.', 'memberpress'));
+            wp_die(esc_html__('ERROR: Invalid Transaction ID. Use your browser back button and try registering again.', 'memberpress'));
         }
 
         if ($txn->gateway === MeprTransaction::$free_gateway_str || $txn->amount <= 0.00) {
@@ -769,10 +781,12 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         if (isset($_REQUEST['payment_method_params'])) {
-            extract($_REQUEST['payment_method_params'], EXTR_SKIP);
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            extract(wp_unslash($_REQUEST['payment_method_params']), EXTR_SKIP);
 
             if (isset($_REQUEST['errors']) && !empty($_REQUEST['errors'])) {
-                $errors = $_REQUEST['errors'];
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $errors = wp_unslash($_REQUEST['errors']);
                 MeprView::render('/shared/errors', get_defined_vars());
             }
 
@@ -791,9 +805,9 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
     public function process_payment_form()
     {
         if (isset($_POST['mepr_process_payment_form']) && isset($_POST['mepr_transaction_id']) && is_numeric($_POST['mepr_transaction_id'])) {
-            $txn = new MeprTransaction($_POST['mepr_transaction_id']);
+            $txn = new MeprTransaction(intval(wp_unslash($_POST['mepr_transaction_id'])));
 
-            if ($txn->rec != false) {
+            if ($txn->rec !== false) {
                 $mepr_options = MeprOptions::fetch();
                 $pm           = $mepr_options->payment_method($txn->gateway);
                 if ($pm instanceof MeprBaseRealGateway) {
@@ -940,7 +954,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         $transaction = $this->get_transaction_from_request($req);
 
         // If this transaction doesn't match the membership then something fishy is going on here bro.
-        if (empty($transaction) || $transaction->product_id != $membership->ID) {
+        if (empty($transaction) || (int) $transaction->product_id !== (int) $membership->ID) {
             return false;
         }
 
@@ -948,7 +962,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         // it when this is the thank you page for the specified membership.
         if (
             !is_null($atts['membership']) && isset($req['membership_id']) &&
-            $req['membership_id'] != $atts['membership']
+            (int) $req['membership_id'] !== (int) $atts['membership']
         ) {
             return false;
         }
@@ -1024,7 +1038,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 $sub->store();
 
                 if (empty($sub->id)) {
-                    throw new Exception(__('Sorry, we were unable to create a subscription.', 'memberpress'));
+                    throw new Exception(esc_html__('Sorry, we were unable to create a subscription.', 'memberpress'));
                 }
 
                 $txn->subscription_id = $sub->id;
@@ -1038,7 +1052,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                     $sub->destroy();
                 }
 
-                throw new Exception(__('Sorry, we were unable to create a transaction.', 'memberpress'));
+                throw new Exception(esc_html__('Sorry, we were unable to create a transaction.', 'memberpress'));
             }
         }
 
@@ -1065,7 +1079,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         if (!empty($required_order_bumps) && !empty($order_bump_product_ids)) {
             $missing_required_order_bumps = array_diff($required_order_bumps, $order_bump_product_ids);
             if (!empty($missing_required_order_bumps)) {
-                throw new Exception(__('One of the required products is missing.', 'memberpress'));
+                throw new Exception(esc_html__('One of the required products is missing.', 'memberpress'));
             }
         }
 
@@ -1073,18 +1087,18 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             $product = new MeprProduct($order_bump_product_id);
 
             if (empty($product->ID)) {
-                throw new Exception(__('Product not found', 'memberpress'));
+                throw new Exception(esc_html__('Product not found', 'memberpress'));
             }
 
-            if ($product_id == $product->ID) {
+            if ((int) $product_id === $product->ID) {
                 continue;
             }
 
             if (!$product->can_you_buy_me()) {
                 throw new Exception(sprintf(
                     // Translators: %s: product name.
-                    __("You don't have access to purchase %s.", 'memberpress'),
-                    $product->post_title
+                    esc_html__("You don't have access to purchase %s.", 'memberpress'),
+                    esc_html($product->post_title)
                 ));
             }
 
@@ -1093,8 +1107,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             if ($group instanceof MeprGroup && $group->is_upgrade_path) {
                 throw new Exception(sprintf(
                     // Translators: %s: product name.
-                    __('The product %s cannot be purchased at this time.', 'memberpress'),
-                    $product->post_title
+                    esc_html__('The product %s cannot be purchased at this time.', 'memberpress'),
+                    esc_html($product->post_title)
                 ));
             }
 
@@ -1112,8 +1126,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
     public function get_checkout_state()
     {
         $mepr_options = MeprOptions::fetch();
-        $product_id   = isset($_POST['mepr_product_id']) ? (int) sanitize_text_field(wp_unslash($_POST['mepr_product_id'])) : 0;
-        $coupon_code  = isset($_POST['mepr_coupon_code']) ? sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])) : '';
+        $product_id   = intval(wp_unslash($_POST['mepr_product_id'] ?? 0));
+        $coupon_code  = sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'] ?? ''));
 
         if (empty($product_id)) {
             wp_send_json_error();
@@ -1133,7 +1147,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         $payment_required    = $prd->is_payment_required($coupon_code);
         $order_bump_products = [];
 
-        if ($is_gift == 'true') {
+        if ($is_gift === 'true') {
             $prd->allow_renewal = false;
         }
 
@@ -1192,7 +1206,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
         ];
 
         if ($payment_required) {
-            $payment_method_ids = isset($_POST['mepr_payment_methods']) && is_array($_POST['mepr_payment_methods']) ? array_map('sanitize_text_field', array_map('wp_unslash', $_POST['mepr_payment_methods'])) : [];
+            $payment_method_ids = isset($_POST['mepr_payment_methods']) && is_array($_POST['mepr_payment_methods']) ? array_map('sanitize_text_field', wp_unslash($_POST['mepr_payment_methods'])) : [];
 
             if (count($payment_method_ids)) {
                 $payment_methods     = $mepr_options->payment_methods(false);
@@ -1206,7 +1220,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                         continue;
                     }
 
-                    if ($pm instanceof MeprStripeGateway && $pm->settings->stripe_checkout_enabled != 'on') {
+                    if ($pm instanceof MeprStripeGateway && $pm->settings->stripe_checkout_enabled !== 'on') {
                         try {
                              list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
                                  $prd,
@@ -1227,7 +1241,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                         } catch (Exception $e) {
                             // Ignore exception.
                         }
-                    } elseif ($pm instanceof MeprSquareGateway) {
+                    } elseif ($pm instanceof MeprSquarePaymentsGateway) {
                         try {
                             list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
                                 $prd,
@@ -1282,13 +1296,13 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
 
             // Validate the form post.
             $mepr_current_url = isset($_POST['mepr_current_url']) && is_string($_POST['mepr_current_url']) ? sanitize_text_field(wp_unslash($_POST['mepr_current_url'])) : '';
-            $errors           = MeprHooks::apply_filters('mepr-validate-signup', MeprUser::validate_signup($_POST, [], $mepr_current_url));
+            $errors           = MeprHooks::apply_filters('mepr_validate_signup', MeprUser::validate_signup($_POST, [], $mepr_current_url));
 
             if (!empty($errors)) {
                 wp_send_json_error(['errors' => $errors]);
             }
 
-            $product_id = isset($_POST['mepr_product_id']) ? (int) $_POST['mepr_product_id'] : 0;
+            $product_id = intval(wp_unslash($_POST['mepr_product_id'] ?? 0));
             $prd        = new MeprProduct($product_id);
 
             if (empty($prd->ID)) {
@@ -1303,12 +1317,15 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             } else {
                 // If new user we've got to create them and sign them in.
                 $usr             = new MeprUser();
-                $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email($_POST['user_email']) : sanitize_user($_POST['user_login']);
-                $usr->user_email = sanitize_email($_POST['user_email']);
-                $usr->first_name = !empty($_POST['user_first_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'])) : '';
-                $usr->last_name  = !empty($_POST['user_last_name']) ? MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'])) : '';
+                $usr->user_login = ($mepr_options->username_is_email) ? sanitize_email(wp_unslash($_POST['user_email'] ?? '')) : sanitize_user(wp_unslash($_POST['user_login'] ?? ''));
+                $usr->user_email = sanitize_email(wp_unslash($_POST['user_email']));
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $usr->first_name = MeprUtils::sanitize_name_field(wp_unslash($_POST['user_first_name'] ?? ''));
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $usr->last_name  = MeprUtils::sanitize_name_field(wp_unslash($_POST['user_last_name'] ?? ''));
 
-                $password = ($mepr_options->disable_checkout_password_fields === true) ? wp_generate_password() : $_POST['mepr_user_password'];
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $password = ($mepr_options->disable_checkout_password_fields === true) ? wp_generate_password() : ($_POST['mepr_user_password'] ?? '');
                 // Have to use rec here because we unset user_pass on __construct.
                 $usr->set_password($password);
                 try {
@@ -1319,7 +1336,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                     $usr = new MeprUser($usr->ID);
 
                     // Log the new user in.
-                    if (MeprHooks::apply_filters('mepr-auto-login', true, $_POST['mepr_product_id'], $usr)) {
+                    if (MeprHooks::apply_filters('mepr_auto_login', true, intval(wp_unslash($_POST['mepr_product_id'] ?? 0)), $usr)) {
                         wp_signon(
                             [
                                 'user_login'    => $usr->user_login,
@@ -1346,7 +1363,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             }
 
             // Needed for autoresponders (SPC + Stripe + Free Trial issue).
-            MeprHooks::do_action('mepr-signup-user-loaded', $usr);
+            MeprHooks::do_action('mepr_signup_user_loaded', $usr);
 
             $coupon_code = isset($_POST['mepr_coupon_code']) ? sanitize_text_field(wp_unslash($_POST['mepr_coupon_code'])) : '';
             $cpn         = MeprCoupon::get_one_from_code($coupon_code);
@@ -1360,8 +1377,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                     $cpn
                 );
 
-                MeprHooks::do_action('mepr-process-signup', $txn->amount, $usr, $prd->ID, $txn->id);
-                MeprHooks::do_action('mepr-signup', $txn);
+                MeprHooks::do_action('mepr_process_signup', $txn->amount, $usr, $prd->ID, $txn->id);
+                MeprHooks::do_action('mepr_signup', $txn);
 
                 $pm->process_payment_ajax(
                     $prd,
@@ -1438,7 +1455,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             isset($_POST['user_email']) && is_string($_POST['user_email']) ? sanitize_text_field(wp_unslash($_POST['user_email'])) : null
         );
 
-        error_log(sprintf('PHP Fatal error: Uncaught %s', $t->__toString()));
+        MeprUtils::debug_log(sprintf('PHP Fatal error: Uncaught %s', $t->__toString()));
 
         wp_send_json_error(__('An error occurred, please DO NOT submit the form again as you may be double charged. Please contact us for further assistance instead.', 'memberpress'));
     }
@@ -1452,6 +1469,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             wp_send_json_error();
         }
 
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
         $data = json_decode(wp_unslash($_POST['data']), true);
 
         if (!is_array($data)) {
@@ -1474,7 +1492,7 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             }
 
             ob_start();
-            var_dump($data[$key]);
+            var_dump($data[$key]); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_dump
             $value = ob_get_clean();
 
             $content .= sprintf(
@@ -1526,8 +1544,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             $message .= sprintf("Customer email: %s\n", $customer_email);
         }
 
-        $message .= sprintf("Customer IP: %s\n", $_SERVER['REMOTE_ADDR']);
-        $message .= sprintf("Customer User Agent: %s\n", !empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '(empty)');
+        $message .= sprintf("Customer IP: %s\n", sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'] ?? '')));
+        $message .= sprintf("Customer User Agent: %s\n", !empty($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '(empty)');
         $message .= sprintf("Date (UTC): %s\n\n", gmdate('Y-m-d H:i:s'));
 
         MeprUtils::wp_mail_to_admin('[MemberPress] IMPORTANT: Checkout error', $message . $content);

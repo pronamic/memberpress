@@ -10,11 +10,11 @@
       <div class="mepr-deactivation-survey-description"><?php esc_html_e('If you have a moment, please share why you are deactivating MemberPress:', 'memberpress'); ?></div>
 
       <div class="mepr-deactivation-survey-options">
-        <?php foreach ($options as $id => $option) : ?>
+        <?php foreach ($options as $option_id => $option) : ?>
           <div class="mepr-deactivation-survey-option">
             <div class="mepr-deactivation-survey-option-input">
-              <input type="radio" id="mepr-deactivation-survey-option-<?php echo esc_attr($plugin); ?>-<?php echo esc_attr($id); ?>" class="mepr-deactivation-survey-option-radio" name="mepr_deactivation_survey" value="<?php echo esc_attr($id); ?>">
-              <label for="mepr-deactivation-survey-option-<?php echo esc_attr($plugin); ?>-<?php echo esc_attr($id); ?>" class="mepr-deactivation-survey-option-label">
+              <input type="radio" id="mepr-deactivation-survey-option-<?php echo esc_attr($plugin); ?>-<?php echo esc_attr($option_id); ?>" class="mepr-deactivation-survey-option-radio" name="mepr_deactivation_survey" value="<?php echo esc_attr($option_id); ?>">
+              <label for="mepr-deactivation-survey-option-<?php echo esc_attr($plugin); ?>-<?php echo esc_attr($option_id); ?>" class="mepr-deactivation-survey-option-label">
                 <?php echo esc_html($option['label']); ?>
               </label>
             </div>

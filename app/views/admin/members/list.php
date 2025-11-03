@@ -3,12 +3,13 @@
 } ?>
 <div class="wrap">
   <h2>
-    <?php _e('Members', 'memberpress'); ?>
-    <?php MeprHooks::do_action('mepr-after-admin-members-heading'); ?>
-    <a href="<?php echo admin_url('admin.php?page=memberpress-members&action=new'); ?>" class="add-new-h2"><?php _e('Add New', 'memberpress'); ?></a>
+    <?php esc_html_e('Members', 'memberpress'); ?>
+    <?php MeprHooks::do_action('mepr_after_admin_members_heading'); ?>
+    <a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-members&action=new')); ?>" class="add-new-h2"><?php esc_html_e('Add New', 'memberpress'); ?></a>
   </h2>
 
   <?php if (!isset($errors)) {
+      // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
         $errors = '';
   } ?>
   <?php MeprView::render('/admin/errors', compact('errors', 'message')); ?>

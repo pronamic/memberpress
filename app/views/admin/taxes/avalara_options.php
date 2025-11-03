@@ -3,7 +3,7 @@
 } ?>
 <tr valign="top">
   <th scope="row">
-    <label for="mepr_tax_avalara_enabled"><a href="http://taxratesapi.avalara.com/" target="_blank"><?php _e('Enable Avalara TaxRates', 'memberpress'); ?></a></label>
+    <label for="mepr_tax_avalara_enabled"><a href="http://taxratesapi.avalara.com/" target="_blank"><?php esc_html_e('Enable Avalara TaxRates', 'memberpress'); ?></a></label>
     <?php MeprAppHelper::info_tooltip(
         'mepr-enable-tax-avalara',
         __('Get US Tax Rates from Avalara', 'memberpress'),
@@ -23,7 +23,7 @@
         <tbody>
           <tr valign="top">
             <th scope="row">
-              <label for="<?php echo $mepr_options->attr_slug('tax_avalara_account_id'); ?>"><?php _e('Avalara Account ID', 'memberpress'); ?></label>
+              <label for="<?php echo esc_attr($mepr_options->attr_slug('tax_avalara_account_id')); ?>"><?php esc_html_e('Avalara Account ID', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip(
                   'mepr-merchant-tax-avalara-account-id',
                   __('Avalara Account ID', 'memberpress'),
@@ -31,12 +31,12 @@
               ); ?>
             </th>
             <td>
-              <input id="<?php echo $mepr_options->attr_slug('tax_avalara_account_id'); ?>" name="<?php echo $mepr_options->attr_slug('tax_avalara_account_id'); ?>" class="regular-text" value="<?php echo $mepr_options->attr('tax_avalara_account_id'); ?>" />
+              <input id="<?php echo esc_attr($mepr_options->attr_slug('tax_avalara_account_id')); ?>" name="<?php echo esc_attr($mepr_options->attr_slug('tax_avalara_account_id')); ?>" class="regular-text" value="<?php echo esc_attr($mepr_options->attr('tax_avalara_account_id')); ?>" />
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="<?php echo $mepr_options->attr_slug('tax_avalara_key'); ?>"><?php _e('Avalara License Key', 'memberpress'); ?></label>
+              <label for="<?php echo esc_attr($mepr_options->attr_slug('tax_avalara_key')); ?>"><?php esc_html_e('Avalara License Key', 'memberpress'); ?></label>
               <?php MeprAppHelper::info_tooltip(
                   'mepr-merchant-tax-avalara-key',
                   __('Avalara License Key', 'memberpress'),
@@ -44,7 +44,7 @@
               ); ?>
             </th>
             <td>
-              <input id="<?php echo $mepr_options->attr_slug('tax_avalara_key'); ?>" name="<?php echo $mepr_options->attr_slug('tax_avalara_key'); ?>" class="regular-text" value="<?php echo $mepr_options->attr('tax_avalara_key'); ?>" />
+              <input id="<?php echo esc_attr($mepr_options->attr_slug('tax_avalara_key')); ?>" name="<?php echo esc_attr($mepr_options->attr_slug('tax_avalara_key')); ?>" class="regular-text" value="<?php echo esc_attr($mepr_options->attr('tax_avalara_key')); ?>" />
             </td>
           </tr>
         </tbody>

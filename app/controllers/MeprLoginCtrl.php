@@ -13,10 +13,10 @@ class MeprLoginCtrl extends MeprBaseCtrl
      */
     public function load_hooks()
     {
-        MeprHooks::add_shortcode('mepr-logout-link', [$this,'logout_link']);
-        MeprHooks::add_shortcode('mepr-login-link', [$this,'logout_link']);
+        MeprHooks::add_shortcode('mepr_logout_link', [$this,'logout_link']);
+        MeprHooks::add_shortcode('mepr_login_link', [$this,'logout_link']);
         MeprHooks::add_shortcode('logout_link', [$this,'logout_link']); // DEPRECATED.
-        MeprHooks::add_shortcode('mepr-login-form', [$this,'render_login_form']);
+        MeprHooks::add_shortcode('mepr_login_form', [$this,'render_login_form']);
 
         // WP Login Customizations.
         add_action('wp_logout', [$this,'logout_redirect_override'], 99999);
@@ -40,11 +40,11 @@ class MeprLoginCtrl extends MeprBaseCtrl
 
         if (MeprUtils::is_user_logged_in()) {
             ?>
-      <a href="<?php echo esc_url(MeprHooks::apply_filters('mepr-logout-url', wp_logout_url($mepr_options->login_page_url('redirect_to=' . urlencode($permalink))))); ?>"><?php _e('Logout', 'memberpress'); ?></a>
+      <a href="<?php echo esc_url(MeprHooks::apply_filters('mepr_logout_url', wp_logout_url($mepr_options->login_page_url('redirect_to=' . urlencode($permalink))))); ?>"><?php esc_html_e('Logout', 'memberpress'); ?></a>
             <?php
         } else {
             ?>
-      <a href="<?php echo esc_url($mepr_options->login_page_url('redirect_to=' . urlencode($permalink))); ?>"><?php _e('Login', 'memberpress'); ?></a>
+      <a href="<?php echo esc_url($mepr_options->login_page_url('redirect_to=' . urlencode($permalink))); ?>"><?php esc_html_e('Login', 'memberpress'); ?></a>
             <?php
         }
 
@@ -73,22 +73,22 @@ class MeprLoginCtrl extends MeprBaseCtrl
 
         if (
             $shortcode && isset($_REQUEST['action']) &&
-            $_REQUEST['action'] != 'mepr_unauthorized' &&
-            $_REQUEST['action'] != 'bpnoaccess' && // BuddyPress fix.
+            $_REQUEST['action'] !== 'mepr_unauthorized' &&
+            $_REQUEST['action'] !== 'bpnoaccess' && // BuddyPress fix.
             !defined('DOING_AJAX')
         ) {
             // Don't do this if it's an ajax request. Probably loading up the form shortcode via AJAX
             // Need to check for this POST first.
-            if ($_REQUEST['action'] == 'mepr_process_reset_password_form' && isset($_POST['errors']) && !empty($_POST['errors'])) {
-                $this->display_reset_password_form_errors($_POST['errors']);
-            } elseif ($_REQUEST['action'] == 'forgot_password') {
+            if ($_REQUEST['action'] === 'mepr_process_reset_password_form' && isset($_POST['errors']) && !empty($_POST['errors'])) {
+                $this->display_reset_password_form_errors(wp_unslash($_POST['errors'])); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            } elseif ($_REQUEST['action'] === 'forgot_password') {
                 $this->display_forgot_password_form();
-            } elseif ($_REQUEST['action'] == 'reset_password') {
-                $this->display_reset_password_form($_REQUEST['mkey'], $_REQUEST['u']);
+            } elseif ($_REQUEST['action'] === 'reset_password') {
+                $this->display_reset_password_form(sanitize_text_field(wp_unslash($_REQUEST['mkey'] ?? '')), sanitize_text_field(wp_unslash($_REQUEST['u'] ?? '')));
             } else {
                 $this->display_login_form(
                     $shortcode,
-                    (isset($atts['use_redirect']) && $atts['use_redirect'] == 'true'),
+                    (isset($atts['use_redirect']) && $atts['use_redirect'] === 'true'),
                     '',
                     $atts
                 );
@@ -97,7 +97,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
             if (! is_user_logged_in() || ! isset($atts['show_logged_in']) || $atts['show_logged_in'] !== 'false') {
                 $this->display_login_form(
                     $shortcode,
-                    (isset($atts['use_redirect']) && $atts['use_redirect'] == 'true'),
+                    (isset($atts['use_redirect']) && $atts['use_redirect'] === 'true'),
                     '',
                     $atts
                 );
@@ -127,7 +127,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
 
         // If redirect_to is set then set it to the query param.
         if (isset($_REQUEST['redirect_to']) && !empty($_REQUEST['redirect_to'])) {
-            $redirect_to = urldecode($_REQUEST['redirect_to']);
+            $redirect_to = esc_url_raw(wp_unslash($_REQUEST['redirect_to']));
             // Security fix. Restrict redirect_to param to safe URLs PT#154812459.
             $redirect_to = wp_validate_redirect($redirect_to, apply_filters('wp_safe_redirect_fallback', home_url(), 302));
         }
@@ -138,16 +138,16 @@ class MeprLoginCtrl extends MeprBaseCtrl
             false !== $shortcode && !is_page($login_page_id) && false === $widget_use_redirect_urls
         ) {
             // $redirect_to = MeprUtils::get_permalink($current_post->ID);
-            $redirect_to = esc_url($_SERVER['REQUEST_URI']);
+            $redirect_to = esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
         }
 
         // Check if we've got an unauth page set here
         // Is this even used here??? I don't think so, but leaving it here just in case.
         if (isset($_REQUEST['mepr-unauth-page']) && !isset($_REQUEST['redirect_to'])) {
-            $redirect_to = MeprUtils::get_permalink($_REQUEST['mepr-unauth-page']);
+            $redirect_to = MeprUtils::get_permalink(intval(wp_unslash($_REQUEST['mepr-unauth-page'])));
         }
 
-        $redirect_to = MeprHooks::apply_filters('mepr-login-redirect-url', $redirect_to);
+        $redirect_to = MeprHooks::apply_filters('mepr_login_redirect_url', $redirect_to);
 
         if ($login_page_id) {
             $login_url           = $mepr_options->login_page_url();
@@ -176,7 +176,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
         }
 
         if (!empty($_REQUEST['mepr_process_login_form']) && !empty($_REQUEST['errors'])) {
-            $errors = array_map('wp_kses_post', $_REQUEST['errors']);
+            $errors = array_map('wp_kses_post', wp_unslash($_REQUEST['errors']));
             if (MeprReadyLaunchCtrl::template_enabled('login')) {
                 MeprView::render('/readylaunch/shared/errors', get_defined_vars());
             } else {
@@ -201,11 +201,11 @@ class MeprLoginCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         $errors = MeprHooks::apply_filters(
-            'mepr-validate-login',
+            'mepr_validate_login',
             MeprUser::validate_login($_POST, [])
         );
 
-        $login = stripcslashes(sanitize_text_field($_POST['log'])); // Have to do this for apostrophes in emails, cuz apparently that is a thing.
+        $login = stripcslashes(sanitize_text_field(wp_unslash($_POST['log'] ?? ''))); // Have to do this for apostrophes in emails, cuz apparently that is a thing.
 
         if (is_email($login)) {
             $user = get_user_by('email', $login);
@@ -229,7 +229,8 @@ class MeprLoginCtrl extends MeprBaseCtrl
         $wp_user = wp_signon(
             [
                 'user_login'    => $login,
-                'user_password' => $_POST['pwd'], // Do not need to sanitize here - it causes issues with passwords like test%12test (the %12 is stripped out).
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                'user_password' => $_POST['pwd'] ?? '', // Do not need to sanitize here - it causes issues with passwords like test%12test (the %12 is stripped out).
                 'remember'      => isset($_POST['rememberme']),
             ],
             MeprUtils::is_ssl() // May help with the users getting logged out when going between http and https.
@@ -241,14 +242,14 @@ class MeprLoginCtrl extends MeprBaseCtrl
         }
 
         if (isset($_POST['redirect_to'])) {
-            $redirect_to = wp_sanitize_redirect(urldecode($_POST['redirect_to']));
+            $redirect_to = wp_sanitize_redirect(esc_url_raw(wp_unslash($_POST['redirect_to'])));
             // Security fix. Restrict redirect_to param to safe URLs PT#154812459.
             $redirect_to = wp_validate_redirect($redirect_to, apply_filters('wp_safe_redirect_fallback', home_url(), 302));
         } else {
             $redirect_to = $mepr_options->login_redirect_url;
         }
         $redirect_to = MeprHooks::apply_filters(
-            'mepr-process-login-redirect-url',
+            'mepr_process_login_redirect_url',
             $redirect_to,
             $wp_user
         );
@@ -266,7 +267,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         if (isset($mepr_options->logout_redirect_url) && !empty($mepr_options->logout_redirect_url)) {
-            MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr-process-logout-redirect-url', $mepr_options->logout_redirect_url));
+            MeprUtils::wp_redirect(MeprHooks::apply_filters('mepr_process_logout_redirect_url', $mepr_options->logout_redirect_url));
             exit;
         }
     }
@@ -293,7 +294,8 @@ class MeprLoginCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
         $redirect_to  = urldecode($redirect_to); // Might not be urlencoded, but let's do this just in case before we call urlencode below.
 
-        if (is_admin() || !$mepr_options->force_login_page_url || strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false) {
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        if (is_admin() || !$mepr_options->force_login_page_url || strpos(wp_unslash($_SERVER['REQUEST_URI'] ?? ''), 'wp-login.php') !== false) {
             return $url;
         }
 
@@ -316,7 +318,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
         $mepr_blogurl = home_url();
 
-        $mepr_user_or_email = (isset($_REQUEST['user_or_email'])) ? sanitize_text_field(urldecode($_REQUEST['user_or_email'])) : '';
+        $mepr_user_or_email = sanitize_text_field(wp_unslash($_REQUEST['user_or_email'] ?? ''));
 
         $process = MeprAppCtrl::get_param('mepr_process_forgot_password_form', '');
 
@@ -339,7 +341,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
     public function process_forgot_password_form()
     {
         $mepr_options = MeprOptions::fetch();
-        $errors       = MeprHooks::apply_filters('mepr-validate-forgot-password', MeprUser::validate_forgot_password($_POST, []));
+        $errors       = MeprHooks::apply_filters('mepr_validate_forgot_password', MeprUser::validate_forgot_password($_POST, []));
 
         extract($_POST, EXTR_SKIP);
 
@@ -434,8 +436,8 @@ class MeprLoginCtrl extends MeprBaseCtrl
     public function display_reset_password_form_errors($errors)
     {
         if (!empty($errors)) {
-            $mepr_screenname = isset($_POST['mepr_screenname']) ? sanitize_user(wp_unslash($_POST['mepr_screenname'])) : '';
-            $mepr_key        = isset($_POST['mepr_key']) ? wp_unslash($_POST['mepr_key']) : '';
+            $mepr_screenname = sanitize_user(wp_unslash($_POST['mepr_screenname'] ?? ''));
+            $mepr_key        = sanitize_text_field(wp_unslash($_POST['mepr_key'] ?? ''));
 
             if (MeprReadyLaunchCtrl::template_enabled('login')) {
                 MeprView::render('/readylaunch/shared/errors', get_defined_vars());
@@ -456,10 +458,10 @@ class MeprLoginCtrl extends MeprBaseCtrl
     {
         // Log user out when clicking reset password link.
         if (MeprUtils::is_user_logged_in()) {
-            if (isset($_GET['action']) && $_GET['action'] == 'reset_password' && isset($_GET['mkey']) && !isset($_GET['loggedout'])) {
+            if (isset($_GET['action']) && $_GET['action'] === 'reset_password' && isset($_GET['mkey']) && !isset($_GET['loggedout'])) {
                 wp_destroy_current_session();
                 wp_clear_auth_cookie();
-                MeprUtils::wp_redirect($_SERVER['REQUEST_URI'] . '&loggedout=true'); // Redirect to same page to flush login cookies.
+                MeprUtils::wp_redirect(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? '')) . '&loggedout=true'); // Redirect to same page to flush login cookies.
             }
         }
 
@@ -467,15 +469,16 @@ class MeprLoginCtrl extends MeprBaseCtrl
             $mepr_options = MeprOptions::fetch();
 
             if (isset($_POST['errors'])) {
-                $errors = $_POST['errors'];
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $errors = wp_unslash($_POST['errors']);
             } else {
-                $errors = $_POST['errors'] = MeprHooks::apply_filters('mepr-validate-reset-password', MeprUser::validate_reset_password($_POST, []));
+                $errors = $_POST['errors'] = MeprHooks::apply_filters('mepr_validate_reset_password', MeprUser::validate_reset_password($_POST, []));
             }
 
             if (empty($errors)) {
                 $mepr_screenname    = isset($_POST['mepr_screenname']) ? sanitize_user(wp_unslash($_POST['mepr_screenname'])) : '';
-                $mepr_user_password = isset($_POST['mepr_user_password']) ? $_POST['mepr_user_password'] : '';
-                $mepr_key           = isset($_POST['mepr_key']) ? wp_unslash($_POST['mepr_key']) : '';
+                $mepr_user_password = isset($_POST['mepr_user_password']) ? $_POST['mepr_user_password'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                $mepr_key           = isset($_POST['mepr_key']) ? sanitize_text_field(wp_unslash($_POST['mepr_key'])) : '';
 
                 $user = new MeprUser();
                 $user->load_user_data_by_login($mepr_screenname);
@@ -483,7 +486,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
                 if ($user->ID) {
                     $user->set_password_and_send_notifications($mepr_key, $mepr_user_password);
 
-                    if (MeprHooks::apply_filters('mepr-auto-login', true, null, $user)) {
+                    if (MeprHooks::apply_filters('mepr_auto_login', true, null, $user)) {
                         if (!MeprUtils::is_user_logged_in()) {
                             $wp_user = wp_signon(
                                 [
@@ -496,7 +499,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
                             if (!is_wp_error($wp_user)) {
                                           $redirect_to = $mepr_options->login_redirect_url;
                                           $redirect_to = MeprHooks::apply_filters(
-                                              'mepr-process-login-redirect-url',
+                                              'mepr_process_login_redirect_url',
                                               $redirect_to,
                                               $wp_user
                                           );

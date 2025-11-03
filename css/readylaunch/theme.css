@@ -313,6 +313,18 @@ template {
   display: none;
 }
 
+.screen-reader-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* Box sizing
 --------------------------------------------- */
 /* Inherit box-sizing to more easily change it's value on a component level.
@@ -594,14 +606,12 @@ input[type=submit].btn-link {
 }
 
 .mepr-form .mp-address-group {
+  position: relative;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.08), 0px 1px 1px rgba(0, 0, 0, 0.04);
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 .mepr-form .mp-address-group .mp-form-row {
   margin: 0;
-}
-.mepr-form .mp-address-group .mp-form-row .mp-form-label {
-  display: none;
 }
 .mepr-form .mp-address-group .mepr-form-input,
 .mepr-form .mp-address-group input[type=text] {
@@ -654,6 +664,17 @@ input[type=submit].btn-link {
   border-radius: 0.25rem;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.08), 0px 1px 1px rgba(0, 0, 0, 0.04);
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.mepr-form input[type=text].invalid::placeholder,
+.mepr-form input[type=email].invalid::placeholder,
+.mepr-form input[type=url].invalid::placeholder,
+.mepr-form input[type=password].invalid::placeholder,
+.mepr-form input[type=search].invalid::placeholder,
+.mepr-form input[type=number].invalid::placeholder,
+.mepr-form input[type=tel].invalid::placeholder,
+.mepr-form label.invalid,
+.mepr-form label.invalid a {
+  color: #2b3239;
 }
 .mepr-form input[type=text]:focus,
 .mepr-form input[type=email]:focus,

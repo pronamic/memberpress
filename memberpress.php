@@ -4,10 +4,10 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: https://memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.12.6
+Version: 1.12.10
 Requires PHP: 7.4
 Author: Caseproof, LLC
-Author URI: http://caseproof.com/
+Author URI: https://caseproof.com/
 Text Domain: memberpress
 Copyright: 2004-2024, Caseproof, LLC
 
@@ -39,6 +39,7 @@ define('MEPR_PATH', __DIR__);
 define('MEPR_IMAGES_PATH', MEPR_PATH . '/images');
 define('MEPR_BRAND_PATH', MEPR_PATH . '/brand');
 define('MEPR_BRAND_CTRLS_PATH', MEPR_BRAND_PATH . '/controllers');
+define('MEPR_BRAND_ADDONS_PATH', MEPR_BRAND_PATH . '/add-ons');
 define('MEPR_CSS_PATH', MEPR_PATH . '/css');
 define('MEPR_JS_PATH', MEPR_PATH . '/js');
 define('MEPR_I18N_PATH', MEPR_PATH . '/i18n');
@@ -46,6 +47,7 @@ define('MEPR_LIB_PATH', MEPR_PATH . '/app/lib');
 define('MEPR_INTEGRATIONS_PATH', MEPR_PATH . '/app/integrations');
 define('MEPR_INTERFACES_PATH', MEPR_PATH . '/app/lib/interfaces');
 define('MEPR_DATA_PATH', MEPR_PATH . '/app/data');
+define('MEPR_BRAND_DATA_PATH', MEPR_BRAND_PATH . '/data');
 define('MEPR_FONTS_PATH', MEPR_PATH . '/fonts');
 define('MEPR_APIS_PATH', MEPR_PATH . '/app/apis');
 define('MEPR_MODELS_PATH', MEPR_PATH . '/app/models');
@@ -193,7 +195,7 @@ function mepr_autoloader($class_name)
 }
 
 // If __autoload is active, put it on the spl_autoload stack.
-if (is_array(spl_autoload_functions()) and in_array('__autoload', spl_autoload_functions())) {
+if (is_array(spl_autoload_functions()) and in_array('__autoload', spl_autoload_functions(), true)) {
     spl_autoload_register('__autoload');
 }
 
@@ -204,6 +206,14 @@ spl_autoload_register('mepr_autoloader');
 foreach ((array) glob(MEPR_INTEGRATIONS_PATH . '/*/Integration.php') as $file) {
     include_once $file;
 }
+
+// Load brand add-ons.
+if (file_exists(MEPR_BRAND_PATH . '/add-ons.php')) {
+    require_once MEPR_BRAND_PATH . '/add-ons.php';
+}
+
+// Include other files.
+require_once MEPR_LIB_PATH . '/core-functions.php';
 
 // Load our controllers.
 MeprCtrlFactory::all();
@@ -224,7 +234,7 @@ function mepr_account_link()
 {
     try {
         $account_ctrl = MeprCtrlFactory::fetch('account');
-        echo $account_ctrl->get_account_links();
+        echo $account_ctrl->get_account_links(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     } catch (Exception $e) {
         // Silently fail ... not much we can do if the account controller isn't present.
     }

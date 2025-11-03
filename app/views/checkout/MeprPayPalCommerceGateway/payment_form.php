@@ -4,13 +4,13 @@ if (! defined('ABSPATH')) {
 }
 
 $success_url      = $payment_method->notify_url('return');
-$smart_payment_on = $payment_method->settings->enable_smart_button == 'on';
+$smart_payment_on = $payment_method->settings->enable_smart_button === 'on';
 
 static $unique_suffix = 0;
 $unique_suffix++;
 
 if ($payment_method->settings->use_desc) {
-    echo wpautop(esc_html(trim($payment_method->settings->desc)));
+    echo wp_kses_post(wpautop(esc_html(trim($payment_method->settings->desc))));
 }
 ?>
 

@@ -70,6 +70,24 @@ class MeprHooks
     }
 
     /**
+     * Has shortcode.
+     *
+     * @param  string $content Content to search for shortcodes.
+     * @param  string $tag     Shortcode tag to check.
+     * @return boolean
+     */
+    public static function has_shortcode($content, $tag)
+    {
+        foreach (self::tags($tag) as $t) {
+            if (has_shortcode($content, $t)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Call.
      *
      * @param  string $fn   The fn.
@@ -117,7 +135,7 @@ class MeprHooks
         ];
 
         // In case the original tag has mixed dashes and underscores.
-        if (!in_array($tag, array_values($tags))) {
+        if (!in_array($tag, array_values($tags), true)) {
             $tags['*'] = $tag;
         }
 

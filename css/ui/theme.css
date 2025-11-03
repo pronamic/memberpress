@@ -51,6 +51,27 @@
   box-sizing: border-box;
 }
 
+.mp_wrapper textarea:focus-visible,
+.mp_wrapper select:focus-visible,
+.mp_wrapper input[type=text]:focus-visible,
+.mp_wrapper input[type=url]:focus-visible,
+.mp_wrapper input[type=email]:focus-visible,
+.mp_wrapper input[type=tel]:focus-visible,
+.mp_wrapper input[type=number]:focus-visible,
+.mp_wrapper input[type=password]:focus-visible,
+.mp_wrapper .iti__selected-flag:focus-visible {
+  border: 2px solid #bcbcbc;
+}
+
+.mp_wrapper input[type=checkbox]:focus-visible,
+.mp_wrapper input[type=radio]:focus-visible {
+  outline: 2px solid #bcbcbc;
+}
+
+.mp_wrapper input[type=file]:focus-visible {
+  border: 2px solid #bcbcbc;
+}
+
 .mepr-stripe-card-errors,
 .mepr-paypal-card-errors,
 .mepr-square-errors {
@@ -101,6 +122,17 @@
 .mp_wrapper .mepr_price .mepr_price_cell,
 .mp_wrapper .mepr_price .mepr_price_cell_label {
   display: inline !important;
+}
+
+.mepr-login-form-wrap input[name=rememberme]:focus-visible {
+  outline: 2px solid #bcbcbc;
+}
+
+.mepr-login-form-wrap a:focus-visible,
+.mepr-form label a:focus-visible {
+  color: #06429e;
+  font-weight: 500;
+  text-decoration: underline;
 }
 
 table.mp-table thead,
@@ -248,6 +280,82 @@ label.mepr-form-radios-label, label.mepr-form-checkboxes-label {
 
 .mp_wrapper .mp-form-row label {
   display: inline !important;
+}
+
+.mp_wrapper .mp-form-row {
+  position: relative;
+}
+
+.mp_wrapper .mp-form-row .screen-reader-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.mp_wrapper .mp-form-row fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.mp-form-row-group-wrapper {
+  position: relative;
+  width: 50%;
+}
+
+.mp_wrapper fieldset.mepr-payment-methods-wrapper {
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mp_wrapper fieldset.mepr-payment-methods-wrapper legend {
+  margin: 18px 0;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mp_wrapper .mp-form-row.mp-address-group label.placeholder-text,
+.mp_wrapper .mp-form-row .mp-form-row-group label.placeholder-text,
+#mepr_loginform .mp-form-label label.placeholder-text,
+.mepr_coupon label.placeholder-text {
+  position: absolute;
+  top: 9px;
+  left: 13px;
+  z-index: 999;
+  width: auto !important;
+  color: #757575;
+  font-size: 16px !important;
+  pointer-events: none;
+  transform: translate(0);
+  transition: transform 0.15s ease-out, font-size 0.15s ease-out, background-color 0.2s ease-out, color 0.15s ease-out;
+}
+
+.mp_wrapper .mp-form-row .mp-form-row-group label.placeholder-text {
+  top: 7px;
+}
+
+.mp_wrapper .mp-form-row.mp-address-group label.placeholder-text.active,
+.mp_wrapper .mp-form-row .mp-form-row-group label.placeholder-text.active,
+#mepr_loginform .mp-form-label label.placeholder-text.active,
+.mepr-pro-template .mp_wrapper .mepr_mepr-address-country .mp-form-label label.placeholder-text,
+.mepr-pro-template .mp_wrapper .mepr_mepr-address-state .mp-form-label label.placeholder-text {
+  transform: translate(0, -20px);
+  padding: 0 5px;
+  background: #fff;
+  color: #06429e;
+  font-size: 13px !important;
+}
+
+.mp_wrapper .mp-form-row.mp-address-group .mp-form-label .cc-error {
+  display: none !important;
 }
 
 .mepr-hidden {

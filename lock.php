@@ -15,18 +15,21 @@ if (file_exists($root . '/wp-load.php')) {
     require_once($root . '/wp-config.php');
 }
 
-if (!isset($_REQUEST['mepruri'])) {
-    $_REQUEST['mepruri'] = esc_url($_SERVER['REQUEST_URI']);
-}
-
-$mepr_uri = untrailingslashit($_REQUEST['mepruri']);
+$mepr_uri = isset($_REQUEST['mepruri'])
+    ? untrailingslashit(esc_url_raw(wp_unslash($_REQUEST['mepruri'])))
+    : esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
 
 $is_ssl = MeprUtils::is_ssl();
 
+$server_port = intval($_SERVER['SERVER_PORT'] ?? 0);
+if ($server_port <= 0 || $server_port > 65535) {
+    $server_port = $is_ssl ? 443 : 80;
+}
+
 $full_uri = 'http' . ($is_ssl ? 's' : '') . '://' .
-            $_SERVER['HTTP_HOST'] .
-            ( ( $_SERVER['SERVER_PORT'] == 80 || $_SERVER['SERVER_PORT'] == 443 ) ? '' : ":{$_SERVER['SERVER_PORT']}" ) .
-            $_SERVER['REQUEST_URI'];
+    sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'] ?? '')) .
+    (in_array($server_port, [80, 443], true) ? '' : ':' . $server_port) .
+    esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
 
 $mepr_full_uri = preg_replace('#^(https?://[^/]*).*$#', '$1', home_url()) . $mepr_uri;
 $full_uri      = preg_replace('#^(https?://[^/]*).*$#', '$1', $full_uri) . $mepr_uri;
@@ -37,7 +40,7 @@ $from_abspath_uri   = substr(str_replace($subdir, '', $mepr_uri), 1);
 $mepr_full_filename = ABSPATH . $from_abspath_uri;
 
 // Redirecting unless the correct home_url is used.
-if ($mepr_full_uri != $full_uri) {
+if ($mepr_full_uri !== $full_uri) {
     wp_safe_redirect($mepr_full_uri);
     exit;
 }
@@ -98,15 +101,21 @@ if (preg_match('/\.(php|phtml)/', $mepr_uri)) {
  * to the protected content.
  *
  * @since 1.0.0
+ *
+ * @throws Exception If the filesystem cannot be accessed.
+ *
  * @param string $mepr_uri  The URI being accessed.
  * @param string $rule_hash The hash value used to create the rule file.
  */
 function mepr_redirect_locked_uri($mepr_uri, $rule_hash)
 {
-    $rule_dir = MeprRule::rewrite_rule_file_dir();
-    @touch($rule_dir . '/' . $rule_hash); // Store off the rule file.
+    $filesystem = MeprFilesystem::get();
+    $rule_dir   = MeprRule::rewrite_rule_file_dir();
+
+    $filesystem->touch($rule_dir . '/' . $rule_hash);
     setcookie('mplk', $rule_hash, (time() + 5));
     MeprUtils::wp_redirect($mepr_uri);
+
     exit;
 }
 
@@ -125,7 +134,7 @@ function mepr_render_locked_file($filename)
     $info          = wp_check_filetype($filename);
     $file_contents = file_get_contents($filename);
     header("Content-Type: {$info['type']}");
-    echo $file_contents;
+    echo $file_contents; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     exit;
 }
 
@@ -138,12 +147,12 @@ function mepr_render_locked_file($filename)
  */
 function mepr_clean_rule_files()
 {
-    $filenames = @glob(MeprRule::rewrite_rule_file_dir() . '/*', GLOB_NOSORT);
+    $filenames = glob(MeprRule::rewrite_rule_file_dir() . '/*', GLOB_NOSORT);
 
-    if (!empty($filenames)) {
+    if (is_array($filenames) && !empty($filenames)) {
         foreach ($filenames as $filename) {
             if ((time() - filemtime($filename)) > 60) {
-                unlink($filename);
+                wp_delete_file($filename);
             }
         }
     }

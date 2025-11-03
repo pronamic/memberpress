@@ -1,10 +1,10 @@
-<div x-show="pricing.openModal" class="mepr_modal" aria-labelledby="mepr-login-modal" id="mepr-login-modal"
-    role="dialog" aria-modal="true" x-cloak>
+<div class="mepr_modal" aria-labelledby="mepr-pricing-modal" id="mepr-pricing-modal"
+    role="dialog" aria-modal="true" style="display: none;">
     <div class="mepr_modal__overlay"></div>
     <div class="mepr_modal__content_wrapper">
     <div class="mepr_modal__content">
-      <div class="mepr_modal__box" @click.away="closeModal($event, pricing)">
-      <button x-on:click="pricing.openModal=false" type="button" class="mepr_modal__close">&#x2715;</button>
+      <div class="mepr_modal__box">
+      <button type="button" class="mepr_modal__close">&#x2715;</button>
       <div>
         <h3>
         <?php esc_html_e('Pricing Settings', 'memberpress'); ?>
@@ -22,7 +22,7 @@
           <td colspan="2">
           <label class="mepr-modal-options-pane-label" for="<?php echo esc_attr($mepr_options->design_pricing_title_str); ?>">
             <span>
-            <?php _e('Page Title', 'memberpress'); ?>
+            <?php esc_html_e('Page Title', 'memberpress'); ?>
             </span>
           </label>
           <input id="<?php echo esc_attr($mepr_options->design_pricing_title_str); ?>" name="<?php echo esc_attr($mepr_options->design_pricing_title_str); ?>" class="" type="text"
@@ -35,7 +35,7 @@
           <td colspan="2">
           <label class="mepr-modal-options-pane-label" for="<?php echo esc_attr($mepr_options->design_pricing_cta_color_str); ?>">
             <span>
-            <?php _e('CTA Button Color', 'memberpress'); ?>
+            <?php esc_html_e('CTA Button Color', 'memberpress'); ?>
             </span>
           </label>
           <input type="text" name="<?php echo esc_attr($mepr_options->design_pricing_cta_color_str); ?>"
@@ -48,7 +48,7 @@
           <td colspan="2">
           <label class="mepr-modal-options-pane-label" for="<?php echo esc_attr($mepr_options->design_pricing_subheadline_str); ?>">
             <span>
-            <?php _e('Subheadline', 'memberpress'); ?>
+            <?php esc_html_e('Subheadline', 'memberpress'); ?>
             </span>
           </label>
           <?php

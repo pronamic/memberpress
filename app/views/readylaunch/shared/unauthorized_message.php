@@ -29,7 +29,7 @@ if (isset($atts['welcome_image']) && $atts['welcome_image'] > 0) {
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
         <div class="mepr_pro_error_content">
-          <?php echo $unauth->excerpt; ?>
+          <?php echo wp_kses_post($unauth->excerpt); ?>
         </div>
       </div>
     </div>
@@ -43,19 +43,19 @@ if (isset($atts['welcome_image']) && $atts['welcome_image'] > 0) {
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
         <div class="mepr_pro_error_content">
-          <?php echo $unauth->message; ?>
+          <?php echo wp_kses_post($unauth->message); ?>
         </div>
       </div>
     </div>
   <?php endif; ?>
 
   <?php if (!MeprUtils::is_user_logged_in()) : ?>
-    <div id="mepr-template-login" class="mepr-login-form-wrap">
+    <div class="mepr-login-form-wrap">
         <?php if ($show_login) : ?>
-            <?php echo $form; ?>
+            <?php echo $form; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
         <?php elseif (is_singular()) : // Let's not show the annoying login link on non singular pages.
             ?>
-        <span class="mepr-login-link"><a href="<?php echo $mepr_options->login_page_url(); ?>"><?php echo MeprHooks::apply_filters('mepr-unauthorized-login-link-text', _x('Login', 'ui', 'memberpress')); ?></a></span>
+        <span class="mepr-login-link"><a href="<?php echo esc_url($mepr_options->login_page_url()); ?>"><?php echo esc_html(MeprHooks::apply_filters('mepr_unauthorized_login_link_text', _x('Login', 'ui', 'memberpress'))); ?></a></span>
         <?php endif; ?>
     </div>
   <?php endif; ?>

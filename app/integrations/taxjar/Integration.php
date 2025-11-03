@@ -48,7 +48,7 @@ class MeprTaxJarIntegration
     {
 
         add_action('mepr_tax_rate_options', [$this, 'options']);
-        add_action('mepr-process-options', [$this, 'store_options']);
+        add_action('mepr_process_options', [$this, 'store_options']);
 
         self::$sandbox_enabled = (bool) get_option('mepr_tax_taxjar_enable_sandbox');
         self::$endpoint_base   = self::$sandbox_enabled ? 'https://api.sandbox.taxjar.com/v2/' : 'https://api.taxjar.com/v2/';
@@ -66,8 +66,8 @@ class MeprTaxJarIntegration
 
         // Push order/refund data when TaxJar is enabled.
         if (self::$tax_taxjar_enabled && self::$api_key) {
-            add_action('mepr-event-transaction-completed', [$this, 'send_order']);
-            add_action('mepr-event-transaction-refunded', [$this, 'send_refund']);
+            add_action('mepr_event_transaction_completed', [$this, 'send_order']);
+            add_action('mepr_event_transaction_refunded', [$this, 'send_refund']);
         }
 
         // Admin notice when business state is not 2-character code.
@@ -99,7 +99,7 @@ class MeprTaxJarIntegration
 
         // Log any error.
         if (is_wp_error($response)) {
-            MeprUtils::debug_log(print_r($response, true));
+            MeprUtils::debug_log('', [$response]);
         }
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
@@ -173,8 +173,8 @@ class MeprTaxJarIntegration
     public function store_options()
     {
         update_option('mepr_tax_taxjar_enabled', isset($_POST['mepr_tax_taxjar_enabled']));
-        update_option('mepr_tax_taxjar_api_key_live', isset($_POST['mepr_tax_taxjar_api_key_live']) ? sanitize_text_field(trim($_POST['mepr_tax_taxjar_api_key_live'])) : '');
-        update_option('mepr_tax_taxjar_api_key_sandbox', isset($_POST['mepr_tax_taxjar_api_key_sandbox']) ? sanitize_text_field(trim($_POST['mepr_tax_taxjar_api_key_sandbox'])) : '');
+        update_option('mepr_tax_taxjar_api_key_live', isset($_POST['mepr_tax_taxjar_api_key_live']) ? sanitize_text_field(wp_unslash($_POST['mepr_tax_taxjar_api_key_live'])) : '');
+        update_option('mepr_tax_taxjar_api_key_sandbox', isset($_POST['mepr_tax_taxjar_api_key_sandbox']) ? sanitize_text_field(wp_unslash($_POST['mepr_tax_taxjar_api_key_sandbox'])) : '');
         update_option('mepr_tax_taxjar_enable_sandbox', isset($_POST['mepr_tax_taxjar_enable_sandbox']) ? 1 : '');
     }
 
@@ -195,7 +195,7 @@ class MeprTaxJarIntegration
         // Zero out tax if user provided a valid VAT.
         if (! empty($_POST['mepr_vat_number'])) {
             $vat_ctrl = new MeprVatTaxCtrl();
-            if ($vat_ctrl->vat_number_is_valid(sanitize_text_field($_POST['mepr_vat_number']), sanitize_text_field($_POST['mepr-address-country']))) {
+            if ($vat_ctrl->vat_number_is_valid(sanitize_text_field(wp_unslash($_POST['mepr_vat_number'] ?? '')), sanitize_text_field(wp_unslash($_POST['mepr-address-country'] ?? '')))) {
                 $tax_rate->tax_rate = 0;
                 return $tax_rate;
             }
@@ -225,7 +225,7 @@ class MeprTaxJarIntegration
 
             // Check for bad requests.
             if (isset($response_body['error'])) {
-                MeprUtils::debug_log(print_r($response_body, true));
+                MeprUtils::debug_log('', [$response_body]);
                 return $tax_rate;
             }
 
@@ -253,7 +253,7 @@ class MeprTaxJarIntegration
         $should_send = isset($transaction->tax_amount) && $transaction->tax_amount > 0.00;
 
         // Only push to TaxJar if transaction has tax.
-        if (apply_filters('mepr_taxjar_should_send_txn', $should_send, $event)) {
+        if (MeprHooks::apply_filters('mepr_taxjar_should_send_txn', $should_send, $event)) {
             // For available and required parameters, see https://developers.taxjar.com/api/reference/#post-create-an-order-transaction.
             $args = MeprHooks::apply_filters('mepr_taxjar_api_create_order_args', [
                 'to_country'       => sanitize_text_field(get_user_meta($user->ID, 'mepr-address-country', true)),
@@ -281,7 +281,7 @@ class MeprTaxJarIntegration
 
                   // Check for bad requests.
                 if (isset($response_body['error'])) {
-                    MeprUtils::debug_log(print_r($response_body, true));
+                    MeprUtils::debug_log('', [$response_body]);
                     return;
                 }
 
@@ -305,7 +305,7 @@ class MeprTaxJarIntegration
         $should_send = isset($transaction->tax_amount) && $transaction->tax_amount > 0.00;
 
         // Only push to TaxJar if transaction has tax.
-        if (apply_filters('mepr_taxjar_should_refund_txn', $should_send, $event)) {
+        if (MeprHooks::apply_filters('mepr_taxjar_should_refund_txn', $should_send, $event)) {
             // For available and required parameters, see https://developers.taxjar.com/api/reference/#post-create-a-refund-transaction.
             $args = MeprHooks::apply_filters('mepr_taxjar_api_create_refund_args', [
                 'to_country'               => sanitize_text_field(get_user_meta($user->ID, 'mepr-address-country', true)),
@@ -330,16 +330,16 @@ class MeprTaxJarIntegration
             $response = self::request('transactions/refunds', $args);
 
             if (! is_wp_error($response)) {
-                  $response_body = json_decode(wp_remote_retrieve_body($response), true);
+                $response_body = json_decode(wp_remote_retrieve_body($response), true);
 
-                  // Check for bad requests.
+                // Check for bad requests.
                 if (isset($response_body['error'])) {
-                    MeprUtils::debug_log(print_r($response_body, true));
+                    MeprUtils::debug_log('', [$response_body]);
                     return;
                 }
 
-                  // $response_body['refund]
-                  // Refund created
+                // $response_body['refund]
+                // Refund created
             }
         }
     }

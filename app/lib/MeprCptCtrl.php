@@ -63,35 +63,35 @@ abstract class MeprCptCtrl extends MeprBaseCtrl
         // Only do this for our own CPT's.
         switch ($post->post_type) {
             case 'memberpresscoupon':
-                $use_transient_cache = MeprHooks::apply_filters('mepr-cpt-all-use-transient-cache', true, $post->post_type, 'MeprCoupon');
+                $use_transient_cache = MeprHooks::apply_filters('mepr_cpt_all_use_transient_cache', true, $post->post_type, 'MeprCoupon');
                 if (!$use_transient_cache) {
                     return;
                 }
                 MeprCptModel::all('MeprCoupon', true);
                 break;
             case 'memberpressgroup':
-                $use_transient_cache = MeprHooks::apply_filters('mepr-cpt-all-use-transient-cache', true, $post->post_type, 'MeprGroup');
+                $use_transient_cache = MeprHooks::apply_filters('mepr_cpt_all_use_transient_cache', true, $post->post_type, 'MeprGroup');
                 if (!$use_transient_cache) {
                     return;
                 }
                 MeprCptModel::all('MeprGroup', true);
                 break;
             case 'memberpressproduct':
-                $use_transient_cache = MeprHooks::apply_filters('mepr-cpt-all-use-transient-cache', true, $post->post_type, 'MeprProduct');
+                $use_transient_cache = MeprHooks::apply_filters('mepr_cpt_all_use_transient_cache', true, $post->post_type, 'MeprProduct');
                 if (!$use_transient_cache) {
                     return;
                 }
                 MeprCptModel::all('MeprProduct', true);
                 break;
             case 'mp-reminder':
-                $use_transient_cache = MeprHooks::apply_filters('mepr-cpt-all-use-transient-cache', true, $post->post_type, 'MeprReminder');
+                $use_transient_cache = MeprHooks::apply_filters('mepr_cpt_all_use_transient_cache', true, $post->post_type, 'MeprReminder');
                 if (!$use_transient_cache) {
                     return;
                 }
                 MeprCptModel::all('MeprReminder', true);
                 break;
             case 'memberpressrule':
-                $use_transient_cache = MeprHooks::apply_filters('mepr-cpt-all-use-transient-cache', true, $post->post_type, 'MeprRule');
+                $use_transient_cache = MeprHooks::apply_filters('mepr_cpt_all_use_transient_cache', true, $post->post_type, 'MeprRule');
                 if (!$use_transient_cache) {
                     return;
                 }

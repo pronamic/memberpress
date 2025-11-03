@@ -15,8 +15,8 @@ abstract class MeprBaseRealAjaxGateway extends MeprBaseRealGateway
         MeprProduct $prd,
         MeprUser $usr,
         MeprTransaction $txn,
-        MeprSubscription $sub = null,
-        MeprCoupon $cpn = null
+        ?MeprSubscription $sub = null,
+        ?MeprCoupon $cpn = null
     );
 
     /**
@@ -40,7 +40,7 @@ abstract class MeprBaseRealAjaxGateway extends MeprBaseRealGateway
      * @return array{0: MeprTransaction[], 1: float, 2: boolean} The array of order bump transactions, the amount and
      *         whether any of the order bumps is a recurring subscription.
      */
-    protected function process_order_bumps(MeprProduct $prd, MeprUser $usr, MeprTransaction $txn, MeprSubscription $sub = null): array
+    protected function process_order_bumps(MeprProduct $prd, MeprUser $usr, MeprTransaction $txn, ?MeprSubscription $sub = null): array
     {
         try {
             $product_ids      = isset($_POST['mepr_order_bumps']) && is_array($_POST['mepr_order_bumps']) ? array_map('intval', $_POST['mepr_order_bumps']) : [];

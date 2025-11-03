@@ -28,6 +28,6 @@
         ?>
   </p>
   <p>
-    <a href="https://memberpress.com/plans/pricing/?utm_source=mp-plugin&utm_medium=in-plugin-link&utm_campaign=order-bumps&utm_content=membership-options" class="mepr-order-bumps-upgrade"><?php esc_html_e('Upgrade Now', 'memberpress'); ?><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
+    <a href="<?php echo esc_url(MeprUtils::get_link_url('pricing') . '?utm_source=mp-plugin&utm_medium=in-plugin-link&utm_campaign=order-bumps&utm_content=membership-options'); ?>" class="mepr-order-bumps-upgrade"><?php esc_html_e('Upgrade Now', 'memberpress'); ?><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
   </p>
 </div>

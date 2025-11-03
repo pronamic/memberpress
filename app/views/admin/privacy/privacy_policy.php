@@ -13,9 +13,9 @@ if (!defined('ABSPATH')) {
 
 <h2>Who we are</h2>
 <p>
-  Our website address: <a href="https://memberpress.com/" target="_blank">MemberPress</a><br />
-  Contact us at: <a href="https://memberpress.com/support/" target="_blank">https://memberpress.com/support/</a><br />
-  Our Privacy Policy: <a href="https://docs.memberpress.com/article/235-what-personal-data-does-memberpress-collect" target="_blank">Privacy Policy</a><br />
+  Our website address: <a href="<?php echo esc_url(MeprUtils::get_link_url('home')) ?>" target="_blank">MemberPress</a><br />
+  Contact us at: <a href="<?php echo esc_url(MeprUtils::get_link_url('support')); ?>" target="_blank">Support</a><br />
+  Our Privacy Policy: <a href="<?php echo esc_url(MeprUtils::get_link_url('docs_personal_data')); ?>" target="_blank">Privacy Policy</a><br />
 </p>
 
 <h2>What personal data we collect and why we collect it</h2>

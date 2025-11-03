@@ -35,7 +35,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
         $result = $model->store();
 
         if ($result instanceof WP_Error || empty($result)) {
-            throw new Exception($result instanceof WP_Error ? $result->get_error_message() : 'model ID was empty');
+            throw new Exception($result instanceof WP_Error ? esc_html($result->get_error_message()) : esc_html__('model ID was empty', 'memberpress'));
         }
 
         return $model;
@@ -47,7 +47,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
     public static function before_start()
     {
         if (function_exists('set_time_limit')) {
-            set_time_limit(0);
+            set_time_limit(0); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
         }
 
         wp_defer_term_counting(true);
@@ -79,7 +79,7 @@ abstract class MeprMigrator implements MeprMigratorInterface
         if ($wp_object_cache instanceof \WP_Object_Cache) {
             if (function_exists('wp_cache_flush_runtime')) {
                 wp_cache_flush_runtime();
-            } elseif (!wp_using_ext_object_cache() || apply_filters('mepr_migrate_flush_cache', false)) {
+            } elseif (!wp_using_ext_object_cache() || MeprHooks::apply_filters('mepr_migrate_flush_cache', false)) {
                 wp_cache_flush();
             }
         }

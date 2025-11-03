@@ -24,7 +24,7 @@ class MeprLoginWidget extends WP_Widget
      */
     public static function register_widget()
     {
-        if (MeprHooks::apply_filters('mepr-enable-legacy-widgets', !current_theme_supports('widgets-block-editor'))) {
+        if (MeprHooks::apply_filters('mepr_enable_legacy_widgets', !current_theme_supports('widgets-block-editor'))) {
             $mepr_options = MeprOptions::fetch();
 
             if (
@@ -48,12 +48,12 @@ class MeprLoginWidget extends WP_Widget
     public function widget($args, $instance)
     {
         extract($args);
-        $title    = MeprHooks::apply_filters('mepr-login-title', $instance['title']);
+        $title    = MeprHooks::apply_filters('mepr_login_title', $instance['title']);
         $redirect = (isset($instance['redirect']) && $instance['redirect']);
 
-        echo $before_widget;
+        echo $before_widget; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         if (!empty($title)) {
-            echo $before_title . $title . $after_title;
+            echo $before_title . esc_html($title) . $after_title; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
 
         try {
@@ -68,7 +68,7 @@ class MeprLoginWidget extends WP_Widget
             // Nothing for now.
         }
 
-        echo $after_widget;
+        echo $after_widget; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     /**
@@ -84,7 +84,7 @@ class MeprLoginWidget extends WP_Widget
     public function update($new_instance, $old_instance)
     {
         $instance             = [];
-        $instance['title']    = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : __('Login', 'memberpress');
+        $instance['title']    = (!empty($new_instance['title'])) ? wp_strip_all_tags($new_instance['title']) : __('Login', 'memberpress');
         $instance['redirect'] = isset($new_instance['redirect']);
 
         return $instance;
@@ -104,12 +104,12 @@ class MeprLoginWidget extends WP_Widget
 
         ?>
     <p>
-      <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:', 'memberpress'); ?></label>
-      <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" />
+      <label for="<?php echo esc_attr($this->get_field_id('title')); ?>"><?php esc_html_e('Title:', 'memberpress'); ?></label>
+      <input class="widefat" id="<?php echo esc_attr($this->get_field_id('title')); ?>" name="<?php echo esc_attr($this->get_field_name('title')); ?>" type="text" value="<?php echo esc_attr($title); ?>" />
     </p>
     <p>
-      <input type="checkbox" id="<?php echo $this->get_field_id('redirect'); ?>" name="<?php echo $this->get_field_name('redirect'); ?>" <?php checked($redirect); ?> />
-      <label for="<?php echo $this->get_field_id('redirect'); ?>"><?php _e('Use Login Redirect URL?', 'memberpress'); ?></label>
+      <input type="checkbox" id="<?php echo esc_attr($this->get_field_id('redirect')); ?>" name="<?php echo esc_attr($this->get_field_name('redirect')); ?>" <?php checked($redirect); ?> />
+      <label for="<?php echo esc_attr($this->get_field_id('redirect')); ?>"><?php esc_html_e('Use Login Redirect URL?', 'memberpress'); ?></label>
     </p>
         <?php
     }

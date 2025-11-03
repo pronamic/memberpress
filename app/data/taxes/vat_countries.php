@@ -5,7 +5,7 @@
  * Reduced Rates are currently a "best guess" based on information in above link.
  */
 
-return MeprHooks::apply_filters('mepr-vat-countries', [
+return MeprHooks::apply_filters('mepr_vat_countries', [
     'AT' => [
         'name'         => __('Austria', 'memberpress'),
         'rate'         => 20,
@@ -49,7 +49,7 @@ return MeprHooks::apply_filters('mepr-vat-countries', [
     ],
     'EE' => [
         'name'         => __('Estonia', 'memberpress'),
-        'rate'         => 22,
+        'rate'         => 24,
         'reduced_rate' => 9,
         'fmt'          => '(EE)?[0-9]{9}',
     ],

@@ -110,7 +110,7 @@ abstract class MeprBaseJob
         $object_vars = array_keys(get_object_vars($this));
         $rec_array   = (array)$this->rec;
 
-        if (in_array($name, $object_vars)) {
+        if (in_array($name, $object_vars, true)) {
             $value = $this->$name;
         } elseif (array_key_exists($name, $rec_array)) {
             if (is_array($this->rec)) {
@@ -120,7 +120,7 @@ abstract class MeprBaseJob
             }
         }
 
-        return MeprHooks::apply_filters('mepr-get-job-attribute-' . $name, $value, $this);
+        return MeprHooks::apply_filters('mepr_get_job_attribute_' . $name, $value, $this);
     }
 
     /**
@@ -132,12 +132,12 @@ abstract class MeprBaseJob
      */
     public function __set($name, $value)
     {
-        $value = MeprHooks::apply_filters('mepr-set-job-attribute-' . $name, $value, $this);
+        $value = MeprHooks::apply_filters('mepr_set_job_attribute_' . $name, $value, $this);
 
         $object_vars = array_keys(get_object_vars($this));
         $rec_array   = (array)$this->rec;
 
-        if (in_array($name, $object_vars)) {
+        if (in_array($name, $object_vars, true)) {
             $this->$name = $value;
         } else {
             if (is_array($this->rec)) {

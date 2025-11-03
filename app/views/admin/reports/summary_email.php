@@ -12,7 +12,7 @@
       <tr>
         <td align="center" valign="top">
           <table border="0" cellspacing="0" cellpadding="0" width="600">
-            <?php do_action('mepr-weekly-summary-email-inner-table-top-tr'); ?>
+            <?php MeprHooks::do_action('mepr_weekly_summary_email_inner_table_top_tr'); ?>
             <tr>
               <td valign="top">
                 <div style="text-align:center;padding:60px 0;">
@@ -40,22 +40,22 @@
                       <td valign="top" align="center" width="33.33333333%">
                         <div style="border:1px solid #ccc;text-align:center;margin:0 5px;padding:10px;">
                           <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;"><?php esc_html_e('Amount Collected', 'memberpress'); ?></div>
-                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo MeprAppHelper::format_currency(($last_week['revenue'] + $last_week['refunds']), true, false); ?></div>
-                          <?php echo MeprSummaryEmailCtrl::get_change_percent(($last_week['revenue'] + $last_week['refunds']), ($previous_week['revenue'] + $previous_week['refunds'])); ?>
+                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo esc_html(MeprAppHelper::format_currency(($last_week['revenue'] + $last_week['refunds']), true, false)); ?></div>
+                          <?php echo MeprSummaryEmailCtrl::get_change_percent(($last_week['revenue'] + $last_week['refunds']), ($previous_week['revenue'] + $previous_week['refunds'])); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                       </td>
                       <td valign="top" align="center" width="33.33333333%">
                         <div style="border:1px solid #ccc;text-align:center;margin:0 5px;padding:10px;">
                           <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;"><?php esc_html_e('Amount Refunded', 'memberpress'); ?></div>
-                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo MeprAppHelper::format_currency($last_week['refunds'], true, false); ?></div>
-                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['refunds'], $previous_week['refunds'], false); ?>
+                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo esc_html(MeprAppHelper::format_currency($last_week['refunds'], true, false)); ?></div>
+                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['refunds'], $previous_week['refunds'], false); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                       </td>
                       <td valign="top" align="center" width="33.33333333%">
                         <div style="border:1px solid #ccc;text-align:center;margin:0 5px;padding:10px;">
                           <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;"><?php esc_html_e('Total Income', 'memberpress'); ?></div>
-                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo MeprAppHelper::format_currency($last_week['revenue'], true, false); ?></div>
-                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['revenue'], $previous_week['revenue']); ?>
+                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo esc_html(MeprAppHelper::format_currency($last_week['revenue'], true, false)); ?></div>
+                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['revenue'], $previous_week['revenue']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                       </td>
                     </tr>
@@ -66,15 +66,15 @@
                       <td valign="top" align="center" width="33.33333333%">
                         <div style="border:1px solid #ccc;text-align:center;margin:0 5px;padding:10px;">
                           <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;"><?php esc_html_e('Recurring Income', 'memberpress'); ?></div>
-                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo MeprAppHelper::format_currency($last_week['recurring'], true, false); ?></div>
-                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['recurring'], $previous_week['recurring']); ?>
+                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo esc_html(MeprAppHelper::format_currency($last_week['recurring'], true, false)); ?></div>
+                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['recurring'], $previous_week['recurring']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                       </td>
                       <td valign="top" align="center" width="33.33333333%">
                         <div style="border:1px solid #ccc;text-align:center;margin:0 5px;padding:10px;">
                           <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;"><?php esc_html_e('New Income', 'memberpress'); ?></div>
-                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo MeprAppHelper::format_currency($last_week['new'], true, false); ?></div>
-                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['new'], $previous_week['new']); ?>
+                          <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo esc_html(MeprAppHelper::format_currency($last_week['new'], true, false)); ?></div>
+                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['new'], $previous_week['new']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                       </td>
                       <td width="16.66666666%">&nbsp;</td>
@@ -91,21 +91,21 @@
                         <div style="border:1px solid #ccc;text-align:center;margin:0 5px;padding:10px;">
                           <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;"><?php esc_html_e('Refunded Transactions', 'memberpress'); ?></div>
                           <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo esc_html($last_week['refunded']); ?></div>
-                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['refunded'], $previous_week['refunded'], false); ?>
+                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['refunded'], $previous_week['refunded'], false); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                       </td>
                       <td valign="top" align="center" width="33.33333333%">
                         <div style="border:1px solid #ccc;text-align:center;margin:0 5px;padding:10px;">
                           <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;"><?php esc_html_e('Pending Transactions', 'memberpress'); ?></div>
                           <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo esc_html($last_week['pending']); ?></div>
-                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['pending'], $previous_week['pending'], false); ?>
+                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['pending'], $previous_week['pending'], false); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                       </td>
                       <td valign="top" align="center" width="33.33333333%">
                         <div style="border:1px solid #ccc;text-align:center;margin:0 5px;padding:10px;">
                           <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;"><?php esc_html_e('Failed Transactions', 'memberpress'); ?></div>
                           <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo esc_html($last_week['failed']); ?></div>
-                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['failed'], $previous_week['failed'], false); ?>
+                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['failed'], $previous_week['failed'], false); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                       </td>
                     </tr>
@@ -117,30 +117,18 @@
                         <div style="border:1px solid #ccc;text-align:center;margin:0 5px;padding:10px;">
                           <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;"><?php esc_html_e('Completed Transactions', 'memberpress'); ?></div>
                           <div style="font-family:Helvetica,Arial,sans-serif;font-weight:bold;font-size:21px;padding:10px 0;"><?php echo esc_html($last_week['completed']); ?></div>
-                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['completed'], $previous_week['completed']); ?>
+                          <?php echo MeprSummaryEmailCtrl::get_change_percent($last_week['completed'], $previous_week['completed']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                       </td>
                       <td valign="top" align="center" width="33.33333333%">&nbsp;</td>
                     </tr>
                   </table>
                 </div>
-                <?php if ($ad) : ?>
-                  <div style="padding:0 0 30px 0;">
-                    <table border="0" cellspacing="0" cellpadding="0" width="100%">
-                      <tr>
-                        <td valign="top" align="center">
-                          <?php echo $ad; ?>
-                        </td>
-                      </tr>
-                    </table>
-                  </div>
-                <?php endif; ?>
                 <div style="padding:0 0 30px 0;">
                   <p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;">
                     <?php
-                      // Translators: %1$s: open link tag, %2$s: close link tag.
                       printf(
-                        // Translators: %1$s: open link tag, %2$s: close link tag.
+                          // Translators: %1$s: open link tag, %2$s: close link tag.
                           esc_html__('P.S. Want to unsubscribe from these emails? %1$sClick here to access the MemberPress settings%2$s where you can disable the Weekly Summary Email.', 'memberpress'),
                           sprintf('<a href="%s" target="_blank">', esc_url(admin_url('admin.php?page=memberpress-options#mepr-general'))),
                           '</a>'

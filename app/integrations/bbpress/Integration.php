@@ -24,12 +24,12 @@ class MeprBbPressIntegration
         add_action('dynamic_sidebar_after', 'MeprBbPressIntegration::out_sidebar', 11, 2);
 
         // We're only allowing blocking by forum.
-        add_filter('mepr-rules-cpts', 'MeprBbPressIntegration::filter_rules_cpts');
+        add_filter('mepr_rules_cpts', 'MeprBbPressIntegration::filter_rules_cpts');
 
         add_action('mepr_account_nav', 'MeprBbPressIntegration::mepr_account_page_links');
 
         // Don't override bbPress the_content - this is needed when using the forum shortcodes.
-        add_filter('mepr-pre-run-rule-content', 'MeprBbPressIntegration::dont_block_the_content', 11, 3);
+        add_filter('mepr_pre_run_rule_content', 'MeprBbPressIntegration::dont_block_the_content', 11, 3);
         add_filter('is_bbpress', 'MeprBbPressIntegration::dont_redirect_on_shortcode');
 
         // Hide the content of replies.
@@ -59,7 +59,7 @@ class MeprBbPressIntegration
             return $content;
         }
 
-        return apply_filters('mepr-bbpress-unauthorized-message', MeprRulesCtrl::unauthorized_message($post));
+        return MeprHooks::apply_filters('mepr_bbpress_unauthorized_message', MeprRulesCtrl::unauthorized_message($post));
     }
 
     /**
@@ -113,7 +113,7 @@ class MeprBbPressIntegration
 
         ?>
       <span class="mepr-nav-item mepr_bbpress_subscriptions">
-        <a href="<?php echo bbp_user_profile_url(bbp_get_current_user_id()); ?>" id="mepr-account-bbpress-subscriptions"><?php _e('Forum Profile', 'memberpress'); ?></a>
+        <a href="<?php echo esc_url(bbp_user_profile_url(bbp_get_current_user_id())); ?>" id="mepr-account-bbpress-subscriptions"><?php esc_html_e('Forum Profile', 'memberpress'); ?></a>
       </span>
         <?php
     }
@@ -128,8 +128,8 @@ class MeprBbPressIntegration
     {
         global $wpdb;
 
-        $all_forums = $wpdb->get_results("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'forum'");
-        $call       = function_exists('debug_backtrace') ? debug_backtrace() : [];
+        $all_forums = $wpdb->get_results("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'forum'"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $call       = function_exists('debug_backtrace') ? debug_backtrace() : []; // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
         $to_hide    = [];
 
         if (!empty($all_forums)) {
@@ -145,8 +145,8 @@ class MeprBbPressIntegration
         foreach ($call as $c) {
             // We only want to hide in indexes or searches for now.
             if (
-                $c['function'] == 'display_topic_index' ||
-                $c['function'] == 'display_search'
+                $c['function'] === 'display_topic_index' ||
+                $c['function'] === 'display_search'
             ) {
                 $ids = array_merge($ids, $to_hide);
             }
@@ -192,7 +192,8 @@ class MeprBbPressIntegration
         if (isset($_REQUEST['mepr_is_bbp_shortcode'])) {
             return $status;
         }
-        if (isset($_REQUEST['mepr_bbpress_in_sidebar']) && $_REQUEST['mepr_bbpress_in_sidebar']) {
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        if (isset($_REQUEST['mepr_bbpress_in_sidebar']) && wp_unslash($_REQUEST['mepr_bbpress_in_sidebar'])) {
             return $status;
         }
 
@@ -204,7 +205,7 @@ class MeprBbPressIntegration
 
         $mepr_options = MeprOptions::fetch();
         $forum        = get_post($forum_id);
-        $uri          = urlencode(esc_url($_SERVER['REQUEST_URI']));
+        $uri          = esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
 
         $actual_forum_id = bbp_get_forum_id();
         $forum           = get_post($actual_forum_id);
@@ -227,9 +228,9 @@ class MeprBbPressIntegration
             if (!headers_sent()) {
                 if ($mepr_options->redirect_on_unauthorized) {
                     $delim       = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
-                    $redirect_to = "{$mepr_options->unauthorized_redirect_url}{$delim}mepr-unauth-page={$forum->ID}&redirect_to={$uri}";
+                    $redirect_to = "{$mepr_options->unauthorized_redirect_url}{$delim}mepr-unauth-page={$forum->ID}&redirect_to=" . urlencode($uri);
                 } else {
-                    $redirect_to = $mepr_options->login_page_url("action=mepr_unauthorized&mepr-unauth-page={$forum->ID}&redirect_to=" . $uri);
+                    $redirect_to = $mepr_options->login_page_url("action=mepr_unauthorized&mepr-unauth-page={$forum->ID}&redirect_to=" . urlencode($uri));
                 }
 
                 $redirect_to = (MeprUtils::is_ssl()) ? str_replace('http:', 'https:', $redirect_to) : $redirect_to;

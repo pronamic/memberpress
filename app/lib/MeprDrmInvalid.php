@@ -40,7 +40,7 @@ class MeprDrmInvalid extends MeprBaseDrm
 
         // DRM status detected.
         if ('' !== $this->drm_status) {
-            do_action('mepr_drm_invalid_license_event', $event, $days, $this->drm_status);
+            MeprHooks::do_action('mepr_drm_invalid_license_event', $event, $days, $this->drm_status);
         }
     }
 
@@ -55,7 +55,7 @@ class MeprDrmInvalid extends MeprBaseDrm
 
         $drm_status = MeprDrmHelper::get_status();
 
-        if ($drm_status == '') {
+        if ($drm_status === '') {
             return $tests; // Bail.
         }
 

@@ -93,7 +93,7 @@ abstract class MeprBaseEmail
      */
     public function enabled()
     {
-        return ($this->get_stored_field('enabled') != false);
+        return (bool) $this->get_stored_field('enabled');
     }
 
     /**
@@ -103,7 +103,7 @@ abstract class MeprBaseEmail
      */
     public function use_template()
     {
-        return ($this->get_stored_field('use_template') != false);
+        return (bool) $this->get_stored_field('use_template');
     }
 
     /**
@@ -197,11 +197,11 @@ abstract class MeprBaseEmail
             $use_template = $this->use_template();
         }
 
-        if ($type == 'html' && $use_template) {
+        if ($type === 'html' && $use_template) {
             return MeprView::get_string('/emails/template', get_defined_vars());
         }
 
-        if ($type == 'html') {
+        if ($type === 'html') {
             return $body;
         }
 
@@ -232,12 +232,12 @@ abstract class MeprBaseEmail
 
         if (!$bkg_enabled || ( defined('DOING_CRON') && DOING_CRON )) {
             if (!isset($this->to) or empty($this->to)) {
-                throw new MeprEmailToException(__('No email recipient has been set.', 'memberpress'));
+                throw new MeprEmailToException(esc_html__('No email recipient has been set.', 'memberpress'));
             }
 
             add_action('phpmailer_init', [$this, 'mailer_init']);
 
-            if ($content_type == 'html') {
+            if ($content_type === 'html') {
                 add_filter('wp_mail_content_type', [$this,'set_html_content_type']);
             }
 
@@ -249,12 +249,12 @@ abstract class MeprBaseEmail
                 $attachments
             );
 
-            if ($content_type == 'html') {
+            if ($content_type === 'html') {
                   remove_filter('wp_mail_content_type', [$this,'set_html_content_type']);
             }
 
             remove_action('phpmailer_init', [$this, 'mailer_init']);
-            do_action('mepr_email_sent', $this, $values, $attachments);
+            MeprHooks::do_action('mepr_email_sent', $this, $values, $attachments);
         } else {
             $job               = new MeprEmailJob();
             $job->values       = $values;
@@ -298,12 +298,12 @@ abstract class MeprBaseEmail
         $phpmailer->AltBody = MeprUtils::convert_to_plain_text($phpmailer->AltBody);
 
         // Replace variables in email.
-        $phpmailer->AltBody = MeprHooks::apply_filters('mepr-email-plaintext-body', $phpmailer->AltBody);
+        $phpmailer->AltBody = MeprHooks::apply_filters('mepr_email_plaintext_body', $phpmailer->AltBody);
 
-        if ($phpmailer->ContentType == 'text/html') {
+        if ($phpmailer->ContentType === 'text/html') {
             // HTML
             // Replace variables in email.
-            $phpmailer->Body = MeprHooks::apply_filters('mepr-email-html-body', $phpmailer->Body);
+            $phpmailer->Body = MeprHooks::apply_filters('mepr_email_html_body', $phpmailer->Body);
         }
     }
 
@@ -390,13 +390,11 @@ abstract class MeprBaseEmail
      */
     private function footer()
     {
-        $links     = $this->footer_links();
-        $links_str = join('&#124;', $links);
         ob_start();
         ?>
-      <div id="footer" style="width: 680px; padding: 0px; margin: 0 auto; text-align: center;">
-        <?php echo $links_str; ?>
-      </div>
+        <div id="footer" style="width: 680px; padding: 0; margin: 0 auto; text-align: center;">
+            <?php echo join('&#124;', $this->footer_links()); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+        </div>
         <?php
 
         return ob_get_clean();
@@ -415,7 +413,7 @@ abstract class MeprBaseEmail
         if ($mepr_options->include_email_privacy_link) {
             $privacy_policy_page_link = MeprAppHelper::privacy_policy_page_link();
             if ($privacy_policy_page_link !== false) {
-                $links[] = '<a href="' . $privacy_policy_page_link . '">' . __('Privacy Policy', 'memberpress') . '</a>';
+                $links[] = '<a href="' . esc_url($privacy_policy_page_link) . '">' . esc_html__('Privacy Policy', 'memberpress') . '</a>';
             }
         }
 

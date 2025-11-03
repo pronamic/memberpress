@@ -34,7 +34,7 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
     {
         $schedules['mepr_summary_email_interval'] = [
             'interval' => 604800, // Weekly.
-            'display'  => __('MemberPress Summary Email', 'memberpress'),
+            'display'  => 'MemberPress Summary Email',
         ];
 
         return $schedules;
@@ -118,7 +118,6 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
 
             $site = MeprUtils::blogname();
             $site = empty($site) ? get_bloginfo('url') : $site;
-            $ad   = $this->get_ad();
 
             $message = MeprView::get_string('/admin/reports/summary_email', get_defined_vars());
 
@@ -133,33 +132,6 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
     }
 
     /**
-     * Get a random ad or educational tip to display in the email
-     *
-     * @return string
-     */
-    private function get_ad()
-    {
-        $url = add_query_arg([
-            'ad-group' => apply_filters('mepr_summary_email_ad_group', 3),
-            'orderby'  => 'rand',
-        ], 'https://sg-assets.caseproof.com/wp-json/wp/v2/ads');
-
-        $response = wp_remote_get($url);
-        $code     = wp_remote_retrieve_response_code($response);
-        $body     = wp_remote_retrieve_body($response);
-
-        if ($code == 200 && $body) {
-            $ads = json_decode($body, true);
-
-            if (is_array($ads) && isset($ads[0]['rendered_ad'])) {
-                return $ads[0]['rendered_ad'];
-            }
-        }
-
-        return '';
-    }
-
-    /**
      * Get the HTML representing the percentage difference between two values
      *
      * @param  integer|float $new_value             The new value.
@@ -169,17 +141,21 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
      */
     public static function get_change_percent($new_value, $previous_value, $positive_is_favorable = true)
     {
-        if ($new_value == $previous_value) {
+        // Convert to float to handle both int and float inputs consistently.
+        $new_value      = (float) $new_value;
+        $previous_value = (float) $previous_value;
+
+        if ($new_value === $previous_value) {
             $change = 0;
-        } elseif ($new_value == 0) {
+        } elseif ($new_value === 0.0) {
             $change = -100;
-        } elseif ($previous_value == 0) {
+        } elseif ($previous_value === 0.0) {
             $change = 100;
         } else {
             $change = (($new_value - $previous_value) / $previous_value) * 100;
         }
 
-        if ($change == 0) {
+        if ($change === 0.0) {
             $color = '#757575';
             $image = '';
         } elseif ($change < 0 && $positive_is_favorable) {
@@ -200,7 +176,7 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
             '<div style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:%s;">%s%s</div>',
             $color,
             $image ? '<img src="' . esc_url(MEPR_IMAGES_URL . $image) . '" style="vertical-align:baseline;margin-right:1px;">' : '',
-            $change == 0 ? '&nbsp;' : '<span>' . number_format_i18n(abs($change), 0) . '%</span>'
+            $change === 0.0 ? '&nbsp;' : '<span>' . number_format_i18n(abs($change), 0) . '%</span>'
         );
 
         return $output;

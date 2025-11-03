@@ -4,12 +4,12 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div id="taxes" class="mepr-options-hidden-pane">
-  <h3><?php _e('Taxes', 'memberpress'); ?></h3>
+  <h3><?php esc_html_e('Taxes', 'memberpress'); ?></h3>
   <table class="form-table">
     <tbody>
       <tr valign="top">
         <th scope="row">
-          <label for="mepr_calculate_taxes"><?php _e('Enable Tax Calculations', 'memberpress'); ?></label>
+          <label for="mepr_calculate_taxes"><?php esc_html_e('Enable Tax Calculations', 'memberpress'); ?></label>
             <?php
             MeprAppHelper::info_tooltip(
                 'mepr-options-calculate-taxes',
@@ -26,12 +26,12 @@ if (!defined('ABSPATH')) {
   </table>
   <div id="mepr_tax_options_box" class="mepr-sub-box-white mepr_tax_options_box">
     <div class="mepr-arrow mepr-white mepr-up mepr-sub-box-arrow"> </div>
-    <h3 class="mepr-page-heading"><?php _e('Tax Options', 'memberpress'); ?></h3>
+    <h3 class="mepr-page-heading"><?php esc_html_e('Tax Options', 'memberpress'); ?></h3>
     <table class="form-table">
       <tbody>
         <tr valign="top">
           <th scope="row">
-            <label for="<?php echo $mepr_options->attr_slug('tax_calc_type'); ?>"><?php _e('Prices Entered With Tax', 'memberpress'); ?></label>
+            <label for="<?php echo esc_attr($mepr_options->attr_slug('tax_calc_type')); ?>"><?php esc_html_e('Prices Entered With Tax', 'memberpress'); ?></label>
             <?php
             MeprAppHelper::info_tooltip(
                 'mepr-tax-calc-type',
@@ -41,15 +41,15 @@ if (!defined('ABSPATH')) {
             ?>
           </th>
           <td>
-            <select name="<?php echo $mepr_options->attr_slug('tax_calc_type'); ?>">
-              <option value="exclusive" <?php selected('exclusive', $mepr_options->attr('tax_calc_type')); ?>><?php _e('Prices entered are exclusive of tax', 'memberpress'); ?></option>
-              <option value="inclusive" <?php selected('inclusive', $mepr_options->attr('tax_calc_type')); ?>><?php _e('Prices entered are inclusive of tax', 'memberpress'); ?></option>
+            <select name="<?php echo esc_attr($mepr_options->attr_slug('tax_calc_type')); ?>">
+              <option value="exclusive" <?php selected('exclusive', $mepr_options->attr('tax_calc_type')); ?>><?php esc_html_e('Prices entered are exclusive of tax', 'memberpress'); ?></option>
+              <option value="inclusive" <?php selected('inclusive', $mepr_options->attr('tax_calc_type')); ?>><?php esc_html_e('Prices entered are inclusive of tax', 'memberpress'); ?></option>
             </select>
           </td>
         </tr>
         <tr valign="top" id="<?php echo esc_attr($mepr_options->attr_slug('tax_calc_location')); ?>_section">
           <th scope="row">
-            <label for="<?php echo $mepr_options->attr_slug('tax_calc_location'); ?>"><?php _e('Calculate Tax Based On', 'memberpress'); ?></label>
+            <label for="<?php echo esc_attr($mepr_options->attr_slug('tax_calc_location')); ?>"><?php esc_html_e('Calculate Tax Based On', 'memberpress'); ?></label>
             <?php
             MeprAppHelper::info_tooltip(
                 'mepr-tax-calc-location',
@@ -59,15 +59,15 @@ if (!defined('ABSPATH')) {
             ?>
           </th>
           <td>
-            <select name="<?php echo $mepr_options->attr_slug('tax_calc_location'); ?>">
-              <option value="customer" <?php selected('customer', $mepr_options->attr('tax_calc_location')); ?>><?php _e('Customer Address', 'memberpress'); ?></option>
-              <option value="merchant" <?php selected('merchant', $mepr_options->attr('tax_calc_location')); ?>><?php _e('Merchant Address', 'memberpress'); ?></option>
+            <select name="<?php echo esc_attr($mepr_options->attr_slug('tax_calc_location')); ?>">
+              <option value="customer" <?php selected('customer', $mepr_options->attr('tax_calc_location')); ?>><?php esc_html_e('Customer Address', 'memberpress'); ?></option>
+              <option value="merchant" <?php selected('merchant', $mepr_options->attr('tax_calc_location')); ?>><?php esc_html_e('Merchant Address', 'memberpress'); ?></option>
             </select>
           </td>
         </tr>
         <tr valign="top" id="<?php echo esc_attr($mepr_options->attr_slug('tax_default_address')); ?>_section">
           <th scope="row">
-            <label for="<?php echo $mepr_options->attr_slug('tax_default_address'); ?>"><?php _e('Default Address', 'memberpress'); ?></label>
+            <label for="<?php echo esc_attr($mepr_options->attr_slug('tax_default_address')); ?>"><?php esc_html_e('Default Address', 'memberpress'); ?></label>
             <?php
             MeprAppHelper::info_tooltip(
                 'mepr-tax-default-address',
@@ -77,9 +77,9 @@ if (!defined('ABSPATH')) {
             ?>
           </th>
           <td>
-            <select name="<?php echo $mepr_options->attr_slug('tax_default_address'); ?>">
-              <option value="none" <?php selected('none', $mepr_options->attr('tax_default_address')); ?>><?php _e('No Address', 'memberpress'); ?></option>
-              <option value="merchant" <?php selected('merchant', $mepr_options->attr('tax_default_address')); ?>><?php _e('Merchant Address', 'memberpress'); ?></option>
+            <select name="<?php echo esc_attr($mepr_options->attr_slug('tax_default_address')); ?>">
+              <option value="none" <?php selected('none', $mepr_options->attr('tax_default_address')); ?>><?php esc_html_e('No Address', 'memberpress'); ?></option>
+              <option value="merchant" <?php selected('merchant', $mepr_options->attr('tax_default_address')); ?>><?php esc_html_e('Merchant Address', 'memberpress'); ?></option>
             </select>
           </td>
         </tr>
@@ -87,7 +87,7 @@ if (!defined('ABSPATH')) {
     </table>
     <div>&nbsp;</div>
 
-    <h3 class="mepr-page-heading"><?php _e('Tax Rates', 'memberpress'); ?></h3>
+    <h3 class="mepr-page-heading"><?php esc_html_e('Tax Rates', 'memberpress'); ?></h3>
     <table class="form-table">
       <tbody>
         <?php MeprHooks::do_action('mepr_tax_rate_options'); ?>
@@ -95,33 +95,33 @@ if (!defined('ABSPATH')) {
     </table>
     <div>&nbsp;</div>
 
-    <h3 class="mepr-page-heading"><?php _e('Custom Tax Rates', 'memberpress'); ?></h3>
+    <h3 class="mepr-page-heading"><?php esc_html_e('Custom Tax Rates', 'memberpress'); ?></h3>
     <?php if (!empty($tax_rates)) : ?>
       <div id="mepr_tax_rates_box">
         <table id="mepr_custom_tax_rates" class="wp-list-table widefat">
           <thead>
             <tr>
-              <th scope="col" class="manage-column"><?php _e('Country', 'memberpress'); ?></th>
-              <th scope="col" class="manage-column"><?php _e('State', 'memberpress'); ?></th>
-              <th scope="col" class="manage-column"><?php _e('Postcode', 'memberpress'); ?></th>
-              <th scope="col" class="manage-column"><?php _e('City', 'memberpress'); ?></th>
-              <th scope="col" class="manage-column"><?php _e('Rate %', 'memberpress'); ?></th>
-              <th scope="col" class="manage-column"><?php _e('Desc', 'memberpress'); ?></th>
-              <th scope="col" class="manage-column"><?php _e('Priority', 'memberpress'); ?></th>
+              <th scope="col" class="manage-column"><?php esc_html_e('Country', 'memberpress'); ?></th>
+              <th scope="col" class="manage-column"><?php esc_html_e('State', 'memberpress'); ?></th>
+              <th scope="col" class="manage-column"><?php esc_html_e('Postcode', 'memberpress'); ?></th>
+              <th scope="col" class="manage-column"><?php esc_html_e('City', 'memberpress'); ?></th>
+              <th scope="col" class="manage-column"><?php esc_html_e('Rate %', 'memberpress'); ?></th>
+              <th scope="col" class="manage-column"><?php esc_html_e('Desc', 'memberpress'); ?></th>
+              <th scope="col" class="manage-column"><?php esc_html_e('Priority', 'memberpress'); ?></th>
               <th scope="col" class="manage-column">&nbsp;</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($tax_rates as $i => $tax_rate) : ?>
-              <tr id="mepr_tax_rate_row_<?php echo $tax_rate->id; ?>" <?php echo ( ( ($i % 2) == 0 ) ? 'class="alternate"' : '' ); ?>>
-                <td><?php echo empty($tax_rate->tax_country) ? '*' : $tax_rate->tax_country; ?></td>
-                <td><?php echo empty($tax_rate->tax_state) ? '*' : $tax_rate->tax_state; ?></td>
-                <td><?php echo empty($tax_rate->postcodes) ? '*' : $tax_rate->postcodes; ?></td>
-                <td><?php echo empty($tax_rate->cities) ? '*' : $tax_rate->cities; ?></td>
-                <td><?php echo MeprUtils::format_float($tax_rate->tax_rate, 3); ?>%</td>
-                <td><?php echo $tax_rate->tax_desc; ?></td>
-                <td><?php echo $tax_rate->tax_priority; ?></td>
-                <td width="25px"><a href="" class="mepr-tax-rate-remove alignright" data-id="<?php echo $tax_rate->id; ?>"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a></td>
+              <tr id="mepr_tax_rate_row_<?php echo esc_attr($tax_rate->id); ?>" <?php echo ( ( ($i % 2) === 0 ) ? 'class="alternate"' : '' ); ?>>
+                <td><?php echo empty($tax_rate->tax_country) ? '*' : esc_html($tax_rate->tax_country); ?></td>
+                <td><?php echo empty($tax_rate->tax_state) ? '*' : esc_html($tax_rate->tax_state); ?></td>
+                <td><?php echo empty($tax_rate->postcodes) ? '*' : esc_html($tax_rate->postcodes); ?></td>
+                <td><?php echo empty($tax_rate->cities) ? '*' : esc_html($tax_rate->cities); ?></td>
+                <td><?php echo esc_html(MeprUtils::format_float($tax_rate->tax_rate, 3)); ?>%</td>
+                <td><?php echo esc_html($tax_rate->tax_desc); ?></td>
+                <td><?php echo esc_html($tax_rate->tax_priority); ?></td>
+                <td width="25px"><a href="" class="mepr-tax-rate-remove alignright" data-id="<?php echo esc_attr($tax_rate->id); ?>"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a></td>
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -146,7 +146,7 @@ if (!defined('ABSPATH')) {
         );
         ?>
         <strong><a href="<?php echo esc_url($export_tax_rates_link); ?>" class="button"><?php esc_html_e('Export Tax Rates', 'memberpress'); ?></a></strong>
-        <strong><a href="<?php echo esc_url($clear_tax_rates_link); ?>" class="button" onclick="if(!confirm('<?php echo 'Are you sure? This will delete all tax rates from the database'; ?>')){return false;}"><?php _e('Clear Tax Rates', 'memberpress'); ?></a></strong>
+        <strong><a href="<?php echo esc_url($clear_tax_rates_link); ?>" class="button" onclick="if(!confirm('<?php echo 'Are you sure? This will delete all tax rates from the database'; ?>')){return false;}"><?php esc_html_e('Clear Tax Rates', 'memberpress'); ?></a></strong>
       </div>
       <br/>
     <?php else : ?>
@@ -157,7 +157,7 @@ if (!defined('ABSPATH')) {
       <tbody>
         <tr valign="top">
           <th scope="row">
-            <label for="mepr_tax_rates_csv"><?php _e('Upload Tax Rates', 'memberpress'); ?></label>
+            <label for="mepr_tax_rates_csv"><?php esc_html_e('Upload Tax Rates', 'memberpress'); ?></label>
             <?php
             MeprAppHelper::info_tooltip(
                 'mepr-options-tax-rates',

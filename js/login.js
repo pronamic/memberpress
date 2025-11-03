@@ -48,6 +48,30 @@
         })
       }
     }
+
+    // Handle form labels
+    const $usernameInput = $('#user_login');
+    const $passwordInput = $('#user_pass');
+    const $usernameLabel = $usernameInput.closest('.mp-form-row').find('label');
+    const $passwordLabel = $passwordInput.closest('.mp-form-row').find('label');
+
+    handleFormLabels(null, $usernameInput, $usernameLabel);
+    handleFormLabels(null, $passwordInput, $passwordLabel);
+
+    $usernameInput.on('keyup', function(event) {
+      handleFormLabels(event, $usernameInput, $usernameLabel);
+    });
+    $passwordInput.on('keyup', function(event) {
+      handleFormLabels(event, $passwordInput, $passwordLabel);
+    });
+
+    function handleFormLabels(event, input, label) {
+      if (input.val() === '') {
+        label.removeClass('active');
+      } else {
+        label.addClass('active');
+      }
+    }
     // End Pro Template
   });
 })(jQuery);

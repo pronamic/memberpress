@@ -2,7 +2,7 @@
 /**
  * View: admin/gateways/square/options.php
  *
- * @var MeprSquareGateway $gateway
+ * @var MeprSquarePaymentsGateway $gateway
  * @var MeprOptions $options
  */
 
@@ -50,7 +50,7 @@ $show_refresh = isset($_GET['display-keys']) || isset($_COOKIE['mepr_stripe_disp
                             <?php esc_html_e('Business Location', 'memberpress'); ?>
                         </label>
                         <div class="mepr-square-field">
-                            <?php echo $gateway->get_business_location_dropdown('production'); ?>
+                            <?php echo $gateway->get_business_location_dropdown('production'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                     </div>
                 <?php else : ?>
@@ -133,7 +133,7 @@ $show_refresh = isset($_GET['display-keys']) || isset($_COOKIE['mepr_stripe_disp
                             <?php esc_html_e('Business Location', 'memberpress'); ?>
                         </label>
                         <div class="mepr-square-field">
-                            <?php echo $gateway->get_business_location_dropdown('sandbox'); ?>
+                            <?php echo $gateway->get_business_location_dropdown('sandbox'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                     </div>
                 <?php else : ?>

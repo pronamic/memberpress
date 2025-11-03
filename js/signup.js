@@ -1,5 +1,26 @@
 (function($) {
   $(document).ready(function() {
+    // Handle form labels
+    const $placeholderInputs = $('.mp-form-row .mepr-form-input');
+
+    $.each($placeholderInputs, function(index, input) {
+      const $label = $(this).siblings('.mp-form-label').find('label');
+
+      if($(this).val() !== '' || $(this).is('select')) {
+        $label.addClass('active');
+      } else {
+        $label.removeClass('active');
+      }
+
+      $(input).on('keyup', function(event) {
+        if($(this).val() !== '') {
+          $label.addClass('active');
+        } else {
+          $label.removeClass('active');
+        }
+      });
+    });
+
     $('body').on('click', '.mepr-signup-form .have-coupon-link', function(e) {
       e.preventDefault();
       $(this).hide();
@@ -161,6 +182,19 @@
 
       if ($(obj).attr('required') !== undefined) {
         var notBlank = mpValidateFieldNotBlank($(obj));
+
+        // Special handling for state field - not required for countries without states
+        if ($(obj).attr('name') === 'mepr-address-state') {
+          var selectedCountry = form.find('select[name="mepr-address-country"]').val();
+
+          if (selectedCountry && MeprI18n.countries_without_states &&
+              MeprI18n.countries_without_states.indexOf(selectedCountry) !== -1) {
+            // This country doesn't require states, so validation always passes
+            mpToggleFieldValidation($(obj), true);
+            return;
+          }
+        }
+
         mpToggleFieldValidation($(obj), notBlank);
       }
 

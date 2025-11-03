@@ -1,15 +1,11 @@
 <?php
-if (!defined('ABSPATH')) {
-    die('You are not allowed to call this page directly.');
-}
-$check_mark_svg = file_get_contents(MEPR_IMAGES_PATH . '/Check_Mark.svg');
+defined('ABSPATH') || exit;
 ?>
-
 <div class="wrap">
   <div class="mepr-sister-plugin mepr-sister-plugin-easy-affiliate" data-config="<?php echo esc_attr(wp_json_encode($plugin)); ?>">
 
     <div class="mepr-sister-plugin-image">
-      <?php echo file_get_contents(MEPR_BRAND_PATH . '/images/logo-heart-easy-affiliate.svg'); ?>
+      <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/logo-heart-easy-affiliate.svg'); ?>" alt="MemberPress and Easy Affiliate logos">
     </div>
 
     <div class="mepr-sister-plugin-title">
@@ -28,12 +24,12 @@ $check_mark_svg = file_get_contents(MEPR_IMAGES_PATH . '/Check_Mark.svg');
       </div>
       <div class="mepr-sister-plugin-info-features">
         <ul>
-          <li><?php echo $check_mark_svg; ?><?php esc_html_e('Integrates with WordPress ecommerce and email marketing solutions', 'memberpress'); ?></li>
-          <li><?php echo $check_mark_svg; ?><?php esc_html_e('Pre-styled, theme-neutral Pro Dashboard', 'memberpress'); ?></li>
-          <li><?php echo $check_mark_svg; ?><?php esc_html_e('Tracks commissions without using third-party cookies', 'memberpress'); ?></li>
-          <li><?php echo $check_mark_svg; ?><?php esc_html_e('Real-Time Reports and 1-click affiliate payouts', 'memberpress'); ?></li>
-          <li><?php echo $check_mark_svg; ?><?php esc_html_e('Detects affiliate fraud before you pay out', 'memberpress'); ?></li>
-          <li><?php echo $check_mark_svg; ?><?php esc_html_e('Minus the fees and restrictions of other affiliate program solutions', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Integrates with WordPress ecommerce and email marketing solutions', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Pre-styled, theme-neutral Pro Dashboard', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Tracks commissions without using third-party cookies', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Real-Time Reports and 1-click affiliate payouts', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Detects affiliate fraud before you pay out', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Minus the fees and restrictions of other affiliate program solutions', 'memberpress'); ?></li>
         </ul>
       </div>
     </div>
@@ -48,7 +44,7 @@ $check_mark_svg = file_get_contents(MEPR_IMAGES_PATH . '/Check_Mark.svg');
           <?php esc_html_e('Go to EasyAffiliate.com to get started on your MemberPress affiliate program.', 'memberpress'); ?>
         </div>
         <div class="mepr-sister-plugin-step-button">
-          <a href="https://memberpress.com/memberpress_plugin/affiliates_menu/easy_affiliate_pricing" class="button button-primary button-hero<?php echo !$plugin['active'] && !$plugin['installed'] && empty($plugin['url']) ? '' : ' disabled'; ?>" target="_blank"><?php esc_html_e('Get Easy Affiliate', 'memberpress'); ?></a>
+          <a href="<?php echo esc_url(MeprUtils::get_link_url('affiliates_ea_pricing')) ?>" class="button button-primary button-hero<?php echo !$plugin['active'] && !$plugin['installed'] && empty($plugin['url']) ? '' : ' disabled'; ?>" target="_blank"><?php esc_html_e('Get Easy Affiliate', 'memberpress'); ?></a>
         </div>
       </div>
     </div>

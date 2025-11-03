@@ -86,9 +86,9 @@ class MeprPopupCtrl extends MeprBaseCtrl
 
         if (
             false !== strstr($hook, 'memberpress') ||
-            ( $hook == 'edit.php' &&
+            ( $hook === 'edit.php' &&
             isset($_REQUEST['post_type']) &&
-            in_array($_REQUEST['post_type'], $mepr_cpts) )
+            in_array($_REQUEST['post_type'], $mepr_cpts, true) )
         ) {
             wp_register_style('jquery-magnific-popup', $this->popup_css);
             wp_enqueue_style(
@@ -148,13 +148,13 @@ class MeprPopupCtrl extends MeprBaseCtrl
             MeprUtils::exit_with_status(400, json_encode(['error' => __('Must specify a popup', 'memberpress')]));
         }
 
-        $popup = sanitize_text_field($_POST['popup']);
+        $popup = sanitize_text_field(wp_unslash($_POST['popup']));
 
         if (!$this->is_valid_popup($popup)) {
             MeprUtils::exit_with_status(400, json_encode(['error' => __('Invalid popup', 'memberpress')]));
         }
 
-        if ($_POST['action'] == 'mepr_delay_popup') {
+        if (isset($_POST['action']) && $_POST['action'] === 'mepr_delay_popup') {
             $this->delay_popup($popup);
             $message = __('The popup was successfully delayed', 'memberpress');
         } else {
@@ -174,7 +174,7 @@ class MeprPopupCtrl extends MeprBaseCtrl
      */
     private function is_valid_popup($popup)
     {
-        return in_array($popup, array_keys($this->popups));
+        return in_array($popup, array_keys($this->popups), true);
     }
 
     /**
@@ -315,6 +315,10 @@ class MeprPopupCtrl extends MeprBaseCtrl
      */
     private function popup_visible($popup)
     {
+        if (!class_exists('MeprUpdateCtrl')) {
+            return false;
+        }
+
         $mepr_update = new MeprUpdateCtrl();
         if (
             !$mepr_update->is_activated() ||
@@ -327,7 +331,7 @@ class MeprPopupCtrl extends MeprBaseCtrl
         $last_viewed = $this->get_popup_last_viewed_timestamp();
         if (
             !empty($last_viewed) &&
-            $last_viewed['popup'] != $popup &&
+            $last_viewed['popup'] !== $popup &&
             ((int)$last_viewed['timestamp'] + (int)$this->popups[$popup]['delay_after_last_popup']) > time()
         ) {
             return false;

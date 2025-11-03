@@ -5,8 +5,8 @@
   <?php MeprView::render("/checkout/{$payment_method->settings->gateway}/payment_gateway_fields", get_defined_vars()); ?>
   <div class="mp-form-row">
     <div class="mp-form-label">
-      <label><?php _ex('Credit Card Number', 'ui', 'memberpress'); ?></label>
-      <span class="cc-error"><?php _ex('Invalid Credit Card Number', 'ui', 'memberpress'); ?></span>
+      <label><?php echo esc_html_x('Credit Card Number', 'ui', 'memberpress'); ?></label>
+      <span class="cc-error"><?php echo esc_html_x('Invalid Credit Card Number', 'ui', 'memberpress'); ?></span>
     </div>
     <input type="tel" class="mepr-form-input card-number cc-number validation" pattern="\d*" autocomplete="cc-number" required>
     <input type="hidden" class="mepr-cc-num" name="mepr_cc_num"/>
@@ -14,19 +14,19 @@
   <input type="hidden" name="mepr-cc-type" class="cc-type" value="" />
   <div class="mp-form-row">
     <div class="mp-form-label">
-      <label><?php _ex('Expiration', 'ui', 'memberpress'); ?></label>
-      <span class="cc-error"><?php _ex('Invalid Expiration', 'ui', 'memberpress'); ?></span>
+      <label><?php echo esc_html_x('Expiration', 'ui', 'memberpress'); ?></label>
+      <span class="cc-error"><?php echo esc_html_x('Invalid Expiration', 'ui', 'memberpress'); ?></span>
     </div>
-    <input type="tel" class="mepr-form-input cc-exp validation" pattern="\d*" autocomplete="cc-exp" placeholder="<?php _ex('mm/yy', 'ui', 'memberpress'); ?>" required>
+    <input type="tel" class="mepr-form-input cc-exp validation" pattern="\d*" autocomplete="cc-exp" placeholder="<?php echo esc_attr_x('mm/yy', 'ui', 'memberpress'); ?>" required>
     <input type="hidden" class="cc-exp-month" name="mepr_cc_exp_month"/>
     <input type="hidden" class="cc-exp-year" name="mepr_cc_exp_year"/>
   </div>
   <div class="mp-form-row">
     <div class="mp-form-label">
-      <label><?php _ex('CVC', 'ui', 'memberpress'); ?></label>
-      <span class="cc-error"><?php _ex('Invalid CVC Code', 'ui', 'memberpress'); ?></span>
+      <label><?php echo esc_html_x('CVC', 'ui', 'memberpress'); ?></label>
+      <span class="cc-error"><?php echo esc_html_x('Invalid CVC Code', 'ui', 'memberpress'); ?></span>
     </div>
     <input type="tel" name="mepr_cvv_code" class="mepr-form-input card-cvc cc-cvc validation" pattern="\d*" autocomplete="off" required />
   </div>
 </div>
-<noscript><p class="mepr_nojs"><?php _e('JavaScript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>
+<noscript><p class="mepr_nojs"><?php esc_html_e('JavaScript is disabled in your browser. You will not be able to complete your purchase until you either enable JavaScript in your browser, or switch to a browser that supports it.', 'memberpress'); ?></p></noscript>

@@ -3,17 +3,17 @@
 } ?>
 
 <div class="wrap">
-  <h2><?php _e('Manually Add a New Member', 'memberpress'); ?></h2>
+  <h2><?php esc_html_e('Manually Add a New Member', 'memberpress'); ?></h2>
 
   <?php MeprView::render('/admin/errors', compact('errors', 'message')); ?>
-  <form action="<?php echo parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '?page=memberpress-members'; ?>" method="post">
+  <form action="<?php echo esc_url(wp_parse_url(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? '')), PHP_URL_PATH) . '?page=memberpress-members'); ?>" method="post">
     <input type="hidden" name="action" value="create" />
     <?php wp_nonce_field('mepr_create_member', 'mepr_members_nonce'); ?>
     <table class="form-table">
       <tbody>
         <tr valign="top">
           <th scope="row">
-            <label for="member[user_login]"><?php _e('Username', 'memberpress'); ?></label>
+            <label for="member[user_login]"><?php esc_html_e('Username', 'memberpress'); ?></label>
           </th>
           <td>
             <input type="text" id="member_user_login" name="member[user_login]" class="regular-text" value="<?php echo esc_attr($member->user_login); ?>" autocomplete="off" />
@@ -21,7 +21,7 @@
         </tr>
         <tr valign="top">
           <th scope="row">
-            <label for="member[user_email]"><?php _e('Email', 'memberpress'); ?></label>
+            <label for="member[user_email]"><?php esc_html_e('Email', 'memberpress'); ?></label>
           </th>
           <td>
             <input type="email" id="member_user_email" name="member[user_email]" class="regular-text" value="<?php echo esc_attr($member->user_email); ?>" autocomplete="off" />
@@ -29,7 +29,7 @@
         </tr>
         <tr valign="top">
           <th scope="row">
-            <label for="member[first_name]"><?php _e('First Name', 'memberpress'); ?></label>
+            <label for="member[first_name]"><?php esc_html_e('First Name', 'memberpress'); ?></label>
           </th>
           <td>
             <input type="text" id="member_first_name" name="member[first_name]" class="regular-text" value="<?php echo esc_attr($member->first_name); ?>" autocomplete="off" />
@@ -37,7 +37,7 @@
         </tr>
         <tr valign="top">
           <th scope="row">
-            <label for="member[last_name]"><?php _e('Last Name', 'memberpress'); ?></label>
+            <label for="member[last_name]"><?php esc_html_e('Last Name', 'memberpress'); ?></label>
           </th>
           <td>
             <input type="text" id="member_last_name" name="member[last_name]" class="regular-text" value="<?php echo esc_attr($member->last_name); ?>" autocomplete="off" />
@@ -45,21 +45,21 @@
         </tr>
         <tr valign="top">
           <th scope="row">
-            <label for="member[user_pass]"><?php _e('Password', 'memberpress'); ?></label>
+            <label for="member[user_pass]"><?php esc_html_e('Password', 'memberpress'); ?></label>
           </th>
           <td>
             <span class="mepr-password-toggle">
-              <button type="button" class="button button-secondary"><?php _e('Show password', 'memberpress'); ?></button>
+              <button type="button" class="button button-secondary"><?php esc_html_e('Show password', 'memberpress'); ?></button>
             </span>
             <span class="mepr-password-input-wrapper mepr-hidden">
               <input type="text" name="member[user_pass]" id="member_user_pass" class="regular-text" autocomplete="off" value="<?php echo esc_attr($member->password); ?>" />
               <span class="mepr-password-input-buttons">
                 <button type="button" class="mepr-hide-button button button-secondary">
                   <span class="dashicons dashicons-hidden"></span>
-                  <span class="text" data-show="<?php _e('Show', 'memberpress'); ?>" data-hide="<?php _e('Hide', 'memberpress'); ?>"><?php _e('Hide', 'memberpress'); ?></span>
+                  <span class="text" data-show="<?php esc_attr_e('Show', 'memberpress'); ?>" data-hide="<?php esc_attr_e('Hide', 'memberpress'); ?>"><?php esc_html_e('Hide', 'memberpress'); ?></span>
                 </button>
                 <button type="button" class="mepr-cancel-button button button-secondary">
-                  <span class="text"><?php _e('Cancel', 'memberpress'); ?></span>
+                  <span class="text"><?php esc_html_e('Cancel', 'memberpress'); ?></span>
                 </button>
               </span>
             </span>
@@ -67,7 +67,7 @@
         </tr>
         <tr valign="top">
           <th scope="row">
-            <label for="transaction[product_id]"><?php _e('Membership', 'memberpress'); ?></label>
+            <label for="transaction[product_id]"><?php esc_html_e('Membership', 'memberpress'); ?></label>
             <?php
               MeprAppHelper::info_tooltip(
                   'mepr_transaction_product_id',
@@ -82,33 +82,33 @@
         </tr>
         <tr valign="top">
           <th scope="row">
-            <label for="member[send_notification]"><?php _e('Send User Notification', 'memberpress'); ?></label>
+            <label for="member[send_notification]"><?php esc_html_e('Send User Notification', 'memberpress'); ?></label>
           </th>
           <td>
             <input type="checkbox" id="member_send_notification" name="member[send_notification]" <?php checked($member->send_notification); ?> />
-            <span><?php _e('Send the new member an email with their username', 'memberpress'); ?></span>
+            <span><?php esc_html_e('Send the new member an email with their username', 'memberpress'); ?></span>
           </td>
         </tr>
         <tr valign="top">
           <th scope="row">
-            <label for="transaction[send_welcome]"><?php _e('Send Welcome Email', 'memberpress'); ?></label>
+            <label for="transaction[send_welcome]"><?php esc_html_e('Send Welcome Email', 'memberpress'); ?></label>
           </th>
           <td>
             <input type="checkbox" id="transaction_send_welcome" name="transaction[send_welcome]" <?php checked($transaction->send_welcome); ?> />
-            <span><?php _e('Send the new member a membership welcome email', 'memberpress'); ?></span>
+            <span><?php esc_html_e('Send the new member a membership welcome email', 'memberpress'); ?></span>
           </td>
         </tr>
       </tbody>
     </table>
-    <h3 class="mepr-page-title mepr-advanced-link"><a href="" class="mepr-toggle-link button button-default" data-box="mepr-advanced"><?php _e('Advanced', 'memberpress'); ?></a></h3>
+    <h3 class="mepr-page-title mepr-advanced-link"><a href="" class="mepr-toggle-link button button-default" data-box="mepr-advanced"><?php esc_html_e('Advanced', 'memberpress'); ?></a></h3>
     <div class="mepr-sub-box-white mepr-advanced mepr-hidden" style="display: none;">
       <div class="mepr-arrow mepr-white mepr-up mepr-sub-box-arrow"> </div>
-      <p><?php _e('When a new member is added manually, an initial MemberPress transaction is created to grant them access to your membership. You can modify the details of this initial transaction here.', 'memberpress'); ?></p>
+      <p><?php esc_html_e('When a new member is added manually, an initial MemberPress transaction is created to grant them access to your membership. You can modify the details of this initial transaction here.', 'memberpress'); ?></p>
       <table class="form-table" id="mepr-advanced-box">
         <tbody>
           <tr valign="top">
             <th scope="row">
-              <label for="transaction[trans_num]"><?php _e('Trans Num', 'memberpress'); ?></label>
+              <label for="transaction[trans_num]"><?php esc_html_e('Trans Num', 'memberpress'); ?></label>
               <?php
                 MeprAppHelper::info_tooltip(
                     'mepr_transaction_trans_num',
@@ -118,12 +118,12 @@
                 ?>
             </th>
             <td>
-              <input type="text" id="transaction_trans_num" name="transaction[trans_num]" class="regular-text" value="<?php echo $transaction->trans_num; ?>" />
+              <input type="text" id="transaction_trans_num" name="transaction[trans_num]" class="regular-text" value="<?php echo esc_attr($transaction->trans_num); ?>" />
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="transaction_amount"><?php _e('Amount', 'memberpress'); ?></label>
+              <label for="transaction_amount"><?php esc_html_e('Amount', 'memberpress'); ?></label>
               <?php
                 MeprAppHelper::info_tooltip(
                     'mepr_transaction_amount',
@@ -133,13 +133,13 @@
                 ?>
             </th>
             <td>
-              <span><?php echo $mepr_options->currency_symbol; ?></span>
-              <input type="text" id="transaction_amount" name="transaction[amount]" value="<?php echo MeprUtils::format_currency_float($transaction->amount); ?>" />
+              <span><?php echo esc_html($mepr_options->currency_symbol); ?></span>
+              <input type="text" id="transaction_amount" name="transaction[amount]" value="<?php echo esc_attr(MeprUtils::format_currency_float($transaction->amount)); ?>" />
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="transaction[status]"><?php _e('Status', 'memberpress'); ?></label>
+              <label for="transaction[status]"><?php esc_html_e('Status', 'memberpress'); ?></label>
             </th>
             <td>
               <?php MeprTransactionsHelper::statuses_dropdown('transaction[status]', $transaction->status); ?>
@@ -147,7 +147,7 @@
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="transaction[gateway]"><?php _e('Payment Method', 'memberpress'); ?></label>
+              <label for="transaction[gateway]"><?php esc_html_e('Payment Method', 'memberpress'); ?></label>
               <?php
                 MeprAppHelper::info_tooltip(
                     'mepr_transaction_gateway',
@@ -157,12 +157,12 @@
                 ?>
             </th>
             <td>
-              <?php echo MeprTransactionsHelper::payment_methods_dropdown('transaction[gateway]', $transaction->gateway); ?>
+              <?php MeprTransactionsHelper::payment_methods_dropdown('transaction[gateway]', $transaction->gateway); ?>
             </td>
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="transaction[created_at]"><?php _e('Created', 'memberpress'); ?></label>
+              <label for="transaction[created_at]"><?php esc_html_e('Created', 'memberpress'); ?></label>
             </th>
             <td>
               <?php
@@ -176,7 +176,7 @@
           </tr>
           <tr valign="top">
             <th scope="row">
-              <label for="transaction[expires_at]"><?php _e('Expires', 'memberpress'); ?></label>
+              <label for="transaction[expires_at]"><?php esc_html_e('Expires', 'memberpress'); ?></label>
               <?php
                 MeprAppHelper::info_tooltip(
                     'mepr_transaction_expires_at',
@@ -214,7 +214,7 @@
           </div>
     */ ?>
     <p class="submit">
-      <input type="submit" id="submit" class="button button-primary" value="<?php _e('Create', 'memberpress'); ?>" />
+      <input type="submit" id="submit" class="button button-primary" value="<?php esc_attr_e('Create', 'memberpress'); ?>" />
     </p>
   </form>
 </div>

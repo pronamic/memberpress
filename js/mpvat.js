@@ -55,7 +55,8 @@
         var tmpDate = new Date();
 
         if (
-          form.find('select[name="mepr-address-country"]').val() !== 'GB'
+          MpVat.should_apply_gb_brexit_rule
+          && form.find('select[name="mepr-address-country"]').val() !== 'GB'
           && MpVat.vat_country === 'GB'
           && tmpDate.getFullYear() > 2020
         ) {

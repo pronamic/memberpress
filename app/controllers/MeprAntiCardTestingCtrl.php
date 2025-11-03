@@ -11,7 +11,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
     {
         add_action('mepr_display_general_options', [$this, 'display_options']);
         add_action('mepr_stripe_payment_failed', [$this, 'record_payment_failure']);
-        add_filter('mepr-validate-signup', [$this, 'maybe_block_payment']);
+        add_filter('mepr_validate_signup', [$this, 'maybe_block_payment']);
         add_filter('mepr_validate_payment_form', [$this, 'maybe_block_payment']);
         add_action('mepr_process_signup_form_ajax', [$this, 'maybe_block_payment_ajax']);
         add_action('mepr_process_payment_form_ajax', [$this, 'maybe_block_payment_ajax']);
@@ -175,7 +175,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
     public static function get_ip($method = null)
     {
         $mepr_options  = MeprOptions::fetch();
-        $connection_ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
+        $connection_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '127.0.0.1';
         $ips           = [];
 
         if (is_null($method)) {
@@ -191,11 +191,11 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
 
             foreach ($headers as $header) {
                 if (isset($_SERVER[$header])) {
-                    $ips[] = $_SERVER[$header];
+                    $ips[] = sanitize_text_field(wp_unslash($_SERVER[$header]));
                 }
             }
         } elseif (isset($_SERVER[$method])) {
-            $ips[] = $_SERVER[$method];
+            $ips[] = sanitize_text_field(wp_unslash($_SERVER[$method]));
         }
 
         $ips[] = $connection_ip;
@@ -206,7 +206,7 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
             $ip = $connection_ip;
         }
 
-        return apply_filters('mepr_anti_card_testing_ip', $ip);
+        return MeprHooks::apply_filters('mepr_anti_card_testing_ip', $ip);
     }
 
     /**
@@ -396,7 +396,8 @@ class MeprAntiCardTestingCtrl extends MeprBaseCtrl
         }
 
         $valid_methods = ['', 'REMOTE_ADDR', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CF_CONNECTING_IP'];
-        $method        = in_array($_GET['method'], $valid_methods, true) ? $_GET['method'] : '';
+        $method        = sanitize_text_field(wp_unslash($_GET['method']));
+        $method        = in_array($method, $valid_methods, true) ? $method : '';
 
         wp_send_json_success(self::get_ip($method));
     }

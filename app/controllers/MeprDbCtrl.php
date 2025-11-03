@@ -42,7 +42,7 @@ class MeprDbCtrl extends MeprBaseCtrl
     {
         $schedules['mepr_migrate_members_table_015_interval'] = [
             'interval' => MeprUtils::minutes(10), // Run every 10 minutes.
-            'display'  => __('MemberPress Member Data Migrate Interval', 'memberpress'),
+            'display'  => 'MemberPress Member Data Migrate Interval',
         ];
 
         return $schedules;
@@ -58,10 +58,10 @@ class MeprDbCtrl extends MeprBaseCtrl
         if (defined('DOING_AJAX')) {
             return;
         }
-        if (isset($_GET['page']) && $_GET['page'] == 'mepr-rollback') {
+        if (isset($_GET['page']) && $_GET['page'] === 'mepr-rollback') {
             return;
         }
-        if (isset($_GET['mepraction']) && $_GET['mepraction'] == 'cancel-migration') {
+        if (isset($_GET['mepraction']) && $_GET['mepraction'] === 'cancel-migration') {
             delete_transient('mepr_migrating');
             delete_transient('mepr_migration_error');
             delete_transient('mepr_current_migration');
@@ -149,7 +149,7 @@ class MeprDbCtrl extends MeprBaseCtrl
         if (!empty($version)) {
             $current_migration = get_transient('mepr_current_migration');
 
-            if (!isset($current_migration['check']) || $current_migration['check'] == false) {
+            if (!isset($current_migration['check']) || (bool) $current_migration['check'] === false) {
                 $check = [
                     'completed' => 0,
                     'total'     => 0,
@@ -255,8 +255,12 @@ class MeprDbCtrl extends MeprBaseCtrl
         }
 
         if ($mepr_db->do_upgrade()) {
-            @ignore_user_abort(true);
-            @set_time_limit(0);
+            if (function_exists('ignore_user_abort')) {
+                ignore_user_abort(true);
+            }
+            if (function_exists('set_time_limit')) {
+                set_time_limit(0); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
+            }
 
             set_transient('mepr_migrating', MEPR_VERSION, MeprUtils::hours(4));
 
@@ -266,7 +270,7 @@ class MeprDbCtrl extends MeprBaseCtrl
                 global $blog_id;
 
                 // If we're on the root blog then let's upgrade every site on the network.
-                if ($blog_id == 1) {
+                if ((int) $blog_id === 1) {
                     $mepr_db->upgrade_multisite();
                 } else {
                     $mepr_db->upgrade();

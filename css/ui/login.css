@@ -47,3 +47,29 @@
   height: 1.25rem;
   position: relative;
 }
+
+.button.mp-hide-pw:focus-visible .dashicons {
+  color: #06429e;
+  outline: 2px solid #bcbcbc;
+}
+
+.mp_login_form input[type=submit] {
+  padding: 0.8em 1.1em;
+  background: #949494;
+  border: 1px solid #949494;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.mp_login_form input[type=submit]:hover,
+.mp_login_form input[type=submit]:active,
+.mp_login_form input[type=submit]:focus-visible {
+  background: #06429e;
+  border-color: #06429e;
+}
+
+.mp_login_form input[type=submit]:focus-visible {
+    outline: dashed #06429e;
+}

@@ -177,11 +177,11 @@ class MeprSubscriptionsTable extends WP_List_Table
      */
     public function extra_tablenav($which)
     {
-        if ($which == 'top') {
-            $member       = (isset($_GET['member']) && !empty($_GET['member'])) ? '&member=' . urlencode(stripslashes($_GET['member'])) : '';
-            $search       = (isset($_GET['search']) && !empty($_GET['search'])) ? '&search=' . urlencode(stripslashes($_GET['search'])) : '';
-            $search_field = (isset($_GET['search-field']) && !empty($_GET['search-field'])) ? '&search-field=' . stripslashes($_GET['search-field']) : '';
-            $perpage      = (isset($_GET['perpage']) && !empty($_GET['perpage'])) ? '&perpage=' . stripslashes($_GET['perpage']) : '';
+        if ($which === 'top') {
+            $member       = (isset($_GET['member']) && !empty($_GET['member'])) ? '&member=' . urlencode(sanitize_text_field(wp_unslash($_GET['member']))) : '';
+            $search       = (isset($_GET['search']) && !empty($_GET['search'])) ? '&search=' . urlencode(sanitize_text_field(wp_unslash($_GET['search']))) : '';
+            $search_field = (isset($_GET['search-field']) && !empty($_GET['search-field'])) ? '&search-field=' . sanitize_text_field(wp_unslash($_GET['search-field'])) : '';
+            $perpage      = (isset($_GET['perpage']) && !empty($_GET['perpage'])) ? '&perpage=' . intval(wp_unslash($_GET['perpage'])) : '';
 
             if ($this->lifetime) {
                 $search_cols = $this->_non_recurring_searchable;
@@ -194,7 +194,7 @@ class MeprSubscriptionsTable extends WP_List_Table
             MeprView::render('/admin/table_controls', compact('search_cols'));
         }
 
-        if ($which == 'bottom') {
+        if ($which === 'bottom') {
             if ($this->lifetime) {
                 $action = 'mepr_lifetime_subscriptions';
             } else {
@@ -245,7 +245,7 @@ class MeprSubscriptionsTable extends WP_List_Table
             unset($cols[$prefix . 'status']);
         }
 
-        return MeprHooks::apply_filters('mepr-admin-subscriptions-sortable-cols', $cols, $prefix, $this->lifetime);
+        return MeprHooks::apply_filters('mepr_admin_subscriptions_sortable_cols', $cols, $prefix, $this->lifetime);
     }
 
     /**
@@ -265,16 +265,17 @@ class MeprSubscriptionsTable extends WP_List_Table
             $perpage = !empty($perpage) && !is_array($perpage) ? $perpage : 10;
 
             // Specifically for the CSV export to work properly.
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidatedNotSanitized
             $_SERVER['QUERY_STRING'] = ( empty($_SERVER['QUERY_STRING']) ? '?' : "{$_SERVER['QUERY_STRING']}&" ) . "perpage={$perpage}";
         } else {
-            $perpage = !empty($_GET['perpage']) ? esc_sql($_GET['perpage']) : 10;
+            $perpage = !empty($_GET['perpage']) ? esc_sql(intval(wp_unslash($_GET['perpage']))) : 10;
         }
 
-        $orderby                    = !empty($_GET['orderby']) ? esc_sql($_GET['orderby']) : 'ID';
-        $order                      = !empty($_GET['order'])   ? esc_sql($_GET['order'])   : 'DESC';
-        $paged                      = !empty($_GET['paged'])   ? esc_sql($_GET['paged'])   : 1;
-        $search                     = !empty($_GET['search'])  ? esc_sql($_GET['search'])  : '';
-        $search_field               = !empty($_GET['search-field']) ? esc_sql($_GET['search-field'])  : 'any';
+        $orderby                    = !empty($_GET['orderby']) ? esc_sql(sanitize_text_field(wp_unslash($_GET['orderby']))) : 'ID';
+        $order                      = !empty($_GET['order'])   ? esc_sql(sanitize_text_field(wp_unslash($_GET['order'])))   : 'DESC';
+        $paged                      = !empty($_GET['paged'])   ? esc_sql(max(1, intval(wp_unslash($_GET['paged']))))        : 1;
+        $search                     = !empty($_GET['search'])  ? esc_sql(sanitize_text_field(wp_unslash($_GET['search'])))  : '';
+        $search_field               = !empty($_GET['search-field']) ? esc_sql(sanitize_text_field(wp_unslash($_GET['search-field'])))  : 'any';
         $non_recurring_search_field = isset($this->non_recurring_db_search_cols[$search_field]) ? $this->non_recurring_db_search_cols[$search_field] : 'any';
         $recurring_search_field     = isset($this->recurring_db_search_cols[$search_field]) ? $this->recurring_db_search_cols[$search_field] : 'any';
 

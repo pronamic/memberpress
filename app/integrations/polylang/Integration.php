@@ -14,8 +14,8 @@ class MeprPolylangIntegration
      */
     public function __construct()
     {
-        add_action('mepr-signup', [$this, 'maybe_set_user_locale_at_register']);
-        add_action('mepr-model-initialized', [$this, 'maybe_get_and_set_user_locale']);
+        add_action('mepr_signup', [$this, 'maybe_set_user_locale_at_register']);
+        add_action('mepr_model_initialized', [$this, 'maybe_get_and_set_user_locale']);
     }
 
     /**
@@ -44,7 +44,9 @@ class MeprPolylangIntegration
             if (isset($obj->user_id) && $obj->user_id > 0 && !MeprUtils::is_user_logged_in()) {
                 // Check that Polylang plugin is installed and activated.
                 if (function_exists('pll_current_language')) {
-                    @switch_to_locale(get_user_locale($obj->user_id));
+                    if (function_exists('switch_to_locale')) {
+                        switch_to_locale(get_user_locale($obj->user_id));
+                    }
                     MeprOptions::fetch(true); // Force refresh MeprOptions singleton.
                 }
             }

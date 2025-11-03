@@ -109,7 +109,7 @@ class MeprMigratorLearnDash extends MeprMigrator
             }
         }
 
-        if ($this->is_courses_addon_active()) {
+        if (MeprUtils::is_addon_active(MeprUtils::ADDON_COURSES)) {
             if (version_compare(memberpress\courses\VERSION, '1.3.6', '<=')) {
                 wp_send_json_error(
                     // phpcs:ignore Generic.Files.LineLength.TooLong
@@ -118,13 +118,13 @@ class MeprMigratorLearnDash extends MeprMigrator
             } else {
                 if (
                     empty($data['retry-quizzes']) &&
-                    !$this->is_course_quizzes_addon_active() &&
+                    !MeprUtils::is_addon_active(MeprUtils::ADDON_COURSE_QUIZZES) &&
                     file_exists(WP_PLUGIN_DIR . '/memberpress-course-quizzes/main.php')
                 ) {
                     activate_plugin('memberpress-course-quizzes/main.php');
 
                     if (
-                        $this->is_course_quizzes_addon_active() &&
+                        MeprUtils::is_addon_active(MeprUtils::ADDON_COURSE_QUIZZES) &&
                         function_exists('memberpress\\quizzes\\init') &&
                         defined('LEARNDASH_VERSION') &&
                         class_exists('LearnDash_Settings_Section') &&
@@ -141,7 +141,7 @@ class MeprMigratorLearnDash extends MeprMigrator
 
                         memberpress\quizzes\init();
 
-                        if ($quizzes_slug == App::get_quizzes_permalink_base()) {
+                        if ($quizzes_slug === App::get_quizzes_permalink_base()) {
                             $options['quizzes-slug'] = 'mp-quizzes';
                             $update                  = true;
                         }
@@ -164,7 +164,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                     activate_plugin('memberpress-courses/main.php');
 
                     if (
-                        $this->is_courses_addon_active() &&
+                        MeprUtils::is_addon_active(MeprUtils::ADDON_COURSES) &&
                         version_compare(memberpress\courses\VERSION, '1.3.6', '>') &&
                         defined('LEARNDASH_VERSION') &&
                         class_exists('LearnDash_Settings_Section') &&
@@ -186,12 +186,12 @@ class MeprMigratorLearnDash extends MeprMigrator
                         $options = is_array($options) ? $options : [];
                         $update  = false;
 
-                        if ($courses_slug == Courses::get_permalink_base()) {
+                        if ($courses_slug === Courses::get_permalink_base()) {
                             $options['courses-slug'] = 'learn';
                             $update                  = true;
                         }
 
-                        if ($lessons_slug == Lessons::get_permalink_base()) {
+                        if ($lessons_slug === Lessons::get_permalink_base()) {
                             $options['lessons-slug'] = 'mp-lessons';
                             $update                  = true;
                         }
@@ -232,19 +232,19 @@ class MeprMigratorLearnDash extends MeprMigrator
         $taxonomies = [];
 
         if (is_array($settings)) {
-            if (!empty($settings['ld_course_category']) && $settings['ld_course_category'] == 'yes') {
+            if (!empty($settings['ld_course_category']) && $settings['ld_course_category'] === 'yes') {
                 $taxonomies['ld_course_category'] = CourseCategories::$tax;
             }
 
-            if (!empty($settings['wp_post_category']) && $settings['wp_post_category'] == 'yes') {
+            if (!empty($settings['wp_post_category']) && $settings['wp_post_category'] === 'yes') {
                 $taxonomies['category'] = CourseCategories::$tax;
             }
 
-            if (!empty($settings['ld_course_tag']) && $settings['ld_course_tag'] == 'yes') {
+            if (!empty($settings['ld_course_tag']) && $settings['ld_course_tag'] === 'yes') {
                 $taxonomies['ld_course_tag'] = CourseTags::$tax;
             }
 
-            if (!empty($settings['wp_post_tag']) && $settings['wp_post_tag'] == 'yes') {
+            if (!empty($settings['wp_post_tag']) && $settings['wp_post_tag'] === 'yes') {
                 $taxonomies['post_tag'] = CourseTags::$tax;
             }
         }
@@ -331,13 +331,20 @@ class MeprMigratorLearnDash extends MeprMigrator
         $fetch_batch = function ($limit, $offset) {
             global $wpdb;
 
-            $query = "SELECT * FROM {$wpdb->posts}
-                WHERE post_type = 'sfwd-courses'
-                AND post_status = 'publish'
-                ORDER BY ID ASC
-                LIMIT %d OFFSET %d";
-
-            $courses = $wpdb->get_results($wpdb->prepare($query, $limit, $offset));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $courses = $wpdb->get_results(
+                $wpdb->prepare(
+                    "
+                    SELECT * FROM {$wpdb->posts}
+                    WHERE post_type = 'sfwd-courses'
+                    AND post_status = 'publish'
+                    ORDER BY ID ASC
+                    LIMIT %d OFFSET %d
+                    ",
+                    $limit,
+                    $offset
+                )
+            );
 
             return is_array($courses) ? $courses : [];
         };
@@ -363,7 +370,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                 if (is_array($settings)) {
                     if (
                         !empty($settings['sfwd-courses_course_materials_enabled']) &&
-                        $settings['sfwd-courses_course_materials_enabled'] == 'on' &&
+                        $settings['sfwd-courses_course_materials_enabled'] === 'on' &&
                         !empty($settings['sfwd-courses_course_materials'])
                     ) {
                         $resources = Courses::get_default_resources();
@@ -385,7 +392,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                     }
 
                     $disable_progression = !empty($settings['sfwd-courses_course_disable_lesson_progression']) &&
-                                 $settings['sfwd-courses_course_disable_lesson_progression'] == 'on';
+                                 $settings['sfwd-courses_course_disable_lesson_progression'] === 'on';
 
                     $course_data['require_previous'] = $disable_progression ? 'disabled' : 'enabled';
                 }
@@ -454,16 +461,21 @@ class MeprMigratorLearnDash extends MeprMigrator
     {
         global $wpdb;
 
-        $query = "SELECT p.ID
-              FROM $wpdb->posts p
-              INNER JOIN $wpdb->postmeta pm ON pm.post_id = p.ID AND pm.meta_key = '_mepr_learndash_course_id'
-              WHERE p.post_type = %s
-              AND p.post_status = 'publish'
-              AND pm.meta_value = %d";
-
-        $query = $wpdb->prepare($query, Course::$cpt, $ld_course_id);
-
-        return (int) $wpdb->get_var($query);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "
+                SELECT p.ID
+                FROM $wpdb->posts p
+                INNER JOIN $wpdb->postmeta pm ON pm.post_id = p.ID AND pm.meta_key = '_mepr_learndash_course_id'
+                WHERE p.post_type = %s
+                AND p.post_status = 'publish'
+                AND pm.meta_value = %d
+                ",
+                Course::$cpt,
+                $ld_course_id
+            )
+        );
     }
 
     /**
@@ -564,7 +576,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                     if ($ld_lesson instanceof WP_Post) {
                         $post_types = ['sfwd-lessons', 'sfwd-topic'];
 
-                        if ($this->is_course_quizzes_addon_active()) {
+                        if (MeprUtils::is_addon_active(MeprUtils::ADDON_COURSE_QUIZZES)) {
                             $post_types[] = 'sfwd-quiz';
                         }
 
@@ -596,11 +608,11 @@ class MeprMigratorLearnDash extends MeprMigrator
 
                         try {
                             $model = $this->migrate_model(
-                                $ld_lesson->post_type == 'sfwd-quiz' ? Quiz::class : Lesson::class,
+                                $ld_lesson->post_type === 'sfwd-quiz' ? Quiz::class : Lesson::class,
                                 $this->get_existing_lesson_id(
                                     $ld_course->ID,
                                     $ld_lesson->ID,
-                                    $ld_lesson->post_type == 'sfwd-quiz' ? Quiz::$cpt : Lesson::$cpt
+                                    $ld_lesson->post_type === 'sfwd-quiz' ? Quiz::$cpt : Lesson::$cpt
                                 ),
                                 $lesson_data
                             );
@@ -621,7 +633,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                             }
 
                             $this->logs[] = $this->model_migration_failed_log(
-                                $ld_lesson->post_type == 'sfwd-quiz' ? Quiz::class : Lesson::class,
+                                $ld_lesson->post_type === 'sfwd-quiz' ? Quiz::class : Lesson::class,
                                 $title,
                                 $ld_lesson->ID,
                                 $e->getMessage()
@@ -670,7 +682,7 @@ class MeprMigratorLearnDash extends MeprMigrator
 
             if (
                 !empty($settings["{$key}_materials_enabled"]) &&
-                $settings["{$key}_materials_enabled"] == 'on' &&
+                $settings["{$key}_materials_enabled"] === 'on' &&
                 !empty($settings["{$key}_materials"])
             ) {
                 return $settings["{$key}_materials"];
@@ -695,6 +707,7 @@ class MeprMigratorLearnDash extends MeprMigrator
         $quiz_pro_id = get_post_meta($ld_lesson->ID, 'quiz_pro_id', true);
 
         if (is_numeric($quiz_pro_id)) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
             $ld_questions = $wpdb->get_results(
                 $wpdb->prepare(
                     "SELECT * FROM {$wpdb->prefix}learndash_pro_quiz_question
@@ -890,18 +903,24 @@ class MeprMigratorLearnDash extends MeprMigrator
     {
         global $wpdb;
 
-        $query = "SELECT p.ID
-              FROM $wpdb->posts p
-              INNER JOIN $wpdb->postmeta pm1 ON pm1.post_id = p.ID AND pm1.meta_key = '_mepr_learndash_course_id'
-              INNER JOIN $wpdb->postmeta pm2 ON pm2.post_id = p.ID AND pm2.meta_key = '_mepr_learndash_lesson_id'
-              WHERE p.post_type = %s
-              AND p.post_status = 'publish'
-              AND pm1.meta_value = %d
-              AND pm2.meta_value = %d";
-
-        $query = $wpdb->prepare($query, $post_type, $ld_course_id, $ld_lesson_id);
-
-        return (int) $wpdb->get_var($query);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "
+                SELECT p.ID
+                FROM $wpdb->posts p
+                INNER JOIN $wpdb->postmeta pm1 ON pm1.post_id = p.ID AND pm1.meta_key = '_mepr_learndash_course_id'
+                INNER JOIN $wpdb->postmeta pm2 ON pm2.post_id = p.ID AND pm2.meta_key = '_mepr_learndash_lesson_id'
+                WHERE p.post_type = %s
+                AND p.post_status = 'publish'
+                AND pm1.meta_value = %d
+                AND pm2.meta_value = %d
+                ",
+                $post_type,
+                $ld_course_id,
+                $ld_lesson_id
+            )
+        );
     }
 
     /**
@@ -1006,7 +1025,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                 foreach ($ld_lesson['sfwd-topic'] as $topic_post_id => $topic) {
                     $sections[$key]['children'][] = $topic_post_id;
 
-                    if ($this->is_course_quizzes_addon_active()) {
+                    if (MeprUtils::is_addon_active(MeprUtils::ADDON_COURSE_QUIZZES)) {
                         // Quiz that is a child of this topic.
                         if (isset($topic['sfwd-quiz']) && is_array($topic['sfwd-quiz'])) {
                             foreach ($topic['sfwd-quiz'] as $quiz_post_id => $quiz) {
@@ -1017,7 +1036,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                 }
             }
 
-            if ($this->is_course_quizzes_addon_active()) {
+            if (MeprUtils::is_addon_active(MeprUtils::ADDON_COURSE_QUIZZES)) {
                 // Quiz that is a child of this ld_lesson.
                 if (isset($ld_lesson['sfwd-quiz']) && is_array($ld_lesson['sfwd-quiz'])) {
                     foreach ($ld_lesson['sfwd-quiz'] as $quiz_post_id => $quiz) {
@@ -1027,7 +1046,7 @@ class MeprMigratorLearnDash extends MeprMigrator
             }
         }
 
-        if ($this->is_course_quizzes_addon_active()) {
+        if (MeprUtils::is_addon_active(MeprUtils::ADDON_COURSE_QUIZZES)) {
             // End of course quiz(zes).
             $quizzes = isset($steps['sfwd-quiz']) && is_array($steps['sfwd-quiz']) ? $steps['sfwd-quiz'] : [];
 
@@ -1195,57 +1214,56 @@ class MeprMigratorLearnDash extends MeprMigrator
         $fetch_batch = function ($limit, $offset) {
             global $wpdb;
 
-            $query = "SELECT
-                  ua.user_id,
-                  ua.activity_started,
-                  ua.activity_completed,
-                  p1.ID AS mp_lesson_id,
-                  p3.ID AS mp_course_id,
-                  p5.ID AS mp_parent_lesson_id
-                FROM {$wpdb->prefix}learndash_user_activity ua
-                INNER JOIN $wpdb->posts p1
-                  ON p1.ID = (
-                    SELECT p2.ID
-                    FROM $wpdb->posts p2
-                    INNER JOIN $wpdb->postmeta pm1 ON pm1.post_id = p2.ID AND pm1.meta_key = '_mepr_learndash_course_id'
-                    INNER JOIN $wpdb->postmeta pm2 ON pm2.post_id = p2.ID AND pm2.meta_key = '_mepr_learndash_lesson_id'
-                    WHERE p2.post_type = %s
-                      AND p2.post_status = 'publish'
-                      AND pm1.meta_value = ua.course_id
-                      AND pm2.meta_value = ua.post_id
-                    LIMIT 1
-                  )
-                INNER JOIN $wpdb->posts p3
-                  ON p3.ID = (
-                    SELECT p4.ID
-                    FROM $wpdb->posts p4
-                    INNER JOIN $wpdb->postmeta pm3 ON pm3.post_id = p4.ID AND pm3.meta_key = '_mepr_learndash_course_id'
-                    WHERE p4.post_type = %s
-                      AND p4.post_status = 'publish'
-                      AND pm3.meta_value = ua.course_id
-                    LIMIT 1
-                  )
-                LEFT JOIN $wpdb->posts p5
-                  ON p5.ID = (
-                    SELECT p6.ID
-                    FROM $wpdb->posts p6
-                    INNER JOIN $wpdb->postmeta pm4 ON pm4.post_id = p6.ID AND pm4.meta_key = '_mepr_learndash_lesson_id'
-                    INNER JOIN $wpdb->postmeta pm5 ON pm4.meta_value = pm5.meta_value AND pm5.meta_key = 'lesson_id'
-                    WHERE p6.post_type = %s
-                      AND p6.post_status = 'publish'
-                      AND pm5.post_id = ua.post_id
-                    LIMIT 1
-                  )
-                WHERE ua.user_id > 0
-                  AND ua.activity_type IN ('lesson', 'topic')
-                  AND ua.activity_completed IS NOT NULL
-                  AND ua.activity_completed > 0
-                ORDER BY ua.activity_id ASC
-                LIMIT %d OFFSET %d";
-
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
             $user_activity = $wpdb->get_results(
                 $wpdb->prepare(
-                    $query,
+                    "SELECT
+                    ua.user_id,
+                    ua.activity_started,
+                    ua.activity_completed,
+                    p1.ID AS mp_lesson_id,
+                    p3.ID AS mp_course_id,
+                    p5.ID AS mp_parent_lesson_id
+                    FROM {$wpdb->prefix}learndash_user_activity ua
+                    INNER JOIN $wpdb->posts p1
+                    ON p1.ID = (
+                        SELECT p2.ID
+                        FROM $wpdb->posts p2
+                        INNER JOIN $wpdb->postmeta pm1 ON pm1.post_id = p2.ID AND pm1.meta_key = '_mepr_learndash_course_id'
+                        INNER JOIN $wpdb->postmeta pm2 ON pm2.post_id = p2.ID AND pm2.meta_key = '_mepr_learndash_lesson_id'
+                        WHERE p2.post_type = %s
+                        AND p2.post_status = 'publish'
+                        AND pm1.meta_value = ua.course_id
+                        AND pm2.meta_value = ua.post_id
+                        LIMIT 1
+                    )
+                    INNER JOIN $wpdb->posts p3
+                    ON p3.ID = (
+                        SELECT p4.ID
+                        FROM $wpdb->posts p4
+                        INNER JOIN $wpdb->postmeta pm3 ON pm3.post_id = p4.ID AND pm3.meta_key = '_mepr_learndash_course_id'
+                        WHERE p4.post_type = %s
+                        AND p4.post_status = 'publish'
+                        AND pm3.meta_value = ua.course_id
+                        LIMIT 1
+                    )
+                    LEFT JOIN $wpdb->posts p5
+                    ON p5.ID = (
+                        SELECT p6.ID
+                        FROM $wpdb->posts p6
+                        INNER JOIN $wpdb->postmeta pm4 ON pm4.post_id = p6.ID AND pm4.meta_key = '_mepr_learndash_lesson_id'
+                        INNER JOIN $wpdb->postmeta pm5 ON pm4.meta_value = pm5.meta_value AND pm5.meta_key = 'lesson_id'
+                        WHERE p6.post_type = %s
+                        AND p6.post_status = 'publish'
+                        AND pm5.post_id = ua.post_id
+                        LIMIT 1
+                    )
+                    WHERE ua.user_id > 0
+                    AND ua.activity_type IN ('lesson', 'topic')
+                    AND ua.activity_completed IS NOT NULL
+                    AND ua.activity_completed > 0
+                    ORDER BY ua.activity_id ASC
+                    LIMIT %d OFFSET %d",
                     Lesson::$cpt,
                     Course::$cpt,
                     Lesson::$cpt,
@@ -1291,7 +1309,7 @@ class MeprMigratorLearnDash extends MeprMigrator
             ]);
         }
 
-        if (!$this->is_course_quizzes_addon_active()) {
+        if (!MeprUtils::is_addon_active(MeprUtils::ADDON_COURSE_QUIZZES)) {
             update_option('mepr_migrator_learndash_completed', true);
 
             $this->send_success_response($data, [
@@ -1320,74 +1338,73 @@ class MeprMigratorLearnDash extends MeprMigrator
         $fetch_batch = function ($limit, $offset) {
             global $wpdb;
 
-            $query = "SELECT
-                  ua.activity_id,
-                  ua.user_id,
-                  ua.activity_started,
-                  ua.activity_completed,
-                  p1.ID AS mp_lesson_id,
-                  p3.ID AS mp_course_id,
-                  uam.activity_meta_value AS score,
-                  p5.ID as mp_parent_lesson_id
-                FROM {$wpdb->prefix}learndash_user_activity ua
-                INNER JOIN $wpdb->posts p1
-                  ON p1.ID = (
-                    SELECT p2.ID
-                    FROM $wpdb->posts p2
-                    INNER JOIN $wpdb->postmeta pm1 ON pm1.post_id = p2.ID AND pm1.meta_key = '_mepr_learndash_course_id'
-                    INNER JOIN $wpdb->postmeta pm2 ON pm2.post_id = p2.ID AND pm2.meta_key = '_mepr_learndash_lesson_id'
-                    WHERE p2.post_type = %s
-                      AND p2.post_status = 'publish'
-                      AND pm1.meta_value = ua.course_id
-                      AND pm2.meta_value = ua.post_id
-                    LIMIT 1
-                  )
-                INNER JOIN $wpdb->posts p3
-                  ON p3.ID = (
-                    SELECT p4.ID
-                    FROM $wpdb->posts p4
-                    INNER JOIN $wpdb->postmeta pm3 ON pm3.post_id = p4.ID AND pm3.meta_key = '_mepr_learndash_course_id'
-                    WHERE p4.post_type = %s
-                      AND p4.post_status = 'publish'
-                      AND pm3.meta_value = ua.course_id
-                    LIMIT 1
-                 )
-                INNER JOIN {$wpdb->prefix}learndash_user_activity_meta uam
-                  ON uam.activity_meta_id = (
-                    SELECT uam2.activity_meta_id
-                    FROM {$wpdb->prefix}learndash_user_activity ua2
-                    INNER JOIN {$wpdb->prefix}learndash_user_activity_meta uam2
-                      ON uam2.activity_id = ua2.activity_id
-                     AND uam2.activity_meta_key = 'percentage'
-                    WHERE ua2.user_id = ua.user_id
-                      AND ua2.post_id = ua.post_id
-                      AND ua2.course_id = ua.course_id
-                      AND ua2.activity_type = 'quiz'
-                    ORDER BY CAST(uam2.activity_meta_value AS DECIMAL(10, 2)) DESC, ua2.activity_id DESC
-                    LIMIT 1
-                  )
-                LEFT JOIN $wpdb->posts p5
-                  ON p5.ID = (
-                    SELECT p6.ID
-                    FROM $wpdb->posts p6
-                    INNER JOIN $wpdb->postmeta pm4 ON pm4.post_id = p6.ID AND pm4.meta_key = '_mepr_learndash_lesson_id'
-                    INNER JOIN $wpdb->postmeta pm5 ON pm4.meta_value = pm5.meta_value AND pm5.meta_key = 'lesson_id'
-                    WHERE p6.post_type = %s
-                      AND p6.post_status = 'publish'
-                      AND pm5.post_id = ua.post_id
-                    LIMIT 1
-                  )
-                WHERE ua.user_id > 0
-                  AND ua.activity_type = 'quiz'
-                  AND ua.activity_completed IS NOT NULL
-                  AND ua.activity_completed > 0
-                  AND ua.activity_id = uam.activity_id
-                ORDER BY ua.activity_id
-                LIMIT %d OFFSET %d";
-
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
             $user_activity = $wpdb->get_results(
                 $wpdb->prepare(
-                    $query,
+                    "SELECT
+                    ua.activity_id,
+                    ua.user_id,
+                    ua.activity_started,
+                    ua.activity_completed,
+                    p1.ID AS mp_lesson_id,
+                    p3.ID AS mp_course_id,
+                    uam.activity_meta_value AS score,
+                    p5.ID as mp_parent_lesson_id
+                    FROM {$wpdb->prefix}learndash_user_activity ua
+                    INNER JOIN $wpdb->posts p1
+                    ON p1.ID = (
+                        SELECT p2.ID
+                        FROM $wpdb->posts p2
+                        INNER JOIN $wpdb->postmeta pm1 ON pm1.post_id = p2.ID AND pm1.meta_key = '_mepr_learndash_course_id'
+                        INNER JOIN $wpdb->postmeta pm2 ON pm2.post_id = p2.ID AND pm2.meta_key = '_mepr_learndash_lesson_id'
+                        WHERE p2.post_type = %s
+                        AND p2.post_status = 'publish'
+                        AND pm1.meta_value = ua.course_id
+                        AND pm2.meta_value = ua.post_id
+                        LIMIT 1
+                    )
+                    INNER JOIN $wpdb->posts p3
+                    ON p3.ID = (
+                        SELECT p4.ID
+                        FROM $wpdb->posts p4
+                        INNER JOIN $wpdb->postmeta pm3 ON pm3.post_id = p4.ID AND pm3.meta_key = '_mepr_learndash_course_id'
+                        WHERE p4.post_type = %s
+                        AND p4.post_status = 'publish'
+                        AND pm3.meta_value = ua.course_id
+                        LIMIT 1
+                    )
+                    INNER JOIN {$wpdb->prefix}learndash_user_activity_meta uam
+                    ON uam.activity_meta_id = (
+                        SELECT uam2.activity_meta_id
+                        FROM {$wpdb->prefix}learndash_user_activity ua2
+                        INNER JOIN {$wpdb->prefix}learndash_user_activity_meta uam2
+                        ON uam2.activity_id = ua2.activity_id
+                        AND uam2.activity_meta_key = 'percentage'
+                        WHERE ua2.user_id = ua.user_id
+                        AND ua2.post_id = ua.post_id
+                        AND ua2.course_id = ua.course_id
+                        AND ua2.activity_type = 'quiz'
+                        ORDER BY CAST(uam2.activity_meta_value AS DECIMAL(10, 2)) DESC, ua2.activity_id DESC
+                        LIMIT 1
+                    )
+                    LEFT JOIN $wpdb->posts p5
+                    ON p5.ID = (
+                        SELECT p6.ID
+                        FROM $wpdb->posts p6
+                        INNER JOIN $wpdb->postmeta pm4 ON pm4.post_id = p6.ID AND pm4.meta_key = '_mepr_learndash_lesson_id'
+                        INNER JOIN $wpdb->postmeta pm5 ON pm4.meta_value = pm5.meta_value AND pm5.meta_key = 'lesson_id'
+                        WHERE p6.post_type = %s
+                        AND p6.post_status = 'publish'
+                        AND pm5.post_id = ua.post_id
+                        LIMIT 1
+                    )
+                    WHERE ua.user_id > 0
+                    AND ua.activity_type = 'quiz'
+                    AND ua.activity_completed IS NOT NULL
+                    AND ua.activity_completed > 0
+                    AND ua.activity_id = uam.activity_id
+                    ORDER BY ua.activity_id
+                    LIMIT %d OFFSET %d",
                     Quiz::$cpt,
                     Course::$cpt,
                     Lesson::$cpt,
@@ -1459,6 +1476,7 @@ class MeprMigratorLearnDash extends MeprMigrator
 
                 global $wpdb;
 
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery
                 $answers = $wpdb->get_results(
                     $wpdb->prepare(
                         "SELECT
@@ -1531,12 +1549,14 @@ class MeprMigratorLearnDash extends MeprMigrator
     {
         global $wpdb;
 
-        $query = "SELECT activity_meta_key, activity_meta_value
-              FROM {$wpdb->prefix}learndash_user_activity_meta
-              WHERE activity_id = %d";
-
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
         $metadata = $wpdb->get_results(
-            $wpdb->prepare($query, $activity_id),
+            $wpdb->prepare(
+                "SELECT activity_meta_key, activity_meta_value
+                FROM {$wpdb->prefix}learndash_user_activity_meta
+                WHERE activity_id = %d",
+                $activity_id
+            ),
             ARRAY_A
         );
 
@@ -1560,7 +1580,7 @@ class MeprMigratorLearnDash extends MeprMigrator
         if (is_array($answer_data)) {
             switch ($answer['answer_type']) {
                 case 'single':
-                    $index = array_search(1, $answer_data);
+                    $index = array_search(1, $answer_data, true);
 
                     if (is_int($index)) {
                         $value = (string) $index;
@@ -1591,7 +1611,7 @@ class MeprMigratorLearnDash extends MeprMigrator
 
                         foreach ($question->options as $key => $value) {
                                 $answer_hash = md5($user_id . $answer['question_id'] . $key);
-                                $index       = array_search($answer_hash, $answer_data);
+                                $index       = array_search($answer_hash, $answer_data, true);
 
                             if (is_int($index)) {
                                 $answer_data[$index] = $value;
@@ -1599,7 +1619,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                             }
                         }
 
-                        if ($updated == count($answer_data)) {
+                        if ($updated === count($answer_data)) {
                               $value = $answer_data;
                         }
                     }
@@ -1612,7 +1632,7 @@ class MeprMigratorLearnDash extends MeprMigrator
 
                         foreach ($question->options as $key => $value) {
                                 $answer_hash = md5($user_id . $answer['question_id'] . $key);
-                                $index       = array_search($answer_hash, $answer_data);
+                                $index       = array_search($answer_hash, $answer_data, true);
 
                             if (is_int($index) && isset($question->answer[$key])) {
                                 $answer_data[$index] = $question->answer[$key];
@@ -1620,7 +1640,7 @@ class MeprMigratorLearnDash extends MeprMigrator
                             }
                         }
 
-                        if ($updated == count($answer_data)) {
+                        if ($updated === count($answer_data)) {
                               $value = $answer_data;
                         }
                     }
@@ -1698,34 +1718,16 @@ class MeprMigratorLearnDash extends MeprMigrator
         global $wpdb;
         $mepr_db = MeprDb::fetch();
 
-        $ld_course_exists = (bool) $wpdb->get_var(
-            "SELECT ID FROM $wpdb->posts WHERE post_type = 'sfwd-courses' LIMIT 1"
-        );
+        $ld_course_exists = count(get_posts([
+            'post_type'   => 'sfwd-courses',
+            'numberposts' => 1,
+            'fields'      => 'ids',
+        ])) > 0;
 
         $ld_table_exists = $mepr_db->table_exists("{$wpdb->prefix}learndash_pro_quiz_master");
 
         $result = $ld_course_exists && $ld_table_exists;
 
         return $result;
-    }
-
-    /**
-     * Is the Courses add-on active?
-     *
-     * @return boolean
-     */
-    protected function is_courses_addon_active(): bool
-    {
-        return defined('memberpress\\courses\\VERSION');
-    }
-
-    /**
-     * Is the Course Quizzes add-on active?
-     *
-     * @return boolean
-     */
-    protected function is_course_quizzes_addon_active(): bool
-    {
-        return defined('memberpress\\quizzes\\VERSION');
     }
 }

@@ -14,7 +14,8 @@ class MeprUserWelcomeEmail extends MeprBaseOptionsUserEmail
      */
     public function set_defaults($args = [])
     {
-        $this->title       = __('<b>Welcome Email</b>', 'memberpress');
+        // Translators: %s email title.
+        $this->title       = sprintf('<b>%s</b>', __('Welcome Email', 'memberpress'));
         $this->description = __('This email is sent welcome a new user when she initially signs up for your membership site with a completed purchase.', 'memberpress');
         $this->ui_order    = 0;
 

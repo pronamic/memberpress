@@ -43,7 +43,7 @@ abstract class MeprBasePayPalGateway extends MeprBaseRealGateway
             !is_wp_error($resp) &&
             $resp['response']['code'] >= 200 &&
             $resp['response']['code'] < 300 &&
-            (strcmp($resp['body'], 'VERIFIED') == 0)
+            (strcmp($resp['body'], 'VERIFIED') === 0)
         ) {
             return true;
         }

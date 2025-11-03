@@ -8,7 +8,7 @@
   margin: 30px 0;
 }
 .mepr-sister-plugin-image img {
-  width: 300px;
+  width: 373px;
   height: auto;
   max-width: 100%;
 }
@@ -183,13 +183,10 @@ body[data-mepr-chosen-tab="courses"] p.submit {
   position: relative;
   padding-left: 30px;
 }
-.mepr-sister-plugin-easy-affiliate .mepr-sister-plugin-info-features svg {
+.mepr-sister-plugin-easy-affiliate .mepr-sister-plugin-info-features img {
   width: 19px;
   height: auto;
   position: absolute;
   left: 0;
   top: 4px;
-}
-.mepr-sister-plugin-easy-affiliate .mepr-sister-plugin-info-features svg path {
-  fill: #609D62;
 }

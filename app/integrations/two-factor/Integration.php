@@ -27,7 +27,7 @@ class MeprTwoFactorIntegration
      */
     public function two_factor_totp_delete()
     {
-        if (isset($_GET['two_factor_action']) && $_GET['two_factor_action'] == 'totp-delete') {
+        if (isset($_GET['two_factor_action']) && $_GET['two_factor_action'] === 'totp-delete') {
             $mepr_options = MeprOptions::fetch();
             $account_url  = $mepr_options->account_page_url();
             $delim        = MeprAppCtrl::get_param_delimiter_char($account_url);
@@ -48,7 +48,7 @@ class MeprTwoFactorIntegration
         global $post;
 
         if (MeprUser::is_account_page($post)) {
-            if (isset($_GET['action']) && $_GET['action'] == '2fa' && class_exists('Two_Factor_FIDO_U2F_Admin')) {
+            if (isset($_GET['action']) && $_GET['action'] === '2fa' && class_exists('Two_Factor_FIDO_U2F_Admin')) {
                 wp_enqueue_script('wp-api');
                 Two_Factor_FIDO_U2F_Admin::enqueue_assets('profile.php');
             }
@@ -112,8 +112,8 @@ class MeprTwoFactorIntegration
             ?>
             <span class="mepr-nav-item <?php MeprAccountHelper::active_nav('2fa'); ?>">
                 <a
-                    href="<?php echo MeprHooks::apply_filters('mepr-account-nav-2fa-link', $account_url . $delim . 'action=2fa'); ?>"
-                    id="mepr-account-2fa"><?php echo MeprHooks::apply_filters('mepr-account-nav-2fa-label', _x('2FA', 'ui', 'memberpress')); ?></a>
+                    href="<?php echo esc_url(MeprHooks::apply_filters('mepr_account_nav_2fa_link', $account_url . $delim . 'action=2fa')); ?>"
+                    id="mepr-account-2fa"><?php echo esc_html(MeprHooks::apply_filters('mepr_account_nav_2fa_label', _x('2FA', 'ui', 'memberpress'))); ?></a>
             </span>
             <?php
         }
@@ -164,7 +164,7 @@ class MeprTwoFactorIntegration
     public static function user_two_factor_options_update($user_id)
     {
         if (isset($_POST['_nonce_user_two_factor_options'])) {
-            if (!wp_verify_nonce($_POST['_nonce_user_two_factor_options'], 'user_two_factor_options')) {
+            if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_nonce_user_two_factor_options'])), 'user_two_factor_options')) {
                 return;
             }
 
@@ -180,17 +180,17 @@ class MeprTwoFactorIntegration
             }
 
             $providers          = self::get_providers();
-            $enabled_providers  = $_POST[Two_Factor_Core::ENABLED_PROVIDERS_USER_META_KEY];
+            $enabled_providers  = array_map('sanitize_text_field', wp_unslash($_POST[Two_Factor_Core::ENABLED_PROVIDERS_USER_META_KEY]));
             $existing_providers = Two_Factor_Core::get_enabled_providers_for_user($user_id);
 
             // Enable only the available providers.
             $enabled_providers = array_intersect($enabled_providers, array_keys($providers));
-            update_user_meta($user_id, Two_Factor_Core::ENABLED_PROVIDERS_USER_META_KEY, $enabled_providers);
+            update_user_meta($user_id, Two_Factor_Core::ENABLED_PROVIDERS_USER_META_KEY, wp_slash($enabled_providers));
 
             // Primary provider must be enabled.
-            $new_provider = isset($_POST[Two_Factor_Core::PROVIDER_USER_META_KEY]) ? $_POST[Two_Factor_Core::PROVIDER_USER_META_KEY] : '';
+            $new_provider = isset($_POST[Two_Factor_Core::PROVIDER_USER_META_KEY]) ? sanitize_text_field(wp_unslash($_POST[Two_Factor_Core::PROVIDER_USER_META_KEY])) : '';
             if (!empty($new_provider) && in_array($new_provider, $enabled_providers, true)) {
-                update_user_meta($user_id, Two_Factor_Core::PROVIDER_USER_META_KEY, $new_provider);
+                update_user_meta($user_id, Two_Factor_Core::PROVIDER_USER_META_KEY, wp_slash($new_provider));
             } else {
                 delete_user_meta($user_id, Two_Factor_Core::PROVIDER_USER_META_KEY);
             }
@@ -256,7 +256,7 @@ class MeprTwoFactorIntegration
         if (!$show_2fa_options) {
             $url = add_query_arg(
                 'redirect_to',
-                urlencode(wp_unslash($_SERVER['REQUEST_URI'])),
+                urlencode(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''))),
                 Two_Factor_Core::get_user_two_factor_revalidate_url()
             );
 
@@ -329,7 +329,7 @@ class MeprTwoFactorIntegration
                         <th><?php esc_html_e('Primary Method', 'memberpress') ?></th>
                         <td>
                             <select name="<?php echo esc_attr(Two_Factor_Core::PROVIDER_USER_META_KEY); ?>">
-                                <option value=""><?php echo esc_html(__('Default', 'memberpress')); ?></option>
+                                <option value=""><?php echo esc_html__('Default', 'memberpress'); ?></option>
                                 <?php foreach (self::get_providers() as $provider_key => $object) : ?>
                                     <option
                                         value="<?php echo esc_attr($provider_key); ?>"

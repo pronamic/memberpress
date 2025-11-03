@@ -18,7 +18,7 @@ class MeprLogException extends MeprException
     public function __construct($message, $code = 0, Exception $previous = null)
     {
         $classname = get_class($this);
-        MeprUtils::error_log("{$classname}: {$message}");
+        MeprUtils::debug_log("{$classname}: {$message}");
         parent::__construct($message, $code, $previous);
     }
 }
