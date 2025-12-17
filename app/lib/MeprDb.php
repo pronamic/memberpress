@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
-// phpcs:disable WordPress.DB.DirectDatabaseQuery
+// phpcs:disable WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
 class MeprDb
 {
     /**
@@ -55,6 +55,22 @@ class MeprDb
                 'order_meta',
             ]
         );
+    }
+
+    /**
+     * Defines our tables in $wpdb so we can use $wpdb->mepr_table_name.
+     */
+    public static function define_tables(): void
+    {
+        global $wpdb;
+
+        $db = new self();
+
+        foreach ($db->tables as $table) {
+            $name           = 'mepr_' . $table;
+            $wpdb->$name    = $wpdb->prefix . $name;
+            $wpdb->tables[] = $name;
+        }
     }
 
     /**
@@ -182,6 +198,7 @@ class MeprDb
           corporate_account_id bigint(20) DEFAULT 0,
           parent_transaction_id bigint(20) DEFAULT 0,
           order_id bigint(20) DEFAULT 0,
+          refunded_at datetime DEFAULT NULL,
           PRIMARY KEY  (id),
           KEY amount (amount),
           KEY total (total),
@@ -205,7 +222,8 @@ class MeprDb
           KEY expires_at (expires_at),
           KEY corporate_account_id (corporate_account_id),
           KEY parent_transaction_id (parent_transaction_id),
-          KEY order_id (order_id)
+          KEY order_id (order_id),
+          KEY refunded_at (refunded_at)
         ) {$char_col};";
 
             dbDelta($txns);
@@ -1604,11 +1622,9 @@ class MeprDb
      */
     public function before_do_upgrade()
     {
-        global $wpdb;
-
         if ($this->table_exists($this->members) && !$this->column_exists($this->members, 'inactive_memberships') && !wp_next_scheduled('mepr_migrate_members_table_015')) {
             wp_schedule_event(time() + MeprUtils::minutes(10), 'mepr_migrate_members_table_015_interval', 'mepr_migrate_members_table_015');
         }
     }
 }
-// phpcs:enable WordPress.DB.DirectDatabaseQuery
+// phpcs:enable WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter

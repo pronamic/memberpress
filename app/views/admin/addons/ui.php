@@ -1,113 +1,167 @@
 <?php if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
-} ?>
+}
+?>
 
 <div id="mepr-admin-addons" class="wrap">
 
-  <h2><?php esc_html_e('MemberPress Add-ons', 'memberpress'); ?><a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-addons&refresh=true')); ?>" class="add-new-h2 mepr-addons-refresh"><?php esc_html_e('Refresh Add-ons', 'memberpress'); ?></a><input type="search" id="mepr-addons-search" placeholder="<?php esc_attr_e('Search add-ons', 'memberpress'); ?>"></h2>
+  <h2><?php esc_html_e('MemberPress Add-ons', 'memberpress'); ?></h2>
 
-  <p>
+  <nav class="nav-tab-wrapper mepr-nav-tab-wrapper">
     <?php
-      printf(
-        // Translators: %1$s: open link tag, %2$s: close link tag.
-          esc_html__('Improve your memberships with our premium add-ons. Missing an add-on that you think you should be able to see? Click the %1$sRefresh Add-ons%2$s button above.', 'memberpress'),
-          sprintf('<a href="%s">', esc_url(admin_url('admin.php?page=memberpress-addons&refresh=true'))),
-          '</a>'
-      );
-        ?>
-  </p>
-
-  <h4><?php esc_html_e('Available Add-ons', 'memberpress'); ?></h4>
-
-  <?php if (!empty($addons)) : ?>
-    <div id="mepr-addons-container">
-
-      <div class="mepr-addons mepr-clearfix">
-
-        <?php
-        foreach ($addons as $slug => $info) :
-            $info         = (object) $info;
-            $status_label = '';
-            $action_class = 'mepr-addon-action';
-
-            $installed = isset($info->extra_info->directory) && is_dir(WP_PLUGIN_DIR . '/' . $info->extra_info->directory);
-            $active    = isset($info->extra_info->main_file) && is_plugin_active($info->extra_info->main_file);
-
-            if ($installed && $active) {
-                $addon_status       = 'active';
-                $status_label = esc_html__('Active', 'memberpress');
-            } elseif (!$installed && $info->installable) {
-                $addon_status       = 'download';
-                $status_label = esc_html__('Not Installed', 'memberpress');
-            } elseif ($installed && !$active) {
-                $addon_status       = 'inactive';
-                $status_label = esc_html__('Inactive', 'memberpress');
-            } else {
-                $addon_status = 'upgrade';
+    // Render registered tabs.
+    if (!empty($registered_tabs)) :
+        foreach ($registered_tabs as $tab_config) :
+            // Check capability.
+            if (!current_user_can($tab_config['capability'])) {
+                continue;
             }
+
+            $is_active = $active_tab === $tab_config['id'] ? 'nav-tab-active' : '';
             ?>
-          <div class="mepr-addon mepr-addon-status-<?php echo esc_attr($addon_status); ?>">
-            <div class="mepr-addon-inner">
+            <a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-addons&tab=' . $tab_config['id'])); ?>"
+               class="nav-tab <?php echo esc_attr($is_active); ?>">
+                <?php echo esc_html($tab_config['label']); ?>
+            </a>
+            <?php
+        endforeach;
+    endif;
+    ?>
+  </nav>
 
-              <div class="mepr-addon-details">
-                <img src="<?php echo esc_url($info->extra_info->cover_image); ?>" alt="<?php echo esc_attr($info->product_name); ?>">
-                <h5 class="mepr-addon-name"><?php echo esc_html(isset($info->extra_info->list_title) ? $info->extra_info->list_title : $info->product_name); ?></h5>
-                <p><?php echo esc_html($info->extra_info->description); ?></p>
-              </div>
+  <?php if ($active_tab === 'addons') : ?>
+    <div class="mepr-tab-content mepr-tab-addons">
+      <div class="mepr-tab-header">
+        <a href="<?php echo esc_url(admin_url('admin.php?page=memberpress-addons&tab=addons&refresh=true')); ?>" class="button mepr-addons-refresh"><?php esc_html_e('Refresh Add-ons', 'memberpress'); ?></a>
+        <input type="search" id="mepr-addons-search" placeholder="<?php esc_attr_e('Search add-ons', 'memberpress'); ?>">
+      </div>
 
-              <div class="mepr-addon-actions mepr-clearfix">
+      <p>
+        <?php
+          printf(
+            // Translators: %1$s: open link tag, %2$s: close link tag.
+              esc_html__('Improve your memberships with our premium add-ons. Missing an add-on that you think you should be able to see? Click the %1$sRefresh Add-ons%2$s button above.', 'memberpress'),
+              sprintf('<a href="%s">', esc_url(admin_url('admin.php?page=memberpress-addons&tab=addons&refresh=true'))),
+              '</a>'
+          );
+        ?>
+      </p>
 
-              <?php if ($addon_status !== 'upgrade') : ?>
-                  <div class="mepr-addon-status">
-                    <strong>
-                      <?php
-                        printf(
-                          // Translators: %s: add-on status label.
-                            esc_html__('Status: %s', 'memberpress'),
-                            sprintf(
-                                '<span class="mepr-addon-status-label">%s</span>',
-                                esc_html($status_label)
-                            )
-                        );
+      <h4><?php esc_html_e('Available Add-ons', 'memberpress'); ?></h4>
+
+        <?php if (!empty($addons)) : ?>
+      <div id="mepr-addons-container">
+
+        <div class="mepr-addons mepr-clearfix">
+
+            <?php
+            foreach ($addons as $slug => $info) :
+                $info         = (object) $info;
+                $status_label = '';
+                $action_class = 'mepr-addon-action';
+
+                $installed = isset($info->extra_info->directory) && is_dir(WP_PLUGIN_DIR . '/' . $info->extra_info->directory);
+                $active    = isset($info->extra_info->main_file) && is_plugin_active($info->extra_info->main_file);
+
+                if ($installed && $active) {
+                    $addon_status       = 'active';
+                    $status_label = esc_html__('Active', 'memberpress');
+                } elseif (!$installed && $info->installable) {
+                    $addon_status       = 'download';
+                    $status_label = esc_html__('Not Installed', 'memberpress');
+                } elseif ($installed && !$active) {
+                    $addon_status       = 'inactive';
+                    $status_label = esc_html__('Inactive', 'memberpress');
+                } else {
+                    $addon_status = 'upgrade';
+                }
+                ?>
+            <div class="mepr-addon mepr-addon-status-<?php echo esc_attr($addon_status); ?>">
+              <div class="mepr-addon-inner">
+
+                <div class="mepr-addon-details">
+                  <img src="<?php echo esc_url($info->extra_info->cover_image); ?>" alt="<?php echo esc_attr($info->product_name); ?>">
+                  <h5 class="mepr-addon-name"><?php echo esc_html(isset($info->extra_info->list_title) ? $info->extra_info->list_title : $info->product_name); ?></h5>
+                  <p><?php echo esc_html($info->extra_info->description); ?></p>
+                </div>
+
+                <div class="mepr-addon-actions mepr-clearfix">
+
+                  <?php if ($addon_status !== 'upgrade') : ?>
+                    <div class="mepr-addon-status">
+                      <strong>
+                        <?php
+                          printf(
+                            // Translators: %s: add-on status label.
+                              esc_html__('Status: %s', 'memberpress'),
+                              sprintf(
+                                  '<span class="mepr-addon-status-label">%s</span>',
+                                  esc_html($status_label)
+                              )
+                          );
                         ?>
-                    </strong>
-                  </div>
-
-              <?php else :  ?>
-                    <?php $action_class .= ' mepr-addon-action-upgrade'; ?>
-
-              <?php endif; ?>
-
-                <div class="<?php echo esc_attr($action_class); ?>">
-
-                  <?php if ($addon_status === 'active') : ?>
-                    <button type="button" data-plugin="<?php echo esc_attr($info->extra_info->main_file); ?>" data-type="add-on"><i class="mp-icon mp-icon-toggle-on"></i><?php esc_html_e('Deactivate', 'memberpress'); ?></button>
-
-                  <?php elseif ($addon_status === 'inactive') : ?>
-                    <button type="button" data-plugin="<?php echo esc_attr($info->extra_info->main_file); ?>" data-type="add-on"><i class="mp-icon mp-icon-toggle-on mp-flip-horizontal"></i><?php esc_html_e('Activate', 'memberpress'); ?></button>
-
-                  <?php elseif ($addon_status === 'download') : ?>
-                    <button type="button" data-plugin="<?php echo esc_attr($info->url); ?>" data-type="add-on"><i class="mp-icon mp-icon-download-cloud"></i><?php esc_html_e('Install Add-on', 'memberpress'); ?></button>
+                      </strong>
+                    </div>
 
                   <?php else : ?>
-                    <a href="<?php echo esc_url(MeprUtils::get_link_url('login_redirect_pricing')); ?>" target="_blank"><?php esc_html_e('Upgrade Now', 'memberpress'); ?></a>
+                      <?php $action_class .= ' mepr-addon-action-upgrade'; ?>
 
                   <?php endif; ?>
 
-                </div>
+                  <div class="<?php echo esc_attr($action_class); ?>">
 
+                    <?php if ($addon_status === 'active') : ?>
+                      <button type="button" data-plugin="<?php echo esc_attr($info->extra_info->main_file); ?>" data-type="add-on"><i class="mp-icon mp-icon-toggle-on"></i><?php esc_html_e('Deactivate', 'memberpress'); ?></button>
+
+                    <?php elseif ($addon_status === 'inactive') : ?>
+                      <button type="button" data-plugin="<?php echo esc_attr($info->extra_info->main_file); ?>" data-type="add-on"><i class="mp-icon mp-icon-toggle-on mp-flip-horizontal"></i><?php esc_html_e('Activate', 'memberpress'); ?></button>
+
+                    <?php elseif ($addon_status === 'download') : ?>
+                      <button type="button" data-plugin="<?php echo esc_attr($info->url); ?>" data-type="add-on"><i class="mp-icon mp-icon-download-cloud"></i><?php esc_html_e('Install Add-on', 'memberpress'); ?></button>
+
+                    <?php else : ?>
+                      <a href="<?php echo esc_url(MeprUtils::get_link_url('login_redirect_pricing')); ?>" target="_blank"><?php esc_html_e('Upgrade Now', 'memberpress'); ?></a>
+
+                    <?php endif; ?>
+
+                  </div>
+
+                </div>
               </div>
             </div>
-          </div>
 
-        <?php endforeach; ?>
+            <?php endforeach; ?>
 
+        </div>
       </div>
-    </div>
 
-  <?php else : ?>
+        <?php else : ?>
     <h3><?php esc_html_e('There were no Add-ons found for your license or lack thereof...', 'memberpress'); ?></h3>
 
+        <?php endif; ?>
+
+    </div>
   <?php endif; ?>
+
+  <?php
+    // Render registered tab content.
+    if (!empty($registered_tabs) && isset($registered_tabs[$active_tab])) :
+        $current_tab = $registered_tabs[$active_tab];
+
+        // Check capability.
+        if (current_user_can($current_tab['capability'])) :
+            // Call tab callback if defined and not the default addons tab.
+            if ($active_tab !== 'addons' && $current_tab['callback'] && is_callable($current_tab['callback'])) :
+                ?>
+                <div class="mepr-tab-content mepr-tab-<?php echo esc_attr($active_tab); ?>">
+                    <?php
+                    call_user_func($current_tab['callback']);
+                    ?>
+                </div>
+                <?php
+            endif;
+        endif;
+    endif;
+    ?>
 
 </div>

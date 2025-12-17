@@ -330,18 +330,23 @@ class MeprCoupon extends MeprCptModel
         global $wpdb;
 
         if ($ignore_status) {
-            $query = "SELECT ID
-                     FROM {$wpdb->posts}
-                     WHERE post_title = %s
-                       AND post_type = %s";
-            $id = $wpdb->get_var($wpdb->prepare($query, $code, self::$cpt)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type = %s",
+                    $code,
+                    self::$cpt
+                )
+            );
         } else {
-            $query = "SELECT ID
-                     FROM {$wpdb->posts}
-                     WHERE post_title = %s
-                       AND post_type = %s
-                       AND post_status = 'publish'";
-            $id = $wpdb->get_var($wpdb->prepare($query, $code, self::$cpt)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type = %s AND post_status = 'publish'",
+                    $code,
+                    self::$cpt
+                )
+            );
         }
 
         if (!$id) {
@@ -599,29 +604,33 @@ class MeprCoupon extends MeprCptModel
     public function update_usage_count()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
         $tcount  = 0;
 
-        $sqcount = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT COUNT(DISTINCT subscription_id) FROM {$mepr_db->transactions} WHERE coupon_id = %d AND subscription_id > 0 AND txn_type IN (%s,%s) AND status <> %s;",
-            $this->ID,
-            MeprTransaction::$payment_str,
-            MeprTransaction::$subscription_confirmation_str,
-            MeprSubscription::$pending_str
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $sqcount = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(DISTINCT subscription_id) FROM {$wpdb->mepr_transactions} WHERE coupon_id = %d AND subscription_id > 0 AND txn_type IN (%s,%s) AND status <> %s;",
+                $this->ID,
+                MeprTransaction::$payment_str,
+                MeprTransaction::$subscription_confirmation_str,
+                MeprSubscription::$pending_str
+            )
+        );
+
         if ($sqcount) {
             $tcount += $sqcount;
         }
 
         // Query one-time payments next.
-        $lqcount = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT COUNT(*) FROM {$mepr_db->transactions} WHERE coupon_id = %d AND (subscription_id <= 0 OR subscription_id IS NULL) AND txn_type = %s AND status <> %s",
-            $this->ID,
-            MeprTransaction::$payment_str,
-            MeprTransaction::$pending_str
-        ));
+        $lqcount = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$wpdb->mepr_transactions} WHERE coupon_id = %d AND (subscription_id <= 0 OR subscription_id IS NULL) AND txn_type = %s AND status <> %s",
+                $this->ID,
+                MeprTransaction::$payment_str,
+                MeprTransaction::$pending_str
+            )
+        );
+
         if ($lqcount) {
             $tcount += $lqcount;
         }
@@ -770,54 +779,64 @@ class MeprCoupon extends MeprCptModel
             return false;
         }
         global $wpdb;
-        $mepr_db     = new MeprDb();
+
         $total_count = 0;
         $date_query  = '';
+
         if ('lifetime' !== $this->usage_per_user_count_timeframe) {
             $date_query = MeprCouponsHelper::get_date_query_from_time_frame($this->usage_per_user_count_timeframe);
         }
 
-        $subscription_query = "
-      SELECT COUNT(id)
-        FROM {$mepr_db->subscriptions}
-       WHERE coupon_id = %d
-         AND status <> %s
-         AND user_id = %d
-         $date_query;
-    ";
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
+        $subscription_query_count = $wpdb->get_var(
+            // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $wpdb->prepare(
+                "
+                SELECT COUNT(id)
+                    FROM {$wpdb->mepr_subscriptions}
+                WHERE coupon_id = %d
+                    AND status <> %s
+                    AND user_id = %d
+                $date_query;
+                ",
+                $this->ID,
+                MeprSubscription::$pending_str,
+                $user_id
+            )
+            // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        );
 
-        $subscription_query_count = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            $subscription_query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $this->ID,
-            MeprSubscription::$pending_str,
-            $user_id
-        ));
         if ($subscription_query_count) {
             $total_count += $subscription_query_count;
         }
 
         // Query one-time payments next.
-        $lifetime_query = "
-      SELECT COUNT(*)
-        FROM {$mepr_db->transactions}
-       WHERE coupon_id = %d
-         AND (subscription_id <= 0 OR subscription_id IS NULL)
-         AND txn_type = %s
-         AND status <> %s
-         AND user_id = %d
-         $date_query;
-    ";
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
+        $lifetime_query_count = $wpdb->get_var(
+            // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $wpdb->prepare(
+                "
+                SELECT COUNT(*)
+                    FROM {$wpdb->mepr_transactions}
+                WHERE coupon_id = %d
+                    AND (subscription_id <= 0 OR subscription_id IS NULL)
+                    AND txn_type = %s
+                    AND status <> %s
+                    AND user_id = %d
+                $date_query;
+                ",
+                $this->ID,
+                MeprTransaction::$payment_str,
+                MeprTransaction::$pending_str,
+                $user_id
+            )
+            // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        );
 
-        $lifetime_query_count = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            $lifetime_query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $this->ID,
-            MeprTransaction::$payment_str,
-            MeprTransaction::$pending_str,
-            $user_id
-        ));
         if ($lifetime_query_count) {
             $total_count += $lifetime_query_count;
         }
+
         return MeprHooks::apply_filters('mepr_coupon_usage_per_user_count', $total_count, $user_id, $this);
     }
 }

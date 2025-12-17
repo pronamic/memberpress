@@ -272,9 +272,9 @@ if (!empty($products)) :
     <tbody>
       <tr valign="top">
         <td>
-          <?php esc_html_e('Apply coupon to the following Memberships:', 'memberpress'); ?><br/>
+          <?php esc_html_e('Apply coupon to the following Memberships:', 'memberpress'); ?> <span class="description">(<?php esc_html_e('required', 'memberpress'); ?>)</span><br/>
           <?php MeprCouponsHelper::products_dropdown(MeprCoupon::$valid_products_str, $c->valid_products); ?><br/>
-          <span class="description"><?php esc_html_e('Hold the Control Key (Command Key on the Mac) in order to select or deselect multiple memberships', 'memberpress'); ?></span>
+          <span class="description"><?php esc_html_e('At least one membership must be selected. Hold the Control Key (Command Key on the Mac) in order to select or deselect multiple memberships.', 'memberpress'); ?></span>
         </td>
       </tr>
     </tbody>

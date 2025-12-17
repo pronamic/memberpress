@@ -146,7 +146,7 @@ class MeprGroupsHelper
         <div class="mepr-most-popular"><?php esc_html_e('Most Popular', 'memberpress'); ?></div>
         <?php endif; ?>
       <div class="mepr-price-box-head">
-        <div class="mepr-price-box-title"><?php echo esc_html($product->pricing_title); ?></div>
+        <div class="mepr-price-box-title"><?php echo wp_kses_post($product->pricing_title); ?></div>
         <?php if ($preview) : ?>
           <div class="mepr-price-box-price"></div>
           <span class="mepr-price-box-price-loading"><img src="<?php echo esc_url(admin_url('/images/wpspin_light.gif')); ?>"/></span>
@@ -168,7 +168,7 @@ class MeprGroupsHelper
           </div>
         <?php endif; ?>
           <?php if (!empty($product->pricing_heading_txt)) : ?>
-          <div class="mepr-price-box-heading"><?php echo esc_html($product->pricing_heading_txt); ?></div>
+          <div class="mepr-price-box-heading"><?php echo wp_kses_post($product->pricing_heading_txt); ?></div>
           <?php endif; ?>
           <?php
             if (in_array($product->pricing_button_position, ['header','both'], true)) {
@@ -178,7 +178,7 @@ class MeprGroupsHelper
       </div>
       <div class="mepr-price-box-benefits"><?php echo wp_kses_post($benefits); ?></div>
       <div class="mepr-price-box-foot">
-        <div class="mepr-price-box-footer"><?php echo esc_html($product->pricing_footer_txt); ?></div>
+        <div class="mepr-price-box-footer"><?php echo wp_kses_post($product->pricing_footer_txt); ?></div>
         <?php
         if (in_array($product->pricing_button_position, ['footer','both'], true)) {
             echo wp_kses_post(self::price_box_button($user, $group, $product, $active));
@@ -242,7 +242,7 @@ class MeprGroupsHelper
             ?>
           <a href="<?php echo esc_url($product->access_url); ?>" class="<?php echo esc_attr(self::price_box_button_classes($group, $product, true)); ?>"><?php esc_html_e('View', 'memberpress'); ?></a>
         <?php else : ?>
-          <a <?php echo $active ? 'href="' . esc_url($product->url()) . '"' : ''; ?> class="<?php echo esc_attr(self::price_box_button_classes($group, $product, $active)); ?>"><?php echo esc_html($product->pricing_button_txt); ?></a>
+          <a <?php echo $active ? 'href="' . esc_url($product->url()) . '"' : ''; ?> class="<?php echo esc_attr(self::price_box_button_classes($group, $product, $active)); ?>"><?php echo wp_kses_post($product->pricing_button_txt); ?></a>
         <?php endif; ?>
     </div>
         <?php

@@ -4,7 +4,7 @@
  * Brazillian states
  */
 
-$states['BR'] = [
+return [
     'AC' => _x('Acre', 'ui', 'memberpress'),
     'AL' => _x('Alagoas', 'ui', 'memberpress'),
     'AP' => _x('Amap&aacute;', 'ui', 'memberpress'),

@@ -131,3 +131,11 @@
         </p>
     </td>
 </tr>
+
+<tr valign="top">
+  <th scope="row"><label for="refunded_at"><?php esc_html_e('Refunded Date (UTC/GMT):', 'memberpress'); ?></label></th>
+  <td>
+    <?php MeprTransactionsHelper::transaction_refunded_at_field('refunded_at', $txn->refunded_at); ?>
+    <p class="description"><?php esc_html_e('The date that the transaction was refunded. This field is displayed in UTC/GMT', 'memberpress'); ?></p>
+  </td>
+</tr>

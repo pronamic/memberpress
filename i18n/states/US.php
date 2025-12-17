@@ -4,7 +4,7 @@
  * United States
  */
 
-$states['US'] = [
+return [
     'AL' => _x('Alabama', 'ui', 'memberpress'),
     'AK' => _x('Alaska', 'ui', 'memberpress'),
     'AZ' => _x('Arizona', 'ui', 'memberpress'),

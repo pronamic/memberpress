@@ -4,7 +4,7 @@
  * Spain states
  */
 
-$states['ES'] = [
+return [
     'C'  => _x('A Coru&ntilde;a', 'ui', 'memberpress'),
     'VI' => _x('Araba/&Aacute;lava', 'ui', 'memberpress'),
     'AB' => _x('Albacete', 'ui', 'memberpress'),

@@ -28,7 +28,7 @@
     <tbody>
       <?php foreach ($invoice['items'] as $item) : ?>
         <tr>
-          <td><?php echo esc_html($item['description']); ?></td>
+          <td style="width: auto !important;"><?php echo esc_html($item['description']); ?></td>
             <?php if ($show_quantity) : ?>
             <td><?php echo esc_html($item['quantity']); ?></td>
             <?php endif; ?>

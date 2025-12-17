@@ -4,7 +4,7 @@
  * Germany Federal States
  */
 
-$states['DE'] = [
+return [
     'BW' => __('Baden-Württemberg', 'memberpress'),
     'BY' => __('Bavaria', 'memberpress'),
     'BE' => __('Berlin', 'memberpress'),

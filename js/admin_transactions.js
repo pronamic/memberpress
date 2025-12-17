@@ -45,30 +45,29 @@ jQuery(document).ready(function($) {
     return false;
   });
 
-  //Delete TXN JS
-  jQuery('a.remove-txn-row').click(function() {
-    if(confirm(MeprTxn.del_txn)) {
-      var i = jQuery(this).attr('data-value');
-      var data = {
-        action: 'mepr_delete_transaction',
-        id: i,
-        mepr_transactions_nonce: MeprTxn.delete_transaction_nonce
-      };
-
-      jQuery.post(ajaxurl, data, function(response) {
-        var trimmed_data = response.replace(/^\s+|\s+$/g, ''); //Trim whitespace
-
-        if(trimmed_data == 'true') {
-          jQuery('tr#record_' + i).fadeOut('slow');
-        } else {
-          alert(MeprTxn.del_txn_error); //Alerts the user to the fact that the transaction could not be deleted
+  jQuery('a.remove-txn-row').click(function(e) {
+    e.preventDefault();
+    var transactionId = jQuery(this).attr('data-value');
+      window.MeprModal({
+        title: MeprTxn.del_txn_title,
+        message: MeprTxn.del_txn,
+        confirmText: MeprTxn.confirm_text,
+        cancelText: MeprTxn.cancel_text,
+        isDestructive: true,
+        ajaxData: {
+          action: 'mepr_delete_transaction',
+          id: transactionId,
+          mepr_transactions_nonce: MeprTxn.delete_transaction_nonce
+        },
+        onError: function() {
+          alert(MeprTxn.del_txn_error);
+        },
+        onSuccess: function() {
+          jQuery('tr#record_' + transactionId).fadeOut('slow');
         }
       });
     }
-
-    return false;
-  });
-
+  );
   //Resend TXN Email JS
   jQuery('a.mepr_resend_txn_email').click(function() {
     var i = jQuery(this).attr('data-value');
@@ -115,64 +114,55 @@ jQuery(document).ready(function($) {
 
 
   // Refund TXN JS
-  jQuery('a.mepr-refund-txn').click(function() {
-    if(confirm(MeprTxn.refund_txn)) {
-      var i = jQuery(this).attr('data-value');
-      jQuery('tr#record_' + i + ' .mepr_loader').show();
-      var data = {
+  jQuery('a.mepr-refund-txn').click(function(e) {
+    e.preventDefault();
+    var transactionId = jQuery(this).attr('data-value');
+    window.MeprModal({
+      title: MeprTxn.refund_txn_title,
+      message: MeprTxn.refund_txn,
+      confirmText: MeprTxn.confirm_text,
+      cancelText: MeprTxn.cancel_text,
+      ajaxData: {
         action: 'mepr_refund_transaction',
-        id: i,
+        id: transactionId,
         refund_txn_nonce: MeprTxn.refund_txn_nonce
-      };
-
-      jQuery.post(ajaxurl, data, function(response) {
-        jQuery('tr#record_' + i + ' .mepr_loader').hide();
-
-        var trimmed_data = response.replace(/^\s+|\s+$/g, ''); //Trim whitespace
-
-        if(trimmed_data == 'true') {
-          jQuery('div.status_initial_' + i + ' a').text(MeprTxn.refunded_text);
-          jQuery('select.status_edit_' + i).val('refunded');
-          jQuery('tr#record_' + i + ' .mepr-refund-txn-action').remove();
-          jQuery('tr#record_' + i + ' .mepr-refund-txn-and-cancel-sub-action').remove();
-          alert(MeprTxn.refund_txn_success); // Alerts user that the transaction could not be refunded
-        } else {
-          alert(MeprTxn.refund_txn_error + ": " + response); // Alerts user that the transaction could not be refunded
-        }
-      });
-    }
-
-    return false;
+      },
+      onError: function(response) {
+        alert(MeprTxn.refund_txn_error + ": " + response);
+      },
+      onSuccess: function() {
+        jQuery('div.status_initial_' + transactionId + ' a').text(MeprTxn.refunded_text);
+        jQuery('select.status_edit_' + transactionId).val('refunded');
+        jQuery('tr#record_' + transactionId + ' .mepr-refund-txn-action').remove();
+        jQuery('tr#record_' + transactionId + ' .mepr-refund-txn-and-cancel-sub-action').remove();
+      }
+    });
   });
 
   // Refund TXN & Cancel SUB JS
-  jQuery('a.mepr-refund-txn-and-cancel-sub').click(function() {
-    if(confirm(MeprTxn.refund_txn_and_cancel_sub)) {
-      var i = jQuery(this).attr('data-value');
-      jQuery('tr#record_' + i + ' .mepr_loader').show();
-      var data = {
+  jQuery('a.mepr-refund-txn-and-cancel-sub').click(function(e) {
+    e.preventDefault();
+    var transactionId = jQuery(this).attr('data-value');
+    window.MeprModal({
+      title: MeprTxn.refund_txn_and_cancel_sub_title,
+      message: MeprTxn.refund_txn_and_cancel_sub,
+      confirmText: MeprTxn.confirm_text,
+      cancelText: MeprTxn.cancel_text,
+      ajaxData: {
         action: 'mepr_refund_txn_and_cancel_sub',
-        id: i,
+        id: transactionId,
         refund_txn_cancel_sub_nonce: MeprTxn.refund_txn_cancel_sub_nonce
-      };
-
-      jQuery.post(ajaxurl, data, function(response) {
-        jQuery('tr#record_' + i + ' .mepr_loader').hide();
-
-        var trimmed_data = response.replace(/^\s+|\s+$/g, ''); //Trim whitespace
-
-        if(trimmed_data == 'true') {
-          jQuery('div.status_initial_' + i + ' a').text(MeprTxn.refunded_text);
-          jQuery('select.status_edit_' + i).val('refunded');
-          jQuery('tr#record_' + i + ' .mepr-refund-txn-action').remove();
-          jQuery('tr#record_' + i + ' .mepr-refund-txn-and-cancel-sub-action').remove();
-          alert(MeprTxn.refund_txn_and_cancel_sub_success); // Alerts user that the transaction could not be refunded
-        } else {
-          alert(MeprTxn.refund_txn_and_cancel_sub_error + ": " + response); // Alerts user that the transaction could not be refunded
-        }
-      });
-    }
-
+      },
+      onError: function(response) {
+        alert(MeprTxn.refund_txn_error + ": " + response);
+      },
+      onSuccess: function() {
+        jQuery('div.status_initial_' + transactionId + ' a').text(MeprTxn.refunded_text);
+        jQuery('select.status_edit_' + transactionId).val('refunded');
+        jQuery('tr#record_' + transactionId + ' .mepr-refund-txn-action').remove();
+        jQuery('tr#record_' + transactionId + ' .mepr-refund-txn-and-cancel-sub-action').remove();
+      }
+    });
     return false;
   });
 

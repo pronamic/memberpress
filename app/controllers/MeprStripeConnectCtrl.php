@@ -403,7 +403,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
             ], admin_url('admin.php')) . '#mepr-integration';
         }
 
-        wp_redirect($redirect_url);
+        wp_safe_redirect($redirect_url);
         exit;
     }
 
@@ -478,7 +478,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
             'stripe-action' => 'refreshed',
         ], admin_url('admin.php')) . '#mepr-integration';
 
-        wp_redirect($redirect_url);
+        wp_safe_redirect($redirect_url);
         exit;
     }
 
@@ -518,7 +518,7 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
             'stripe-action' => 'disconnected',
         ], admin_url('admin.php')) . '#mepr-integration';
 
-        wp_redirect($redirect_url);
+        wp_safe_redirect($redirect_url);
         exit;
     }
 

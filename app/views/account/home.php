@@ -5,7 +5,9 @@
 <div class="mp_wrapper">
   <?php if (!empty($welcome_message)) : ?>
     <div id="mepr-account-welcome-message">
-        <?php echo wp_kses_post(MeprHooks::apply_filters('mepr_account_welcome_message', do_shortcode($welcome_message), $mepr_current_user)); ?>
+        <?php
+        echo MeprAppHelper::wp_kses(MeprHooks::apply_filters('mepr_account_welcome_message', $welcome_message, $mepr_current_user)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        ?>
     </div>
   <?php endif; ?>
 

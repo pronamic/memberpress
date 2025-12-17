@@ -4,7 +4,7 @@
  * Hungary states
  */
 
-$states['HU'] = [
+return [
     'BK' => _x('Bács-Kiskun', 'ui', 'memberpress'),
     'BE' => _x('Békés', 'ui', 'memberpress'),
     'BA' => _x('Baranya', 'ui', 'memberpress'),

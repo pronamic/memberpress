@@ -4,7 +4,7 @@
  * Portugal Regions
  */
 
-$states['PT'] = [
+return [
     'AC' => _x('Açores', 'ui', 'memberpress'),
     'AG' => _x('Algarve', 'ui', 'memberpress'),
     'AT' => _x('Alentejo', 'ui', 'memberpress'),

@@ -107,6 +107,7 @@ class MeprMembersTable extends WP_List_Table
         $hidden  = get_hidden_columns($this->_screen);
 
         // Bypass MeprHooks to call built-in filter.
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
         $sortable = apply_filters("manage_{$this->_screen->id}_sortable_columns", $this->get_sortable_columns());
 
         $primary = 'col_id';

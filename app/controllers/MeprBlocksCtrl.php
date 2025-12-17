@@ -363,10 +363,14 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         $group_id = isset($atts['group_id']) ?
         absint($atts['group_id']) : '';
 
+        if (empty($group_id) && is_singular('memberpressgroup')) {
+            $group_id = get_queried_object_id();
+        }
+
         $shortcode = "[mepr_pro_pricing_table
-    show_title='$show_title'
-    button_highlight_color='$button_highlight_color'
-    group_id='$group_id']";
+        show_title='$show_title'
+        button_highlight_color='$button_highlight_color'
+        group_id='$group_id']";
 
         ob_start();
         echo do_shortcode($shortcode);
@@ -393,8 +397,8 @@ class MeprBlocksCtrl extends MeprBaseCtrl
         esc_url_raw($atts['welcome_image']) : '';
 
         $shortcode = "[mepr_pro_account_tabs
-    show_welcome_image='$show_welcome_image'
-    welcome_image='$welcome_image']";
+        show_welcome_image='$show_welcome_image'
+        welcome_image='$welcome_image']";
 
         ob_start();
         echo do_shortcode($shortcode);
@@ -414,6 +418,10 @@ class MeprBlocksCtrl extends MeprBaseCtrl
 
         $membership_id = isset($atts['membership_id']) ?
         absint($atts['membership_id']) : '';
+
+        if (empty($membership_id) && is_singular('memberpressproduct')) {
+            $membership_id = get_queried_object_id();
+        }
 
         $shortcode = "[mepr_pro_checkout membership_id='$membership_id']";
         ob_start();

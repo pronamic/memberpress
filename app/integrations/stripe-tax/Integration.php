@@ -136,9 +136,9 @@ class MeprStripeTaxIntegration
             $path = MEPR_I18N_PATH . "/states/$country.php";
 
             if (file_exists($path)) {
-                include $path;
+                $states = require($path);
 
-                if (isset($states[$country][$state])) {
+                if (isset($states[$state])) {
                     return $this->convert_state_to_iso_3166_2($state, $country);
                 }
             }
@@ -375,9 +375,11 @@ class MeprStripeTaxIntegration
             'country'     => $country,
         ];
 
+        $mepr_options = MeprOptions::fetch();
+
         $tax_calculation = $this->tax_calculation(
             $address,
-            $txn->amount,
+            $mepr_options->attr('tax_calc_type') === 'inclusive' ? $txn->total : $txn->amount,
             (string) $txn->product_id,
             $this->get_product_tax_code($txn->product_id),
             $this->get_tax_ids($txn->user())

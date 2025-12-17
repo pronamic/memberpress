@@ -4,7 +4,7 @@
  * Australian states
  */
 
-$states['AU'] = [
+return [
     'ACT' => _x('Australian Capital Territory', 'ui', 'memberpress'),
     'NSW' => _x('New South Wales', 'ui', 'memberpress'),
     'NT'  => _x('Northern Territory', 'ui', 'memberpress'),

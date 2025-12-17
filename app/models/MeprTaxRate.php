@@ -105,8 +105,6 @@ class MeprTaxRate extends MeprBaseModel
     {
         global $wpdb;
 
-        $mepr_db = new MeprDb();
-
         // Get product ID if there is data from webhook.
         $prd_id = !empty($args['prd_id']) ? (int) $args['prd_id'] : 0;
 
@@ -162,11 +160,11 @@ class MeprTaxRate extends MeprBaseModel
 
             $q = "
         SELECT txr.*, pc.location_code AS postcode, ct.location_code AS city
-          FROM {$mepr_db->tax_rates} AS txr
-          LEFT JOIN {$mepr_db->tax_rate_locations} AS pc
+          FROM {$wpdb->mepr_tax_rates} AS txr
+          LEFT JOIN {$wpdb->mepr_tax_rate_locations} AS pc
             ON pc.tax_rate_id=txr.id
            AND pc.location_type='postcode'
-          LEFT JOIN {$mepr_db->tax_rate_locations} AS ct
+          LEFT JOIN {$wpdb->mepr_tax_rate_locations} AS ct
             ON ct.tax_rate_id=txr.id
            AND ct.location_type='city'
          WHERE txr.tax_country IN ( %s, '' )
@@ -204,7 +202,7 @@ class MeprTaxRate extends MeprBaseModel
 
             $q = $wpdb->prepare($q, ...$prepare_params); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-            $found_rates = $wpdb->get_results($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            $found_rates = $wpdb->get_results($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
             if (!empty($found_rates)) {
                 $tax_rate = new MeprTaxRate($found_rates[0]->id);
@@ -246,7 +244,6 @@ class MeprTaxRate extends MeprBaseModel
     public static function get_all($separator = ',', $return_type = OBJECT)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $q = $wpdb->prepare(
@@ -256,7 +253,7 @@ class MeprTaxRate extends MeprBaseModel
                          ORDER BY txrp.location_code
                          SEPARATOR %s
                        )
-                  FROM {$mepr_db->tax_rate_locations} AS txrp
+                  FROM {$wpdb->mepr_tax_rate_locations} AS txrp
                  WHERE txrp.location_type = %s
                    AND txrp.tax_rate_id=txr.id
               ) AS postcodes,
@@ -265,11 +262,11 @@ class MeprTaxRate extends MeprBaseModel
                          ORDER BY txrc.location_code
                          SEPARATOR %s
                        )
-                  FROM {$mepr_db->tax_rate_locations} AS txrc
+                  FROM {$wpdb->mepr_tax_rate_locations} AS txrc
                  WHERE txrc.location_type = %s
                    AND txrc.tax_rate_id=txr.id
               ) AS cities
-         FROM {$mepr_db->tax_rates} AS txr
+         FROM {$wpdb->mepr_tax_rates} AS txr
         ORDER BY txr.tax_country, txr.tax_state, postcodes, cities",
             $separator,
             'postcode',
@@ -277,7 +274,7 @@ class MeprTaxRate extends MeprBaseModel
             'city'
         ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-        return $wpdb->get_results($q, $return_type); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_results($q, $return_type); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**

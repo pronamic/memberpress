@@ -282,9 +282,10 @@ class MeprUsersHelper
     /**
      * Renders the address fields.
      *
+     * @param  string $from_page The page context (e.g., 'account').
      * @return void
      */
-    public static function render_address_fields()
+    public static function render_address_fields($from_page = '')
     {
         $mepr_options  = MeprOptions::fetch();
         $unique_suffix = '';
@@ -298,6 +299,11 @@ class MeprUsersHelper
         $address_fields = MeprHooks::apply_filters('mepr_render_address_fields', $mepr_options->address_fields);
 
         foreach ($address_fields as $line) {
+            // Add placeholders for account page only.
+            if ($from_page === 'account' && !isset($line->placeholder)) {
+                $line->placeholder = $line->field_name;
+            }
+
             $required = $line->required ? '*' : '';
             $value    = $logged_in ? get_user_meta($user->ID, $line->field_key, true) : '';
             MeprView::render('checkout/signup_row', get_defined_vars());
@@ -433,8 +439,8 @@ class MeprUsersHelper
     {
         $mepr_options = MeprOptions::fetch();
 
-        // Maybe show the address fields too.
-        if ($mepr_options->show_address_fields) {
+        // Check if we should show address fields on account page.
+        if ($mepr_options->show_address_on_account) {
             // Check if any memberships require address fields.
             if ($user && $user->show_address_fields()) {
                 return $mepr_options->address_fields;
@@ -497,7 +503,7 @@ class MeprUsersHelper
             return; // If we aren't an admin and don't have a user, we have no business being here.
         }
 
-        if ($mepr_options->show_address_fields) {
+        if ($mepr_options->show_address_on_account) {
             $custom_fields = array_merge($custom_fields, $mepr_options->address_fields); // Genius.
         }
         $custom_fields = MeprHooks::apply_filters('mepr_render_editable_custom_fields', $custom_fields);

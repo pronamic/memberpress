@@ -122,6 +122,7 @@ class MeprSummaryEmailCtrl extends MeprBaseCtrl
             $message = MeprView::get_string('/admin/reports/summary_email', get_defined_vars());
 
             $headers = [
+                // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
                 sprintf('Content-type: text/html; charset=%s', apply_filters('wp_mail_charset', get_bloginfo('charset'))),
             ];
 

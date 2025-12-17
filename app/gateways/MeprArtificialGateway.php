@@ -148,15 +148,15 @@ class MeprArtificialGateway extends MeprBaseRealGateway
     public static function event_exists_already($txn)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        return $wpdb->get_results($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT * FROM {$mepr_db->events} WHERE event = %s AND evt_id = %d AND evt_id_type = %s",
-            "offline-payment-{$txn->status}",
-            $txn->id,
-            'transactions'
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->mepr_events} WHERE event = %s AND evt_id = %d AND evt_id_type = 'transactions'",
+                "offline-payment-{$txn->status}",
+                $txn->id
+            )
+        );
     }
 
     /**

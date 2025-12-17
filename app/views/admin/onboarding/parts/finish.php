@@ -23,7 +23,7 @@ $upgrade_type = MeprOnboardingHelper::is_upgrade_required(
 );
 
 if ($upgrade_type === 'memberpress-elite') {
-    $upgrade_type = 'memberpress-pro-5';
+    $upgrade_type = 'memberpress-scale';
 }
 
 if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !== $current_license) {
@@ -44,20 +44,6 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
         'onboarding' => 1,
     ];
 
-    if (in_array('easy-affiliate', $features_data['addons_not_installed'], true)) {
-        $finish_description       = esc_html__('To unlock selected features, upgrade with Easy Affiliate.', 'memberpress');
-        $pricing_url_args['doea'] = 1;
-    }
-
-    if (in_array('memberpress-coachkit', $features_data['addons_not_installed'], true)) {
-        $finish_description       = esc_html__('To unlock selected features, upgrade with CoachKit™.', 'memberpress');
-        $pricing_url_args['dock'] = 1;
-    }
-
-    if (isset($pricing_url_args['doea']) && isset($pricing_url_args['dock'])) {
-        $finish_description = esc_html__('To unlock selected features, upgrade with CoachKit™ and Easy Affiliate.', 'memberpress');
-    }
-
     $pricing_url_args['return_url'] = urlencode(admin_url('admin.php?page=memberpress-onboarding&step=7&onboarding=1'));
 
     $pricing_url = add_query_arg(
@@ -71,27 +57,6 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
     }
 
     $target = '';
-    if (
-        1 === count($features_data['addons_not_installed'])
-        && in_array('easy-affiliate', $features_data['addons_not_installed'], true)
-        && (MeprOnboardingHelper::is_pro_edition($current_license) || MeprOnboardingHelper::is_elite_edition($current_license))
-    ) {
-        $finish_description = '';
-        $pricing_url        = 'https://easyaffiliate.com/ipob/pricing/';
-        $cta_data['label']  = esc_html__('Purchase Easy Affiliate', 'memberpress');
-        $target             = ' target="_blank"';
-    }
-
-    if (
-        1 === count($features_data['addons_not_installed'])
-        && in_array('memberpress-coachkit', $features_data['addons_not_installed'], true)
-        && (MeprOnboardingHelper::is_pro_edition($current_license) || MeprOnboardingHelper::is_elite_edition($current_license))
-    ) {
-        $finish_description = '';
-        $pricing_url        = MeprUtils::get_link_url('login_redirect_coachkit');
-        $cta_data['label']  = esc_html__('Purchase CoachKit™', 'memberpress');
-        $target             = ' target="_blank"';
-    }
 
     $is_plan_upgrade_required = true;
     if (
@@ -104,22 +69,6 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
     ) {
         $is_plan_upgrade_required = false;
         $finish_description       = '';
-    }
-
-    $multiple_ctas = [];
-    if (false === $is_plan_upgrade_required && ! empty($addons_not_installed)) {
-        $finish_description = sprintf(esc_html__('You have selected following features:', 'memberpress'), $cta_data['token']);
-        if (in_array('easy-affiliate', $addons_not_installed, true)) {
-            $multiple_ctas['ea']          = [];
-            $multiple_ctas['ea']['url']   = MeprUtils::get_link_url('login_redirect_ea');
-            $multiple_ctas['ea']['label'] = esc_html__('Purchase Easy Affiliate', 'memberpress');
-        }
-
-        if (in_array('memberpress-coachkit', $addons_not_installed, true)) {
-            $multiple_ctas['ck']          = [];
-            $multiple_ctas['ck']['url']   = MeprUtils::get_link_url('login_redirect_coachkit');
-            $multiple_ctas['ck']['label'] = esc_html__('Purchase CoachKit™', 'memberpress');
-        }
     }
 
     // If the license mismatched and upgrade still required, show them the upgrade CTA interface.
@@ -172,14 +121,6 @@ if (!empty($upgraded_edition) && !empty($current_license) && $upgraded_edition !
     <div class="mepr-wizard-button-group">
       <a <?php echo esc_attr($target); ?> href="<?php echo esc_url($pricing_url); ?>" id="mepr-wizard-create-new-content" class="mepr-wizard-button-orange"><?php echo esc_html($cta_data['label']); ?></a>
     </div>
-        <?php endif; ?>
-
-        <?php if (! empty($multiple_ctas)) : ?>
-      <div class="mepr-wizard-button-group">
-            <?php foreach ($multiple_ctas as $multiple_cta) : ?>
-        <a target="_blank" href="<?php echo esc_url($multiple_cta['url']); ?>"class="mepr-wizard-button-orange"><?php echo esc_html($multiple_cta['label']); ?></a>
-            <?php endforeach; ?>
-      </div>
         <?php endif; ?>
 
         <?php

@@ -74,7 +74,7 @@ $preview        = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Pr
 
             <div class="mepr-price-box-head">
               <h2 class="mepr-price-box-title">
-                <?php echo esc_html($product->pricing_title); ?>
+                <?php echo wp_kses_post($product->pricing_title); ?>
               </h2>
               <?php if ($preview) : ?>
                 <div class="mepr-price-box-price"></div>
@@ -116,14 +116,14 @@ $preview        = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Pr
                   </a>
                     <?php else : ?>
                   <a <?php echo $active ? 'href="' . esc_url($product->url()) . '"' : ''; ?> class="<?php echo esc_attr(MeprGroupsHelper::price_box_button_classes($group, $product, $active)); ?>" style="--tooltip-color: <?php echo esc_attr($button_color) ?>;">
-                        <?php echo esc_html($product->pricing_button_txt); ?>
+                        <?php echo wp_kses_post($product->pricing_button_txt); ?>
                       <span class="screen-reader-text"><?php echo esc_html($product->post_title); ?></span>
                   </a>
                     <?php endif; ?>
               </div>
                 <?php if (!empty($product->pricing_heading_txt)) : ?>
                 <div class="mepr-price-box-heading">
-                    <?php echo esc_html($product->pricing_heading_txt); ?>
+                    <?php echo wp_kses_post($product->pricing_heading_txt); ?>
                 </div>
                 <?php endif; ?>
 
@@ -135,7 +135,7 @@ $preview        = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Pr
 
             <div class="mepr-price-box-foot">
               <div class="mepr-price-box-footer">
-                <?php echo esc_html($product->pricing_footer_txt); ?>
+                <?php echo wp_kses_post($product->pricing_footer_txt); ?>
               </div>
             </div>
 

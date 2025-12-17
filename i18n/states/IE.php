@@ -4,7 +4,7 @@
  * Irish Counties
  */
 
-$states['IE'] = [
+return [
     'CW' => __('Carlow', 'memberpress'),
     'CN' => __('Cavan', 'memberpress'),
     'CE' => __('Clare', 'memberpress'),

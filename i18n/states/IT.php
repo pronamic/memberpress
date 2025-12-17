@@ -4,7 +4,7 @@
  * Italy Provinces
  */
 
-$states['IT'] = [
+return [
     'AG' => _x('Agrigento', 'ui', 'memberpress'),
     'AL' => _x('Alessandria', 'ui', 'memberpress'),
     'AN' => _x('Ancona', 'ui', 'memberpress'),

@@ -1250,6 +1250,13 @@ body.site-health-php .mepr-notice-dismiss-24hour{ display:none; }
   background-size: 100%;
 }
 
+.mepr_date_filter_row {
+  display: flex;
+  align-items: center;
+  column-gap: 3px;
+  justify-content: end;
+}
+
 @media (min-width: 680px) {
   .mepr-notice-modal .button-reactivate-fee { margin-right: 20px; }
 }

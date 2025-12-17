@@ -7,6 +7,7 @@ div#mepr-account-nav {
 #mepr-account-nav ul {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 5px;
   margin: 0;
   padding: 0;

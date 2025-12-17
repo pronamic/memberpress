@@ -1133,30 +1133,35 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     public function get_last_active_txn($user_id)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        $txn_id = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT tr.id AS id FROM {$mepr_db->transactions} AS tr WHERE tr.user_id=%d AND tr.product_id=%d AND tr.status=%s AND tr.expires_at=%s AND tr.txn_type <> %s ORDER BY tr.created_at DESC LIMIT 1",
-            $user_id,
-            $this->ID,
-            MeprTransaction::$complete_str,
-            MeprUtils::db_lifetime(),
-            MeprTransaction::$fallback_str
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $txn_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT tr.id AS id FROM {$wpdb->mepr_transactions} AS tr WHERE tr.user_id=%d AND tr.product_id=%d AND tr.status=%s AND tr.expires_at=%s AND tr.txn_type <> %s ORDER BY tr.created_at DESC LIMIT 1",
+                $user_id,
+                $this->ID,
+                MeprTransaction::$complete_str,
+                MeprUtils::db_lifetime(),
+                MeprTransaction::$fallback_str
+            )
+        );
+
         if ($txn_id) {
             // Try for lifetimes.
             return new MeprTransaction($txn_id);
         }
 
-        $txn_id = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT tr.id AS id FROM {$mepr_db->transactions} AS tr WHERE tr.user_id=%d AND tr.product_id=%d AND tr.status=%s AND tr.expires_at > %s ORDER BY tr.created_at DESC LIMIT 1",
-            $user_id,
-            $this->ID,
-            MeprTransaction::$complete_str,
-            MeprUtils::db_now()
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $txn_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT tr.id AS id FROM {$wpdb->mepr_transactions} AS tr WHERE tr.user_id=%d AND tr.product_id=%d AND tr.status=%s AND tr.expires_at > %s ORDER BY tr.created_at DESC LIMIT 1",
+                $user_id,
+                $this->ID,
+                MeprTransaction::$complete_str,
+                MeprUtils::db_now()
+            )
+        );
+
         if ($txn_id) {
             // Try for expiring.
             return new MeprTransaction($txn_id);
@@ -1323,7 +1328,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                 $q        = "DELETE
                   FROM {$wpdb->postmeta}
                   WHERE post_id IN ({$post_ids})";
-                $wpdb->query($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+                $wpdb->query($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
                 $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
                     "DELETE FROM {$wpdb->posts}
                      WHERE post_type = %s AND
@@ -1470,22 +1475,22 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     {
         global $wpdb;
 
-        $mepr_db = MeprDb::fetch();
-
         if ($this->trial && MeprUtils::is_user_logged_in()) {
             $current_user = MeprUtils::get_currentuserinfo();
             if ($current_user) {
-                $already_trialled = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-                    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-                    "SELECT COUNT(*) FROM {$mepr_db->transactions} AS t WHERE t.user_id=%d AND t.product_id=%d AND t.txn_type IN (%s,%s) AND t.status IN (%s,%s,%s)",
-                    $current_user->ID,
-                    $this->ID,
-                    MeprTransaction::$subscription_confirmation_str,
-                    MeprTransaction::$payment_str,
-                    MeprTransaction::$complete_str,
-                    MeprTransaction::$refunded_str,
-                    MeprTransaction::$confirmed_str
-                ));
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+                $already_trialled = $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(*) FROM {$wpdb->mepr_transactions} AS t WHERE t.user_id=%d AND t.product_id=%d AND t.txn_type IN (%s,%s) AND t.status IN (%s,%s,%s)",
+                        $current_user->ID,
+                        $this->ID,
+                        MeprTransaction::$subscription_confirmation_str,
+                        MeprTransaction::$payment_str,
+                        MeprTransaction::$complete_str,
+                        MeprTransaction::$refunded_str,
+                        MeprTransaction::$confirmed_str
+                    )
+                );
 
                 return ($already_trialled > 0);
             }

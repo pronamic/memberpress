@@ -96,7 +96,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
         }
 
         if (isset($_GET['stripe_connect']) && 'true' === $_GET['stripe_connect'] && isset($_GET['method_id']) && ! empty($_GET['method_id'])) {
-            wp_redirect(MeprStripeGateway::get_stripe_connect_url(sanitize_text_field(wp_unslash($_GET['method_id']))));
+            wp_redirect(MeprStripeGateway::get_stripe_connect_url(sanitize_text_field(wp_unslash($_GET['method_id'])))); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
             exit;
         }
 
@@ -112,7 +112,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
                     throw new Exception(__('Sorry, this only works with Square.', 'memberpress'));
                 }
 
-                wp_redirect($pm->connect_url($environment));
+                wp_redirect($pm->connect_url($environment)); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
                 exit;
             } catch (Exception $e) {
                 $args = [
@@ -121,7 +121,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
                     'error'                      => $e->getMessage(),
                 ];
 
-                wp_redirect(add_query_arg(array_map('rawurlencode', $args), admin_url('admin.php')));
+                wp_safe_redirect(add_query_arg(array_map('rawurlencode', $args), admin_url('admin.php')));
                 exit;
             }
         }
@@ -138,7 +138,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
             }
         }
 
-        wp_redirect($redirect_url);
+        wp_safe_redirect($redirect_url);
         exit;
     }
     // phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.Missing
@@ -195,7 +195,7 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
             delete_option('mepr_authenticator_site_uuid', $site_uuid);
         }
 
-        wp_redirect(remove_query_arg(['mepr-disconnect', 'nonce']));
+        wp_safe_redirect(remove_query_arg(['mepr-disconnect', 'nonce']));
         exit;
     }
 

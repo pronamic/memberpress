@@ -330,7 +330,7 @@ abstract class MeprCptModel extends MeprBaseModel
           "LIMIT {$limit} " .
          "OFFSET {$offset}";
 
-        $res = $wpdb->get_results($q, $type); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        $res = $wpdb->get_results($q, $type); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
         // Two layer maybe_unserialize.
         for ($i = 0; $i < count($res); $i++) {

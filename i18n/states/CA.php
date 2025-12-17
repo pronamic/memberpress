@@ -4,7 +4,7 @@
  * Canadian states
  */
 
-$states['CA'] = [
+return [
     'AB' => _x('Alberta', 'ui', 'memberpress'),
     'BC' => _x('British Columbia', 'ui', 'memberpress'),
     'MB' => _x('Manitoba', 'ui', 'memberpress'),

@@ -87,13 +87,6 @@ return MeprHooks::apply_filters('mepr_stripe_payment_methods', [
         'capabilities' => ['payment_intents'],
     ],
     [
-        'key'          => 'sofort',
-        'name'         => 'Sofort',
-        'currencies'   => ['EUR'],
-        'capabilities' => ['payment_intents'],
-        'async'        => true,
-    ],
-    [
         'key'          => 'twint',
         'name'         => 'TWINT',
         'currencies'   => ['CHF'],

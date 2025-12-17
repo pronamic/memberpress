@@ -4,7 +4,7 @@
  * Mexico States
  */
 
-$states['MX'] = [
+return [
     'Aguascalientes'      => _x('Aguascalientes', 'ui', 'memberpress'),
     'Baja California'     => _x('Baja California', 'ui', 'memberpress'),
     'Baja California Sur' => _x('Baja California Sur', 'ui', 'memberpress'),

@@ -8,7 +8,11 @@ $user_message       = MeprHooks::apply_filters('mepr_user_message', wpautop(do_s
 <h1 class="mepr_page_header"><?php echo esc_html_x('Profile', 'ui', 'memberpress'); ?></h1>
 
 <?php if (!empty($welcome_message)) : ?>
-  <div class="mepr-account-message mepr-account-welcome-message <?php echo $welcome_image ? 'has-welcome-image'  : ''  ?>"><?php echo wp_kses_post($welcome_message); ?></div>
+  <div class="mepr-account-message mepr-account-welcome-message <?php echo $welcome_image ? 'has-welcome-image'  : ''  ?>">
+    <?php
+    echo MeprAppHelper::wp_kses($welcome_message); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    ?>
+  </div>
 <?php endif; ?>
 
 <?php if (!empty($user_message)) : ?>
@@ -49,7 +53,7 @@ $user_message       = MeprHooks::apply_filters('mepr_user_message', wpautop(do_s
       </button>
       </dt>
       <dd class="mepr-profile-details__content"><?php echo esc_html($mepr_current_user->user_email); ?></dd>
-      <?php if ($mepr_options->show_address_fields) { ?>
+      <?php if ($mepr_options->show_address_on_account) { ?>
       <dt class="">
             <?php echo esc_html_x('Billing Address', 'ui', 'memberpress'); ?>
       <button
@@ -162,8 +166,8 @@ $user_message       = MeprHooks::apply_filters('mepr_user_message', wpautop(do_s
         </legend>
 
         <?php
-        if ($mepr_options->show_address_fields) {
-            MeprUsersHelper::render_address_fields();
+        if ($mepr_options->show_address_on_account) {
+            MeprUsersHelper::render_address_fields('account');
         }
         ?>
       </fieldset>

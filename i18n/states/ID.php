@@ -4,7 +4,7 @@
  * Indonesia Provinces
  */
 
-$states['ID'] = [
+return [
     'BA' => _x('Bali', 'ui', 'memberpress'),
     'BB' => _x('Bangka Belitung', 'ui', 'memberpress'),
     'BT' => _x('Banten', 'ui', 'memberpress'),

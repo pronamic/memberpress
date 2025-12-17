@@ -7,6 +7,41 @@ if (!defined('ABSPATH')) {
 class MeprTransactionsHelper
 {
     /**
+     * Determines if ReadyLaunch template should be used for invoice rendering.
+     *
+     * Checks multiple conditions to decide template usage:
+     * 1. Actual product pages (not shortcodes)
+     * 2. Thank you page (when thank you template is enabled)
+     * 3. ReadyLaunch blocks (memberpress/checkout block)
+     * 4. AJAX requests (inherits context from originating page)
+     *
+     * @return boolean True if ReadyLaunch template should be used, false otherwise.
+     */
+    private static function should_use_readylaunch_template()
+    {
+        // Check page type and context.
+        $mepr_options = MeprOptions::fetch();
+        $current_post = MeprUtils::get_current_post();
+        $is_actual_product_page = (is_object($current_post) && property_exists($current_post, 'post_type') && $current_post->post_type === MeprProduct::$cpt);
+        $is_thankyou_page = MeprAppHelper::is_thankyou_page($current_post);
+        $is_readylaunch_block = (function_exists('has_block') && has_block('memberpress/checkout', $current_post));
+
+        // Determine if ReadyLaunch template should be used based on page context.
+        $use_readylaunch = (
+            ($mepr_options->design_enable_checkout_template && ($is_actual_product_page || $is_readylaunch_block)) ||
+            ($mepr_options->design_enable_thankyou_template && $is_thankyou_page)
+        );
+
+        // During AJAX requests, use the context passed from frontend
+        // This applies to both regular invoice updates (coupons, address changes) and order bump toggles.
+        if ($mepr_options->design_enable_checkout_template && wp_doing_ajax() && isset($_POST['mepr_is_product_page'])) {
+            $use_readylaunch = filter_var(wp_unslash($_POST['mepr_is_product_page']), FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return $use_readylaunch;
+    }
+
+    /**
      * Formats a transaction's currency display.
      * Especially for formatting a subscription's price
      *
@@ -436,13 +471,16 @@ class MeprTransactionsHelper
             }
         }
 
-        if ($mepr_options->design_enable_checkout_template && MeprUtils::is_product_page()) {
+        // Determine which invoice template to use.
+        if (self::should_use_readylaunch_template()) {
             MeprView::render('/readylaunch/checkout/invoice', get_defined_vars());
         } else {
             MeprView::render('/checkout/invoice', get_defined_vars());
         }
 
         $invoice = ob_get_clean();
+        // Wrap invoice in a div to maintain consistent DOM structure when replaced via AJAX.
+        $invoice = '<div>' . $invoice . '</div>';
         return MeprHooks::apply_filters('mepr_invoice_html', $invoice, $txn);
     }
 
@@ -841,13 +879,16 @@ class MeprTransactionsHelper
             }
         }
 
-        if ($mepr_options->design_enable_checkout_template && MeprUtils::is_product_page()) {
+        // Determine which invoice template to use (with order bumps).
+        if (self::should_use_readylaunch_template()) {
             MeprView::render('/readylaunch/checkout/invoice_order_bumps', get_defined_vars());
         } else {
             MeprView::render('/checkout/invoice_order_bumps', get_defined_vars());
         }
 
         $invoice = ob_get_clean();
+        // Wrap invoice in a div to maintain consistent DOM structure when replaced via AJAX.
+        $invoice = '<div>' . $invoice . '</div>';
         return MeprHooks::apply_filters('mepr_invoice_html', $invoice, $txn);
     }
 
@@ -1022,5 +1063,72 @@ class MeprTransactionsHelper
         $links = (array) MeprHooks::apply_filters('mepr_admin_txn_row_action_links', $links, $rec, $txn);
 
         return $links;
+    }
+
+    /**
+     * Gets the date filter fields for transactions.
+     *
+     * @param  boolean $keys_only Whether to return only field names (true) or full array with labels (false).
+     * @return array Array of field names or field => label pairs.
+     */
+    public static function get_date_filter_fields($keys_only = false): array
+    {
+        $date_fields = MeprHooks::apply_filters('mepr_transactions_date_filter_fields', [
+            'created_at'  => __('Created On', 'memberpress'),
+            'expires_at'  => __('Expires On', 'memberpress'),
+            'refunded_at' => __('Refunded On', 'memberpress'),
+        ]);
+
+        return $keys_only ? array_keys($date_fields) : $date_fields;
+    }
+
+    /**
+     * Get the date range filter options.
+     *
+     * @param  boolean $keys_only Whether to return only field names (true) or full array with labels (false).
+     * @return array Array of date range filter options.
+     */
+    public static function get_date_range_filter_options($keys_only = false): array
+    {
+        $date_range_filter_options = MeprHooks::apply_filters('mepr_transactions_date_range_filter_options', [
+            'all'        => __('All Dates', 'memberpress'),
+            'today'      => __('Today', 'memberpress'),
+            'yesterday'  => __('Yesterday', 'memberpress'),
+            'this_week'  => __('This Week', 'memberpress'),
+            'last_week'  => __('Last Week', 'memberpress'),
+            'this_month' => __('This Month', 'memberpress'),
+            'last_month' => __('Last Month', 'memberpress'),
+            'this_year'  => __('This Year', 'memberpress'),
+            'last_year'  => __('Last Year', 'memberpress'),
+            'custom'     => __('Custom', 'memberpress'),
+        ]);
+
+        return $keys_only ? array_keys($date_range_filter_options) : $date_range_filter_options;
+    }
+    /**
+     * Displays a field for transaction refunded date.
+     *
+     * @param  string $field The field name.
+     * @param  string $value The field value.
+     * @param  string $id    The field ID.
+     * @return void
+     */
+    public static function transaction_refunded_at_field($field, $value = '', $id = '')
+    {
+        if (empty($id)) {
+            $id = $field;
+        }
+
+        ?>
+      <div id="<?php echo esc_attr($id); ?>" class="mepr_transaction_refunded_at_field">
+        <input
+          type="text"
+          name="<?php echo esc_attr($field); ?>"
+          value="<?php echo esc_attr(MeprAppHelper::format_date_utc($value, '', 'Y-m-d H:i:s')); ?>"
+          class="regular-text mepr-date-picker mepr-refunded-at"
+        />
+        <a href="" class="mepr-today-button button"><?php esc_html_e('Now', 'memberpress'); ?></a>
+      </div>
+        <?php
     }
 }

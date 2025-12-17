@@ -39,7 +39,7 @@ if ($mepr_coupon_code || ( is_object($tmpsub) && $tmpsub->prorated_trial )) {
       </li>
       <?php endforeach; ?>
       <?php if (isset($invoice['coupon']) && ! empty($invoice['coupon']) && (int) $invoice['coupon']['id'] !== 0) : ?>
-      <div class="mp-cart-coupon">
+      <li class="mp-cart-coupon">
         <div class="mp-cart-coupon-desc">
             <?php echo esc_html($invoice['coupon']['desc']); ?>
         </div>
@@ -50,7 +50,7 @@ if ($mepr_coupon_code || ( is_object($tmpsub) && $tmpsub->prorated_trial )) {
             &nbsp;
             <?php endif; ?>
         </div>
-      </div>
+      </li>
       <?php endif; ?>
     </ul>
     <div class="mp-cart-footer">

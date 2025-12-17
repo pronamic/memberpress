@@ -260,7 +260,7 @@ class MeprUpdateCtrl extends MeprBaseCtrl
         $plugin  = MEPR_PLUGIN_NAME;
         $version = $info['curr_version'];
 
-        $upgrader = new WPRollbackMembercoreUpgrader(
+        $upgrader = new MeprRollbackUpgrader(
             new Plugin_Upgrader_Skin(compact('title', 'nonce', 'url', 'plugin', 'version'))
         );
 

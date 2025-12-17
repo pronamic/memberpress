@@ -1,18 +1,11 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /**
- *  WP Rollback MemberPress Upgrader
- *
- * @description: Class that extends the WP Core Plugin_Upgrader found in core to do rollback of MemberPress
- * @copyright    : http://opensource.org/licenses/gpl-2.0.php GNU Public License
- * @since        : 1.0.0
+ *  Rollback Upgrader.
  */
-
-if (!defined('ABSPATH')) {
-    die('You are not allowed to call this page directly.');
-}
-
-class WPRollbackMembercoreUpgrader extends Plugin_Upgrader
+class MeprRollbackUpgrader extends Plugin_Upgrader
 {
     /**
      * Perform the rollback update.

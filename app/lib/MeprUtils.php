@@ -1924,7 +1924,7 @@ class MeprUtils
         $sfiles = glob(MEPR_I18N_PATH . '/states/[A-Z][A-Z].php', GLOB_NOSORT);
         if (is_array($sfiles)) {
             foreach ($sfiles as $sfile) {
-                require($sfile);
+                $states[basename($sfile, '.php')] = require($sfile);
             }
         }
 
@@ -2054,9 +2054,8 @@ class MeprUtils
 
             // If the state is goofy then just blank it out.
             if (file_exists(MEPR_I18N_PATH . '/states/' . $country . '.php')) {
-                $states = [];
-                require(MEPR_I18N_PATH . '/states/' . $country . '.php');
-                if (!isset($states[$country][$state])) {
+                $states = require(MEPR_I18N_PATH . '/states/' . $country . '.php');
+                if (!isset($states[$state])) {
                     $state = '';
                 }
             }
@@ -3369,7 +3368,7 @@ class MeprUtils
         header('Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate, proxy-revalidate');
         header('Pragma: no-cache');
         header('Expires: Fri, 01 Jan 2016 00:00:01 GMT', true); // Some date in the past.
-        wp_redirect($location, $status);
+        wp_redirect($location, $status); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 
         exit;
     }
@@ -4282,7 +4281,7 @@ class MeprUtils
 
         // Get host from $_SERVER['HTTP_HOST'] if available.
         if (!empty($_SERVER['HTTP_HOST'])) {
-            $http_host = strtolower(trim($_SERVER['HTTP_HOST']));
+            $http_host = strtolower(trim(sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'] ?? ''))));
             // Remove port if present for consistency.
             $http_host = preg_replace('/:\d+$/', '', $http_host);
             if (!in_array($http_host, $hosts_to_check, true)) {

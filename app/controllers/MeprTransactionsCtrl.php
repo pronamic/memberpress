@@ -214,6 +214,8 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             $txn->expires_at = MeprUtils::ts_to_mysql_date(strtotime(sanitize_text_field(wp_unslash($_POST['expires_at']))), 'Y-m-d 23:59:59');
         }
 
+        $this->set_refunded_at_from_post($txn);
+
         // Only save to the database if there aren't any errors.
         if (empty($errors)) {
             $txn->store();
@@ -302,6 +304,8 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
         } else {
             $txn->expires_at = MeprUtils::ts_to_mysql_date(strtotime(sanitize_text_field(wp_unslash($_POST['expires_at']))));
         }
+
+        $this->set_refunded_at_from_post($txn);
 
         // Only save to the database if there aren't any errors.
         if (empty($errors)) {
@@ -418,20 +422,24 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
     {
         if ($hook === 'memberpress_page_memberpress-trans' || $hook === 'memberpress_page_memberpress-new-trans') {
             $l10n = [
-                'del_txn'                           => __('Deleting Transactions could cause the associated member to lose access to protected content. Are you sure you want to delete this Transaction?', 'memberpress'),
-                'del_txn_error'                     => __('The Transaction could not be deleted. Please try again later.', 'memberpress'),
-                'refund_txn'                        => __('This will refund the transaction at the gateway level. This action is not reversable. Are you sure you want to refund this Transaction?', 'memberpress'),
-                'refund_txn_and_cancel_sub'         => __('This will refund the transaction and cancel the subscription associated with this transaction at the gateway level. This action is not reversable. Are you sure you want to refund this Transaction and cancel it\'s Subscription?', 'memberpress'),
+                'del_txn_title'                     => __('Delete Transaction', 'memberpress'),
+                'del_txn'                           => __('Deleting transactions could cause the associated member to lose access to protected content. Are you sure you want to delete this transaction?', 'memberpress'),
+                'del_txn_error'                     => __('The transaction could not be deleted. Please try again later.', 'memberpress'),
+                'refund_txn_title'                  => __('Refund Transaction', 'memberpress'),
+                'refund_txn'                        => __('This will refund the transaction at the gateway level. This action is not reversable. Are you sure you want to refund this transaction?', 'memberpress'),
+                'refund_txn_and_cancel_sub_title'   => __('Refund Transaction and Cancel Subscription', 'memberpress'),
+                'refund_txn_and_cancel_sub'         => __('This will refund the transaction and cancel the subscription associated with this transaction at the gateway level. This action is not reversable. Are you sure you want to refund this transaction and cancel it\'s subscription?', 'memberpress'),
                 'refunded_text'                     => __('Refunded', 'memberpress'),
-                'refund_txn_success'                => __('Your transaction was successfully refunded.', 'memberpress'),
-                'refund_txn_error'                  => __('The Transaction could not be refunded. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
-                'refund_txn_and_cancel_sub_success' => __('Your transaction was refunded and subscription was cancelled successfully.', 'memberpress'),
-                'refund_txn_and_cancel_sub_error'   => __('The Transaction could not be refunded and/or Subscription could not be cancelled. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
+                'refund_txn_error'                  => __('The transaction could not be refunded. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
+                'refund_txn_and_cancel_sub_error'   => __('The transaction could not be refunded and/or subscription could not be cancelled. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
                 'delete_transaction_nonce'          => wp_create_nonce('delete_transaction'),
                 'edit_txn_status_nonce'             => wp_create_nonce('edit_txn_status'),
                 'refund_txn_nonce'                  => wp_create_nonce('refund_txn'),
                 'refund_txn_cancel_sub_nonce'       => wp_create_nonce('refund_txn_cancel_sub'),
                 'click_to_copy'                     => __('Click to copy', 'memberpress'),
+                'site_timezone'                     => wp_timezone_string(),
+                'confirm_text'                      => __('Confirm', 'memberpress'),
+                'cancel_text'                       => __('Cancel', 'memberpress'),
             ];
 
             wp_register_style('mepr-jquery-ui-smoothness', MEPR_CSS_URL . '/vendor/jquery-ui/smoothness.min.css', [], '1.13.3');
@@ -447,6 +455,18 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             wp_register_script('mepr-tooltipster', MEPR_JS_URL . '/vendor/tooltipster.bundle.min.js', ['jquery'], MEPR_VERSION);
 
             wp_enqueue_script(
+                'mepr-components',
+                MEPR_JS_URL . '/build/components.js',
+                [
+                    'wp-element',
+                    'wp-components',
+                    'wp-hooks',
+                ],
+                MEPR_VERSION,
+                true
+            );
+            wp_enqueue_style('wp-components');
+            wp_enqueue_script(
                 'mepr-transactions-js',
                 MEPR_JS_URL . '/admin_transactions.js',
                 [
@@ -456,10 +476,18 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                     'mepr-date-picker-js',
                     'clipboard',
                     'mepr-tooltipster',
+                    'mepr-components',
                 ],
                 MEPR_VERSION
             );
             wp_localize_script('mepr-transactions-js', 'MeprTxn', $l10n);
+            // Localize table controls script with date validation messages.
+            $table_controls_l10n = [
+                'invalid_date_format'   => esc_html__('Please enter valid dates in YYYY-MM-DD format', 'memberpress'),
+                'end_date_before_start' => esc_html__('End date must be greater than or equal to start date', 'memberpress'),
+                'date_field_required'   => esc_html__('Set both from and to date', 'memberpress'),
+            ];
+            wp_localize_script('mepr-table-controls-js', 'MeprTableControls', $table_controls_l10n);
         }
     }
 
@@ -517,6 +545,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
 
         try {
             $txn->refund();
+            MeprHooks::do_action('mepr_txn_refunded', $txn);
         } catch (Exception $e) {
             wp_die(esc_html($e->getMessage()));
         }
@@ -545,7 +574,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
 
         try {
             $txn->refund();
-
+            MeprHooks::do_action('mepr_txn_refunded_and_canceled', $txn);
             $sub = $txn->subscription();
             if ($sub) {
                 $sub->cancel();
@@ -841,6 +870,13 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             $status     = (isset($_REQUEST['status']) ? sanitize_key(wp_unslash($_REQUEST['status'])) : 'all');
             $gateway    = (isset($_REQUEST['gateway']) ? sanitize_key(wp_unslash($_REQUEST['gateway'])) : 'all');
 
+            // Date range filter parameters.
+            $date_range_filter         = (isset($_REQUEST['date_range_filter']) ? sanitize_text_field(wp_unslash($_REQUEST['date_range_filter'])) : 'all');
+            $date_start                = (isset($_REQUEST['date_start']) ? sanitize_text_field(wp_unslash($_REQUEST['date_start'])) : '');
+            $date_end                  = (isset($_REQUEST['date_end']) ? sanitize_text_field(wp_unslash($_REQUEST['date_end'])) : '');
+            $date_field                = (isset($_REQUEST['date_field']) ? sanitize_text_field(wp_unslash($_REQUEST['date_field'])) : 'created_at');
+            $date_fields               = MeprTransactionsHelper::get_date_filter_fields();
+            $date_range_filter_options = MeprTransactionsHelper::get_date_range_filter_options();
             $args     = [
                 'orderby' => 'title',
                 'order'   => 'ASC',
@@ -848,7 +884,22 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             $prds     = MeprCptModel::all('MeprProduct', false, $args);
             $gateways = $mepr_options->payment_methods();
 
-            MeprView::render('/admin/transactions/search_box', compact('membership', 'status', 'prds', 'gateways', 'gateway'));
+            MeprView::render('/admin/transactions/search_box', compact('membership', 'status', 'prds', 'gateways', 'gateway', 'date_range_filter', 'date_start', 'date_end', 'date_field', 'date_fields', 'date_range_filter_options'));
+        }
+    }
+
+    /**
+     * Sets the refunded_at property on a transaction object.
+     *
+     * @param  MeprTransaction $txn The transaction object.
+     * @return void
+     */
+    private function set_refunded_at_from_post($txn)
+    {
+        if (empty($_POST['refunded_at'])) {
+            $txn->refunded_at = null;
+        } else {
+            $txn->refunded_at = MeprUtils::ts_to_mysql_date(strtotime(sanitize_text_field(wp_unslash($_POST['refunded_at']))));
         }
     }
 }

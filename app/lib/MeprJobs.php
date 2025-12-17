@@ -139,12 +139,10 @@ class MeprJobs
     public function cleanup()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         // Retry lingering jobs.
         $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "UPDATE {$mepr_db->jobs}
+            "UPDATE {$wpdb->mepr_jobs}
             SET status = %s
             WHERE status IN (%s,%s)
             AND tries <= %d
@@ -159,8 +157,7 @@ class MeprJobs
 
         // Delete completed jobs that have been in the system for over a day?
         $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "DELETE FROM {$mepr_db->jobs}
+            "DELETE FROM {$wpdb->mepr_jobs}
             WHERE status = %s
             AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d",
             $this->config->status->complete, // Which have a status = complete.
@@ -170,8 +167,7 @@ class MeprJobs
 
         // Delete jobs that have been retried and are still in a working state.
         $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "DELETE FROM {$mepr_db->jobs}
+            "DELETE FROM {$wpdb->mepr_jobs}
             WHERE tries > %d
             AND TIMESTAMPDIFF(SECOND,lastrun,%s) >= %d",
             $this->config->cleanup->num_retries, // Which have only been 'n' retries.
@@ -189,11 +185,8 @@ class MeprJobs
     {
         global $wpdb;
 
-        $mepr_db = new MeprDb();
-
         return $wpdb->get_results($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT * FROM {$mepr_db->jobs}
+            "SELECT * FROM {$wpdb->mepr_jobs}
             WHERE status = %s
             AND runtime <= %s
             ORDER BY priority ASC, runtime ASC",
@@ -211,11 +204,8 @@ class MeprJobs
     {
         global $wpdb;
 
-        $mepr_db = new MeprDb();
-
         return $wpdb->get_row($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT * FROM {$mepr_db->jobs}
+            "SELECT * FROM {$wpdb->mepr_jobs}
             WHERE status = %s
             AND runtime <= %s
             ORDER BY priority ASC, runtime ASC

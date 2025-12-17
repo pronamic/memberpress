@@ -4,7 +4,7 @@
  * Malaysian states
  */
 
-$states['MY'] = [
+return [
     'JHR' => _x('Johor', 'ui', 'memberpress'),
     'KDH' => _x('Kedah', 'ui', 'memberpress'),
     'KTN' => _x('Kelantan', 'ui', 'memberpress'),

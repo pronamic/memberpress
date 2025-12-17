@@ -4,7 +4,9 @@
 $account_link       = MeprDrmHelper::get_drm_link(MeprDrmHelper::DRM_LOCKED, 'general', 'account');
 $pm_id              = MeprStripeGateway::has_method_with_connect_status('connected', true);
 $country            = MeprStripeGateway::get_account_country($pm_id);
-$has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
+$has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country)
+                    && MeprDrmHelper::is_fee_unlock_available(); // Hide if fee = 0.
+$app_fee_percentage = MeprDrmHelper::get_application_fee_percentage();
 
 ?>
 <div class="mepr-notice-modal">
@@ -29,19 +31,20 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
           <p><?php esc_html_e('This problem is easy to fix!', 'memberpress'); ?></p>
           <p>
           <?php if ($has_stripe_connect) : ?>
-            <a href="#" id="mepr-drm-btn-without-license-confirm" class="button button-secondary button-reactivate-fee mepr-drm-cta"><?php esc_html_e('Reactivate Backend Instantly*', 'memberpress'); ?></a>
+            <a href="#" id="mepr-drm-btn-without-license-confirm" class="button button-secondary button-reactivate-fee mepr-drm-cta"><?php esc_html_e('Unlock with Fee*', 'memberpress'); ?></a>
             <a target="_blank" href="<?php echo esc_url($account_link); ?>" class="button button-primary mepr-drm-cta"><?php esc_html_e('Buy or renew your license', 'memberpress'); ?></a>
           <?php else : ?>
             <a target="_blank" href="<?php echo esc_url($account_link); ?>" class="button button-primary"><?php esc_html_e('Click Here to purchase or renew your license key', 'memberpress'); ?></a>
           <?php endif; ?>
           </p>
         </div>
+        <?php if ($has_stripe_connect) : ?>
         <div class="mepr-drm-unlock-step2" style="display: none;">
-          <?php $application_fee_percentage = MeprDrmHelper::get_application_fee_percentage() . '%'; ?>
+            <?php $application_fee_percentage = $app_fee_percentage . '%'; ?>
           <p><?php
               printf(
                   // Translators: %s: application fee percentage.
-                  esc_html__('When re-activating without an active license, MP will add an additional %s fee to each transaction. Are you sure that you want to reactivate the backend without a license?', 'memberpress'),
+                  esc_html__('When re-activating without an active license, MP will add an additional %s fee to each transaction. Are you sure that you want to unlock the backend without a license?', 'memberpress'),
                   esc_html($application_fee_percentage)
               );
                 ?></p>
@@ -52,11 +55,12 @@ $has_stripe_connect = MeprDrmHelper::is_country_unlockable_by_fee($country);
                   esc_html($application_fee_percentage)
               );
                 ?></p>
-          <a href="#" id="mepr-drm-btn-without-license" class="button button-secondary"><?php esc_html_e('Yes, I Understand. Reactivate Backend Now.', 'memberpress'); ?></a>
+          <a href="#" id="mepr-drm-btn-without-license" class="button button-secondary"><?php esc_html_e('Yes, I Understand. Unlock Backend Now.', 'memberpress'); ?></a>
           <p>
             <a href="#" id="mepr-drm-btn-without-license-cancel" class="button button-text"><?php esc_html_e('Cancel', 'memberpress'); ?></a>
           </p>
         </div>
+        <?php endif; ?>
       </div>
       <p><?php printf(
           // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.

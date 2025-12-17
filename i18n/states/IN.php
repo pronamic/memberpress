@@ -4,7 +4,7 @@
  * Indian states
  */
 
-$states['IN'] = [
+return [
     'AP' => _x('Andra Pradesh', 'ui', 'memberpress'),
     'AR' => _x('Arunachal Pradesh', 'ui', 'memberpress'),
     'AS' => _x('Assam', 'ui', 'memberpress'),

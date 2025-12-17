@@ -44,5 +44,14 @@ jQuery(document).ready(function($) {
       $(this).trigger('mepr-date-picker-closed', [date, inst]);
     };
 
-  $('.mepr-date-picker').datetimepicker( options );
+  $('.mepr-date-picker').each(function() {
+    var data = $(this).data();
+    var override = {};
+    // Override the options with the data attributes.
+    $.each(data, function(key, value) {
+      override[key] = value;
+    });
+    options = $.extend({}, options, override);
+    $(this).datetimepicker( options );
+  });
 });

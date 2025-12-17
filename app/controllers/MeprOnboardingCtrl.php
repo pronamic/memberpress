@@ -191,6 +191,8 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             'memberpress-corporate'       => 'MemberPress Corporate Accounts',
             'easy-affiliate'             => 'Easy Affiliate',
             'memberpress-coachkit'        => 'CoachKit™',
+            'memberpress-circles'         => 'ClubCircles™',
+            'memberpress-directory'       => 'ClubDirectory™',
         ];
     }
 
@@ -1600,7 +1602,7 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
 
         if ($onboarding_complete === '1') {
             nocache_headers();
-            wp_redirect(admin_url('admin.php?page=memberpress-options'), 307);
+            wp_safe_redirect(admin_url('admin.php?page=memberpress-options'), 307);
             exit;
         }
     }

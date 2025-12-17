@@ -3,9 +3,9 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
-$member = (isset($_GET['member'])) ? sanitize_text_field(wp_unslash($_GET['member'])) : '';
-$member = (isset($_GET['search']) && isset($_GET['search-field']) && (sanitize_text_field(wp_unslash($_GET['search-field'])) === 'user' || sanitize_text_field(wp_unslash($_GET['search-field'])) === 'email')) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';
-$member_str = !empty($member) ? __('for', 'memberpress') . ' ' . urldecode($member) : '';
+$member          = (isset($_GET['member'])) ? sanitize_text_field(wp_unslash($_GET['member'])) : '';
+$member          = (isset($_GET['search']) && isset($_GET['search-field']) && (sanitize_text_field(wp_unslash($_GET['search-field'])) === 'user' || sanitize_text_field(wp_unslash($_GET['search-field'])) === 'email')) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';
+$member_str      = !empty($member) ? __('for', 'memberpress') . ' ' . rawurldecode($member) : '';
 $subscription_id = intval($_GET['subscription'] ?? 0);
 
 $add_new_txn_url = admin_url('admin.php?page=memberpress-trans&action=new&user=' . $member);

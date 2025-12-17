@@ -4,7 +4,7 @@
  * Swiss Federal States
  */
 
-$states['CH'] = [
+return [
     'AG' => _x('Aargau', 'ui', 'memberpress'),
     'AR' => _x('Appenzell Ausserrhoden', 'ui', 'memberpress'),
     'AI' => _x('Appenzell Innerrhoden', 'ui', 'memberpress'),

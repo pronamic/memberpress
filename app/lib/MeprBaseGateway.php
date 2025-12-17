@@ -942,7 +942,6 @@ abstract class MeprBaseGateway
     protected function is_subscr_trial_payment($sub)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         // If no trial period, or trial period is free, then we don't want to record the first txn as a regular payment.
         if (!$sub->trial || ($sub->trial && $sub->trial_amount <= 0.00)) {
@@ -957,8 +956,7 @@ abstract class MeprBaseGateway
 
         // Making sure this is in fact the first real payment.
         $count = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT COUNT(*) FROM {$mepr_db->transactions} WHERE subscription_id = %d AND txn_type = %s AND status <> %s",
+            "SELECT COUNT(*) FROM {$wpdb->mepr_transactions} WHERE subscription_id = %d AND txn_type = %s AND status <> %s",
             $sub->id,
             MeprTransaction::$payment_str,
             MeprTransaction::$pending_str

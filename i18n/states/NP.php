@@ -4,7 +4,7 @@
  * Nepal states (Districts)
  */
 
-$states['NP'] = [
+return [
 
     // Mechi.
     'ILL' => _x('Illam', 'ui', 'memberpress'),

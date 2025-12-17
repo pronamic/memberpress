@@ -1,0 +1,12 @@
+.mepr-modal{
+    &-actions{
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+}
+@media (max-width: 600px) {
+    .mepr-modal{
+        margin: auto;
+    }
+}

@@ -157,7 +157,7 @@ class MeprSquareConnectCtrl extends MeprBaseCtrl
 
         $redirect_url = add_query_arg(array_map('rawurlencode', $args), admin_url('admin.php')) . '#mepr-integration';
 
-        wp_redirect($redirect_url);
+        wp_safe_redirect($redirect_url);
         exit;
     }
 
@@ -195,7 +195,7 @@ class MeprSquareConnectCtrl extends MeprBaseCtrl
                 admin_url('admin.php')
             ) . '#mepr-integration';
 
-            wp_redirect($redirect_url);
+            wp_safe_redirect($redirect_url);
             exit;
         } catch (Exception $e) {
             $this->die(
@@ -242,7 +242,7 @@ class MeprSquareConnectCtrl extends MeprBaseCtrl
                 admin_url('admin.php')
             ) . '#mepr-integration';
 
-            wp_redirect($redirect_url);
+            wp_safe_redirect($redirect_url);
             exit;
         } catch (Exception $e) {
             $this->die(

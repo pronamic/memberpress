@@ -34,7 +34,6 @@ class MeprAppCtrl extends MeprBaseCtrl
         add_action('add_meta_boxes', 'MeprAppCtrl::add_meta_boxes', 10, 2);
         add_action('save_post', 'MeprAppCtrl::save_meta_boxes');
         add_action('admin_notices', 'MeprAppCtrl::protected_notice');
-        add_action('admin_notices', 'MeprAppCtrl::php_min_version_check');
         add_action('admin_notices', 'MeprAppCtrl::maybe_show_get_started_notice');
         add_action('wp_ajax_mepr_dismiss_notice', 'MeprAppCtrl::dismiss_notice');
         add_action('wp_ajax_mepr_dismiss_global_notice', 'MeprAppCtrl::dismiss_global_notice');
@@ -341,31 +340,6 @@ class MeprAppCtrl extends MeprBaseCtrl
     }
 
     /**
-     * Check the PHP version and display a notice if it is outdated.
-     *
-     * @return void
-     */
-    public static function php_min_version_check()
-    {
-        $current_php_version = phpversion();
-        if (version_compare($current_php_version, MEPR_MIN_PHP_VERSION, '<')) {
-            $message = sprintf(
-                // Translators: %1$s: opening strong tag, %2$s: current PHP version, %3$s: closing strong tag, %4$s: minimum PHP version.
-                esc_html__('%1$sMemberPress: Your PHP version (%2$s) is out of date!%3$s This version has reached official End Of Life and as such may expose your site to security vulnerabilities. Please contact your web hosting provider to update to %4$s or newer', 'memberpress'),
-                '<strong>',
-                $current_php_version,
-                '</strong>',
-                MEPR_MIN_PHP_VERSION
-            );
-            ?>
-     <div class="notice notice-warning is-dismissible">
-         <p><?php echo esc_html($message); ?></p>
-     </div>
-            <?php
-        }
-    }
-
-    /**
      * Show a 'Get Started' notice if certain conditions are met.
      *
      * @return void
@@ -582,6 +556,10 @@ class MeprAppCtrl extends MeprBaseCtrl
         }
 
         if ($mepr_options->hide_admin_bar_menu) {
+            return;
+        }
+
+        if (class_exists('MeprDrmHelper') && MeprDrmHelper::is_locked()) {
             return;
         }
 
@@ -1043,6 +1021,10 @@ class MeprAppCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         $is_product_page = ( false !== ( $prd = MeprProduct::is_product_page($post) ) );
+        // For ReadyLaunch template selection, only consider actual product post types (not shortcodes)
+        // OR ReadyLaunch blocks (memberpress/checkout block).
+        $is_readylaunch_block = (function_exists('has_block') && has_block('memberpress/checkout', $post));
+        $is_actual_product_page = (is_object($post) && property_exists($post, 'post_type') && $post->post_type === MeprProduct::$cpt) || $is_readylaunch_block;
         $is_group_page   = ( false !== ( $grp = MeprGroup::is_group_page($post) ) );
         $is_login_page   = MeprUser::is_login_page($post);
         $is_account_page = MeprUser::is_account_page($post);
@@ -1120,6 +1102,7 @@ class MeprAppCtrl extends MeprBaseCtrl
                 'coupon_nonce'                  => wp_create_nonce('mepr_coupons'),
                 'spc_enabled'                   => ( $mepr_options->enable_spc || $mepr_options->design_enable_checkout_template ),
                 'spc_invoice'                   => ( $mepr_options->enable_spc_invoice || $mepr_options->design_enable_checkout_template ),
+                'is_product_page'               => $is_actual_product_page,
                 'no_compatible_pms'             => (
                     // Translators: %s: payment method name.
                     __('There are no payment methods available that can purchase this product, please contact the site administrator or purchase it separately.', 'memberpress')
@@ -1735,7 +1718,7 @@ class MeprAppCtrl extends MeprBaseCtrl
 
         if (!get_option('mepr_onboarded')) {
             nocache_headers();
-            wp_redirect(admin_url('admin.php?page=memberpress-onboarding'), 307);
+            wp_safe_redirect(admin_url('admin.php?page=memberpress-onboarding'), 307);
             exit;
         }
     }

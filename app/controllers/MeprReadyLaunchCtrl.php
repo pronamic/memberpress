@@ -150,6 +150,7 @@ class MeprReadyLaunchCtrl extends MeprBaseCtrl
             'MeprProTemplateSignup',
             [
                 'spc_enabled' => true,
+                'is_product_page' => true, // ReadyLaunch block should always use ReadyLaunch template.
             ]
         );
 

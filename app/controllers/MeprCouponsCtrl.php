@@ -20,7 +20,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
         add_filter('manage_edit-memberpresscoupon_columns', 'MeprCouponsCtrl::columns');
         add_action('admin_init', 'MeprCoupon::expire_old_coupons_and_cleanup_db');
         add_action('save_post', 'MeprCouponsCtrl::save_postdata');
-        add_action('wp_insert_post_data', 'MeprCouponsCtrl::sanitize_coupon_title', 99, 2);
+        add_action('wp_insert_post_data', 'MeprCouponsCtrl::sanitize_and_validate_coupon', 99, 2);
         add_filter('default_title', 'MeprCouponsCtrl::get_page_title_code');
         add_action('mepr_txn_store', 'MeprCouponsCtrl::update_coupon_usage_count');
         add_action('mepr_subscr_store', 'MeprCouponsCtrl::update_coupon_usage_count');
@@ -31,6 +31,9 @@ class MeprCouponsCtrl extends MeprCptCtrl
         // Ajax coupon validation.
         add_action('wp_ajax_mepr_validate_coupon', 'MeprCouponsCtrl::validate_coupon_ajax');
         add_action('wp_ajax_nopriv_mepr_validate_coupon', 'MeprCouponsCtrl::validate_coupon_ajax');
+
+        // Admin notice for coupon validation errors.
+        add_action('admin_notices', 'MeprCouponsCtrl::display_coupon_validation_notice');
     }
 
     /**
@@ -319,13 +322,16 @@ class MeprCouponsCtrl extends MeprCptCtrl
     }
 
     /**
-     * Sanitize the coupon title before saving.
+     * Sanitize and validate coupon data before saving.
+     *
+     * Handles title sanitization, duplicate title prevention,
+     * and validates that at least one membership is selected.
      *
      * @param  array $data    The post data.
      * @param  array $postarr The post array.
      * @return array
      */
-    public static function sanitize_coupon_title($data, $postarr)
+    public static function sanitize_and_validate_coupon($data, $postarr)
     {
         global $wpdb;
 
@@ -333,7 +339,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
             // Get rid of invalid chars.
             $data['post_title'] = preg_replace(['/ +/', '/[^A-Za-z0-9_-]/'], ['-', ''], $data['post_title']);
 
-            // Begin duplicate titles handling.
+            // Duplicate titles handling.
             $q1    = "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type = %s AND ID <> %d LIMIT 1";
             $q2    = $wpdb->prepare($q1, $data['post_title'], MeprCoupon::$cpt, $postarr['ID']); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $count = 0;
@@ -349,10 +355,43 @@ class MeprCouponsCtrl extends MeprCptCtrl
             if ($count > 0) {
                 $data['post_title'] .= "-{$count}";
             }
-            // End duplicate titles handling.
+
+            // Validate that at least one membership is selected.
+            // Only check when trying to publish and the nonce is present (actual form submission).
+            $nonce_value = isset($_POST[MeprCoupon::$nonce_str]) ? sanitize_text_field(wp_unslash($_POST[MeprCoupon::$nonce_str])) : '';
+            if (wp_verify_nonce($nonce_value, MeprCoupon::$nonce_str . wp_salt())) {
+                $valid_products = isset($_POST[MeprCoupon::$valid_products_str]) ? array_filter($_POST[MeprCoupon::$valid_products_str]) : [];
+
+                if (empty($valid_products) && in_array($data['post_status'], ['publish', 'pending', 'future'], true)) {
+                    // Force the coupon to draft status if no memberships are selected.
+                    $data['post_status'] = 'draft';
+
+                    // Set a transient to display an admin notice.
+                    set_transient('mepr_coupon_no_products_error_' . get_current_user_id(), true, 30);
+                }
+            }
         }
 
         return $data;
+    }
+
+    /**
+     * Display admin notice when coupon is saved without memberships.
+     *
+     * @return void
+     */
+    public static function display_coupon_validation_notice()
+    {
+        $transient_key = 'mepr_coupon_no_products_error_' . get_current_user_id();
+
+        if (get_transient($transient_key)) {
+            delete_transient($transient_key);
+            ?>
+            <div class="notice notice-error is-dismissible">
+                <p><strong><?php esc_html_e('ERROR', 'memberpress'); ?></strong>: <?php esc_html_e('Please select at least one Membership before publishing the coupon. The coupon has been saved as a draft.', 'memberpress'); ?></p>
+            </div>
+            <?php
+        }
     }
 
     /**

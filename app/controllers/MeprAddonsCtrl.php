@@ -28,12 +28,75 @@ class MeprAddonsCtrl extends MeprBaseCtrl
      */
     public static function route()
     {
-        $force   = isset($_GET['refresh']) && $_GET['refresh'] === 'true';
-        $addons  = MeprUpdateCtrl::addons(true, $force, true);
-        $plugins = get_plugins();
+        $force      = isset($_GET['refresh']) && $_GET['refresh'] === 'true';
+        $addons     = MeprUpdateCtrl::addons(true, $force, true);
+        $plugins    = get_plugins();
+        $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'addons';
         wp_cache_delete('plugins', 'plugins');
 
+        // Get registered tabs.
+        $registered_tabs = self::get_registered_tabs();
+
         MeprView::render('/admin/addons/ui', get_defined_vars());
+    }
+
+    /**
+     * Get registered tabs for the add-ons page.
+     *
+     * @return array Array of registered tabs.
+     */
+    public static function get_registered_tabs()
+    {
+        // Default add-ons tab.
+        $tabs = [
+            'addons' => [
+                'id'         => 'addons',
+                'label'      => __('Add-ons', 'memberpress'),
+                'capability' => 'install_plugins',
+                'priority'   => 10,
+                'callback'   => null, // Rendered in the main view.
+            ],
+        ];
+
+        /**
+         * Filter to register custom tabs for the add-ons page.
+         *
+         * Allows brands/plugins to register tabs in a structured way.
+         *
+         * @param array $tabs Array of tab configurations.
+         *
+         * Each tab should have:
+         * - id (string, required): Unique tab identifier
+         * - label (string, required): Tab label (translated)
+         * - capability (string, optional): Required capability, default 'manage_options'
+         * - priority (int, optional): Display order, default 10
+         * - callback (callable, optional): Function to render tab content
+         */
+        $registered = apply_filters('mepr_addons_registered_tabs', []);
+
+        // Validate and merge registered tabs.
+        foreach ($registered as $tab) {
+            if (!is_array($tab) || !isset($tab['id'], $tab['label'])) {
+                continue;
+            }
+
+            $tab_id = sanitize_key($tab['id']);
+
+            $tabs[$tab_id] = [
+                'id'         => $tab_id,
+                'label'      => $tab['label'],
+                'capability' => isset($tab['capability']) ? $tab['capability'] : 'manage_options',
+                'priority'   => isset($tab['priority']) ? absint($tab['priority']) : 10,
+                'callback'   => isset($tab['callback']) && is_callable($tab['callback']) ? $tab['callback'] : null,
+            ];
+        }
+
+        // Sort by priority.
+        uasort($tabs, function ($a, $b) {
+            return $a['priority'] - $b['priority'];
+        });
+
+        return $tabs;
     }
 
     /**
@@ -60,6 +123,17 @@ class MeprAddonsCtrl extends MeprBaseCtrl
                 'install_failed'        => __('Could not install add-on. Please download from memberpress.com and install manually.', 'memberpress'),
                 'plugin_install_failed' => __('Could not install plugin. Please download and install manually.', 'memberpress'),
             ]);
+
+            // Get active tab for conditional enqueuing.
+            $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'addons';
+
+            /**
+             * Allow brands to enqueue their own scripts and styles for custom tabs.
+             *
+             * @param string $hook       The current admin page hook.
+             * @param string $active_tab The currently active tab.
+             */
+            do_action('mepr_addons_enqueue_scripts', $hook, $active_tab);
         }
 
         if (preg_match('/_page_memberpress-(analytics|smtp|affiliates)$/', $hook)) {

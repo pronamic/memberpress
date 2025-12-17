@@ -148,13 +148,15 @@ class MeprDrmCtrl extends MeprBaseCtrl
         }
 
         if (MeprDrmHelper::is_app_fee_enabled()) {
-            add_action('admin_notices', [$this, 'app_fee_admin_notices'], 20);
-            add_action('admin_footer', [$this, 'app_fee_modal_footer'], 99);
-
             $drm_app_fee = new MeprDrmAppFee();
             $drm_app_fee->init_crons();
 
-            return; // Bail.
+            if (MeprDrmHelper::is_fee_unlock_available()) {
+                add_action('admin_notices', [$this, 'app_fee_admin_notices'], 20);
+                add_action('admin_footer', [$this, 'app_fee_modal_footer'], 99);
+
+                return; // Bail.
+            }
         }
 
         $drm_no_license      = get_option('mepr_drm_no_license', false);
@@ -289,6 +291,12 @@ class MeprDrmCtrl extends MeprBaseCtrl
             ));
         }
 
+        // Check if fee unlock is available.
+        if (! MeprDrmHelper::is_fee_unlock_available()) {
+            wp_send_json_error(__('Invalid request. Please purchase or renew your license.', 'memberpress'));
+            return;
+        }
+
         try {
             $pm_id = MeprStripeGateway::has_method_with_connect_status('connected', true);
             if (! $pm_id) {
@@ -332,13 +340,17 @@ class MeprDrmCtrl extends MeprBaseCtrl
      */
     public function drm_set_status_locked($status, $days, $event_name)
     {
-
         if (! MeprDrmHelper::is_locked($status)) {
             return; // Bail.
         }
 
         if (! MeprStripeGateway::has_method_with_connect_status()) {
             return;
+        }
+
+        // Check if fee unlock is available.
+        if (! MeprDrmHelper::is_fee_unlock_available()) {
+            return; // Don't auto-apply if fee unlock is not available.
         }
 
         $drm_app_fee = new MeprDrmAppFee();

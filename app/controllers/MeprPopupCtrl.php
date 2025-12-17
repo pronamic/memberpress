@@ -141,17 +141,17 @@ class MeprPopupCtrl extends MeprBaseCtrl
 
         // If this isn't a MemberPress authorized user, then bail.
         if (!MeprUtils::is_mepr_admin()) {
-            MeprUtils::exit_with_status(403, json_encode(['error' => __('Forbidden', 'memberpress')]));
+            wp_send_json(['error' => __('Forbidden', 'memberpress')], 403);
         }
 
         if (!isset($_POST['popup'])) {
-            MeprUtils::exit_with_status(400, json_encode(['error' => __('Must specify a popup', 'memberpress')]));
+            wp_send_json(['error' => __('Must specify a popup', 'memberpress')], 400);
         }
 
         $popup = sanitize_text_field(wp_unslash($_POST['popup']));
 
         if (!$this->is_valid_popup($popup)) {
-            MeprUtils::exit_with_status(400, json_encode(['error' => __('Invalid popup', 'memberpress')]));
+            wp_send_json(['error' => __('Invalid popup', 'memberpress')], 400);
         }
 
         if (isset($_POST['action']) && $_POST['action'] === 'mepr_delay_popup') {
@@ -162,7 +162,7 @@ class MeprPopupCtrl extends MeprBaseCtrl
             $message = __('The popup was successfully stopped', 'memberpress');
         }
 
-        MeprUtils::exit_with_status(200, json_encode(compact('message')));
+        wp_send_json(['message' => $message], 200);
     }
 
     /**

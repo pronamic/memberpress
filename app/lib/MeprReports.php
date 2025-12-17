@@ -20,7 +20,6 @@ class MeprReports
     public static function get_transactions_count($status, $day = false, $month = false, $year = false, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -60,12 +59,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT COUNT(*) FROM {$mepr_db->transactions} WHERE {$where_clause}",
+            "SELECT COUNT(*) FROM {$wpdb->mepr_transactions} WHERE {$where_clause}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return (int)$wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return (int) $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -81,7 +80,6 @@ class MeprReports
     public static function get_revenue($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -121,12 +119,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT SUM(amount) FROM {$mepr_db->transactions} WHERE {$where_clause}",
+            "SELECT SUM(amount) FROM {$wpdb->mepr_transactions} WHERE {$where_clause}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -142,7 +140,6 @@ class MeprReports
     public static function get_collected($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -183,12 +180,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT (SUM(amount)+SUM(tax_amount)) FROM {$mepr_db->transactions} WHERE {$where_clause}",
+            "SELECT (SUM(amount)+SUM(tax_amount)) FROM {$wpdb->mepr_transactions} WHERE {$where_clause}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -204,7 +201,6 @@ class MeprReports
     public static function get_refunds($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -244,12 +240,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT (SUM(amount)+SUM(tax_amount)) FROM {$mepr_db->transactions} WHERE {$where_clause}",
+            "SELECT (SUM(amount)+SUM(tax_amount)) FROM {$wpdb->mepr_transactions} WHERE {$where_clause}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return (float)$wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return (float)$wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -265,7 +261,6 @@ class MeprReports
     public static function get_taxes($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -305,12 +300,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT SUM(tax_amount) FROM {$mepr_db->transactions} WHERE {$where_clause}",
+            "SELECT SUM(tax_amount) FROM {$wpdb->mepr_transactions} WHERE {$where_clause}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -323,7 +318,6 @@ class MeprReports
     public static function get_widget_data($type = 'amounts')
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $results = [];
         $time    = time();
@@ -332,28 +326,28 @@ class MeprReports
 
         $q = "SELECT %s AS date,
           (SELECT {$selecttype}
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE YEAR(created_at) = %d
               AND MONTH(created_at) = %d
               AND DAY(created_at) = %d
               AND txn_type = %s
               AND status = %s) as p,
           (SELECT {$selecttype}
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE YEAR(created_at) = %d
               AND MONTH(created_at) = %d
               AND DAY(created_at) = %d
               AND txn_type = %s
               AND status = %s) as f,
           (SELECT {$selecttype}
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE YEAR(created_at) = %d
               AND MONTH(created_at) = %d
               AND DAY(created_at) = %d
               AND txn_type = %s
               AND status = %s) as c,
           (SELECT {$selecttype}
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE YEAR(created_at) = %d
               AND MONTH(created_at) = %d
               AND DAY(created_at) = %d
@@ -366,7 +360,7 @@ class MeprReports
             $year        = gmdate('Y', $ts);
             $month       = gmdate('n', $ts);
             $day         = gmdate('j', $ts);
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
             $results[$i] = $wpdb->get_row($wpdb->prepare(
                 $q, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
                 $date,
@@ -407,7 +401,6 @@ class MeprReports
     public static function get_pie_data($year = false, $month = false)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -436,7 +429,7 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $query = $wpdb->prepare(
             "SELECT p.post_title AS product, COUNT(t.id) AS transactions
-            FROM {$mepr_db->transactions} AS t
+            FROM {$wpdb->mepr_transactions} AS t
             LEFT JOIN {$wpdb->posts} AS p
             ON t.product_id = p.ID
             WHERE {$where_clause}
@@ -445,7 +438,7 @@ class MeprReports
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-        return $wpdb->get_results($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_results($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -462,7 +455,6 @@ class MeprReports
     public static function get_monthly_data($type, $month, $year, $product, $q = [])
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $results       = [];
         $days_in_month = gmdate('t', mktime(0, 0, 0, $month, 1, $year));
@@ -479,28 +471,28 @@ class MeprReports
 
         $base_query = "SELECT %d AS day,
           (SELECT {$selecttype}
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE YEAR(created_at) = %d
               AND MONTH(created_at) = %d
               AND DAY(created_at) = %d
               AND txn_type = %s
               AND status = %s{$product_clause}{$where}) as p,
           (SELECT {$selecttype}
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE YEAR(created_at) = %d
               AND MONTH(created_at) = %d
               AND DAY(created_at) = %d
               AND txn_type = %s
               AND status = %s{$product_clause}{$where}) as f,
           (SELECT {$selecttype}
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE YEAR(created_at) = %d
               AND MONTH(created_at) = %d
               AND DAY(created_at) = %d
               AND txn_type = %s
               AND status = %s{$product_clause}{$where}) as c,
           (SELECT {$selecttype}
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE YEAR(created_at) = %d
               AND MONTH(created_at) = %d
               AND DAY(created_at) = %d
@@ -510,14 +502,14 @@ class MeprReports
         if ($type === 'amounts') {
             $base_query .= ",
         (SELECT SUM(tax_amount)
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = %d
             AND MONTH(created_at) = %d
             AND DAY(created_at) = %d
             AND txn_type = %s
             AND status = %s{$product_clause}{$where}) as x,
         (SELECT (SUM(tax_amount)+SUM(amount))
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = %d
             AND MONTH(created_at) = %d
             AND DAY(created_at) = %d
@@ -566,7 +558,7 @@ class MeprReports
                 }
             }
 
-            $results[$i] = $wpdb->get_row($wpdb->prepare($base_query, ...$params)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            $results[$i] = $wpdb->get_row($wpdb->prepare($base_query, ...$params)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
         }
 
         return $results;
@@ -585,7 +577,6 @@ class MeprReports
     public static function get_yearly_data($type, $year, $product, $q = [])
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $results = [];
         $where   = MeprUtils::build_where_clause($q);
@@ -602,25 +593,25 @@ class MeprReports
         $base_query = "
       SELECT %d AS month,
         (SELECT {$selecttype}
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = %d
             AND MONTH(created_at) = %d
             AND txn_type = %s
             AND status = %s{$product_clause}{$where}) as p,
         (SELECT {$selecttype}
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = %d
             AND MONTH(created_at) = %d
             AND txn_type = %s
             AND status = %s{$product_clause}{$where}) as f,
         (SELECT {$selecttype}
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = %d
             AND MONTH(created_at) = %d
             AND txn_type = %s
             AND status = %s{$product_clause}{$where}) as c,
         (SELECT {$selecttype}
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = %d
             AND MONTH(created_at) = %d
             AND txn_type = %s
@@ -629,13 +620,13 @@ class MeprReports
         if ($type === 'amounts') {
             $base_query .= ",
         (SELECT SUM(tax_amount)
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = %d
             AND MONTH(created_at) = %d
             AND txn_type = %s
             AND status = %s{$product_clause}{$where}) as x,
         (SELECT (SUM(tax_amount)+SUM(amount))
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = %d
             AND MONTH(created_at) = %d
             AND txn_type = %s
@@ -683,7 +674,7 @@ class MeprReports
                 }
             }
 
-            $results[$i] = $wpdb->get_row($wpdb->prepare($base_query, ...$params)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            $results[$i] = $wpdb->get_row($wpdb->prepare($base_query, ...$params)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
         }
 
         return $results;
@@ -697,18 +688,15 @@ class MeprReports
     public static function get_first_year()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $year = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
             'SELECT YEAR(created_at) ' .
-            "FROM {$mepr_db->transactions} " .
+            "FROM {$wpdb->mepr_transactions} " .
             'WHERE txn_type = %s ' .
             'ORDER BY created_at ' .
             'LIMIT 1',
             MeprTransaction::$payment_str
         ));
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         if ($year) {
             return (int) $year;
@@ -725,18 +713,15 @@ class MeprReports
     public static function get_last_year()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $year = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
             'SELECT YEAR(created_at) ' .
-            "FROM {$mepr_db->transactions} " .
+            "FROM {$wpdb->mepr_transactions} " .
             'WHERE txn_type = %s ' .
             'ORDER BY created_at DESC ' .
             'LIMIT 1',
             MeprTransaction::$payment_str
         ));
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         if ($year) {
             return (int) $year;
@@ -753,17 +738,13 @@ class MeprReports
     public static function get_total_members_count()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        $query = "SELECT COUNT(u.ID)
-                FROM {$wpdb->users} AS u
-               WHERE 0 <
-                     (SELECT COUNT(tr.user_id)
-                        FROM {$mepr_db->transactions} AS tr
-                       WHERE tr.user_id=u.ID
-                     )";
-
-        return (int)$wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return (int) $wpdb->get_var(
+            "SELECT COUNT(u.ID)
+            FROM {$wpdb->users} AS u
+            WHERE 0 < (SELECT COUNT(tr.user_id) FROM {$wpdb->mepr_transactions} AS tr WHERE tr.user_id=u.ID)"
+        );
     }
 
     /**
@@ -785,26 +766,23 @@ class MeprReports
     public static function get_active_members_count()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        $query = "
-      SELECT COUNT(DISTINCT u.ID)
-            FROM {$mepr_db->transactions} AS tr
-            INNER JOIN {$wpdb->users} AS u
-            ON u.ID=tr.user_id
-            WHERE (tr.expires_at >= %s OR tr.expires_at IS NULL OR tr.expires_at = %s)
-         AND tr.status IN (%s, %s)
-    ";
-
-        $query = $wpdb->prepare(
-            $query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            MeprUtils::db_now(),
-            MeprUtils::db_lifetime(),
-            MeprTransaction::$complete_str,
-            MeprTransaction::$confirmed_str
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_var(
+            $wpdb->prepare(
+                "
+                SELECT COUNT(DISTINCT u.ID)
+                FROM {$wpdb->mepr_transactions} AS tr
+                INNER JOIN {$wpdb->users} AS u
+                ON u.ID=tr.user_id
+                WHERE (tr.expires_at >= %s OR tr.expires_at IS NULL OR tr.expires_at = %s) AND tr.status IN (%s, %s)
+                ",
+                MeprUtils::db_now(),
+                MeprUtils::db_lifetime(),
+                MeprTransaction::$complete_str,
+                MeprTransaction::$confirmed_str
+            )
         );
-
-        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
     }
 
     /**
@@ -815,33 +793,31 @@ class MeprReports
     public static function get_inactive_members_count()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        $query = "
-      SELECT COUNT(u.ID)
-        FROM {$wpdb->users} AS u
-        WHERE u.ID NOT IN
-          (SELECT tr.user_id
-            FROM {$mepr_db->transactions} AS tr
-            WHERE (tr.expires_at >= %s OR tr.expires_at IS NULL OR tr.expires_at = %s)
-              AND tr.status IN (%s, %s)
-          )
-          AND 0 <
-            (SELECT COUNT(tr2.user_id)
-              FROM {$mepr_db->transactions} AS tr2
-              WHERE tr2.user_id=u.ID
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_var(
+            $wpdb->prepare(
+                "
+                SELECT COUNT(u.ID)
+                FROM {$wpdb->users} AS u
+                WHERE u.ID NOT IN (
+                    SELECT tr.user_id
+                    FROM {$wpdb->mepr_transactions} AS tr
+                    WHERE (tr.expires_at >= %s OR tr.expires_at IS NULL OR tr.expires_at = %s)
+                    AND tr.status IN (%s, %s)
+                )
+                AND 0 < (
+                    SELECT COUNT(tr2.user_id)
+                    FROM {$wpdb->mepr_transactions} AS tr2
+                    WHERE tr2.user_id=u.ID
+                )
+                ",
+                MeprUtils::db_now(),
+                MeprUtils::db_lifetime(),
+                MeprTransaction::$complete_str,
+                MeprTransaction::$confirmed_str
             )
-    ";
-
-        $query = $wpdb->prepare(
-            $query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            MeprUtils::db_now(),
-            MeprUtils::db_lifetime(),
-            MeprTransaction::$complete_str,
-            MeprTransaction::$confirmed_str
         );
-
-        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
     }
 
     /**
@@ -877,13 +853,11 @@ class MeprReports
 
         $sum_operator = $paid ? '>' : '<=';
 
-        $mepr_db = new MeprDb();
-
         $query = "
       SELECT COUNT(*) AS famc
             FROM ( SELECT t.user_id AS user_id,
                 (SUM(t.amount)+SUM(t.tax_amount)) AS lv
-                FROM {$mepr_db->transactions} AS t
+                FROM {$wpdb->mepr_transactions} AS t
                 WHERE t.status IN (%s,%s)
                 AND ( t.expires_at = %s OR t.expires_at >= %s )
                 AND t.user_id > 0
@@ -899,7 +873,7 @@ class MeprReports
             MeprUtils::db_now()
         );
 
-        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -910,20 +884,17 @@ class MeprReports
     public static function get_average_lifetime_value()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         return $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
             "SELECT ROUND(AVG(lv), 2) AS alv
             FROM ( SELECT SUM(t.amount) AS lv
-            FROM {$mepr_db->transactions} AS t
+            FROM {$wpdb->mepr_transactions} AS t
             WHERE t.txn_type = %s
             AND t.status = %s
             GROUP BY t.user_id ) as lvsums",
             MeprTransaction::$payment_str,
             MeprTransaction::$complete_str
         ));
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
     }
 
     /**
@@ -934,20 +905,17 @@ class MeprReports
     public static function get_average_payments_per_member()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         return $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
             "SELECT AVG(p.num) AS appm
             FROM ( SELECT COUNT(*) AS num
-            FROM {$mepr_db->transactions} AS t
+            FROM {$wpdb->mepr_transactions} AS t
             WHERE t.status=%s
             AND t.txn_type=%s
             GROUP BY t.user_id ) as p",
             MeprTransaction::$complete_str,
             MeprTransaction::$payment_str
         ));
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
     }
 
     /**
@@ -958,74 +926,33 @@ class MeprReports
     public static function get_percentage_members_who_rebill()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        // $q = "
-        // SELECT (
-        // SELECT COUNT(p.num) AS up
-        // FROM ( SELECT COUNT(*) AS num
-        // FROM {$mepr_db->transactions} AS t
-        // WHERE t.status=%s
-        // AND ( SELECT tr.id
-        // FROM {$mepr_db->transactions} AS tr
-        // WHERE tr.status=%s
-        // AND tr.user_id=t.user_id
-        // AND tr.expires_at <> '0000-00-00 00:00:00'
-        // AND tr.expires_at < %s
-        // ORDER BY tr.id ASC
-        // LIMIT 1 ) IS NOT NULL
-        // GROUP BY t.user_id ) as p
-        // WHERE p.num > 1
-        // ) / (
-        // SELECT COUNT(p.num) AS up
-        // FROM ( SELECT COUNT(*) AS num
-        // FROM {$mepr_db->transactions} AS t
-        // WHERE t.status=%s
-        // AND ( SELECT tr.id
-        // FROM {$mepr_db->transactions} AS tr
-        // WHERE tr.status=%s
-        // AND tr.user_id=t.user_id
-        // AND tr.expires_at <> '0000-00-00 00:00:00'
-        // AND tr.expires_at < %s
-        // ORDER BY tr.id ASC
-        // LIMIT 1 ) IS NOT NULL
-        // GROUP BY t.user_id ) as p
-        // ) * 100
-        // ";
-        // $q = $wpdb->prepare($q,
-        // MeprTransaction::$complete_str,
-        // MeprTransaction::$complete_str,
-        // $now,
-        // MeprTransaction::$complete_str,
-        // MeprTransaction::$complete_str,
-        // $now);
-        $q = "
-      SELECT COUNT(*) AS num
-            FROM {$mepr_db->transactions} AS t
-            WHERE t.status = %s
-            AND t.txn_type = %s
-            AND ( SELECT tr.id
-                FROM {$mepr_db->transactions} AS tr
-                WHERE tr.status=%s
-                AND tr.txn_type=%s
-                AND tr.user_id=t.user_id
-                AND tr.expires_at <> '0000-00-00 00:00:00'
-                AND tr.expires_at < %s
-                ORDER BY tr.id ASC
-                LIMIT 1 ) IS NOT NULL
-       GROUP BY t.user_id
-    ";
-
-        $q = $wpdb->prepare(
-            $q, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            MeprTransaction::$complete_str,
-            MeprTransaction::$payment_str,
-            MeprTransaction::$complete_str,
-            MeprTransaction::$payment_str,
-            gmdate('Y-m-d H:i:s')
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $res = $wpdb->get_col(
+            $wpdb->prepare(
+                "
+                SELECT COUNT(*) AS num
+                FROM {$wpdb->mepr_transactions} AS t
+                WHERE t.status = %s
+                AND t.txn_type = %s
+                AND ( SELECT tr.id
+                    FROM {$wpdb->mepr_transactions} AS tr
+                    WHERE tr.status=%s
+                    AND tr.txn_type=%s
+                    AND tr.user_id=t.user_id
+                    AND tr.expires_at <> '0000-00-00 00:00:00'
+                    AND tr.expires_at < %s
+                    ORDER BY tr.id ASC
+                    LIMIT 1 ) IS NOT NULL
+                GROUP BY t.user_id
+                ",
+                MeprTransaction::$complete_str,
+                MeprTransaction::$payment_str,
+                MeprTransaction::$complete_str,
+                MeprTransaction::$payment_str,
+                gmdate('Y-m-d H:i:s')
+            )
         );
-
-        $res = $wpdb->get_col($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         if (empty($res)) {
             return 0;
@@ -1068,9 +995,6 @@ class MeprReports
     {
         global $wpdb;
 
-        $mepr_db = MeprDb::fetch();
-
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $q = $wpdb->prepare(
             "
         SELECT IFNULL(SUM(IF(status=%s,1,0)), 0) AS pending,
@@ -1085,7 +1009,7 @@ class MeprReports
                IFNULL(ROUND(SUM(IF(status=%s,total,0)),2), 0.00) AS enabled_sum_total,
                IFNULL(ROUND(SUM(IF(status=%s,total,0)),2), 0.00) AS suspended_sum_total,
                IFNULL(ROUND(SUM(IF(status=%s,total,0)),2), 0.00) AS cancelled_sum_total
-          FROM {$mepr_db->subscriptions}
+          FROM {$wpdb->mepr_subscriptions}
       ",
             MeprSubscription::$pending_str,
             MeprSubscription::$active_str,
@@ -1100,7 +1024,6 @@ class MeprReports
             MeprSubscription::$suspended_str,
             MeprSubscription::$cancelled_str
         );
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         if (!empty($created_since)) {
             $q .= $wpdb->prepare('WHERE created_at >= %s', $created_since);
@@ -1110,20 +1033,19 @@ class MeprReports
 
         $wpdb->query('SET SQL_BIG_SELECTS=1'); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $q = $wpdb->prepare(
             "
       SELECT COUNT(*) AS active,
              IFNULL(SUM(IF(s.status=%s,1,0)), 0) AS active_and_enabled
-        FROM {$mepr_db->subscriptions} AS s
-        JOIN {$mepr_db->transactions} AS t
+        FROM {$wpdb->mepr_subscriptions} AS s
+        JOIN {$wpdb->mepr_transactions} AS t
           ON t.subscription_id=s.id
          AND t.status IN (%s,%s)
          AND ( t.expires_at = %s
              OR ( t.expires_at <> %s
                 AND t.expires_at=(
                   SELECT MAX(t2.expires_at)
-                    FROM {$mepr_db->transactions} as t2
+                    FROM {$wpdb->mepr_transactions} as t2
                    WHERE t2.subscription_id=s.id
                      AND t2.status IN (%s,%s)
                 )
@@ -1138,7 +1060,6 @@ class MeprReports
             MeprTransaction::$confirmed_str,
             MeprTransaction::$complete_str
         );
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         if (!empty($created_since)) {
             $q .= $wpdb->prepare('WHERE s.created_at >= %s', $created_since);
@@ -1161,9 +1082,6 @@ class MeprReports
     {
         global $wpdb;
 
-        $mepr_db = MeprDb::fetch();
-
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $q = $wpdb->prepare(
             "
         SELECT IFNULL(SUM(IF(txn_type=%s AND status=%s,1,0)), 0) AS pending,
@@ -1178,7 +1096,7 @@ class MeprReports
                IFNULL(ROUND(SUM(IF(txn_type=%s AND status=%s,total,0)),2), 0.00) AS failed_sum_total,
                IFNULL(ROUND(SUM(IF(txn_type=%s AND status=%s,total,0)),2), 0.00) AS complete_sum_total,
                IFNULL(ROUND(SUM(IF(txn_type=%s AND status=%s,total,0)),2), 0.00) AS refunded_sum_total
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
       ",
             MeprTransaction::$payment_str,
             MeprTransaction::$pending_str,
@@ -1205,7 +1123,6 @@ class MeprReports
             MeprTransaction::$payment_str,
             MeprTransaction::$refunded_str
         );
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         if (!empty($created_since)) {
             $q .= $wpdb->prepare('WHERE created_at >= %s', $created_since);
@@ -1264,7 +1181,6 @@ class MeprReports
     {
         global $wpdb;
 
-        $mepr_db   = MeprDb::fetch();
         $tablename = MeprEvent::get_tablename($event_type);
 
         if ($event_type === MeprEvent::$users_str) {
@@ -1277,7 +1193,7 @@ class MeprReports
         SELECT COUNT(*) AS obj_count,
                IFNULL(SUM(o.total), 0.00) AS obj_total
           FROM {$tablename} AS o
-          JOIN {$mepr_db->events} AS e
+          JOIN {$wpdb->mepr_events} AS e
             ON e.evt_id=o.id
          WHERE e.evt_id_type=%s
            AND e.event=%s
@@ -1291,7 +1207,7 @@ class MeprReports
             $q .= $wpdb->prepare('AND e.created_at >= %s', $created_since);
         }
 
-        return $wpdb->get_row($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_row($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -1305,48 +1221,44 @@ class MeprReports
     {
         global $wpdb;
 
-        $mepr_db = MeprDb::fetch();
-
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-        $q = $wpdb->prepare(
-            "
-        SELECT IFNULL(ROUND(SUM(IF(created_at > DATE_SUB(NOW(), INTERVAL 7 DAY),total,0)),2), 0.00) AS week_revenue,
-               IFNULL(ROUND(SUM(IF(created_at > DATE_SUB(NOW(), INTERVAL 30 DAY),total,0)),2), 0.00) AS month_revenue,
-               IFNULL(ROUND(SUM(IF(created_at > DATE_SUB(NOW(), INTERVAL 365 DAY),total,0)),2), 0.00) AS year_revenue,
-               IFNULL(ROUND(SUM(total),2), 0.00) AS lifetime_revenue
-          FROM {$mepr_db->transactions}
-         WHERE txn_type=%s AND status IN (%s,%s) AND gateway=%s
-      ",
-            MeprTransaction::$payment_str,
-            MeprTransaction::$complete_str,
-            MeprTransaction::$refunded_str,
-            $payment_method_id
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $rev_stats = $wpdb->get_row(
+            $wpdb->prepare(
+                "
+                SELECT IFNULL(ROUND(SUM(IF(created_at > DATE_SUB(NOW(), INTERVAL 7 DAY),total,0)),2), 0.00) AS week_revenue,
+                       IFNULL(ROUND(SUM(IF(created_at > DATE_SUB(NOW(), INTERVAL 30 DAY),total,0)),2), 0.00) AS month_revenue,
+                       IFNULL(ROUND(SUM(IF(created_at > DATE_SUB(NOW(), INTERVAL 365 DAY),total,0)),2), 0.00) AS year_revenue,
+                       IFNULL(ROUND(SUM(total),2), 0.00) AS lifetime_revenue
+                  FROM {$wpdb->mepr_transactions}
+                 WHERE txn_type=%s AND status IN (%s,%s) AND gateway=%s
+                ",
+                MeprTransaction::$payment_str,
+                MeprTransaction::$complete_str,
+                MeprTransaction::$refunded_str,
+                $payment_method_id
+            ),
+            ARRAY_A
         );
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-        $rev_stats = $wpdb->get_row($q, ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
-
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-        $q = $wpdb->prepare(
-            "
-        SELECT IFNULL(ROUND(SUM(IF(e.created_at > DATE_SUB(NOW(), INTERVAL 7 DAY),t.total,0)),2), 0.00) AS week_refunds_total,
-               IFNULL(ROUND(SUM(IF(e.created_at > DATE_SUB(NOW(), INTERVAL 30 DAY),t.total,0)),2), 0.00) AS month_refunds_total,
-               IFNULL(ROUND(SUM(IF(e.created_at > DATE_SUB(NOW(), INTERVAL 365 DAY),t.total,0)),2), 0.00) AS year_refunds_total,
-               IFNULL(ROUND(SUM(t.total),2), 0.00) AS lifetime_refunds_total
-          FROM {$mepr_db->transactions} AS t
-          JOIN {$mepr_db->events} AS e
-            ON e.evt_id=t.id
-         WHERE e.evt_id_type=%s
-           AND e.event=%s
-           AND t.gateway=%s
-      ",
-            'transactions',
-            'transaction-refunded',
-            $payment_method_id
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $ref_stats = $wpdb->get_row(
+            $wpdb->prepare(
+                "
+                SELECT IFNULL(ROUND(SUM(IF(e.created_at > DATE_SUB(NOW(), INTERVAL 7 DAY),t.total,0)),2), 0.00) AS week_refunds_total,
+                IFNULL(ROUND(SUM(IF(e.created_at > DATE_SUB(NOW(), INTERVAL 30 DAY),t.total,0)),2), 0.00) AS month_refunds_total,
+                IFNULL(ROUND(SUM(IF(e.created_at > DATE_SUB(NOW(), INTERVAL 365 DAY),t.total,0)),2), 0.00) AS year_refunds_total,
+                IFNULL(ROUND(SUM(t.total),2), 0.00) AS lifetime_refunds_total
+                FROM {$wpdb->mepr_transactions} AS t
+                JOIN {$wpdb->mepr_events} AS e
+                ON e.evt_id=t.id
+                WHERE e.evt_id_type='transactions'
+                AND e.event='transaction-refunded'
+                AND t.gateway=%s
+                ",
+                $payment_method_id
+            ),
+            ARRAY_A
         );
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-
-        $ref_stats = $wpdb->get_row($q, ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         return (object)array_merge($rev_stats, $ref_stats);
     }
@@ -1364,7 +1276,6 @@ class MeprReports
     public static function get_recurring_revenue($month = false, $day = false, $year = false, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -1372,7 +1283,7 @@ class MeprReports
         // Add subscription subquery conditions.
         $where_conditions[] = 'subscription_id IN (
               SELECT subscription_id
-                FROM ' . $mepr_db->transactions . '
+                FROM ' . $wpdb->mepr_transactions . '
                 WHERE subscription_id > 0
                 AND (status = %s OR status = %s)
                 AND txn_type = %s
@@ -1418,12 +1329,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT SUM(amount) FROM {$mepr_db->transactions} WHERE {$where_clause}",
+            "SELECT SUM(amount) FROM {$wpdb->mepr_transactions} WHERE {$where_clause}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -1439,7 +1350,6 @@ class MeprReports
     public static function get_date_range_transactions_counts(array $status_collection, \DateTimeImmutable $start_date, \DateTimeImmutable $end_date, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -1471,12 +1381,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT COUNT(*) as total_count, status FROM {$mepr_db->transactions} WHERE {$where_clause} GROUP BY status",
+            "SELECT COUNT(*) as total_count, status FROM {$wpdb->mepr_transactions} WHERE {$where_clause} GROUP BY status",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        $results = $wpdb->get_results($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        $results = $wpdb->get_results($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
         $data = [];
         foreach ($status_collection as $status) {
@@ -1504,7 +1414,6 @@ class MeprReports
     public static function get_date_range_revenue(\DateTimeImmutable $start_date, \DateTimeImmutable $end_date, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -1535,12 +1444,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT SUM(amount) FROM {$mepr_db->transactions} WHERE {$where_clause}",
+            "SELECT SUM(amount) FROM {$wpdb->mepr_transactions} WHERE {$where_clause}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -1555,7 +1464,6 @@ class MeprReports
     public static function get_date_range_refunds(\DateTimeImmutable $start_date, \DateTimeImmutable $end_date, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -1586,12 +1494,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT (SUM(amount)+SUM(tax_amount)) FROM {$mepr_db->transactions} WHERE {$where_clause}",
+            "SELECT (SUM(amount)+SUM(tax_amount)) FROM {$wpdb->mepr_transactions} WHERE {$where_clause}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -1608,7 +1516,6 @@ class MeprReports
     public static function get_monthly_dataset($type, $month, $year, $product, $q = [])
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $results       = [];
         $days_in_month = gmdate('t', mktime(0, 0, 0, $month, 1, $year));
@@ -1649,7 +1556,7 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $queries['p'] = $wpdb->prepare(
             "SELECT {$selecttype} as mepr_value, DAY(created_at) as mepr_day
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE {$base_where} AND status = %s
             GROUP BY DAY(created_at)",
             ...array_merge($base_values, [MeprTransaction::$pending_str])
@@ -1657,7 +1564,7 @@ class MeprReports
 
         $queries['f'] = $wpdb->prepare(
             "SELECT {$selecttype} as mepr_value, DAY(created_at) as mepr_day
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE {$base_where} AND status = %s
             GROUP BY DAY(created_at)",
             ...array_merge($base_values, [MeprTransaction::$failed_str])
@@ -1665,7 +1572,7 @@ class MeprReports
 
         $queries['c'] = $wpdb->prepare(
             "SELECT {$selecttype} as mepr_value, DAY(created_at) as mepr_day
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE {$base_where} AND status = %s
             GROUP BY DAY(created_at)",
             ...array_merge($base_values, [MeprTransaction::$complete_str])
@@ -1673,7 +1580,7 @@ class MeprReports
 
         $queries['r'] = $wpdb->prepare(
             "SELECT {$selecttype} as mepr_value, DAY(created_at) as mepr_day
-            FROM {$mepr_db->transactions}
+            FROM {$wpdb->mepr_transactions}
             WHERE {$base_where} AND status = %s
             GROUP BY DAY(created_at)",
             ...array_merge($base_values, [MeprTransaction::$refunded_str])
@@ -1682,7 +1589,7 @@ class MeprReports
         if ($type === 'amounts') {
             $queries['x'] = $wpdb->prepare(
                 "SELECT SUM(tax_amount) as mepr_value, DAY(created_at) as mepr_day
-                FROM {$mepr_db->transactions}
+                FROM {$wpdb->mepr_transactions}
                 WHERE {$base_where} AND status = %s
                 GROUP BY DAY(created_at)",
                 ...array_merge($base_values, [MeprTransaction::$complete_str])
@@ -1690,7 +1597,7 @@ class MeprReports
 
             $queries['t'] = $wpdb->prepare(
                 "SELECT (SUM(tax_amount)+SUM(amount)) as mepr_value, DAY(created_at) as mepr_day
-                FROM {$mepr_db->transactions}
+                FROM {$wpdb->mepr_transactions}
                 WHERE {$base_where} AND status IN (%s,%s)
                 GROUP BY DAY(created_at)",
                 ...array_merge($base_values, [MeprTransaction::$complete_str, MeprTransaction::$refunded_str])
@@ -1708,7 +1615,7 @@ class MeprReports
                 $results[$i]->$type = 0;
             }
 
-            $resultset = $wpdb->get_results($sql); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            $resultset = $wpdb->get_results($sql); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
             if (! empty($resultset)) {
                 foreach ($resultset as $row) {
@@ -1757,7 +1664,6 @@ class MeprReports
     public static function get_revenue_dataset($month, $year, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -1793,12 +1699,12 @@ class MeprReports
 
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $query = $wpdb->prepare(
-            "SELECT SUM(amount) as mepr_value, {$mepr_col} FROM {$mepr_db->transactions} WHERE {$where_clause} {$groupby}",
+            "SELECT SUM(amount) as mepr_value, {$mepr_col} FROM {$wpdb->mepr_transactions} WHERE {$where_clause} {$groupby}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-        return self::format_mepr_dataset($wpdb->get_results($query)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return self::format_mepr_dataset($wpdb->get_results($query)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -1813,7 +1719,6 @@ class MeprReports
     public static function get_taxes_dataset($month = false, $year = false, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -1850,12 +1755,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT SUM(tax_amount) as mepr_value, {$mepr_col} FROM {$mepr_db->transactions} WHERE {$where_clause} {$groupby}",
+            "SELECT SUM(tax_amount) as mepr_value, {$mepr_col} FROM {$wpdb->mepr_transactions} WHERE {$where_clause} {$groupby}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return self::format_mepr_dataset($wpdb->get_results($query)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return self::format_mepr_dataset($wpdb->get_results($query)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -1870,7 +1775,6 @@ class MeprReports
     public static function get_refunds_dataset($month = false, $year = false, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -1907,12 +1811,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT (SUM(amount)+SUM(tax_amount)) as mepr_value, {$mepr_col} FROM {$mepr_db->transactions} WHERE {$where_clause} {$groupby}",
+            "SELECT (SUM(amount)+SUM(tax_amount)) as mepr_value, {$mepr_col} FROM {$wpdb->mepr_transactions} WHERE {$where_clause} {$groupby}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return self::format_mepr_dataset($wpdb->get_results($query)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return self::format_mepr_dataset($wpdb->get_results($query)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -1927,7 +1831,6 @@ class MeprReports
     public static function get_collected_dataset($month = false, $year = false, $product = null)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $where_conditions = [];
         $prepare_values = [];
@@ -1965,12 +1868,12 @@ class MeprReports
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $query = $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT (SUM(amount)+SUM(tax_amount)) as mepr_value, {$mepr_col} FROM {$mepr_db->transactions} WHERE {$where_clause} {$groupby}",
+            "SELECT (SUM(amount)+SUM(tax_amount)) as mepr_value, {$mepr_col} FROM {$wpdb->mepr_transactions} WHERE {$where_clause} {$groupby}",
             ...$prepare_values
         );
         // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-        return self::format_mepr_dataset($wpdb->get_results($query)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        return self::format_mepr_dataset($wpdb->get_results($query)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
     }
 
     /**
@@ -1986,7 +1889,6 @@ class MeprReports
     public static function get_yearly_dataset($type, $year, $product, $q = [])
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $results    = [];
         $andproduct = ($product === 'all') ? '' : $wpdb->prepare(' AND product_id = %d', $product);
@@ -1996,7 +1898,7 @@ class MeprReports
 
         $queries      = [];
         $queries['p'] = "SELECT {$selecttype} as mepr_value, MONTH(created_at) as mepr_month
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = {$year}
             AND txn_type = '" . MeprTransaction::$payment_str . "'
             AND status = '" . MeprTransaction::$pending_str . "'
@@ -2004,7 +1906,7 @@ class MeprReports
             GROUP BY MONTH(created_at)";
 
         $queries['f'] = "SELECT {$selecttype} as mepr_value, MONTH(created_at) as mepr_month
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = {$year}
             AND txn_type = '" . MeprTransaction::$payment_str . "'
             AND status = '" . MeprTransaction::$failed_str . "'
@@ -2012,7 +1914,7 @@ class MeprReports
             GROUP BY MONTH(created_at)";
 
         $queries['c'] = "SELECT {$selecttype} as mepr_value, MONTH(created_at) as mepr_month
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = {$year}
             AND txn_type = '" . MeprTransaction::$payment_str . "'
             AND status = '" . MeprTransaction::$complete_str . "'
@@ -2020,7 +1922,7 @@ class MeprReports
             GROUP BY MONTH(created_at)";
 
         $queries['r'] = "SELECT {$selecttype} as mepr_value, MONTH(created_at) as mepr_month
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = {$year}
             AND txn_type = '" . MeprTransaction::$payment_str . "'
             AND status = '" . MeprTransaction::$refunded_str . "'
@@ -2030,7 +1932,7 @@ class MeprReports
 
         if ($type === 'amounts') {
             $queries['x'] = "SELECT SUM(tax_amount) as mepr_value, MONTH(created_at) as mepr_month
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = {$year}
             AND txn_type = '" . MeprTransaction::$payment_str . "'
             AND status = '" . MeprTransaction::$complete_str . "'
@@ -2038,7 +1940,7 @@ class MeprReports
             GROUP BY MONTH(created_at)";
 
             $queries['t'] = "SELECT (SUM(tax_amount)+SUM(amount)) as mepr_value, MONTH(created_at) as mepr_month
-          FROM {$mepr_db->transactions}
+          FROM {$wpdb->mepr_transactions}
           WHERE YEAR(created_at) = {$year}
             AND txn_type = '" . MeprTransaction::$payment_str . "'
             AND status IN ('" . MeprTransaction::$complete_str . "', '" . MeprTransaction::$refunded_str . "')
@@ -2056,7 +1958,7 @@ class MeprReports
                 $results[$i]->$type = 0;
             }
 
-            $resultset = $wpdb->get_results($sql); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            $resultset = $wpdb->get_results($sql); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
             if (! empty($resultset)) {
                 foreach ($resultset as $row) {

@@ -509,7 +509,8 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
             $txn->set_gross($returned_amount);
             $txn->status = MeprTransaction::$complete_str;
         } else {
-            $txn->status = MeprTransaction::$refunded_str;
+            $txn->status      = MeprTransaction::$refunded_str;
+            $txn->refunded_at = MeprUtils::db_now();
         }
 
         $txn->store();

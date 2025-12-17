@@ -4,7 +4,7 @@
  * Iran States
  */
 
-$states['IR'] = [
+return [
     'ABZ' => _x('Alborz (البرز)', 'ui', 'memberpress'),
     'ADL' => _x('Ardabil (اردبیل)', 'ui', 'memberpress'),
     'BHR' => _x('Bushehr (بوشهر)', 'ui', 'memberpress'),

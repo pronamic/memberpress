@@ -660,27 +660,27 @@ class MeprDrmDebugHelper
     private static function get_app_fee_subscription_counts()
     {
         global $wpdb;
-        $mepr_db = MeprDb::fetch();
 
-        $all_applied_sql =
+        $all_applied_sql = $wpdb->prepare(
             'SELECT COUNT(DISTINCT s.id) ' .
-            "FROM {$mepr_db->subscriptions} s " .
-            "JOIN {$mepr_db->subscription_meta} sm ON s.id = sm.subscription_id " .
+            "FROM {$wpdb->mepr_subscriptions} s " .
+            "JOIN {$wpdb->mepr_subscription_meta} sm ON s.id = sm.subscription_id " .
             'WHERE sm.meta_key = \'application_fee_percent\' ' .
-            'AND sm.meta_value > 0';
+            'AND sm.meta_value > 0'
+        );
 
-        $all_revoked_sql =
+        $all_revoked_sql = $wpdb->prepare(
             'SELECT COUNT(DISTINCT s.id) ' .
-            "FROM {$mepr_db->subscriptions} s " .
-            "JOIN {$mepr_db->subscription_meta} sm ON s.id = sm.subscription_id " .
-            'WHERE sm.meta_key = \'application_fee_revoked\'';
+            "FROM {$wpdb->mepr_subscriptions} s " .
+            "JOIN {$wpdb->mepr_subscription_meta} sm ON s.id = sm.subscription_id " .
+            'WHERE sm.meta_key = \'application_fee_revoked\''
+        );
 
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $active_applied_sql = $wpdb->prepare(
             'SELECT COUNT(DISTINCT s.id) as count ' .
-            "FROM {$mepr_db->subscriptions} s " .
-            "JOIN {$mepr_db->transactions} t ON s.id = t.subscription_id " .
-            "JOIN {$mepr_db->subscription_meta} sm ON s.id = sm.subscription_id " .
+            "FROM {$wpdb->mepr_subscriptions} s " .
+            "JOIN {$wpdb->mepr_transactions} t ON s.id = t.subscription_id " .
+            "JOIN {$wpdb->mepr_subscription_meta} sm ON s.id = sm.subscription_id " .
             'WHERE t.status IN (%s, %s) ' .
             'AND s.status = %s ' .
             'AND t.expires_at > %s ' .
@@ -695,9 +695,9 @@ class MeprDrmDebugHelper
 
         $active_revoked_sql = $wpdb->prepare(
             'SELECT COUNT(DISTINCT s.id) as count ' .
-            "FROM {$mepr_db->subscriptions} s " .
-            "JOIN {$mepr_db->transactions} t ON s.id = t.subscription_id " .
-            "JOIN {$mepr_db->subscription_meta} sm ON s.id = sm.subscription_id " .
+            "FROM {$wpdb->mepr_subscriptions} s " .
+            "JOIN {$wpdb->mepr_transactions} t ON s.id = t.subscription_id " .
+            "JOIN {$wpdb->mepr_subscription_meta} sm ON s.id = sm.subscription_id " .
             'WHERE t.status IN (%s, %s) ' .
             'AND s.status = %s ' .
             'AND t.expires_at > %s ' .
@@ -707,7 +707,7 @@ class MeprDrmDebugHelper
             MeprTransaction::$confirmed_str,
             MeprSubscription::$active_str,
             MeprUtils::db_now()
-        ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        );
 
         $copy_applied_sql = str_replace('COUNT(DISTINCT s.id) as count', 'DISTINCT s.id', $active_applied_sql);
         $copy_revoked_sql = str_replace('COUNT(DISTINCT s.id) as count', 'DISTINCT s.id', $active_revoked_sql);

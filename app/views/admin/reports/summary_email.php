@@ -1,10 +1,17 @@
-<?php if (!defined('ABSPATH')) {
-    die('You are not allowed to call this page directly.');
-} ?>
+<?php
+
+/**
+ * View: admin/reports/summary_email.
+ */
+
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+$charset = apply_filters('wp_mail_charset', get_bloginfo('charset'));
+?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=<?php echo esc_attr(apply_filters('wp_mail_charset', get_bloginfo('charset'))); ?>" />
+    <meta http-equiv="Content-Type" content="text/html; charset=<?php echo esc_attr($charset); ?>" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body style="margin:0;padding:0;">

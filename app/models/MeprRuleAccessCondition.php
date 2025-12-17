@@ -50,16 +50,17 @@ class MeprRuleAccessCondition extends MeprBaseModel
     public static function rule_access_condition_exists($rule_access_condition)
     {
         global $wpdb;
-        $mepr_db = MeprDb::fetch();
 
-        $id = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT id FROM {$mepr_db->rule_access_conditions} WHERE rule_id=%d AND access_type=%s AND access_operator=%s AND access_condition=%s LIMIT 1",
-            $rule_access_condition->rule_id,
-            $rule_access_condition->access_type,
-            $rule_access_condition->access_operator,
-            $rule_access_condition->access_condition
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->mepr_rule_access_conditions} WHERE rule_id=%d AND access_type=%s AND access_operator=%s AND access_condition=%s LIMIT 1",
+                $rule_access_condition->rule_id,
+                $rule_access_condition->access_type,
+                $rule_access_condition->access_operator,
+                $rule_access_condition->access_condition
+            )
+        );
 
         if (empty($id)) {
             MeprUtils::debug_log("Access condition DOESN'T exists: rule:{$rule_access_condition->rule_id} type:{$rule_access_condition->access_type} op:{$rule_access_condition->access_operator} cond:{$rule_access_condition->access_condition}");
@@ -79,14 +80,15 @@ class MeprRuleAccessCondition extends MeprBaseModel
     public static function delete_all_by_rule($rule_id)
     {
         global $wpdb;
-        $mepr_db = MeprDb::fetch();
 
-        return $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "DELETE FROM {$mepr_db->rule_access_conditions}
-            WHERE rule_id=%d",
-            $rule_id
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$wpdb->mepr_rule_access_conditions}
+                WHERE rule_id=%d",
+                $rule_id
+            )
+        );
     }
 
     /**

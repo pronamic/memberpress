@@ -1044,6 +1044,9 @@ class MeprAppHelper
     /**
      * The default list of allowed tags to use with wp_kses.
      *
+     * Includes support for rich media content (video, audio, iframe embeds)
+     * based on WordPress Core standards and oEmbed trusted providers.
+     *
      * @return array
      */
     public static function kses_allowed_tags()
@@ -1062,6 +1065,14 @@ class MeprAppHelper
                 'abbr'       => [
                     'title' => [],
                 ],
+                'audio'      => [
+                    'autoplay' => [],
+                    'controls' => [],
+                    'loop'     => [],
+                    'muted'    => [],
+                    'preload'  => [],
+                    'src'      => [],
+                ],
                 'b'          => [],
                 'blockquote' => [
                     'cite' => [],
@@ -1070,6 +1081,9 @@ class MeprAppHelper
                     'title' => [],
                 ],
                 'code'       => [],
+                'data'       => [
+                    'value' => [],
+                ],
                 'del'        => [
                     'datetime' => [],
                     'title'    => [],
@@ -1085,6 +1099,8 @@ class MeprAppHelper
                 'dl'         => [],
                 'dt'         => [],
                 'em'         => [],
+                'figure'     => [],
+                'figcaption' => [],
                 'h1'         => [],
                 'h2'         => [],
                 'h3'         => [],
@@ -1093,6 +1109,20 @@ class MeprAppHelper
                 'h6'         => [],
                 'i'          => [
                     'aria-hidden' => [],
+                ],
+                'iframe'     => [
+                    'src'             => [],
+                    'width'           => [],
+                    'height'          => [],
+                    'frameborder'     => [],
+                    'marginwidth'     => [],
+                    'marginheight'    => [],
+                    'scrolling'       => [],
+                    'title'           => [],
+                    'allowfullscreen' => [],
+                    'allow'           => [],
+                    'loading'         => [],
+                    'data-secret'     => [],
                 ],
                 'img'        => [
                     'alt'     => [],
@@ -1116,6 +1146,13 @@ class MeprAppHelper
                     'cite'  => [],
                     'title' => [],
                 ],
+                'source'     => [
+                    'src'    => [],
+                    'type'   => [],
+                    'media'  => [],
+                    'sizes'  => [],
+                    'srcset' => [],
+                ],
                 'span'       => [
                     'title'       => [],
                     'style'       => [],
@@ -1124,7 +1161,27 @@ class MeprAppHelper
                 ],
                 'strike'     => [],
                 'strong'     => [],
+                'track'      => [
+                    'default' => [],
+                    'kind'    => [],
+                    'label'   => [],
+                    'src'     => [],
+                    'srclang' => [],
+                ],
                 'ul'         => [],
+                'video'      => [
+                    'autoplay'    => [],
+                    'controls'    => [],
+                    'height'      => [],
+                    'loop'        => [],
+                    'muted'       => [],
+                    'playsinline' => [],
+                    'poster'      => [],
+                    'preload'     => [],
+                    'src'         => [],
+                    'width'       => [],
+                    'style'       => [],
+                ],
                 'input'      => [
                     'type'          => [],
                     'name'          => [],

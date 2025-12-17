@@ -115,11 +115,19 @@ if (!empty($records)) {
                         <?php endif;
                         break;
                     case 'col_status':
+                        $status_html = MeprHooks::apply_filters(
+                            'mepr_admin_transactions_list_table_status_html',
+                            sprintf(
+                                '<a href="" title="%s">%s</a>',
+                                esc_attr__('Change transaction\'s status', 'memberpress'),
+                                esc_html(MeprAppHelper::human_readable_status($rec->status))
+                            ),
+                            $rec
+                        ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                         ?>
                         <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>>
                             <div class="status_initial status_initial_<?php echo esc_attr($rec->id); ?>" data-value="<?php echo esc_attr($rec->id); ?>">
-                                <a href=""
-                                    title="<?php esc_attr_e('Change transaction\'s status', 'memberpress'); ?>"><?php echo esc_html(MeprAppHelper::human_readable_status($rec->status)); ?></a>
+                                <?php echo $status_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                             </div>
                             <div class="status_editable status_editable_<?php echo esc_attr($rec->id); ?>">
                                 <?php

@@ -514,8 +514,14 @@ defined('ABSPATH') || exit;
           </div>
           <div class="mp-col-2">
             <label>
+              <input type="checkbox" name="<?php echo esc_attr($mepr_options->show_address_on_account_str); ?>" id="<?php echo esc_attr($mepr_options->show_address_on_account_str); ?>" <?php checked($mepr_options->show_address_on_account); ?> />
+              <span>&nbsp;<?php esc_html_e('Show on Account', 'memberpress'); ?></span>
+            </label>
+          </div>
+          <div class="mp-col-2">
+            <label>
               <input type="checkbox" name="<?php echo esc_attr($mepr_options->show_address_fields_str); ?>" id="<?php echo esc_attr($mepr_options->show_address_fields_str); ?>" <?php checked($mepr_options->show_address_fields); ?> />
-              <span>&nbsp;<?php esc_html_e('Show', 'memberpress'); ?></span>
+              <span>&nbsp;<?php esc_html_e('Show on Signup', 'memberpress'); ?></span>
             </label>
           </div>
           <div class="mp-col-2">

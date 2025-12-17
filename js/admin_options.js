@@ -357,6 +357,13 @@ jQuery(document).ready(function($) {
   if($('#mepr-require-address-fields').is(':checked')) {
     $('#mepr-show-address-fields').prop('checked', true);
     $('#mepr-show-address-fields').prop('disabled', true);
+    $('#mepr-show-address-on-account').prop('checked', true);
+    $('#mepr-show-address-on-account').prop('disabled', true);
+  }
+
+  if($('#mepr-show-address-fields').is(':checked')) {
+    $('#mepr-show-address-on-account').prop('checked', true);
+    $('#mepr-show-address-on-account').prop('disabled', true);
   }
 
   if($('#mepr-require-fname-lname').is(':checked')) {
@@ -381,8 +388,26 @@ jQuery(document).ready(function($) {
     if($('#mepr-require-address-fields').is(':checked')) {
       $('#mepr-show-address-fields').prop('checked', true);
       $('#mepr-show-address-fields').prop('disabled', true);
+      $('#mepr-show-address-on-account').prop('checked', true);
+      $('#mepr-show-address-on-account').prop('disabled', true);
     } else {
       $('#mepr-show-address-fields').prop('disabled', false);
+      // Only enable show_on_account if show_address_fields is not checked
+      if(!$('#mepr-show-address-fields').is(':checked')) {
+        $('#mepr-show-address-on-account').prop('disabled', false);
+      }
+    }
+  });
+
+  $('#mepr-show-address-fields').on('click', function() {
+    if($('#mepr-show-address-fields').is(':checked')) {
+      $('#mepr-show-address-on-account').prop('checked', true);
+      $('#mepr-show-address-on-account').prop('disabled', true);
+    } else {
+      // Only enable show_on_account if require is not checked
+      if(!$('#mepr-require-address-fields').is(':checked')) {
+        $('#mepr-show-address-on-account').prop('disabled', false);
+      }
     }
   });
 
@@ -420,8 +445,10 @@ jQuery(document).ready(function($) {
       $('#address-tax-info').show();
       $('input#mepr-show-address-fields').prop('checked', true);
       $('input#mepr-require-address-fields').prop('checked', true);
+      $('input#mepr-show-address-on-account').prop('checked', true);
       $('input#mepr-show-address-fields').prop('disabled', true);
       $('input#mepr-require-address-fields').prop('disabled', true);
+      $('input#mepr-show-address-on-account').prop('disabled', true);
     }
     else {
       $('#address-tax-info').hide();
@@ -429,9 +456,15 @@ jQuery(document).ready(function($) {
       if($('input#mepr-require-address-fields').is(':checked')) {
         $('input#mepr-require-address-fields').prop('disabled', false);
         $('input#mepr-show-address-fields').prop('disabled', true);
+        $('input#mepr-show-address-on-account').prop('disabled', true);
+      } else if($('input#mepr-show-address-fields').is(':checked')) {
+        $('input#mepr-show-address-fields').prop('disabled', false);
+        $('input#mepr-require-address-fields').prop('disabled', false);
+        $('input#mepr-show-address-on-account').prop('disabled', true);
       } else {
         $('input#mepr-show-address-fields').prop('disabled', false);
         $('input#mepr-require-address-fields').prop('disabled', false);
+        $('input#mepr-show-address-on-account').prop('disabled', false);
       }
     }
   });

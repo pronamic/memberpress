@@ -4,27 +4,15 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: https://memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.12.10
+Version: 1.12.11
+Requires at least: 6.5
+Tested up to: 6.8
 Requires PHP: 7.4
+License: GPL v2+
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: Caseproof, LLC
 Author URI: https://caseproof.com/
 Text Domain: memberpress
-Copyright: 2004-2024, Caseproof, LLC
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-Also add information on how to contact you by electronic and paper mail.
 */
 
 if (!defined('ABSPATH')) {
@@ -77,8 +65,6 @@ define('MEPR_SCRIPT_URL', site_url('/index.php?plugin=mepr'));
 define('MEPR_OPTIONS_SLUG', 'mepr_options');
 define('MEPR_EDITION', 'memberpress-pro');
 
-define('MEPR_MIN_PHP_VERSION', '5.6.20');
-
 /**
  * Returns current plugin version.
  *
@@ -112,7 +98,6 @@ define('MEPR_AUTHOR', mepr_plugin_info('Author'));
 define('MEPR_AUTHOR_URI', mepr_plugin_info('AuthorURI'));
 define('MEPR_DESCRIPTION', mepr_plugin_info('Description'));
 
-// Autoload all the requisite classes.
 /**
  * Autoloads MemberPress plugin classes based on naming conventions.
  *
@@ -203,8 +188,8 @@ if (is_array(spl_autoload_functions()) and in_array('__autoload', spl_autoload_f
 spl_autoload_register('mepr_autoloader');
 
 // Load integration files.
-foreach ((array) glob(MEPR_INTEGRATIONS_PATH . '/*/Integration.php') as $file) {
-    include_once $file;
+foreach ((array) glob(MEPR_INTEGRATIONS_PATH . '/*/Integration.php') as $mepr_file) {
+    include_once $mepr_file;
 }
 
 // Load brand add-ons.
@@ -215,6 +200,14 @@ if (file_exists(MEPR_BRAND_PATH . '/add-ons.php')) {
 // Include other files.
 require_once MEPR_LIB_PATH . '/core-functions.php';
 
+// Define database tables immediately (before controllers load).
+MeprDb::define_tables();
+
+// Re-define tables when switching blogs in multisite to ensure correct prefix.
+if (is_multisite()) {
+    add_action('switch_blog', 'MeprDb::define_tables', 1);
+}
+
 // Load our controllers.
 MeprCtrlFactory::all();
 
@@ -224,25 +217,78 @@ MeprAppCtrl::setup_menus();
 // Start Job Processor / Scheduler.
 new MeprJobs();
 
-// Template Tags.
 /**
- * Outputs account links for logged in/out users.
- *
- * @return void
+ * Activation hook.
  */
-function mepr_account_link()
+function mepr_on_activate(): void
 {
-    try {
-        $account_ctrl = MeprCtrlFactory::fetch('account');
-        echo $account_ctrl->get_account_links(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-    } catch (Exception $e) {
-        // Silently fail ... not much we can do if the account controller isn't present.
+    $mepr_options = MeprOptions::fetch();
+
+    if (!$mepr_options->setup_complete) {
+        if (!is_numeric($mepr_options->thankyou_page_id) || $mepr_options->thankyou_page_id === 0) {
+            $mepr_options->thankyou_page_id = MeprAppHelper::auto_add_page(__('Thank You', 'memberpress'), esc_html__('Your subscription has been set up successfully.', 'memberpress'));
+        }
+
+        if (!is_numeric($mepr_options->account_page_id) || $mepr_options->account_page_id === 0) {
+            $mepr_options->account_page_id = MeprAppHelper::auto_add_page(__('Account', 'memberpress'));
+        }
+
+        if (!is_numeric($mepr_options->login_page_id) || $mepr_options->login_page_id === 0) {
+            $mepr_options->login_page_id = MeprAppHelper::auto_add_page(__('Login', 'memberpress'));
+        }
+
+        // Enable Pro Mode Templates.
+        if (! filter_var($mepr_options->design_enable_checkout_template, FILTER_VALIDATE_BOOLEAN)) {
+            $mepr_options->design_enable_checkout_template = true;
+        }
+
+        if (! filter_var($mepr_options->design_enable_login_template, FILTER_VALIDATE_BOOLEAN)) {
+            $mepr_options->design_enable_login_template = true;
+        }
+
+        if (! filter_var($mepr_options->design_enable_courses_template, FILTER_VALIDATE_BOOLEAN)) {
+            $mepr_options->design_enable_courses_template = true;
+        }
+
+        if (! filter_var($mepr_options->design_enable_thankyou_template, FILTER_VALIDATE_BOOLEAN)) {
+            $mepr_options->design_enable_thankyou_template = true;
+        }
+
+        if (! filter_var($mepr_options->design_enable_pricing_template, FILTER_VALIDATE_BOOLEAN)) {
+            $mepr_options->design_enable_pricing_template = true;
+        }
+
+        if (! filter_var($mepr_options->design_enable_account_template, FILTER_VALIDATE_BOOLEAN)) {
+            $mepr_options->design_enable_account_template = true;
+        }
+
+        $mepr_options->setup_complete      = 1;
+        $mepr_options->activated_timestamp = time();
+        $mepr_options->store(false);
     }
+
+    update_option('mepr_flush_rewrite_rules', true);
 }
 
-register_activation_hook(MEPR_PLUGIN_SLUG, function () {
-    require_once(MEPR_LIB_PATH . '/activation.php');
-});
-register_deactivation_hook(MEPR_PLUGIN_SLUG, function () {
-    require_once(MEPR_LIB_PATH . '/deactivation.php');
-});
+/**
+ * Deactivation hook.
+ */
+function mepr_on_deactivate(): void
+{
+    remove_action('mod_rewrite_rules', 'MeprRulesCtrl::mod_rewrite_rules');
+
+    MeprUtils::flush_rewrite_rules();
+
+    // Remove wp-cron general purpose jobs.
+    $jobs = new MeprJobs();
+    $jobs->unschedule_events();
+
+    // Remove wp-cron transaction jobs.
+    MeprTransactionsCtrl::unschedule_events();
+
+    $reminders_controller = new MeprRemindersCtrl();
+    $reminders_controller->unschedule_reminders();
+}
+
+register_activation_hook(MEPR_PLUGIN_SLUG, 'mepr_on_activate');
+register_deactivation_hook(MEPR_PLUGIN_SLUG, 'mepr_on_deactivate');

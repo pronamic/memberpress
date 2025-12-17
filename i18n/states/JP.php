@@ -4,7 +4,7 @@
  * Japan States
  */
 
-$states['JP'] = [
+return [
     'JP01' => _x('Hokkaido', 'ui', 'memberpress'),
     'JP02' => _x('Aomori', 'ui', 'memberpress'),
     'JP03' => _x('Iwate', 'ui', 'memberpress'),

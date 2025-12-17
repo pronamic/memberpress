@@ -28,7 +28,9 @@ $admin_view         = isset($atts['admin_view']) ? $atts['admin_view'] : false;
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
 
-            <?php echo wp_kses_post($unauth->excerpt); ?>
+            <?php
+            echo MeprAppHelper::wp_kses($unauth->excerpt); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            ?>
         </div>
         <?php endif; ?>
       <?php if (isset($unauth->message) && !empty($unauth->message)) : ?>

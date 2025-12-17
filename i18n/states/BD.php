@@ -4,7 +4,7 @@
  * Bangladeshi states (districts)
  */
 
-$states['BD'] = [
+return [
     'BAG'  => _x('Bagerhat', 'ui', 'memberpress'),
     'BAN'  => _x('Bandarban', 'ui', 'memberpress'),
     'BAR'  => _x('Barguna', 'ui', 'memberpress'),

@@ -24,7 +24,7 @@ return [
     'onboarding_pricing_plus'       => 'https://memberpress.com/ipob/pricing-box/plus',
     'onboarding_pricing_pro'        => 'https://memberpress.com/ipob/pricing-box/pro',
     'onboarding_pricing_growth'     => 'https://memberpress.com/ipob/pricing-box/growth',
-    'onboarding_pricing_launch'     => 'https://memberpress.com/ipob/pricing-box/launch',
+    'onboarding_pricing_scale'      => 'https://memberpress.com/ipob/pricing-box/scale',
     'onboarding_pricing_features'   => 'https://memberpress.com/ipob/pricing-box/features',
 
     'affiliates_ea_pricing'         => 'https://memberpress.com/memberpress_plugin/affiliates_menu/easy_affiliate_pricing',

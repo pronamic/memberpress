@@ -317,7 +317,11 @@ class MeprUsersCtrl extends MeprBaseCtrl
             'field_type' => 'text',
         ];
 
-        if ($mepr_options->show_address_fields) {
+        // For signup, use show_address_fields (controls registration forms)
+        // For account/admin editing, use show_address_on_account.
+        $should_include_address = $is_signup ? $mepr_options->show_address_fields : $mepr_options->show_address_on_account;
+
+        if ($should_include_address) {
             if (!$product || !$product->disable_address_fields) {
                 $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
             }
@@ -365,7 +369,7 @@ class MeprUsersCtrl extends MeprBaseCtrl
                         // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
                         update_user_meta($user_id, $line->field_key, wp_slash(array_map('sanitize_text_field', array_filter(wp_unslash($_POST[$line->field_key])))));
                     } elseif ($line->field_type === 'textarea') {
-                        update_user_meta($user_id, $line->field_key, wp_slash(sanitize_textarea_field(wp_unslash($_POST[$line->field_key]))));
+                        update_user_meta($user_id, $line->field_key, wp_slash(wp_kses_post(wp_unslash($_POST[$line->field_key]))));
                     } else {
                         update_user_meta($user_id, $line->field_key, wp_slash(sanitize_text_field(wp_unslash($_POST[$line->field_key]))));
                     }

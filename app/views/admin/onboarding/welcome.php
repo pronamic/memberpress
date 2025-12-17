@@ -120,26 +120,26 @@
     </div>
     <div class="mepr-onboarding-pricing-table">
 
-        <?php if (!in_array(MEPR_EDITION, ['developer', 'memberpress-plus-2', 'memberpress-plus'], true)) : ?>
+        <?php if (!in_array(MEPR_EDITION, ['developer', 'memberpress-plus-2', 'memberpress-plus', 'memberpress-growth'], true)) : ?>
         <div class="mepr-onboarding-pricing-plus">
           <div class="mepr-onboarding-price-popular">Most Popular</div>
           <div class="mepr-onboarding-pricing-content">
-            <div class="mepr-onboarding-price-title">Plus</div>
-            <div class="mepr-onboarding-price-normally">normally $449</div>
+            <div class="mepr-onboarding-price-title">Growth</div>
+            <div class="mepr-onboarding-price-normally">normally $699</div>
             <div class="mepr-onboarding-price-cost">
               <span class="mepr-onb-price-currency">$</span>
-              <span class="mepr-onb-price-amount">299</span>
+              <span class="mepr-onb-price-amount">349.50</span>
               <span class="mepr-onb-price-term">/ year</span>
             </div>
-            <div class="mepr-onboarding-price-savings">$150 savings*</div>
+            <div class="mepr-onboarding-price-savings">$349.50 savings*</div>
             <p class="mepr-onboarding-price-desc">Great for Entrepreneurs, Freelancers and other small businesses.</p>
-            <a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_plus')); ?>" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
+            <a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_growth')); ?>" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
             <div class="mepr-onboarding-price-features">
-              <div class="mepr-onboarding-price-feature">Everything in Basic, and:</div>
-              <div class="mepr-onboarding-price-feature">Use on up to 2 Sites</div>
+              <div class="mepr-onboarding-price-feature">Everything in Launch, and:</div>
+              <div class="mepr-onboarding-price-feature">Quizzes, Assignments & Certificates</div>
+              <div class="mepr-onboarding-price-feature">Multiple Payment Gateways (PayPal, Square)</div>
               <div class="mepr-onboarding-price-feature">Advanced Marketing Integrations</div>
-              <div class="mepr-onboarding-price-feature">Zapier – 2000+ Custom Integrations</div>
-              <div class="mepr-onboarding-price-feature">Developer Tools</div>
+              <div class="mepr-onboarding-price-feature">Coaching Platform</div>
               <div class="mepr-onboarding-price-feature"><a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_features')); ?>">See all features...</a></div>
             </div>
           </div>
@@ -148,21 +148,22 @@
 
         <div class="mepr-onboarding-pricing-pro">
           <div class="mepr-onboarding-pricing-content">
-            <div class="mepr-onboarding-price-title">Pro</div>
-            <div class="mepr-onboarding-price-normally">normally $599</div>
+            <div class="mepr-onboarding-price-title">Scale</div>
+            <div class="mepr-onboarding-price-normally">normally $999</div>
             <div class="mepr-onboarding-price-cost">
               <span class="mepr-onb-price-currency">$</span>
-              <span class="mepr-onb-price-amount">399</span>
+              <span class="mepr-onb-price-amount">499.50</span>
               <span class="mepr-onb-price-term">/ year</span>
             </div>
-            <div class="mepr-onboarding-price-savings">$200 savings*</div>
+            <div class="mepr-onboarding-price-savings">$499.50 savings*</div>
             <p class="mepr-onboarding-price-desc">Perfect for Pros and Advanced Membership Sites to drive big results.</p>
-            <a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_pro')); ?>" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
+            <a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_scale')); ?>" class="mepr-onboarding-price-get-started">Get Started<img src="<?php echo esc_url(MEPR_IMAGES_URL . '/long-arrow-right.svg'); ?>" alt=""></a>
             <div class="mepr-onboarding-price-features">
-              <div class="mepr-onboarding-price-feature">Everything in Plus, and:</div>
-              <div class="mepr-onboarding-price-feature">Use on up to 5 Sites</div>
-              <div class="mepr-onboarding-price-feature">Sell Corporate Accounts</div>
-              <div class="mepr-onboarding-price-feature">Exclusive Pro Add-Ons*</div>
+              <div class="mepr-onboarding-price-feature">Everything in Growth, and:</div>
+              <div class="mepr-onboarding-price-feature">Corporate Accounts & Bulk Sales</div>
+              <div class="mepr-onboarding-price-feature">Gifting & Order Bumps</div>
+              <div class="mepr-onboarding-price-feature">Built-in Affiliate Program</div>
+              <div class="mepr-onboarding-price-feature">Developer API & Webhooks</div>
               <div class="mepr-onboarding-price-feature"><a href="<?php echo esc_url(MeprUtils::get_link_url('onboarding_pricing_features')); ?>">See all features...</a></div>
             </div>
           </div>

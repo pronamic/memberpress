@@ -32,9 +32,8 @@ class MeprLoginCtrl extends MeprBaseCtrl
      */
     public function logout_link($atts)
     {
-        $current_post = MeprUtils::get_current_post();
         $mepr_options = MeprOptions::fetch();
-        $permalink    = !empty($current_post->ID) ? MeprUtils::get_permalink($current_post->ID) : '';
+        $permalink    = home_url(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? '')));
 
         ob_start();
 
@@ -66,6 +65,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
 
         if (isset($atts['redirect_to']) && !empty($atts['redirect_to'])) {
             // Security fix. Restrict redirect_to param to safe URLs PT#154812459.
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
             $_REQUEST['redirect_to'] = wp_validate_redirect($atts['redirect_to'], apply_filters('wp_safe_redirect_fallback', home_url(), 302));
         }
 
@@ -129,6 +129,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
         if (isset($_REQUEST['redirect_to']) && !empty($_REQUEST['redirect_to'])) {
             $redirect_to = esc_url_raw(wp_unslash($_REQUEST['redirect_to']));
             // Security fix. Restrict redirect_to param to safe URLs PT#154812459.
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
             $redirect_to = wp_validate_redirect($redirect_to, apply_filters('wp_safe_redirect_fallback', home_url(), 302));
         }
 
@@ -217,7 +218,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
 
         if (!empty($errors)) {
             $login_error = new WP_Error('mepr_login_failed', $errors[0]);
-            do_action('wp_login_failed', $login, $login_error);
+            do_action('wp_login_failed', $login, $login_error); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
             $_REQUEST['errors'] = $errors;
             return;
         }
@@ -244,6 +245,7 @@ class MeprLoginCtrl extends MeprBaseCtrl
         if (isset($_POST['redirect_to'])) {
             $redirect_to = wp_sanitize_redirect(esc_url_raw(wp_unslash($_POST['redirect_to'])));
             // Security fix. Restrict redirect_to param to safe URLs PT#154812459.
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
             $redirect_to = wp_validate_redirect($redirect_to, apply_filters('wp_safe_redirect_fallback', home_url(), 302));
         } else {
             $redirect_to = $mepr_options->login_redirect_url;

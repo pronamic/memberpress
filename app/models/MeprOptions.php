@@ -383,6 +383,10 @@ class MeprOptions
             $this->show_address_fields = false;
         }
 
+        if (!isset($this->show_address_on_account)) {
+            $this->show_address_on_account = true;
+        }
+
         if (!isset($this->require_address_fields)) {
             $this->require_address_fields = true;
         }
@@ -610,6 +614,10 @@ class MeprOptions
             $this->design_pricing_subheadline = '';
         }
 
+        if (!isset($this->design_show_checkout_price_terms)) {
+            $this->design_show_checkout_price_terms = true;
+        }
+
         if (!isset($this->rl_enable_coaching_template)) {
             $this->rl_enable_coaching_template = true;
         }
@@ -685,6 +693,7 @@ class MeprOptions
         $this->require_fname_lname_str               = 'mepr-require-fname-lname';
         $this->show_fname_lname_str                  = 'mepr-show-fname-lname';
         $this->show_address_fields_str               = 'mepr-show-address-fields';
+        $this->show_address_on_account_str           = 'mepr-show-address-on-account';
         $this->require_address_fields_str            = 'mepr-require-address-fields';
         $this->show_fields_logged_in_purchases_str   = 'mepr-show-fields-logged-in-purchases';
         $this->custom_fields_str                     = 'mepr-custom-fields';
@@ -979,8 +988,9 @@ class MeprOptions
         $this->show_fields_logged_in_purchases = isset($params[$this->show_fields_logged_in_purchases_str]);
 
         // Always show and require address fields when tax calculations are enabled.
-        $this->show_address_fields    = (isset($params[$this->show_address_fields_str]) || isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
-        $this->require_address_fields = (isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
+        $this->show_address_fields     = (isset($params[$this->show_address_fields_str]) || isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
+        $this->show_address_on_account = (isset($params[$this->show_address_on_account_str]) || isset($params[$this->show_address_fields_str]) || isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
+        $this->require_address_fields  = (isset($params[$this->require_address_fields_str]) || isset($params['mepr_calculate_taxes']));
 
         // We now support address being required -- handle that here.
         $this->address_fields = $this->update_address_fields_required();

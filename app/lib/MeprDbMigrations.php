@@ -226,6 +226,16 @@ class MeprDbMigrations
                     ],
                 ],
             ],
+            '1.12.11'   => [
+                'show_ui'    => false,
+                'migrations' => [
+                    [
+                        'migration' => 'migrate_transactions_refunds_data_019',
+                        'check'     => false,
+                        'message'   => false,
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -272,7 +282,6 @@ class MeprDbMigrations
     public function create_and_migrate_subscriptions_table_001()
     {
         global $wpdb;
-        $mepr_db = MeprDb::fetch();
 
         MeprSubscription::upgrade_table(null, true);
 
@@ -281,8 +290,8 @@ class MeprDbMigrations
 
         if (!empty($max_sub_id)) {
             $max_sub_id = (int)$max_sub_id + 1; // Just in case.
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
-            $wpdb->query($wpdb->prepare("ALTER TABLE {$mepr_db->subscriptions} AUTO_INCREMENT=%d", $max_sub_id));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $wpdb->query($wpdb->prepare("ALTER TABLE {$wpdb->mepr_subscriptions} AUTO_INCREMENT=%d", $max_sub_id));
         }
     }
 
@@ -308,8 +317,7 @@ class MeprDbMigrations
 
         foreach ($tokens as $token) {
             $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-                "UPDATE {$mepr_db->subscriptions} SET token=%s WHERE id=%d",
+                "UPDATE {$wpdb->mepr_subscriptions} SET token=%s WHERE id=%d",
                 $token->meta_value,
                 $token->post_id
             ));
@@ -322,12 +330,10 @@ class MeprDbMigrations
     public function fix_all_the_expires_006()
     {
         global $wpdb;
-        $mepr_db = MeprDb::fetch();
 
         // Gimme all the transactions since 2017-07-15 with trials.
         $transactions = $wpdb->get_results($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT t.id FROM {$mepr_db->transactions} t JOIN {$mepr_db->subscriptions} s ON s.id = t.subscription_id WHERE s.trial_days > 0 AND t.status = %s AND t.created_at > '2017-07-15'",
+            "SELECT t.id FROM {$wpdb->mepr_transactions} t JOIN {$wpdb->mepr_subscriptions} s ON s.id = t.subscription_id WHERE s.trial_days > 0 AND t.status = %s AND t.created_at > '2017-07-15'",
             MeprTransaction::$complete_str
         ));
         foreach ($transactions as $transaction_id) {
@@ -342,7 +348,7 @@ class MeprDbMigrations
                 // We're just going to do this via SQL to skip hooks.
                 MeprUtils::debug_log("Found transaction {$transaction->id} to update from {$transaction->expires_at} to {$expires_at}");
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-                $wpdb->update($mepr_db->transactions, ['expires_at' => $expires_at], ['id' => $transaction->id]);
+                $wpdb->update($wpdb->mepr_transactions, ['expires_at' => $expires_at], ['id' => $transaction->id]);
             }
         }
     }
@@ -398,12 +404,10 @@ class MeprDbMigrations
     public function fix_txn_counts_for_sub_accounts_008()
     {
         global $wpdb;
-        $mepr_db        = new MeprDb();
         $update_columns = ['txn_count', 'active_txn_count', 'expired_txn_count'];
 
         $results = $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT DISTINCT(m.user_id) FROM {$mepr_db->members} m JOIN {$mepr_db->transactions} t ON t.user_id = m.user_id AND t.txn_type = %s",
+            "SELECT DISTINCT(m.user_id) FROM {$wpdb->mepr_members} m JOIN {$wpdb->mepr_transactions} t ON t.user_id = m.user_id AND t.txn_type = %s",
             MeprTransaction::$sub_account_str
         ));
         $count   = sizeOf($results);
@@ -566,13 +570,11 @@ class MeprDbMigrations
     public function leap_year_extra_day_014()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         // For transactions between 01 Mar 2019 and 31 Dec 2019 that expire in 365 days, set them to expire in 366 days
         // to account for the leap day.
         $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "UPDATE {$mepr_db->transactions}
+            "UPDATE {$wpdb->mepr_transactions}
       SET expires_at = DATE_ADD(expires_at, INTERVAL 1 DAY)
       WHERE DATE(expires_at) = DATE(DATE_ADD(created_at, INTERVAL 365 DAY))
       AND created_at >= '2019-03-01 00:00:00'
@@ -586,8 +588,7 @@ class MeprDbMigrations
         // For transactions between 01 Mar 2020 and 31 Dec 2020 that expire in 366 days, set them to expire in 365 days
         // since there is no leap day in the period.
         $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "UPDATE {$mepr_db->transactions}
+            "UPDATE {$wpdb->mepr_transactions}
       SET expires_at = DATE_SUB(expires_at, INTERVAL 1 DAY)
       WHERE DATE(expires_at) = DATE(DATE_ADD(created_at, INTERVAL 366 DAY))
       AND created_at >= '2020-03-01 00:00:00'
@@ -611,7 +612,6 @@ class MeprDbMigrations
     {
         // Scheduled in.
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         // Large member base may take days to update. So setting thet start date
         // And only updating ones that haven't been updated since then
@@ -626,8 +626,7 @@ class MeprDbMigrations
         // Note: If the member data was already updated by some other process since the migration started
         // that is okay, it will have the correct data and will be skipped here.
         $batch_ids = $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT user_id FROM {$mepr_db->members} WHERE updated_at < %s LIMIT 25",
+            "SELECT user_id FROM {$wpdb->mepr_members} WHERE updated_at < %s LIMIT 25",
             $started
         ));
 
@@ -658,11 +657,9 @@ class MeprDbMigrations
     public function move_vat_reversal_negative_tax_016()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "UPDATE {$mepr_db->transactions}
+            "UPDATE {$wpdb->mepr_transactions}
        SET amount = total,
            tax_reversal_amount = -tax_amount,
            tax_amount = 0
@@ -671,8 +668,7 @@ class MeprDbMigrations
         );
 
         $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "UPDATE {$mepr_db->subscriptions}
+            "UPDATE {$wpdb->mepr_subscriptions}
        SET price = total,
            tax_reversal_amount = -tax_amount,
            tax_amount = 0
@@ -681,8 +677,7 @@ class MeprDbMigrations
         );
 
         $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "UPDATE {$mepr_db->subscriptions}
+            "UPDATE {$wpdb->mepr_subscriptions}
        SET trial_amount = trial_total,
            trial_tax_reversal_amount = -trial_tax_amount,
            trial_tax_amount = 0
@@ -761,5 +756,94 @@ class MeprDbMigrations
         if ($updated) {
             $mepr_options->store(false);
         }
+    }
+
+    /**
+     * Migrate the refunded_at column from events.
+     */
+    public function migrate_transactions_refunds_data_019()
+    {
+        // Check to see if this migration has already run.
+        if (get_option('mepr_db_migration_019_ran')) {
+            MeprUtils::debug_log('Migrating Transactions Refunds data already ran aborting migration');
+            return;
+        }
+
+        $mepr_db = MeprDb::fetch();
+
+        // Check if column already exists.
+        if (!$mepr_db->column_exists($mepr_db->transactions, 'refunded_at')) {
+            $mepr_db->add_column($mepr_db->transactions, 'refunded_at', 'datetime DEFAULT NULL', true);
+        }
+
+        MeprUtils::debug_log('Migrating Transactions Refunds data');
+
+        // Migrate the refunded_at column from events.
+        $this->migrate_refunded_at_from_events();
+
+        update_option('mepr_db_migration_019_ran', time());
+    }
+
+    /**
+     * Migrate refunded_at column from transaction-refunded events.
+     */
+    private function migrate_refunded_at_from_events()
+    {
+        $mepr_db = MeprDb::fetch();
+
+        MeprUtils::debug_log('Starting to migrate refunded_at column from events');
+
+        // Get all transaction-refunded events.
+        $refund_events = MeprEvent::get_all_by_event('transaction-refunded', 'created_at ASC');
+
+        if (empty($refund_events)) {
+            MeprUtils::debug_log('No transaction-refunded events found');
+            return;
+        }
+
+        $updated_count = 0;
+        $error_count   = 0;
+
+        foreach ($refund_events as $event) {
+            // Skip if event doesn't have evt_id (transaction ID) or created_at date.
+            if (empty($event->evt_id) || empty($event->created_at)) {
+                MeprUtils::debug_log('Skipping event ID ' . $event->id . ' - no evt_id or created_at date');
+                continue;
+            }
+
+            // Check if transaction exists.
+            $transaction = new MeprTransaction($event->evt_id);
+            if (empty($transaction->id) || $transaction->id <= 0) {
+                MeprUtils::debug_log(
+                    'Skipping event ID ' . $event->id . ' - transaction ' . $event->evt_id . ' not found'
+                );
+                continue;
+            }
+
+            // Skip if transaction is not refunded status.
+            if ($transaction->status !== MeprTransaction::$refunded_str) {
+                MeprUtils::debug_log(
+                    'Skipping event ID ' . $event->id . ' - transaction ' . $event->evt_id . ' status is not refunded'
+                );
+                continue;
+            }
+
+            // Update the transaction with refunded_at date.
+            $update_args = ['refunded_at' => $event->created_at];
+            $result      = $mepr_db->update_record($mepr_db->transactions, $transaction->id, $update_args);
+
+            if ($result !== false) {
+                ++$updated_count;
+            } else {
+                ++$error_count;
+                MeprUtils::debug_log(
+                    'Failed to update transaction ' . $transaction->id . ' with refunded_at: ' . $event->created_at
+                );
+            }
+        }
+
+        MeprUtils::debug_log(
+            "Completed migrating refunded_at column. Updated: {$updated_count}, Errors: {$error_count}"
+        );
     }
 }

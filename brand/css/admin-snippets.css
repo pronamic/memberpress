@@ -1,0 +1,619 @@
+/**
+ * MemberPress Snippets Tab Styles
+ *
+ * Styles for the WP Code snippets integration in the MemberPress add-ons page.
+ */
+
+/* Tab Navigation */
+.mepr-nav-tab-wrapper {
+    margin: 20px 0;
+    border-bottom: 1px solid #ccc;
+}
+
+.mepr-tab-content {
+    margin-top: 20px;
+}
+
+/* WP Code Installation Popup */
+.mepr-wpcode {
+    position: relative;
+}
+
+.mepr-wpcode-popup {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 90%;
+    max-width: 600px;
+    padding: 40px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    transform: translate(-50%, -50%);
+}
+
+.mepr-wpcode-popup-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.mepr-wpcode-popup-description {
+    margin: 0;
+    color: #666;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.mepr-wpcode-popup-button {
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.mepr-wpcode-popup-button:hover {
+    transform: translateY(-1px);
+}
+
+.mepr-wpcode-popup-button:active {
+    transform: translateY(0);
+}
+
+.mepr-wpcode-popup-button.loading {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.mepr-wpcode-popup-link {
+    color: #2271b1;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.mepr-wpcode-popup-link:hover {
+    text-decoration: underline;
+}
+
+.mepr-wpcode-blur {
+    filter: blur(3px);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Snippets Tab Styles */
+#mepr-snippets-wrapper {
+    position: relative;
+    max-width: 100%;
+    min-height: 500px;
+}
+
+.mepr-snippets-header {
+    margin-bottom: 30px;
+}
+
+.mepr-snippets-header h3 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.mepr-snippets-description {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.mepr-snippets-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.mepr-snippets-search {
+    flex: 1;
+    min-width: 250px;
+}
+
+#mepr-snippets-search {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#mepr-snippets-search:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 0;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.mepr-snippets-filters {
+    display: flex;
+    gap: 10px;
+}
+
+.mepr-snippets-filter {
+    padding: 10px 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mepr-snippets-filter:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 0;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Snippets Grid */
+.mepr-snippets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    align-items: stretch;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.mepr-snippet-card {
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.mepr-snippet-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.mepr-snippet-card-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 20px;
+}
+
+.mepr-snippet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.mepr-snippet-title {
+    flex: 1;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.mepr-snippet-difficulty {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.mepr-snippet-difficulty-beginner {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.mepr-snippet-difficulty-intermediate {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.mepr-snippet-difficulty-advanced {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.mepr-snippet-body {
+    margin-bottom: 15px;
+}
+
+.mepr-snippet-description {
+    margin: 0 0 10px 0;
+    color: #555;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.mepr-snippet-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mepr-snippet-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+    color: #666;
+    font-size: 12px;
+}
+
+.mepr-snippet-installed-badge {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.mepr-snippet-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.mepr-snippet-actions .button {
+    flex: 1;
+    box-sizing: border-box;
+    text-align: center;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.mepr-snippet-actions .button:hover {
+    transform: translateY(-1px);
+}
+
+.mepr-snippet-actions .button:active {
+    transform: translateY(0);
+}
+
+.mepr-snippet-actions .button:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
+}
+
+.mepr-snippets-empty,
+.mepr-snippets-loading {
+    padding: 60px 20px;
+    color: #666;
+    text-align: center;
+}
+
+/* Pagination */
+.mepr-snippets-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.mepr-pagination-info {
+    color: #666;
+    font-size: 14px;
+}
+
+.mepr-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mepr-pagination-pages {
+    margin: 0 10px;
+    color: #666;
+    font-size: 14px;
+}
+
+.mepr-pagination-controls .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.mepr-pagination-controls .button .dashicons {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+}
+
+.mepr-pagination-controls .button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.mepr-pagination-controls .button:not(:disabled):hover {
+    background-color: #f0f0f0;
+    border-color: #999;
+}
+
+.mepr-spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 20px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #2271b1;
+    border-radius: 50%;
+    animation: mepr-spin 1s linear infinite;
+}
+
+@keyframes mepr-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Modal Styles */
+.mepr-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mepr-modal.mepr-modal-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mepr-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    transition: background-color 0.3s ease;
+}
+
+.mepr-modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    max-height: 90vh;
+    margin: 5vh auto;
+    background-color: #fff;
+    border-radius: 3px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.mepr-modal.mepr-modal-open .mepr-modal-content {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.mepr-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid #ddd;
+}
+
+.mepr-modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.mepr-modal-close {
+    padding: 5px;
+    background: none;
+    border: none;
+    color: #666;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.mepr-modal-close:hover {
+    color: #000;
+}
+
+.mepr-modal-close .dashicons {
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+}
+
+.mepr-modal-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+.mepr-snippet-preview-meta {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.mepr-snippet-preview-description,
+.mepr-snippet-preview-code,
+.mepr-snippet-preview-instructions {
+    margin-bottom: 25px;
+}
+
+.mepr-snippet-preview-description h4,
+.mepr-snippet-preview-code h4,
+.mepr-snippet-preview-instructions h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.mepr-snippet-preview-description p {
+    white-space: pre-line;
+}
+
+.mepr-snippet-preview-code pre {
+    overflow-x: auto;
+    margin: 0 0 10px 0;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.mepr-snippet-preview-code code {
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* Prism.js Syntax Highlighting Overrides */
+.mepr-snippet-preview-code pre[class*="language-"] {
+    margin: 0 0 10px 0;
+    padding: 15px;
+    background-color: #2d2d2d;
+    border: 1px solid #1a1a1a;
+    border-radius: 3px;
+    overflow-x: auto;
+}
+
+.mepr-snippet-preview-code code[class*="language-"] {
+    background: transparent;
+    color: #ccc;
+    text-shadow: none;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    tab-size: 4;
+}
+
+.mepr-copy-code {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.mepr-copy-code .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    transition: transform 0.2s ease;
+}
+
+.mepr-copy-code:hover .dashicons {
+    transform: scale(1.1);
+}
+
+.mepr-copy-code:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
+}
+
+.mepr-modal-close:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+.mepr-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px 30px;
+    border-top: 1px solid #ddd;
+}
+
+/* Responsive Styles */
+@media (max-width: 767px) {
+    .mepr-snippets-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mepr-snippets-toolbar {
+        flex-direction: column;
+    }
+
+    .mepr-snippets-filters {
+        flex-direction: column;
+    }
+
+    .mepr-modal-content {
+        max-height: calc(100vh - 40px);
+        margin: 20px;
+    }
+
+    .mepr-modal-header,
+    .mepr-modal-body,
+    .mepr-modal-footer {
+        padding: 15px 20px;
+    }
+}
+
+/* Reduced Motion Support for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .mepr-snippet-card:hover {
+        transform: none;
+    }
+
+    .mepr-snippet-actions .button:hover,
+    .mepr-snippet-actions .button:active {
+        transform: none;
+    }
+
+    .mepr-modal,
+    .mepr-modal-content {
+        transition: none !important;
+    }
+
+    .mepr-modal.mepr-modal-open .mepr-modal-content {
+        transform: none;
+    }
+}
+

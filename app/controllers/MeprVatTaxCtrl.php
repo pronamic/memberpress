@@ -589,7 +589,6 @@ class MeprVatTaxCtrl extends MeprBaseCtrl
     public function get_country_vat_data($year = false, $month = false, $product = 'all')
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         $query_params = [];
         $month_clause = '';
@@ -614,7 +613,7 @@ class MeprVatTaxCtrl extends MeprBaseCtrl
         $q = '
       SELECT um.meta_value AS "' . esc_sql(__('Country Code', 'memberpress')) . '",
              SUM(tr.tax_amount) AS "' . esc_sql(__('Total', 'memberpress')) . '"
-        FROM ' . $mepr_db->transactions . ' AS tr
+        FROM ' . $wpdb->mepr_transactions . ' AS tr
        INNER JOIN ' . $wpdb->usermeta . ' AS um
           ON um.user_id=tr.user_id
          AND um.meta_key=\'mepr-address-country\'
@@ -633,7 +632,8 @@ class MeprVatTaxCtrl extends MeprBaseCtrl
         ];
         $prepare_params = array_merge($prepare_params, $query_params);
 
-        $res = $wpdb->get_results($wpdb->prepare($q, ...$prepare_params), ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
+        $res = $wpdb->get_results($wpdb->prepare($q, ...$prepare_params), ARRAY_A);
 
         return $res;
     }

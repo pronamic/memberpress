@@ -42,6 +42,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                 'corporate_account_id'  => 0,
                 'parent_transaction_id' => 0,
                 'order_id'              => 0,
+                'refunded_at'           => null, // Date when transaction was refunded.
             ],
             $obj
         );
@@ -370,22 +371,20 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     public static function get_all_by_order_id($order_id, $exclude_txn_id = null)
     {
         global $wpdb;
-        $mepr_db      = new MeprDb();
+
         $transactions = [];
 
         if (empty($order_id)) {
             return $transactions;
         }
 
-        $query = "SELECT id FROM {$mepr_db->transactions} WHERE order_id = %d";
-        $params = [$order_id];
+        $query = $wpdb->prepare("SELECT id FROM {$wpdb->mepr_transactions} WHERE order_id = %d", $order_id);
 
         if (is_numeric($exclude_txn_id)) {
-            $query .= ' AND id <> %d';
-            $params[] = $exclude_txn_id;
+            $query .= $wpdb->prepare(' AND id <> %d', $exclude_txn_id);
         }
 
-        $results = $wpdb->get_col($wpdb->prepare($query, ...$params)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        $results = $wpdb->get_col($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         foreach ($results as $txn_id) {
             $txn = new MeprTransaction($txn_id);
@@ -409,22 +408,20 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     public static function get_all_by_order_id_and_gateway($order_id, $gateway, $exclude_txn_id = null)
     {
         global $wpdb;
-        $mepr_db      = new MeprDb();
+
         $transactions = [];
 
         if (empty($order_id)) {
             return $transactions;
         }
 
-        $query = "SELECT id FROM {$mepr_db->transactions} WHERE order_id = %d AND gateway = %s";
-        $params = [$order_id, $gateway];
+        $query = $wpdb->prepare("SELECT id FROM {$wpdb->mepr_transactions} WHERE order_id = %d AND gateway = %s", $order_id, $gateway);
 
         if (is_numeric($exclude_txn_id)) {
-            $query .= ' AND id <> %d';
-            $params[] = $exclude_txn_id;
+            $query .= $wpdb->prepare(' AND id <> %d', $exclude_txn_id);
         }
 
-        $results = $wpdb->get_col($wpdb->prepare($query, ...$params)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        $results = $wpdb->get_col($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 
         foreach ($results as $txn_id) {
             $txn = new MeprTransaction($txn_id);
@@ -448,12 +445,13 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         global $wpdb;
 
-        $mepr_db = new MeprDb();
-        return $wpdb->get_row($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT * FROM {$mepr_db->transactions} WHERE subscription_id=%s ORDER BY created_at LIMIT 1",
-            $subscription_id
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->mepr_transactions} WHERE subscription_id=%s ORDER BY created_at LIMIT 1",
+                $subscription_id
+            )
+        );
     }
 
     /**
@@ -555,8 +553,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     ) {
         global $wpdb;
 
-        $mepr_db = new MeprDb();
-        $fields  = $count ? 'COUNT(*)' : 't.*, p.post_title, m.meta_value AS access_url';
+        $fields = $count ? 'COUNT(*)' : 't.*, p.post_title, m.meta_value AS access_url';
 
         if (!empty($order_by)) {
             $order_by = "ORDER BY {$order_by}";
@@ -593,7 +590,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         }
 
         $query = "SELECT {$fields}
-                FROM {$mepr_db->transactions} AS t
+                FROM {$wpdb->mepr_transactions} AS t
                   JOIN {$wpdb->posts} AS p
                     ON t.product_id = p.ID
                   LEFT JOIN {$wpdb->postmeta} AS m
@@ -604,9 +601,9 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
               {$limit}";
 
         if ($count) {
-            return $wpdb->get_var($wpdb->prepare($query, MeprProduct::$access_url_str, $user_id)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            return $wpdb->get_var($wpdb->prepare($query, MeprProduct::$access_url_str, $user_id)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
         } else {
-            return $wpdb->get_results($wpdb->prepare($query, MeprProduct::$access_url_str, $user_id)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            return $wpdb->get_results($wpdb->prepare($query, MeprProduct::$access_url_str, $user_id)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
         }
     }
 
@@ -623,12 +620,14 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     {
         global $wpdb;
 
-        $mepr_db = new MeprDb();
-        return $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT id FROM {$mepr_db->transactions} WHERE user_id=%d {$order_by}{$limit}",
-            $user_id
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
+        return $wpdb->get_col(
+            $wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                "SELECT id FROM {$wpdb->mepr_transactions} WHERE user_id=%d {$order_by}{$limit}",
+                $user_id
+            )
+        );
     }
 
     /**
@@ -740,32 +739,32 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
 
     /**
      * This method will return an array of transactions that are or have expired.
+     *
+     * TODO: Modify this function and query to work for expiring trials as well.
      */
     public static function get_expiring_transactions()
     {
         global $wpdb;
 
-        $mepr_options = MeprOptions::fetch();
-        $mepr_db      = new MeprDb();
-
-        // TODO: Modify this function and query to work for expiring trials as well.
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
-        return $wpdb->get_results($wpdb->prepare(
-            "
-      SELECT txn.*
-      FROM {$mepr_db->transactions} AS txn
-        LEFT JOIN {$mepr_db->events} AS e
-          ON e.evt_id = txn.id
-          AND e.event = 'transaction-expired'
-          AND e.evt_id_type = 'transactions'
-      WHERE txn.status='complete'
-        AND txn.user_id > 0
-        AND txn.expires_at BETWEEN DATE_SUB(%s,INTERVAL 2 DAY) AND %s
-        AND e.id IS NULL
-      ",
-            MeprUtils::db_now(),
-            MeprUtils::ts_to_mysql_date(time())
-        )); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "
+                SELECT txn.*
+                FROM {$wpdb->mepr_transactions} AS txn
+                LEFT JOIN {$wpdb->mepr_events} AS e
+                ON e.evt_id = txn.id
+                AND e.event = 'transaction-expired'
+                AND e.evt_id_type = 'transactions'
+                WHERE txn.status='complete'
+                AND txn.user_id > 0
+                AND txn.expires_at BETWEEN DATE_SUB(%s,INTERVAL 2 DAY) AND %s
+                AND e.id IS NULL
+                ",
+                MeprUtils::db_now(),
+                MeprUtils::ts_to_mysql_date(time())
+            )
+        );
     }
 
     /**
@@ -840,6 +839,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             'coupon'          => 'c.post_title',
             'order_trans_num' => 'ord.trans_num',
         ];
+        $cols = MeprHooks::apply_filters('mepr_admin_transaction_list_table_columns', $cols);
 
         if (isset($params['month']) && is_numeric($params['month'])) {
             $args[] = $wpdb->prepare('MONTH(tr.created_at) = %s', $params['month']);
@@ -885,6 +885,15 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             $args[] = $wpdb->prepare('tr.coupon_id = %s', $params['coupon_id']);
         }
 
+        // Date range filtering - only apply if date_range_filter is not 'all'.
+        $date_range_filter = isset($params['date_range_filter']) ? sanitize_text_field($params['date_range_filter']) : 'all';
+        $date_field        = isset($params['date_field']) ? sanitize_text_field($params['date_field']) : 'created_at';
+
+        $date_range_sql = self::build_date_filter_query($date_range_filter, $date_field, $params);
+        if ('' !== $date_range_sql) {
+            $args[] = $date_range_sql;
+        }
+
         // Don't include any subscription confirmation or sub account transactions in the list table.
         if (!isset($params['include-confirmations'])) {
             $args[] = $wpdb->prepare('tr.txn_type = %s', self::$payment_str);
@@ -919,14 +928,12 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     public static function nullify_product_id_on_delete($id)
     {
         global $wpdb, $post_type;
-        $mepr_db = new MeprDb();
 
         if ($post_type === MeprProduct::$cpt) {
-            $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-                "UPDATE {$mepr_db->transactions} SET product_id = 0 WHERE product_id = %d",
-                $id
-            ));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $wpdb->query(
+                $wpdb->prepare("UPDATE {$wpdb->mepr_transactions} SET product_id = 0 WHERE product_id = %d", $id)
+            );
         }
     }
 
@@ -940,13 +947,11 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     public static function nullify_user_id_on_delete($id)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "UPDATE {$mepr_db->transactions} SET user_id = 0 WHERE user_id = %d",
-            $id
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $wpdb->query(
+            $wpdb->prepare("UPDATE {$wpdb->mepr_transactions} SET user_id = 0 WHERE user_id = %d", $id)
+        );
     }
 
     /**
@@ -1498,15 +1503,13 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     public static function txn_exists($trans_num)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        $txn_count = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT COUNT(*) FROM {$mepr_db->transactions} AS tr WHERE tr.trans_num=%s",
-            $trans_num
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $txn_count = $wpdb->get_var(
+            $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->mepr_transactions} AS tr WHERE tr.trans_num=%s", $trans_num)
+        );
 
-        return ((int)$txn_count > 0);
+        return ((int) $txn_count > 0);
     }
 
     /**
@@ -1517,38 +1520,34 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     public static function get_expired_txns()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        // Expiring Transactions.
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
-        $query = $wpdb->prepare(
-            "
-      SELECT tr.id, IF(tr.subscription_id = 0, 'none', sub.status) AS sub_status
-      FROM {$mepr_db->transactions} AS tr
-      LEFT JOIN {$mepr_db->subscriptions} sub
-        ON sub.id = tr.subscription_id
-      LEFT JOIN {$mepr_db->events} ev
-        ON ev.evt_id = tr.id
-        AND ev.evt_id_type = 'transactions'
-        AND (ev.event = 'expired' OR ev.event = 'transaction-expired')
-      WHERE tr.expires_at <> %s
-        AND tr.status IN (%s, %s)
-        AND DATE_ADD( tr.expires_at, INTERVAL 12 HOUR ) <= %s
-        AND DATE_ADD( DATE_ADD( tr.expires_at, INTERVAL 12 HOUR ), INTERVAL 2 DAY ) >= %s
-        AND ev.id IS NULL
-        AND tr.user_id > 0
-      ORDER BY tr.expires_at
-      ",
-            MeprUtils::db_lifetime(),
-            MeprTransaction::$confirmed_str,
-            MeprTransaction::$complete_str,
-            MeprUtils::db_now(),
-            MeprUtils::db_now()
-        ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
-
-        $res = $wpdb->get_results($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
-
-        return $res;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "
+                SELECT tr.id, IF(tr.subscription_id = 0, 'none', sub.status) AS sub_status
+                    FROM {$wpdb->mepr_transactions} AS tr
+                LEFT JOIN {$wpdb->mepr_subscriptions} sub
+                    ON sub.id = tr.subscription_id
+                LEFT JOIN {$wpdb->mepr_events} ev
+                    ON ev.evt_id = tr.id
+                    AND ev.evt_id_type = 'transactions'
+                    AND (ev.event = 'expired' OR ev.event = 'transaction-expired')
+                WHERE tr.expires_at <> %s
+                    AND tr.status IN (%s, %s)
+                    AND DATE_ADD( tr.expires_at, INTERVAL 12 HOUR ) <= %s
+                    AND DATE_ADD( DATE_ADD( tr.expires_at, INTERVAL 12 HOUR ), INTERVAL 2 DAY ) >= %s
+                    AND ev.id IS NULL
+                    AND tr.user_id > 0
+                ORDER BY tr.expires_at
+                ",
+                MeprUtils::db_lifetime(),
+                MeprTransaction::$confirmed_str,
+                MeprTransaction::$complete_str,
+                MeprUtils::db_now(),
+                MeprUtils::db_now()
+            )
+        );
     }
 
     /**
@@ -1746,36 +1745,30 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             in_array($this->status, $status_array, true) &&
             $this->subscription_id > 0
         ) {
-            $mepr_db = MeprDb::fetch();
-
-            // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            $q = $wpdb->prepare(
-                "
-          SELECT COUNT(*)
-            FROM {$mepr_db->transactions} AS t
-           WHERE
-             (
-               (t.txn_type = %s AND t.status IN (%s, %s))
-               OR
-               (
-                 t.status = %s
-                 AND ( SELECT sub.prorated_trial
-                       FROM {$mepr_db->subscriptions} AS sub
-                       WHERE sub.id = t.subscription_id AND sub.trial_amount = 0.00 AND sub.trial = 1 ) = 1
-               )
-             )
-             AND t.subscription_id=%d
-             AND t.created_at <= %s
-        ",
-                self::$payment_str,
-                self::$complete_str,
-                self::$refunded_str,
-                self::$confirmed_str,
-                $this->subscription_id,
-                $this->created_at
-            ); // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-
-            return (int) $wpdb->get_var($q); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            return (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "
+                    SELECT COUNT(*)
+                        FROM {$wpdb->mepr_transactions} AS t
+                    WHERE
+                        (
+                            (t.txn_type = %s AND t.status IN (%s, %s))
+                            OR (t.status = %s AND (SELECT sub.prorated_trial
+                            FROM {$wpdb->mepr_subscriptions} AS sub
+                            WHERE sub.id = t.subscription_id AND sub.trial_amount = 0.00 AND sub.trial = 1) = 1)
+                        )
+                        AND t.subscription_id=%d
+                        AND t.created_at <= %s
+                    ",
+                    self::$payment_str,
+                    self::$complete_str,
+                    self::$refunded_str,
+                    self::$confirmed_str,
+                    $this->subscription_id,
+                    $this->created_at
+                )
+            );
         }
 
         // If this is not a subscription payment then this value is irrelevant.
@@ -1919,5 +1912,49 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             case 'get':
                 return $this->rec->id;
         }
+    }
+
+    /**
+     * Build SQL condition for date range filtering.
+     *
+     * @param  string $date_range_filter The date range filter value.
+     * @param  string $date_field        The date field to filter on.
+     * @param  array  $params            The parameters array containing date_start and date_end.
+     * @return string Empty string if no filtering should be applied, otherwise the SQL condition.
+     */
+    private static function build_date_filter_query(string $date_range_filter, string $date_field, array $params): string
+    {
+        // Return empty string if date_range_filter is 'all' or required parameters are missing.
+        if ($date_range_filter === 'all' || empty($params['date_start']) || empty($params['date_end'])) {
+            return '';
+        }
+
+        global $wpdb;
+
+        $date_field = in_array($date_field, (MeprTransactionsHelper::get_date_filter_fields(true)), true) ? $date_field : 'created_at';
+
+        $start_date = sanitize_text_field($params['date_start']);
+        $end_date   = $params['date_end'] > $start_date ? sanitize_text_field($params['date_end']) : $start_date;
+        try {
+            // Convert dates from site timezone to UTC for proper comparison.
+            $site_timezone = MeprUtils::get_timezone();
+
+            // Convert start date from site timezone to UTC (start of day).
+            $start_datetime = new DateTime($start_date . ' 00:00:00', $site_timezone);
+            $start_utc = $start_datetime->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+
+            // Convert end date from site timezone to UTC (end of day).
+            $end_datetime = new DateTime($end_date . ' 23:59:59', $site_timezone);
+            $end_utc = $end_datetime->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        } catch (Exception $e) {
+            MeprUtils::debug_log('Error converting dates for transaction date filter: ' . $e->getMessage());
+            return '';
+        }
+
+        return $wpdb->prepare(
+            "tr.{$date_field} BETWEEN %s AND %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $start_utc,
+            $end_utc
+        ) ?: '';
     }
 }

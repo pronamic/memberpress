@@ -54,6 +54,7 @@ class MeprView
         $template_part_slug = 'memberpress/' . dirname($slug);
         $template_part_name = basename($slug);
 
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHookname
         do_action("get_template_part_{$template_part_slug}", $template_part_slug, $template_part_name); // Bypass MeprHooks for this one.
 
         extract($vars, EXTR_SKIP);

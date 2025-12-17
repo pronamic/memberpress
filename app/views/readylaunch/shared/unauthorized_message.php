@@ -29,7 +29,9 @@ if (isset($atts['welcome_image']) && $atts['welcome_image'] > 0) {
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
         <div class="mepr_pro_error_content">
-          <?php echo wp_kses_post($unauth->excerpt); ?>
+          <?php
+            echo MeprAppHelper::wp_kses($unauth->excerpt); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            ?>
         </div>
       </div>
     </div>

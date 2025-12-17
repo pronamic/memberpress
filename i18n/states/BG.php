@@ -4,7 +4,7 @@
  * Bulgarian states
  */
 
-$states['BG'] = [
+return [
     'BG-01' => _x('Blagoevgrad', 'ui', 'memberpress'),
     'BG-02' => _x('Burgas', 'ui', 'memberpress'),
     'BG-08' => _x('Dobrich', 'ui', 'memberpress'),

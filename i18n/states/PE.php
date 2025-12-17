@@ -4,7 +4,7 @@
  * Peru states
  */
 
-$states['PE'] = [
+return [
     'AMA' => _x('Amazonas', 'ui', 'memberpress'),
     'ANC' => _x('Ancash', 'ui', 'memberpress'),
     'APU' => _x('Apur&iacute;mac', 'ui', 'memberpress'),

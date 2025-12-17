@@ -4,7 +4,7 @@
  * Austrian Federal States
  */
 
-$states['AT'] = [
+return [
     '1' => _x('Burgenland', 'ui', 'memberpress'),
     '2' => _x('Kärnten', 'ui', 'memberpress'),
     '3' => _x('Niederösterreich', 'ui', 'memberpress'),

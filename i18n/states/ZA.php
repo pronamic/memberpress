@@ -4,7 +4,7 @@
  * South African states
  */
 
-$states['ZA'] = [
+return [
     'EC'  => _x('Eastern Cape', 'ui', 'memberpress'),
     'FS'  => _x('Free State', 'ui', 'memberpress'),
     'GP'  => _x('Gauteng', 'ui', 'memberpress'),

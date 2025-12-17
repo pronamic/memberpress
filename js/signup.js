@@ -70,6 +70,7 @@
             mepr_vat_customer_type: $form.find('input[name="mepr_vat_customer_type"]:checked').val(),
             mepr_coupon_code: $form.find('input[name="mepr_coupon_code"]').val(),
             mepr_coupon_nonce: MeprSignup.coupon_nonce,
+            mepr_is_product_page: (typeof MeprProTemplateSignup !== 'undefined' && MeprProTemplateSignup.is_product_page) || MeprSignup.is_product_page,
             mpca_corporate_account_id: $form.find('input[name="mpca_corporate_account_id"]').val(),
             mpgft_gift_checkbox: $form.find('input[name="mpgft-signup-gift-checkbox"]').is(':checked'),
             mepr_payment_methods: payment_methods
@@ -173,6 +174,12 @@
       if($form.find('input[name="mpgft-signup-gift-checkbox"]').is(':checked')) {
         updateCheckoutState($form);
       }
+
+      // Trigger checkout update if coupon code exists on page load (e.g., URL parameter), otherwise the invoice is cut out
+      if($form.find('input[name="mepr_coupon_code"]').val()) {
+        updateCheckoutState($form);
+      }
+
     });
 
     var meprValidateInput = function (obj, submitting) {

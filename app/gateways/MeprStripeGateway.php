@@ -1638,7 +1638,8 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
                     return $txn->id;
                 }
 
-                $txn->status = MeprTransaction::$refunded_str;
+                $txn->status      = MeprTransaction::$refunded_str;
+                $txn->refunded_at = MeprUtils::db_now();
                 $txn->store();
 
                 MeprUtils::send_refunded_txn_notices(
@@ -2727,7 +2728,6 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
             'ideal'         => 'never',
             'paypal'        => 'never',
             'sepaDebit'     => 'never',
-            'sofort'        => 'never',
             'usBankAccount' => 'never',
         ];
 
@@ -3201,15 +3201,21 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
     public function get_renewal_base_date(MeprSubscription $sub)
     {
         global $wpdb;
-        $mepr_db = MeprDb::fetch();
 
-        $event = $wpdb->get_row($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT e.created_at, e.args FROM {$mepr_db->events} AS e WHERE e.event = %s AND e.evt_id_type = %s AND e.evt_id = %d ORDER BY e.created_at DESC LIMIT 1",
-            'subscription-resumed',
-            'subscriptions',
-            $sub->id
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $event = $wpdb->get_row(
+            $wpdb->prepare(
+                "
+                SELECT e.created_at, e.args
+                FROM {$wpdb->mepr_events} AS e
+                WHERE e.event = 'subscription-resumed'
+                AND e.evt_id_type = 'subscriptions'
+                AND e.evt_id = %d
+                ORDER BY e.created_at DESC LIMIT 1
+                ",
+                $sub->id
+            )
+        );
 
         if (!empty($event)) {
             $renewal_base_date = $event->created_at;
@@ -4774,20 +4780,23 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
      */
     private function get_application_fee_percentage()
     {
-        $application_fee_percentage = MeprHooks::apply_filters('mepr_stripe_default_application_fee_percentage', 0);
+        $application_fee_percentage = 0.0;
+
         if (class_exists('MeprDrmHelper') && MeprDrmHelper::is_app_fee_enabled()) {
             $application_fee_percentage = MeprDrmHelper::get_application_fee_percentage();
         }
+
+        $application_fee_percentage = MeprHooks::apply_filters('mepr_stripe_default_application_fee_percentage', $application_fee_percentage);
 
         // Check if current gateway's account country disallows fees.
         if ($application_fee_percentage > 0) {
             $account_country = self::get_account_country($this->id);
             if ($account_country !== false && !MeprDrmHelper::is_country_unlockable_by_fee($account_country)) {
-                $application_fee_percentage = 0;
+                $application_fee_percentage = 0.0;
             }
         }
 
-        return round(floatval($application_fee_percentage), 2);
+        return round($application_fee_percentage, 2);
     }
 
     /**
@@ -5132,7 +5141,7 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
             $default_checkout_recurring = MeprHooks::apply_filters('mepr_stripe_checkout_methods_for_recurring_payment', $default_checkout_recurring);
             $default_payment_methods    = array_merge($default_payment_methods, $default_checkout_recurring);
 
-            $default_checkout_one_time = $mepr_options->currency_code === 'EUR' ? ['sepa_debit', 'ideal', 'bancontact', 'giropay', 'sofort'] : [];
+            $default_checkout_one_time = $mepr_options->currency_code === 'EUR' ? ['sepa_debit', 'ideal', 'bancontact', 'giropay'] : [];
 
             if ($mepr_options->currency_code === 'EUR' || $mepr_options->currency_code === 'PLN') {
                 $default_checkout_one_time[] = 'p24';
@@ -5232,7 +5241,6 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
                 !empty($previous->card['last4'])
             ) {
                 global $wpdb;
-                $mepr_db = MeprDb::fetch();
 
                 $list = (object) $this->send_stripe_request(
                     'subscriptions',
@@ -5260,7 +5268,7 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
                 // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
                 $sub_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
                     $wpdb->prepare(
-                        "SELECT id FROM $mepr_db->subscriptions WHERE subscr_id IN ("
+                        "SELECT id FROM $wpdb->mepr_subscriptions WHERE subscr_id IN ("
                         . join(', ', $placeholders)
                         . ')
                         AND gateway = %s

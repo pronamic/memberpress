@@ -8,91 +8,98 @@
  * Copyright: 2004-2013, Caseproof, LLC
  */
 
-$root = dirname(dirname(dirname(dirname(__FILE__))));
-if (file_exists($root . '/wp-load.php')) {
-    require_once($root . '/wp-load.php');
-} else {
-    require_once($root . '/wp-config.php');
-}
-
-$mepr_uri = isset($_REQUEST['mepruri'])
-    ? untrailingslashit(esc_url_raw(wp_unslash($_REQUEST['mepruri'])))
-    : esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
-
-$is_ssl = MeprUtils::is_ssl();
-
-$server_port = intval($_SERVER['SERVER_PORT'] ?? 0);
-if ($server_port <= 0 || $server_port > 65535) {
-    $server_port = $is_ssl ? 443 : 80;
-}
-
-$full_uri = 'http' . ($is_ssl ? 's' : '') . '://' .
-    sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'] ?? '')) .
-    (in_array($server_port, [80, 443], true) ? '' : ':' . $server_port) .
-    esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
-
-$mepr_full_uri = preg_replace('#^(https?://[^/]*).*$#', '$1', home_url()) . $mepr_uri;
-$full_uri      = preg_replace('#^(https?://[^/]*).*$#', '$1', $full_uri) . $mepr_uri;
-
-$subdir             = preg_replace('#^https?://[^/]+#', '', site_url());
-$mepr_filename      = basename($mepr_uri);
-$from_abspath_uri   = substr(str_replace($subdir, '', $mepr_uri), 1);
-$mepr_full_filename = ABSPATH . $from_abspath_uri;
-
-// Redirecting unless the correct home_url is used.
-if ($mepr_full_uri !== $full_uri) {
-    wp_safe_redirect($mepr_full_uri);
-    exit;
-}
-
-// Figure out the rule hash for this uri.
-$user = MeprUtils::get_currentuserinfo();
-if ($user) {
-    $rule_hash = md5($mepr_uri . $user->ID . wp_salt());
-} else {
-    $rule_hash = md5($mepr_uri . wp_salt());
-}
-
-// Make sure expired files are cleaned out.
-mepr_clean_rule_files();
-
-// Handle when a URI is locked.
-if (MeprRule::is_uri_locked($mepr_uri)) {
-    $mepr_options = MeprOptions::fetch();
-    $delim        = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
-
-    if ($mepr_options->redirect_on_unauthorized) { // Send to unauth page.
-        $redirect_url = $mepr_options->unauthorized_redirect_url . $delim . 'action=mepr_unauthorized&redirect_to=' . urlencode($mepr_full_uri);
-    } else { // Send to login page.
-        $redirect_url = $mepr_options->login_page_url('action=mepr_unauthorized&redirect_to=' . urlencode($mepr_full_uri));
+/**
+ * Locks access to protected resources.
+ */
+function mepr_lock(): void
+{
+    $root = dirname(dirname(dirname(dirname(__FILE__))));
+    if (file_exists($root . '/wp-load.php')) {
+        require_once($root . '/wp-load.php');
+    } else {
+        require_once($root . '/wp-config.php');
     }
 
-    // Handle SSL.
-    $redirect_url = ($is_ssl ? str_replace('http:', 'https:', $redirect_url) : $redirect_url);
+    $mepr_uri = isset($_REQUEST['mepruri'])
+        ? untrailingslashit(esc_url_raw(wp_unslash($_REQUEST['mepruri'])))
+        : esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
 
-    MeprUtils::wp_redirect($redirect_url);
-    exit;
-}
+    $is_ssl = MeprUtils::is_ssl();
 
-// Handle php files & directories
-// At this point in the script the user has access
-// so all we need to do is redirect them to the right place.
-if (preg_match('/\.(php|phtml)/', $mepr_uri)) {
-    mepr_redirect_locked_uri($mepr_uri, $rule_hash);
-} elseif (is_dir($mepr_full_filename)) {
-    if (file_exists($mepr_full_filename . '/index.php')) {
-        mepr_redirect_locked_uri($mepr_uri . '/index.php', $rule_hash);
-    } elseif (file_exists($mepr_full_filename . '/index.phtml')) {
-        mepr_redirect_locked_uri($mepr_uri . '/index.phtml', $rule_hash);
-    } elseif (file_exists($mepr_full_filename . '/index.htm')) {
-        mepr_render_locked_file($mepr_full_filename . '/index.htm');
-    } elseif (file_exists($mepr_full_filename . '/index.html')) {
-        mepr_render_locked_file($mepr_full_filename . '/index.html');
+    $server_port = intval($_SERVER['SERVER_PORT'] ?? 0);
+    if ($server_port <= 0 || $server_port > 65535) {
+        $server_port = $is_ssl ? 443 : 80;
     }
-} else {
-    // Handle all other static file types.
-    mepr_redirect_locked_uri($mepr_uri, $rule_hash);
+
+    $full_uri = 'http' . ($is_ssl ? 's' : '') . '://' .
+        sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'] ?? '')) .
+        (in_array($server_port, [80, 443], true) ? '' : ':' . $server_port) .
+        esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
+
+    $mepr_full_uri = preg_replace('#^(https?://[^/]*).*$#', '$1', home_url()) . $mepr_uri;
+    $full_uri      = preg_replace('#^(https?://[^/]*).*$#', '$1', $full_uri) . $mepr_uri;
+
+    $subdir             = preg_replace('#^https?://[^/]+#', '', site_url());
+    $mepr_filename      = basename($mepr_uri);
+    $from_abspath_uri   = substr(str_replace($subdir, '', $mepr_uri), 1);
+    $mepr_full_filename = ABSPATH . $from_abspath_uri;
+
+    // Redirecting unless the correct home_url is used.
+    if ($mepr_full_uri !== $full_uri) {
+        wp_safe_redirect($mepr_full_uri);
+        exit;
+    }
+
+    // Figure out the rule hash for this uri.
+    $user = MeprUtils::get_currentuserinfo();
+    if ($user) {
+        $rule_hash = md5($mepr_uri . $user->ID . wp_salt());
+    } else {
+        $rule_hash = md5($mepr_uri . wp_salt());
+    }
+
+    // Make sure expired files are cleaned out.
+    mepr_clean_rule_files();
+
+    // Handle when a URI is locked.
+    if (MeprRule::is_uri_locked($mepr_uri)) {
+        $mepr_options = MeprOptions::fetch();
+        $delim        = MeprAppCtrl::get_param_delimiter_char($mepr_options->unauthorized_redirect_url);
+
+        if ($mepr_options->redirect_on_unauthorized) { // Send to unauth page.
+            $redirect_url = $mepr_options->unauthorized_redirect_url . $delim . 'action=mepr_unauthorized&redirect_to=' . urlencode($mepr_full_uri);
+        } else { // Send to login page.
+            $redirect_url = $mepr_options->login_page_url('action=mepr_unauthorized&redirect_to=' . urlencode($mepr_full_uri));
+        }
+
+        // Handle SSL.
+        $redirect_url = ($is_ssl ? str_replace('http:', 'https:', $redirect_url) : $redirect_url);
+
+        MeprUtils::wp_redirect($redirect_url);
+        exit;
+    }
+
+    // Handle php files & directories
+    // At this point in the script the user has access
+    // so all we need to do is redirect them to the right place.
+    if (preg_match('/\.(php|phtml)/', $mepr_uri)) {
+        mepr_redirect_locked_uri($mepr_uri, $rule_hash);
+    } elseif (is_dir($mepr_full_filename)) {
+        if (file_exists($mepr_full_filename . '/index.php')) {
+            mepr_redirect_locked_uri($mepr_uri . '/index.php', $rule_hash);
+        } elseif (file_exists($mepr_full_filename . '/index.phtml')) {
+            mepr_redirect_locked_uri($mepr_uri . '/index.phtml', $rule_hash);
+        } elseif (file_exists($mepr_full_filename . '/index.htm')) {
+            mepr_render_locked_file($mepr_full_filename . '/index.htm');
+        } elseif (file_exists($mepr_full_filename . '/index.html')) {
+            mepr_render_locked_file($mepr_full_filename . '/index.html');
+        }
+    } else {
+        // Handle all other static file types.
+        mepr_redirect_locked_uri($mepr_uri, $rule_hash);
+    }
 }
+
 
 /**
  * Redirects user to a locked URI after creating a temporary rule file.
@@ -157,3 +164,6 @@ function mepr_clean_rule_files()
         }
     }
 }
+
+// Execute the lock function.
+mepr_lock();

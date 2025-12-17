@@ -127,6 +127,16 @@ class MeprOnboardingHelper
                 'title'       => __('CoachKit™', 'memberpress'),
                 'description' => __('Seamlessly integrates with your existing Members, Memberships and Courses to provide a dynamic platform to sell an Unlimited number of coaching programs.', 'memberpress'),
             ],
+            'memberpress-circles'         => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-circles/main'),
+                'title'       => __('ClubCircles™', 'memberpress'),
+                'description' => __('Build a thriving, private community! Create unlimited discussion forums and private sub-groups (we call them Circles). Fully integrated with your members and rules, this is the perfect tool to boost engagement and build a loyal tribe.', 'memberpress'),
+            ],
+            'memberpress-directory'       => [
+                'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-directory/main'),
+                'title'       => __('ClubDirectory™', 'memberpress'),
+                'description' => __('Foster member connections! Launch a beautiful, searchable member directory. Allow members to create rich, customizable profiles to network and connect with each other, all within your private site.', 'memberpress'),
+            ],
             'memberpress-downloads'       => [
                 'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-downloads/main'),
                 'title'       => __('Digital Downloads', 'memberpress'),
@@ -135,22 +145,22 @@ class MeprOnboardingHelper
             'memberpress-buddypress'      => [
                 'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-buddypress/main'),
                 'title'       => __('Member Community', 'memberpress'),
-                'description' => __('Keep users coming back for more with a VIP forum or chat room they can access based on membership level. Available with MemberPress Plus or Pro.', 'memberpress'),
+                'description' => __('Keep users coming back for more with a VIP forum or chat room they can access based on membership level. Available with MemberPress Growth or Scale.', 'memberpress'),
             ],
             'memberpress-developer-tools' => [
                 'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-developer-tools/main'),
                 'title'       => __('Zapier Integration', 'memberpress'),
-                'description' => __('Work smarter not harder. Connect MemberPress with thousands of your favorite productivity and functionality apps and services. Available with MemberPress Plus or Pro.', 'memberpress'),
+                'description' => __('Work smarter not harder. Connect MemberPress with thousands of your favorite productivity and functionality apps and services. Available with MemberPress Scale.', 'memberpress'),
             ],
             'memberpress-gifting'         => [
                 'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-gifting/memberpress-gifting'),
                 'title'       => __('Gifting', 'memberpress'),
-                'description' => __('Expand your audience and sell more memberships. With Gifting, you can market to people who know people who could use your membership. Available with MemberPress Pro.', 'memberpress'),
+                'description' => __('Expand your audience and sell more memberships. With Gifting, you can market to people who know people who could use your membership. Available with MemberPress Scale.', 'memberpress'),
             ],
             'memberpress-corporate'       => [
                 'selectable'  => MeprOnboardingHelper::is_addon_selectable('memberpress-corporate/main'),
                 'title'       => __('Corporate Accounts', 'memberpress'),
-                'description' => __('Allow your members to add sub-accounts to their memberships based on subscription level. Great for families and groups. Available with MemberPress Pro.', 'memberpress'),
+                'description' => __('Allow your members to add sub-accounts to their memberships based on subscription level. Great for families and groups. Available with MemberPress Scale.', 'memberpress'),
             ],
             'easy-affiliate'             => [
                 'selectable'  => MeprOnboardingHelper::is_addon_selectable('easy-affiliate/easy-affiliate'),
@@ -498,6 +508,8 @@ class MeprOnboardingHelper
             'memberpress-corporate'       => esc_html__('Corporate Accounts', 'memberpress'),
             'easy-affiliate'             => esc_html__('Affiliate Program', 'memberpress'),
             'memberpress-coachkit'        => esc_html__('CoachKit™', 'memberpress'),
+            'memberpress-circles'         => esc_html__('ClubCircles™', 'memberpress'),
+            'memberpress-directory'       => esc_html__('ClubDirectory™', 'memberpress'),
         ];
     }
 
@@ -844,19 +856,6 @@ class MeprOnboardingHelper
     public static function get_upgrade_cta_data($type)
     {
         $data = [
-            'memberpress-pro-5'  => [
-                'token'   => esc_html__('Pro', 'memberpress'),
-                'url'     => MeprUtils::get_link_url('onboarding_upgrade_pro'),
-                'label'   => esc_html__('Upgrade to Pro', 'memberpress'),
-                'heading' => esc_html__('To unlock selected features, upgrade to Pro.', 'memberpress'),
-            ],
-            'memberpress-plus-2' => [
-                'token'   => esc_html__('Plus', 'memberpress'),
-                'url'     => MeprUtils::get_link_url('onboarding_upgrade_plus'),
-                'label'   => esc_html__('Upgrade to Plus', 'memberpress'),
-                'heading' => esc_html__('To unlock selected features, upgrade to Plus.', 'memberpress'),
-            ],
-
             'memberpress-scale' => [
                 'token'   => esc_html__('Scale', 'memberpress'),
                 'url'     => MeprUtils::get_link_url('onboarding_upgrade_scale'),

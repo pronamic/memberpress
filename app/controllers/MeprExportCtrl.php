@@ -114,7 +114,6 @@ class MeprExportCtrl extends MeprBaseCtrl
     public static function export_users_csv()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         if (!MeprUtils::is_mepr_admin()) { // Make sure we're an admin.
             return;
@@ -137,7 +136,7 @@ class MeprExportCtrl extends MeprBaseCtrl
                   ON u.ID = s.user_id AND s.meta_key = 'mepr-address-state'
                 LEFT JOIN {$wpdb->usermeta} AS z
                   ON u.ID = z.user_id AND z.meta_key = 'mepr-address-zip'
-                INNER JOIN {$mepr_db->transactions} AS t
+                INNER JOIN {$wpdb->mepr_transactions} AS t
                   ON u.ID = t.user_id AND (t.status = 'complete' OR t.status = 'confirmed') AND (t.expires_at IS NULL OR t.expires_at = 0 OR t.expires_at >= %s)
                 LEFT JOIN {$wpdb->posts} AS p
                   ON t.product_id = p.ID
@@ -172,7 +171,7 @@ class MeprExportCtrl extends MeprBaseCtrl
 
             // Fetch the data.
             $wpdb->query('SET SQL_BIG_SELECTS=1'); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            $rows = $wpdb->get_results($wpdb->prepare($q, MeprUtils::db_now()), ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            $rows = $wpdb->get_results($wpdb->prepare($q, MeprUtils::db_now()), ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
             // Loop over the rows, outputting them.
             foreach ($rows as $row) {
@@ -198,7 +197,6 @@ class MeprExportCtrl extends MeprBaseCtrl
     public static function export_inactive_users_csv()
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
         if (!MeprUtils::is_mepr_admin()) { // Make sure we're an admin.
             return;
@@ -222,9 +220,9 @@ class MeprExportCtrl extends MeprBaseCtrl
                 LEFT JOIN {$wpdb->usermeta} AS z
                   ON u.ID = z.user_id AND z.meta_key = 'mepr-address-zip'
                 INNER JOIN (SELECT *
-                              FROM {$mepr_db->transactions}
+                              FROM {$wpdb->mepr_transactions}
                               WHERE user_id NOT IN (SELECT user_id
-                                                      FROM {$mepr_db->transactions}
+                                                      FROM {$wpdb->mepr_transactions}
                                                       WHERE (expires_at >= %s
                                                              OR expires_at IS NULL
                                                              OR expires_at = %s)
@@ -265,7 +263,7 @@ class MeprExportCtrl extends MeprBaseCtrl
 
             // Fetch the data.
             $wpdb->query('SET SQL_BIG_SELECTS=1'); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            $rows = $wpdb->get_results($wpdb->prepare($q, MeprUtils::db_now(), MeprUtils::db_lifetime()), ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            $rows = $wpdb->get_results($wpdb->prepare($q, MeprUtils::db_now(), MeprUtils::db_lifetime()), ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
             // Loop over the rows, outputting them.
             foreach ($rows as $row) {

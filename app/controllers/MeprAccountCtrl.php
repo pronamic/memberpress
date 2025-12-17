@@ -66,7 +66,17 @@ class MeprAccountCtrl extends MeprBaseCtrl
 
             if (!empty($enabled_prd_ids)) { // If it's not empty, then the user already has an Enabled subscription for this membership.
                 $prd = new MeprProduct($prd_id);
-                if (!$prd->simultaneous_subscriptions && apply_filters('maybe_show_broken_sub_message_override', true, $prd)) {
+
+                $show_broken_sub_message = apply_filters_deprecated(
+                    'maybe_show_broken_sub_message_override',
+                    [true, $prd],
+                    '1.12.12',
+                    'mepr_maybe_show_broken_sub_message'
+                );
+
+                $show_broken_sub_message = MeprHooks::apply_filters('mepr_maybe_show_broken_sub_message', $show_broken_sub_message, $prd);
+
+                if (!$prd->simultaneous_subscriptions && $show_broken_sub_message) {
                     $errors[] = sprintf(
                         // Translators: %1$s: opening anchor tag, %2$s: closing anchor tag.
                         _x('You already have a subscription to this Membership. Please %1$supdate your payment details%2$s on the existing subscription instead of purchasing again.', 'ui', 'memberpress'),
@@ -288,7 +298,19 @@ class MeprAccountCtrl extends MeprBaseCtrl
         $delim             = MeprAppCtrl::get_param_delimiter_char($account_url);
         $errors            = [];
         $saved             = false;
-        $welcome_message   = do_shortcode(wp_kses_post(wpautop(stripslashes($mepr_options->custom_message))));
+
+        // Process welcome message: format content first, then sanitize
+        // This ensures shortcodes, embeds, and blocks work correctly before sanitization.
+        $welcome_message   = stripslashes($mepr_options->custom_message);
+        $welcome_message   = MeprUtils::format_content($welcome_message); // Handles blocks, wpautop, shortcodes.
+
+        // Autoembed any videos/URLs in the message (YouTube, Vimeo, etc.).
+        if (class_exists('WP_Embed')) {
+            $embed           = new WP_Embed();
+            $welcome_message = $embed->autoembed($welcome_message);
+        }
+
+        $welcome_message = MeprAppHelper::wp_kses($welcome_message); // Sanitize with media support.
 
         if (
             MeprUtils::is_post_request() &&
@@ -1063,7 +1085,7 @@ class MeprAccountCtrl extends MeprBaseCtrl
 
         $action      = isset($_REQUEST['action']) ? sanitize_text_field(wp_unslash($_REQUEST['action'])) : '';
         $title_after = '';
-        $sep         = ' ' . apply_filters('document_title_separator', '-') . ' ';
+        $sep         = ' ' . apply_filters('document_title_separator', '-') . ' '; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHookname
 
         if (MeprUser::is_account_page($post)) {
             switch ($action) {

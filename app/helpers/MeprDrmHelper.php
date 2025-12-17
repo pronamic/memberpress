@@ -674,7 +674,7 @@ class MeprDrmHelper
      *
      * @param boolean $bypass Whether to bypass the transient check.
      *
-     * @return string The application fee percentage.
+     * @return float The application fee percentage.
      */
     public static function get_application_fee_percentage($bypass = false)
     {
@@ -697,7 +697,7 @@ class MeprDrmHelper
         ], $url);
 
         $api_response    = wp_remote_get($url, $args);
-        $fee_percentage  = MeprHooks::apply_filters('mepr_drm_application_fee_percentage', 3);
+        $fee_percentage  = MeprHooks::apply_filters('mepr_drm_application_fee_percentage', 3.0);
         $current_version = get_option('mepr_drm_application_fee_version', 0);
         $transient_data  = $current_version . '|' . $fee_percentage;
 
@@ -705,8 +705,8 @@ class MeprDrmHelper
             $data = json_decode($api_response['body'], true);
             if (null !== $data) {
                 if (isset($data['v'])) {
-                    $fee_percentage = base64_decode($data['a99_f33']);
-                    $transient_data = $data['v'] . '|' . $fee_percentage;
+                    $fee_percentage = floatval(base64_decode($data['a99_f33']));
+                    $transient_data = $data['v'] . '|' . MeprHooks::apply_filters('mepr_drm_application_fee_percentage', $fee_percentage);
                     update_option('mepr_drm_application_fee_version', $data['v']);
                 }
             }
@@ -734,6 +734,11 @@ class MeprDrmHelper
      */
     public static function enable_app_fee()
     {
+        // Safety check: Prevent fee enablement if fee unlock is not available.
+        if (! MeprDrmHelper::is_fee_unlock_available()) {
+            return false; // Do not enable if fee unlock is not available.
+        }
+
         $r = update_option('mepr_drm_app_fee_enabled', time(), false);
         if ($r) {
             $time = time();
@@ -838,5 +843,16 @@ class MeprDrmHelper
         ];
 
         return !in_array($country, $disallowed_countries, true);
+    }
+
+    /**
+     * Check if fee-based unlock is available
+     *
+     * @return boolean False - fee unlock is not available.
+     */
+    public static function is_fee_unlock_available()
+    {
+        // DRM unlock is completely disabled - no new users can unlock.
+        return false;
     }
 }

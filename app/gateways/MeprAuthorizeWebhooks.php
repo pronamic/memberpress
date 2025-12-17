@@ -246,7 +246,8 @@ class MeprAuthorizeWebhooks
             return $txn;
         }
 
-        $txn->status = MeprTransaction::$refunded_str;
+        $txn->status      = MeprTransaction::$refunded_str;
+        $txn->refunded_at = MeprUtils::db_now();
         $txn->store();
 
         if (!defined('TESTS_RUNNING')) {

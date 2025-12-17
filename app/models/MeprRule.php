@@ -641,21 +641,23 @@ class MeprRule extends MeprCptModel
      */
     public static function get_single_array($type)
     {
-        $lookup = get_posts([
-            'post_type'   => $type,
-            'numberposts' => -1,
-        ]);
+        global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $lookup = $wpdb->get_results(
+            $wpdb->prepare("SELECT ID, post_title FROM {$wpdb->posts} WHERE post_type = %s", $type),
+            OBJECT_K
+        );
 
         if (empty($lookup)) {
             return [];
         }
 
-        $result = [];
-        foreach ($lookup as $p) {
-            $result[$p->ID] = $p->post_title;
+        foreach ($lookup as $id => $obj) {
+            $lookup[$id] = stripslashes($obj->post_title);
         }
 
-        return $result;
+        return $lookup;
     }
 
     /**
@@ -694,7 +696,7 @@ class MeprRule extends MeprCptModel
                 $i->desc = "ID: {$i->id} | Slug: {$i->slug}";
                 return $i;
             },
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
             $wpdb->get_results($prepared_query)
         );
     }
@@ -811,11 +813,24 @@ class MeprRule extends MeprCptModel
      */
     public static function get_category_array()
     {
-        $category_contents = get_categories(['hide_empty' => 0]);
-        $contents          = [];
+        global $wpdb;
 
-        foreach ($category_contents as $category) {
-            $contents[$category->term_id] = $category->name;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $terms = $wpdb->get_results(
+            "
+            SELECT t.term_id, t.name
+                FROM {$wpdb->terms} AS t
+            JOIN {$wpdb->term_taxonomy} AS tx
+                ON t.term_id=tx.term_id
+                AND tx.taxonomy='category'
+            "
+        );
+
+        $contents = [];
+        if (!empty($terms)) {
+            foreach ($terms as $term) {
+                $contents[$term->term_id] = $term->name;
+            }
         }
 
         return $contents;
@@ -853,7 +868,7 @@ class MeprRule extends MeprCptModel
                 $i->desc = "ID: {$i->id} | Slug: {$i->slug}";
                 return $i;
             },
-            $wpdb->get_results($prepared_query) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            $wpdb->get_results($prepared_query) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
         );
     }
 
@@ -932,11 +947,24 @@ class MeprRule extends MeprCptModel
      */
     public static function get_tag_array()
     {
-        $tag_contents = get_tags(['get' => 'all']);
-        $contents     = [];
+        global $wpdb;
 
-        foreach ($tag_contents as $tag) {
-            $contents[$tag->term_id] = $tag->name;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $terms = $wpdb->get_results(
+            "
+            SELECT t.term_id, t.name
+                FROM {$wpdb->terms} AS t
+            JOIN {$wpdb->term_taxonomy} AS tx
+                ON t.term_id=tx.term_id
+                AND tx.taxonomy='post_tag'
+            "
+        );
+
+        $contents = [];
+        if (!empty($terms)) {
+            foreach ($terms as $term) {
+                $contents[$term->term_id] = $term->name;
+            }
         }
 
         return $contents;
@@ -987,15 +1015,24 @@ class MeprRule extends MeprCptModel
      */
     public static function get_tax_array($tax)
     {
-        $contents     = [];
-        $tax_contents = get_terms([
-            'taxonomy'   => $tax,
-            'hide_empty' => false,
-        ]);
+        global $wpdb;
 
-        if (!is_wp_error($tax_contents)) {
-            foreach ($tax_contents as $tk => $t) {
-                $contents[$t->term_id] = $t->name;
+        $query = $wpdb->prepare(
+            'SELECT t.term_id, t.name ' .
+            "FROM {$wpdb->terms} AS t " .
+            "JOIN {$wpdb->term_taxonomy} AS tx " .
+              'ON t.term_id=tx.term_id ' .
+             'AND tx.taxonomy=%s',
+            $tax
+        );
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+        $terms = $wpdb->get_results($query);
+
+        $contents = [];
+        if (!empty($terms)) {
+            foreach ($terms as $term) {
+                $contents[$term->term_id] = $term->name;
             }
         }
 
@@ -2220,13 +2257,13 @@ class MeprRule extends MeprCptModel
         if ($type === 'sql') {
             return $query;
         } elseif ($count) {
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
             return $wpdb->get_var($query);
         } elseif ($type === 'ids') {
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
             return $wpdb->get_col($query);
         } else {
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter
             return $wpdb->get_results($query);
         }
     }

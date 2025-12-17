@@ -515,7 +515,8 @@ class MeprPayPalProGateway extends MeprBasePayPalGateway
                 return $txn;
             }
 
-            $txn->status = MeprTransaction::$refunded_str;
+            $txn->status      = MeprTransaction::$refunded_str;
+            $txn->refunded_at = MeprUtils::db_now();
 
             $this->email_status("Processing Refund: \n" . MeprUtils::object_to_string($_POST) . "\n Affected Transaction: \n" . MeprUtils::object_to_string($txn), $this->settings->debug);
 

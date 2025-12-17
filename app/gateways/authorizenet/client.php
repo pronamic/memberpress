@@ -201,7 +201,8 @@ class MeprArtificialAuthorizeNetProfileHttpClient
             throw new MeprException(esc_html__('Profile does not have a payment source', 'memberpress'));
         }
 
-        $customer_ip = filter_var(wp_unslash($_SERVER['REMOTE_ADDR'] ?? ''), FILTER_VALIDATE_IP);
+        $customer_ip   = filter_var(wp_unslash($_SERVER['REMOTE_ADDR'] ?? ''), FILTER_VALIDATE_IP);
+        $product_title = $txn->product()->post_title ?? '';
 
         $xml = '<createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
     <merchantAuthentication>
@@ -218,8 +219,9 @@ class MeprArtificialAuthorizeNetProfileHttpClient
             <paymentProfileId>' . esc_xml($payment_profile) . '</paymentProfileId>'
             . ($cvc_code ? '<cardCode>' . esc_xml($cvc_code) . '</cardCode>' : '') .
           '</paymentProfile>
-        </profile>
-        <poNumber>' . esc_xml($txn->id) . '</poNumber>
+        </profile>' .
+        ($product_title ? '<order><description>' . esc_xml($product_title) . '</description></order>' : '') .
+        '<poNumber>' . esc_xml($txn->id) . '</poNumber>
         <customer>
             <id>' . esc_xml($authorize_net_customer['customerProfileId']) . '</id>
         </customer>' .

@@ -18,7 +18,7 @@ jQuery(document).ready(function($) {
   var mepr_set_todays_date = function(button_selector) {
     $.post(ajaxurl, { action: 'mepr_todays_date', datetime: true }, function(res) {
       var trimmed_data = res.replace(/^\s+|\s+$/g, ''); //Trim whitespace
-      $(button_selector).parent().find('input.mepr-created-at').val(trimmed_data);
+      $(button_selector).parent().find('input.mepr-date-picker').val(trimmed_data); // This will work for created_at and refunded_at.
     });
   };
 

@@ -8,6 +8,11 @@
   margin-left: 20px;
 }
 
+.mepr-nav-tab-wrapper {
+  margin: 20px 0;
+  border-bottom: 1px solid #ccc;
+}
+
 #mepr-addons-search {
   background-color: #fff;
   border: 1px solid #ddd;
@@ -25,6 +30,17 @@
 
 #mepr-addons-search:focus {
   border-color: #bbb;
+}
+
+.mepr-tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.mepr-tab-header .mepr-addons-refresh {
+  margin-right: auto;
 }
 
 #mepr-admin-addons h4 {

@@ -1,7 +1,9 @@
 <div class="mp_wrapper">
 <?php if (!empty($unauth->excerpt)) : ?>
   <div class="mepr-unauthorized-excerpt">
-    <?php echo wp_kses_post($unauth->excerpt); ?>
+    <?php
+    echo MeprAppHelper::wp_kses($unauth->excerpt); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    ?>
   </div>
 <?php endif; ?>
 <div class="mepr-paywall-overlay">

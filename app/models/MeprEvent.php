@@ -358,13 +358,12 @@ class MeprEvent extends MeprBaseModel
     public static function latest($event)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        $id = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT id FROM {$mepr_db->events} WHERE event=%s ORDER BY id DESC LIMIT 1",
-            $event
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $id = $wpdb->get_var(
+            $wpdb->prepare("SELECT id FROM {$wpdb->mepr_events} WHERE event=%s ORDER BY id DESC LIMIT 1", $event)
+        );
+
         if ($id) {
             return new MeprEvent($id);
         }
@@ -449,15 +448,17 @@ class MeprEvent extends MeprBaseModel
     public static function latest_by_elapsed_days($event, $elapsed_days)
     {
         global $wpdb;
-        $mepr_db = new MeprDb();
 
-        $id = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT id FROM {$mepr_db->events} WHERE event=%s AND created_at >= %s - interval %d day ORDER BY id DESC LIMIT 1",
-            $event,
-            MeprUtils::db_now(),
-            $elapsed_days
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->mepr_events} WHERE event=%s AND created_at >= %s - interval %d day ORDER BY id DESC LIMIT 1",
+                $event,
+                MeprUtils::db_now(),
+                $elapsed_days
+            )
+        );
+
         if ($id) {
             return new MeprEvent($id);
         }
@@ -519,14 +520,16 @@ class MeprEvent extends MeprBaseModel
             return false;
         }
 
-        $mepr_db = new MeprDb();
-        $last_event_created_at = $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT created_at FROM {$mepr_db->events} WHERE `event` = %s AND evt_id = %d AND evt_id_type = %s ORDER BY created_at DESC LIMIT 1",
-            $e->event,
-            (int) $e->evt_id,
-            $e->evt_id_type
-        ));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        $last_event_created_at = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT created_at FROM {$wpdb->mepr_events} WHERE `event` = %s AND evt_id = %d AND evt_id_type = %s ORDER BY created_at DESC LIMIT 1",
+                $e->event,
+                (int) $e->evt_id,
+                $e->evt_id_type
+            )
+        );
+
         if (!empty($last_event_created_at)) {
             // Ensure we have a valid timestamp.
             $last_event_time = strtotime($last_event_created_at);

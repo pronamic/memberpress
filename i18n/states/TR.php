@@ -4,7 +4,7 @@
  * Turkish States
  */
 
-$states['TR'] = [
+return [
     'TR01' => _x('Adana', 'ui', 'memberpress'),
     'TR02' => _x('Ad&#305;yaman', 'ui', 'memberpress'),
     'TR03' => _x('Afyon', 'ui', 'memberpress'),

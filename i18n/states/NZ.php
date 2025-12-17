@@ -4,7 +4,7 @@
  * New Zealand States
  */
 
-$states['NZ'] = [
+return [
     'AK' => _x('Auckland', 'ui', 'memberpress'),
     'BP' => _x('Bay of Plenty', 'ui', 'memberpress'),
     'CT' => _x('Canterbury', 'ui', 'memberpress'),

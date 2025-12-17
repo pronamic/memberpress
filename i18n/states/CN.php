@@ -4,7 +4,7 @@
  * Chinese states
  */
 
-$states['CN'] = [
+return [
     'CN1'  => _x('Yunnan / &#20113;&#21335;', 'ui', 'memberpress'),
     'CN2'  => _x('Beijing / &#21271;&#20140;', 'ui', 'memberpress'),
     'CN3'  => _x('Tianjin / &#22825;&#27941;', 'ui', 'memberpress'),

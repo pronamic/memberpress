@@ -120,12 +120,7 @@ class MeprPayWallCtrl extends MeprBaseCtrl
         $mepr_options = MeprOptions::fetch();
 
         if ($mepr_options->paywall_enabled && $mepr_options->paywall_num_free_views > 0) {
-            $num_views = (isset($_COOKIE[self::$cookie_name]) && !empty($_COOKIE[self::$cookie_name])) ? wp_unslash($_COOKIE[self::$cookie_name]) : 0;
-
-            if ($num_views !== 0) {
-                $num_views = intval(base64_decode($num_views));
-            }
-
+            $num_views   = intval(base64_decode(sanitize_text_field(wp_unslash($_COOKIE[self::$cookie_name] ?? ''))));
             $cookie_time = MeprHooks::apply_filters('mepr_paywall_cookie_time', (time() + 60 * 60 * 24 * 30), $num_views);
 
             setcookie(self::$cookie_name, base64_encode(($num_views + 1)), $cookie_time, '/');
@@ -175,10 +170,17 @@ class MeprPayWallCtrl extends MeprBaseCtrl
      */
     public static function paywall_allow_through($type = 'content')
     {
-        $post = MeprUtils::get_current_post();
+        $post         = MeprUtils::get_current_post();
+        $mepr_options = MeprOptions::fetch();
 
-        // Do nothing if the member is logged in, or if this is a bot (bots might be allowed through later down the chain).
-        if (MeprUtils::is_user_logged_in() || self::verify_bot()) {
+        // Do nothing if the member is logged in.
+        if (MeprUtils::is_user_logged_in()) {
+            return false;
+        }
+
+        // Do nothing if this is a verified bot (bots might be allowed through later down the chain).
+        // Only perform the expensive verify_bot() DNS lookups when authorize_seo_views is enabled.
+        if ($mepr_options->authorize_seo_views && self::verify_bot()) {
             return false;
         }
 
@@ -187,14 +189,8 @@ class MeprPayWallCtrl extends MeprBaseCtrl
             return false;
         }
 
-        $mepr_options = MeprOptions::fetch();
-
         if ($mepr_options->paywall_enabled && $mepr_options->paywall_num_free_views > 0) {
-            $num_views = (isset($_COOKIE[self::$cookie_name]) && !empty($_COOKIE[self::$cookie_name])) ? wp_unslash($_COOKIE[self::$cookie_name]) : 0;
-
-            if ($num_views !== 0) {
-                $num_views = intval(base64_decode($num_views));
-            }
+            $num_views = intval(base64_decode(sanitize_text_field(wp_unslash($_COOKIE[self::$cookie_name] ?? ''))));
 
             // There's a race condition happening here, so we need to add one to the uri's.
             if ($type === 'uri') {
