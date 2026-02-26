@@ -7,7 +7,7 @@
         <?php if (!isset($_GET['mepr-unauth-page']) && (!isset($_GET['action']) || $_GET['action'] !== 'mepr_unauthorized')) : ?>
             <?php if (is_page($login_page_id) && isset($redirect_to) && !empty($redirect_to)) : ?>
         <script type="text/javascript">
-          window.location.href="<?php echo esc_js(urldecode($redirect_to)); ?>";
+          window.location.href="<?php echo esc_js(esc_url_raw(urldecode($redirect_to))); ?>";
         </script>
             <?php else : ?>
         <div class="mepr-already-logged-in">

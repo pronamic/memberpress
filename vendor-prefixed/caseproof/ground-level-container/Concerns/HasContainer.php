@@ -12,14 +12,14 @@ trait HasContainer
     /**
      * The container instance.
      *
-     * @var Container
+     * @var \MemberPress\GroundLevel\Container\Container
      */
     protected Container $container;
 
     /**
      * Retrieves a container.
      *
-     * @return Container
+     * @return \MemberPress\GroundLevel\Container\Container
      */
     public function getContainer(): Container
     {
@@ -29,8 +29,8 @@ trait HasContainer
     /**
      * Sets a container.
      *
-     * @param  Container $container The container.
-     * @return ContainerAwareness
+     * @param  \MemberPress\GroundLevel\Container\Container $container The container.
+     * @return \MemberPress\GroundLevel\Container\Contracts\ContainerAwareness
      */
     public function setContainer(Container $container): ContainerAwareness
     {

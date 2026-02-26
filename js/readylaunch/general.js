@@ -5,22 +5,39 @@ document.addEventListener('DOMContentLoaded', function () {
   var mobileMenuButton = document.querySelector('.profile-menu__button.--is-mobile');
   var meprAccountNav = document.getElementById('mepr-account-nav');
 
+  function toggleProfileDropdown() {
+    if (profileMenuDropdown) {
+      profileMenuDropdown.classList.toggle('is-open');
+    }
+  }
+
+  function closeProfileDropdown() {
+    if (profileMenuDropdown) {
+      profileMenuDropdown.classList.remove('is-open');
+    }
+  }
+
   if (userMenuButton && profileMenuDropdown) {
-    userMenuButton.addEventListener('click', function () {
-      var isOpen = profileMenuDropdown.style.display === 'block';
-      profileMenuDropdown.style.display = isOpen ? 'none' : 'block';
-    });
+    userMenuButton.addEventListener('click', toggleProfileDropdown);
 
     document.addEventListener('click', function (event) {
-      if (!userMenuButton.contains(event.target) && !profileMenuDropdown.contains(event.target)) {
-        profileMenuDropdown.style.display = 'none';
+      var isFromMenu =
+        userMenuButton.contains(event.target) ||
+        profileMenuDropdown.contains(event.target) ||
+        (mobileMenuButton && mobileMenuButton.contains(event.target));
+      if (!isFromMenu) {
+        closeProfileDropdown();
       }
     });
   }
 
-  if (mobileMenuButton && meprAccountNav) {
+  if (mobileMenuButton) {
     mobileMenuButton.addEventListener('click', function () {
-      meprAccountNav.classList.toggle('open');
+      if (meprAccountNav) {
+        meprAccountNav.classList.toggle('open');
+      } else {
+        toggleProfileDropdown();
+      }
     });
   }
 });

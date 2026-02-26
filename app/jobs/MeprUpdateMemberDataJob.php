@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /**
  * Job to update member data in batches.
  *

@@ -1286,16 +1286,21 @@ class MeprAuthorizeGateway extends MeprBaseRealGateway
 
         if (!isset($_POST['mepr_transaction_id']) || !is_numeric($_POST['mepr_transaction_id'])) {
             $errors[] = __('An unknown error has occurred.', 'memberpress');
+            return $errors;
         }
 
         // IF SPC is enabled, we need to bail on validation if 100% off forever coupon was used.
         $txn = new MeprTransaction((int)$_POST['mepr_transaction_id']);
         if ($txn->coupon_id) {
-            $coupon = new MeprCoupon($txn->coupon_id);
-
+            $coupon  = new MeprCoupon($txn->coupon_id);
+            $product = $txn->product();
             // TODO - need to check if 'dollar' amount discounts also make the price free forever
             // but those are going to be much less likely to be used than 100 'percent' type discounts.
-            if ((int) $coupon->discount_amount === 100 && $coupon->discount_type === 'percent' && ($coupon->discount_mode === 'standard' || $coupon->discount_mode === 'trial-override' || $coupon->discount_mode === 'first-payment')) {
+            if (
+                (int) $coupon->get_discount_amount($product) === 100 &&
+                $coupon->get_discount_type($product) === 'percent' &&
+                in_array($coupon->get_discount_mode($product), ['standard', 'trial-override', 'first-payment'], true)
+            ) {
                 return $errors;
             }
         }

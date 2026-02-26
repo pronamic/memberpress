@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 return MeprHooks::apply_filters('mepr_locale_date_map', [
     'zh_CN' => [
         'months' => [

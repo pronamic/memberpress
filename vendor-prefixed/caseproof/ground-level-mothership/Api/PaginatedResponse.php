@@ -6,6 +6,11 @@ namespace MemberPress\GroundLevel\Mothership\Api;
 
 use MemberPress\GroundLevel\Mothership\Api\Request;
 
+/**
+ * Deprecated trait for paginated responses.
+ *
+ * @deprecated Use methods from {@see \GroundLevel\Mothership\Api\Response} instead.
+ */
 trait PaginatedResponse
 {
     /**

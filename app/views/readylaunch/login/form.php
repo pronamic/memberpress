@@ -50,7 +50,7 @@ $admin_view         = isset($atts['admin_view']) ? $atts['admin_view'] : false;
             <?php if (!isset($_GET['mepr-unauth-page']) && (!isset($_GET['action']) || $_GET['action'] !== 'mepr_unauthorized')) : ?>
                 <?php if (is_page($login_page_id) && isset($redirect_to) && !empty($redirect_to)) : ?>
               <script type="text/javascript">
-                window.location.href = "<?php echo esc_url(urldecode($redirect_to)); ?>";
+                window.location.href = "<?php echo esc_js(esc_url_raw(urldecode($redirect_to))); ?>";
               </script>
                 <?php else : ?>
               <div class="mepr-already-logged-in">
@@ -120,7 +120,7 @@ $admin_view         = isset($atts['admin_view']) ? $atts['admin_view'] : false;
             <div class="mp-spacer">&nbsp;</div>
             <div class="submit">
               <input type="submit" name="wp-submit" id="wp-submit" class="button-primary mepr-share-button" value="<?php echo esc_attr_x('Log In', 'ui', 'memberpress'); ?>" />
-              <input type="hidden" name="redirect_to" value="<?php echo esc_html($redirect_to); ?>" />
+              <input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>" />
               <input type="hidden" name="mepr_process_login_form" value="true" />
               <input type="hidden" name="mepr_is_login_page" value="<?php echo ($is_login_page) ? 'true' : 'false'; ?>" />
             </div>

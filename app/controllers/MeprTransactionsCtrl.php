@@ -432,6 +432,8 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                 'refunded_text'                     => __('Refunded', 'memberpress'),
                 'refund_txn_error'                  => __('The transaction could not be refunded. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
                 'refund_txn_and_cancel_sub_error'   => __('The transaction could not be refunded and/or subscription could not be cancelled. Please issue the refund by logging into your gateway\'s virtual terminal', 'memberpress'),
+                'refund_txn_success'                => __('The transaction was successfully refunded.', 'memberpress'),
+                'refund_txn_and_cancel_sub_success' => __('The transaction was successfully refunded and the subscription was cancelled.', 'memberpress'),
                 'delete_transaction_nonce'          => wp_create_nonce('delete_transaction'),
                 'edit_txn_status_nonce'             => wp_create_nonce('edit_txn_status'),
                 'refund_txn_nonce'                  => wp_create_nonce('refund_txn'),
@@ -531,14 +533,16 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
      */
     public function refund_transaction()
     {
-        check_ajax_referer('refund_txn', 'refund_txn_nonce');
+        if (!check_ajax_referer('refund_txn', 'refund_txn_nonce', false)) {
+            wp_die(esc_html__('Security check failed.', 'memberpress'), '', ['response' => 403]);
+        }
 
         if (!MeprUtils::is_mepr_admin()) {
-            wp_die(esc_html__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'), '', ['response' => 403]);
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            wp_die(esc_html__('Could not refund transaction', 'memberpress'));
+            wp_die(esc_html__('Could not refund transaction', 'memberpress'), '', ['response' => 400]);
         }
 
         $txn = new MeprTransaction(intval(wp_unslash($_POST['id'])));
@@ -547,7 +551,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             $txn->refund();
             MeprHooks::do_action('mepr_txn_refunded', $txn);
         } catch (Exception $e) {
-            wp_die(esc_html($e->getMessage()));
+            wp_die($e->getMessage(), '', ['response' => 500]); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
 
         die('true'); // Don't localize this string.
@@ -560,14 +564,16 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
      */
     public function refund_txn_and_cancel_sub()
     {
-        check_ajax_referer('refund_txn_cancel_sub', 'refund_txn_cancel_sub_nonce');
+        if (!check_ajax_referer('refund_txn_cancel_sub', 'refund_txn_cancel_sub_nonce', false)) {
+            wp_die(esc_html__('Security check failed.', 'memberpress'), '', ['response' => 403]);
+        }
 
         if (!MeprUtils::is_mepr_admin()) {
-            wp_die(esc_html__('You do not have access.', 'memberpress'));
+            wp_die(esc_html__('You do not have access.', 'memberpress'), '', ['response' => 403]);
         }
 
         if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            wp_die(esc_html__('Could not refund transaction', 'memberpress'));
+            wp_die(esc_html__('Could not refund transaction', 'memberpress'), '', ['response' => 400]);
         }
 
         $txn = new MeprTransaction(intval(wp_unslash($_POST['id'])));
@@ -580,7 +586,7 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
                 $sub->cancel();
             }
         } catch (Exception $e) {
-            wp_die(esc_html($e->getMessage()));
+            wp_die($e->getMessage(), '', ['response' => 500]); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
 
         die('true'); // Don't localize this string.
@@ -877,12 +883,12 @@ class MeprTransactionsCtrl extends MeprBaseCtrl
             $date_field                = (isset($_REQUEST['date_field']) ? sanitize_text_field(wp_unslash($_REQUEST['date_field'])) : 'created_at');
             $date_fields               = MeprTransactionsHelper::get_date_filter_fields();
             $date_range_filter_options = MeprTransactionsHelper::get_date_range_filter_options();
-            $args     = [
+            $args                      = [
                 'orderby' => 'title',
                 'order'   => 'ASC',
             ];
-            $prds     = MeprCptModel::all('MeprProduct', false, $args);
-            $gateways = $mepr_options->payment_methods();
+            $prds                      = MeprCptModel::all('MeprProduct', false, $args);
+            $gateways                  = $mepr_options->payment_methods();
 
             MeprView::render('/admin/transactions/search_box', compact('membership', 'status', 'prds', 'gateways', 'gateway', 'date_range_filter', 'date_start', 'date_end', 'date_field', 'date_fields', 'date_range_filter_options'));
         }

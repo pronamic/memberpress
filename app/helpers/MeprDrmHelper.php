@@ -751,8 +751,13 @@ class MeprDrmHelper
             $user    = MeprUtils::get_currentuserinfo();
             $license = get_site_transient('mepr_license_info');
 
+            $notification_email = MeprUtils::get_brand_config_value(
+                'drm_app_fee_notification_email',
+                'support@memberpress.com'
+            );
+
             MeprUtils::wp_mail(
-                'support@memberpress.com',
+                $notification_email,
                 'Stripe Application Fee Enabled on ' . MeprUtils::site_domain(),
                 sprintf(
                     '<ul><li>Date: %s</li><li>Domain: %s</li><li>License Info: %s</li><li>User Email: %s</li><li>User ID: %d</li><li>Application Fee: %s%%</li></ul>',

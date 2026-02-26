@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <div class="mepr-main-pane">
   <p><strong><?php esc_html_e('Unauthorized access handling for content protected by this rule', 'memberpress'); ?></strong></p>
   <p class="description"><?php esc_html_e('Note: This overrides the global settings for unauthorized access handling in MemberPress Options for content protected by this rule.', 'memberpress'); ?></p>

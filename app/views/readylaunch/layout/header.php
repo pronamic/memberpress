@@ -1,4 +1,5 @@
 <?php
+defined('ABSPATH') || exit;
 
 /**
  * The layout for authenticated or guest pages
@@ -60,7 +61,7 @@
               </svg>
             </button>
 
-            <div class="profile-menu__dropdown dropdown" style="display: none;">
+            <div class="profile-menu__dropdown dropdown">
               <a class="profile-menu__dropdown-item dropdown__item"
                 href="<?php echo esc_url($account_url); ?>"><?php echo esc_html_x('Account', 'ui', 'memberpress'); ?></a>
               <a class="profile-menu__dropdown-item dropdown__item"

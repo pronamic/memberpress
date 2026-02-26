@@ -14,6 +14,10 @@ use MemberPress\GroundLevel\Container\Service as BaseService;
  * 2. Email and API Token.
  *
  * The License Key and Domain method is the default and is used to authenticate the plugin.
+ *
+ * @property string $pluginId     The ID of the plugin using this component.
+ * @property string $pluginPrefix The prefix of the plugin using this component.
+ * @property string $productId    The ID of the product using this component.
  */
 abstract class AbstractPluginConnection extends BaseService
 {
@@ -27,37 +31,18 @@ abstract class AbstractPluginConnection extends BaseService
     /**
      * Used to set the constants for the plugin's license key, domain, email, and API token for local development.
      *
-     * @var string
-     */
-    protected string $pluginPrefix = '';
-
-    /**
-     * The name of the constant to use for the plugin's license key.
+     * A trailing underscore is automatically added to the prefix if it is not already present.
      *
      * @var string
      */
-    protected string $nameForConstantLicenseKey = '';
+    protected string $pluginPrefix;
 
     /**
-     * The name of the constant to use for the plugin's activation domain.
+     * Used to connect to the Mothership API.
      *
      * @var string
      */
-    protected string $nameForConstantDomain = '';
-
-    /**
-     * The name of the constant to use for the plugin's email.
-     *
-     * @var string
-     */
-    protected string $nameForConstantEmail = '';
-
-    /**
-     * The name of the constant to use for the plugin's API token.
-     *
-     * @var string
-     */
-    protected string $nameForConstantApiToken = '';
+    protected string $productId = '';
 
     /**
      * Magic method to get the property of the class.

@@ -1187,6 +1187,37 @@ class MeprRulesCtrl extends MeprCptCtrl
             return $caps;
         }
 
+        // Check for login_state access conditions on rules before the guest early return.
+        // This allows "Logged Out (Guest)" and "Logged In" rules to work with current_user_can.
+        if (isset($args[2]) && preg_match('/^rules?\s*[=:_-]?\s*((\d+\s*,\s*)*\d+)$/i', $args[2], $m)) {
+            $rule_ids = array_map('trim', explode(',', $m[1]));
+
+            foreach ($rule_ids as $rule_id) {
+                $rule = new MeprRule($rule_id);
+
+                if ($rule->ID <= 0 || !$rule->has_dripped() || $rule->has_expired()) {
+                    continue;
+                }
+
+                foreach ($rule->access_conditions() as $condition) {
+                    if ('login_state' === $condition->access_type) {
+                        // Access condition is either 'logged_in' or 'guest'.
+                        if ('logged_in' === $condition->access_condition) {
+                            if (MeprUtils::is_user_logged_in()) {
+                                $caps[$active_str] = 1;
+                            }
+                        } else {
+                            if (!MeprUtils::is_user_logged_in()) {
+                                $caps[$active_str] = 1;
+                            }
+                        }
+
+                        return $caps;
+                    }
+                }
+            }
+        }
+
         // User is most likely a guest, so they don't have access to whatever we're doing here.
         if (!isset($args[1]) || !$args[1]) {
             return $caps;

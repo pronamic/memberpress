@@ -11,9 +11,11 @@ use MemberPress\GroundLevel\Container\Service as BaseService;
 use MemberPress\GroundLevel\Mothership\Manager\AddonsManager;
 use MemberPress\GroundLevel\Mothership\Manager\LicenseManager;
 use MemberPress\GroundLevel\Mothership\AbstractPluginConnection;
+use MemberPress\GroundLevel\Mothership\Util as MothershipUtil;
 use MemberPress\GroundLevel\Container\Contracts\ContainerAwareness;
 use MemberPress\GroundLevel\Container\Contracts\LoadableDependency;
 use MemberPress\GroundLevel\Container\Contracts\ConfiguresParameters;
+use MemberPress\GroundLevel\Mothership\Api\RequestFactory;
 
 /**
  * This class is responsible for setting the variables/methods used by the plugin to interact with the mothership.
@@ -29,14 +31,26 @@ class Service extends BaseService implements ContainerAwareness, ConfiguresParam
     public const ID = 'GRDLVL.MOTHERSHIP';
 
     /**
+     * The parameter key for the Mothership API base URL.
+     */
+    public const API_BASE_URL = 'GRDLVL.MOTHERSHIP.API_BASE_URL';
+
+    /**
      * The parameter key for the Mothership prefix.
      */
     public const PREFIX = 'GRDLVL.MOTHERSHIP.PREFIX';
 
     /**
      * The Service ID for the plugin connection.
+     *
+     * @deprecated Retrieve the service using the {@see \GroundLevel\Mothership\AbstractPluginConnection} class name instead.
      */
     public const CONNECTION_PLUGIN_SERVICE_ID = 'GRDLVL.MOTHERSHIP.CONNECTION_PLUGIN';
+
+    /**
+     * The parameter key for the Mothership cache TTL.
+     */
+    public const CACHE_TTL = 'GRDLVL.MOTHERSHIP.CACHE_TTL';
 
     /**
      * The base URL for the API.
@@ -91,11 +105,12 @@ class Service extends BaseService implements ContainerAwareness, ConfiguresParam
     /**
      * Service constructor.
      *
-     * @param Container                $container The container.
-     * @param AbstractPluginConnection $plugin    The plugin object.
+     * @param \MemberPress\GroundLevel\Container\Container                 $container The container.
+     * @param \MemberPress\GroundLevel\Mothership\AbstractPluginConnection $plugin    The plugin object.
      */
     public function __construct(Container $container, AbstractPluginConnection $plugin)
     {
+        parent::__construct($container);
         $this->plugin = $plugin;
     }
 
@@ -106,7 +121,10 @@ class Service extends BaseService implements ContainerAwareness, ConfiguresParam
      */
     public function getDefaultParameters(): array
     {
-        return [];
+        return [
+            self::CACHE_TTL    => 60,
+            self::API_BASE_URL => null,
+        ];
     }
 
     /**
@@ -118,9 +136,34 @@ class Service extends BaseService implements ContainerAwareness, ConfiguresParam
     public function load(Container $container): void
     {
         $container->addService(
-            self::CONNECTION_PLUGIN_SERVICE_ID,
+            AbstractPluginConnection::class,
             function () {
                 return $this->plugin;
+            }
+        );
+
+        /**
+         * Deprecated service using the deprecated constant service ID value.
+         *
+         * @deprecated Retrieve the service using the {@see \GroundLevel\Mothership\AbstractPluginConnection} class name instead.
+         */
+        $container->addService(
+            self::CONNECTION_PLUGIN_SERVICE_ID,
+            function (Container $container) {
+                wp_trigger_error(
+                    self::class . '::CONNECTION_PLUGIN_SERVICE_ID',
+                    'The ' . self::class . '::CONNECTION_PLUGIN_SERVICE_ID service ID is deprecated. Use the ' . AbstractPluginConnection::class . ' class name instead.', // phpcs:ignore Generic.Files.LineLength.TooLong
+                    E_USER_DEPRECATED
+                );
+                return $container->get(AbstractPluginConnection::class);
+            }
+        );
+
+
+        $container->addService(
+            RequestFactory::class,
+            function (): RequestFactory {
+                return new RequestFactory();
             }
         );
 
@@ -129,24 +172,37 @@ class Service extends BaseService implements ContainerAwareness, ConfiguresParam
         AddonsManager::setContainer($container);
         LicenseManager::setContainer($container);
         Request::setContainer($container);
+        MothershipUtil::setContainer($container);
 
         // Schedule the license manager events.
         LicenseManager::scheduleEvents($this->plugin->pluginId);
     }
 
     /**
-     * Get the API base URL.
-     * User can also set the API base URL by defining the constant in the plugin.
+     * Retrieves the API base URL.
+     *
+     * The API base URL is retrieved from the following sources in order of precedence:
+     * 1. The constant defined in the wp-config.php file.
+     * 2. The parameter set in the container.
+     * 3. The default API base URL, defined as the $apiBaseUrl static property.
      *
      * @return string
      */
     public function getApiBaseUrl(): string
     {
-        if (defined(strtoupper($this->plugin->pluginId) . '_MOTHERSHIP_API_BASE_URL')) {
-            return constant(strtoupper($this->plugin->pluginId) . '_MOTHERSHIP_API_BASE_URL');
+        $apiBaseUrlConstant = MothershipUtil::composeConstantName('MOTHERSHIP_API_BASE_URL');
+
+        if (defined($apiBaseUrlConstant)) {
+            return constant($apiBaseUrlConstant);
         }
 
-        return self::$apiBaseUrl;
+        $default      = self::$apiBaseUrl;
+        $hasParameter = $this->getContainer()->has(self::API_BASE_URL);
+        if ($hasParameter) {
+            return $this->getContainer()->get(self::API_BASE_URL) ?? $default;
+        }
+
+        return $default;
     }
 
     /**

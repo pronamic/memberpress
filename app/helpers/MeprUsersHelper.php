@@ -331,17 +331,27 @@ class MeprUsersHelper
         $custom_fields = self::get_custom_fields($product);
 
         // Maybe show the address fields too.
-        if ($mepr_options->show_address_fields && $show_address) {
+        $should_add_address_fields = false;
+
+        if ($show_address) {
             if (is_null($product)) {
-                // Check if any memberships require address fields.
-                if ($user->show_address_fields()) {
-                    $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
-                }
+                // Account page: show if enabled on account and user has memberships requiring address.
+                $should_add_address_fields = (
+                    $mepr_options->show_address_on_account &&
+                    $logged_in &&
+                    $user->show_address_fields()
+                );
             } else {
-                if (!$product->disable_address_fields) {
-                    $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
-                }
+                // Checkout/product page: show if enabled and not disabled for this product.
+                $should_add_address_fields = (
+                    !$product->disable_address_fields &&
+                    $mepr_options->show_address_fields
+                );
             }
+        }
+
+        if ($should_add_address_fields) {
+            $custom_fields = array_merge($mepr_options->address_fields, $custom_fields);
         }
 
         // Give devs a chance to re-order these if they so wish.

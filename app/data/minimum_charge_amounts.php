@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /**
  * The minimum amount that can be charged per-currency in the checkout.
  *

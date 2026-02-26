@@ -13,7 +13,7 @@ interface LoadableDependency
      *
      * This method is called automatically when the dependency is instantiated.
      *
-     * @param Container $container The container.
+     * @param \MemberPress\GroundLevel\Container\Container $container The container.
      */
     public function load(Container $container): void;
 }

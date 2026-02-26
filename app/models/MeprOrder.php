@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /**
  * Represents an order in the system.
  *

@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 abstract class MeprBaseRealAjaxGateway extends MeprBaseRealGateway
 {
     /**

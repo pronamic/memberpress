@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <h2><?php esc_html_e('Create Content', 'memberpress'); ?></h2>
 <?php
 $courses_plugin_active = MeprUtils::is_addon_active(MeprUtils::ADDON_COURSES);

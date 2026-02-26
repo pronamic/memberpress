@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 return MeprHooks::apply_filters('mepr_events', [
     /**
      * Events for Members

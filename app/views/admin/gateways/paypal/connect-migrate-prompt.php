@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 $classes      = '';
 $display_keys = isset($_GET['display-keys']);
 /**

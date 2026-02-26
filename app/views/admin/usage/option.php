@@ -53,4 +53,24 @@ defined('ABSPATH') || exit;
             </tr>
         </tbody>
     </table>
+    <table id="mepr-option-proactive-support" class="form-table">
+        <tbody>
+            <tr valign="top">
+                <th scope="row">
+                    <label for="mepr_proactive_notifications"><?php esc_html_e('Proactive Support Notifications', 'memberpress'); ?></label>
+                    <?php
+                    MeprAppHelper::info_tooltip(
+                        'mepr-proactive-support',
+                        esc_html__('Proactive Support Notifications', 'memberpress'),
+                        esc_html__('Allow MemberPress to send proactive onboarding emails to the addresses listed under Admin Emails & Notices.', 'memberpress')
+                    );
+                    ?>
+                </th>
+                <td>
+                    <input type="checkbox" name="mepr_proactive_notifications" id="mepr_proactive_notifications"
+                        <?php checked($proactive_support_notifications); ?>>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </section>

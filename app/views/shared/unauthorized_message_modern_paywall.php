@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <div class="mp_wrapper">
 <?php if (!empty($unauth->excerpt)) : ?>
   <div class="mepr-unauthorized-excerpt">

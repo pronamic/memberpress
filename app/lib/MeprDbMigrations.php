@@ -226,11 +226,21 @@ class MeprDbMigrations
                     ],
                 ],
             ],
-            '1.12.11'   => [
+            '1.12.11'  => [
                 'show_ui'    => false,
                 'migrations' => [
                     [
                         'migration' => 'migrate_transactions_refunds_data_019',
+                        'check'     => false,
+                        'message'   => false,
+                    ],
+                ],
+            ],
+            '1.12.12'  => [
+                'show_ui'    => false,
+                'migrations' => [
+                    [
+                        'migration' => 'create_proactive_support_table_020',
                         'check'     => false,
                         'message'   => false,
                     ],
@@ -749,7 +759,7 @@ class MeprDbMigrations
                 array_key_exists('production_connected', $integration)
             ) {
                 $mepr_options->integrations[$id]['gateway'] = 'MeprSquarePaymentsGateway';
-                $updated = true;
+                $updated                                    = true;
             }
         }
 
@@ -845,5 +855,56 @@ class MeprDbMigrations
         MeprUtils::debug_log(
             "Completed migrating refunded_at column. Updated: {$updated_count}, Errors: {$error_count}"
         );
+    }
+
+    /**
+     * Create proactive support tracking table.
+     *
+     * @return void
+     */
+    public function create_proactive_support_table_020()
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'mepr_proactive_support';
+        $mepr_db    = MeprDb::fetch();
+
+        if (get_option('mepr_db_migration_020_ran') && $mepr_db->table_exists($table_name)) {
+            return;
+        }
+
+        $charset = $wpdb->get_charset_collate();
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        $sql = "
+            CREATE TABLE {$table_name} (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                user_id bigint(20) unsigned NOT NULL DEFAULT 0,
+                admin_email varchar(255) NOT NULL,
+                trigger_type varchar(50) NOT NULL,
+                email_sent_at datetime DEFAULT NULL,
+                reply_received tinyint(1) DEFAULT 0,
+                send_count smallint(5) unsigned NOT NULL DEFAULT 0,
+                resolved_by bigint(20) unsigned DEFAULT NULL,
+                resolved_at datetime DEFAULT NULL,
+                status varchar(20) NOT NULL DEFAULT 'pending',
+                created_at datetime NOT NULL,
+                updated_at datetime DEFAULT NULL,
+                meta longtext,
+                PRIMARY KEY  (id),
+                KEY trigger_type_user (trigger_type(32), user_id),
+                KEY admin_trigger (admin_email(191), trigger_type(32), id),
+                KEY status (status(20)),
+                KEY status_created_at (status(20), created_at),
+                KEY created_at (created_at)
+            ) {$charset};
+        ";
+
+        dbDelta($sql);
+
+        if ($mepr_db->table_exists($table_name)) {
+            update_option('mepr_db_migration_020_ran', time());
+        }
     }
 }

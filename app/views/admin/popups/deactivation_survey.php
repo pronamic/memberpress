@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <div class="mepr-deactivation-survey-popup" id="mepr-deactivation-survey">
   <div class="mepr-deactivation-survey-popup-content">
 

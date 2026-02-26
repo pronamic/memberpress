@@ -59,7 +59,23 @@ class View extends Service implements LoadableDependency
                 [$this, 'appendCountToMainMenuItem'],
                 100
             ),
+            new Hook(
+                Hook::TYPE_ACTION,
+                'admin_print_footer_scripts',
+                [$this, 'maybeDequeueScript'],
+                5
+            ),
         ];
+    }
+
+    /**
+     * Checks if the inbox view has been rendered.
+     *
+     * @return boolean
+     */
+    public function didRender(): bool
+    {
+        return did_action($this->container->get(IPNService::RENDER_HOOK)) > 0;
     }
 
     /**
@@ -70,14 +86,27 @@ class View extends Service implements LoadableDependency
         $file = $this->container->get(IPNService::FILE);
         $path = 'assets/ipn-inbox.js';
         wp_enqueue_script(
-            Str::toKebabCase(
-                $this->container->get(IPNService::class)->prefixId('inbox')
-            ),
+            $this->getScriptHandle(),
             plugin_dir_url($file) . $path,
             [],
-            filemtime(plugin_dir_path($file) . $path),
+            filemtime(
+                dirname(__FILE__, 2) . "/{$path}"
+            ),
             true
         );
+    }
+
+    /**
+     * Dequeues the service script if the inbox view has not been rendered.
+     *
+     * This callback is run immediately prior to the output of the footer scripts,
+     * if the view has not been rendered the script is dequeued (saving an HTTP request).
+     */
+    public function maybeDequeueScript(): void
+    {
+        if (! $this->didRender()) {
+            wp_dequeue_script($this->getScriptHandle());
+        }
     }
 
     /**
@@ -170,7 +199,7 @@ class View extends Service implements LoadableDependency
      *
      * @return string
      */
-    protected function getRootElementId(): string
+    public function getRootElementId(): string
     {
         return $this->container->get(IPNService::class)->prefixId('root');
     }
@@ -226,6 +255,16 @@ class View extends Service implements LoadableDependency
         </script>
         <?php
         return ob_get_clean();
+    }
+
+    /**
+     * Retrieves the handle for the service script.
+     *
+     * @return string
+     */
+    public function getScriptHandle(): string
+    {
+        return Str::toKebabCase($this->container->get(IPNService::class)->prefixId('inbox'));
     }
 
     /**

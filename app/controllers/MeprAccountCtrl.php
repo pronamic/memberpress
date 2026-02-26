@@ -756,11 +756,16 @@ class MeprAccountCtrl extends MeprBaseCtrl
         $prd = $sub->product();
         $grp = $prd->group();
 
+        $mepr_options = MeprOptions::fetch();
+        $redirect_url = ($grp && is_object($grp) && method_exists($grp, 'url'))
+            ? $grp->url()
+            : $mepr_options->account_page_url();
+
         // TODO: Uyeah, we may want to come up with a more elegant solution here
         // for now we have to do a js redirect because we're in mid-page render.
         ?>
     <script>
-      top.window.location = '<?php echo esc_js(esc_url_raw($grp->url())); ?>';
+      top.window.location = '<?php echo esc_js(esc_url_raw($redirect_url)); ?>';
     </script>
         <?php
     }

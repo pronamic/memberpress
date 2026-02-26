@@ -1,4 +1,4 @@
-import { Modal, Button, Spinner } from '@wordpress/components';
+import { Modal, Button, Spinner, __experimentalHStack as HStack, __experimentalVStack as VStack } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
@@ -28,28 +28,30 @@ const MeprModal = ({ title, message, confirmText, cancelText, onConfirm, onCance
             size="medium"
             className="mepr-modal"
         >
-            <div className="mepr-modal-message">
-                <p>{message}</p>
-            </div>
-            {applyFilters(`meprModal.${modalContext}.before-actions`, null)}
-            <div className="mepr-modal-actions">
-                <Button
-                    variant="secondary"
-                    onClick={onCancel}
-                    disabled={loading}
-                >
-                    {cancelText || __('Cancel', 'memberpress')}
-                </Button>
+            <VStack spacing="5">
+                <div className="mepr-modal-message">
+                    <p>{message}</p>
+                </div>
+                {applyFilters(`meprModal.${modalContext}.before-actions`, null)}
+                <HStack className="mepr-modal-actions" alignment="right">
+                    <Button
+                        variant="secondary"
+                        onClick={onCancel}
+                        disabled={loading}
+                    >
+                        {cancelText || __('Cancel', 'memberpress')}
+                    </Button>
 
-                <Button
-                    variant="primary"
-                    isDestructive={isDestructive}
-                    disabled={loading}
-                    onClick={handleConfirm}
-                >
-                    {loading ? <Spinner /> : (confirmText || __('Confirm', 'memberpress'))}
-                </Button>
-            </div>
+                    <Button
+                        variant="primary"
+                        isDestructive={isDestructive}
+                        disabled={loading}
+                        onClick={handleConfirm}
+                    >
+                        {loading ? <Spinner /> : (confirmText || __('Confirm', 'memberpress'))}
+                    </Button>
+                </HStack>
+            </VStack>
         </Modal>
     );
 };

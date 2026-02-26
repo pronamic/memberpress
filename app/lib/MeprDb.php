@@ -24,6 +24,8 @@ class MeprDb
     {
         static $mepr_db;
 
+        self::define_tables();
+
         if (!isset($mepr_db) || $force) {
             $mepr_db = new MeprDb();
         }
@@ -37,39 +39,82 @@ class MeprDb
      */
     public function __construct()
     {
-        // MemberPress tables.
         $this->tables = MeprHooks::apply_filters(
             'mepr_db_tables',
-            [
-                'events',
-                'jobs',
-                'members',
-                'subscriptions',
-                'subscription_meta',
-                'tax_rates',
-                'tax_rate_locations',
-                'transactions',
-                'transaction_meta',
-                'rule_access_conditions',
-                'orders',
-                'order_meta',
-            ]
+            self::$default_tables
         );
     }
 
     /**
+     * Default table names (no filters). Used by define_tables() to avoid loading MeprHooks during autoload.
+     *
+     * @var array
+     */
+    private static $default_tables = [
+        'events',
+        'jobs',
+        'members',
+        'subscriptions',
+        'subscription_meta',
+        'tax_rates',
+        'tax_rate_locations',
+        'transactions',
+        'transaction_meta',
+        'rule_access_conditions',
+        'orders',
+        'order_meta',
+    ];
+
+    /**
      * Defines our tables in $wpdb so we can use $wpdb->mepr_table_name.
+     * Idempotent: safe to call multiple times (e.g. from autoloader or fetch()).
+     * Uses default table list only (no filters) so it can run before MeprHooks is loaded.
      */
     public static function define_tables(): void
     {
         global $wpdb;
 
-        $db = new self();
+        $tables = self::$default_tables;
 
-        foreach ($db->tables as $table) {
-            $name           = 'mepr_' . $table;
-            $wpdb->$name    = $wpdb->prefix . $name;
-            $wpdb->tables[] = $name;
+        // Already defined with current prefix (e.g. main plugin file or previous call).
+        $first_table = 'mepr_' . $tables[0];
+        if (isset($wpdb->$first_table) && $wpdb->$first_table === $wpdb->prefix . $first_table) {
+            return;
+        }
+
+        foreach ($tables as $table) {
+            $name        = 'mepr_' . $table;
+            $wpdb->$name = $wpdb->prefix . $name;
+            if (!in_array($name, (array) $wpdb->tables, true)) {
+                $wpdb->tables[] = $name;
+            }
+        }
+    }
+
+    /**
+     * Adds any tables from the mepr_db_tables filter to $wpdb.
+     * Call once MeprHooks is available (e.g. on init) so third-party tables are defined.
+     */
+    public static function define_extra_tables_from_filter(): void
+    {
+        global $wpdb;
+
+        if (!class_exists('MeprHooks', false)) {
+            return;
+        }
+
+        $db    = new self();
+        $tables = $db->tables;
+
+        foreach ($tables as $table) {
+            $name = 'mepr_' . $table;
+            if (isset($wpdb->$name)) {
+                continue;
+            }
+            $wpdb->$name = $wpdb->prefix . $name;
+            if (!in_array($name, (array) $wpdb->tables, true)) {
+                $wpdb->tables[] = $name;
+            }
         }
     }
 

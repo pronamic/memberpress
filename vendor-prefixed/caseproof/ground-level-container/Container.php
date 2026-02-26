@@ -8,7 +8,6 @@ use Closure;
 use MemberPress\GroundLevel\Container\Contracts\ConfiguresParameters;
 use MemberPress\GroundLevel\Container\Contracts\ContainerAwareness;
 use MemberPress\GroundLevel\Container\Contracts\LoadableDependency;
-use PSpell\Config;
 use MemberPress\Psr\Container\ContainerInterface;
 
 class Container implements ContainerInterface
@@ -16,37 +15,37 @@ class Container implements ContainerInterface
     /**
      * Registered factory dependencies.
      *
-     * @var Closure[]
+     * @var array<string, \Closure>
      */
     protected $factories = [];
 
     /**
      * Registered service dependencies.
      *
-     * @var Closure[]
+     * @var array<string, \Closure>
      */
     protected array $services = [];
 
     /**
      * Registered parameter dependencies.
      *
-     * @var Closure[]|mixed[]
+     * @var array<string, mixed>
      */
     protected array $parameters = [];
 
     /**
      * Instantiated service and parameter dependencies.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected array $instances = [];
 
     /**
      * Create a new container instance.
      *
-     * @param array $services   Array of service dependencies.
-     * @param array $parameters Array of parameter dependencies.
-     * @param array $factories  Array of factory dependencies.
+     * @param array<string, \Closure> $services   Array of service dependencies.
+     * @param array<string, mixed>    $parameters Array of parameter dependencies.
+     * @param array<string, \Closure> $factories  Array of factory dependencies.
      */
     public function __construct(array $services = [], array $parameters = [], array $factories = [])
     {
@@ -114,11 +113,14 @@ class Container implements ContainerInterface
     /**
      * Retrieves a dependency from the container.
      *
-     * @param  string $id The dependency identifier.
-     * @return mixed The dependency. If the dependency is a service or factory, the
-     *               service or factory instance will be returned. If the dependency
-     *               is a parameter, the parameter value will be returned.
-     * @throws NotFoundException If the dependency is not registered with the container.
+     * @template T of object
+     *
+     * @param  string|class-string<T> $id The dependency identifier.
+     * @return ($id is class-string<T> ? T : mixed) The dependency. If the dependency is a service or factory,
+     *                                               the service or factory instance will be returned. If the
+     *                                               dependency is a parameter, the parameter value will be returned.
+     *
+     * @throws \MemberPress\GroundLevel\Container\NotFoundException If the dependency is not registered with the container.
      */
     public function get(string $id)
     {
@@ -158,7 +160,7 @@ class Container implements ContainerInterface
      *
      * @param  string $id The depedency ID.
      * @return string The location of the dependency.
-     * @throws NotFoundException If the dependency is not registered with the container.
+     * @throws \MemberPress\GroundLevel\Container\NotFoundException If the dependency is not registered with the container.
      */
     protected function locate(string $id): string
     {

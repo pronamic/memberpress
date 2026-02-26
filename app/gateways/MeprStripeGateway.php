@@ -236,32 +236,33 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
 
         if ($coupon instanceof MeprCoupon) {
             $discount_amount = $this->get_coupon_discount_amount($coupon, $product);
+            $discount_mode   = $coupon->get_discount_mode($product);
 
-            if ($discount_amount > 0 && $coupon->discount_mode !== 'first-payment') {
+            if ($discount_amount > 0 && $discount_mode !== 'first-payment') {
                 if ($tax_inclusive) {
-                    if ($coupon->discount_type !== 'percent') {
-                        $stripe_coupon_id = $this->get_coupon_id($coupon, $this->to_zero_decimal_amount($coupon->get_discount_amount($product)));
+                    if ($coupon->get_discount_type($product) !== 'percent') {
+                        $stripe_coupon_id = $this->get_coupon_id($coupon, $this->to_zero_decimal_amount($coupon->get_discount_amount($product)), false, $product);
                     } else {
-                        $stripe_coupon_id = $this->get_coupon_id($coupon, $coupon->get_discount_amount($product));
+                        $stripe_coupon_id = $this->get_coupon_id($coupon, $coupon->get_discount_amount($product), false, $product);
                     }
                 } else {
-                    $stripe_coupon_id = $this->get_coupon_id($coupon, $discount_amount);
+                    $stripe_coupon_id = $this->get_coupon_id($coupon, $discount_amount, false, $product);
                 }
             }
 
-            if ($product->is_one_time_payment() && $coupon->discount_mode === 'first-payment' && $coupon->get_first_payment_discount_amount($product) > 0) {
-                if ($coupon->first_payment_discount_type !== 'percent') {
-                    $stripe_coupon_id = $this->get_coupon_id($coupon, $this->to_zero_decimal_amount($coupon->get_first_payment_discount_amount($product)), true);
+            if ($product->is_one_time_payment() && $discount_mode === 'first-payment' && $coupon->get_first_payment_discount_amount($product) > 0) {
+                if ($coupon->get_first_payment_discount_type($product) !== 'percent') {
+                    $stripe_coupon_id = $this->get_coupon_id($coupon, $this->to_zero_decimal_amount($coupon->get_first_payment_discount_amount($product)), true, $product);
                 } else {
-                    $stripe_coupon_id = $this->get_coupon_id($coupon, $coupon->get_first_payment_discount_amount($product), true);
+                    $stripe_coupon_id = $this->get_coupon_id($coupon, $coupon->get_first_payment_discount_amount($product), true, $product);
                 }
             }
 
             if (
                 !$product->is_one_time_payment() &&
                 (
-                ($coupon->discount_mode === 'first-payment' && $coupon->get_first_payment_discount_amount($product) > 0) ||
-                ($coupon->discount_mode === 'trial-override' && $coupon->get_discount_amount($product) > 0)
+                ($discount_mode === 'first-payment' && $coupon->get_first_payment_discount_amount($product) > 0) ||
+                ($discount_mode === 'trial-override' && $coupon->get_discount_amount($product) > 0)
                 )
             ) {
                 $tmp_sub          = new MeprSubscription();
@@ -274,7 +275,7 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
                 if ($coupon->get_discount_amount($product) > 0) {
                     $tmp_coupon                  = new MeprCoupon();
                     $tmp_coupon->discount_amount = $coupon->get_discount_amount($product);
-                    $tmp_coupon->discount_type   = $coupon->discount_type;
+                    $tmp_coupon->discount_type   = $coupon->get_discount_type($product);
                     $price                       = $tmp_coupon->apply_discount($product->price, false, $product);
                     $price                       = MeprHooks::apply_filters('mepr_stripe_product_base_price', $price, $product, $usr, $sub);
                     $price                       = MeprUtils::maybe_round_to_minimum_amount($price);
@@ -412,7 +413,7 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
             if ($coupon instanceof MeprCoupon && $coupon->get_discount_amount($product) > 0 && $sub->trial_total > 0) {
                 $tmp_coupon                                 = new MeprCoupon();
                 $tmp_coupon->discount_amount                = $coupon->get_discount_amount($product);
-                $tmp_coupon->discount_type                  = $coupon->discount_type;
+                $tmp_coupon->discount_type                  = $coupon->get_discount_type($product);
                 $price                                      = $tmp_coupon->apply_discount($product->price, false, $product);
                 $price                                      = MeprHooks::apply_filters('mepr_stripe_product_base_price', $price, $product, $usr, $sub);
                 $price                                      = MeprUtils::maybe_round_to_minimum_amount($price);
@@ -456,8 +457,8 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
             if (
                 !$product->is_one_time_payment() &&
                 (
-                ($coupon->discount_mode === 'first-payment' && $coupon->get_first_payment_discount_amount($product) > 0) ||
-                ($coupon->discount_mode === 'trial-override' && $coupon->get_discount_amount($product) > 0)
+                ($discount_mode === 'first-payment' && $coupon->get_first_payment_discount_amount($product) > 0) ||
+                ($discount_mode === 'trial-override' && $coupon->get_discount_amount($product) > 0)
                 )
             ) {
                 unset($checkout_session['discounts']);
@@ -2878,8 +2879,7 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
     /**
      * Validates the payment form before a payment is processed
      *
-     * @param array $errors The errors array.
-     *
+     * @param  array $errors The errors array.
      * @return array|void The errors array
      */
     public function validate_payment_form($errors)
@@ -3633,12 +3633,10 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
                 // $this->email_status("###{$uid} Stripe Response from {$uri}\n" . MeprUtils::object_to_string($json_res, true) . "\n", $this->settings->debug);
                 if (isset($json_res['error'])) {
                     throw new MeprRemoteException(
-                        esc_html(
-                            sprintf(
-                                '%1$s (%2$s)',
-                                $json_res['error']['message'],
-                                $json_res['error']['type']
-                            )
+                        sprintf(
+                            '%1$s (%2$s)',
+                            $json_res['error']['message'], // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+                            $json_res['error']['type'] // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
                         )
                     );
                 } else {
@@ -4339,14 +4337,15 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
     /**
      * Create a Stripe Coupon
      *
-     * @param  MeprCoupon $cpn             The MemberPress coupon.
-     * @param  string     $discount_amount The coupon discount amount.
-     * @param  boolean    $onetime         Whether the coupon is for a one-time payment.
-     * @return stdClass                             The Stripe Coupon data
-     * @throws MeprHttpException                    If there was an HTTP error connecting to Stripe.
-     * @throws MeprRemoteException                  If there was an invalid or error response from Stripe.
+     * @param  MeprCoupon       $cpn             The MemberPress coupon.
+     * @param  string           $discount_amount The coupon discount amount.
+     * @param  boolean          $onetime         Whether the coupon is for a one-time payment.
+     * @param  MeprProduct|null $product         The product the coupon is for.
+     * @return stdClass The Stripe Coupon data
+     * @throws MeprHttpException If there was an HTTP error connecting to Stripe.
+     * @throws MeprRemoteException If there was an invalid or error response from Stripe.
      */
-    public function create_coupon(MeprCoupon $cpn, $discount_amount, $onetime)
+    public function create_coupon(MeprCoupon $cpn, $discount_amount, $onetime, $product = null)
     {
         $args = MeprHooks::apply_filters('mepr_stripe_create_coupon_args', [
             'name'     => substr($cpn->post_title, 0, 40),
@@ -4355,11 +4354,10 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
 
         $mepr_options = MeprOptions::fetch();
 
-
         if ($onetime) {
             $args['duration'] = 'once';
 
-            if ($cpn->first_payment_discount_type === 'percent') {
+            if ($cpn->get_first_payment_discount_type($product) === 'percent') {
                 $args = array_merge([
                     'percent_off' => $discount_amount,
                 ], $args);
@@ -4370,7 +4368,7 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
                 ], $args);
             }
         } else {
-            if ($cpn->discount_type === 'percent') {
+            if ($cpn->get_discount_type($product) === 'percent') {
                 $args = array_merge([
                     'percent_off' => $discount_amount,
                 ], $args);
@@ -4390,20 +4388,21 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
     /**
      * Get the Stripe Coupon ID
      *
-     * @param  MeprCoupon $cpn             The MemberPress coupon.
-     * @param  string     $discount_amount The coupon discount amount.
-     * @param  boolean    $onetime         Whether the coupon is for a one-time payment.
-     * @return string                               The Stripe Coupon ID
-     * @throws MeprHttpException                    If there was an HTTP error connecting to Stripe.
-     * @throws MeprRemoteException                  If there was an invalid or error response from Stripe.
+     * @param  MeprCoupon       $cpn             The MemberPress coupon.
+     * @param  string           $discount_amount The coupon discount amount.
+     * @param  boolean          $onetime         Whether the coupon is for a one-time payment.
+     * @param  MeprProduct|null $product         The product the coupon is for.
+     * @return string The Stripe Coupon ID
+     * @throws MeprHttpException If there was an HTTP error connecting to Stripe.
+     * @throws MeprRemoteException If there was an invalid or error response from Stripe.
      */
-    public function get_coupon_id(MeprCoupon $cpn, $discount_amount, $onetime = false)
+    public function get_coupon_id(MeprCoupon $cpn, $discount_amount, $onetime = false, $product = null)
     {
-        $coupon_id = $cpn->get_stripe_coupon_id($this->get_meta_gateway_id(), $discount_amount, $onetime);
+        $coupon_id = $cpn->get_stripe_coupon_id($this->get_meta_gateway_id(), $discount_amount, $onetime, $product);
 
         if (!is_string($coupon_id) || $coupon_id === '') {
-            $coupon = $this->create_coupon($cpn, $discount_amount, $onetime);
-            $cpn->set_stripe_coupon_id($this->get_meta_gateway_id(), $discount_amount, $coupon->id, $onetime);
+            $coupon = $this->create_coupon($cpn, $discount_amount, $onetime, $product);
+            $cpn->set_stripe_coupon_id($this->get_meta_gateway_id(), $discount_amount, $coupon->id, $onetime, $product);
             $coupon_id = $coupon->id;
         }
 
@@ -4515,7 +4514,7 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
             $discount_amount = $this->get_coupon_discount_amount($coupon, $prd);
 
             if ($discount_amount > 0) {
-                $args = array_merge(['coupon' => $this->get_coupon_id($coupon, $discount_amount)], $args);
+                $args = array_merge(['coupon' => $this->get_coupon_id($coupon, $discount_amount, false, $prd)], $args);
             }
         }
 
@@ -4544,7 +4543,7 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
         $discount_amount = $coupon->get_discount_amount($product);
 
         if ($discount_amount > 0) {
-            if ($coupon->discount_type === 'percent') {
+            if ($coupon->get_discount_type($product) === 'percent') {
                 $discount_amount = MeprUtils::format_float($discount_amount);
             } else {
                 $discount_amount = $this->to_zero_decimal_amount($discount_amount);

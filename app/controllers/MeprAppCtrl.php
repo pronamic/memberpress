@@ -34,7 +34,6 @@ class MeprAppCtrl extends MeprBaseCtrl
         add_action('add_meta_boxes', 'MeprAppCtrl::add_meta_boxes', 10, 2);
         add_action('save_post', 'MeprAppCtrl::save_meta_boxes');
         add_action('admin_notices', 'MeprAppCtrl::protected_notice');
-        add_action('admin_notices', 'MeprAppCtrl::maybe_show_get_started_notice');
         add_action('wp_ajax_mepr_dismiss_notice', 'MeprAppCtrl::dismiss_notice');
         add_action('wp_ajax_mepr_dismiss_global_notice', 'MeprAppCtrl::dismiss_global_notice');
         add_action('wp_ajax_mepr_dismiss_daily_notice', 'MeprAppCtrl::dismiss_daily_notice');
@@ -340,41 +339,6 @@ class MeprAppCtrl extends MeprBaseCtrl
     }
 
     /**
-     * Show a 'Get Started' notice if certain conditions are met.
-     *
-     * @return void
-     */
-    public static function maybe_show_get_started_notice()
-    {
-        $mepr_options = MeprOptions::fetch();
-
-        // Only show to users who have access, and those who haven't already dismissed it.
-        if (!MeprUtils::is_mepr_admin() || get_user_meta(get_current_user_id(), 'mepr_dismiss_notice_get_started')) {
-            return;
-        }
-
-        // Don't show if a payment method, membership and rule already exist.
-        $has_payment_method = count($mepr_options->integrations) > 0;
-        $has_product        = MeprProduct::count() > 0;
-        $has_rule           = MeprRule::count() > 0;
-        $show               = !$has_payment_method || !$has_product || !$has_rule;
-
-        if (
-            !MeprHooks::apply_filters(
-                'mepr_show_get_started_notice',
-                $show,
-                $has_payment_method,
-                $has_product,
-                $has_rule
-            )
-        ) {
-            return;
-        }
-
-        MeprView::render('/admin/get_started', compact('has_payment_method', 'has_product', 'has_rule'));
-    }
-
-    /**
      * Dismiss a specific admin notice via AJAX.
      *
      * @return void
@@ -589,7 +553,14 @@ class MeprAppCtrl extends MeprBaseCtrl
         $wp_admin_bar->add_menu([
             'id'    => 'mepr_admin_bar',
             'title' => __('MemberPress', 'memberpress') . $notifications_icon,
-            'href'  => admin_url('admin.php?page=memberpress-options'),
+            'href'  => admin_url('admin.php?page=memberpress-dashboard'),
+        ]);
+
+        $wp_admin_bar->add_node([
+            'id'     => 'mepr_admin_bar_dashboard',
+            'parent' => 'mepr_admin_bar',
+            'title'  => __('Dashboard', 'memberpress'),
+            'href'   => admin_url('admin.php?page=memberpress-dashboard'),
         ]);
 
         if ($notifications_count) {
@@ -652,7 +623,7 @@ class MeprAppCtrl extends MeprBaseCtrl
     }
 
     /**
-     * Redirect to the MemberPress options page.
+     * Redirect to the MemberPress Dashboard page.
      *
      * @return void
      */
@@ -660,7 +631,7 @@ class MeprAppCtrl extends MeprBaseCtrl
     {
         ?>
         <script>
-            window.location.href = '<?php echo esc_js(esc_url_raw(admin_url('admin.php?page=memberpress-options'))); ?>';
+            window.location.href = '<?php echo esc_js(esc_url_raw(admin_url('admin.php?page=memberpress-dashboard'))); ?>';
         </script>
         <?php
     }
@@ -760,19 +731,21 @@ class MeprAppCtrl extends MeprBaseCtrl
 
         $run       = true;
         $new_order = [];
-        $i         = 5;
+        $i         = 6;
 
         foreach ($submenu['memberpress'] as $sub) {
-            if ($sub[0] === __('Memberships', 'memberpress')) {
+            if ($sub[0] === __('Dashboard', 'memberpress')) {
                 $new_order[0] = $sub;
-            } elseif ($sub[0] === __('Groups', 'memberpress')) {
+            } elseif ($sub[0] === __('Memberships', 'memberpress')) {
                 $new_order[1] = $sub;
-            } elseif ($sub[0] === __('Rules', 'memberpress')) {
+            } elseif ($sub[0] === __('Groups', 'memberpress')) {
                 $new_order[2] = $sub;
-            } elseif ($sub[0] === __('Coupons', 'memberpress')) {
+            } elseif ($sub[0] === __('Rules', 'memberpress')) {
                 $new_order[3] = $sub;
-            } elseif (0 === strpos($sub[0], __('Courses', 'memberpress'))) {
+            } elseif ($sub[0] === __('Coupons', 'memberpress')) {
                 $new_order[4] = $sub;
+            } elseif (0 === strpos($sub[0], __('Courses', 'memberpress'))) {
+                $new_order[5] = $sub;
             } else {
                 $new_order[$i++] = $sub;
             }
@@ -1631,6 +1604,9 @@ class MeprAppCtrl extends MeprBaseCtrl
         $icon_url   = file_exists(MEPR_BRAND_PATH . '/images/menu-icon.svg') ? MEPR_BRAND_URL . '/images/menu-icon.svg' : '';
 
         add_menu_page('MemberPress', 'MemberPress', $capability, 'memberpress', 'MeprAppCtrl::toplevel_menu_route', $icon_url, 775677);
+
+        // Dashboard is the first submenu item and the default landing page.
+        add_submenu_page('memberpress', __('Dashboard', 'memberpress'), __('Dashboard', 'memberpress'), $capability, 'memberpress-dashboard', 'MeprDashboardCtrl::render');
 
         add_submenu_page('memberpress', __('Members', 'memberpress'), __('Members', 'memberpress'), $capability, 'memberpress-members', [$mbr_ctrl,'listing']);
 

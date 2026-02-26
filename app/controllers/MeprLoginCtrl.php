@@ -33,17 +33,24 @@ class MeprLoginCtrl extends MeprBaseCtrl
     public function logout_link($atts)
     {
         $mepr_options = MeprOptions::fetch();
+        $atts = shortcode_atts([
+            'use_redirect' => 'false',
+        ], $atts);
         $permalink    = home_url(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? '')));
+        $redirect_param = '';
+        if ($atts['use_redirect'] !== 'true' && !empty($permalink)) {
+            $redirect_param = 'redirect_to=' . urlencode($permalink);
+        }
 
         ob_start();
 
         if (MeprUtils::is_user_logged_in()) {
             ?>
-      <a href="<?php echo esc_url(MeprHooks::apply_filters('mepr_logout_url', wp_logout_url($mepr_options->login_page_url('redirect_to=' . urlencode($permalink))))); ?>"><?php esc_html_e('Logout', 'memberpress'); ?></a>
+      <a href="<?php echo esc_url(MeprHooks::apply_filters('mepr_logout_url', wp_logout_url($mepr_options->login_page_url($redirect_param)))); ?>"><?php esc_html_e('Logout', 'memberpress'); ?></a>
             <?php
         } else {
             ?>
-      <a href="<?php echo esc_url($mepr_options->login_page_url('redirect_to=' . urlencode($permalink))); ?>"><?php esc_html_e('Login', 'memberpress'); ?></a>
+      <a href="<?php echo esc_url($mepr_options->login_page_url($redirect_param)); ?>"><?php esc_html_e('Login', 'memberpress'); ?></a>
             <?php
         }
 

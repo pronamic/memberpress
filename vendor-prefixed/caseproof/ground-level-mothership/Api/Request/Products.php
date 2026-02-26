@@ -70,6 +70,21 @@ class Products
     }
 
     /**
+     * Get the latest version check for a product. Requests without a valid license
+     * are permitted, but may not utilize embeds.
+     *
+     * @param string $slug The product slug.
+     * @param array  $args Additional arguments for the request.
+     *
+     * @return Response The response from the API.
+     */
+    public static function getVersionCheck(string $slug, array $args = []): Response
+    {
+        $endpoint = 'products/' . $slug . '/versions/check';
+        return Request::get($endpoint, $args);
+    }
+
+    /**
      * Get all versions for a product.
      *
      * @param string $slug The product slug.

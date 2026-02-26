@@ -1,4 +1,5 @@
 <?php
+defined('ABSPATH') || exit;
 
 /**
  * View: admin/reports/summary_email.

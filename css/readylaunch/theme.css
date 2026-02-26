@@ -763,9 +763,13 @@ input[type=submit].btn-link {
 
 
 .site-header .profile-menu__dropdown {
+  display: none;
   transform: translate3d(0px, 58px, 0px) !important;
   right: 0;
   left: auto;
+}
+.site-header .profile-menu__dropdown.is-open {
+  display: block;
 }
 .site-header .profile-menu__button-group {
   position: relative;

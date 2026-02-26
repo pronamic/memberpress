@@ -72,7 +72,11 @@ class Users
     {
         $users = Request::get('users', array_merge($args, ['search' => $email]));
         if ($users->isSuccess()) {
-            $users = new Response($users->users[0]);
+            if (count($users->users) > 0) {
+                $users = new Response($users->users[0]);
+            } else {
+                $users = new Response(null, 'No users found matching email: ' . $email, 404);
+            }
         }
         return $users;
     }

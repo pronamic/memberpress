@@ -62,6 +62,23 @@ class MeprSubscriptionsHelper
     }
 
     /**
+     * Gets the subscription upgrade URL for use in emails (HTML-safe).
+     * Uses the direct account upgrade URL so the user is sent to account?action=upgrade&sub=X
+     * and then redirected to the group page. Uses &amp; so the link is not broken in HTML (e.g. &#038;).
+     * Falls back to account page when the subscription has no upgrade path.
+     *
+     * @param  MeprSubscription $sub          The subscription.
+     * @param  MeprOptions      $mepr_options MemberPress options.
+     * @return string
+     */
+    public static function get_subscr_upgrade_url_for_email($sub, $mepr_options)
+    {
+        $upgrade_url = $sub->upgrade_url();
+        $url         = $upgrade_url ? $upgrade_url : $mepr_options->account_page_url();
+        return str_replace('&', '&amp;', $url);
+    }
+
+    /**
      * Gets the email params.
      *
      * @param  MeprSubscription $sub The subscription.
@@ -127,7 +144,7 @@ class MeprSubscriptionsHelper
             'subscr_cc_year_exp'         => $sub->cc_exp_year,
             'subscr_renew_url'           => $mepr_options->login_page_url('redirect_to=' . urlencode($prd->url())),
             'subscr_update_url'          => $mepr_options->login_page_url('redirect_to=' . urlencode($sub->update_url())),
-            'subscr_upgrade_url'         => $mepr_options->login_page_url('redirect_to=' . urlencode($sub->upgrade_url())),
+            'subscr_upgrade_url'         => self::get_subscr_upgrade_url_for_email($sub, $mepr_options),
             'blog_name'                  => MeprUtils::blogname(),
             'business_name'              => $mepr_options->attr('biz_name'),
             'biz_name'                   => $mepr_options->attr('biz_name'),

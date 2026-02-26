@@ -1,4 +1,5 @@
 <?php
+defined('ABSPATH') || exit;
 
 /**
  * This must be on a single line or extra lines are added to the output.

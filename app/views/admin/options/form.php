@@ -172,7 +172,7 @@ defined('ABSPATH') || exit;
             ); ?>
             <input type="text" id="<?php echo esc_attr($mepr_options->unauthorized_redirect_url_str); ?>" name="<?php echo esc_attr($mepr_options->unauthorized_redirect_url_str); ?>" class="regular-text" value="<?php echo esc_attr(stripslashes($mepr_options->unauthorized_redirect_url)); ?>" />
             <br/>
-            <span class="description"><?php esc_html_e('You can use the <strong>[mepr_unauthorized_message]</strong> shortcode on this unauthorized page (assuming this url points to a page on this site).', 'memberpress'); ?></span>
+            <span class="description"><?php echo wp_kses(__('You can use the <strong>[mepr_unauthorized_message]</strong> shortcode on this unauthorized page (assuming this url points to a page on this site).', 'memberpress'), ['strong' => []]); ?></span>
           </div>
 
           <div>&nbsp;</div>

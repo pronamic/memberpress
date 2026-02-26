@@ -11,14 +11,14 @@ interface StaticContainerAwareness
     /**
      * Retrieves a container.
      *
-     * @return Container
+     * @return \MemberPress\GroundLevel\Container\Container
      */
     public static function getContainer(): Container;
 
     /**
      * Sets a container.
      *
-     * @param Container $container The container.
+     * @param \MemberPress\GroundLevel\Container\Container $container The container.
      */
     public static function setContainer(Container $container): void;
 }

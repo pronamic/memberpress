@@ -30,14 +30,34 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
      */
     public function clear_connection_data()
     {
-        if (isset($_GET['mp-clear-connection-data'])) {
-            // Admins only.
-            if (current_user_can('manage_options')) {
-                delete_option('mepr_authenticator_site_uuid');
-                delete_option('mepr_authenticator_account_email');
-                delete_option('mepr_authenticator_secret_token');
-            }
+        if (!isset($_GET['mp-clear-connection-data'])) {
+            return;
         }
+
+        // Admins only.
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        // If nonce is present and valid, perform the action.
+        if (isset($_GET['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'mp-clear-connection-data')) {
+            delete_option('mepr_authenticator_site_uuid');
+            delete_option('mepr_authenticator_account_email');
+            delete_option('mepr_authenticator_secret_token');
+            wp_safe_redirect(admin_url());
+            exit;
+        }
+
+        // Show confirmation page.
+        $nonce_url = wp_nonce_url(admin_url('?mp-clear-connection-data=1'), 'mp-clear-connection-data');
+        wp_die(
+            '<h1>' . esc_html__('Clear Connection Data', 'memberpress') . '</h1>' .
+            '<p>' . esc_html__('Are you sure you want to clear your MemberPress connection data? This will remove your site UUID, account email, and secret token.', 'memberpress') . '</p>' .
+            '<p><a class="button button-primary" href="' . esc_url($nonce_url) . '">' . esc_html__('Yes, Clear Connection Data', 'memberpress') . '</a> ' .
+            '<a class="button" href="' . esc_url(admin_url()) . '">' . esc_html__('Cancel', 'memberpress') . '</a></p>',
+            esc_html__('Confirm Action', 'memberpress'),
+            ['back_link' => false]
+        );
     }
 
     // phpcs:disable Squiz.Commenting.FunctionCommentThrowTag.Missing

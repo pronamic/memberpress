@@ -110,6 +110,10 @@ class MeprCouponsCtrl extends MeprCptCtrl
                     echo esc_html(wp_strip_all_tags($coupon->post_content));
                     break;
                 case 'coupon-discount':
+                    if ($coupon->is_membership_specific) {
+                        echo esc_html__('Membership Specific', 'memberpress');
+                        break;
+                    }
                     if ($coupon->discount_mode === 'first-payment') {
                         echo esc_html($coupon->first_payment_discount_amount); // Update this to show proper currency symbol later.
                         echo esc_html(($coupon->first_payment_discount_type === 'percent') ? __('%', 'memberpress') : $mepr_options->currency_code);
@@ -288,26 +292,33 @@ class MeprCouponsCtrl extends MeprCptCtrl
                 $coupon->usage_amount = 0;
             }
 
-            $coupon->discount_type   = isset($_POST[MeprCoupon::$discount_type_str]) ? sanitize_text_field(wp_unslash($_POST[MeprCoupon::$discount_type_str])) : 'percent';
-            $coupon->discount_amount = isset($_POST[MeprCoupon::$discount_amount_str]) ? (float)sanitize_text_field(wp_unslash($_POST[MeprCoupon::$discount_amount_str])) : 0;
+            $coupon->is_membership_specific = isset($_POST[MeprCoupon::$is_membership_specific_str]);
+            $discount_settings = self::parse_discount_settings(
+                $coupon->is_membership_specific ?
+                [] : // If is membership specific, we want to reset the general coupon discount settings.
+                $_POST
+            );
 
-            if ($coupon->discount_type === 'percent' && $coupon->discount_amount > 100) {
-                $coupon->discount_amount = 100; // Make sure percent is never > 100.
+            // Set the general coupon discount settings.
+            foreach ($discount_settings as $key => $value) {
+                $coupon->$key = $value;
             }
 
-            $coupon->first_payment_discount_type   = isset($_POST[MeprCoupon::$first_payment_discount_type_str]) ? sanitize_text_field(wp_unslash($_POST[MeprCoupon::$first_payment_discount_type_str])) : 'percent';
-            $coupon->first_payment_discount_amount = isset($_POST[MeprCoupon::$first_payment_discount_amount_str]) ? (float)sanitize_text_field(wp_unslash($_POST[MeprCoupon::$first_payment_discount_amount_str])) : 0;
+            // Reset membership_specific.
+            $coupon->membership_specific = [];
 
-            if ($coupon->first_payment_discount_type === 'percent' && $coupon->first_payment_discount_amount > 100) {
-                $coupon->first_payment_discount_amount = 100; // Make sure percent is never > 100.
+            // If is membership specific, we want to parse the discount settings for each membership.
+            if ($coupon->is_membership_specific) {
+                $membership_specific = [];
+                foreach ($_POST[MeprCoupon::$membership_specific_str] ?? [] as $membership_id => $settings) {
+                    $membership_specific[$membership_id] = self::parse_discount_settings($settings);
+                }
+                $coupon->membership_specific = $membership_specific;
             }
 
             $coupon->use_on_upgrades = isset($_POST[MeprCoupon::$use_on_upgrades_str]);
 
             $coupon->valid_products = isset($_POST[MeprCoupon::$valid_products_str]) ? array_map('sanitize_text_field', wp_unslash($_POST[MeprCoupon::$valid_products_str])) : [];
-            $coupon->discount_mode  = sanitize_text_field(wp_unslash($_POST[MeprCoupon::$discount_mode_str] ?? ''));
-            $coupon->trial_days     = isset($_POST[MeprCoupon::$trial_days_str]) ? (int)sanitize_text_field(wp_unslash($_POST[MeprCoupon::$trial_days_str])) : 0;
-            $coupon->trial_amount   = isset($_POST[MeprCoupon::$trial_amount_str]) ? (float) sanitize_text_field(wp_unslash($_POST[MeprCoupon::$trial_amount_str])) : 0.00;
 
             if (isset($_POST[MeprCoupon::$usage_per_user_count_str]) and is_numeric($_POST[MeprCoupon::$usage_per_user_count_str])) {
                 $coupon->usage_per_user_count = $coupon->usage_amount <= 0 || $_POST[MeprCoupon::$usage_per_user_count_str] <= $coupon->usage_amount ? sanitize_text_field(wp_unslash($_POST[MeprCoupon::$usage_per_user_count_str])) : $coupon->usage_amount;
@@ -319,6 +330,74 @@ class MeprCouponsCtrl extends MeprCptCtrl
 
             MeprHooks::do_action('mepr_coupon_save_meta', $coupon);
         }
+    }
+
+    /**
+     * Parse discount settings.
+     *
+     * @param  array $data_source The data source.
+     * @return array
+     */
+    private static function parse_discount_settings(array $data_source): array
+    {
+        // Default values.
+        $to_return = [
+            'discount_mode'                 => 'standard',
+            'discount_type'                 => 'percent',
+            'discount_amount'               => 0,
+            'first_payment_discount_type'   => 'percent',
+            'first_payment_discount_amount' => 0,
+            'trial_days'                    => 0,
+            'trial_amount'                  => 0.00,
+        ];
+
+        $to_return['discount_mode'] = isset($data_source[MeprCoupon::$discount_mode_str]) ?
+            sanitize_text_field(wp_unslash($data_source[MeprCoupon::$discount_mode_str])) :
+            $to_return['discount_mode'];
+
+        $to_return['discount_type'] = isset($data_source[MeprCoupon::$discount_type_str]) ?
+            sanitize_text_field(wp_unslash($data_source[MeprCoupon::$discount_type_str])) :
+            $to_return['discount_type'];
+
+        $to_return['discount_amount'] = isset($data_source[MeprCoupon::$discount_amount_str]) ?
+            (float)sanitize_text_field(wp_unslash($data_source[MeprCoupon::$discount_amount_str])) : 0;
+
+        if ($to_return['discount_type'] === 'percent' && $to_return['discount_amount'] > 100) {
+            $to_return['discount_amount'] = 100; // Make sure percent is never > 100.
+        }
+        switch ($to_return['discount_mode']) {
+            case 'first-payment':
+                $to_return['first_payment_discount_type']   = isset($data_source[MeprCoupon::$first_payment_discount_type_str]) ?
+                    sanitize_text_field(wp_unslash($data_source[MeprCoupon::$first_payment_discount_type_str])) :
+                    $to_return['first_payment_discount_type'];
+                $to_return['first_payment_discount_amount'] = isset($data_source[MeprCoupon::$first_payment_discount_amount_str]) ?
+                    (float)sanitize_text_field(wp_unslash($data_source[MeprCoupon::$first_payment_discount_amount_str])) :
+                    $to_return['first_payment_discount_amount'];
+
+                if (
+                    $to_return['first_payment_discount_type'] === 'percent' &&
+                    $to_return['first_payment_discount_amount'] > 100
+                ) {
+                    $to_return['first_payment_discount_amount'] = 100; // Make sure percent is never > 100.
+                }
+
+                break;
+
+            case 'trial-override':
+                $to_return['trial_days']   = isset($data_source[MeprCoupon::$trial_days_str]) ?
+                    (int)sanitize_text_field(wp_unslash($data_source[MeprCoupon::$trial_days_str])) :
+                    $to_return['trial_days'];
+                $to_return['trial_amount'] = isset($data_source[MeprCoupon::$trial_amount_str]) ?
+                    (float) sanitize_text_field(wp_unslash($data_source[MeprCoupon::$trial_amount_str])) :
+                    $to_return['trial_amount'];
+
+                break;
+
+            default:
+                break;
+        }
+
+        return $to_return;
     }
 
     /**
@@ -442,13 +521,25 @@ class MeprCouponsCtrl extends MeprCptCtrl
         $l10n = ['mepr_no_products_message' => __('Please select at least one Membership before saving.', 'memberpress')];
 
         if ($current_screen->post_type === MeprCoupon::$cpt) {
+            $coupon = new MeprCoupon(get_the_ID());
+            if ($coupon && $coupon->is_membership_specific) {
+                $membership_specific = $coupon->membership_specific;
+            }
+
             wp_register_style('mepr-settings-table-css', MEPR_CSS_URL . '/settings_table.css', [], MEPR_VERSION);
             wp_enqueue_style('mepr-coupons-css', MEPR_CSS_URL . '/admin-coupons.css', ['mepr-settings-table-css'], MEPR_VERSION);
 
             wp_register_script('mepr-settings-table-js', MEPR_JS_URL . '/settings_table.js', ['jquery'], MEPR_VERSION);
             wp_dequeue_script('autosave'); // Disable auto-saving.
             wp_enqueue_script('mepr-coupons-js', MEPR_JS_URL . '/admin_coupons.js', ['jquery','mepr-settings-table-js'], MEPR_VERSION);
-            wp_localize_script('mepr-coupons-js', 'MeprCoupon', $l10n);
+            wp_localize_script(
+                'mepr-coupons-js',
+                'MeprCoupon',
+                [
+                    'l10n' => $l10n,
+                    'membership_specific' => $membership_specific ?? [],
+                ]
+            );
 
             MeprHooks::do_action('mepr_coupon_admin_enqueue_script', $hook);
         }

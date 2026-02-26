@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 class MeprDeactivationSurveyCtrl extends MeprBaseCtrl
 {
     /**

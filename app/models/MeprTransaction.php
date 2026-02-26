@@ -4,6 +4,8 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
+use MemberPress\GroundLevel\Support\Time;
+
 #[AllowDynamicProperties]
 class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface, MeprTransactionInterface
 {
@@ -179,7 +181,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
         $mepr_db = new MeprDb();
 
         if (is_null($txn->created_at) || empty($txn->created_at)) {
-            $txn->created_at = MeprUtils::ts_to_mysql_date(time());
+            $txn->created_at = MeprUtils::ts_to_mysql_date(Time::now());
         }
 
         if (is_null($txn->expires_at)) {
@@ -762,7 +764,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                 AND e.id IS NULL
                 ",
                 MeprUtils::db_now(),
-                MeprUtils::ts_to_mysql_date(time())
+                MeprUtils::ts_to_mysql_date(Time::now())
             )
         );
     }
@@ -1002,7 +1004,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
             return false;
         }
 
-        $todays_ts  = time() + $offset; // Use the offset to check when a txn will expire.
+        $todays_ts  = Time::now() + $offset; // Use the offset to check when a txn will expire.
         $expires_ts = strtotime($this->expires_at);
 
         return ($this->status === 'complete' && $expires_ts < $todays_ts);
@@ -1319,7 +1321,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
      */
     public function expire()
     {
-        $this->expires_at = MeprUtils::ts_to_mysql_date(time() - MeprUtils::days(1));
+        $this->expires_at = MeprUtils::ts_to_mysql_date(Time::now() - MeprUtils::days(1));
         $this->store();
         MeprEvent::record('transaction-expired', $this, ['txn_type' => $this->txn_type]);
     }
@@ -1373,7 +1375,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
                         $override_default_behavior = MeprHooks::apply_filters('mepr_override_group_default_behavior_lt', false, $old_lifetime_txn);
 
                         if (!$override_default_behavior) {
-                            $old_lifetime_txn->expires_at = MeprUtils::ts_to_mysql_date(time() - MeprUtils::days(1));
+                            $old_lifetime_txn->expires_at = MeprUtils::ts_to_mysql_date(Time::now() - MeprUtils::days(1));
                             $old_lifetime_txn->store();
                             $evt_txn = $old_lifetime_txn;
                         }
@@ -1452,7 +1454,7 @@ class MeprTransaction extends MeprBaseMetaModel implements MeprProductInterface,
     public function days_till_expiration()
     {
         $mepr_options = MeprOptions::fetch();
-        $now          = time();
+        $now          = Time::now();
 
         if (is_null($this->expires_at) || $this->expires_at === MeprUtils::db_lifetime()) {
             return 'lifetime';

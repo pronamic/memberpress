@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /**
  * See https://www.avalara.com/vatlive/en/vat-rates/european-vat-rates.html
  * Reduced Rates are currently a "best guess" based on information in above link.

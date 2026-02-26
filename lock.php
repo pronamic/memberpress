@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /**
  * File: lock.php
  * Description: This file prevents access to static files & standalone php scripts if protected.

@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <div class="notice is-dismissible" data-notice-id="<?php echo esc_attr($notice_id); ?>" id="mepr_ip_admin_notice" style="border-left-color: #00cee6;">
   <h3><?php echo esc_html($heading); ?></h3>
   <p><?php echo wp_kses_post($message); ?></p>

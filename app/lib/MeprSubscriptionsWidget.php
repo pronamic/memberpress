@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /**
  * Adds MeprSubscriptionsWidget widget.
  */

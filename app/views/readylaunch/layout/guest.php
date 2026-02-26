@@ -1,4 +1,5 @@
 <?php
+defined('ABSPATH') || exit;
 
 /**
  * The layout for unauthenticated or guest pages.

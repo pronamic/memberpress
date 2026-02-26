@@ -1,9 +1,12 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 use MemberPress\GroundLevel\Container\Concerns\HasStaticContainer;
 use MemberPress\GroundLevel\Container\Container;
 use MemberPress\GroundLevel\Container\Contracts\StaticContainerAwareness;
 use MemberPress\GroundLevel\InProductNotifications\Service as IPNService;
+use MemberPress\GroundLevel\Insights\Insights;
 use MemberPress\GroundLevel\Mothership\Service as MoshService;
 use MemberPress\GroundLevel\Support\Concerns\Hookable;
 use MemberPress\GroundLevel\Support\Models\Hook;
@@ -57,6 +60,7 @@ class MeprGrdLvlCtrl extends MeprBaseCtrl implements StaticContainerAwareness
         // - Performing cronjobs.
         if ($force_init_ipn || MeprNotifications::has_access() || wp_doing_cron()) {
             self::init_ipn();
+            self::init_insights(); // Insights depends on IPN.
         }
     }
 
@@ -89,6 +93,23 @@ class MeprGrdLvlCtrl extends MeprBaseCtrl implements StaticContainerAwareness
             IPNService::class,
             static function (Container $container): IPNService {
                 return new IPNService($container);
+            },
+            true
+        );
+    }
+
+    /**
+     * Initializes the Insights Service.
+     */
+    private static function init_insights(): void
+    {
+        self::$container->addParameter(Insights::PRODUCT_NAME, MEPR_DISPLAY_NAME);
+        self::$container->addParameter(Insights::PREFIX, 'mepr_insights_');
+        self::$container->addParameter(Insights::REST_NAMESPACE, 'mepr/insights');
+        self::$container->addService(
+            Insights::class,
+            static function (Container $container): Insights {
+                return new Insights($container);
             },
             true
         );

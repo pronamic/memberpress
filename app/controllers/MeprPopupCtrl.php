@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 class MeprPopupCtrl extends MeprBaseCtrl
 {
     /**
@@ -319,9 +321,8 @@ class MeprPopupCtrl extends MeprBaseCtrl
             return false;
         }
 
-        $mepr_update = new MeprUpdateCtrl();
         if (
-            !$mepr_update->is_activated() ||
+            !MeprUpdateCtrl::is_activated() ||
             !$this->is_valid_popup($popup)
         ) {
             return false;

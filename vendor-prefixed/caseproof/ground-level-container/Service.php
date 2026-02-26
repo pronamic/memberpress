@@ -14,7 +14,7 @@ class Service implements ContainerAwareness
     /**
      * Service constructor.
      *
-     * @param Container $container The container instance.
+     * @param \MemberPress\GroundLevel\Container\Container $container The container instance.
      */
     public function __construct(Container $container)
     {

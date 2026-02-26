@@ -33,9 +33,6 @@
           <div class="panel-heading"><h2><?php esc_html_e('MemberPress database upgrade error', 'memberpress'); ?></h2></div>
           <div class="panel-body">
             <p>&nbsp;</p>
-            <?php
-              $update_ctrl = new MeprUpdateCtrl();
-            ?>
             <h3><?php esc_html_e('Oops, your MemberPress database upgrade triggered an error...', 'memberpress'); ?></h3>
             <p><?php esc_html_e('If this is a production website rollback MemberPress to a previous version and contact our support team.', 'memberpress'); ?></p>
             <p>&nbsp;</p>
@@ -44,7 +41,7 @@
               <p>&nbsp;</p>
             <?php endif; ?>
             <p>
-              <a class="btn btn-primary" href="<?php echo esc_url($update_ctrl->rollback_url()); ?>" target="_blank"><?php esc_html_e('Rollback MemberPress', 'memberpress'); ?></a>
+              <a class="btn btn-primary" href="<?php echo esc_url(MeprUpdateCtrl::rollback_url()); ?>" target="_blank"><?php esc_html_e('Rollback MemberPress', 'memberpress'); ?></a>
               <a class="btn btn-primary" href="<?php echo esc_url(MeprUtils::get_link_url('support')); ?>" target="_blank"><?php esc_html_e('Contact Support', 'memberpress'); ?></a>
             </p>
             <p>&nbsp;</p>

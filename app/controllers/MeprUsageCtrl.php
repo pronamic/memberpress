@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 class MeprUsageCtrl extends MeprBaseCtrl
 {
     /**
@@ -93,10 +95,14 @@ class MeprUsageCtrl extends MeprBaseCtrl
      */
     public function display_options()
     {
-        $disable_senddata   = get_option('mepr_disable_senddata');
-        $hide_announcements = get_option('mepr_hide_announcements');
+        $disable_senddata                = get_option('mepr_disable_senddata');
+        $hide_announcements              = get_option('mepr_hide_announcements');
+        $proactive_support_notifications = !MeprProactiveSupportHelper::is_globally_opted_out();
 
-        MeprView::render('admin/usage/option', compact('disable_senddata', 'hide_announcements'));
+        MeprView::render(
+            'admin/usage/option',
+            compact('disable_senddata', 'hide_announcements', 'proactive_support_notifications')
+        );
     }
 
     /**
@@ -109,5 +115,6 @@ class MeprUsageCtrl extends MeprBaseCtrl
     {
         update_option('mepr_disable_senddata', !isset($params['mepr_enable_senddata']));
         update_option('mepr_hide_announcements', isset($params['mepr_hide_announcements']));
+        MeprProactiveSupportHelper::set_global_opt_out(empty($params['mepr_proactive_notifications']));
     }
 }

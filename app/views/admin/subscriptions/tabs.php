@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <h2 class="nav-tab-wrapper">
   <a class="nav-tab main-nav-tab <?php if (!$table->lifetime) {
       echo 'nav-tab-active';

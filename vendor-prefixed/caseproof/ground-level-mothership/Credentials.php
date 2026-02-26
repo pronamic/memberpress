@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace MemberPress\GroundLevel\Mothership;
 
+use MemberPress\GroundLevel\Mothership\AbstractPluginConnection;
 use MemberPress\GroundLevel\Mothership\Service as MothershipService;
+use MemberPress\GroundLevel\Mothership\Util as MothershipUtil;
 use MemberPress\GroundLevel\Container\Concerns\HasStaticContainer;
 use MemberPress\GroundLevel\Container\Contracts\StaticContainerAwareness;
 
@@ -36,8 +38,8 @@ class Credentials implements StaticContainerAwareness
         $domain = self::getCredential(MothershipService::DOMAIN_BASENAME);
 
         // No domains provided? Let's set something as the default domain via the $_SERVER data.
-        if (!$domain) {
-            $domain = $_SERVER['HTTP_HOST'];
+        if (!$domain && isset($_SERVER['HTTP_HOST'])) {
+            $domain = sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST']));
         }
         return $domain;
     }
@@ -79,7 +81,7 @@ class Credentials implements StaticContainerAwareness
                 )
             );
         }
-        self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->updateLicenseKey($licenseKey);
+        self::getContainer()->get(AbstractPluginConnection::class)->updateLicenseKey($licenseKey);
     }
 
     /**
@@ -98,15 +100,15 @@ class Credentials implements StaticContainerAwareness
         switch ($credentialName) {
             case MothershipService::LICENSE_KEY_BASENAME:
                 return (string) self::getContainer()
-                ->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)
+                ->get(AbstractPluginConnection::class)
                 ->getLicenseKey();
             case MothershipService::DOMAIN_BASENAME:
-                return (string) self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getDomain();
+                return (string) self::getContainer()->get(AbstractPluginConnection::class)->getDomain();
             case MothershipService::EMAIL_BASENAME:
-                return (string) self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getEmail();
+                return (string) self::getContainer()->get(AbstractPluginConnection::class)->getEmail();
             case MothershipService::API_TOKEN_BASENAME:
                 return (string) self::getContainer()
-                ->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)
+                ->get(AbstractPluginConnection::class)
                 ->getApiToken();
             default:
                 return '';
@@ -116,17 +118,21 @@ class Credentials implements StaticContainerAwareness
     /**
      * Checks and returns credentials if they are set in environment variables or constants otherwise returns false.
      *
+     * The key used for the environment variable and constant is the $credentialName prefixed with
+     * {@see \GroundLevel\Mothership\Util::composeConstantName()}.
+     *
+     * - An underscore is used as a separtor between the two strings
+     * - The whole string is converted to uppercase
+     * - Any dashes, dots, or spaces are converted to underscores
+     *
+     * For example, MemberCore uses the "MECO_" prefix, resulting in the following keys: MECO_LICENSE_KEY or MECO_DOMAIN
+     *
      * @param  string $credentialName The credential name to check.
-     * @return mixed String of credentials if stored in environment variables or constants, otherwise false.
+     * @return false|string String of credentials if stored in environment variables or constants, otherwise false.
      */
     public static function isCredentialSetInEnvironmentOrConstants(string $credentialName)
     {
-        $mothershipService = self::getContainer()->get(MothershipService::class);
-        $constantKey       = strtoupper(
-            self::getContainer()->get(
-                $mothershipService::CONNECTION_PLUGIN_SERVICE_ID
-            )->pluginPrefix . '_' . $credentialName
-        );
+        $constantKey = MothershipUtil::composeConstantName($credentialName);
 
         // Check if $constantKey is an environment variable.
         $envValue = getenv($constantKey);

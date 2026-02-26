@@ -24,6 +24,8 @@
 
 namespace MemberPress\Traduttore_Registry;
 
+defined('ABSPATH') || exit;
+
 use DateTime;
 
 const TRANSIENT_KEY_PLUGIN = 'traduttore-registry-plugins';

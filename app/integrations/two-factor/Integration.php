@@ -110,11 +110,11 @@ class MeprTwoFactorIntegration
             $account_url  = $mepr_options->account_page_url();
             $delim        = MeprAppCtrl::get_param_delimiter_char($account_url);
             ?>
-            <span class="mepr-nav-item <?php MeprAccountHelper::active_nav('2fa'); ?>">
+            <li class="mepr-nav-item <?php MeprAccountHelper::active_nav('2fa'); ?>">
                 <a
                     href="<?php echo esc_url(MeprHooks::apply_filters('mepr_account_nav_2fa_link', $account_url . $delim . 'action=2fa')); ?>"
                     id="mepr-account-2fa"><?php echo esc_html(MeprHooks::apply_filters('mepr_account_nav_2fa_label', _x('2FA', 'ui', 'memberpress'))); ?></a>
-            </span>
+            </li>
             <?php
         }
     }

@@ -8,6 +8,12 @@ jQuery(document).ready(function($) {
     jQuery(this).css({'color' : '#21759B', 'cursor' : 'auto'});
   });
 
+  function updateStatusClass(element, newStatus) {
+    jQuery(element).removeClass(function (i, className) {
+        return (className.match(/\bmepr_status_\S+/g) || []).join(' ');
+    }).addClass('mepr_status_' + newStatus);
+  }
+
   //Click initial status field, show select
   jQuery('.status_initial').click(function() {
     var i = jQuery(this).attr('data-value');
@@ -41,6 +47,7 @@ jQuery(document).ready(function($) {
       jQuery('.status_initial_'+i+' a').html(trimmed_data);
       jQuery('.status_saving_'+i).hide();
       jQuery('.status_initial_'+i).show();
+      updateStatusClass(jQuery('.status_initial_'+i), v);
     });
     return false;
   });
@@ -135,6 +142,7 @@ jQuery(document).ready(function($) {
         jQuery('select.status_edit_' + transactionId).val('refunded');
         jQuery('tr#record_' + transactionId + ' .mepr-refund-txn-action').remove();
         jQuery('tr#record_' + transactionId + ' .mepr-refund-txn-and-cancel-sub-action').remove();
+        alert(MeprTxn.refund_txn_success);
       }
     });
   });
@@ -161,6 +169,7 @@ jQuery(document).ready(function($) {
         jQuery('select.status_edit_' + transactionId).val('refunded');
         jQuery('tr#record_' + transactionId + ' .mepr-refund-txn-action').remove();
         jQuery('tr#record_' + transactionId + ' .mepr-refund-txn-and-cancel-sub-action').remove();
+        alert(MeprTxn.refund_txn_and_cancel_sub_success);
       }
     });
     return false;

@@ -15,99 +15,120 @@ if (!empty($products)) :
     <tbody>
       <tr valign="top">
         <th scope="row">
-          <label><?php esc_html_e('Discount:', 'memberpress'); ?></label>
+          <label><?php esc_html_e('Membership Specific Discounts:', 'memberpress'); ?></label>
           <?php
             MeprAppHelper::info_tooltip(
-                'mepr-coupon-discount',
-                __('Coupon Discount', 'memberpress'),
-                __('<b>Recurring Memberships</b>: This discount will not apply to paid trials but will apply to all recurring transactions associated with the subscription. That means that 100% discount will give the member lifetime access for free.<br/><br/><b>Lifetime Memberships</b>: This discount will apply directly to the lifetime membership\'s one-time payment.', 'memberpress')
+                esc_attr('mepr-coupon-membership-specific'),
+                esc_html__('Membership Specific Discounts', 'memberpress'),
+                esc_html__('Set different discounts for different memberships.', 'memberpress')
             );
             ?>
         </th>
         <td>
-          <input type="text" size="5" name="<?php echo esc_attr(MeprCoupon::$discount_amount_str); ?>" value="<?php echo esc_attr($c->discount_amount); ?>" />
-          <select name="<?php echo esc_attr(MeprCoupon::$discount_type_str); ?>">
-            <option value="percent" <?php selected($c->discount_type, 'percent'); ?>>%</option>
-            <option value="dollar" <?php selected($c->discount_type, 'dollar'); ?>><?php echo esc_html($mepr_options->currency_code); ?></option>
-          </select>
-        </td>
-      </tr>
-      <tr valign="top">
-        <th scope="row">
-          <label><?php esc_html_e('Discount Mode:', 'memberpress'); ?></label>
-          <?php
-            MeprAppHelper::info_tooltip(
-                'mepr-coupon-discount-mode',
-                __('Discount Mode', 'memberpress'),
-                __("<b>Standard:</b> This simply applies the discount to the amount of the charge or subscription.<br/><br/><b>First Payment:</b> This will allow you to set a different discount on the first transaction than the rebill transactions in a recurring subscription. If this value is set for a non-recurring payment then the First Payment discount will take precedence over the coupon's main discount.<br/><br/><b>Trial Override:</b> This will create a custom trial period based on the number of days & trial cost here. This option only works on recurring payments and will prevent any trials associated with the membership from working. The discount set above will still apply to the subscription’s recurring amount.", 'memberpress')
-            );
-            ?>
-        </th>
-        <td>
-          <select name="<?php echo esc_attr(MeprCoupon::$discount_mode_str); ?>" class="mepr-toggle-select" data-first-payment-box="mepr_first_payment_box" data-trial-override-box="mepr_trial_override_box">
-            <option value="standard" <?php selected($c->discount_mode, 'standard'); ?>><?php esc_html_e('Standard', 'memberpress'); ?></option>
-            <option value="first-payment" <?php selected($c->discount_mode, 'first-payment'); ?>><?php esc_html_e('First Payment', 'memberpress'); ?></option>
-            <option value="trial-override" <?php selected($c->discount_mode, 'trial-override'); ?>><?php esc_html_e('Trial Period Override', 'memberpress'); ?></option>
-          </select>
+          <input type="checkbox" name="<?php echo esc_attr(MeprCoupon::$is_membership_specific_str); ?>" id="<?php echo esc_attr(MeprCoupon::$is_membership_specific_str); ?>" class="mepr-toggle-checkbox" data-box="mepr_is_not_membership_specific_box" data-reverse="true" <?php checked($c->is_membership_specific); ?> />
         </td>
       </tr>
     </tbody>
   </table>
-  <div id="mepr_trial_override_box" class="mepr-sub-box mepr_trial_override_box">
-    <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
+  <div class="mepr_is_not_membership_specific_box">
     <table class="form-table">
       <tbody>
         <tr valign="top">
           <th scope="row">
-            <label><?php esc_html_e('# of Days:', 'memberpress'); ?></label>
+            <label><?php esc_html_e('Discount:', 'memberpress'); ?></label>
             <?php
               MeprAppHelper::info_tooltip(
-                  'mepr-coupon-trial-days',
-                  __('Trial Days Price Text', 'memberpress'),
-                  __('Values here that are multiples of 365 will show as years, multiples of 30 will show as months, multiples of 7 will show as weeks ... otherwise the trial will show up as days.', 'memberpress')
+                  'mepr-coupon-discount',
+                  __('Coupon Discount', 'memberpress'),
+                  __('<b>Recurring Memberships</b>: This discount will not apply to paid trials but will apply to all recurring transactions associated with the subscription. That means that 100% discount will give the member lifetime access for free.<br/><br/><b>Lifetime Memberships</b>: This discount will apply directly to the lifetime membership\'s one-time payment.', 'memberpress')
               );
             ?>
           </th>
           <td>
-            <input name="<?php echo esc_attr(MeprCoupon::$trial_days_str); ?>" id="<?php echo esc_attr(MeprCoupon::$trial_days_str); ?>" type="text" size="3" value="<?php echo esc_attr($c->trial_days); ?>" />
+            <input type="text" size="5" name="<?php echo esc_attr(MeprCoupon::$discount_amount_str); ?>" value="<?php echo esc_attr($c->discount_amount); ?>" />
+            <select name="<?php echo esc_attr(MeprCoupon::$discount_type_str); ?>">
+              <option value="percent" <?php selected($c->discount_type, 'percent'); ?>>%</option>
+              <option value="dollar" <?php selected($c->discount_type, 'dollar'); ?>><?php echo esc_html($mepr_options->currency_code); ?></option>
+            </select>
           </td>
         </tr>
         <tr valign="top">
           <th scope="row">
-            <label><?php esc_html_e('Trial Cost:', 'memberpress'); ?></label>
-          </th>
-          <td>
-            <?php echo esc_html($mepr_options->currency_symbol); ?><input name="<?php echo esc_attr(MeprCoupon::$trial_amount_str); ?>" id="<?php echo esc_attr(MeprCoupon::$trial_amount_str); ?>" size="7" type="text" value="<?php echo esc_attr(MeprUtils::format_float($c->trial_amount)); ?>" />
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div id="mepr_first_payment_box" class="mepr-sub-box mepr_first_payment_box">
-    <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
-    <table class="form-table">
-      <tbody>
-        <tr valign="top">
-          <th scope="row">
-            <label><?php esc_html_e('First Payment Discount:', 'memberpress'); ?></label>
+            <label><?php esc_html_e('Discount Mode:', 'memberpress'); ?></label>
             <?php
               MeprAppHelper::info_tooltip(
-                  'mepr-first-payment-discount',
-                  __('First Payment Discount', 'memberpress'),
-                  __('This is the discount that will be applied to the first payment. All additional payments will happen at the standard discount above.', 'memberpress')
+                  'mepr-coupon-discount-mode',
+                  __('Discount Mode', 'memberpress'),
+                  __("<b>Standard:</b> This simply applies the discount to the amount of the charge or subscription.<br/><br/><b>First Payment:</b> This will allow you to set a different discount on the first transaction than the rebill transactions in a recurring subscription. If this value is set for a non-recurring payment then the First Payment discount will take precedence over the coupon's main discount.<br/><br/><b>Trial Override:</b> This will create a custom trial period based on the number of days & trial cost here. This option only works on recurring payments and will prevent any trials associated with the membership from working. The discount set above will still apply to the subscription's recurring amount.", 'memberpress')
               );
             ?>
           </th>
           <td>
-            <input type="text" size="5" name="<?php echo esc_attr(MeprCoupon::$first_payment_discount_amount_str); ?>" value="<?php echo esc_attr($c->first_payment_discount_amount); ?>" />
-            <select name="<?php echo esc_attr(MeprCoupon::$first_payment_discount_type_str); ?>">
-              <option value="percent" <?php selected($c->first_payment_discount_type, 'percent'); ?>>%</option>
-              <option value="dollar" <?php selected($c->first_payment_discount_type, 'dollar'); ?>><?php echo esc_html($mepr_options->currency_code); ?></option>
+            <select name="<?php echo esc_attr(MeprCoupon::$discount_mode_str); ?>" class="mepr-toggle-select" data-first-payment-box="mepr_first_payment_box" data-trial-override-box="mepr_trial_override_box">
+              <option value="standard" <?php selected($c->discount_mode, 'standard'); ?>><?php esc_html_e('Standard', 'memberpress'); ?></option>
+              <option value="first-payment" <?php selected($c->discount_mode, 'first-payment'); ?>><?php esc_html_e('First Payment', 'memberpress'); ?></option>
+              <option value="trial-override" <?php selected($c->discount_mode, 'trial-override'); ?>><?php esc_html_e('Trial Period Override', 'memberpress'); ?></option>
             </select>
           </td>
         </tr>
       </tbody>
     </table>
+    <div id="mepr_trial_override_box" class="mepr-sub-box mepr_trial_override_box">
+      <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
+      <table class="form-table">
+        <tbody>
+          <tr valign="top">
+            <th scope="row">
+              <label><?php esc_html_e('# of Days:', 'memberpress'); ?></label>
+              <?php
+                MeprAppHelper::info_tooltip(
+                    'mepr-coupon-trial-days',
+                    __('Trial Days Price Text', 'memberpress'),
+                    __('Values here that are multiples of 365 will show as years, multiples of 30 will show as months, multiples of 7 will show as weeks ... otherwise the trial will show up as days.', 'memberpress')
+                );
+                ?>
+            </th>
+            <td>
+              <input name="<?php echo esc_attr(MeprCoupon::$trial_days_str); ?>" id="<?php echo esc_attr(MeprCoupon::$trial_days_str); ?>" type="text" size="3" value="<?php echo esc_attr($c->trial_days); ?>" />
+            </td>
+          </tr>
+          <tr valign="top">
+            <th scope="row">
+              <label><?php esc_html_e('Trial Cost:', 'memberpress'); ?></label>
+            </th>
+            <td>
+              <?php echo esc_html($mepr_options->currency_symbol); ?><input name="<?php echo esc_attr(MeprCoupon::$trial_amount_str); ?>" id="<?php echo esc_attr(MeprCoupon::$trial_amount_str); ?>" size="7" type="text" value="<?php echo esc_attr(MeprUtils::format_float($c->trial_amount)); ?>" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="mepr_first_payment_box" class="mepr-sub-box mepr_first_payment_box">
+      <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
+      <table class="form-table">
+        <tbody>
+          <tr valign="top">
+            <th scope="row">
+              <label><?php esc_html_e('First Payment Discount:', 'memberpress'); ?></label>
+              <?php
+                MeprAppHelper::info_tooltip(
+                    'mepr-first-payment-discount',
+                    __('First Payment Discount', 'memberpress'),
+                    __('This is the discount that will be applied to the first payment. All additional payments will happen at the standard discount above.', 'memberpress')
+                );
+                ?>
+            </th>
+            <td>
+              <input type="text" size="5" name="<?php echo esc_attr(MeprCoupon::$first_payment_discount_amount_str); ?>" value="<?php echo esc_attr($c->first_payment_discount_amount); ?>" />
+              <select name="<?php echo esc_attr(MeprCoupon::$first_payment_discount_type_str); ?>">
+                <option value="percent" <?php selected($c->first_payment_discount_type, 'percent'); ?>>%</option>
+                <option value="dollar" <?php selected($c->first_payment_discount_type, 'dollar'); ?>><?php echo esc_html($mepr_options->currency_code); ?></option>
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <table class="form-table">
     <tbody>
@@ -285,6 +306,119 @@ if (!empty($products)) :
   <div id="save-coupon-helper" style="display:none;" data-value="<?php esc_attr_e('Save Coupon', 'memberpress'); ?>"></div>
   <div id="coupon-message-helper" style="display:none;" data-value="<?php esc_attr_e('Coupon Saved', 'memberpress'); ?>"></div>
 </div>
+<script type="text/html" id="tmpl-mepr-membership-specific-box">
+  <div class="mepr-membership-specific-box postbox" id="mepr_membership_specific_box_{{membership_id}}" style="margin: 20px;">
+    <div class="mepr-membership-specific-box-header postbox-header">
+    <h2><?php
+        printf(
+            // Translators: %s is the membership name.
+            esc_html__('Discount settings for %s', 'memberpress'),
+            '<strong>{{membership_name}}</strong>'
+        );
+        ?></h2>
+    </div>
+    <div class="mepr-membership-specific-box-content inside">
+        <table class="form-table">
+            <tbody>
+            <tr valign="top">
+                <th scope="row">
+                <label><?php esc_html_e('Discount:', 'memberpress'); ?></label>
+                <?php
+                    MeprAppHelper::info_tooltip(
+                        esc_attr('mepr-coupon-discount'),
+                        esc_html__('Coupon Discount', 'memberpress'),
+                        __('<b>Recurring Memberships</b>: This discount will not apply to paid trials but will apply to all recurring transactions associated with the subscription. That means that 100% discount will give the member lifetime access for free.<br/><br/><b>Lifetime Memberships</b>: This discount will apply directly to the lifetime membership\'s one-time payment.', 'memberpress')
+                    );
+                ?>
+                </th>
+                <td>
+                <input type="text" size="5" name="<?php echo esc_attr(MeprCoupon::$membership_specific_str); ?>[{{membership_id}}][<?php echo esc_attr(MeprCoupon::$discount_amount_str); ?>]" value="{{discount_amount}}" />
+                <select name="<?php echo esc_attr(MeprCoupon::$membership_specific_str); ?>[{{membership_id}}][<?php echo esc_attr(MeprCoupon::$discount_type_str); ?>]">
+                    <option value="percent"><?php esc_html_e('%', 'memberpress'); ?></option>
+                    <option value="dollar"><?php echo esc_html($mepr_options->currency_code); ?></option>
+                </select>
+                </td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">
+                <label><?php esc_html_e('Discount Mode:', 'memberpress'); ?></label>
+                <?php
+                    MeprAppHelper::info_tooltip(
+                        esc_attr('mepr-coupon-discount-mode'),
+                        esc_html__('Discount Mode', 'memberpress'),
+                        __("<b>Standard:</b> This simply applies the discount to the amount of the charge or subscription.<br/><br/><b>First Payment:</b> This will allow you to set a different discount on the first transaction than the rebill transactions in a recurring subscription. If this value is set for a non-recurring payment then the First Payment discount will take precedence over the coupon's main discount.<br/><br/><b>Trial Override:</b> This will create a custom trial period based on the number of days & trial cost here. This option only works on recurring payments and will prevent any trials associated with the membership from working. The discount set above will still apply to the subscription's recurring amount.", 'memberpress')
+                    );
+                ?>
+                </th>
+                <td>
+                <select name="<?php echo esc_attr(MeprCoupon::$membership_specific_str); ?>[{{membership_id}}][<?php echo esc_attr(MeprCoupon::$discount_mode_str); ?>]" class="mepr-toggle-select" data-first-payment-box="mepr_first_payment_box_{{membership_id}}" data-trial-override-box="mepr_trial_override_box_{{membership_id}}">
+                    <option value="standard"><?php esc_html_e('Standard', 'memberpress'); ?></option>
+                    <option value="first-payment"><?php esc_html_e('First Payment', 'memberpress'); ?></option>
+                    <option value="trial-override"><?php esc_html_e('Trial Period Override', 'memberpress'); ?></option>
+                </select>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="mepr-sub-box mepr_trial_override_box_{{membership_id}}">
+            <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
+            <table class="form-table">
+            <tbody>
+                <tr valign="top">
+                <th scope="row">
+                    <label><?php esc_html_e('# of Days:', 'memberpress'); ?></label>
+                    <?php
+                    MeprAppHelper::info_tooltip(
+                        esc_attr('mepr-coupon-trial-days'),
+                        esc_html__('Trial Days Price Text', 'memberpress'),
+                        esc_html__('Values here that are multiples of 365 will show as years, multiples of 30 will show as months, multiples of 7 will show as weeks ... otherwise the trial will show up as days.', 'memberpress')
+                    );
+                    ?>
+                </th>
+                <td>
+                    <input name="<?php echo esc_attr(MeprCoupon::$membership_specific_str); ?>[{{membership_id}}][<?php echo esc_attr(MeprCoupon::$trial_days_str); ?>]" id="<?php echo esc_attr(MeprCoupon::$trial_days_str); ?>" type="text" size="3" value="{{trial_days}}" />
+                </td>
+                </tr>
+                <tr valign="top">
+                <th scope="row">
+                    <label><?php esc_html_e('Trial Cost:', 'memberpress'); ?></label>
+                </th>
+                <td>
+                    <?php echo esc_html($mepr_options->currency_symbol); ?><input name="<?php echo esc_attr(MeprCoupon::$membership_specific_str); ?>[{{membership_id}}][<?php echo esc_attr(MeprCoupon::$trial_amount_str); ?>]" id="<?php echo esc_attr(MeprCoupon::$trial_amount_str); ?>" size="7" type="text" value="{{trial_amount}}" />
+                </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        <div class="mepr-sub-box mepr_first_payment_box_{{membership_id}}">
+            <div class="mepr-arrow mepr-gray mepr-up mepr-sub-box-arrow"> </div>
+            <table class="form-table">
+            <tbody>
+                <tr valign="top">
+                <th scope="row">
+                    <label><?php esc_html_e('First Payment Discount:', 'memberpress'); ?></label>
+                    <?php
+                    MeprAppHelper::info_tooltip(
+                        esc_attr('mepr-first-payment-discount'),
+                        esc_html__('First Payment Discount', 'memberpress'),
+                        esc_html__('This is the discount that will be applied to the first payment. All additional payments will happen at the standard discount above.', 'memberpress')
+                    );
+                    ?>
+                </th>
+                <td>
+                    <input type="text" size="5" name="<?php echo esc_attr(MeprCoupon::$membership_specific_str); ?>[{{membership_id}}][<?php echo esc_attr(MeprCoupon::$first_payment_discount_amount_str); ?>]" value="{{first_payment_discount_amount}}" />
+                    <select name="<?php echo esc_attr(MeprCoupon::$membership_specific_str); ?>[{{membership_id}}][<?php echo esc_attr(MeprCoupon::$first_payment_discount_type_str); ?>]">
+                    <option value="percent"><?php esc_html_e('%', 'memberpress'); ?></option>
+                    <option value="dollar"><?php echo esc_html($mepr_options->currency_code); ?></option>
+                    </select>
+                </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+</script>
     <?php
 else :
     ?>

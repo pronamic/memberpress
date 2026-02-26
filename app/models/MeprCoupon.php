@@ -196,6 +196,20 @@ class MeprCoupon extends MeprCptModel
     public static $usage_per_user_count_timeframe_str = '_mepr_coupons_usage_per_user_count_timeframe';
 
     /**
+     * Meta key for storing the membership specific discounts.
+     *
+     * @var string
+     */
+    public static $is_membership_specific_str         = '_mepr_coupons_is_membership_specific';
+
+    /**
+     * Meta key for storing the membership specific discounts.
+     *
+     * @var string
+     */
+    public static $membership_specific_str            = '_mepr_coupons_membership_specific';
+
+    /**
      * Custom post type name for coupons.
      *
      * @var string
@@ -248,6 +262,8 @@ class MeprCoupon extends MeprCptModel
                 'start_on_timezone'              => 0,
                 'usage_per_user_count'           => 0,
                 'usage_per_user_count_timeframe' => 'lifetime',
+                'is_membership_specific'         => false,
+                'membership_specific'            => [],
             ]
         );
     }
@@ -270,17 +286,43 @@ class MeprCoupon extends MeprCptModel
         }
         $this->validate_is_numeric($this->usage_count, 0, null, 'usage_count');
         $this->validate_is_numeric($this->usage_amount, 0, null, 'usage_amount');
-        $this->validate_is_in_array($this->discount_type, $this->discount_types, 'discount_type');
-        $this->validate_is_currency($this->discount_amount, 0, null, 'discount_amount');
         $this->validate_is_array($this->valid_products, 'valid_products');
 
-        if ($this->discount_mode === 'trial-override') {
-            $this->validate_is_numeric($this->trial_days, 0, null, 'trial_days');
-            $this->validate_is_currency($this->trial_amount, 0, null, 'trial_amount');
+        $this->validate_is_bool($this->is_membership_specific, 'is_membership_specific');
+        $this->validate_is_array($this->membership_specific, 'membership_specific');
+
+        if (! $this->is_membership_specific) {
+            $this->validate_discount_properties($this);
+        } else {
+            // Membership specific settings.
+            foreach ($this->membership_specific as $membership_id => $settings) {
+                $this->validate_discount_properties((object)$settings, '_for_membership_' . $membership_id);
+            }
         }
 
         $this->validate_is_numeric($this->usage_per_user_count, 0, null, 'usage_per_user_count');
         $this->validate_is_in_array($this->usage_per_user_count_timeframe, array_keys($this->timeframe_types), 'usage_per_user_count_timeframe');
+    }
+
+    /**
+     * Validate discount properties.
+     *
+     * @param  object $object               The object to validate.
+     * @param  string $error_message_suffix The suffix to add to the error message.
+     * @return void
+     */
+    private function validate_discount_properties($object, $error_message_suffix = '')
+    {
+        $this->validate_is_in_array($object->discount_type, $this->discount_types, 'discount_type' . $error_message_suffix);
+        $this->validate_is_currency($object->discount_amount, 0, null, 'discount_amount' . $error_message_suffix);
+
+        if ($object->discount_mode === 'first-payment') {
+            $this->validate_is_currency($object->first_payment_discount_amount, 0, null, 'first_payment_discount_amount' . $error_message_suffix);
+            $this->validate_is_in_array($object->first_payment_discount_type, $this->discount_types, 'first_payment_discount_type' . $error_message_suffix);
+        } elseif ($object->discount_mode === 'trial-override') {
+            $this->validate_is_numeric($object->trial_days, 0, null, 'trial_days' . $error_message_suffix);
+            $this->validate_is_currency($object->trial_amount, 0, null, 'trial_amount' . $error_message_suffix);
+        }
     }
 
     /**
@@ -443,46 +485,147 @@ class MeprCoupon extends MeprCptModel
     }
 
     /**
-     * Gets the coupon's amount
+     * Get the trial days for a given product.
      *
-     * @param MeprProduct $prd The product object.
+     * @param  MeprProduct|null $prd The optional product object.
+     * @return integer The trial days.
+     */
+    public function get_trial_days($prd = null)
+    {
+        $days = $this->trial_days;
+
+        if ($prd && $this->is_membership_specific) {
+            $membership_id = $prd->ID;
+            $days          = $this->membership_specific[$membership_id]['trial_days'] ?? $days;
+        }
+
+        return MeprHooks::apply_filters('mepr_coupon_get_trial_days', $days, $this, $prd);
+    }
+
+    /**
+     * Get the trial amount for a given product.
      *
+     * @param  MeprProduct|null $prd The optional product object.
+     * @return integer The trial amount.
+     */
+    public function get_trial_amount($prd = null)
+    {
+        $amount = $this->trial_amount;
+
+        if ($prd && $this->is_membership_specific) {
+            $membership_id = $prd->ID;
+            $amount        = $this->membership_specific[$membership_id]['trial_amount'] ?? $amount;
+        }
+
+        return MeprHooks::apply_filters('mepr_coupon_get_trial_amount', $amount, $this, $prd);
+    }
+
+    /**
+     * Get the discount mode for a given product.
+     *
+     * @param  MeprProduct|null $prd The optional product object.
+     * @return string The discount mode.
+     */
+    public function get_discount_mode($prd = null)
+    {
+        $mode = $this->discount_mode;
+
+        if ($prd && $this->is_membership_specific) {
+            $membership_id = $prd->ID;
+            $mode          = $this->membership_specific[$membership_id]['discount_mode'] ?? $mode;
+        }
+
+        return MeprHooks::apply_filters('mepr_coupon_get_discount_mode', $mode, $this, $prd);
+    }
+
+    /**
+     * Get the discount type for a given product.
+     *
+     * @param  MeprProduct|null $prd The optional product object.
+     * @return string The discount type.
+     */
+    public function get_discount_type($prd = null)
+    {
+        $type = $this->discount_type;
+
+        if ($prd && $this->is_membership_specific) {
+            $membership_id = $prd->ID;
+            $type          = $this->membership_specific[$membership_id]['discount_type'] ?? $type;
+        }
+
+        return MeprHooks::apply_filters('mepr_coupon_get_discount_type', $type, $this, $prd);
+    }
+
+    /**
+     * Get the first payment discount type for a given product.
+     *
+     * @param  MeprProduct|null $prd The optional product object.
+     * @return string The discount type.
+     */
+    public function get_first_payment_discount_type($prd = null)
+    {
+        $type = $this->first_payment_discount_type;
+
+        if ($prd && $this->is_membership_specific) {
+            $membership_id = $prd->ID;
+            $type          = $this->membership_specific[$membership_id]['first_payment_discount_type'] ?? $type;
+        }
+
+        return MeprHooks::apply_filters('mepr_coupon_get_first_payment_discount_type', $type, $this, $prd);
+    }
+
+    /**
+     * Gets the coupon's fist payment discount amount
+     *
+     * @param  MeprProduct|null $prd The optional product object.
      * @return float The first payment discount amount.
      */
-    public function get_first_payment_discount_amount($prd)
+    public function get_first_payment_discount_amount($prd = null)
     {
-        return MeprHooks::apply_filters('mepr_coupon_get_first_payment_discount_amount', $this->first_payment_discount_amount, $this, $prd);
+        $amount = $this->first_payment_discount_amount;
+
+        if ($prd && $this->is_membership_specific) {
+            $membership_id = $prd->ID;
+            $amount        = $this->membership_specific[$membership_id]['first_payment_discount_amount'] ?? $amount;
+        }
+
+        return MeprHooks::apply_filters('mepr_coupon_get_first_payment_discount_amount', $amount, $this, $prd);
     }
 
     /**
      * Gets the coupon's amount
      *
-     * @param MeprProduct $prd The product object.
-     *
+     * @param  MeprProduct|null $prd The optional product object.
      * @return float The discount amount.
      */
-    public function get_discount_amount($prd)
+    public function get_discount_amount($prd = null)
     {
-        return MeprHooks::apply_filters('mepr_coupon_get_discount_amount', $this->discount_amount, $this, $prd);
+        $amount = $this->discount_amount;
+
+        if ($prd && $this->is_membership_specific) {
+            $membership_id = $prd->ID;
+            $amount        = $this->membership_specific[$membership_id]['discount_amount'] ?? $amount;
+        }
+
+        return MeprHooks::apply_filters('mepr_coupon_get_discount_amount', $amount, $this, $prd);
     }
 
     /**
      * Apply the discount to a given price.
      *
-     * @param float            $price            The original price.
-     * @param boolean          $is_first_payment Optional. Whether this is the first payment. Default false.
-     * @param MeprProduct|null $prd              Optional. The product object. Default null.
-     *
+     * @param  float            $price            The original price.
+     * @param  boolean          $is_first_payment Optional. Whether this is the first payment. Default false.
+     * @param  MeprProduct|null $prd              Optional. The product object. Default null.
      * @return float The discounted price.
      */
     public function apply_discount($price, $is_first_payment = false, $prd = null)
     {
-        if ($is_first_payment && $this->discount_mode === 'first-payment') {
+        if ($is_first_payment && $this->get_discount_mode($prd) === 'first-payment') {
             $discount_amount = $this->get_first_payment_discount_amount($prd);
-            $discount_type   = $this->first_payment_discount_type;
+            $discount_type   = $this->get_first_payment_discount_type($prd);
         } else {
             $discount_amount = $this->get_discount_amount($prd);
-            $discount_type   = $this->discount_type;
+            $discount_type   = $this->get_discount_type($prd);
         }
 
         $value = $price;
@@ -504,29 +647,28 @@ class MeprCoupon extends MeprCptModel
      */
     public function maybe_apply_trial_override(&$obj)
     {
-        if ($this->discount_type === 'percent' && (int) $this->discount_amount === 100) {
+        $product = $obj instanceof MeprSubscription ? $obj->product() : $obj;
+        $discount_mode = $this->get_discount_mode($product);
+
+        if ($this->get_discount_type($product) === 'percent' && (int) $this->get_discount_amount($product) === 100) {
             $obj->trial        = false;
             $obj->trial_days   = 0;
             $obj->trial_amount = 0;
-        } elseif ($this->discount_mode === 'trial-override') {
+        } elseif ($discount_mode === 'trial-override') {
             $obj->trial        = true;
-            $obj->trial_days   = $this->trial_days;
-            $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount($this->trial_amount);
-        } elseif ($this->discount_mode === 'first-payment') {
+            $obj->trial_days   = $this->get_trial_days($product);
+            $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount($this->get_trial_amount($product));
+        } elseif ($discount_mode === 'first-payment') {
             $obj->trial      = true;
             $obj->trial_days = (($obj instanceof MeprProduct) ? $obj->days_in_my_period() : $obj->days_in_this_period());
 
-            if ($obj instanceof MeprSubscription) {
-                $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount($this->apply_discount($obj->product()->price, true, $obj->product()));
-            } else {
-                $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount($this->apply_discount($obj->price, true, $obj));
-            }
+            $obj->trial_amount = MeprUtils::maybe_round_to_minimum_amount($this->apply_discount($product->price, true, $product));
         }
 
         // Basically, if the subscription does have a trial period
         // because of a coupon then the trial payment should count as one of the limited cycle payments.
         if (
-            ($this->discount_mode === 'trial-override' || $this->discount_mode === 'first-payment') &&
+            ($discount_mode === 'trial-override' || $discount_mode === 'first-payment') &&
             $obj instanceof MeprSubscription &&
             $obj->trial_amount > 0 &&
             $obj->limit_cycles &&
@@ -609,11 +751,12 @@ class MeprCoupon extends MeprCptModel
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery
         $sqcount = $wpdb->get_var(
             $wpdb->prepare(
-                "SELECT COUNT(DISTINCT subscription_id) FROM {$wpdb->mepr_transactions} WHERE coupon_id = %d AND subscription_id > 0 AND txn_type IN (%s,%s) AND status <> %s;",
+                "SELECT COUNT(DISTINCT subscription_id) FROM {$wpdb->mepr_transactions} WHERE coupon_id = %d AND subscription_id > 0 AND txn_type IN (%s,%s) AND status NOT IN (%s, %s);",
                 $this->ID,
                 MeprTransaction::$payment_str,
                 MeprTransaction::$subscription_confirmation_str,
-                MeprSubscription::$pending_str
+                MeprSubscription::$pending_str,
+                MeprTransaction::$failed_str
             )
         );
 
@@ -624,10 +767,11 @@ class MeprCoupon extends MeprCptModel
         // Query one-time payments next.
         $lqcount = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
             $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->mepr_transactions} WHERE coupon_id = %d AND (subscription_id <= 0 OR subscription_id IS NULL) AND txn_type = %s AND status <> %s",
+                "SELECT COUNT(*) FROM {$wpdb->mepr_transactions} WHERE coupon_id = %d AND (subscription_id <= 0 OR subscription_id IS NULL) AND txn_type = %s AND status NOT IN (%s, %s)",
                 $this->ID,
                 MeprTransaction::$payment_str,
-                MeprTransaction::$pending_str
+                MeprTransaction::$pending_str,
+                MeprTransaction::$failed_str
             )
         );
 
@@ -666,23 +810,25 @@ class MeprCoupon extends MeprCptModel
         update_post_meta($this->ID, self::$start_on_timezone_str, $this->start_timezone);
         update_post_meta($this->ID, self::$usage_per_user_count_str, $this->usage_per_user_count);
         update_post_meta($this->ID, self::$usage_per_user_count_timeframe_str, $this->usage_per_user_count_timeframe);
+        update_post_meta($this->ID, self::$is_membership_specific_str, $this->is_membership_specific);
+        update_post_meta($this->ID, self::$membership_specific_str, $this->membership_specific);
     }
 
     /**
      * Get the Stripe Coupon ID.
      *
-     * @param string  $gateway_id      The gateway ID.
-     * @param string  $discount_amount The coupon discount amount.
-     * @param boolean $onetime         Whether the coupon is one-time use.
-     *
+     * @param  string           $gateway_id      The gateway ID.
+     * @param  string           $discount_amount The coupon discount amount.
+     * @param  boolean          $onetime         Whether the coupon is one-time use.
+     * @param  MeprProduct|null $product         The product object.
      * @return string|false The Stripe Coupon ID or false if not found.
      */
-    public function get_stripe_coupon_id($gateway_id, $discount_amount, $onetime)
+    public function get_stripe_coupon_id($gateway_id, $discount_amount, $onetime, $product = null)
     {
-        $meta_key = sprintf('_mepr_stripe_coupon_id_%s_%s', $gateway_id, $this->terms_hash($discount_amount));
+        $meta_key = sprintf('_mepr_stripe_coupon_id_%s_%s', $gateway_id, $this->terms_hash($discount_amount, $product));
 
         if ($onetime) {
-            $meta_key = sprintf('_mepr_stripe_onetime_coupon_id_%s_%s', $gateway_id, $this->terms_hash($discount_amount));
+            $meta_key = sprintf('_mepr_stripe_onetime_coupon_id_%s_%s', $gateway_id, $this->terms_hash($discount_amount, $product));
         }
 
         return get_post_meta($this->ID, $meta_key, true);
@@ -691,19 +837,19 @@ class MeprCoupon extends MeprCptModel
     /**
      * Set the Stripe Coupon ID.
      *
-     * @param string  $gateway_id      The gateway ID.
-     * @param string  $discount_amount The coupon discount amount.
-     * @param string  $coupon_id       The Stripe Coupon ID.
-     * @param boolean $onetime         Whether the coupon is one-time use.
-     *
+     * @param  string           $gateway_id      The gateway ID.
+     * @param  string           $discount_amount The coupon discount amount.
+     * @param  string           $coupon_id       The Stripe Coupon ID.
+     * @param  boolean          $onetime         Whether the coupon is one-time use.
+     * @param  MeprProduct|null $product         The product object.
      * @return void
      */
-    public function set_stripe_coupon_id($gateway_id, $discount_amount, $coupon_id, $onetime)
+    public function set_stripe_coupon_id($gateway_id, $discount_amount, $coupon_id, $onetime, $product = null)
     {
-        $meta_key = sprintf('_mepr_stripe_coupon_id_%s_%s', $gateway_id, $this->terms_hash($discount_amount));
+        $meta_key = sprintf('_mepr_stripe_coupon_id_%s_%s', $gateway_id, $this->terms_hash($discount_amount, $product));
 
         if ($onetime) {
-            $meta_key = sprintf('_mepr_stripe_onetime_coupon_id_%s_%s', $gateway_id, $this->terms_hash($discount_amount));
+            $meta_key = sprintf('_mepr_stripe_onetime_coupon_id_%s_%s', $gateway_id, $this->terms_hash($discount_amount, $product));
         }
 
         update_post_meta($this->ID, $meta_key, $coupon_id);
@@ -714,17 +860,18 @@ class MeprCoupon extends MeprCptModel
      *
      * If this hash changes then a different Stripe Coupon will be created.
      *
-     * @param  string $discount_amount The coupon discount amount.
+     * @param  string           $discount_amount The coupon discount amount.
+     * @param  MeprProduct|null $product         The product object.
      * @return string
      */
-    private function terms_hash($discount_amount)
+    private function terms_hash($discount_amount, $product = null)
     {
         $terms = [
-            'type'   => $this->discount_type,
+            'type'   => $this->get_discount_type($product),
             'amount' => $discount_amount,
         ];
 
-        if ($this->discount_type !== 'percent') {
+        if ($this->get_discount_type($product) !== 'percent') {
             $mepr_options      = MeprOptions::fetch();
             $terms['currency'] = $mepr_options->currency_code;
         }
@@ -821,13 +968,14 @@ class MeprCoupon extends MeprCptModel
                 WHERE coupon_id = %d
                     AND (subscription_id <= 0 OR subscription_id IS NULL)
                     AND txn_type = %s
-                    AND status <> %s
+                    AND status NOT IN (%s, %s)
                     AND user_id = %d
                 $date_query;
                 ",
                 $this->ID,
                 MeprTransaction::$payment_str,
                 MeprTransaction::$pending_str,
+                MeprTransaction::$failed_str,
                 $user_id
             )
             // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared

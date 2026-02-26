@@ -111,10 +111,14 @@ class MeprBbPressIntegration
             return;
         }
 
+        if (!$user || !is_object($user) || empty($user->ID)) {
+            return;
+        }
+
         ?>
-      <span class="mepr-nav-item mepr_bbpress_subscriptions">
-        <a href="<?php echo esc_url(bbp_user_profile_url(bbp_get_current_user_id())); ?>" id="mepr-account-bbpress-subscriptions"><?php esc_html_e('Forum Profile', 'memberpress'); ?></a>
-      </span>
+      <li class="mepr-nav-item mepr_bbpress_subscriptions">
+        <a href="<?php echo esc_url(bbp_get_user_profile_url($user->ID) ?: ''); ?>" id="mepr-account-bbpress-subscriptions"><?php esc_html_e('Forum Profile', 'memberpress'); ?></a>
+      </li>
         <?php
     }
 

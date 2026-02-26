@@ -4,6 +4,8 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
+use MemberPress\GroundLevel\Support\Time;
+
 class MeprUtils
 {
     public const ADDON_COURSES        = 'courses';
@@ -346,7 +348,7 @@ class MeprUtils
      */
     public static function months($n, $base_ts = false, $backwards = false, $day_num = false)
     {
-        $base_ts = empty($base_ts) ? time() : $base_ts;
+        $base_ts = empty($base_ts) ? Time::now() : $base_ts;
 
         $month_num  = gmdate('n', $base_ts);
         $day_num    = ( (int) $day_num < 1 || (int) $day_num > 31 ) ? gmdate('j', $base_ts) : $day_num;
@@ -397,7 +399,7 @@ class MeprUtils
      */
     public static function years($n, $base_ts = false, $backwards = false, $day_num = false, $month_num = false)
     {
-        $base_ts = empty($base_ts) ? time() : $base_ts;
+        $base_ts = empty($base_ts) ? Time::now() : $base_ts;
 
         $day_num    = ( (int) $day_num < 1 || (int) $day_num > 31 ) ? gmdate('j', $base_ts) : $day_num;
         $month_num  = ( (int) $month_num < 1 || (int) $month_num > 12 ) ? gmdate('n', $base_ts) : $month_num;
@@ -490,9 +492,9 @@ class MeprUtils
     public static function make_ts_date($month, $day, $year, $begin = false)
     {
         if (true === $begin) {
-            return mktime(00, 00, 01, $month, $day, $year);
+            return gmmktime(0, 0, 1, $month, $day, $year);
         }
-        return mktime(23, 59, 59, $month, $day, $year);
+        return gmmktime(23, 59, 59, $month, $day, $year);
     }
 
     /**
@@ -509,7 +511,7 @@ class MeprUtils
         if ($ts > 0) {
             return gmdate($format, $ts);
         } else {
-            return gmdate($format, time());
+            return gmdate($format, Time::now());
         }
     }
 
@@ -547,7 +549,7 @@ class MeprUtils
      */
     public static function db_now($format = 'Y-m-d H:i:s')
     {
-        return self::ts_to_mysql_date(time(), $format);
+        return self::ts_to_mysql_date(Time::now(), $format);
     }
 
     /**
@@ -1020,10 +1022,11 @@ class MeprUtils
         $new_price          = $new_sub->price;
         $days_in_new_period = $new_sub->days_in_this_period(true);
 
-        $coupon = $new_sub->coupon();
+        $coupon  = $new_sub->coupon();
+        $product = $new_sub->product();
         if (
             $new_sub->trial && $new_sub->trial_amount > 0.00 ||
-            ($coupon && ($coupon->discount_mode === 'first-payment' || $coupon->discount_mode === 'trial-override'))
+            ($coupon && in_array($coupon->get_discount_mode($product), ['first-payment', 'trial-override'], true))
         ) {
             $new_price          = $new_sub->trial_amount;
             $days_in_new_period = $new_sub->trial_days;
@@ -1797,7 +1800,7 @@ class MeprUtils
                         $assoc[] = $new_row;
                     }
                 }
-                $row++;
+                ++$row;
             }
         }
 
@@ -3124,12 +3127,14 @@ class MeprUtils
      * @param string $subject The subject.
      * @param string $message The message.
      * @param string $headers The headers.
+     *
+     * @return boolean
      */
     public static function wp_mail_to_admin($subject, $message, $headers = '')
     {
         $mepr_options = MeprOptions::fetch();
         $recipient    = $mepr_options->admin_email_addresses;
-        self::wp_mail($recipient, $subject, $message, $headers);
+        return self::wp_mail($recipient, $subject, $message, $headers);
     }
 
     /**
@@ -3141,7 +3146,7 @@ class MeprUtils
      * @param string $headers     The headers.
      * @param array  $attachments The attachments.
      *
-     * @return void
+     * @return boolean
      */
     public static function wp_mail($recipient, $subject, $message, $headers = '', $attachments = [])
     {
@@ -3161,7 +3166,14 @@ class MeprUtils
         $message    = MeprHooks::apply_filters('mepr_wp_mail_message', $message, $recipients, $subject, $headers);
         $headers    = MeprHooks::apply_filters('mepr_wp_mail_headers', $headers, $recipients, $subject, $message, $attachments);
 
+        if (is_array($headers)) {
+            $headers = array_filter(array_map('trim', $headers));
+            $headers = implode("\r\n", $headers);
+        }
+
         MeprHooks::do_action('mepr_before_send_email', $recipients, $subject, $message, $headers, $attachments);
+
+        $sent = false;
 
         foreach ($recipients as $to) {
             $to = trim($to);
@@ -3179,7 +3191,8 @@ class MeprUtils
                 }
             }
 
-            wp_mail($to, $subject, $message, $headers, $attachments);
+            $mail_sent = wp_mail($to, $subject, $message, $headers, $attachments);
+            $sent      = ($sent || $mail_sent);
 
             /*
              * Just leaving these here as I need to debug this shiz enough, it would save me some time.
@@ -3192,8 +3205,10 @@ class MeprUtils
         MeprHooks::do_action('mepr_after_send_email', $recipients, $subject, $message, $headers, $attachments);
 
         remove_action('phpmailer_init', 'MeprUtils::reset_alt_body', 5);
-        remove_filter('wp_mail_from', 'MeprUtils::set_mail_from_name');
-        remove_filter('wp_mail_from_name', 'MeprUtils::set_mail_from_email');
+        remove_filter('wp_mail_from_name', 'MeprUtils::set_mail_from_name');
+        remove_filter('wp_mail_from', 'MeprUtils::set_mail_from_email');
+
+        return $sent;
     }
 
     /**
@@ -3831,6 +3846,45 @@ class MeprUtils
     }
 
     /**
+     * Returns the brand configuration array.
+     *
+     * @return array
+     */
+    public static function get_brand_config()
+    {
+        static $config;
+
+        if ($config === null) {
+            $file   = MEPR_BRAND_DATA_PATH . '/config.php';
+            $config = file_exists($file) ? require $file : [];
+
+            if (! is_array($config)) {
+                $config = [];
+            }
+        }
+
+        return $config;
+    }
+
+    /**
+     * Returns a value from the brand configuration.
+     *
+     * @param  string $key     The configuration key.
+     * @param  mixed  $default The default value if the key is not set.
+     * @return mixed
+     */
+    public static function get_brand_config_value($key, $default = null)
+    {
+        $config = self::get_brand_config();
+
+        if (array_key_exists($key, $config)) {
+            return $config[$key];
+        }
+
+        return $default;
+    }
+
+    /**
      * Get the edition data from a product slug
      *
      * @param  string $product_slug The product slug.
@@ -4136,7 +4190,7 @@ class MeprUtils
         });
 
         $output = '';
-        $first = true;
+        $first  = true;
 
         foreach ($links as $link) {
             // Skip links without priority (optional safety check).

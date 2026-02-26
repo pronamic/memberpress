@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <a id="mepr_post_rules"></a>
 <table class="mepr-rules-table">
   <tr>

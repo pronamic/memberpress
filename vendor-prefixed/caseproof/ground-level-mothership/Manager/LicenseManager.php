@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MemberPress\GroundLevel\Mothership\Manager;
 
+use MemberPress\GroundLevel\Mothership\AbstractPluginConnection;
 use MemberPress\GroundLevel\Mothership\Service as MothershipService;
 use MemberPress\GroundLevel\Mothership\Credentials;
 use MemberPress\GroundLevel\Mothership\Api\Response;
@@ -34,14 +35,14 @@ class LicenseManager implements StaticContainerAwareness
     }
 
     /**
-     * The checkLicenseStatus function checks the license status and triggers the license status changed action.
+     * Checks the license activation status and triggers the {$pluginId}_license_status_changed action.
      *
-     * @return boolean false if the license status is false or license key and activation domain are empty, otherwise true.
+     * @return boolean false if the license activation is disabled, or true otherwise.
      */
     public static function checkLicenseStatus(): bool
     {
         // Only run this if license status is true.
-        if (!self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getLicenseActivationStatus()) {
+        if (!self::getContainer()->get(AbstractPluginConnection::class)->getLicenseActivationStatus()) {
             return false;
         }
 
@@ -52,17 +53,18 @@ class LicenseManager implements StaticContainerAwareness
             return false;
         }
 
-        $status = LicenseActivations::retrieveLicenseActivation($licenseKey, $activationDomain);
+        $activation = LicenseActivations::retrieveLicenseActivation($licenseKey, $activationDomain);
+        $pluginId   = self::getContainer()->get(AbstractPluginConnection::class)->pluginId;
 
-        $pluginId = self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId;
 
-        if ($status instanceof Response && $status->isError()) {
-            if ($status->errorCode === 401) {
-                do_action($pluginId . '_license_status_changed', false, $status);
-                return false;
-            }
+        // The license server returns 401 when the license is not activated for the domain,
+        // 403 if the license has expired, and 404 when the license key or the domain is invalid.
+        if ($activation->isError() && in_array($activation->errorCode, [401, 403, 404], true)) {
+            do_action($pluginId . '_license_status_changed', false, $activation);
+            return false;
         }
-        do_action($pluginId . '_license_status_changed', true, $status);
+
+        do_action($pluginId . '_license_status_changed', true, $activation);
         return true;
     }
 
@@ -71,7 +73,7 @@ class LicenseManager implements StaticContainerAwareness
      */
     public static function controller(): void
     {
-        $pluginId = self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId;
+        $pluginId = self::getContainer()->get(AbstractPluginConnection::class)->pluginId;
 
         if (isset($_POST[$pluginId . '_license_button'])) {
             if ($_POST[$pluginId . '_license_button'] === 'activate') {
@@ -111,7 +113,7 @@ class LicenseManager implements StaticContainerAwareness
      */
     public function generateLicenseActivationForm(): string
     {
-        if (self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->getLicenseActivationStatus()) {
+        if (self::getContainer()->get(AbstractPluginConnection::class)->getLicenseActivationStatus()) {
             return $this->generateDisconnectForm();
         } else {
             return $this->generateActivationForm();
@@ -127,7 +129,7 @@ class LicenseManager implements StaticContainerAwareness
         $licenseIsStored = Credentials::isCredentialSetInEnvironmentOrConstants(
             MothershipService::LICENSE_KEY_BASENAME
         );
-        $pluginId        = self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId;
+        $pluginId        = self::getContainer()->get(AbstractPluginConnection::class)->pluginId;
         ?>
         <form method="post" action="" name="<?php echo esc_attr($pluginId); ?>_activate_license_form">
             <div class="<?php echo esc_attr($pluginId); ?>-licence-div-form">
@@ -165,7 +167,7 @@ class LicenseManager implements StaticContainerAwareness
      */
     public function generateDisconnectForm(): string
     {
-        $pluginId = self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId;
+        $pluginId = self::getContainer()->get(AbstractPluginConnection::class)->pluginId;
         ob_start();
         ?>
         <form method="post" action="" name="<?php echo esc_attr($pluginId); ?>_deactivate_license_form">
@@ -184,8 +186,8 @@ class LicenseManager implements StaticContainerAwareness
                 >
                 <?php wp_nonce_field('mothership_deactivate_license', '_wpnonce'); ?>
                 <input type="hidden" name="<?php echo esc_attr($pluginId); ?>_license_button" value="deactivate">
-                <input 
-                    type="submit" 
+                <input
+                    type="submit"
                     value="<?php esc_html_e('Deactivate License', 'memberpress'); ?>"
                     class="button button-secondary <?php echo esc_attr($pluginId); ?>-button-deactivate"
                 >
@@ -218,8 +220,8 @@ class LicenseManager implements StaticContainerAwareness
         $errorHtml = esc_html__('License activation failed: %s', 'memberpress');
         try {
             $product  = self::getContainer()
-                ->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)
-                ->pluginId;
+                ->get(AbstractPluginConnection::class)
+                ->productId;
             $response = LicenseActivations::activate($product, $licenseKey, $domain);
         } catch (\Exception $e) {
             throw new \Exception(sprintf(
@@ -239,7 +241,7 @@ class LicenseManager implements StaticContainerAwareness
             try {
                 Credentials::storeLicenseKey($licenseKey);
                 self::getContainer()
-                    ->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)
+                    ->get(AbstractPluginConnection::class)
                     ->updateLicenseActivationStatus(true);
             } catch (\Exception $e) {
                 throw new \Exception(sprintf(
@@ -259,36 +261,64 @@ class LicenseManager implements StaticContainerAwareness
      */
     public static function deactivateLicense(string $licenseKey, string $domain): void
     {
-        $pluginId = self::getContainer()->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)->pluginId;
+        // Translators: %s is the error message.
+        $errorHtml = esc_html__('License deactivation failed: %s', 'memberpress');
+        $pluginId  = self::getContainer()->get(AbstractPluginConnection::class)->pluginId;
 
         // Check if the user has the necessary capabilities.
-        if (!current_user_can('manage_options')) {
-            throw new \Exception(esc_html__('Insufficient permissions', 'memberpress'));
+        if (! current_user_can('manage_options')) {
+            throw new \Exception(
+                sprintf(
+                    $errorHtml,
+                    esc_html__('Insufficient permissions', 'memberpress')
+                )
+            );
         }
 
         // Check if the nonce is valid.
-        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'mothership_deactivate_license')) {
-            throw new \Exception(esc_html__('Invalid nonce', 'memberpress'));
+        if (! isset($_POST['_wpnonce']) || ! wp_verify_nonce($_POST['_wpnonce'], 'mothership_deactivate_license')) {
+            throw new \Exception(
+                sprintf(
+                    $errorHtml,
+                    esc_html__('Invalid nonce', 'memberpress')
+                )
+            );
         }
 
         try {
             $response = LicenseActivations::deactivate($licenseKey, $domain);
-            Credentials::storeLicenseKey('');
         } catch (\Exception $e) {
-            throw new \Exception(sprintf(
-                '%1$s : %2$s',
-                esc_html__(
-                    'License deactivation failed, you are using a license key from an environment variable or constant.', // phpcs:ignore Generic.Files.LineLength.TooLong
-                    'caseproof-mothership'
-                ),
-                esc_html($e->getMessage())
-            ));
+            throw new \Exception(
+                sprintf(
+                    $errorHtml,
+                    esc_html($e->getMessage())
+                )
+            );
         }
 
-        // Delete the add-ons transient.
-        delete_transient($pluginId . '-mosh-products');
-        self::getContainer()
-            ->get(MothershipService::CONNECTION_PLUGIN_SERVICE_ID)
-            ->updateLicenseActivationStatus(false);
+        if ($response->isError()) {
+            throw new \Exception(
+                sprintf(
+                    $errorHtml,
+                    esc_html($response->error)
+                )
+            );
+        }
+
+        try {
+            Credentials::storeLicenseKey('');
+            // Delete the add-ons transient.
+            delete_transient($pluginId . '-mosh-products');
+            self::getContainer()
+                ->get(AbstractPluginConnection::class)
+                ->updateLicenseActivationStatus(false);
+        } catch (\Exception $e) {
+            throw new \Exception(
+                sprintf(
+                    $errorHtml,
+                    esc_html($e->getMessage())
+                )
+            );
+        }
     }
 }

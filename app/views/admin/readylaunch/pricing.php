@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <div class="mepr_modal" aria-labelledby="mepr-pricing-modal" id="mepr-pricing-modal"
     role="dialog" aria-modal="true" style="display: none;">
     <div class="mepr_modal__overlay"></div>

@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 class MeprMigratorCtrl extends MeprBaseCtrl
 {
     /**

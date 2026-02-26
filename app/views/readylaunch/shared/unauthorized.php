@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <div id="mepro-login-hero">
   <div class="mepro-boxed">
   <div class="mepro-login-contents">

@@ -4,9 +4,9 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: https://memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.12.11
+Version: 1.12.12
 Requires at least: 6.5
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
 License: GPL v2+
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -108,6 +108,12 @@ function mepr_autoloader($class_name)
 {
     // Only load classes belonging to this plugin.
     if (preg_match('/^Mepr.+$/', $class_name)) {
+        // Ensure DB tables are defined before any Mepr class runs (fixes third-party integrations in REST/early contexts).
+        if (!class_exists('MeprDb', false)) {
+            require_once MEPR_LIB_PATH . '/MeprDb.php';
+        }
+        MeprDb::define_tables();
+
         if (preg_match('/^.+Interface$/', $class_name)) { // Load interfaces first.
             $filepath = MEPR_INTERFACES_PATH . "/{$class_name}.php";
         } elseif (preg_match('/^Mepr(Base|Cpt).+$/', $class_name)) { // Base classes are in lib.
@@ -203,9 +209,13 @@ require_once MEPR_LIB_PATH . '/core-functions.php';
 // Define database tables immediately (before controllers load).
 MeprDb::define_tables();
 
+// Add any tables from mepr_db_tables filter once MeprHooks is available.
+add_action('init', [MeprDb::class, 'define_extra_tables_from_filter'], 0);
+
 // Re-define tables when switching blogs in multisite to ensure correct prefix.
 if (is_multisite()) {
-    add_action('switch_blog', 'MeprDb::define_tables', 1);
+    add_action('switch_blog', [MeprDb::class, 'define_tables'], 1);
+    add_action('switch_blog', [MeprDb::class, 'define_extra_tables_from_filter'], 1);
 }
 
 // Load our controllers.

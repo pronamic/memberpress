@@ -364,7 +364,7 @@ class MeprTransactionsHelper
                 }
                 if (!$remove_tax && $prd->trial && (float) $txn->amount === 0.00) {
                     $amount = 0;
-                    if ($coupon->discount_type === 'percent' && (int) $coupon->discount_amount === 100) {
+                    if ($coupon->get_discount_type($prd) === 'percent' && (int) $coupon->get_discount_amount($prd) === 100) {
                         $amount = $raw_amount;
                     }
                 }
@@ -378,7 +378,7 @@ class MeprTransactionsHelper
                 $coupon->post_title
             );
         } elseif ($sub && ($coupon = $sub->coupon())) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
-            if ($coupon->discount_mode === 'trial-override' && $sub->trial) {
+            if ($coupon->get_discount_mode($prd) === 'trial-override' && $sub->trial) {
                 $amount     = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
                 $cpn_id     = $coupon->ID;
                 $cpn_desc   = sprintf(
@@ -462,7 +462,7 @@ class MeprTransactionsHelper
                 && $coupon
                 && $sub instanceof MeprSubscription && $sub->trial
                 && (
-                    ($coupon->discount_mode === 'trial-override' && $coupon->trial_amount > $prd->price)
+                    ($coupon->get_discount_mode($prd) === 'trial-override' && $coupon->get_trial_amount($prd) > $prd->price)
                     || ($sub->trial_amount > 0 && $sub->trial_amount < $prd->price)
                 )
             ) {
@@ -700,7 +700,7 @@ class MeprTransactionsHelper
                 }
                 if (!$remove_tax && $prd->trial && (float) $txn->amount === 0.00) {
                     $amount = 0;
-                    if ($coupon->discount_type === 'percent' && (int) $coupon->discount_amount === 100) {
+                    if ($coupon->get_discount_type($prd) === 'percent' && (int) $coupon->get_discount_amount($prd) === 100) {
                         $amount = $raw_amount;
                     }
                 }
@@ -714,7 +714,7 @@ class MeprTransactionsHelper
                 $coupon->post_title
             );
         } elseif ($sub && ($coupon = $sub->coupon())) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
-            if ($coupon->discount_mode === 'trial-override' && $sub->trial) {
+            if ($coupon->get_discount_mode($prd) === 'trial-override' && $sub->trial) {
                 $amount     = MeprUtils::maybe_round_to_minimum_amount($prd->trial_amount);
                 $cpn_id     = $coupon->ID;
                 $cpn_desc   = sprintf(
@@ -870,7 +870,7 @@ class MeprTransactionsHelper
                 && $coupon
                 && $sub instanceof MeprSubscription && $sub->trial
                 && (
-                    ($coupon->discount_mode === 'trial-override' && $coupon->trial_amount > $prd->price)
+                    ($coupon->get_discount_mode($prd) === 'trial-override' && $coupon->get_trial_amount($prd) > $prd->price)
                     || ($sub->trial_amount > 0 && $sub->trial_amount < $prd->price)
                 )
             ) {

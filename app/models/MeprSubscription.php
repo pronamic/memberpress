@@ -4,6 +4,8 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
+use MemberPress\GroundLevel\Support\Time;
+
 class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface, MeprTransactionInterface
 {
     /**
@@ -1373,7 +1375,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
     {
         global $wpdb;
 
-        $time = time();
+        $time = Time::now();
 
         // Set expiration 1 day in the past so it expires NOW.
         $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
@@ -1452,14 +1454,14 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
         }
 
         if ($this->trial) {
-            $trial_started = is_null($this->created_at) ? time() : strtotime($this->created_at);
+            $trial_started = is_null($this->created_at) ? Time::now() : strtotime($this->created_at);
             $trial_ended   = $trial_started + MeprUtils::days($this->trial_days);
 
             if (($type === 'paid' && (float)$this->trial_amount <= 0.00) || ($type === 'free' && (float)$this->trial_amount > 0.00)) {
                 return false;
             }
 
-            return (time() < $trial_ended);
+            return (Time::now() < $trial_ended);
         }
 
         return false;
@@ -1480,7 +1482,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
             if (
                 $first_txn instanceof MeprTransaction &&
                 $first_txn->txn_type === MeprTransaction::$subscription_confirmation_str &&
-                strtotime($first_txn->expires_at) >= time() &&
+                strtotime($first_txn->expires_at) >= Time::now() &&
                 (strtotime($first_txn->expires_at) - strtotime($first_txn->created_at)) <= MeprUtils::hours(25)
             ) {
                 return true;
@@ -1519,12 +1521,12 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
 
                 if (!($latest_txn instanceof MeprTransaction)) {
                     $latest_txn             = new MeprTransaction();
-                    $latest_txn->created_at = MeprUtils::ts_to_mysql_date(time());
+                    $latest_txn->created_at = MeprUtils::ts_to_mysql_date(Time::now());
                 }
             } else {
                 // This could happen when checking upgrade prorated price on a new sub.
                 $latest_txn             = new MeprTransaction();
-                $latest_txn->created_at = MeprUtils::ts_to_mysql_date(time());
+                $latest_txn->created_at = MeprUtils::ts_to_mysql_date(Time::now());
             }
 
             switch ($this->period_type) {
@@ -1533,7 +1535,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
                     break;
                 case 'months':
                     if (!$this->id) {
-                        $period_seconds = MeprUtils::months($this->period, time()); // Probably an upgrade calculation, x months from now.
+                        $period_seconds = MeprUtils::months($this->period, Time::now()); // Probably an upgrade calculation, x months from now.
                     } else {
                         $add_days = 0;
 
@@ -1587,7 +1589,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
             return true;
         }
 
-        $todays_ts  = time() + $offset; // Use the offset to check when a txn will expire.
+        $todays_ts  = Time::now() + $offset; // Use the offset to check when a txn will expire.
         $expires_ts = strtotime($this->expires_at);
 
         return ($expires_ts < $todays_ts);
@@ -1824,7 +1826,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
                     $override_default_behavior = MeprHooks::apply_filters('mepr_override_group_default_behavior_lt', false, $old_lifetime_txn);
 
                     if (!$override_default_behavior) {
-                        $old_lifetime_txn->expires_at = MeprUtils::ts_to_mysql_date(time() - MeprUtils::days(1));
+                        $old_lifetime_txn->expires_at = MeprUtils::ts_to_mysql_date(Time::now() - MeprUtils::days(1));
                         $old_lifetime_txn->store();
                         $evt_txn = $old_lifetime_txn;
                     }
@@ -1853,7 +1855,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
         $mepr_options = MeprOptions::fetch();
 
         if (is_null($created_ts)) {
-            $created_ts = time();
+            $created_ts = Time::now();
         }
 
         $expires_ts = $created_ts;
@@ -2155,7 +2157,7 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
 
         // Calculate Next billing time.
         $expired_at                = strtotime($this->expires_at);
-        $now                       = time();
+        $now                       = Time::now();
         $time_elapsed              = $now - $expired_at;
         $periods_elapsed           = (int)ceil($time_elapsed / MeprUtils::days($this->days_in_this_period())); // We want to round this up to INT.
         $next_billing              = $now;

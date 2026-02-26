@@ -194,6 +194,26 @@ class MeprOptions
             $this->anti_card_testing_blocked = [];
         }
 
+        if (!isset($this->proactive_support_opt_out_all)) {
+            $this->proactive_support_opt_out_all = false;
+        }
+
+        if (!isset($this->proactive_support_opted_out_emails)) {
+            $this->proactive_support_opted_out_emails = '';
+        }
+
+        if (!isset($this->proactive_support_events)) {
+            $this->proactive_support_events = [];
+        }
+
+        if (!isset($this->proactive_support_logs)) {
+            $this->proactive_support_logs = [];
+        }
+
+        if (!isset($this->proactive_support_batch_offset)) {
+            $this->proactive_support_batch_offset = 0;
+        }
+
         if (!isset($this->emails)) {
             $this->emails = [];
 
@@ -923,10 +943,10 @@ class MeprOptions
                             $params[$this->integrations_str][$intg_key]['payment_methods'] = [];
                         }
                     } elseif ($intg['gateway'] === 'MeprSquarePaymentsGateway') {
-                        $params[$this->integrations_str][$intg_key]['sandbox'] = isset($params[$this->integrations_str][$intg_key]['sandbox']);
+                        $params[$this->integrations_str][$intg_key]['sandbox']              = isset($params[$this->integrations_str][$intg_key]['sandbox']);
                         $params[$this->integrations_str][$intg_key]['production_connected'] = isset($params[$this->integrations_str][$intg_key]['production_connected']);
-                        $params[$this->integrations_str][$intg_key]['sandbox_connected'] = isset($params[$this->integrations_str][$intg_key]['sandbox_connected']);
-                        $params[$this->integrations_str][$intg_key]['saved'] = isset($params[$this->integrations_str][$intg_key]['saved']);
+                        $params[$this->integrations_str][$intg_key]['sandbox_connected']    = isset($params[$this->integrations_str][$intg_key]['sandbox_connected']);
+                        $params[$this->integrations_str][$intg_key]['saved']                = isset($params[$this->integrations_str][$intg_key]['saved']);
                     }
                 }
             }

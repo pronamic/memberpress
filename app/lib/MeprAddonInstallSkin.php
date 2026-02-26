@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /**
  * WordPress class extended for on-the-fly add-on installations.
  */

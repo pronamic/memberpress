@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 class MeprAntiCardTestingCtrl extends MeprBaseCtrl
 {
     /**

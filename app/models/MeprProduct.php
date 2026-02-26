@@ -957,8 +957,23 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                 } elseif ($this->expire_type === 'fixed') {
                     $expires_at = strtotime($this->expire_fixed);
                     $now        = time();
-                    // Make sure we adjust the year if the membership is a renewable type and the user forgot to bump up the year.
-                    if ($this->allow_renewal) {
+
+                    /**
+                     * Filter whether to automatically roll over the expiration year
+                     * when the fixed expire date is in the past and Allow Early Annual
+                     * Renewals is disabled.
+                     *
+                     * @param bool        $rollover Whether to roll over the year. Default false.
+                     * @param MeprProduct $product  The product object.
+                     */
+                    $rollover_year = MeprHooks::apply_filters(
+                        'mepr_fixed_expire_rollover_year',
+                        false,
+                        $this
+                    );
+
+                    // Roll over the year if early renewals are allowed or filter is enabled.
+                    if ($this->allow_renewal || $rollover_year) {
                         while ($now > $expires_at) {
                             $expires_at += MeprUtils::years(1);
                         }
@@ -1439,7 +1454,7 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
      */
     public function manual_append_signup()
     {
-        return preg_match('~\[\s*mepr-(product|membership)-registration-form\s*\]~', $this->post_content);
+        return preg_match('~\[\s*mepr[-_](product|membership)[-_]registration[-_]form\s*\]~', $this->post_content);
     }
 
     /**

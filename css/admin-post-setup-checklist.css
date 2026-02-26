@@ -1,0 +1,701 @@
+/**
+ * MemberPress Post-Setup Checklist Styles
+ *
+ * A modern, distinctive sidebar design for the post-setup checklist.
+ */
+
+/* CSS Variables for theming - MemberPress brand colors */
+:root {
+    --mepr-psc-primary: #06429e;
+    --mepr-psc-primary-dark: #042d6e;
+    --mepr-psc-primary-light: #0a5bc7;
+    --mepr-psc-accent: #1481b3;
+    --mepr-psc-accent-hover: #106999;
+    --mepr-psc-accent-light: #00cee6;
+    --mepr-psc-success: #2e9e5e;
+    --mepr-psc-success-light: #cbfecf;
+    --mepr-psc-bg: #ffffff;
+    --mepr-psc-bg-subtle: #f3f6fb;
+    --mepr-psc-border: #cddaeb;
+    --mepr-psc-text: #091d2e;
+    --mepr-psc-text-muted: #5a6a7a;
+    --mepr-psc-shadow: 0 20px 25px -5px rgba(6, 66, 158, 0.1), 0 8px 10px -6px rgba(6, 66, 158, 0.1);
+    --mepr-psc-shadow-sm: 0 1px 3px 0 rgba(6, 66, 158, 0.1), 0 1px 2px -1px rgba(6, 66, 158, 0.1);
+    --mepr-psc-radius: 12px;
+    --mepr-psc-radius-sm: 8px;
+    --mepr-psc-sidebar-width: 320px;
+    --mepr-psc-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --mepr-psc-header-height: 72px;
+}
+
+/* Body class adjustment for sidebar space */
+body.mepr-has-post-setup-checklist #wpbody {
+    margin-right: var(--mepr-psc-sidebar-width);
+    transition: margin-right var(--mepr-psc-transition);
+}
+
+body.mepr-has-post-setup-checklist.mepr-post-setup-checklist-minimized #wpbody,
+body.mepr-has-post-setup-checklist.mepr-post-setup-checklist-minimized #wpfooter {
+    margin-right: 0;
+}
+
+/* Main Container */
+.mepr-post-setup-checklist {
+    width: var(--mepr-psc-sidebar-width);
+    height: calc(100vh - 32px - var(--mepr-psc-header-height));
+    display: flex;
+    position: fixed;
+    top: calc(32px + var(--mepr-psc-header-height));
+    right: 0;
+    background: var(--mepr-psc-bg);
+    border-left: 1px solid var(--mepr-psc-border);
+    box-shadow: var(--mepr-psc-shadow);
+    z-index: 99;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    transition: width var(--mepr-psc-transition), top var(--mepr-psc-transition), height var(--mepr-psc-transition);
+    overflow: hidden;
+}
+
+/* Scrolled State - stick to admin bar when page is scrolled */
+.mepr-post-setup-checklist.is-scrolled:not(.is-minimized) {
+    top: 32px;
+    height: calc(100vh - 32px);
+}
+
+/* Minimized State - positioned at bottom right corner */
+.mepr-post-setup-checklist.is-minimized {
+    width: var(--mepr-psc-sidebar-width);
+    height: auto;
+    top: auto;
+    bottom: 20px;
+    right: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--mepr-psc-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.mepr-post-setup-checklist.is-minimized .mepr-psc-panel {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    height: auto;
+}
+
+.mepr-post-setup-checklist.is-minimized .mepr-psc-header {
+    border-radius: 7px;
+}
+
+.mepr-post-setup-checklist.is-minimized .mepr-psc-progress-bar-container,
+.mepr-post-setup-checklist.is-minimized .mepr-psc-content,
+.mepr-post-setup-checklist.is-minimized .mepr-psc-footer {
+    display: none;
+}
+
+/* Show expand button, hide minimize button when minimized */
+.mepr-post-setup-checklist.is-minimized .mepr-psc-minimize {
+    display: none;
+}
+
+/* Expand button - hidden by default, shown when minimized */
+.mepr-psc-expand {
+    display: none !important;
+}
+
+.mepr-post-setup-checklist.is-minimized .mepr-psc-expand {
+    display: flex !important;
+}
+
+/* Panel (Expanded State) */
+.mepr-psc-panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--mepr-psc-bg);
+    opacity: 1;
+    visibility: visible;
+    overflow: hidden;
+    transition: opacity var(--mepr-psc-transition), visibility var(--mepr-psc-transition);
+}
+
+/* Header */
+.mepr-psc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    background: linear-gradient(90deg, var(--mepr-psc-primary) 0%, var(--mepr-psc-accent) 100%);
+    color: #ffffff;
+}
+
+.mepr-psc-header-content {
+    flex: 1;
+}
+
+.mepr-psc-title {
+    margin: 0 0 4px 0;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.mepr-psc-subtitle {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.mepr-psc-header-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.mepr-psc-header-actions button {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background var(--mepr-psc-transition);
+}
+
+.mepr-psc-header-actions button:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.mepr-psc-header-actions button .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+/* Progress Bar */
+.mepr-psc-progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--mepr-psc-bg-subtle);
+    border-bottom: 1px solid var(--mepr-psc-border);
+}
+
+.mepr-psc-progress-bar {
+    width: 100%;
+    height: 8px;
+    display: block;
+    flex: 1;
+    background: var(--mepr-psc-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.mepr-psc-progress-fill {
+    height: 100%;
+    display: block;
+    background: linear-gradient(90deg, var(--mepr-psc-primary) 0%, var(--mepr-psc-accent) 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+}
+
+.mepr-psc-progress-label {
+    display: block;
+    color: var(--mepr-psc-text);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Screen Reader Text (Visually Hidden) */
+.mepr-psc-step .screen-reader-text {
+    width: 1px;
+    height: 1px;
+    position: absolute;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Content Area (wraps steps and optional section) */
+.mepr-psc-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Steps List */
+.mepr-psc-steps {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 12px 0;
+    list-style: none;
+}
+
+/* Individual Step */
+.mepr-psc-step {
+    display: flex;
+    gap: 12px;
+    padding: 12px 20px;
+    border-left: 3px solid transparent;
+    transition: background var(--mepr-psc-transition), border-color var(--mepr-psc-transition);
+}
+
+.mepr-psc-step.is-current {
+    background: var(--mepr-psc-bg-subtle);
+    border-left-color: var(--mepr-psc-primary);
+}
+
+.mepr-psc-step.is-completed {
+    opacity: 0.7;
+}
+
+.mepr-psc-step.is-completed:hover {
+    opacity: 1;
+}
+
+/* Step Indicator */
+.mepr-psc-step-indicator {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    flex-shrink: 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.mepr-psc-check {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--mepr-psc-success);
+    border-radius: 50%;
+    color: #ffffff;
+    animation: mepr-psc-check-appear 0.3s ease-out;
+}
+
+@keyframes mepr-psc-check-appear {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.mepr-psc-check svg {
+    width: 14px;
+    height: 14px;
+}
+
+.mepr-psc-current-marker {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--mepr-psc-primary);
+    border-radius: 50%;
+    color: #ffffff;
+    animation: mepr-psc-pulse 2s infinite;
+}
+
+@keyframes mepr-psc-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(6, 66, 158, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(6, 66, 158, 0);
+    }
+}
+
+.mepr-psc-current-marker svg {
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
+}
+
+.mepr-psc-pending-marker {
+    width: 20px;
+    height: 20px;
+    display: block;
+    background: var(--mepr-psc-bg);
+    border: 2px solid var(--mepr-psc-border);
+    border-radius: 50%;
+}
+
+.mepr-psc-skipped-marker {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--mepr-psc-bg-subtle);
+    border: 2px solid var(--mepr-psc-border);
+    border-radius: 50%;
+    color: var(--mepr-psc-text-muted);
+}
+
+.mepr-psc-skipped-marker svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* Skipped Step Styles */
+.mepr-psc-step.is-skipped {
+    opacity: 0.6;
+}
+
+.mepr-psc-step.is-skipped:hover {
+    opacity: 0.8;
+}
+
+.mepr-psc-step.is-skipped .mepr-psc-step-title {
+    color: var(--mepr-psc-text-muted);
+    text-decoration: line-through;
+    text-decoration-style: dashed;
+}
+
+/* Step Content */
+.mepr-psc-step-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.mepr-psc-step-title {
+    margin: 2px 0 0;
+    color: var(--mepr-psc-text);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.mepr-psc-step.is-completed .mepr-psc-step-title {
+    text-decoration: line-through;
+    color: var(--mepr-psc-text-muted);
+}
+
+.mepr-psc-step-description {
+    margin: 0 0 10px 0;
+    color: var(--mepr-psc-text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Step Action Button */
+.mepr-psc-step-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--mepr-psc-primary);
+    border-radius: var(--mepr-psc-radius-sm);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background var(--mepr-psc-transition), transform var(--mepr-psc-transition);
+}
+
+.mepr-psc-step-action:hover {
+    background: var(--mepr-psc-primary-dark);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+
+.mepr-psc-step-action:focus {
+    background: var(--mepr-psc-text);
+    color: #ffffff;
+    transform: translateX(2px);
+    outline: none;
+}
+
+.mepr-psc-arrow {
+    width: 14px;
+    height: 14px;
+    transition: transform var(--mepr-psc-transition);
+}
+
+.mepr-psc-step-action:hover .mepr-psc-arrow {
+    transform: translateX(3px);
+}
+
+/* Step Actions Container */
+.mepr-psc-step-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Skip Button */
+.mepr-psc-step-skip {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--mepr-psc-border);
+    border-radius: var(--mepr-psc-radius-sm);
+    color: var(--mepr-psc-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--mepr-psc-transition), color var(--mepr-psc-transition), border-color var(--mepr-psc-transition);
+}
+
+.mepr-psc-step-skip:hover {
+    background: var(--mepr-psc-bg-subtle);
+    border-color: var(--mepr-psc-text-muted);
+    color: var(--mepr-psc-text);
+}
+
+.mepr-psc-step-skip:focus {
+    outline: 2px solid var(--mepr-psc-primary);
+    outline-offset: 2px;
+}
+
+/* Footer */
+.mepr-psc-footer {
+    padding: 16px 20px;
+    background: var(--mepr-psc-bg-subtle);
+    border-top: 1px solid var(--mepr-psc-border);
+    font-size: 12px !important;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.mepr-psc-footer-text {
+    margin: 0;
+    color: var(--mepr-psc-text-muted);
+}
+
+.mepr-psc-footer-support {
+    margin: 8px 0 0;
+}
+
+.mepr-psc-footer-support a {
+    color: var(--mepr-psc-accent);
+    text-decoration: none;
+    transition: color var(--mepr-psc-transition);
+}
+
+.mepr-psc-footer-support a:hover,
+.mepr-psc-footer-support a:focus {
+    color: var(--mepr-psc-accent-hover);
+    text-decoration: underline;
+}
+
+/* Optional Steps Section */
+.mepr-psc-optional-section {
+    flex: 1;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--mepr-psc-border);
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.mepr-psc-optional-title {
+    margin: 0 0 8px 20px;
+    padding: 0;
+    color: var(--mepr-psc-text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mepr-psc-optional-steps {
+    padding-top: 0;
+}
+
+/* Optional Step Styles */
+.mepr-psc-step.mepr-psc-optional {
+    opacity: 0.85;
+}
+
+.mepr-psc-step.mepr-psc-optional:hover {
+    opacity: 1;
+}
+
+.mepr-psc-step.mepr-psc-optional.is-completed {
+    opacity: 0.6;
+}
+
+.mepr-psc-optional-marker {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--mepr-psc-bg);
+    border: 2px dashed var(--mepr-psc-border);
+    border-radius: 50%;
+    color: var(--mepr-psc-text-muted);
+}
+
+.mepr-psc-optional-marker svg {
+    width: 10px;
+    height: 10px;
+}
+
+/* Optional action button - slightly muted */
+.mepr-psc-step-action.mepr-psc-optional-action {
+    background: var(--mepr-psc-text-muted);
+}
+
+.mepr-psc-step-action.mepr-psc-optional-action:hover {
+    background: var(--mepr-psc-text);
+}
+
+/* Steps that need plugin install/activate/upgrade */
+.mepr-psc-step.needs-install .mepr-psc-step-action,
+.mepr-psc-step.needs-activate .mepr-psc-step-action,
+.mepr-psc-step.needs-upgrade .mepr-psc-step-action {
+    background: var(--mepr-psc-accent);
+}
+
+.mepr-psc-step.needs-install .mepr-psc-step-action:hover,
+.mepr-psc-step.needs-activate .mepr-psc-step-action:hover,
+.mepr-psc-step.needs-upgrade .mepr-psc-step-action:hover {
+    background: var(--mepr-psc-primary);
+}
+
+.mepr-psc-upgrade-action .mepr-psc-arrow {
+    width: 12px;
+    height: 12px;
+}
+
+/* Install/Activate button as button element */
+button.mepr-psc-step-action {
+    border: none;
+    cursor: pointer;
+}
+
+button.mepr-psc-step-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Loading spinner */
+.mepr-psc-spinner {
+    display: none;
+    width: 14px;
+    height: 14px;
+    margin-left: 6px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: mepr-psc-spin 0.8s linear infinite;
+}
+
+.mepr-psc-step-action.is-loading .mepr-psc-spinner {
+    display: inline-block;
+}
+
+.mepr-psc-step-action.is-loading .mepr-psc-arrow {
+    display: none;
+}
+
+@keyframes mepr-psc-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 1200px) {
+    :root {
+        --mepr-psc-sidebar-width: 280px;
+    }
+}
+
+@media screen and (max-width: 782px) {
+    body.mepr-has-post-setup-checklist #wpbody {
+        margin-right: 0;
+    }
+
+    body.mepr-has-post-setup-checklist.mepr-post-setup-checklist-minimized #wpbody,
+    body.mepr-has-post-setup-checklist.mepr-post-setup-checklist-minimized #wpfooter {
+        margin-right: 0;
+    }
+
+    .mepr-post-setup-checklist {
+        width: 100%;
+        height: auto;
+        position: relative;
+        top: auto;
+        right: auto;
+        border-left: none;
+        border-bottom: 1px solid var(--mepr-psc-border);
+    }
+
+    .mepr-post-setup-checklist.is-minimized {
+        width: auto;
+        height: auto;
+        bottom: 16px;
+        right: 16px;
+        max-width: calc(100% - 32px);
+    }
+
+    .mepr-psc-optional-section {
+        max-height: 360px;
+    }
+}
+
+/* Admin bar adjustment */
+@media screen and (max-width: 600px) {
+    .mepr-post-setup-checklist {
+        top: calc(46px + var(--mepr-psc-header-height));
+        height: calc(100vh - 46px - var(--mepr-psc-header-height));
+    }
+}
+
+/* Small height devices - make content scrollable while keeping footer fixed */
+@media screen and (max-height: 1100px) {
+    .mepr-psc-panel {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mepr-psc-content {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    .mepr-psc-steps {
+        flex-shrink: 1;
+    }
+
+    .mepr-psc-optional-section {
+        flex-shrink: 1;
+        overflow-y: visible;
+    }
+
+    .mepr-psc-footer {
+        flex-shrink: 0;
+    }
+}
+
+/* Print styles - hide checklist */
+@media print {
+    .mepr-post-setup-checklist {
+        display: none !important;
+    }
+
+    body.mepr-has-post-setup-checklist #wpbody {
+        margin-right: 0 !important;
+    }
+}
+

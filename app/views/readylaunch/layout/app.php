@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 do_action('mepr_rl_before_main', get_defined_vars()); ?>
 <main id="primary" class="site-main <?php echo esc_attr($wrapper_classes) ?>">
   <?php the_content() ?>

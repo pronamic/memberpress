@@ -515,6 +515,22 @@ table.mepr-addons-table tr th {
   margin: auto;
 }
 
+#mepr-stripe-connect-migrate-prompt .stripe-feature-list {
+  width: auto !important;
+  max-width: 500px;
+}
+
+/* When checklist sidebar is expanded, constrain payment prompt width */
+body.mepr-has-post-setup-checklist:not(.mepr-post-setup-checklist-minimized) .mepr-payment-option-prompt {
+  width: auto;
+  max-width: 100%;
+}
+
+body.mepr-has-post-setup-checklist:not(.mepr-post-setup-checklist-minimized) #mepr-stripe-connect-migrate-prompt .stripe-feature-list {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .mepr-integration-gateway-form .stripe-features li,
 .mepr-integration-gateway-form .paypal-features li {
   margin: 0;

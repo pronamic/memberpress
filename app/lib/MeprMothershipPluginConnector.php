@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 use MemberPress\GroundLevel\Mothership\AbstractPluginConnection;
 
 /**

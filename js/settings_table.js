@@ -96,10 +96,10 @@ var mepr_toggle_select_box = function(select, boxes, animate) {
 };
 
 // Setup all option toggle boxes
-var mepr_toggle_boxes = function() {
+var mepr_toggle_boxes = function(parent_selector = '') {
   var $ = jQuery;
 
-  $('.mepr-toggle-checkbox').each(function() {
+  $(parent_selector + ' .mepr-toggle-checkbox').each(function() {
     var box = '.'+$(this).data('box');
     var reverse  = (typeof $(this).data('reverse') !== 'undefined');
 
@@ -110,7 +110,7 @@ var mepr_toggle_boxes = function() {
     });
   });
 
-  $('.mepr-toggle-link').each(function() {
+  $(parent_selector + ' .mepr-toggle-link').each(function() {
     var box = '.'+$(this).data('box');
     var reverse = (typeof $(this).data('reverse') !== 'undefined');
 
@@ -122,7 +122,7 @@ var mepr_toggle_boxes = function() {
     });
   });
 
-  $('.mepr-toggle-select').each(function() {
+  $(parent_selector + ' .mepr-toggle-select').each(function() {
     var boxes = {};
     var select = this;
 

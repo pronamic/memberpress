@@ -126,7 +126,7 @@ if (!empty($records)) {
                         ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                         ?>
                         <td class="<?php echo esc_attr($class_value); ?>"<?php echo $is_hidden ? ' style="display:none;"' : ''; ?>>
-                            <div class="status_initial status_initial_<?php echo esc_attr($rec->id); ?>" data-value="<?php echo esc_attr($rec->id); ?>">
+                            <div class="status_initial mepr_status_<?php echo esc_attr($rec->status); ?> status_initial_<?php echo esc_attr($rec->id); ?>" data-value="<?php echo esc_attr($rec->id); ?>">
                                 <?php echo $status_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                             </div>
                             <div class="status_editable status_editable_<?php echo esc_attr($rec->id); ?>">

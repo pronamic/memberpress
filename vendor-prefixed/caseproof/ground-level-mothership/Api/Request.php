@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace MemberPress\GroundLevel\Mothership\Api;
 
+use MemberPress\GroundLevel\Mothership\AbstractPluginConnection;
 use MemberPress\GroundLevel\Mothership\Credentials;
 use MemberPress\GroundLevel\Mothership\Api\Response;
-use MemberPress\GroundLevel\Mothership\Api\PaginatedResponse;
 use MemberPress\GroundLevel\Mothership\Service as MothershipService;
 use MemberPress\GroundLevel\Container\Concerns\HasStaticContainer;
 use MemberPress\GroundLevel\Container\Contracts\StaticContainerAwareness;
@@ -17,6 +17,13 @@ use MemberPress\GroundLevel\Container\Contracts\StaticContainerAwareness;
 class Request implements StaticContainerAwareness
 {
     use HasStaticContainer;
+
+    /**
+     * The cache key ID for the API cache.
+     *
+     * @var string
+     */
+    public const API_CACHE_ID = 'API_CACHE';
 
     /**
      * Perform a GET request.
@@ -30,7 +37,7 @@ class Request implements StaticContainerAwareness
         if (!empty($params)) {
             $endpoint = add_query_arg($params, $endpoint);
         }
-        return self::makeRequest('GET', $endpoint);
+        return self::makeCachedGetRequest($endpoint);
     }
 
     /**
@@ -114,6 +121,38 @@ class Request implements StaticContainerAwareness
     }
 
     /**
+     * Make a cached GET request.
+     *
+     * @param  string $endpoint The API endpoint to request.
+     * @return Response
+     */
+    private static function makeCachedGetRequest(string $endpoint): Response
+    {
+        $cacheTTL = self::getContainer()->get(MothershipService::CACHE_TTL);
+
+        if ($cacheTTL > 0) {
+            $cacheKey = implode('_', [
+                self::getContainer()->get(AbstractPluginConnection::class)->pluginId,
+                MothershipService::ID,
+                self::API_CACHE_ID,
+                md5($endpoint),
+            ]);
+
+            $cachedResponse = get_transient($cacheKey);
+            if ($cachedResponse instanceof Response) {
+                return $cachedResponse;
+            }
+
+            $response = self::makeRequest('GET', $endpoint);
+            if (! $response->isError()) {
+                set_transient($cacheKey, $response, $cacheTTL);
+            }
+            return $response;
+        }
+        return self::makeRequest('GET', $endpoint);
+    }
+
+    /**
      * Get authentication headers.
      *
      * @return array The authentication headers.
@@ -163,10 +202,6 @@ class Request implements StaticContainerAwareness
 
         if (!self::isSuccessfulResponse($responseCode, $data)) {
             return self::handleErrorResponse($data, $responseCode);
-        }
-
-        if (self::isPaginatedResponse($data)) {
-            return new PaginatedResponse($data);
         }
 
         return new Response($data);
@@ -242,6 +277,8 @@ class Request implements StaticContainerAwareness
      *
      * @param  mixed $data The response data from the API.
      * @return boolean
+     *
+     * @deprecated Use {@see \GroundLevel\Mothership\Api\Response::hasPagination} instead.
      */
     protected static function isPaginatedResponse($data): bool
     {

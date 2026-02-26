@@ -1,3 +1,4 @@
+<?php defined('ABSPATH') || exit; ?>
 <span class="mepr-filter-by">
   <label><?php esc_html_e('Filter by', 'memberpress'); ?></label>
 

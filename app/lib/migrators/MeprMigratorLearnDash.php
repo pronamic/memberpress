@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 use memberpress\courses\controllers\admin\CourseCategories;
 use memberpress\courses\controllers\admin\CourseTags;
 use memberpress\courses\helpers\Courses;

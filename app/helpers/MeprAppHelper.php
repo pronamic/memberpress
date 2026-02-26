@@ -382,7 +382,16 @@ class MeprAppHelper
         if ((float) $price <= 0.00) {
             if (
                 $period_type !== 'lifetime' && !empty($coupon) &&
-                (($coupon->discount_type === 'percent' && (int) $coupon->discount_amount === 100) or ($coupon->discount_mode === 'standard' && (bool) $obj->trial === false))
+                (
+                    (
+                        $coupon->get_discount_type($product) === 'percent' &&
+                        (int) $coupon->get_discount_amount($product) === 100
+                    ) or
+                    (
+                        $coupon->get_discount_mode($product) === 'standard' &&
+                        (bool) $obj->trial === false
+                    )
+                )
             ) {
                 $price_str = __('Free forever', 'memberpress');
             } elseif ($period_type === 'lifetime') {
