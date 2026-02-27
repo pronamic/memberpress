@@ -4,7 +4,7 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: https://memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.12.12
+Version: 1.12.14
 Requires at least: 6.5
 Tested up to: 6.9
 Requires PHP: 7.4
@@ -272,7 +272,13 @@ function mepr_on_activate(): void
             $mepr_options->design_enable_account_template = true;
         }
 
-        $mepr_options->setup_complete      = 1;
+        $mepr_options->setup_complete                  = 1;
+        $mepr_options->activated_timestamp             = time();
+        $mepr_options->proactive_support_fresh_install = true;
+        $mepr_options->store(false);
+    } else {
+        // Re-activation or edition switch: restart the proactive support delay clock
+        // so the failed-onboarding trigger 3-day window begins from this activation.
         $mepr_options->activated_timestamp = time();
         $mepr_options->store(false);
     }
@@ -298,6 +304,9 @@ function mepr_on_deactivate(): void
 
     $reminders_controller = new MeprRemindersCtrl();
     $reminders_controller->unschedule_reminders();
+
+    // Remove wp-cron proactive support event.
+    wp_clear_scheduled_hook(MeprProactiveSupportCronCtrl::CRON_HOOK);
 }
 
 register_activation_hook(MEPR_PLUGIN_SLUG, 'mepr_on_activate');

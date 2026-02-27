@@ -65,7 +65,7 @@ class MeprProactiveSupportMailer
         $headers = [
             'Content-Type: text/html; charset=UTF-8',
             'From: MemberPress Support <support@memberpress.com>',
-            'Reply-To: onboarding@memberpress.com',
+            'Reply-To: outreach@memberpress.com',
             'X-MemberPress-Trigger: ' . sanitize_key($trigger),
             'X-MemberPress-User-ID: ' . ($user instanceof WP_User ? $user->ID : 0),
             'X-MemberPress-Site-URL: ' . $site_url,

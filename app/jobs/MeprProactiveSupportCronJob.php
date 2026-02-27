@@ -15,6 +15,10 @@ class MeprProactiveSupportCronJob
      */
     public function run(): void
     {
+        if (!MeprProactiveSupportHelper::is_enabled()) {
+            return;
+        }
+
         $recipients = MeprProactiveSupportHelper::get_admin_batch(50);
 
         if (empty($recipients)) {

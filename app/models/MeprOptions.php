@@ -214,6 +214,10 @@ class MeprOptions
             $this->proactive_support_batch_offset = 0;
         }
 
+        if (!isset($this->proactive_support_fresh_install)) {
+            $this->proactive_support_fresh_install = false;
+        }
+
         if (!isset($this->emails)) {
             $this->emails = [];
 

@@ -1,7 +1,5 @@
 <?php
 
-defined('ABSPATH') || exit;
-
 /**
  * File: lock.php
  * Description: This file prevents access to static files & standalone php scripts if protected.
@@ -21,6 +19,8 @@ function mepr_lock(): void
     } else {
         require_once($root . '/wp-config.php');
     }
+
+    defined('ABSPATH') || exit;
 
     $mepr_uri = isset($_REQUEST['mepruri'])
         ? untrailingslashit(esc_url_raw(wp_unslash($_REQUEST['mepruri'])))

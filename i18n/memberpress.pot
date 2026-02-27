@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2+.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress 1.12.12\n"
+"Project-Id-Version: MemberPress 1.12.14\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-02-25T19:45:12+00:00\n"
+"POT-Creation-Date: 2026-02-26T17:15:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: memberpress\n"
@@ -2344,7 +2344,7 @@ msgstr ""
 
 #: app/controllers/MeprProductsCtrl.php:315
 #: app/helpers/MeprOnboardingHelper.php:677
-#: app/models/MeprOptions.php:883
+#: app/models/MeprOptions.php:887
 #: memberpress.php:239
 msgid "Your subscription has been set up successfully."
 msgstr ""
@@ -4838,8 +4838,8 @@ msgstr ""
 
 #: app/helpers/MeprAppHelper.php:78
 #: app/helpers/MeprAppHelper.php:398
-#: app/models/MeprOptions.php:1319
-#: app/models/MeprOptions.php:1320
+#: app/models/MeprOptions.php:1323
+#: app/models/MeprOptions.php:1324
 #: app/models/MeprTransaction.php:1245
 msgid "Free"
 msgstr ""
@@ -5677,8 +5677,8 @@ msgstr ""
 
 #: app/helpers/MeprOptionsHelper.php:64
 #: app/helpers/MeprTransactionsHelper.php:103
-#: app/models/MeprOptions.php:1326
-#: app/models/MeprOptions.php:1327
+#: app/models/MeprOptions.php:1330
+#: app/models/MeprOptions.php:1331
 msgid "Manual"
 msgstr ""
 
@@ -7124,80 +7124,80 @@ msgid "An unsupported Event type was used"
 msgstr ""
 
 #. Translators: %s: blog name.
-#: app/models/MeprOptions.php:284
+#: app/models/MeprOptions.php:288
 msgid "Welcome to %s"
 msgstr ""
 
-#: app/models/MeprOptions.php:375
+#: app/models/MeprOptions.php:379
 msgctxt "ui"
 msgid "I have read and agree to the Terms Of Service"
 msgstr ""
 
-#: app/models/MeprOptions.php:379
-#: app/models/MeprOptions.php:970
+#: app/models/MeprOptions.php:383
+#: app/models/MeprOptions.php:974
 msgctxt "ui"
 msgid "This site collects names, emails and other user information. I consent to the terms set forth in the %Privacy Policy%."
 msgstr ""
 
-#: app/models/MeprOptions.php:449
+#: app/models/MeprOptions.php:453
 msgid "You are unauthorized to view this page."
 msgstr ""
 
-#: app/models/MeprOptions.php:794
+#: app/models/MeprOptions.php:798
 msgid "The Membership Pages Slug must be set"
 msgstr ""
 
-#: app/models/MeprOptions.php:798
+#: app/models/MeprOptions.php:802
 msgid "The Group Pages Slug must be set"
 msgstr ""
 
-#: app/models/MeprOptions.php:802
+#: app/models/MeprOptions.php:806
 msgid "The Membership Pages Slug must only contain letters, numbers and dashes."
 msgstr ""
 
-#: app/models/MeprOptions.php:806
+#: app/models/MeprOptions.php:810
 msgid "The Group Pages Slug must only contain letters, numbers and dashes."
 msgstr ""
 
-#: app/models/MeprOptions.php:810
+#: app/models/MeprOptions.php:814
 msgid "At least one Admin Email Address must be set"
 msgstr ""
 
-#: app/models/MeprOptions.php:815
+#: app/models/MeprOptions.php:819
 msgid "The Admin Email Address field must contain 1 or more valid email addresses"
 msgstr ""
 
-#: app/models/MeprOptions.php:968
+#: app/models/MeprOptions.php:972
 msgctxt "ui"
 msgid "I have read and agree to the Terms of Service"
 msgstr ""
 
-#: app/models/MeprOptions.php:1486
+#: app/models/MeprOptions.php:1490
 msgctxt "ui"
 msgid "Address Line 1"
 msgstr ""
 
-#: app/models/MeprOptions.php:1494
+#: app/models/MeprOptions.php:1498
 msgctxt "ui"
 msgid "Address Line 2"
 msgstr ""
 
-#: app/models/MeprOptions.php:1502
+#: app/models/MeprOptions.php:1506
 msgctxt "ui"
 msgid "City"
 msgstr ""
 
-#: app/models/MeprOptions.php:1510
+#: app/models/MeprOptions.php:1514
 msgctxt "ui"
 msgid "Country"
 msgstr ""
 
-#: app/models/MeprOptions.php:1518
+#: app/models/MeprOptions.php:1522
 msgctxt "ui"
 msgid "State/Province"
 msgstr ""
 
-#: app/models/MeprOptions.php:1526
+#: app/models/MeprOptions.php:1530
 msgctxt "ui"
 msgid "Zip/Postal Code"
 msgstr ""

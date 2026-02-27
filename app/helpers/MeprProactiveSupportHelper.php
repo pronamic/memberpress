@@ -244,6 +244,20 @@ class MeprProactiveSupportHelper
     }
 
     /**
+     * Determine if proactive support is enabled for this install.
+     *
+     * Returns true only when the flag was explicitly set during initial activation,
+     * which happens exclusively on fresh installs, never on upgrades.
+     *
+     * @return boolean
+     */
+    public static function is_enabled(): bool
+    {
+        $options = MeprOptions::fetch();
+        return !empty($options->proactive_support_fresh_install);
+    }
+
+    /**
      * Get the install timestamp.
      *
      * @return integer

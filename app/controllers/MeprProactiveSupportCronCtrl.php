@@ -47,7 +47,7 @@ class MeprProactiveSupportCronCtrl extends MeprBaseCtrl
     public function schedule()
     {
         if (!wp_next_scheduled(self::CRON_HOOK)) {
-            wp_schedule_event(time(), 'mepr_proactive_support_six_hours', self::CRON_HOOK);
+            wp_schedule_event(time() + HOUR_IN_SECONDS, 'mepr_proactive_support_six_hours', self::CRON_HOOK);
         }
     }
 
