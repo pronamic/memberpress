@@ -110,9 +110,10 @@ class MeprProactiveSupportHelper
                 if ($installed_at === 0 || $complete) {
                     return $results;
                 }
+                $cta_url = MeprHooks::apply_filters('mepr_onboarding_cta_url', '');
                 $results['ready']              = ($now - $installed_at) >= self::get_triggers()[self::TRIGGER_FAILED_ONBOARDING]['delay'];
-                $results['met']                = $results['ready'];
-                $results['context']['cta_url'] = admin_url('admin.php?page=memberpress-onboarding');
+                $results['met']                = $results['ready'] && $cta_url !== '';
+                $results['context']['cta_url'] = $cta_url;
                 break;
 
             case self::TRIGGER_NO_MEMBERSHIPS:
@@ -275,12 +276,12 @@ class MeprProactiveSupportHelper
      */
     public static function is_onboarding_complete(): bool
     {
-        if (get_option('mepr_onboarding_complete') === '1') {
-            self::maybe_store_event_time(self::EVENT_ONBOARDING_COMPLETE, time());
-            return true;
+        $option = MeprHooks::apply_filters('mepr_onboarding_complete_option', 'mepr_onboarding_complete');
+        if ($option !== '' && get_option($option) !== '1') {
+            return false;
         }
-
-        return false;
+        self::maybe_store_event_time(self::EVENT_ONBOARDING_COMPLETE, time());
+        return true;
     }
 
     /**
@@ -504,7 +505,10 @@ class MeprProactiveSupportHelper
     public static function set_global_opt_out($enabled): void
     {
         self::maybe_migrate_global_opt_out();
-        $options                                = MeprOptions::fetch(true);
+        // Do NOT use fetch(true) here — this runs during process_form() before
+        // the new values are saved, so force-fetching would replace the static
+        // cache with stale data from the DB. See #3381.
+        $options                                = MeprOptions::fetch();
         $options->proactive_support_opt_out_all = (bool) $enabled;
         $options->store(false);
     }
@@ -751,7 +755,10 @@ class MeprProactiveSupportHelper
             return;
         }
 
-        $options                                = MeprOptions::fetch(true);
+        // Do NOT use fetch(true) here — this runs during process_form() before
+        // the new values are saved, so force-fetching would replace the static
+        // cache with stale data from the DB. See #3381.
+        $options                                = MeprOptions::fetch();
         $options->proactive_support_opt_out_all = ($legacy === '1');
         $options->store(false);
 

@@ -76,19 +76,17 @@ jQuery(document).ready(function() {
         mepr_subscriptions_nonce: MeprSub.suspend_subscription_nonce
       };
 
-      jQuery.post(ajaxurl, data, function(data) {
+      jQuery.post(ajaxurl, data, function(response) {
         jQuery('tr#record_' + i + ' .mepr_loader').hide();
 
-        var trimmed_data = data.replace(/^\s+|\s+$/g, ''); //Trim whitespace
-
-        if(trimmed_data == 'true') {
+        if(response.success) {
           jQuery('a#status-row-' + i).text(MeprSub.suspend_text);
           jQuery('select#status-select-' + i).val('suspended');
           jQuery('tr#record_' + i + ' .mepr-resume-sub-action').show();
           jQuery('tr#record_' + i + ' .mepr-suspend-sub-action').hide();
           alert(MeprSub.suspend_sub_success);
         } else {
-          alert(MeprSub.suspend_sub_error); //Alerts user that the subscription could not be deleted
+          alert(response.data || MeprSub.suspend_sub_error);
         }
       });
     }

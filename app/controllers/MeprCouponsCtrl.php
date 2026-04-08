@@ -247,44 +247,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
 
         if (!empty($post) && $post->post_type === MeprCoupon::$cpt) {
             $coupon = new MeprCoupon($post_id);
-
-            if (isset($_POST[MeprCoupon::$should_start_str])) {
-                $coupon->should_start   = true;
-                $month                  = isset($_POST[MeprCoupon::$starts_on_month_str]) ? max(1, intval(wp_unslash($_POST[MeprCoupon::$starts_on_month_str]))) : 1;
-                $day                    = isset($_POST[MeprCoupon::$starts_on_day_str]) ? max(1, intval(wp_unslash($_POST[MeprCoupon::$starts_on_day_str]))) : 1;
-                $year                   = isset($_POST[MeprCoupon::$starts_on_year_str]) ? intval(wp_unslash($_POST[MeprCoupon::$starts_on_year_str])) : 1970;
-                $coupon->start_timezone = isset($_POST[MeprCoupon::$start_on_timezone_str]) ? sanitize_text_field(wp_unslash($_POST[MeprCoupon::$start_on_timezone_str])) : 0;
-                $coupon->starts_on      = MeprUtils::make_ts_date($month, $day, $year, true);
-
-                if (!empty($coupon->starts_on)) {
-                     $minimum_start_date = new DateTime();
-
-                     // Get datetime object of coupon starts_on : DateTime.
-                     $coupon_start_date = new DateTime();
-                     $coupon_start_ts   = MeprCouponsHelper::convert_timestamp_to_tz($coupon->starts_on, $coupon->start_timezone); // Convert UTC timestamp to selected timezone timestamp.
-                     $coupon_start_date->setTimestamp($coupon_start_ts);
-
-                    if ($minimum_start_date > $coupon_start_date) {
-                        $coupon->should_start = false;
-                        $coupon->starts_on    = 0;
-                    }
-                }
-            } else {
-                $coupon->should_start = false;
-                $coupon->starts_on    = 0;
-            }
-
-            if (isset($_POST[MeprCoupon::$should_expire_str])) {
-                $coupon->should_expire   = true;
-                $month                   = isset($_POST[MeprCoupon::$expires_on_month_str]) ? max(1, intval(wp_unslash($_POST[MeprCoupon::$expires_on_month_str]))) : 1;
-                $day                     = isset($_POST[MeprCoupon::$expires_on_day_str]) ? max(1, intval(wp_unslash($_POST[MeprCoupon::$expires_on_day_str]))) : 1;
-                $year                    = isset($_POST[MeprCoupon::$expires_on_year_str]) ? intval(wp_unslash($_POST[MeprCoupon::$expires_on_year_str])) : 1970;
-                $coupon->expire_timezone = isset($_POST[MeprCoupon::$expires_on_timezone_str]) ? sanitize_text_field(wp_unslash($_POST[MeprCoupon::$expires_on_timezone_str])) : 0;
-                $coupon->expires_on      = MeprUtils::make_ts_date($month, $day, $year); // 23:59:59 of the chosen day
-            } else {
-                $coupon->should_expire = false;
-                $coupon->expires_on    = 0;
-            }
+            self::prepare_dates_data_for_db($coupon);
 
             if (isset($_POST[MeprCoupon::$usage_amount_str]) and is_numeric($_POST[MeprCoupon::$usage_amount_str])) {
                 $coupon->usage_amount = sanitize_text_field(wp_unslash($_POST[MeprCoupon::$usage_amount_str]));
@@ -293,7 +256,7 @@ class MeprCouponsCtrl extends MeprCptCtrl
             }
 
             $coupon->is_membership_specific = isset($_POST[MeprCoupon::$is_membership_specific_str]);
-            $discount_settings = self::parse_discount_settings(
+            $discount_settings              = self::parse_discount_settings(
                 $coupon->is_membership_specific ?
                 [] : // If is membership specific, we want to reset the general coupon discount settings.
                 $_POST
@@ -316,7 +279,35 @@ class MeprCouponsCtrl extends MeprCptCtrl
                 $coupon->membership_specific = $membership_specific;
             }
 
-            $coupon->use_on_upgrades = isset($_POST[MeprCoupon::$use_on_upgrades_str]);
+            $use_on_upgrades_downgrades         = sanitize_text_field(
+                wp_unslash($_POST[MeprCoupon::$use_on_upgrades_downgrades_str] ?? 'none')
+            );
+            $coupon->use_on_upgrades_downgrades = array_key_exists(
+                $use_on_upgrades_downgrades,
+                MeprCouponsHelper::get_usage_on_upgrades_downgrades_types()
+            ) ?
+                $use_on_upgrades_downgrades
+                : 'none';
+
+            $coupon->use_on_ud_if_already_used = (bool) (wp_unslash($_POST[MeprCoupon::$use_on_ud_if_already_used_str] ?? false));
+
+            // Handle use on upgrades and downgrades dependencies.
+            $use_if_other_coupon_used         = sanitize_text_field(
+                wp_unslash($_POST[MeprCoupon::$use_if_other_coupon_used_str] ?? 'unset')
+            );
+            $coupon->use_if_other_coupon_used = array_key_exists(
+                $use_if_other_coupon_used,
+                MeprCouponsHelper::get_usage_if_other_coupon_used_types()
+            ) ?
+                $use_if_other_coupon_used
+                : 'unset';
+
+            $coupon->use_if_specific_coupons = [];
+            if (in_array($coupon->use_if_other_coupon_used, ['anyof', 'noneof', 'noneoranyof'], true)) {
+                $coupon->use_if_specific_coupons = isset($_POST[MeprCoupon::$use_if_specific_coupons_str]) ?
+                    array_map('absint', wp_unslash($_POST[MeprCoupon::$use_if_specific_coupons_str])) :
+                    [];
+            }
 
             $coupon->valid_products = isset($_POST[MeprCoupon::$valid_products_str]) ? array_map('sanitize_text_field', wp_unslash($_POST[MeprCoupon::$valid_products_str])) : [];
 
@@ -330,6 +321,27 @@ class MeprCouponsCtrl extends MeprCptCtrl
 
             MeprHooks::do_action('mepr_coupon_save_meta', $coupon);
         }
+    }
+
+    /**
+     * Prepare dates data for database storage.
+     *
+     * @param  MeprCoupon $coupon            The coupon object.
+     * @param  array      $coupon_dates_data Optional. The dates data array from process_date_fields. If empty, will be retrieved from $_POST.
+     * @return void
+     */
+    private static function prepare_dates_data_for_db(MeprCoupon $coupon, array $coupon_dates_data = []): void
+    {
+        if (empty($coupon_dates_data)) {
+            $coupon_dates_data = MeprCouponsHelper::process_date_fields($_POST);
+        }
+
+        $coupon->should_start    = $coupon_dates_data['should_start'];
+        $coupon->starts_on       = $coupon_dates_data['start_date_ts'];
+        $coupon->start_timezone  = $coupon_dates_data['start_timezone'];
+        $coupon->should_expire   = $coupon_dates_data['should_end'];
+        $coupon->expires_on      = $coupon_dates_data['end_date_ts'];
+        $coupon->expire_timezone = $coupon_dates_data['end_timezone'];
     }
 
     /**

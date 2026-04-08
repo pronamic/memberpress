@@ -48,6 +48,8 @@
   text-align: center;
   border-radius: 0 0 20px 20px;
   border: 0 !important;
+  display: flex;
+  flex-direction: column;
 }
 .mepr-price-menu .mepr-price-boxes .mepr-price-box.highlighted {
   margin-top: 40px;
@@ -142,6 +144,29 @@
   font-size: 1.2rem;
   margin-right: 2px;
 }
+.mepr-price-menu .mepr-price-boxes .mepr-price-box-original-price {
+  display: block;
+  font-size: 0.55em;
+  font-weight: normal;
+  text-decoration: line-through;
+  opacity: 0.6;
+  line-height: 1;
+  margin-bottom: 0.25em;
+}
+.mepr-price-menu .mepr-price-boxes .mepr-price-box-original-price .mepr-price-box-price-currency,
+.mepr-price-menu .mepr-price-boxes .mepr-price-box-original-price .mepr-price-box-price-term {
+  font-size: inherit;
+  vertical-align: baseline;
+}
+.mepr-price-menu .mepr-price-boxes .mepr-price-box-discount-price {
+  display: block;
+}
+.mepr-price-menu .mepr-price-boxes .mepr-price-box-discount-note {
+  display: block;
+  font-size: 0.5em;
+  font-weight: normal;
+  opacity: 0.6;
+}
 .mepr-price-menu .mepr-price-boxes .mepr-most-popular {
   background: #06429E;
   color: #fff;
@@ -211,6 +236,7 @@
 
 .mepr-price-box-foot{
   padding-top: 10px;
+  margin-top: auto;
 }
 
 .mepr-rl-footer-widgets {

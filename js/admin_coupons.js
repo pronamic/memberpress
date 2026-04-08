@@ -93,5 +93,12 @@
       .change(function() {
         handleMembershipSpecific();
       });
+
+    // Handle use on upgrades and downgrades if already used in the same group.
+    var $useOnUpgradesDowngrades = $('[name="_mepr_coupons_use_on_upgrades_downgrades"]');
+    $useOnUpgradesDowngrades.change(function() {
+      $('#mepr_use_on_ud_if_already_used_box')[$(this).val() !== 'none' ? 'show' : 'hide']('fast');
+    });
+    $('#mepr_use_on_ud_if_already_used_box')[$useOnUpgradesDowngrades.val() !== 'none' ? 'show' : 'hide']();
   });
 })(jQuery);

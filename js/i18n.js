@@ -54,13 +54,13 @@ var mepr_populate_states = function(obj) { (function($) {
     states_text.removeAttr('name').removeAttr('id');
     states_text.hide();
     if (required && !countryWithoutStates) {
-      states_text.removeAttr('required');
+      states_text.prop('required', false);
       states_dropdown.attr('required','');
       updateStateFieldAsterisk(states_dropdown, true);
     } else {
-      // Country doesn't require states, so remove required attribute
-      states_dropdown.removeAttr('required');
-      states_text.removeAttr('required');
+      // Country doesn't require states, so remove required attribute.
+      states_dropdown.prop('required', false);
+      states_text.prop('required', false);
       updateStateFieldAsterisk(states_dropdown, false);
     }
 
@@ -77,13 +77,13 @@ var mepr_populate_states = function(obj) { (function($) {
     states_text.attr('name', fieldname).attr('id', 'mepr-address-state' + unique_suffix);
     states_text.show();
     if (required && !countryWithoutStates) {
-      states_dropdown.removeAttr('required');
+      states_dropdown.prop('required', false);
       states_text.attr('required','');
       updateStateFieldAsterisk(states_text, true);
     } else {
-      // Country doesn't require states, so remove required attribute
-      states_dropdown.removeAttr('required');
-      states_text.removeAttr('required');
+      // Country doesn't require states, so remove required attribute.
+      states_dropdown.prop('required', false);
+      states_text.prop('required', false);
       updateStateFieldAsterisk(states_text, false);
     }
   }

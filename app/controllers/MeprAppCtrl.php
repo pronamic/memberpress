@@ -1241,9 +1241,12 @@ class MeprAppCtrl extends MeprBaseCtrl
             } elseif ($action === 'checkout' && isset($_REQUEST['txn'])) {
                 $_REQUEST['txn'] = MeprUtils::base36_decode(sanitize_text_field(wp_unslash($_REQUEST['txn'])));
 
-                // Back button fix.
+                // Back button fix: Prevent access to checkout for completed transactions.
+                // Exception: PayPal App Switch returns (identified by paypal_payment_method=paypal parameter).
                 $txn = new MeprTransaction((int)$_REQUEST['txn']);
-                if (strpos($txn->trans_num, 'mp-txn-') === false || $txn->status !== MeprTransaction::$pending_str) {
+                $is_paypal_app_switch = (sanitize_text_field(wp_unslash($_GET['paypal_payment_method'] ?? '')) === 'paypal');
+
+                if (!$is_paypal_app_switch && (strpos($txn->trans_num, 'mp-txn-') === false || $txn->status !== MeprTransaction::$pending_str)) {
                     $prd = new MeprProduct($txn->product_id);
                     MeprUtils::wp_redirect($prd->url());
                 }
@@ -1625,9 +1628,7 @@ class MeprAppCtrl extends MeprBaseCtrl
         add_submenu_page('memberpress', __('Reports', 'memberpress'), __('Reports', 'memberpress'), $capability, 'memberpress-reports', 'MeprReportsCtrl::main');
         add_submenu_page('memberpress', __('Settings', 'memberpress'), __('Settings', 'memberpress'), $capability, 'memberpress-options', 'MeprOptionsCtrl::route');
 
-        if (class_exists('MeprOnboardingCtrl')) {
-            add_submenu_page('memberpress', __('Onboarding', 'memberpress'), __('Onboarding', 'memberpress'), $capability, 'memberpress-onboarding', 'MeprOnboardingCtrl::route');
-        }
+        MeprHooks::do_action('mepr_menu_onboarding', $capability);
 
         add_submenu_page('memberpress', __('Account Login', 'memberpress'), __('Account Login', 'memberpress'), $capability, 'memberpress-account-login', 'MeprAccountLoginCtrl::route');
 
@@ -1692,9 +1693,11 @@ class MeprAppCtrl extends MeprBaseCtrl
         wp_cache_flush();
         $wpdb->flush();
 
-        if (!get_option('mepr_onboarded')) {
+        $redirect_url       = MeprHooks::apply_filters('mepr_activation_redirect_url', '');
+        $onboarded_option   = MeprHooks::apply_filters('mepr_onboarded_option', 'mepr_onboarded');
+        if ($redirect_url !== '' && !get_option($onboarded_option)) {
             nocache_headers();
-            wp_safe_redirect(admin_url('admin.php?page=memberpress-onboarding'), 307);
+            wp_safe_redirect($redirect_url, 307);
             exit;
         }
     }

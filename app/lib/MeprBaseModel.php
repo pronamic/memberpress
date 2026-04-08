@@ -29,6 +29,18 @@ abstract class MeprBaseModel
     protected $defaults;
 
     /**
+     * Deep clone the internal record so cloned instances don't share state.
+     *
+     * @return void
+     */
+    public function __clone()
+    {
+        if (is_object($this->rec)) {
+            $this->rec = clone $this->rec;
+        }
+    }
+
+    /**
      * Get the value of a property.
      *
      * @param  string $name The name of the property.

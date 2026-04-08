@@ -400,6 +400,10 @@ class MeprSubscription extends MeprBaseMetaModel implements MeprProductInterface
      */
     public static function get_all_active_by_user_id($user_id, $order = '', $limit = '', $count = false, $look_for_lapsed = false)
     {
+        if ((int) $user_id <= 0) {
+            return $count ? 0 : [];
+        }
+
         global $wpdb;
 
         $order  = empty($order) ? '' : " ORDER BY {$order}";

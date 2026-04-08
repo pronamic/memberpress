@@ -206,8 +206,10 @@
                 ?>"><?php esc_html_e('Upgrade', 'memberpress'); ?></a></p> -->
             <!-- Button trigger modal -->
             <p>
-              <button type="button" class="btn btn-primary btn-lg" id="upgrade_db_trigger"><?php esc_html_e('Upgrade', 'memberpress'); ?></button> or
-              <a href="<?php echo esc_url(MeprUpdateCtrl::rollback_url()); ?>" onclick="return confirm('<?php echo esc_js(__('Are you sure? This will cancel the upgrade and roll MemberPress back to the previous version.', 'memberpress')); ?>');" target="_blank"><?php esc_html_e('Cancel', 'memberpress'); ?></a>
+              <button type="button" class="btn btn-primary btn-lg" id="upgrade_db_trigger"><?php esc_html_e('Upgrade', 'memberpress'); ?></button>
+              <?php if (class_exists('MeprUpdateCtrl')) : ?>
+                or <a href="<?php echo esc_url(MeprUpdateCtrl::rollback_url()); ?>" onclick="return confirm('<?php echo esc_js(__('Are you sure? This will cancel the upgrade and roll MemberPress back to the previous version.', 'memberpress')); ?>');" target="_blank"><?php esc_html_e('Cancel', 'memberpress'); ?></a>
+              <?php endif; ?>
             </p>
           </div>
         </div>
@@ -226,7 +228,9 @@
             </div>
             <p class="progress-bar-status"> </p>
             <br/><br/>
-            <a href="<?php echo esc_url(MeprUpdateCtrl::rollback_url()); ?>" onclick="return confirm('<?php echo esc_js(__('Are you sure? This will abort the upgrade and roll MemberPress back to the previous version.', 'memberpress')); ?>');" target="_blank"><?php esc_html_e('Cancel', 'memberpress'); ?></a>
+            <?php if (class_exists('MeprUpdateCtrl')) : ?>
+              <a href="<?php echo esc_url(MeprUpdateCtrl::rollback_url()); ?>" onclick="return confirm('<?php echo esc_js(__('Are you sure? This will abort the upgrade and roll MemberPress back to the previous version.', 'memberpress')); ?>');" target="_blank"><?php esc_html_e('Cancel', 'memberpress'); ?></a>
+            <?php endif; ?>
           </div>
         </div>
       </div>

@@ -29,7 +29,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
     public static function route()
     {
         $force      = isset($_GET['refresh']) && $_GET['refresh'] === 'true';
-        $addons     = MeprUpdateCtrl::addons(true, $force, true);
+        $addons     = class_exists('MeprUpdateCtrl') ? MeprUpdateCtrl::addons(true, $force, true) : null;
         $plugins    = get_plugins();
         $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'addons';
         wp_cache_delete('plugins', 'plugins');
@@ -136,16 +136,8 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             do_action('mepr_addons_enqueue_scripts', $hook, $active_tab);
         }
 
-        if (preg_match('/_page_memberpress-(analytics|smtp|affiliates)$/', $hook)) {
+        if (preg_match('/_page_memberpress-affiliates$/', $hook)) {
             wp_enqueue_style('mepr-sister-plugin-css', MEPR_CSS_URL . '/admin-sister-plugin.css', [], MEPR_VERSION);
-            wp_enqueue_script('mepr-sister-plugin-js', MEPR_JS_URL . '/admin_sister_plugin.js', [], MEPR_VERSION);
-
-            wp_localize_script('mepr-sister-plugin-js', 'MeprSisterPlugin', [
-                'ajax_url'                => admin_url('admin-ajax.php'),
-                'nonce'                   => wp_create_nonce('mepr_addons'),
-                'install_failed'          => __('Could not install plugin. Please download and install manually.', 'memberpress'),
-                'installed_and_activated' => __('Installed & Activated', 'memberpress'),
-            ]);
         }
     }
 
@@ -296,35 +288,6 @@ class MeprAddonsCtrl extends MeprBaseCtrl
             $activated = activate_plugin($plugin_basename);
 
             if (!is_wp_error($activated)) {
-                if (isset($_POST['config']) && is_array($_POST['config'])) {
-                    $slug        = isset($_POST['config']['slug']) && is_string($_POST['config']['slug']) ? sanitize_text_field(wp_unslash($_POST['config']['slug'])) : '';
-                    $license_key = isset($_POST['config']['license_key']) && is_string($_POST['config']['license_key']) ? sanitize_text_field(wp_unslash($_POST['config']['license_key'])) : '';
-
-                    if (
-                        $slug === 'easy-affiliate/easy-affiliate.php' &&
-                        !empty($license_key) &&
-                        class_exists('EasyAffiliate\\Models\\Options') &&
-                        class_exists('EasyAffiliate\\Controllers\\UpdateCtrl') &&
-                        class_exists('EasyAffiliate\\Lib\\Utils')
-                    ) {
-                        try {
-                            $options                     = \EasyAffiliate\Models\Options::fetch();
-                            $options->mothership_license = $license_key;
-                            $domain                      = urlencode(\EasyAffiliate\Lib\Utils::site_domain());
-                            $args                        = compact('domain');
-                            \EasyAffiliate\Controllers\UpdateCtrl::send_mothership_request("/license_keys/activate/{$options->mothership_license}", $args, 'post');
-                            $options->store();
-                            \EasyAffiliate\Controllers\UpdateCtrl::manually_queue_update();
-
-                            // Clear the add-ons cache.
-                            delete_site_transient('esaf_addons');
-                            delete_site_transient('esaf_all_addons');
-                        } catch (Exception $e) {
-                            // Ignore license activation failure.
-                        }
-                    }
-                }
-
                 wp_send_json_success(
                     [
                         'message'   => $type === 'plugin' ? __('Plugin installed & activated.', 'memberpress') : __('Add-on installed & activated.', 'memberpress'),
@@ -409,42 +372,7 @@ class MeprAddonsCtrl extends MeprBaseCtrl
      */
     public static function affiliates()
     {
-        $installer_data = [
-            'return_url' => admin_url('admin.php?page=memberpress-affiliates'),
-            'nonce'      => wp_create_nonce('mepr_easy_affiliate_installer'),
-        ];
-
-        $installer_data = wp_json_encode($installer_data);
-        $installer_data = rtrim(strtr(base64_encode($installer_data), '+/', '-_'), '=');
-        $installer_url  = 'https://easyaffiliate.com/installer/' . $installer_data;
-
-        $plugin = [
-            'active'                => defined('ESAF_VERSION'),
-            'installed'             => is_dir(WP_PLUGIN_DIR . '/easy-affiliate'),
-            'installer_url'         => $installer_url,
-            'auto_install'          => false,
-            'url'                   => '',
-            'license_key'           => '',
-            'slug'                  => 'easy-affiliate/easy-affiliate.php',
-            'activate_button_text'  => __('Activate Easy Affiliate', 'memberpress'),
-            'next_step_button_html' => sprintf(
-                '<a href="%s" class="button button-primary button-hero">%s</a>',
-                esc_url(admin_url('admin.php?page=easy-affiliate-onboarding')),
-                esc_html__('Run Setup Wizard', 'memberpress')
-            ),
-        ];
-
-        if (isset($_GET['data']) && is_string($_GET['data'])) {
-            $data = wp_unslash($_GET['data']); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-            $data = base64_decode(strtr($data, '-_', '+/') . str_repeat('=', 3 - (3 + strlen($data)) % 4));
-            $data = json_decode($data, true);
-
-            if (is_array($data) && isset($data['license_key'], $data['download_url'], $data['nonce']) && wp_verify_nonce($data['nonce'], 'mepr_easy_affiliate_installer')) {
-                $plugin['auto_install'] = true;
-                $plugin['url']          = $data['download_url'];
-                $plugin['license_key']  = $data['license_key'];
-            }
-        }
+        $pricing_url = MeprUtils::get_link_url('affiliates_ea_pricing');
 
         MeprView::render('/admin/addons/affiliates', get_defined_vars());
     }

@@ -7,11 +7,32 @@ if (!defined('ABSPATH')) {
 class MeprCoupon extends MeprCptModel
 {
     /**
-     * Meta key for storing whether the coupon can be used on upgrades.
+     * Meta key for storing whether the coupon can be used on upgrades and downgrades.
      *
      * @var string
      */
-    public static $use_on_upgrades_str                = '_mepr_coupons_use_on_upgrades';
+    public static $use_on_upgrades_downgrades_str     = '_mepr_coupons_use_on_upgrades_downgrades';
+
+    /**
+     * Meta key for storing whether the coupon can be used on upgrades and downgrades if already used in the same group.
+     *
+     * @var string
+     */
+    public static $use_on_ud_if_already_used_str      = '_mepr_coupons_use_on_ud_if_already_used';
+
+    /**
+     * Meta key for storing the specific other coupons that will allow the coupon to be used.
+     *
+     * @var string
+     */
+    public static $use_if_specific_coupons_str        = '_mepr_coupons_use_if_specific_coupons';
+
+    /**
+     * Meta key for storing whether the coupon can be used if other coupons were used.
+     *
+     * @var string
+     */
+    public static $use_if_other_coupon_used_str       = '_mepr_coupons_use_if_other_coupon_used';
 
     /**
      * Meta key for storing whether the coupon has a start date.
@@ -133,6 +154,20 @@ class MeprCoupon extends MeprCptModel
     public static $starts_on_year_str                 = 'mepr_coupons_start_year';
 
     /**
+     * Meta key for storing the start hour of the coupon.
+     *
+     * @var string
+     */
+    public static $starts_on_hour_str                 = 'mepr_coupons_start_hour';
+
+    /**
+     * Meta key for storing the start minute of the coupon.
+     *
+     * @var string
+     */
+    public static $starts_on_minute_str               = 'mepr_coupons_start_minute';
+
+    /**
      * Meta key for storing the expiry month of the coupon.
      *
      * @var string
@@ -152,6 +187,20 @@ class MeprCoupon extends MeprCptModel
      * @var string
      */
     public static $expires_on_year_str                = 'mepr_coupons_ex_year';
+
+    /**
+     * Meta key for storing the expiry hour of the coupon.
+     *
+     * @var string
+     */
+    public static $expires_on_hour_str                = 'mepr_coupons_ex_hour';
+
+    /**
+     * Meta key for storing the expiry minute of the coupon.
+     *
+     * @var string
+     */
+    public static $expires_on_minute_str              = 'mepr_coupons_ex_minute';
 
     /**
      * Meta key for storing the expiry timezone of the coupon.
@@ -231,6 +280,13 @@ class MeprCoupon extends MeprCptModel
     public $timeframe_types;
 
     /**
+     * Cached queries for the coupon.
+     *
+     * @var array
+     */
+    private static $cached_queries = [];
+
+    /**
      * Constructor for the MeprCoupon class.
      *
      * @param mixed $obj Optional. The object to initialize the coupon with.
@@ -238,12 +294,18 @@ class MeprCoupon extends MeprCptModel
     public function __construct($obj = null)
     {
         $this->discount_types  = ['percent', 'dollar'];
+        $this->usage_on_upgrades_downgrades_types = array_keys(MeprCouponsHelper::get_usage_on_upgrades_downgrades_types());
+        $this->usage_if_other_coupon_used_types   = array_keys(MeprCouponsHelper::get_usage_if_other_coupon_used_types());
+
         $this->timeframe_types = MeprCouponsHelper::get_available_time_frame();
         $this->load_cpt(
             $obj,
             self::$cpt,
             [
-                'use_on_upgrades'                => false,
+                'use_on_upgrades_downgrades'     => 'none',
+                'use_on_ud_if_already_used'      => false,
+                'use_if_other_coupon_used'       => 'unset',
+                'use_if_specific_coupons'        => [],
                 'should_start'                   => false,
                 'should_expire'                  => false,
                 'starts_on'                      => null,
@@ -275,7 +337,19 @@ class MeprCoupon extends MeprCptModel
      */
     public function validate()
     {
-        $this->validate_is_bool($this->use_on_upgrades, 'use_on_upgrades');
+        $this->validate_is_in_array(
+            $this->use_on_upgrades_downgrades,
+            array_keys(MeprCouponsHelper::get_usage_on_upgrades_downgrades_types()),
+            'use_on_upgrades_downgrades'
+        );
+        $this->validate_is_bool($this->use_on_ud_if_already_used, 'use_on_ud_if_already_used');
+        $this->validate_is_in_array(
+            $this->use_if_other_coupon_used,
+            array_keys(MeprCouponsHelper::get_usage_if_other_coupon_used_types()),
+            'use_if_other_coupon_used'
+        );
+        $this->validate_is_array($this->use_if_specific_coupons, 'use_if_specific_coupons');
+
         $this->validate_is_bool($this->should_start, 'should_start');
         $this->validate_is_bool($this->should_expire, 'should_expire');
         if ($this->should_start) {
@@ -403,29 +477,198 @@ class MeprCoupon extends MeprCptModel
      *
      * @return boolean True if the coupon is valid, false otherwise.
      */
-    public function can_use_on_upgrades()
+    public function can_use_on_upgrades(): bool
     {
-        return (bool) $this->use_on_upgrades;
+        return in_array($this->use_on_upgrades_downgrades, ['upgrades', 'both'], true);
+    }
+
+    /**
+     * Whether this coupon can be used for downgrades
+     *
+     * @return boolean True if the coupon is valid, false otherwise.
+     */
+    public function can_use_on_downgrades(): bool
+    {
+        return in_array($this->use_on_upgrades_downgrades, ['downgrades', 'both'], true);
+    }
+
+    /**
+     * Whether this coupon can be used on upgrades and downgrades if already used in the same group.
+     *
+     * @param  integer $user_id    The ID of the user.
+     * @param  integer $product_id The ID of the product.
+     * @return boolean True if the coupon is valid, false otherwise.
+     */
+    private function can_use_on_upgrades_downgrades_if_already_used($user_id, $product_id): bool
+    {
+        $product = new MeprProduct($product_id);
+        if (!$product->ID) {
+            return MeprHooks::apply_filters('mepr_coupon_can_use_on_upgrades_downgrades_if_already_used', false, $this, $user_id, $product_id);
+        }
+        $group_id = $product->group_id;
+
+        // Get all transactions for the user in the group.
+        $cache_key = md5(
+            sprintf(
+                '%s|%d|%d|%d',
+                __METHOD__,
+                $user_id,
+                $group_id,
+                $this->ID
+            )
+        );
+
+        global $wpdb;
+        if (! isset(self::$cached_queries[$cache_key])) {
+            self::$cached_queries[$cache_key] = (int) $wpdb->get_var($wpdb->prepare(
+                "
+                SELECT COUNT(DISTINCT(id)) FROM {$wpdb->mepr_transactions}
+                WHERE user_id = %d
+                AND status in (%s, %s)
+                AND product_id IN (
+                    SELECT DISTINCT ID FROM {$wpdb->posts} JOIN {$wpdb->postmeta}
+                    ON {$wpdb->posts}.ID = {$wpdb->postmeta}.post_id AND {$wpdb->postmeta}.meta_key = %s
+                    WHERE {$wpdb->postmeta}.meta_value = %d
+                )
+                AND coupon_id = %d
+                ",
+                $user_id,
+                MeprTransaction::$complete_str,
+                MeprTransaction::$confirmed_str,
+                MeprProduct::$group_id_str,
+                $group_id,
+                $this->ID,
+            ));
+        }
+
+        $bool = (bool) self::$cached_queries[$cache_key];
+        return MeprHooks::apply_filters(
+            'mepr_coupon_can_use_on_upgrades_downgrades_if_already_used',
+            $bool,
+            $this,
+            $user_id,
+            $product_id
+        );
+    }
+
+    /**
+     * Whether this coupon can be used depending on the usage of other coupons.
+     *
+     * @param  integer $user_id The ID of the user.
+     * @return boolean True if the coupon can be used, false otherwise.
+     */
+    private function can_use_depending_on_other_coupons_usage($user_id): bool
+    {
+        if ($this->use_if_other_coupon_used === 'unset') {
+            return MeprHooks::apply_filters(
+                'mepr_coupon_can_use_depending_on_other_coupons_usage',
+                true,
+                $this,
+                $user_id
+            );
+        }
+
+
+        switch ($this->use_if_other_coupon_used) {
+            // Results when negative constraints are applied, will be negated in the return statement.
+            case 'none':
+            case 'any':
+                $coupon_condition_sql = 'AND coupon_id <> 0';
+                break;
+            case 'noneof':
+            case 'anyof':
+                /**
+                 * Handle empty array case: prepare_ids_in_sql returns empty string for empty arrays,
+                 * which would result in invalid SQL syntax (IN ()). Use 'AND 1=0' to ensure query
+                 * returns 0 results, which correctly represents:
+                 * - 'noneof' with empty array: vacuously true (no coupons to exclude).
+                 * - 'anyof' with empty array: vacuously false (no coupons to match).
+                 */
+                $ids_sql              = MeprUtils::prepare_ids_in_sql($this->use_if_specific_coupons);
+                $coupon_condition_sql = empty($ids_sql) ? 'AND 1=0' : 'AND coupon_id IN (' . $ids_sql . ')';
+                break;
+            case 'noneoranyof':
+                /**
+                 * Valid if: (no coupon usage) OR (used coupons IN the allowed list) - remember this is in negative constraints.
+                 *
+                 * Logic:
+                 * - If user has no coupon usage → valid
+                 * - If user used coupons IN the allowed list → valid
+                 * - If user used coupons NOT IN the allowed list → invalid
+                 */
+                if (empty($this->use_if_specific_coupons)) {
+                    // If no allowed list, treat as 'none' (no other coupon usage).
+                    $coupon_condition_sql = 'AND coupon_id <> 0';
+                } else {
+                    // Find transactions with coupons IN the allowed list.
+                    $coupon_condition_sql = 'AND coupon_id <> 0 AND coupon_id NOT IN (' . MeprUtils::prepare_ids_in_sql($this->use_if_specific_coupons) . ')';
+                }
+                break;
+        }
+
+        $cache_key = md5(
+            sprintf(
+                '%s|%d|%d|%s',
+                __METHOD__,
+                $this->ID,
+                $user_id,
+                $coupon_condition_sql
+            )
+        );
+
+
+        if (! isset(self::$cached_queries[$cache_key])) {
+            global $wpdb;
+            $query_part = $wpdb->prepare(
+                "
+                SELECT id FROM {$wpdb->mepr_transactions}
+                WHERE user_id = %d
+                AND status in (%s, %s)
+                ",
+                $user_id,
+                MeprTransaction::$complete_str,
+                MeprTransaction::$confirmed_str,
+            );
+
+            self::$cached_queries[$cache_key] = $wpdb->get_results(
+                sprintf(
+                    '%1$s%2$s;',
+                    $query_part, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Already prepared above.
+                    $coupon_condition_sql // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Already prepared above.
+                )
+            );
+        }
+
+        $bool = in_array($this->use_if_other_coupon_used, ['none', 'noneof', 'noneoranyof'], true) ?
+            ! count(self::$cached_queries[$cache_key]) :
+            (bool) count(self::$cached_queries[$cache_key]);
+
+        return MeprHooks::apply_filters('mepr_coupon_can_use_depending_on_other_coupons_usage', $bool, $this, $user_id);
     }
 
     /**
      * Whether this coupon is valid for a given product and user.
      *
-     * @param integer $product_id The ID of the product.
-     * @param integer $user_id    Optional. The ID of the user. Default 0.
-     *
+     * @param  integer $product_id    The ID of the product.
+     * @param  integer $user_id       Optional. The ID of the user. Default 0.
+     * @param  boolean $ignore_status Optional. Whether to ignore the coupon's status. Default true. When false, only published coupons are considered valid.
      * @return boolean True if the coupon is valid, false otherwise.
      */
-    public function is_valid($product_id, $user_id = 0)
+    public function is_valid($product_id, $user_id = 0, $ignore_status = true)
     {
+        if (!$ignore_status && $this->post_status !== 'publish') {
+            return false;
+        }
+
         // Coupon has reached its usage limit (remember 0 = unlimited).
         if ($this->usage_amount > 0 and $this->usage_count >= $this->usage_amount) {
             return false;
         }
 
+        $user_id = 0 >= (int) $user_id ? get_current_user_id() : $user_id;
+
         // Check if per user coupon usage is enabled.
         if (MeprUtils::is_user_logged_in() && $this->is_usage_per_user_enabled()) {
-            $user_id    = 0 >= (int) $user_id ? get_current_user_id() : $user_id;
             $user_usage = $this->get_user_coupon_usage($user_id);
             if (false === $user_usage || $user_usage >= $this->usage_per_user_count) {
                 return false;
@@ -453,10 +696,43 @@ class MeprCoupon extends MeprCptModel
             return false;
         }
 
-        // Can't be used on upgrades, so make sure we're not trying to apply to an upgrade.
-        if (MeprUtils::is_user_logged_in() && ! $this->can_use_on_upgrades()) {
-            $prd = new MeprProduct($product_id);
-            if ($prd->is_upgrade_or_downgrade_for(get_current_user_id())) {
+        if (MeprUtils::is_user_logged_in()) {
+            // Check whether the coupon can be used on upgrades/downgrades.
+            $can_use_on_upgrades   = $this->can_use_on_upgrades();
+            $can_use_on_downgrades = $this->can_use_on_downgrades();
+            $product               = new MeprProduct($product_id);
+
+            if (
+                (
+                    !$can_use_on_upgrades &&
+                    $product->is_upgrade_for($user_id)
+                ) ||
+                (
+                    !$can_use_on_downgrades &&
+                    $product->is_downgrade_for($user_id)
+                )
+            ) {
+                return false;
+            }
+
+            // Check reuse restrictions for upgrades/downgrades.
+            if (
+                ($can_use_on_upgrades || $can_use_on_downgrades)
+                && $product->is_upgrade_or_downgrade_for($user_id)
+            ) {
+                $was_already_used = $this->can_use_on_upgrades_downgrades_if_already_used($user_id, $product_id);
+
+                /**
+                 * If reuse is enabled: only allow reuse (block if NOT already used).
+                 * If reuse is disabled: prevent reuse (block if already used).
+                 */
+                if ((bool) $this->use_on_ud_if_already_used !== $was_already_used) {
+                    return false;
+                }
+            }
+
+            // Otherwise: Check if the coupon can be used depending on the usage of other coupons.
+            if (! $this->can_use_depending_on_other_coupons_usage($user_id)) {
                 return false;
             }
         }
@@ -470,10 +746,12 @@ class MeprCoupon extends MeprCptModel
      *
      * @param  string  $code       The coupon code.
      * @param  integer $product_id The ID of the product.
+     * @param  integer $user_id    Optional. User ID to validate coupon against (default 0, uses current user if 0 or negative).
      * @return boolean True if the coupon is valid, false otherwise.
      */
-    public static function is_valid_coupon_code($code, $product_id)
+    public static function is_valid_coupon_code($code, $product_id, $user_id = 0)
     {
+        // Only fetch published coupons.
         $c = self::get_one_from_code($code);
 
         // Coupon does not exist or has expired.
@@ -481,7 +759,7 @@ class MeprCoupon extends MeprCptModel
             return false;
         }
 
-        return $c->is_valid($product_id);
+        return $c->is_valid($product_id, $user_id);
     }
 
     /**
@@ -791,7 +1069,10 @@ class MeprCoupon extends MeprCptModel
      */
     public function store_meta()
     {
-        update_post_meta($this->ID, self::$use_on_upgrades_str, $this->use_on_upgrades);
+        update_post_meta($this->ID, self::$use_on_upgrades_downgrades_str, $this->use_on_upgrades_downgrades);
+        update_post_meta($this->ID, self::$use_on_ud_if_already_used_str, $this->use_on_ud_if_already_used);
+        update_post_meta($this->ID, self::$use_if_other_coupon_used_str, $this->use_if_other_coupon_used);
+        update_post_meta($this->ID, self::$use_if_specific_coupons_str, $this->use_if_specific_coupons);
         update_post_meta($this->ID, self::$should_start_str, $this->should_start);
         update_post_meta($this->ID, self::$should_expire_str, $this->should_expire);
         update_post_meta($this->ID, self::$starts_on_str, $this->starts_on);

@@ -12,6 +12,7 @@ if (!defined('ABSPATH')) {
 $show_refresh = isset($_GET['display-keys']) || isset($_COOKIE['mepr_stripe_display_keys']);
 ?>
 <div class="mepr-square-options-form">
+    <img class="mepr-square-logo" src="<?php echo esc_url(MEPR_IMAGES_URL . '/square-logo.svg'); ?>" alt="Square">
     <div class="mepr-square-env-boxes">
         <div class="mepr-square-env-box mepr-gateway-env-production<?php echo !$gateway->settings->sandbox ? ' mepr-square-active' : ''; ?>">
             <div class="mepr-square-box-header">

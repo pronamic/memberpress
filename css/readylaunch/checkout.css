@@ -389,6 +389,9 @@ fieldset.mepr-order-bumps {
   gap: 15px;
   margin-bottom: 2em;
 }
+.mepr-payment-methods-radios.mepr-hidden {
+  display: none;
+}
 .mepr-payment-methods-radios label {
   padding: 1rem;
   padding-right: 60px;

@@ -1,0 +1,100 @@
+/* Modern Cards Template
+ * Clean, elevated cards with rounded corners and shadows.
+ */
+
+/* Template-specific variable defaults */
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards {
+  --mepr-hl-text-color: var(--mepr-text-color);
+  --mepr-hl-price-color: var(--mepr-primary);
+  --mepr-hl-btn-color: var(--mepr-btn-color);
+  --mepr-hl-btn-text-color: var(--mepr-btn-text-color);
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--mepr-radius);
+  box-shadow: var(--mepr-shadow);
+  padding: 2rem 1.5rem;
+  overflow: visible;
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box.highlighted {
+  border-color: var(--mepr-primary);
+  border-width: 2px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Title */
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box-title {
+  color: var(--mepr-text-color);
+  margin-bottom: 0.25rem;
+}
+
+/* Price */
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box-price {
+  color: var(--mepr-price-color);
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box.highlighted .mepr-price-box-price {
+  color: var(--mepr-hl-price-color);
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box.highlighted .mepr-price-box-title {
+  color: var(--mepr-hl-text-color);
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box.highlighted .mepr-price-box-heading {
+  color: var(--mepr-hl-text-color);
+  opacity: 0.7;
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box.highlighted .mepr-price-box-button a {
+  background: var(--mepr-hl-btn-color);
+  color: var(--mepr-hl-btn-text-color);
+  border-color: var(--mepr-hl-btn-color);
+}
+
+/* Heading */
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box-heading {
+  color: var(--mepr-text-color);
+  opacity: 0.6;
+}
+
+/* Benefits */
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box-benefits {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box-benefits-item {
+  color: var(--mepr-text-color);
+  opacity: 0.75;
+  padding: 0.375rem 0;
+}
+
+/* Button */
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box-button a {
+  background: var(--mepr-btn-color);
+  color: var(--mepr-btn-text-color);
+  border-radius: calc(var(--mepr-radius) * 0.5);
+  border: none;
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box:not(.highlighted) .mepr-price-box-button a {
+  background: transparent;
+  color: var(--mepr-btn-color);
+  border: 2px solid var(--mepr-btn-color);
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box:not(.highlighted) .mepr-price-box-button a:hover {
+  background: var(--mepr-btn-color);
+  color: var(--mepr-btn-text-color);
+}
+
+/* Footer */
+.mepr-price-menu.mepr-modern.mepr-tpl-modern-cards .mepr-price-box-footer {
+  color: var(--mepr-text-color);
+  opacity: 0.5;
+}

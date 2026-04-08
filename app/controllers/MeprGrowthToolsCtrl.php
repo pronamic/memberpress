@@ -14,12 +14,6 @@ class MeprGrowthToolsCtrl extends MeprBaseCtrl
     public function load_hooks()
     {
         if (version_compare(phpversion(), '7.4', '>=') && class_exists('\MemberPress\Caseproof\GrowthTools\App')) {
-            add_action('admin_enqueue_scripts', function () {
-                $screen = get_current_screen();
-                if ($screen->id === 'memberpress_page_memberpress-growth-tools') {
-                    wp_enqueue_style('memberpress-onboarding', MEPR_CSS_URL . '/admin-onboarding.css', [], MEPR_VERSION);
-                }
-            });
             $config = new \MemberPress\Caseproof\GrowthTools\Config([
                 'parentMenuSlug'   => 'memberpress',
                 'instanceId'       => 'memberpress',

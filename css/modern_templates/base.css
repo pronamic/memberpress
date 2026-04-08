@@ -1,0 +1,411 @@
+/* Modern Pricing Table Base Layout
+ * Shared layout and structure for all modern templates.
+ * Visual styling is handled by individual template CSS files.
+ * Customization via CSS custom properties set as inline styles.
+ */
+
+/* ---- Custom Property Defaults ---- */
+.mepr-price-menu.mepr-modern {
+  --mepr-primary: #2563eb;
+  --mepr-accent: #16a34a;
+  --mepr-btn-color: #2563eb;
+  --mepr-text-color: #1e293b;
+  --mepr-price-color: #0f172a;
+  --mepr-btn-text-color: #ffffff;
+  --mepr-hl-text-color: var(--mepr-text-color);
+  --mepr-hl-price-color: var(--mepr-primary);
+  --mepr-hl-btn-color: var(--mepr-btn-color);
+  --mepr-hl-btn-text-color: var(--mepr-btn-text-color);
+  --mepr-radius: 12px;
+  --mepr-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --mepr-font-family: inherit;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  font-family: var(--mepr-font-family);
+}
+
+/* ---- Flex Layout (no-carousel mode) ---- */
+.mepr-price-menu.mepr-modern.mepr-no-carousel .mepr-price-boxes,
+.mepr-price-menu.mepr-modern.mepr-no-carousel .splide__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  padding: 1.5rem 0 1rem;
+}
+
+.mepr-price-menu.mepr-modern.mepr-no-carousel .mepr-price-box {
+  flex: 0 1 calc(33.333% - 1rem);
+  min-width: 260px;
+}
+
+.mepr-price-menu.mepr-modern.mepr-no-carousel .splide__slide {
+  width: auto !important;
+  flex: 1 1 280px !important;
+  max-width: 380px;
+  min-width: 260px;
+  position: relative !important;
+  transform: none !important;
+}
+
+.mepr-price-menu.mepr-modern.mepr-no-carousel .splide__slide .mepr-price-box {
+  width: 100%;
+  max-width: none;
+}
+
+.mepr-price-menu.mepr-modern.mepr-no-carousel .splide {
+  visibility: visible;
+}
+
+.mepr-price-menu.mepr-modern.mepr-no-carousel .splide__track {
+  overflow: visible;
+}
+
+.mepr-price-menu.mepr-modern.mepr-no-carousel .splide__arrows,
+.mepr-price-menu.mepr-modern.mepr-no-carousel .splide__pagination {
+  display: none;
+}
+
+/* ---- Splide Carousel Overrides ---- */
+.mepr-price-menu.mepr-modern .mepr-pricing-carousel {
+  position: relative;
+  padding: 1.5rem 0 2.5rem;
+}
+
+.mepr-price-menu.mepr-modern .splide__track {
+  padding: 2rem 0 1.5rem;
+}
+
+/* Note: Splide core sets overflow:hidden on .splide__track — do not override here.
+   The no-carousel mode overrides it below. */
+
+.mepr-price-menu.mepr-modern .splide__slide {
+  display: flex;
+  padding: 0 2px;
+}
+
+.mepr-price-menu.mepr-modern .splide__slide .mepr-price-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Splide arrows — positioned on either side of the track */
+.mepr-price-menu.mepr-modern .splide__arrows {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.mepr-price-menu.mepr-modern .splide__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+  backdrop-filter: none;
+}
+
+.mepr-price-menu.mepr-modern .splide__arrow:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.mepr-price-menu.mepr-modern .splide__arrow--prev {
+  left: 8px;
+}
+
+.mepr-price-menu.mepr-modern .splide__arrow--prev svg {
+  transform: scaleX(-1);
+}
+
+.mepr-price-menu.mepr-modern .splide__arrow--next {
+  right: 8px;
+}
+
+.mepr-price-menu.mepr-modern .splide__arrow svg {
+  width: 18px;
+  height: 18px;
+  fill: #1e293b;
+}
+
+/* Arrows outside cards — adds side padding so arrows sit in the gutter */
+.mepr-price-menu.mepr-modern.mepr-arrows-outside .mepr-pricing-carousel {
+  padding-left: 3.5rem;
+  padding-right: 3.5rem;
+}
+
+.mepr-price-menu.mepr-modern.mepr-arrows-outside .splide__arrow--prev {
+  left: 0;
+}
+
+.mepr-price-menu.mepr-modern.mepr-arrows-outside .splide__arrow--next {
+  right: 0;
+}
+
+.mepr-price-menu.mepr-modern.mepr-arrows-outside .splide__arrow {
+  background: #fff;
+  backdrop-filter: none;
+}
+
+/* Splide pagination dots */
+.mepr-price-menu.mepr-modern .splide__pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0 0;
+  list-style: none;
+  margin: 0;
+}
+
+.mepr-price-menu.mepr-modern .splide__pagination__page {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.mepr-price-menu.mepr-modern .splide__pagination__page.is-active {
+  background: var(--mepr-primary);
+  transform: scale(1.2);
+}
+
+/* ---- Base Price Box Structure ---- */
+.mepr-price-menu.mepr-modern .mepr-price-box {
+  position: relative;
+  text-align: center;
+  box-sizing: border-box;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box:hover {
+  transform: translateY(-4px);
+}
+
+/* Most Popular badge */
+.mepr-price-menu.mepr-modern .mepr-most-popular {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--mepr-accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.25rem 1rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+/* Head section */
+.mepr-price-menu.mepr-modern .mepr-price-box-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-head .mepr-price-box-button {
+  align-self: stretch;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-title {
+  font-size: clamp(1.125rem, 1.5vw + 0.5rem, 1.5rem);
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-price {
+  font-size: clamp(1.75rem, 3vw + 0.5rem, 2.75rem);
+  font-weight: 800;
+  margin: 0.5rem 0;
+  line-height: 1.2;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-price .mepr-price-box-price-currency {
+  font-size: 0.6em;
+  vertical-align: super;
+  margin-right: 0.1em;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-price .mepr-price-box-price-term {
+  font-size: 0.35em;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-original-price {
+  display: block;
+  font-size: 0.5em;
+  font-weight: 400;
+  text-decoration: line-through;
+  opacity: 0.5;
+  line-height: 1;
+  margin-bottom: 0.5em;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-original-price .mepr-price-box-price-currency,
+.mepr-price-menu.mepr-modern .mepr-price-box-original-price .mepr-price-box-price-term {
+  font-size: inherit;
+  vertical-align: baseline;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-discount-price {
+  display: block;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-discount-note {
+  display: block;
+  font-size: 0.35em;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-heading {
+  font-size: clamp(0.8125rem, 1vw + 0.25rem, 0.9375rem);
+  opacity: 0.7;
+  margin: 0.25rem 0 0.75rem;
+  line-height: 1.4;
+}
+
+/* Benefits section */
+.mepr-price-menu.mepr-modern .mepr-price-box-benefits {
+  flex: 1;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-benefits-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: clamp(0.8125rem, 1vw + 0.25rem, 0.9375rem);
+  line-height: 1.5;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-benefits-item::before {
+  content: '';
+  display: inline-block;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  background: var(--mepr-accent);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Button */
+.mepr-price-menu.mepr-modern .mepr-price-box-button {
+  margin: 1rem 0 0;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-button a {
+  display: inline-block;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  font-size: clamp(0.875rem, 1vw + 0.25rem, 1rem);
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  box-sizing: border-box;
+  min-height: 44px;
+  line-height: 1.5;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-button a:hover {
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-button a:active {
+  transform: scale(0.98);
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-button a.mepr-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Footer */
+.mepr-price-menu.mepr-modern .mepr-price-box-foot {
+  margin-top: auto;
+}
+
+.mepr-price-menu.mepr-modern .mepr-price-box-footer {
+  font-size: 0.8125rem;
+  opacity: 0.6;
+  margin-top: 0.75rem;
+  line-height: 1.4;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .mepr-price-menu.mepr-modern .splide__arrow {
+    width: 36px;
+    height: 36px;
+  }
+  .mepr-price-menu.mepr-modern.mepr-no-carousel .mepr-price-box {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+/* ---- Highlighted card (non-carousel only) ---- */
+.mepr-price-menu.mepr-modern.mepr-no-carousel .mepr-price-box.highlighted {
+  z-index: 1;
+}
+
+/* ---- Scroll-snap fallback (no JS) ---- */
+.no-js .mepr-price-menu.mepr-modern .mepr-price-boxes {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.no-js .mepr-price-menu.mepr-modern .mepr-price-box {
+  scroll-snap-align: center;
+  flex: 0 0 280px;
+}

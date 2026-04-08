@@ -146,6 +146,32 @@ class MeprAuthenticatorCtrl extends MeprBaseCtrl
             }
         }
 
+        if (isset($_GET['paypal_vaulting_connect']) && 'true' === $_GET['paypal_vaulting_connect']) {
+            $options           = MeprOptions::fetch();
+            $payment_method_id = sanitize_text_field(wp_unslash($_GET['paypal_payment_method_id'] ?? ''));
+            $environment       = sanitize_text_field(wp_unslash($_GET['paypal_environment'] ?? ''));
+            $environment       = $environment === 'sandbox' ? 'sandbox' : 'production';
+            $pm                = $options->payment_method($payment_method_id);
+
+            try {
+                if (!$pm instanceof MeprPayPalVaultingGateway) {
+                    throw new Exception(__('This action is not available for this payment method.', 'memberpress'));
+                }
+
+                wp_redirect($pm->connect_url($environment));
+                exit;
+            } catch (Exception $e) {
+                $args = [
+                    'page'                                => 'memberpress-options',
+                    'mepr-paypal-vaulting-connect-status' => 'error',
+                    'error'                               => $e->getMessage(),
+                ];
+
+                wp_redirect(add_query_arg(array_map('rawurlencode', $args), admin_url('admin.php')));
+                exit;
+            }
+        }
+
         $redirect_url = remove_query_arg(['mepr-connect', 'nonce', 'site_uuid', 'user_uuid', 'auth_code', 'license_key']);
 
         $license_key = isset($_GET['license_key']) ? sanitize_text_field(wp_unslash($_GET['license_key'])) : '';

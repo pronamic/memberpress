@@ -80,7 +80,9 @@ if (!empty($subscriptions)) {
                         $pm->print_user_account_subscription_row_actions($subscription);
                     }
                 } elseif (!$is_sub && !empty($prd->ID)) {
-                    if ($prd->is_one_time_payment() && $prd->is_renewable() && $prd->is_renewal()) {
+                    $show_renew = $prd->is_one_time_payment() && $prd->is_renewable() && $prd->is_renewal();
+
+                    if ($show_renew) {
                         ?>
                 <a href="<?php echo esc_url($prd->url()); ?>" class="mepr-account-row-action mepr-account-renew"><?php echo esc_html_x('Renew', 'ui', 'memberpress'); ?></a>
                         <?php
@@ -89,9 +91,8 @@ if (!empty($subscriptions)) {
                     if ($txn instanceof MeprTransaction && $group !== false && strpos($s->active, 'mepr-inactive') === false) {
                         MeprAccountHelper::group_link($txn);
                     } elseif (
-                        // $group !== false &&
+                        !$show_renew &&
                         strpos($s->active, 'mepr-inactive') !== false
-                        // && !$prd->is_renewable()
                     ) {
                         if ($prd->can_you_buy_me()) {
                             MeprAccountHelper::purchase_link($prd);

@@ -153,7 +153,7 @@ return MeprHooks::apply_filters('mepr_vat_countries', [
     ],
     'RO' => [
         'name'         => __('Romania', 'memberpress'),
-        'rate'         => 19,
+        'rate'         => 21,
         'reduced_rate' => 5,
         'fmt'          => '(RO)?[0-9]{2,10}',
     ],

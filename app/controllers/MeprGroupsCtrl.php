@@ -4,6 +4,8 @@ if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
 }
 
+use MemberPress\GroundLevel\Support\Time;
+
 class MeprGroupsCtrl extends MeprCptCtrl
 {
     /**
@@ -25,6 +27,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
         add_action('mepr_txn_status_confirmed', [$this, 'expire_fallback']);
         add_action('mepr_txn_status_refunded', [$this, 'create_fallback']);
         add_action('mepr_transaction_expired', [$this, 'create_fallback'], 10, 2);
+        add_action('wp_enqueue_scripts', 'MeprGroupsCtrl::frontend_enqueue_scripts');
         add_filter('the_content', 'MeprGroupsCtrl::render_pricing_boxes', 10);
         add_filter('manage_edit-memberpressgroup_columns', 'MeprGroupsCtrl::columns');
         add_filter('template_include', 'MeprGroupsCtrl::template_include');
@@ -142,6 +145,72 @@ class MeprGroupsCtrl extends MeprCptCtrl
     }
 
     /**
+     * Enqueue modern template assets on the frontend.
+     *
+     * @return void
+     */
+    public static function frontend_enqueue_scripts()
+    {
+        global $post;
+
+        if (!isset($post) || !is_a($post, 'WP_Post')) {
+            return;
+        }
+
+        $group = MeprGroup::is_group_page($post);
+
+        if ($group === false) {
+            return;
+        }
+
+        self::enqueue_modern_template_assets($group);
+    }
+
+    /**
+     * Enqueue modern template CSS and JS assets for a group.
+     *
+     * @param  MeprGroup $group The group object.
+     * @return void
+     */
+    public static function enqueue_modern_template_assets($group)
+    {
+        if (empty($group->modern_template)) {
+            return;
+        }
+
+        $valid_templates = array_keys(MeprGroup::modern_templates());
+        if (!in_array($group->modern_template, $valid_templates, true)) {
+            return;
+        }
+
+        // Enqueue modern base + template CSS.
+        wp_enqueue_style('mepr-modern-base-css', MEPR_CSS_URL . '/modern_templates/base.css', [], MEPR_VERSION);
+        wp_enqueue_style(
+            'mepr-modern-template-css',
+            MEPR_CSS_URL . '/modern_templates/' . $group->modern_template . '.css',
+            ['mepr-modern-base-css'],
+            MEPR_VERSION
+        );
+
+        // Enqueue Splide if carousel is enabled.
+        $carousel_deps = [];
+        if ($group->carousel_enabled) {
+            wp_enqueue_style('mepr-splide-css', MEPR_CSS_URL . '/vendor/splide-core.min.css', [], MEPR_VERSION);
+            wp_enqueue_script('mepr-splide-js', MEPR_JS_URL . '/vendor/splide.min.js', [], MEPR_VERSION, true);
+            $carousel_deps[] = 'mepr-splide-js';
+        }
+
+        // Always enqueue carousel JS (handles no-carousel class when disabled).
+        wp_enqueue_script(
+            'mepr-pricing-carousel-js',
+            MEPR_JS_URL . '/pricing_carousel.js',
+            $carousel_deps,
+            MEPR_VERSION,
+            true
+        );
+    }
+
+    /**
      * Display pricing boxes for the group.
      *
      * @param  MeprGroup   $group The group object.
@@ -151,8 +220,15 @@ class MeprGroupsCtrl extends MeprCptCtrl
      */
     public static function display_pricing_boxes($group, $theme = null, $args = [])
     {
-        if (MeprReadyLaunchCtrl::template_enabled('pricing') || MeprAppHelper::has_block('memberpress/pro-pricing-table')) {
+        if (
+            MeprReadyLaunchCtrl::template_enabled('pricing')
+            || MeprAppHelper::has_block('memberpress/pro-pricing-table')
+        ) {
             MeprView::render('/readylaunch/groups/front_groups_page', get_defined_vars());
+        } elseif (!empty($group->modern_template)) {
+            // Enqueue here as well for shortcode usage on non-group pages where frontend_enqueue_scripts won't fire.
+            self::enqueue_modern_template_assets($group);
+            MeprView::render('/groups/front_groups_modern', get_defined_vars());
         } else {
             MeprView::render('/groups/front_groups_page', get_defined_vars());
         }
@@ -243,8 +319,24 @@ class MeprGroupsCtrl extends MeprCptCtrl
         global $post_id;
         $group = new MeprGroup($post_id);
 
-        add_meta_box('memberpress-group-meta', __('Group Options', 'memberpress'), 'MeprGroupsCtrl::group_meta_box', MeprGroup::$cpt, 'normal', 'high', ['group' => $group]);
-        add_meta_box('memberpress-custom-template', __('Custom Page Template', 'memberpress'), 'MeprGroupsCtrl::custom_page_template', MeprGroup::$cpt, 'side', 'default', ['group' => $group]);
+        add_meta_box(
+            'memberpress-group-meta',
+            __('Group Options', 'memberpress'),
+            'MeprGroupsCtrl::group_meta_box',
+            MeprGroup::$cpt,
+            'normal',
+            'high',
+            ['group' => $group]
+        );
+        add_meta_box(
+            'memberpress-custom-template',
+            __('Custom Page Template', 'memberpress'),
+            'MeprGroupsCtrl::custom_page_template',
+            MeprGroup::$cpt,
+            'side',
+            'default',
+            ['group' => $group]
+        );
     }
 
     /**
@@ -258,7 +350,10 @@ class MeprGroupsCtrl extends MeprCptCtrl
         $post           = get_post($post_id);
         $fallback_state = 'unchanged';
 
-        if (!wp_verify_nonce((isset($_POST[MeprGroup::$nonce_str])) ? sanitize_text_field(wp_unslash($_POST[MeprGroup::$nonce_str])) : '', MeprGroup::$nonce_str . wp_salt())) {
+        $nonce_value = (isset($_POST[MeprGroup::$nonce_str]))
+            ? sanitize_text_field(wp_unslash($_POST[MeprGroup::$nonce_str]))
+            : '';
+        if (!wp_verify_nonce($nonce_value, MeprGroup::$nonce_str . wp_salt())) {
             return $post_id; // Nonce prevents meta data from being wiped on move to trash.
         }
 
@@ -276,18 +371,90 @@ class MeprGroupsCtrl extends MeprCptCtrl
             $group->disable_change_plan_popup = isset($_POST[MeprGroup::$disable_change_plan_popup_str]);
             $group->is_upgrade_path           = isset($_POST[MeprGroup::$is_upgrade_path_str]);
             $group->upgrade_path_reset_period = isset($_POST[MeprGroup::$upgrade_path_reset_period_str]);
+            $group->auto_apply_coupons        = isset($_POST[MeprGroup::$auto_apply_coupons_str]);
+            $group->coupon_discount_note      = isset($_POST[MeprGroup::$coupon_discount_note_str])
+                ? sanitize_text_field(wp_unslash($_POST[MeprGroup::$coupon_discount_note_str]))
+                : '';
             // $group->group_page_style_options = self::get_style_options_array();
-            $group->group_theme                   = sanitize_text_field(wp_unslash($_POST[MeprGroup::$group_theme_str] ?? ''));
-            $group->page_button_class             = sanitize_text_field(wp_unslash($_POST[MeprGroup::$page_button_class_str] ?? ''));
-            $group->page_button_highlighted_class = sanitize_text_field(wp_unslash($_POST[MeprGroup::$page_button_highlighted_class_str] ?? ''));
-            $group->page_button_disabled_class    = sanitize_text_field(wp_unslash($_POST[MeprGroup::$page_button_disabled_class_str] ?? ''));
-            $group->alternate_group_url           = sanitize_text_field(wp_unslash($_POST[MeprGroup::$alternate_group_url_str] ?? ''));
+            // Handle modern vs legacy template type.
+            $template_type = sanitize_text_field(
+                wp_unslash($_POST['_mepr_group_template_type'] ?? 'legacy')
+            );
+
+            if ($template_type === 'modern') {
+                $raw_template           = sanitize_text_field(
+                    wp_unslash($_POST[MeprGroup::$modern_template_str] ?? '')
+                );
+                $valid_templates        = array_keys(MeprGroup::modern_templates());
+                $group->modern_template = in_array($raw_template, $valid_templates, true)
+                    ? $raw_template : '';
+
+                // Sanitize modern template options.
+                $raw_options = isset($_POST[MeprGroup::$modern_template_options_str])
+                    ? (array) $_POST[MeprGroup::$modern_template_options_str]
+                    : [];
+
+                $group->modern_template_options = [
+                    'primary_color'     => sanitize_hex_color($raw_options['primary_color'] ?? '#2563eb') ?: '#2563eb',
+                    'accent_color'      => sanitize_hex_color($raw_options['accent_color'] ?? '#16a34a') ?: '#16a34a',
+                    'button_color'      => sanitize_hex_color($raw_options['button_color'] ?? '#2563eb') ?: '#2563eb',
+                    'btn_text_color'    => sanitize_hex_color($raw_options['btn_text_color'] ?? '#ffffff') ?: '#ffffff',
+                    'text_color'        => sanitize_hex_color($raw_options['text_color'] ?? '#1e293b') ?: '#1e293b',
+                    'price_color'       => sanitize_hex_color($raw_options['price_color'] ?? '#0f172a') ?: '#0f172a',
+                    'hl_text_color'     => sanitize_hex_color($raw_options['hl_text_color'] ?? '#ffffff') ?: '#ffffff',
+                    'hl_price_color'    => sanitize_hex_color($raw_options['hl_price_color'] ?? '#ffffff') ?: '#ffffff',
+                    'hl_btn_color'      => sanitize_hex_color(
+                        $raw_options['hl_btn_color'] ?? '#16a34a'
+                    ) ?: '#16a34a',
+                    'hl_btn_text_color' => sanitize_hex_color(
+                        $raw_options['hl_btn_text_color'] ?? '#ffffff'
+                    ) ?: '#ffffff',
+                    'border_radius'     => in_array(
+                        ($raw_options['border_radius'] ?? ''),
+                        ['none', 'subtle', 'rounded'],
+                        true
+                    ) ? $raw_options['border_radius'] : 'rounded',
+                    'shadow'            => in_array(
+                        ($raw_options['shadow'] ?? ''),
+                        ['none', 'subtle', 'prominent'],
+                        true
+                    ) ? $raw_options['shadow'] : 'subtle',
+                ];
+
+                $group->carousel_enabled        = isset($_POST[MeprGroup::$carousel_enabled_str]);
+                $group->carousel_arrows_outside = isset($_POST[MeprGroup::$carousel_arrows_outside_str]);
+            } else {
+                $group->modern_template         = '';
+                $group->carousel_enabled        = false;
+                $group->carousel_arrows_outside = false;
+            }
+
+            $group->group_theme                   = sanitize_text_field(
+                wp_unslash($_POST[MeprGroup::$group_theme_str] ?? '')
+            );
+            $group->page_button_class             = sanitize_text_field(
+                wp_unslash($_POST[MeprGroup::$page_button_class_str] ?? '')
+            );
+            $group->page_button_highlighted_class = sanitize_text_field(
+                wp_unslash($_POST[MeprGroup::$page_button_highlighted_class_str] ?? '')
+            );
+            $group->page_button_disabled_class    = sanitize_text_field(
+                wp_unslash($_POST[MeprGroup::$page_button_disabled_class_str] ?? '')
+            );
+            $group->alternate_group_url           = sanitize_text_field(
+                wp_unslash($_POST[MeprGroup::$alternate_group_url_str] ?? '')
+            );
             self::store_chosen_products($group->ID);
+            self::store_group_coupons($group);
             $group->use_custom_template = isset($_POST['_mepr_use_custom_template']);
-            $group->custom_template     = isset($_POST['_mepr_custom_template']) ? sanitize_text_field(wp_unslash($_POST['_mepr_custom_template'])) : '';
+            $group->custom_template     = isset($_POST['_mepr_custom_template'])
+                ? sanitize_text_field(wp_unslash($_POST['_mepr_custom_template']))
+                : '';
 
             $orig_fallback_membership = $group->fallback_membership;
-            $fallback_membership      = sanitize_text_field(wp_unslash($_POST[MeprGroup::$fallback_membership_str] ?? ''));
+            $fallback_membership      = sanitize_text_field(
+                wp_unslash($_POST[MeprGroup::$fallback_membership_str] ?? '')
+            );
 
             if (empty($_POST[MeprGroup::$fallback_membership_str])) {
                 if (!empty($orig_fallback_membership)) {
@@ -372,6 +539,68 @@ class MeprGroupsCtrl extends MeprCptCtrl
         }
     }
 
+    /**
+     * Store group coupons for the group.
+     *
+     * @param  MeprGroup $group The group.
+     * @return void
+     */
+    private static function store_group_coupons($group)
+    {
+        $post_prefix = MeprGroup::$group_coupons_str;
+        if (!isset($_POST[$post_prefix]) || !is_array($_POST[$post_prefix])) {
+            // Early bail.
+            $group->group_coupons = [];
+            return;
+        }
+
+        $group_coupons = [];
+
+        // Process each coupon entry in POST data.
+        // Structure: $_POST[$post_prefix][$index] = ['coupon_id' => ..., 'should_apply' => ..., 'apply_month' => ..., 'apply_day' => ..., 'should_unapply' => ..., 'unapply_month' => ..., etc.].
+        foreach ($_POST[$post_prefix] as $index => $coupon_data) {
+            // Skip template entry (has TEMPLATE_INDEX as key or empty coupon_id).
+            if (!is_numeric($index) || !isset($coupon_data[MeprGroup::$group_coupon_coupon_id_str])) {
+                continue;
+            }
+            $coupon_id = intval($coupon_data[MeprGroup::$group_coupon_coupon_id_str] ?? 0);
+
+            if ($coupon_id > 0) {
+                $group_coupons[] = array_merge(
+                    ['coupon_id' => $coupon_id],
+                    self::prepare_coupon_dates_data_for_db($coupon_data)
+                );
+            }
+        }
+
+        $group->group_coupons = $group_coupons;
+        $group->store_meta();
+    }
+
+    /**
+     * Prepare coupon dates data for database storage.
+     *
+     * @param  array $coupon_data The coupon data.
+     * @return array The prepared coupon dates data with field map keys.
+     */
+    private static function prepare_coupon_dates_data_for_db(array $coupon_data): array
+    {
+        $field_map         = MeprGroupsHelper::get_group_coupon_field_map();
+        $coupon_dates_data = MeprCouponsHelper::process_date_fields(
+            $coupon_data,
+            $field_map
+        );
+
+        return [
+            $field_map['should_start']   => $coupon_dates_data['should_start'],
+            $field_map['start_date_ts']  => $coupon_dates_data['start_date_ts'],
+            $field_map['start_timezone'] => $coupon_dates_data['start_timezone'],
+            $field_map['should_end']     => $coupon_dates_data['should_end'],
+            $field_map['end_date_ts']    => $coupon_dates_data['end_date_ts'],
+            $field_map['end_timezone']   => $coupon_dates_data['end_timezone'],
+        ];
+    }
+
     // Deletes all memberships from the given group. We purge memberships before saving the new one's.
     /**
      * Zero out old products for the group.
@@ -433,13 +662,40 @@ class MeprGroupsCtrl extends MeprCptCtrl
         global $current_screen;
 
         if ($current_screen->post_type === MeprGroup::$cpt) {
-            wp_enqueue_style('mepr-groups-css', MEPR_CSS_URL . '/admin-groups.css', ['mepr-settings-table-css'], MEPR_VERSION);
+            wp_enqueue_style('wp-color-picker');
+            wp_enqueue_style(
+                'mepr-groups-css',
+                MEPR_CSS_URL . '/admin-groups.css',
+                ['mepr-settings-table-css'],
+                MEPR_VERSION
+            );
+
+            // Enqueue modern template CSS for live preview on group edit screen.
+            wp_enqueue_style('mepr-modern-base-css', MEPR_CSS_URL . '/modern_templates/base.css', [], MEPR_VERSION);
+            foreach (array_keys(MeprGroup::modern_templates()) as $tpl_slug) {
+                wp_enqueue_style(
+                    'mepr-modern-tpl-' . $tpl_slug,
+                    MEPR_CSS_URL . '/modern_templates/' . $tpl_slug . '.css',
+                    ['mepr-modern-base-css'],
+                    MEPR_VERSION
+                );
+            }
 
             wp_dequeue_script('autosave'); // Disable auto-saving.
 
-            wp_enqueue_script('mepr-groups-js', MEPR_JS_URL . '/admin_groups.js', ['jquery','jquery-ui-sortable','mepr-settings-table-js'], MEPR_VERSION);
+            wp_enqueue_script(
+                'mepr-groups-js',
+                MEPR_JS_URL . '/admin_groups.js',
+                ['jquery', 'jquery-ui-sortable', 'mepr-settings-table-js'],
+                MEPR_VERSION,
+                true
+            );
 
-            wp_localize_script('mepr-groups-js', 'MeprAdminGroups', ['readylaunch_enabled' => MeprReadyLaunchCtrl::template_enabled('pricing')]);
+            wp_localize_script(
+                'mepr-groups-js',
+                'MeprAdminGroups',
+                ['readylaunch_enabled' => MeprReadyLaunchCtrl::template_enabled('pricing')]
+            );
         }
     }
 
@@ -471,6 +727,7 @@ class MeprGroupsCtrl extends MeprCptCtrl
 
             foreach ($products as $p) {
                 if ((int) $p->ID === (int) $_POST['product_id']) {
+                    // phpcs:ignore Generic.Files.LineLength.TooLong
                     esc_html_e('This membership already belongs to another group. If you assign it to this group, it will be removed from the other.', 'memberpress');
                     die();
                 }
@@ -518,11 +775,13 @@ class MeprGroupsCtrl extends MeprCptCtrl
         global $wpdb;
         $mepr_db = MeprDb::fetch();
 
-        MeprUtils::debug_log("Updating fallback memberships for {$fallback_membership} to {$group->fallback_membership}");
+        MeprUtils::debug_log(
+            "Updating fallback memberships for {$fallback_membership} to {$group->fallback_membership}"
+        );
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery
         $wpdb->update(
             $mepr_db->transactions,
-            ['product_id'    => (int) $group->fallback_membership],
+            ['product_id' => (int) $group->fallback_membership],
             [
                 'product_id' => (int) $fallback_membership,
                 'gateway'    => MeprTransaction::$fallback_gateway_str,
@@ -555,7 +814,10 @@ class MeprGroupsCtrl extends MeprCptCtrl
         // No fallback for product or the transaction product is the fallback.
         if ($fallback_membership !== false && $product->ID !== $fallback_membership->ID) {
             // No active subscription found for the group.
-            if (($user->subscription_in_group($group)) || ($user->lifetime_subscription_in_group($group, [MeprTransaction::$fallback_str]))) {
+            if (
+                ($user->subscription_in_group($group))
+                || ($user->lifetime_subscription_in_group($group, [MeprTransaction::$fallback_str]))
+            ) {
                 $fallback_txn = $user->fallback_txn($fallback_membership->ID);
                 // No fallback transaction exists.
                 if ($fallback_txn !== false) {
@@ -589,7 +851,11 @@ class MeprGroupsCtrl extends MeprCptCtrl
         // No fallback for product or the transaction product is the fallback.
         if ($fallback_membership !== false && $product->ID !== $fallback_membership->ID) {
             // User still has an active subscription in the group.
-            if ((!$user->is_already_subscribed_to($fallback_membership->ID)) && (!$user->subscription_in_group($group)) && (!$user->lifetime_subscription_in_group($group, [MeprTransaction::$fallback_str]))) {
+            if (
+                (!$user->is_already_subscribed_to($fallback_membership->ID))
+                && (!$user->subscription_in_group($group))
+                && (!$user->lifetime_subscription_in_group($group, [MeprTransaction::$fallback_str]))
+            ) {
                 $fallback_txn_id = $txn->create_fallback_transaction();
                 MeprEvent::record('subscription-changed', $txn, $fallback_txn_id);
             }

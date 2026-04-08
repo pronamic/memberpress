@@ -7,31 +7,20 @@ if (! defined('ABSPATH')) {
 class MeprDrmAppFee
 {
     /**
-     * Applies the application fee to the relevant transactions.
+     * Enables the DRM application fee.
+     * The unified mapper (scheduled by MeprDrmCtrl) will detect the change on the next run.
      *
      * @return void
      */
     public function do_app_fee()
     {
         MeprDrmHelper::enable_app_fee();
-
-        $this->schedule_event_app_fee();
+        wp_clear_scheduled_hook('mepr_drm_app_fee_mapper', [false]);
     }
 
     /**
-     * Schedules an event to apply the application fee.
-     *
-     * @return void
-     */
-    private function schedule_event_app_fee()
-    {
-        if (! wp_next_scheduled('mepr_drm_app_fee_mapper', [false])) {
-            wp_schedule_event(time(), 'mepr_drm_ten_minutes', 'mepr_drm_app_fee_mapper', [false]);
-        }
-    }
-
-    /**
-     * Reverses the application fee from transactions.
+     * Disables the DRM application fee.
+     * The unified mapper will detect the change on the next run.
      *
      * @return void
      */
@@ -42,24 +31,11 @@ class MeprDrmAppFee
         }
 
         MeprDrmHelper::disable_app_fee();
-
-        $this->schedule_event_app_fee_reversal();
+        wp_clear_scheduled_hook('mepr_drm_app_fee_mapper', [false]);
     }
 
     /**
-     * Schedules an event to reverse the application fee.
-     *
-     * @return void
-     */
-    private function schedule_event_app_fee_reversal()
-    {
-        if (! wp_next_scheduled('mepr_drm_app_fee_reversal', [false])) {
-            wp_schedule_event(time(), 'mepr_drm_ten_minutes', 'mepr_drm_app_fee_reversal', [false]);
-        }
-    }
-
-    /**
-     * Revises the application fee for transactions.
+     * Schedules the daily DRM fee revision cron (refreshes DRM base fee from API).
      *
      * @return void
      */
@@ -71,13 +47,13 @@ class MeprDrmAppFee
     }
 
     /**
-     * Initializes cron jobs for application fee processing.
+     * Initializes DRM-specific cron jobs.
+     * The unified mapper is scheduled separately by MeprDrmCtrl.
      *
      * @return void
      */
     public function init_crons()
     {
-        $this->schedule_event_app_fee();
         $this->do_app_fee_revision();
     }
 
@@ -94,6 +70,12 @@ class MeprDrmAppFee
 
         foreach ($pmt_methods as $key => $method) {
             if ($method instanceof MeprStripeGateway && MeprStripeGateway::is_stripe_connect($key)) {
+                // Skip gateways in countries where Stripe doesn't support application fees.
+                $country = MeprStripeGateway::get_account_country($key);
+                if (false !== $country && ! MeprDrmHelper::is_country_unlockable_by_fee($country)) {
+                    continue;
+                }
+
                 $methods[] = $key;
             }
         }
@@ -120,8 +102,9 @@ class MeprDrmAppFee
 
         $mepr_db = new MeprDb();
 
-        $limit  = empty($limit) ? '' : " LIMIT {$limit}";
-        $fields = $count ? 'COUNT(*)' : 'sub.gateway, sub.id, sub.subscr_id, sub.price';
+        $limit_int = ('' !== $limit && is_numeric($limit)) ? (int) $limit : 0;
+        $fields    = $count ? 'COUNT(*)' : 'sub.gateway, sub.id, sub.subscr_id, sub.price';
+        $in_placeholders = implode(',', array_fill(0, count($payment_methods), '%s'));
 
         $sql = "
       SELECT {$fields}
@@ -132,9 +115,9 @@ class MeprDrmAppFee
 
         if (isset($params['mepr_app_fee_not_applied']) && true === $params['mepr_app_fee_not_applied']) {
             $sql .= "
-        LEFT JOIN {$mepr_db->subscription_meta} AS sm
-            ON sub.id = sm.subscription_id
-            AND sm.meta_key = 'application_fee_percent'
+        LEFT JOIN {$mepr_db->subscription_meta} AS sm_fee
+            ON sub.id = sm_fee.subscription_id
+            AND sm_fee.meta_key = 'application_fee_percent'
       ";
         }
 
@@ -143,31 +126,42 @@ class MeprDrmAppFee
             ( isset($params['mepr_app_fee_applied']) && true === $params['mepr_app_fee_applied'] )
         ) {
             $sql .= "
-        JOIN {$mepr_db->subscription_meta} AS sm
-            ON sub.id = sm.subscription_id
-            AND sm.meta_key = 'application_fee_version'
+        JOIN {$mepr_db->subscription_meta} AS sm_version
+            ON sub.id = sm_version.subscription_id
+            AND sm_version.meta_key = 'application_fee_version'
+      ";
+        }
+
+        if (isset($params['mepr_app_fee_mismatch']) && is_numeric($params['mepr_app_fee_mismatch'])) {
+            $sql .= "
+        LEFT JOIN {$mepr_db->subscription_meta} AS sm_mismatch
+            ON sub.id = sm_mismatch.subscription_id
+            AND sm_mismatch.meta_key = 'application_fee_percent'
       ";
         }
 
         $sql .= "
       WHERE t.status IN(%s,%s)
           AND sub.status = %s
-          AND sub.gateway IN ('" . implode("','", $payment_methods) . "')
-    ";
-
-        $sql .= "
+          AND sub.gateway IN ({$in_placeholders})
         AND t.expires_at > %s AND t.expires_at != '0000-00-00 00:00:00'
     ";
 
         if (isset($params['mepr_app_fee_not_applied']) && true === $params['mepr_app_fee_not_applied']) {
             $sql .= '
-        AND sm.subscription_id is NULL
+        AND sm_fee.subscription_id IS NULL
       ';
         }
 
         if (isset($params['mepr_app_not_fee_version']) && true === $params['mepr_app_not_fee_version']) {
             $sql .= '
-        AND sm.meta_value != %s
+        AND sm_version.meta_value != %s
+      ';
+        }
+
+        if (isset($params['mepr_app_fee_mismatch']) && is_numeric($params['mepr_app_fee_mismatch'])) {
+            $sql .= '
+        AND (ROUND(CAST(sm_mismatch.meta_value AS DECIMAL(10,4)), 2) != ROUND(%f, 2) OR sm_mismatch.meta_value IS NULL)
       ';
         }
 
@@ -175,17 +169,33 @@ class MeprDrmAppFee
       ORDER BY t.expires_at ASC
     ';
 
-        if (isset($params['mepr_app_not_fee_version']) && true === $params['mepr_app_not_fee_version']) {
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $sql = $wpdb->prepare($sql, MeprTransaction::$complete_str, MeprTransaction::$confirmed_str, MeprSubscription::$active_str, MeprUtils::db_now(), $params['drm_fee_api_version']);
-        } else {
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $sql = $wpdb->prepare($sql, MeprTransaction::$complete_str, MeprTransaction::$confirmed_str, MeprSubscription::$active_str, MeprUtils::db_now());
+        if ($limit_int > 0) {
+            $sql .= '
+      LIMIT %d
+    ';
         }
 
-        $sql .= "
-      {$limit}
-    ";
+        $prepare_args = array_merge(
+            [
+                MeprTransaction::$complete_str,
+                MeprTransaction::$confirmed_str,
+                MeprSubscription::$active_str,
+            ],
+            $payment_methods,
+            [MeprUtils::db_now()]
+        );
+        if (isset($params['mepr_app_not_fee_version']) && true === $params['mepr_app_not_fee_version']) {
+            $prepare_args[] = $params['drm_fee_api_version'];
+        }
+        if (isset($params['mepr_app_fee_mismatch']) && is_numeric($params['mepr_app_fee_mismatch'])) {
+            $prepare_args[] = round((float) $params['mepr_app_fee_mismatch'], 2);
+        }
+        if ($limit_int > 0) {
+            $prepare_args[] = $limit_int;
+        }
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query uses placeholders; all dynamic values are in $prepare_args.
+        $sql = $wpdb->prepare($sql, ...$prepare_args);
 
         if ($count) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter

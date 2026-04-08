@@ -88,6 +88,48 @@ textarea#mepr-custom-message {
   justify-content: center;
 }
 
+/* PayPal Payment Methods Modal */
+.mepr-paypal-customize-payment-methods {
+  font-weight: normal;
+  margin-top: 15px;
+}
+
+.mepr-paypal-payment-methods > p {
+  color: #626262;
+  margin-bottom: 22px;
+}
+
+.mepr-paypal-section-header {
+  font-weight: 600;
+  color: #1d2327;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.mepr-paypal-section-header:first-child {
+  margin-top: 0;
+}
+
+.mepr-paypal-payment-method {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.mepr-paypal-payment-method label {
+  color: #1d2327;
+}
+
+.mepr-update-paypal-payment-methods {
+  margin-top: 22px;
+}
+
+.mepr-update-paypal-payment-methods button {
+  justify-content: center;
+}
+
 ul.custom_options_list {
   margin:18px;
   padding:15px;
@@ -341,6 +383,13 @@ td.stripe-checkbox-column-right {
 }
 
 /* Square Gateway Styles */
+.mepr-square-logo {
+    display: block;
+    width: 120px;
+    height: auto;
+    margin: 20px auto 35px;
+}
+
 .mepr-square-env-boxes {
     display: flex;
     gap: 20px;
@@ -495,6 +544,163 @@ td.stripe-checkbox-column-right {
         width: auto;
     }
    .mepr-square-env-boxes {
+       flex-direction: column;
+       text-align: center;
+   }
+}
+
+/* PayPal Vaulting Styles */
+.mepr-paypal-vaulting-logo {
+    display: block;
+    width: 120px;
+    height: auto;
+    margin: 20px auto 35px;
+}
+
+.mepr-paypal-vaulting-env-boxes {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.mepr-paypal-vaulting-env-box {
+    flex: 1;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    width: 480px;
+}
+
+.mepr-paypal-vaulting-env-box.mepr-paypal-vaulting-active {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.mepr-paypal-vaulting-box-header {
+    background: #f0f0f1;
+    padding: 12px 15px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid #ccd0d4;
+}
+
+.mepr-paypal-vaulting-env-box.mepr-paypal-vaulting-active .mepr-paypal-vaulting-box-header {
+    background: #2271b1;
+    color: #fff;
+}
+
+.mepr-paypal-vaulting-panel {
+    background: #fff;
+    padding: 20px;
+}
+
+.mepr-paypal-vaulting-connected-status {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+    justify-content: space-between;
+}
+
+.mepr-paypal-vaulting-connected-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #edfaef;
+    color: #00a32a;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.mepr-paypal-vaulting-connected-badge .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 5px;
+}
+
+.mepr-paypal-vaulting-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mepr-paypal-vaulting-account-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0;
+    font-size: 14px;
+}
+
+.mepr-paypal-vaulting-account-label {
+    font-weight: 600;
+    color: #50575e;
+}
+
+.mepr-paypal-vaulting-account-value {
+    color: #2c3338;
+}
+
+.mepr-paypal-vaulting-connect {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.mepr-paypal-vaulting-connect-info {
+    flex: 1;
+}
+
+.mepr-paypal-vaulting-connect-info p {
+    margin: 0;
+    color: #666;
+}
+
+.mepr-paypal-vaulting-connect-action {
+    flex: 0 0 auto;
+}
+
+.mepr-paypal-vaulting-sandbox-toggle {
+    margin: 15px 0;
+}
+
+.mepr-paypal-vaulting-sandbox-toggle label {
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 782px) {
+    .mepr-paypal-vaulting-env-boxes {
+        flex-direction: column;
+    }
+
+    .mepr-paypal-vaulting-connected-status,
+    .mepr-paypal-vaulting-connect,
+    .mepr-paypal-vaulting-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media screen and (min-width: 783px) and (max-width: 1100px) {
+    .mepr-paypal-vaulting-actions .button {
+        padding: 0 8px;
+    }
+}
+
+@media screen and (max-width: 1510px) {
+    .mepr-paypal-vaulting-env-box {
+        width: auto;
+    }
+   .mepr-paypal-vaulting-env-boxes {
        flex-direction: column;
        text-align: center;
    }

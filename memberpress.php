@@ -4,7 +4,7 @@
 Plugin Name: MemberPress Pro 30 (Legacy)
 Plugin URI: https://memberpress.com/
 Description: The membership plugin that makes it easy to accept payments for access to your content and digital products.
-Version: 1.12.14
+Version: 1.12.15
 Requires at least: 6.5
 Tested up to: 6.9
 Requires PHP: 7.4
@@ -14,6 +14,16 @@ Author: Caseproof, LLC
 Author URI: https://caseproof.com/
 Text Domain: memberpress
 */
+/**
+ * * * * * * * * * * * * * * * * * * * * * * *
+ *                                           *
+ * Reporting a Security Vulnerability        *
+ *                                           *
+ * Please disclose any security issues or    *
+ * vulnerabilities to security@caseproof.com *
+ *                                           *
+ * * * * * * * * * * * * * * * * * * * * * * *
+ */
 
 if (!defined('ABSPATH')) {
     die('You are not allowed to call this page directly.');
@@ -307,6 +317,10 @@ function mepr_on_deactivate(): void
 
     // Remove wp-cron proactive support event.
     wp_clear_scheduled_hook(MeprProactiveSupportCronCtrl::CRON_HOOK);
+
+    // Remove wp-cron DRM app fee events.
+    wp_clear_scheduled_hook('mepr_drm_app_fee_mapper', [false]);
+    wp_clear_scheduled_hook('mepr_drm_app_fee_revision', [false]);
 }
 
 register_activation_hook(MEPR_PLUGIN_SLUG, 'mepr_on_activate');

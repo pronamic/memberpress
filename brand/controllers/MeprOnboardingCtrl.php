@@ -64,50 +64,50 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
             $steps = [
                 [
                     'title'   => __('Activate License', 'memberpress'),
-                    'content' => MEPR_VIEWS_PATH . '/admin/onboarding/license.php',
-                    'nav'     => MEPR_VIEWS_PATH . '/admin/onboarding/nav/license.php',
+                    'content' => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/license.php',
+                    'nav'     => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/nav/license.php',
                     'step'    => 1,
                 ],
                 [
                     'title'   => __('Enable Features', 'memberpress'),
-                    'content' => MEPR_VIEWS_PATH . '/admin/onboarding/features.php',
-                    'nav'     => MEPR_VIEWS_PATH . '/admin/onboarding/nav/features.php',
+                    'content' => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/features.php',
+                    'nav'     => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/nav/features.php',
                     'step'    => 2,
                 ],
                 [
                     'title'   => __('Create or Select Content', 'memberpress'),
-                    'content' => MEPR_VIEWS_PATH . '/admin/onboarding/content.php',
-                    'nav'     => MEPR_VIEWS_PATH . '/admin/onboarding/nav/content.php',
+                    'content' => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/content.php',
+                    'nav'     => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/nav/content.php',
                     'step'    => 3,
                 ],
                 [
                     'title'   => __('Create Membership', 'memberpress'),
-                    'content' => MEPR_VIEWS_PATH . '/admin/onboarding/membership.php',
-                    'nav'     => MEPR_VIEWS_PATH . '/admin/onboarding/nav/membership.php',
+                    'content' => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/membership.php',
+                    'nav'     => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/nav/membership.php',
                     'step'    => 4,
                 ],
                 [
                     'title'   => __('Protect Content', 'memberpress'),
-                    'content' => MEPR_VIEWS_PATH . '/admin/onboarding/rules.php',
-                    'nav'     => MEPR_VIEWS_PATH . '/admin/onboarding/nav/rules.php',
+                    'content' => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/rules.php',
+                    'nav'     => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/nav/rules.php',
                     'step'    => 5,
                 ],
                 [
                     'title'   => __('Payment Options', 'memberpress'),
-                    'content' => MEPR_VIEWS_PATH . '/admin/onboarding/payments.php',
-                    'nav'     => MEPR_VIEWS_PATH . '/admin/onboarding/nav/payments.php',
+                    'content' => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/payments.php',
+                    'nav'     => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/nav/payments.php',
                     'step'    => 6,
                 ],
                 [
                     'title'   => __('Finish Setup', 'memberpress'),
-                    'content' => MEPR_VIEWS_PATH . '/admin/onboarding/finish.php',
-                    'nav'     => MEPR_VIEWS_PATH . '/admin/onboarding/nav/finish.php',
+                    'content' => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/finish.php',
+                    'nav'     => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/nav/finish.php',
                     'step'    => 7,
                 ],
                 [
                     'title'   => __('Complete', 'memberpress'),
-                    'content' => MEPR_VIEWS_PATH . '/admin/onboarding/complete.php',
-                    'nav'     => MEPR_VIEWS_PATH . '/admin/onboarding/nav/complete.php',
+                    'content' => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/complete.php',
+                    'nav'     => MEPR_BRAND_VIEWS_PATH . '/admin/onboarding/nav/complete.php',
                     'step'    => 8,
                 ],
             ];
@@ -126,8 +126,8 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
     public static function admin_enqueue_scripts()
     {
         if (self::is_onboarding_page()) {
-            wp_enqueue_style('memberpress-onboarding', MEPR_CSS_URL . '/admin-onboarding.css', [], MEPR_VERSION);
-            wp_enqueue_script('memberpress-onboarding', MEPR_JS_URL . '/admin_onboarding.js', ['jquery'], MEPR_VERSION, true);
+            wp_enqueue_style('memberpress-onboarding', MEPR_BRAND_CSS_URL . '/admin-onboarding.css', [], MEPR_VERSION);
+            wp_enqueue_script('memberpress-onboarding', MEPR_BRAND_JS_URL . '/admin_onboarding.js', ['jquery'], MEPR_VERSION, true);
             wp_localize_script('memberpress-onboarding', 'MeprOnboardingL10n', [
                 'step'                             => isset($_GET['step']) ? (int) $_GET['step'] : 0,
                 'ajax_url'                         => admin_url('admin-ajax.php'),
@@ -332,14 +332,18 @@ class MeprOnboardingCtrl extends MeprBaseCtrl
                 $domain = defined('MEPR_ONBOARDING_MP_URL') ? MEPR_ONBOARDING_MP_URL : MeprUtils::get_link_url('home');
                 $url    = rtrim($domain, '/') . '/wp-admin/admin-ajax.php?action=mepr_onboarding_get_ea_license';
 
-                $response = wp_remote_post(
-                    $url,
-                    [
-                        'body' => [
-                            'key' => $mepr_options->mothership_license,
-                        ],
-                    ]
-                );
+                $request_args = [
+                    'body' => [
+                        'key'   => $mepr_options->mothership_license,
+                        'nonce' => wp_create_nonce('mepr_onboarding_get_ea_license'),
+                    ],
+                ];
+                if (! empty($_SERVER['HTTP_COOKIE'])) {
+                    $request_args['headers'] = [
+                        'Cookie' => wp_unslash($_SERVER['HTTP_COOKIE']),
+                    ];
+                }
+                $response = wp_remote_post($url, $request_args);
 
                 $code = wp_remote_retrieve_response_code($response);
 

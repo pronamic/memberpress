@@ -10,15 +10,18 @@ $mepr_options = MeprOptions::fetch();
 if (is_array($products)) {
     $products = array_slice($products, 0, 5);
 }
-$button_color = isset($args['button_highlight_color']) ? $args['button_highlight_color'] : $mepr_options->design_pricing_cta_color;
+$button_color = isset($args['button_highlight_color'])
+    ? $args['button_highlight_color']
+    : $mepr_options->design_pricing_cta_color;
 
 if (empty($button_color)) {
     $button_color = '#06429E';
 }
 
-$group_theme    = preg_replace('~\.css$~', '', (is_null($theme) ? $group->group_theme : $theme));
-$group_template = 'pro-template';
-$group          = null;
+$group_theme         = preg_replace('~\.css$~', '', (is_null($theme) ? $group->group_theme : $theme));
+$group_template      = 'pro-template';
+$coupon_discount_note = $group->coupon_discount_note ?? '';
+$group               = null;
 $preview        = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 ?>
 <div class="mepr-price-menu <?php echo esc_attr($group_theme); ?> <?php echo esc_attr($group_template); ?>">
@@ -49,6 +52,7 @@ $preview        = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Pr
                 foreach ($product->pricing_benefits as $index => $b) {
                     if ('' !== trim($b)) {
                         $benefits .= '<div class="mepr-price-box-benefits-item">';
+                        // phpcs:ignore Generic.Files.LineLength.TooLong -- inline SVG.
                         $benefits .= '<span class="mepr-price-box-benefits-icon"> <svg width="13" height="11" viewBox="0 0 13 11" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M12.2722 2.07898L6.56801 9.81981C6.43197 10.0003 6.22912 10.1186 6.00503 10.148C5.78094 10.1775 5.55441 10.1157 5.37634 9.97648L1.30301 6.71981C0.943564 6.43216 0.885361 5.90759 1.17301 5.54815C1.46066 5.1887 1.98523 5.1305 2.34468 5.41815L5.74134 8.13565L10.9305 1.09315C11.1007 0.837804 11.3974 0.696631 11.7029 0.725677C12.0083 0.754722 12.2731 0.949287 12.3921 1.23212C12.5111 1.51496 12.465 1.8403 12.2722 2.07898Z" fill="black" /> </svg> </span>';
                         $benefits .= MeprHooks::apply_filters('mepr_price_box_benefit', $b, $index);
                         $benefits .= '</div>';
@@ -57,17 +61,32 @@ $preview        = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Pr
                 $benefits .= '</div>';
             }
 
-            $user   = MeprUtils::get_currentuserinfo(); // If not logged in, $user will be false.
-            $active = true; // Always true for now - that way users can click the button and see the custom "you don't have access" message now.
+            $user = MeprUtils::get_currentuserinfo(); // If not logged in, $user will be false.
+            // Always true for now - users can click the button and see the
+            // custom "you don't have access" message now.
+            $active = true;
 
             $group_classes_str = ($product->is_highlighted) ? 'highlighted' : '';
-            $group_classes_str = MeprHooks::apply_filters('mepr_group_css_classes_string', $group_classes_str, $product, $group, $preview);
+            $group_classes_str = MeprHooks::apply_filters(
+                'mepr_group_css_classes_string',
+                $group_classes_str,
+                $product,
+                $group,
+                $preview
+            );
 
             ?>
-        <div id="mepr-price-box-<?php echo esc_attr($product->ID); ?>" class="mepr-price-box <?php echo esc_attr($group_classes_str); ?>">
+        <div id="mepr-price-box-<?php echo esc_attr($product->ID); ?>"
+             class="mepr-price-box <?php echo esc_attr($group_classes_str); ?>">
             <?php if ($product->is_highlighted) : ?>
             <div class="mepr-most-popular">
-                <?php esc_html_e('Most Popular', 'memberpress'); ?>
+                <?php
+                echo esc_html(
+                    !empty($product->pricing_badge_txt)
+                        ? $product->pricing_badge_txt
+                        : __('Most Popular', 'memberpress')
+                );
+                ?>
             </div>
             <?php endif ?>
           <div class="mepr-price-box-content">
@@ -78,20 +97,66 @@ $preview        = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Pr
               </h2>
               <?php if ($preview) : ?>
                 <div class="mepr-price-box-price"></div>
-                <span class="mepr-price-box-price-loading"><img src="<?php echo esc_url(admin_url('/images/wpspin_light.gif')); ?>" /></span>
+                <span class="mepr-price-box-price-loading">
+                  <img src="<?php echo esc_url(admin_url('/images/wpspin_light.gif')); ?>" />
+                </span>
               <?php elseif ($product->pricing_display !== 'none') : ?>
                 <div class="mepr-price-box-price">
                   <?php
-                    if (!isset($mepr_coupon_code) || !MeprCoupon::is_valid_coupon_code($mepr_coupon_code, $product->ID)) {
-                        $mepr_coupon_code = null;
-                    }
+                    $mepr_coupon_code = $product->get_applicable_coupon_code();
+                    $mepr_coupon_code = $mepr_coupon_code !== '' ? $mepr_coupon_code : null;
 
                     if ($product->pricing_display === 'auto') {
                         $mepr_options = MeprOptions::fetch();
 
-                        $price = preg_replace('/\/(.*)/', "<span class='mepr-price-box-price-term'>$0</span>", MeprProductsHelper::format_currency($product, true, $mepr_coupon_code, false));
-                        $price = str_replace($mepr_options->currency_symbol, '<span class="mepr-price-box-price-currency">' . $mepr_options->currency_symbol . '</span>', $price);
-                        echo wp_kses_post($price);
+                        if (!empty($mepr_coupon_code)) {
+                            $original_str = MeprProductsHelper::format_currency($product, true, null, false);
+                            $original_str = preg_replace(
+                                '/\/(.*)/',
+                                "<span class='mepr-price-box-price-term'>$0</span>",
+                                $original_str
+                            );
+                            $original_str = str_replace(
+                                $mepr_options->currency_symbol,
+                                '<span class="mepr-price-box-price-currency">'
+                                    . $mepr_options->currency_symbol . '</span>',
+                                $original_str
+                            );
+
+                            $discount_price = MeprProductsHelper::get_discounted_price($product, $mepr_coupon_code);
+                            $discount_str   = MeprAppHelper::format_currency($discount_price);
+
+                            $is_recurring = !$product->is_one_time_payment();
+
+                            $discount_str   = str_replace(
+                                $mepr_options->currency_symbol,
+                                '<span class="mepr-price-box-price-currency">'
+                                    . $mepr_options->currency_symbol . '</span>',
+                                $discount_str
+                            );
+
+                            echo '<span class="mepr-price-box-original-price">'
+                                . wp_kses_post($original_str) . '</span>';
+                            echo '<span class="mepr-price-box-discount-price">'
+                                . wp_kses_post($discount_str) . '</span>';
+                            if ($is_recurring && '' !== $coupon_discount_note) {
+                                echo '<span class="mepr-price-box-discount-note">'
+                                    . esc_html($coupon_discount_note) . '</span>';
+                            }
+                        } else {
+                            $price = preg_replace(
+                                '/\/(.*)/',
+                                "<span class='mepr-price-box-price-term'>$0</span>",
+                                MeprProductsHelper::format_currency($product, true, null, false)
+                            );
+                            $price = str_replace(
+                                $mepr_options->currency_symbol,
+                                '<span class="mepr-price-box-price-currency">'
+                                    . $mepr_options->currency_symbol . '</span>',
+                                $price
+                            );
+                            echo wp_kses_post($price);
+                        }
                     } else {
                         echo esc_html($product->custom_price);
                     }
@@ -102,21 +167,32 @@ $preview        = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Pr
 
               <div class="mepr-price-box-button">
                   <?php
-                    // All this logic is for showing a "VIEW" button instead of "Buy Now" if the member has already purchased it
-                    // and the membership access URL is set for that membership - and you can't buy the same membership more than once.
+                    // All this logic is for showing a "VIEW" button instead of
+                    // "Buy Now" if the member has already purchased it and the
+                    // membership access URL is set for that membership - and you
+                    // can't buy the same membership more than once.
                     if (
                         $user && !$product->simultaneous_subscriptions &&
                         $user->is_already_subscribed_to($product->ID) &&
                         !empty($product->access_url)
                     ) :
                         ?>
-                  <a <?php echo 'href="' . esc_url($product->access_url) . '"'; ?> class="<?php echo esc_attr(MeprGroupsHelper::price_box_button_classes($group, $product, true)); ?>">
+                  <a <?php echo 'href="' . esc_url($product->access_url) . '"'; ?>
+                     class="<?php echo esc_attr(MeprGroupsHelper::price_box_button_classes($group, $product, true)); ?>">
                         <?php esc_html_e('View', 'memberpress'); ?>
                       <span class="screen-reader-text"><?php echo esc_html($product->post_title); ?></span>
                   </a>
                     <?php else : ?>
-                  <a <?php echo $active ? 'href="' . esc_url($product->url()) . '"' : ''; ?> class="<?php echo esc_attr(MeprGroupsHelper::price_box_button_classes($group, $product, $active)); ?>" style="--tooltip-color: <?php echo esc_attr($button_color) ?>;">
-                        <?php echo wp_kses_post($product->pricing_button_txt); ?>
+                        <?php
+                        $btn_cls = esc_attr(MeprGroupsHelper::price_box_button_classes($group, $product, $active));
+                        $btn_txt = !empty($product->pricing_button_txt)
+                            ? $product->pricing_button_txt
+                            : __('Sign Up', 'memberpress');
+                        ?>
+                  <a <?php echo $active ? 'href="' . esc_url($product->url()) . '"' : ''; ?>
+                     class="<?php echo esc_attr($btn_cls); ?>"
+                     style="--tooltip-color: <?php echo esc_attr($button_color); ?>;">
+                        <?php echo wp_kses_post($btn_txt); ?>
                       <span class="screen-reader-text"><?php echo esc_html($product->post_title); ?></span>
                   </a>
                     <?php endif; ?>
@@ -143,7 +219,9 @@ $preview        = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Pr
         </div>
             <?php
             $output = ob_get_clean();
-            echo wp_kses_post(MeprHooks::apply_filters('mepr_group_page_item_output', $output, $product, $group, $preview));
+            echo wp_kses_post(
+                MeprHooks::apply_filters('mepr_group_page_item_output', $output, $product, $group, $preview)
+            );
         }
     }
     ?>

@@ -121,6 +121,65 @@ div.mepr-price-box-button {
   text-align:center;
 }
 
+/* Modern template preview in Price Box tab — must override modern template styles */
+div#preview-pane .mepr-price-menu.mepr-modern {
+  width: 250px !important;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+div#preview-pane .mepr-price-menu.mepr-modern .mepr-price-box {
+  width: 250px !important;
+  max-width: 250px !important;
+  min-width: 0 !important;
+  flex: none !important;
+}
+
+div#preview-pane .mepr-price-menu.mepr-modern .mepr-price-box div {
+  width: auto;
+  margin-bottom: 0;
+}
+
+div#preview-pane .mepr-price-menu.mepr-modern .mepr-price-box-title {
+  font-size: 1.1rem;
+}
+
+div#preview-pane .mepr-price-menu.mepr-modern .mepr-price-box-price {
+  font-size: 1.75rem;
+}
+
+div#preview-pane .mepr-price-menu.mepr-modern .mepr-price-box-heading {
+  font-size: 0.8rem;
+}
+
+div#preview-pane .mepr-price-menu.mepr-modern .mepr-price-box-benefits-item {
+  font-size: 0.8rem;
+  padding: 0.2rem 0;
+}
+
+div#preview-pane .mepr-price-menu.mepr-modern .mepr-price-box-button a {
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  text-transform: none;
+}
+
+div#preview-pane .mepr-price-menu.mepr-modern .mepr-price-box-footer {
+  font-size: 0.75rem;
+}
+
+div#preview-pane .mepr-price-menu.mepr-modern .mepr-most-popular {
+  font-size: 0.6rem;
+  padding: 0.15rem 0.6rem;
+}
+
+.mepr-custom-price-input {
+  width: 60%;
+}
+
+.mepr-custom-price-term-wrap {
+  margin-top: 5px;
+}
+
 .mepr-meta-pane {
   margin: 10px 10px 25px 10px;
   padding: 15px;

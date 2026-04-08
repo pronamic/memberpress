@@ -364,9 +364,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
      */
     public function display_signup_form($product)
     {
-        $mepr_options     = MeprOptions::fetch();
-        $mepr_blogurl     = home_url();
-        $mepr_coupon_code = '';
+        $mepr_options = MeprOptions::fetch();
+        $mepr_blogurl = home_url();
 
         extract($_REQUEST, EXTR_SKIP);
         if (isset($_REQUEST['errors'])) {
@@ -376,12 +375,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 $errors = [wp_kses_post(wp_unslash($_REQUEST['errors']))];
             }
         }
-        // See if Coupon was passed via GET.
-        if (isset($_GET['coupon']) && !empty($_GET['coupon'])) {
-            if (MeprCoupon::is_valid_coupon_code(sanitize_text_field(wp_unslash($_GET['coupon'])), $product->ID)) {
-                $mepr_coupon_code = htmlentities(sanitize_text_field(wp_unslash($_GET['coupon'])));
-            }
-        }
+
+        $mepr_coupon_code = $product->get_applicable_coupon_code();
 
         if (MeprUtils::is_user_logged_in()) {
             $mepr_current_user = MeprUtils::get_currentuserinfo();
@@ -1083,6 +1078,8 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
             }
         }
 
+        $allowed_order_bump_ids = array_map('intval', (array) get_post_meta($base_product->ID, '_mepr_order_bumps', true));
+
         foreach ($order_bump_product_ids as $order_bump_product_id) {
             $product = new MeprProduct($order_bump_product_id);
 
@@ -1092,6 +1089,10 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
 
             if ((int) $product_id === $product->ID) {
                 continue;
+            }
+
+            if (!in_array($product->ID, $allowed_order_bump_ids, true)) {
+                throw new Exception(esc_html__('Invalid order bump product.', 'memberpress'));
             }
 
             if (!$product->can_you_buy_me()) {
@@ -1214,44 +1215,41 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                 $coupon_code         = $coupon instanceof MeprCoupon ? $coupon->post_title : '';
                 $elements_options    = [];
                 $square_verification = [];
+                $paypal_sdk_options  = [];
 
                 foreach ($payment_methods as $pm) {
                     if (!in_array($pm->id, $payment_method_ids, true)) {
                         continue;
                     }
 
-                    if ($pm instanceof MeprStripeGateway && $pm->settings->stripe_checkout_enabled !== 'on') {
-                        try {
-                             list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
-                                 $prd,
-                                 0,
-                                 get_current_user_id(),
-                                 $pm->id,
-                                 $coupon,
-                                 false
-                             );
+                    // Skip payment methods that don't need transaction preparation.
+                    if (
+                        !($pm instanceof MeprStripeGateway && $pm->settings->stripe_checkout_enabled !== 'on') &&
+                        !($pm instanceof MeprSquarePaymentsGateway) &&
+                        !($pm instanceof MeprPayPalVaultingGateway)
+                    ) {
+                        continue;
+                    }
 
-                             $elements_options[$pm->id] = $pm->get_elements_options(
-                                 $prd,
-                                 $txn,
-                                 $sub,
-                                 $coupon_code,
-                                 $order_bump_products
-                             );
-                        } catch (Exception $e) {
-                            // Ignore exception.
-                        }
-                    } elseif ($pm instanceof MeprSquarePaymentsGateway) {
-                        try {
-                            list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
+                    try {
+                        list($txn, $sub) = MeprCheckoutCtrl::prepare_transaction(
+                            $prd,
+                            0,
+                            get_current_user_id(),
+                            $pm->id,
+                            $coupon,
+                            false
+                        );
+
+                        if ($pm instanceof MeprStripeGateway && $pm->settings->stripe_checkout_enabled !== 'on') {
+                            $elements_options[$pm->id] = $pm->get_elements_options(
                                 $prd,
-                                0,
-                                get_current_user_id(),
-                                $pm->id,
-                                $coupon,
-                                false
+                                $txn,
+                                $sub,
+                                $coupon_code,
+                                $order_bump_products
                             );
-
+                        } elseif ($pm instanceof MeprSquarePaymentsGateway) {
                             $square_verification[$pm->id] = $pm->get_verification_details(
                                 $prd,
                                 $txn,
@@ -1259,9 +1257,17 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
                                 $coupon_code,
                                 $order_bump_products
                             );
-                        } catch (Exception $e) {
-                            // Ignore exception.
+                        } elseif ($pm instanceof MeprPayPalVaultingGateway) {
+                            $paypal_sdk_options[$pm->id] = $pm->get_sdk_options(
+                                $prd,
+                                $txn,
+                                $sub,
+                                $coupon_code,
+                                $order_bump_products
+                            );
                         }
+                    } catch (Exception $e) {
+                        // Ignore exception.
                     }
                 }
 
@@ -1271,6 +1277,10 @@ class MeprCheckoutCtrl extends MeprBaseCtrl
 
                 if (count($square_verification)) {
                     $data['square_verification'] = $square_verification;
+                }
+
+                if (count($paypal_sdk_options)) {
+                    $data['paypal_sdk_options'] = $paypal_sdk_options;
                 }
             }
         }

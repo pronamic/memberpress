@@ -74,7 +74,8 @@
 
 .mepr-stripe-card-errors,
 .mepr-paypal-card-errors,
-.mepr-square-errors {
+.mepr-square-errors,
+.mepr-paypal-vaulting-errors {
   color: #eb1c26;
 }
 
@@ -434,6 +435,68 @@ body:has(.mepr-paywall-overlay) {
 .mepr-order-bump-required input[name="mepr_order_bumps[]"] {
   pointer-events: none !important;
   opacity: 0.4 !important;
+}
+
+/* PayPal Vaulting */
+.mepr-paypal-vaulting-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 750px;
+}
+
+.mepr-paypal-paylater-message {
+  margin-top: 10px;
+}
+
+.mepr-paypal-vaulting-or {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 13px;
+  color: #848484;
+  margin: 20px 0;
+}
+
+.mepr-paypal-vaulting-or::before,
+.mepr-paypal-vaulting-or::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #ccc;
+}
+
+.mepr-paypal-vaulting-or::before {
+  margin-right: 10px;
+}
+
+.mepr-paypal-vaulting-or::after {
+  margin-left: 10px;
+}
+
+.mepr-paypal-vaulting-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mepr-card-field-number {
+  width: 100%;
+}
+
+.mepr-card-fields-row {
+  display: flex;
+  gap: 12px;
+}
+
+.mepr-card-field-expiry,
+.mepr-card-field-cvv {
+  flex: 1;
+}
+
+/* Hide the Submit button when PayPal is selected without card fields. */
+.mepr-paypal-vaulting-hide-submit .mepr-submit {
+  display: none;
 }
 
 /* RTL Support*/

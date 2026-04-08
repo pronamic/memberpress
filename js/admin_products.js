@@ -353,11 +353,23 @@
         $('div.mepr-price-box-title').html($('#_mepr_product_pricing_title').val());
       }
       //Load the price stuff
-      if($('#_mepr_product_pricing_show_price').is(":checked")) {
+      var pricingDisplay = $('#mepr-pricing-display').val();
+      if(pricingDisplay === 'auto') {
         var prod_id = $('#mepr-price-box-configuration').attr('data-value');
         set_product_price_str(prod_id);
+      } else if(pricingDisplay === 'custom') {
+        var customPrice = $('#mepr-custom-price').val();
+        var customTerm = $('#mepr-custom-price-term').val();
+        var customHtml = customPrice;
+        if(customTerm) {
+          customHtml += ' <span class="mepr-price-box-price-term">' + customTerm + '</span>';
+        }
+        $('div.mepr-price-box-price').html(customHtml);
+        $('span.mepr-price-box-price-loading').hide();
+        $('div.mepr-price-box-price').show();
       } else {
         $('div.mepr-price-box-price').html('');
+        $('span.mepr-price-box-price-loading').hide();
       }
 
       // Check if membership is marked as highlighted.
@@ -374,6 +386,21 @@
       $('div.mepr-price-box-benefits-list').html(benefits);
       $('div.mepr-price-box-footer').html($('#_mepr_product_pricing_footer_text').val());
       $('div.mepr-price-box-button a').html($('#_mepr_product_pricing_button_text').val());
+
+      //Update button position visibility
+      var btnPos = $('#mepr-pricing-button-position').val();
+      var $headBtn = $('div.mepr-price-box-head div.mepr-price-box-button');
+      var $footBtn = $('div.mepr-price-box-foot div.mepr-price-box-button');
+      if(btnPos === 'header') {
+        $headBtn.show();
+        $footBtn.hide();
+      } else if(btnPos === 'footer') {
+        $headBtn.hide();
+        $footBtn.show();
+      } else {
+        $headBtn.show();
+        $footBtn.show();
+      }
     }
   //Update preview when these things happen
     //Call this once when the page loads to get the initial preview
@@ -383,19 +410,27 @@
       input#title', function() {
       load_pricing_preview();
     });
-    $('#_mepr_product_pricing_show_price').on('click', function() {
+    $('#mepr-pricing-display, #mepr-pricing-button-position').on('change', function() {
       load_pricing_preview();
     });
-    //Add highlight class to preview box
+    //Add highlight class to preview box and show/hide badge text field
     $('#_mepr_product_is_highlighted').on('click', function() {
       if($(this).is(':checked')) {
         $('div.mepr-price-box').addClass('highlighted');
         $('div.mepr-most-popular').fadeIn();
+        $('#mepr-badge-text-wrap').slideDown('fast');
       }
       else {
         $('div.mepr-price-box').removeClass('highlighted');
         $('div.mepr-most-popular').fadeOut();
+        $('#mepr-badge-text-wrap').slideUp('fast');
       }
+    });
+
+    //Update badge text in preview
+    $('body').on('input', '#_mepr_product_pricing_badge_text', function() {
+      var badgeText = $(this).val() || 'Most Popular';
+      $('div.mepr-most-popular').text(badgeText);
     });
 
   //Who Can Purchase? stuff

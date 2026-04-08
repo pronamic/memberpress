@@ -246,6 +246,26 @@ class MeprDbMigrations
                     ],
                 ],
             ],
+            '1.12.15'  => [
+                'show_ui'    => false,
+                'migrations' => [
+                    [
+                        'migration' => 'migrate_coupon_use_on_upgrades_to_dropdown_021',
+                        'check'     => false,
+                        'message'   => false,
+                    ],
+                    [
+                        'migration' => 'migrate_coupon_start_time_seconds_022',
+                        'check'     => false,
+                        'message'   => false,
+                    ],
+                    [
+                        'migration' => 'migrate_unified_app_fee_mapper_023',
+                        'check'     => false,
+                        'message'   => false,
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -906,5 +926,178 @@ class MeprDbMigrations
         if ($mepr_db->table_exists($table_name)) {
             update_option('mepr_db_migration_020_ran', time());
         }
+    }
+
+    /**
+     * Migrate coupon use_on_upgrades boolean meta to use_on_upgrades_downgrades dropdown.
+     *
+     * This migration converts the old boolean `_mepr_coupons_use_on_upgrades` meta field
+     * to the new dropdown `_mepr_coupons_use_on_upgrades_downgrades` field.
+     *
+     * Mapping:
+     * - false => 'none' (coupon cannot be used on upgrades or downgrades)
+     * - true => 'both' (coupon can be used on both upgrades and downgrades)
+     *
+     * Note: The old implementation (incorrectly?) applied the boolean to both upgrades
+     * and downgrades, so true maps to 'both' to maintain backward compatibility.
+     */
+    public function migrate_coupon_use_on_upgrades_to_dropdown_021()
+    {
+        // Check to see if this migration has already run.
+        if (get_option('mepr_db_migration_021_ran')) {
+            MeprUtils::debug_log('Migrating coupon use_on_upgrades to dropdown already ran ... aborting migration 021');
+            return;
+        }
+
+        MeprUtils::debug_log('Migrating coupon use_on_upgrades boolean to use_on_upgrades_downgrades dropdown');
+
+        // Get all published coupons.
+        $coupons = get_posts(
+            [
+                'numberposts' => -1,
+                'post_type'   => MeprCoupon::$cpt,
+                'post_status' => ['publish', 'trash'],
+                'orderby'     => 'ID',
+                'order'       => 'ASC',
+            ]
+        );
+
+        if (empty($coupons) || is_wp_error($coupons)) {
+            MeprUtils::debug_log('Migrating coupon use_on_upgrades to dropdown failed ... aborting migration 021');
+            return;
+        }
+
+        $migrated_count = 0;
+        $skipped_count  = 0;
+
+        foreach ($coupons as $coupon) {
+            // Skip if new meta exists.
+            if (metadata_exists('post', $coupon->ID, MeprCoupon::$use_on_upgrades_downgrades_str)) {
+                ++$skipped_count;
+                continue;
+            }
+
+            // Check if coupon has the old meta key.
+            $old_value = get_post_meta($coupon->ID, '_mepr_coupons_use_on_upgrades', true);
+
+            /**
+             * Map old boolean value to new dropdown value.
+             * - If old meta doesn't exist (false) or is empty ('') → treat as empty → 'none'
+             * - If old meta is truthy (true, '1', 1) → 'both'
+             *
+             * WordPress stores checkbox values as '1' for checked, '' for unchecked, or false if meta doesn't exist.
+             */
+            $new_value = $old_value ? 'both' : 'none';
+
+            // To avoid race conditions creating an array of values, make sure the meta is unique.
+            if (!add_post_meta($coupon->ID, MeprCoupon::$use_on_upgrades_downgrades_str, $new_value, true)) {
+                ++$skipped_count;
+                continue;
+            }
+
+            MeprUtils::debug_log("Migrated coupon ID {$coupon->ID} ({$coupon->post_title}): old value '{$old_value}' => new value '{$new_value}'");
+            ++$migrated_count;
+        }
+
+        // Flag that this migration has run.
+        update_option('mepr_db_migration_021_ran', time());
+
+        MeprUtils::debug_log(
+            "Completed migrating coupon use_on_upgrades to dropdown. Migrated: {$migrated_count}, Skipped: {$skipped_count}"
+        );
+    }
+
+    /**
+     * Migrate coupon start times from 00:00:01 to 00:00:00.
+     *
+     * This migration fixes a 1-second gap issue where coupons started at 00:00:01
+     * but expired at 23:59:59, leaving the first second (00:00:00) uncovered.
+     * By changing start times to 00:00:00, we ensure full coverage without gaps.
+     */
+    public function migrate_coupon_start_time_seconds_022()
+    {
+        // Check to see if this migration has already run.
+        if (get_option('mepr_db_migration_022_ran')) {
+            MeprUtils::debug_log('Migrating coupon start time seconds already ran ... aborting migration 022');
+            return;
+        }
+
+        MeprUtils::debug_log('Migrating coupon start times from 00:00:01 to 00:00:00');
+
+        // Get all published coupons.
+        $coupons = get_posts(
+            [
+                'numberposts' => -1,
+                'post_type'   => MeprCoupon::$cpt,
+                'post_status' => ['publish', 'trash'], // Only published and trashed coupons.
+                'orderby'     => 'ID',
+                'order'       => 'ASC',
+            ]
+        );
+
+        if (empty($coupons) || is_wp_error($coupons)) {
+            MeprUtils::debug_log('Migrating coupon start time seconds failed ... aborting migration 022');
+            return;
+        }
+
+        $migrated_count = 0;
+        $skipped_count  = 0;
+
+        foreach ($coupons as $coupon) {
+            // Get the current starts_on timestamp.
+            $starts_on = get_post_meta($coupon->ID, MeprCoupon::$starts_on_str, true);
+
+            // Skip if no start time is set.
+            if (empty($starts_on) || !is_numeric($starts_on)) {
+                ++$skipped_count;
+                continue;
+            }
+
+            // Get the seconds component of the timestamp.
+            $seconds = (int) MeprUtils::get_date_from_ts($starts_on, 's');
+
+            // Only migrate if seconds are 01 (the old default).
+            if ($seconds !== 1) {
+                ++$skipped_count;
+                continue;
+            }
+
+            // Change seconds from 01 to 00 by subtracting 1 second.
+            $new_starts_on = $starts_on - 1;
+
+            // Update the meta.
+            update_post_meta($coupon->ID, MeprCoupon::$starts_on_str, $new_starts_on);
+
+            MeprUtils::debug_log(
+                "Migrated coupon ID {$coupon->ID} ({$coupon->post_title}): start time seconds changed from 01 to 00"
+            );
+
+            ++$migrated_count;
+        }
+
+        // Flag that this migration has run.
+        update_option('mepr_db_migration_022_ran', time());
+
+        MeprUtils::debug_log(
+            "Completed migrating coupon start time seconds. Migrated: {$migrated_count}, Skipped: {$skipped_count}"
+        );
+    }
+
+    /**
+     * Clean up orphaned crons from the old two-mechanism app fee system.
+     * The unified mapper (mepr_drm_app_fee_mapper) replaces these.
+     *
+     * @return void
+     */
+    public function migrate_unified_app_fee_mapper_023()
+    {
+        MeprUtils::debug_log('Cleaning up orphaned app fee crons (migration 023)');
+
+        wp_clear_scheduled_hook('mepr_process_application_fee', ['add']);
+        wp_clear_scheduled_hook('mepr_process_application_fee', ['remove']);
+        wp_clear_scheduled_hook('mepr_process_application_fee', ['adjust']);
+        wp_clear_scheduled_hook('mepr_drm_app_fee_reversal', [false]);
+
+        MeprUtils::debug_log('Completed cleaning up orphaned app fee crons (migration 023)');
     }
 }

@@ -288,6 +288,8 @@
       $(obj).trigger('mepr-validate-input');
     };
 
+    window.meprValidateInput = meprValidateInput;
+
     $('body').on('focus', '.mepr-form .mepr-form-input', function (e) {
       $(this).prev('.mp-form-label').find('.cc-error').hide();
       $(this).removeClass('invalid');
@@ -334,7 +336,7 @@
         this.disabled = true;
         form.find('.mepr-loading-gif').show();
         $(this).trigger('mepr-register-submit');
-        form.submit();
+        form.trigger('submit');
       }
     });
 
@@ -352,8 +354,11 @@
     $('body').on('click', '.mepr-signup-form div[class^=mepr-payment-method] input.mepr-form-radio', function () {
       var form = $(this).closest('.mepr-signup-form');
 
-      // Reset the transaction ID to prevent any issues after switching payment methods
+      // Reset the transaction ID to prevent any issues after switching payment methods.
       form.find('input[name="mepr_transaction_id"]').val('');
+
+      // Fire event for gateways to react to payment method change.
+      form.trigger('meprPaymentMethodChanged', [$(this).val()]);
 
       var pmid = '.mp-pm-desc-' + $(this).val();
       var pmid_exists = (form.find(pmid).length > 0);

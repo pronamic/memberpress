@@ -7,10 +7,10 @@ jQuery(document).ready(function($) {
 
   $('select#trigger').on( 'change', function(e) {
     var rval = $(this).val();
-    rval = rval.split('_');
-
-    var trigger_timing = rval[0];
-    var trigger_event = rval[1];
+    var sep = rval.indexOf('_');
+    if (sep === -1) { return; }
+    var trigger_timing = rval.substring(0, sep);
+    var trigger_event  = rval.substring(sep + 1);
 
     $('#mepr_trigger_timing').val( trigger_timing );
     $('#mepr_trigger_event').val( trigger_event );

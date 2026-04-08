@@ -215,6 +215,8 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                 'unable_to_verify_stripe_tax'           => __('Unable to verify Stripe Tax status', 'memberpress'),
                 'square_connect_nonce'                  => wp_create_nonce('mepr_square_connect'),
                 'square_disconnect_confirm'             => __('Are you sure you want to disconnect this gateway? Disconnecting this gateway will prevent subscription payments from being recorded and new payments will stop working when the access token expires.', 'memberpress'),
+                'paypal_vaulting_connect_nonce'         => wp_create_nonce('mepr_paypal_vaulting_connect'),
+                'paypal_vaulting_disconnect_confirm'    => __('Are you sure you want to disconnect this gateway? Disconnecting this gateway will prevent subscription payments from being recorded.', 'memberpress'),
                 'custom_fields_row'                     => self::get_custom_fields_row(),
                 'custom_fields_options'                 => self::get_custom_fields_options(),
                 'custom_fields_option_new'              => self::get_custom_fields_option_new(),
@@ -407,11 +409,7 @@ class MeprOptionsCtrl extends MeprBaseCtrl
                     }
                 }
 
-                if ($onboarding) {
-                    $output .= MeprView::get_string('/admin/onboarding/active_license', get_defined_vars());
-                } else {
-                    $output .= MeprView::get_string('/admin/options/active_license', get_defined_vars());
-                }
+                $output .= MeprView::get_string('/admin/options/active_license', get_defined_vars());
             } else {
                 $output .= sprintf('<div class="notice notice-warning"><p>%s</p></div>', esc_html__('The license information is not available, try refreshing the page.', 'memberpress'));
             }

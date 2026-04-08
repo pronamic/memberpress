@@ -697,11 +697,12 @@ class MeprAuthorizeProfileGateway extends MeprBaseRealGateway
      * Validate the options form
      *
      * @param  array $errors The errors.
-     * @return void
+     * @return array The updated errors array.
      */
     public function validate_options_form($errors)
     {
         // TODO: Implement validate_options_form() method.
+        return $errors;
     }
 
     /**

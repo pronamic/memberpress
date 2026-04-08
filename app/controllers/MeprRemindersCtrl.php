@@ -436,6 +436,15 @@ class MeprRemindersCtrl extends MeprCptCtrl
             return false;
         }
 
+        // Allow brands to restrict which trigger combos are valid.
+        $allowed = MeprHooks::apply_filters('mepr_reminder_allowed_triggers', null);
+        if (is_array($allowed)) {
+            $combo = "{$reminder->trigger_timing}_{$reminder->trigger_event}";
+            if (!in_array($combo, $allowed, true)) {
+                return false;
+            }
+        }
+
         return $reminder;
     }
 

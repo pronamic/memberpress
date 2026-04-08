@@ -164,30 +164,35 @@ class MeprOptionsHelper
      */
     public static function gateways_dropdown($field_name, $curr_gateway, $obj_id)
     {
-        $gateways    = MeprGatewayFactory::all();
-        $field_value = isset($_POST[$field_name]) ? sanitize_text_field(wp_unslash($_POST[$field_name])) : '';
+        $gateways = MeprGatewayFactory::all();
 
-        // Move Stripe Gateway to the top of the list.
+        // Reorder gateways: Stripe first, PayPal Vaulting second.
+        $reordered = [];
+
         if (isset($gateways['MeprStripeGateway'])) {
-            $gateways = array_merge(['MeprStripeGateway' => $gateways['MeprStripeGateway']], $gateways);
+            $reordered['MeprStripeGateway'] = $gateways['MeprStripeGateway'];
+            unset($gateways['MeprStripeGateway']);
         }
+
+        if (isset($gateways['MeprPayPalVaultingGateway'])) {
+            $reordered['MeprPayPalVaultingGateway'] = $gateways['MeprPayPalVaultingGateway'];
+            unset($gateways['MeprPayPalVaultingGateway']);
+        }
+
+        $gateways = array_merge($reordered, $gateways);
         ?>
-      <select name="<?php echo esc_attr($field_name); ?>" id="<?php echo esc_attr($field_name); ?>" data-id="<?php echo esc_attr($obj_id); ?>" class="mepr-dropdown mepr-gateways-dropdown">
+        <select name="<?php echo esc_attr($field_name); ?>" id="<?php echo esc_attr($field_name); ?>" data-id="<?php echo esc_attr($obj_id); ?>" class="mepr-dropdown mepr-gateways-dropdown">
         <?php
+        // Don't show these gateways anymore to new users.
+        $excluded_gateways = [
+            'MeprPayPalProGateway',
+            'MeprPayPalGateway',
+            'MeprAuthorizeGateway',
+            'MeprPayPalCommerceGateway',
+        ];
+
         foreach ($gateways as $gateway => $gateway_name) {
-            if ($gateway === 'MeprPayPalProGateway') { // Don't show PayPal Pro any more to new users.
-                continue;
-            }
-
-            if ($gateway === 'MeprPayPalGateway') {
-                continue;
-            }
-
-            if ($gateway === 'MeprAuthorizeGateway') {
-                continue;
-            }
-
-            if ($gateway === 'MeprPayPalCommerceGateway') {
+            if (in_array($gateway, $excluded_gateways, true)) {
                 continue;
             }
 
@@ -195,18 +200,20 @@ class MeprOptionsHelper
                 $gateway_name = __('Stripe (Recommended)', 'memberpress');
             }
 
-            if ($gateway === 'MeprPayPalCommerceGateway') {
-                $gateway_name = __('PayPal (Recommended)', 'memberpress');
+            if ($gateway === 'MeprPayPalVaultingGateway') {
+                $gateway_name = __('PayPal Complete Payments (Recommended)', 'memberpress');
             }
 
-            $obj = MeprGatewayFactory::fetch($gateway);
+            if ($gateway === 'MeprPayPalStandardGateway') {
+                $gateway_name = __('PayPal Standard (Legacy)', 'memberpress');
+            }
 
             ?>
-          <option value="<?php echo esc_attr($gateway); ?>" <?php echo (((isset($_POST[$field_name]) and $_POST[$field_name] === $gateway) or (!isset($_POST[$field_name]) and $curr_gateway === $gateway)) ? ' selected="selected"' : ''); ?>><?php echo esc_html($gateway_name); ?>&nbsp;</option>
+            <option value="<?php echo esc_attr($gateway); ?>" <?php echo (((isset($_POST[$field_name]) and $_POST[$field_name] === $gateway) or (!isset($_POST[$field_name]) and $curr_gateway === $gateway)) ? ' selected="selected"' : ''); ?>><?php echo esc_html($gateway_name); ?>&nbsp;</option>
             <?php
         }
         ?>
-      </select>
+        </select>
         <?php
     }
 
@@ -354,22 +361,20 @@ class MeprOptionsHelper
         $first     = true;
 
         foreach ($payment_methods as $payment_method) {
-            $icon  = $payment_method->icon;
-            $name  = $payment_method->name;
-            // Ensure icons are unique.
-            if (in_array($icon, $icons, true)) {
-                continue;
-            }
-            $icons[] = $icon;
+            $icon = $payment_method->icon;
+            $name = $payment_method->name;
 
             if ($payment_method->use_icon && !empty($icon)) {
-                $icon = '<span class="mepr-payment-method-icon"><img src="' . $icon . '" alt="' . $name . '" height="32px" /></span>';
-            } else {
-                $icon = '';
-            }
+                // Ensure icons are unique.
+                if (in_array($icon, $icons, true)) {
+                    continue;
+                }
+                $icons[] = $icon;
 
-            $icon_html .= MeprHooks::apply_filters('mepr_signup_form_payment_icon', $icon, $payment_method, $first);
-            $first      = false;
+                $icon       = '<span class="mepr-payment-method-icon"><img src="' . esc_url($icon) . '" alt="' . esc_attr($name) . '" height="32px" /></span>';
+                $icon_html .= MeprHooks::apply_filters('mepr_signup_form_payment_icon', $icon, $payment_method, $first);
+                $first      = false;
+            }
         }
 
         return $icon_html;

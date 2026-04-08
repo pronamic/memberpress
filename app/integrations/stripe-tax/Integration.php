@@ -355,6 +355,12 @@ class MeprStripeTaxIntegration
             return;
         }
 
+        // Skip if automatic_tax is enabled on the subscription and the subscription's gateway matches
+        // the Stripe Tax gateway, as Stripe Billing handles tax reporting in that case.
+        if ($txn->subscription_id > 0 && $this->subscription_has_automatic_tax($pm, (int) $txn->subscription_id)) {
+            return;
+        }
+
         $one      = get_user_meta($txn->user_id, 'mepr-address-one', true);
         $two      = get_user_meta($txn->user_id, 'mepr-address-two', true);
         $city     = get_user_meta($txn->user_id, 'mepr-address-city', true);
@@ -553,6 +559,33 @@ class MeprStripeTaxIntegration
       </p>
     </div>
         <?php
+    }
+
+    /**
+     * Check if the Stripe subscription has automatic_tax enabled.
+     *
+     * @param  MeprStripeGateway $pm              The Stripe payment method.
+     * @param  integer           $subscription_id The MeprSubscription ID.
+     * @return boolean
+     */
+    private function subscription_has_automatic_tax(MeprStripeGateway $pm, int $subscription_id): bool
+    {
+        $sub = new MeprSubscription($subscription_id);
+
+        if ($sub->id <= 0 || empty($sub->subscr_id) || $sub->gateway !== $pm->id) {
+            return false;
+        }
+
+        try {
+            $stripe_sub = (object) $pm->send_stripe_request("subscriptions/$sub->subscr_id", [], 'get');
+
+            $automatic_tax = (array) ($stripe_sub->automatic_tax ?? []);
+
+            return !empty($automatic_tax['enabled']);
+        } catch (Exception $e) {
+            MeprUtils::debug_log('Stripe Tax: Error checking automatic_tax status: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**

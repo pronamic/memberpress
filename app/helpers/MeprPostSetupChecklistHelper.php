@@ -65,7 +65,7 @@ class MeprPostSetupChecklistHelper
                 'id'          => 'activate_license',
                 'title'       => __('Activate license key', 'memberpress'),
                 'description' => __('Enter your license key to enable updates and support.', 'memberpress'),
-                'completed'   => MeprUpdateCtrl::is_activated(),
+                'completed'   => class_exists('MeprUpdateCtrl') && MeprUpdateCtrl::is_activated(),
                 'skipped'     => in_array('activate_license', $skipped_steps, true),
                 'skippable'   => true,
                 'action_url'  => admin_url('admin.php?page=memberpress-options#license'),
@@ -210,7 +210,7 @@ class MeprPostSetupChecklistHelper
     }
 
     /**
-     * Check if an addon is installable based on user's license plan.
+     * Check if an addon is installable for the current license.
      *
      * @param string $addon_slug The addon slug.
      *
@@ -218,6 +218,10 @@ class MeprPostSetupChecklistHelper
      */
     public static function is_addon_installable($addon_slug)
     {
+        if (!class_exists('MeprUpdateCtrl')) {
+            return false;
+        }
+
         $addons = MeprUpdateCtrl::addons(true, false, true);
 
         if (!empty($addons) && isset($addons->{$addon_slug})) {
@@ -236,6 +240,10 @@ class MeprPostSetupChecklistHelper
      */
     public static function get_addon_download_url($addon_slug)
     {
+        if (!class_exists('MeprUpdateCtrl')) {
+            return '';
+        }
+
         $addons = MeprUpdateCtrl::addons(true, false, true);
 
         if (!empty($addons) && isset($addons->{$addon_slug})) {
@@ -724,8 +732,8 @@ class MeprPostSetupChecklistHelper
             return false;
         }
 
-        // Don't show on the onboarding page.
-        if (MeprOnboardingCtrl::is_onboarding_page()) {
+        // Don't show on the onboarding page (brand-defined).
+        if (MeprHooks::apply_filters('mepr_is_onboarding_page', false)) {
             return false;
         }
 

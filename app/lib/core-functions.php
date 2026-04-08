@@ -16,6 +16,7 @@ if (!function_exists('core_get_prefix_string')) {
      * - upper: 'MEPR'
      * - camel: 'Mepr'
      * - short: 'mp'
+     * - long: 'memberpress'
      * - default: 'mepr'
      *
      * @param string $type Prefix type. Default is 'default'.
@@ -31,6 +32,8 @@ if (!function_exists('core_get_prefix_string')) {
                 return 'Mepr';
             case 'short':
                 return 'mp';
+            case 'long':
+                return 'memberpress';
         }
 
         return 'mepr';

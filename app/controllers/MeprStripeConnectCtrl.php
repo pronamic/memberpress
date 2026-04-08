@@ -391,11 +391,23 @@ class MeprStripeConnectCtrl extends MeprBaseCtrl
         $onboarding = isset($_GET['onboarding']) ? sanitize_text_field(wp_unslash($_GET['onboarding'])) : '';
 
         if ($onboarding === 'true') {
-            $redirect_url = add_query_arg([
-                'page'          => 'memberpress-onboarding',
-                'step'          => '6',
-                'stripe-action' => $stripe_action,
-            ], admin_url('admin.php'));
+            $redirect_url = MeprHooks::apply_filters('mepr_onboarding_payment_gateway_redirect_url', '', $method_id, $stripe_action);
+            if ($redirect_url !== '' && wp_http_validate_url($redirect_url) !== false) {
+                wp_safe_redirect($redirect_url);
+                exit;
+            }
+            $onboarding_step = MeprHooks::apply_filters('mepr_onboarding_payment_step', '6', $method_id);
+            $onboarding_page = MeprHooks::apply_filters('mepr_onboarding_admin_page_slug', '');
+            $redirect_url    = $onboarding_page !== ''
+                ? add_query_arg([
+                    'page'          => $onboarding_page,
+                    'step'          => $onboarding_step,
+                    'stripe-action' => $stripe_action,
+                ], admin_url('admin.php'))
+                : add_query_arg([
+                    'page'          => 'memberpress-options',
+                    'stripe-action' => $stripe_action,
+                ], admin_url('admin.php')) . '#mepr-integration';
         } else {
             $redirect_url = add_query_arg([
                 'page'          => 'memberpress-options',

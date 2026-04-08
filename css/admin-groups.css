@@ -1,4 +1,5 @@
-div#hidden-line-item {
+div#hidden-line-item,
+div#hidden-coupon-line-item {
   display: none;
 }
 
@@ -29,6 +30,30 @@ div#mepr-groups-form {
   padding: 0.4em;
   padding-left: 1em;
   border: 1px dashed silver;
+}
+
+.mepr-sortable li.coupon-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.mepr-sortable li.coupon-item select.group_coupons_dropdown {
+  min-width: 200px;
+  margin-right: 10px;
+}
+
+.mepr-sortable li.coupon-item label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 15px;
+  white-space: nowrap;
+}
+
+.mepr-sortable li.coupon-item label input[type="checkbox"] {
+  margin: 0;
 }
 
 .mepr-hover {
@@ -98,4 +123,274 @@ div#mepr-shortcode-group-pricing-boxes-area {
   box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
   margin: 5px 0 15px;
   padding: 10px;
+}
+
+/* Group Coupons Section */
+#mepr_auto_apply_coupons_box {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+#sortable-coupons {
+  margin-bottom: 10px;
+}
+
+#add-new-coupon {
+  display: inline-block;
+  margin-top: 5px;
+  text-decoration: none;
+}
+
+.coupon-schedule-options {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coupon-schedule-options .mepr-sub-box {
+  background: #fff;
+}
+
+.coupon-schedule-options .mepr-sub-box-hidden {
+  display: none;
+}
+
+/* ---- Modern Template Selector ---- */
+
+/* Toggle buttons */
+.mepr-template-toggle {
+  display: flex;
+  gap: 0;
+  margin: 10px 0 15px;
+}
+
+.mepr-template-toggle .mepr-toggle-label {
+  padding: 8px 16px;
+  border: 1px solid #c3c4c7;
+  background: #f6f7f7;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  color: #50575e;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mepr-template-toggle .mepr-toggle-label:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.mepr-template-toggle .mepr-toggle-label:last-child {
+  border-radius: 0 4px 4px 0;
+  border-left: none;
+}
+
+.mepr-template-toggle .mepr-toggle-label.active {
+  background: #2271b1;
+  border-color: #2271b1;
+  color: #fff;
+}
+
+.mepr-template-toggle .mepr-toggle-label input[type="radio"] {
+  display: none;
+}
+
+/* Template card grid */
+.mepr-template-grid {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin: 10px 0 15px;
+}
+
+.mepr-template-card {
+  width: 180px;
+  cursor: pointer;
+  border: 2px solid #dcdcde;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #fff;
+}
+
+.mepr-template-card:hover {
+  border-color: #a7aaad;
+}
+
+.mepr-template-card.selected {
+  border-color: #2271b1;
+  box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Mini CSS-based template previews */
+.mepr-template-preview {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 18px 12px 12px;
+  background: #f9fafb;
+  min-height: 80px;
+}
+
+.mepr-template-preview .mepr-tp-box {
+  width: 32%;
+  height: 50px;
+  border-radius: 3px;
+  transition: transform 0.15s;
+}
+
+.mepr-template-preview .mepr-tp-box.mepr-tp-highlighted {
+  height: 60px;
+}
+
+/* Modern Cards preview */
+.mepr-preview-modern-cards {
+  background: #f1f5f9;
+}
+
+.mepr-preview-modern-cards .mepr-tp-box {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border-radius: 6px;
+}
+
+.mepr-preview-modern-cards .mepr-tp-box.mepr-tp-highlighted {
+  border-color: #2563eb;
+  border-width: 2px;
+}
+
+/* Minimal preview */
+.mepr-preview-minimal {
+  background: #fafafa;
+}
+
+.mepr-preview-minimal .mepr-tp-box {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.mepr-preview-minimal .mepr-tp-box.mepr-tp-highlighted {
+  border-color: #2563eb;
+  background: #f8fafc;
+}
+
+/* Bold preview */
+.mepr-preview-bold {
+  background: #f0f4f8;
+}
+
+.mepr-preview-bold .mepr-tp-box {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.mepr-preview-bold .mepr-tp-box::before {
+  content: '';
+  display: block;
+  height: 18px;
+  background: #e2e8f0;
+  border-radius: 6px 6px 0 0;
+}
+
+.mepr-preview-bold .mepr-tp-box.mepr-tp-highlighted::before {
+  background: #2563eb;
+}
+
+/* Template label */
+.mepr-template-label {
+  display: block;
+  text-align: center;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e1e1e;
+  border-top: 1px solid #f0f0f1;
+}
+
+/* Color grid - two columns */
+.mepr-color-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+  margin: 10px 0 5px;
+  max-width: 500px;
+}
+
+.mepr-color-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mepr-color-field label {
+  font-weight: 600;
+  font-size: 13px;
+  width: 80px;
+  flex-shrink: 0;
+  color: #1e1e1e;
+}
+
+.mepr-color-field input[type="color"] {
+  width: 36px;
+  height: 30px;
+  padding: 1px;
+  border: 1px solid #c3c4c7;
+  border-radius: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mepr-color-field .description {
+  color: #646970;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Template options table */
+.mepr-template-options-table {
+  margin-top: 5px;
+}
+
+.mepr-template-options-table th {
+  width: 160px;
+  padding: 8px 10px 8px 0;
+  font-weight: 500;
+}
+
+.mepr-template-options-table td {
+  padding: 8px 0;
+}
+
+.mepr-template-options-table .description {
+  color: #646970;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Live Preview */
+#mepr-live-preview {
+  margin: 15px 0;
+}
+
+#mepr-live-preview-container {
+  background: #f0f0f1;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+  padding: 30px 20px;
+  overflow: hidden;
+}
+
+#mepr-live-preview-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+#mepr-live-preview-inner .mepr-price-box-button a {
+  pointer-events: none;
 }

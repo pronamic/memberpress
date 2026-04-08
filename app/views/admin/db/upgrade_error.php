@@ -41,7 +41,9 @@
               <p>&nbsp;</p>
             <?php endif; ?>
             <p>
-              <a class="btn btn-primary" href="<?php echo esc_url(MeprUpdateCtrl::rollback_url()); ?>" target="_blank"><?php esc_html_e('Rollback MemberPress', 'memberpress'); ?></a>
+              <?php if (class_exists('MeprUpdateCtrl')) : ?>
+                <a class="btn btn-primary" href="<?php echo esc_url(MeprUpdateCtrl::rollback_url()); ?>" target="_blank"><?php esc_html_e('Rollback MemberPress', 'memberpress'); ?></a>
+              <?php endif; ?>
               <a class="btn btn-primary" href="<?php echo esc_url(MeprUtils::get_link_url('support')); ?>" target="_blank"><?php esc_html_e('Contact Support', 'memberpress'); ?></a>
             </p>
             <p>&nbsp;</p>

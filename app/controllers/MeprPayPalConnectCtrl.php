@@ -423,20 +423,7 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
 
             $mepr_options->store(false);
 
-            $onboarding = isset($_GET['onboarding']) ? sanitize_text_field(wp_unslash($_GET['onboarding'])) : '';
-
-            if ($onboarding === 'true') {
-                update_option('mepr_onboarding_payment_gateway', $method_id);
-
-                $redirect_url = add_query_arg([
-                    'page' => 'memberpress-onboarding',
-                    'step' => '6',
-                ], admin_url('admin.php'));
-            } else {
-                $redirect_url = admin_url('admin.php?page=memberpress-options#mepr-integration');
-            }
-
-            MeprUtils::wp_redirect($redirect_url);
+            MeprUtils::wp_redirect(admin_url('admin.php?page=memberpress-options#mepr-integration'));
             exit;
         }
     }
@@ -956,4 +943,3 @@ class MeprPayPalConnectCtrl extends MeprBaseCtrl
         return $result;
     }
 }
-

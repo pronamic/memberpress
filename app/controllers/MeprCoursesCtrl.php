@@ -148,7 +148,7 @@ class MeprCoursesCtrl extends MeprBaseCtrl
     {
 
         $force         = isset($_GET['refresh']) && $_GET['refresh'] === 'true';
-        $addons        = (array) MeprUpdateCtrl::addons(true, $force, true);
+        $addons        = class_exists('MeprUpdateCtrl') ? (array) MeprUpdateCtrl::addons(true, $force, true) : [];
         $courses_addon = ! empty($addons['memberpress-courses']) ? $addons['memberpress-courses'] : [];
         $plugins       = get_plugins();
         wp_cache_delete('plugins', 'plugins');
@@ -202,4 +202,3 @@ class MeprCoursesCtrl extends MeprBaseCtrl
         return $installer->plugin_info();
     }
 }
-

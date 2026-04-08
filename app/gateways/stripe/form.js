@@ -77,7 +77,10 @@
    */
   MeprStripeForm.prototype.createElements = function (paymentMethod, options) {
     try {
-      var self = this
+      var self = this,
+          applePayConfig = self.processApplePayConfig(options.applePay || null);
+
+      delete options.applePay;
 
       options = $.extend({
         currency: MeprStripeGateway.currency,
@@ -85,37 +88,87 @@
       }, options);
 
       paymentMethod.elements = paymentMethod.stripe.elements(options);
+      paymentMethod.applePayConfig = applePayConfig;
 
-      paymentMethod.paymentElement = paymentMethod.elements.create('payment', {
+      var paymentElementOptions = {
         defaultValues: {
           billingDetails: self.getBillingDetails(paymentMethod)
         },
         terms: MeprStripeGateway.payment_element_terms
-      });
+      };
 
-      paymentMethod.paymentElement.on('loaderror', function (event) {
-        if (event.error) {
-          paymentMethod.$cardErrors.html(event.error.message || 'Failed to create Payment element');
-        }
-      });
+      if (applePayConfig) {
+        paymentElementOptions.applePay = applePayConfig;
+      }
 
-      paymentMethod.paymentElement.on('change', function (event) {
-        if (typeof event.complete === 'boolean') {
-          paymentMethod.paymentElementComplete = event.complete;
-        }
+      paymentMethod.paymentElement = paymentMethod.elements.create('payment', paymentElementOptions);
 
-        if (typeof event.value === 'object' && typeof event.value.type === 'string') {
-          paymentMethod.paymentMethodType = event.value.type;
-        } else {
-          paymentMethod.paymentMethodType = null;
-        }
-      });
+      self.attachPaymentElementHandlers(paymentMethod);
 
       paymentMethod.paymentElement.mount(paymentMethod.$cardElement[0]);
     } catch (e) {
       paymentMethod.$cardErrors.html(e.message);
       throw e;
     }
+  };
+
+  /**
+   * Process an Apple Pay config from the server, converting trialDays to a Date for regularBilling.recurringPaymentStartDate.
+   *
+   * @param  {object|null} applePayConfig The Apple Pay config from the server.
+   * @return {object|null} The processed config ready for Stripe.
+   */
+  MeprStripeForm.prototype.processApplePayConfig = function (applePayConfig) {
+    if (!applePayConfig || !applePayConfig.recurringPaymentRequest) {
+      return null;
+    }
+
+    var request = applePayConfig.recurringPaymentRequest;
+
+    // Stripe's Payment Element handles paymentTiming internally and their docs don't include it.
+    if (request.regularBilling) {
+      delete request.regularBilling.paymentTiming;
+    }
+
+    if (request.trialDays) {
+      if (request.regularBilling) {
+        var trialEndDate = new Date();
+
+        trialEndDate.setDate(trialEndDate.getDate() + request.trialDays);
+        trialEndDate.setHours(0, 0, 0, 0);
+
+        request.regularBilling.recurringPaymentStartDate = trialEndDate;
+      }
+
+      delete request.trialDays;
+    }
+
+    return applePayConfig;
+  };
+
+  /**
+   * Attach event handlers to a payment element.
+   *
+   * @param {object} paymentMethod The payment method object.
+   */
+  MeprStripeForm.prototype.attachPaymentElementHandlers = function (paymentMethod) {
+    paymentMethod.paymentElement.on('loaderror', function (event) {
+      if (event.error) {
+        paymentMethod.$cardErrors.html(event.error.message || 'Failed to create Payment element');
+      }
+    });
+
+    paymentMethod.paymentElement.on('change', function (event) {
+      if (typeof event.complete === 'boolean') {
+        paymentMethod.paymentElementComplete = event.complete;
+      }
+
+      if (typeof event.value === 'object' && typeof event.value.type === 'string') {
+        paymentMethod.paymentMethodType = event.value.type;
+      } else {
+        paymentMethod.paymentMethodType = null;
+      }
+    });
   };
 
   /**
@@ -133,7 +186,36 @@
 
         if (paymentMethod) {
           if (paymentMethod.elements) {
+            var newApplePayConfig = self.processApplePayConfig(options.applePay || null);
+
+            delete options.applePay;
+
             paymentMethod.elements.update(options);
+
+            // Destroy and recreate the payment element when the Apple Pay config needs
+            // to be removed, since paymentElement.update() uses a shallow merge and
+            // cannot unset an existing Apple Pay config.
+            if (paymentMethod.applePayConfig && !newApplePayConfig) {
+              paymentMethod.applePayConfig = null;
+              paymentMethod.paymentElement.destroy();
+
+              paymentMethod.paymentElement = paymentMethod.elements.create('payment', {
+                defaultValues: {
+                  billingDetails: self.getBillingDetails(paymentMethod)
+                },
+                terms: MeprStripeGateway.payment_element_terms
+              });
+
+              self.attachPaymentElementHandlers(paymentMethod);
+
+              paymentMethod.paymentElement.mount(paymentMethod.$cardElement[0]);
+            } else {
+              paymentMethod.applePayConfig = newApplePayConfig;
+
+              if (newApplePayConfig) {
+                paymentMethod.paymentElement.update({ applePay: newApplePayConfig });
+              }
+            }
           } else {
             self.createElements(paymentMethod, options);
           }

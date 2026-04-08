@@ -1,8 +1,6 @@
 <?php defined('ABSPATH') || exit; ?>
 <h2 class="nav-tab-wrapper">
-  <a class="nav-tab main-nav-tab <?php if (!$table->lifetime) {
-      echo 'nav-tab-active';
-                                 } ?>" href="<?php echo esc_url(admin_url('admin.php?page=memberpress-subscriptions' . $member . $search . $search_field . $perpage)); ?>" id="mepr-subscriptions">
+  <a class="nav-tab main-nav-tab<?php echo esc_attr($table->lifetime ? '' : ' nav-tab-active'); ?>" href="<?php echo esc_url(admin_url('admin.php?page=memberpress-subscriptions' . $member . $search . $search_field . $perpage)); ?>" id="mepr-subscriptions">
     <?php
     echo esc_html(
         sprintf(
@@ -13,9 +11,7 @@
     );
     ?>
   </a>
-  <a class="nav-tab main-nav-tab <?php if ($table->lifetime) {
-        echo 'nav-tab-active';
-                                 } ?>" href="<?php echo esc_url(admin_url('admin.php?page=memberpress-lifetimes' . $member . $search . $search_field . $perpage)); ?>" id="mepr-lifetime-subscriptions">
+  <a class="nav-tab main-nav-tab<?php echo esc_attr($table->lifetime ? ' nav-tab-active' : ''); ?>" href="<?php echo esc_url(admin_url('admin.php?page=memberpress-lifetimes' . $member . $search . $search_field . $perpage)); ?>" id="mepr-lifetime-subscriptions">
     <?php
     echo esc_html(
         sprintf(

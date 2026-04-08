@@ -193,6 +193,30 @@ class MeprUtils
     }
 
     /**
+     * Get the period type name.
+     *
+     * @param string  $time_type The time type.
+     * @param integer $count     The count.
+     *
+     * @return string The time type name.
+     */
+    public static function time_type_name($time_type, $count = 1)
+    {
+        $count = (int)$count;
+
+        switch ($time_type) {
+            case 'hours':
+                return _n('Hour', 'Hours', $count, 'memberpress');
+            case 'minutes':
+                return _n('Minute', 'Minutes', $count, 'memberpress');
+            case 'seconds':
+                return _n('Second', 'Seconds', $count, 'memberpress');
+            default:
+                return $time_type;
+        }
+    }
+
+    /**
      * Determines if the permalink structure is on.
      *
      * @return boolean
@@ -482,17 +506,32 @@ class MeprUtils
      * Make a timestamp date.
      * Coupons rely on this be careful changing it
      *
-     * @param integer $month The month.
-     * @param integer $day   The day.
-     * @param integer $year  The year.
-     * @param boolean $begin Whether to start at the beginning of the day.
+     * @param integer $month  The month.
+     * @param integer $day    The day.
+     * @param integer $year   The year.
+     * @param boolean $begin  Whether to start at the beginning of the day. Deprecated: use $hour and $minute instead.
+     * @param integer $hour   Optional. The hour (0-23). Defaults to 0 for begin, 23 for end.
+     * @param integer $minute Optional. The minute (0-59). Defaults to 0 for begin, 59 for end.
      *
      * @return integer The timestamp.
      */
-    public static function make_ts_date($month, $day, $year, $begin = false)
+    public static function make_ts_date($month, $day, $year, $begin = false, $hour = null, $minute = null)
     {
+        // If hour and minute are provided, use them directly.
+        if ($hour !== null && $minute !== null) {
+            return gmmktime(
+                (int) $hour,
+                (int) $minute,
+                $begin ? 00 : 59,
+                $month,
+                $day,
+                $year
+            );
+        }
+
+        // Fallback to legacy behavior for backward compatibility.
         if (true === $begin) {
-            return gmmktime(0, 0, 1, $month, $day, $year);
+            return gmmktime(0, 0, 0, $month, $day, $year);
         }
         return gmmktime(23, 59, 59, $month, $day, $year);
     }
@@ -594,6 +633,31 @@ class MeprUtils
     public static function mysql_lifetime()
     {
         return self::db_lifetime();
+    }
+
+    /**
+     * Prepare IDs for use in SQL IN clause.
+     *
+     * Escapes and prepares an array of IDs (integers) for safe use in SQL IN clauses.
+     * Each ID is individually prepared using $wpdb->prepare() to ensure proper escaping.
+     *
+     * @param  array<int> $ids Array of IDs to prepare.
+     * @return string Comma-separated string of prepared IDs ready for use in IN clause.
+     */
+    public static function prepare_ids_in_sql(array $ids): string
+    {
+        if (empty($ids)) {
+            return '';
+        }
+
+        global $wpdb;
+
+        return implode(',', array_map(
+            function ($id) use ($wpdb) {
+                return $wpdb->prepare('%d', $id);
+            },
+            $ids
+        ));
     }
 
     /**
@@ -3379,10 +3443,7 @@ class MeprUtils
     {
         self::include_pluggables('wp_redirect');
 
-        // Don't cache redirects YO!
-        header('Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate, proxy-revalidate');
-        header('Pragma: no-cache');
-        header('Expires: Fri, 01 Jan 2016 00:00:01 GMT', true); // Some date in the past.
+        nocache_headers();
         wp_redirect($location, $status); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 
         exit;
@@ -3814,6 +3875,41 @@ class MeprUtils
     }
 
     /**
+     * Get the business name for payment gateways.
+     * Priority: Business Name setting -> Blog Name -> Site Domain.
+     *
+     * @param  string|null $context Optional context for the filter (e.g., 'google_pay').
+     * @return string
+     */
+    public static function business_name(string $context = null): string
+    {
+        $options = MeprOptions::fetch();
+
+        // First, try the business name setting.
+        $business_name = $options->attr('biz_name');
+
+        // Fall back to the blog name.
+        if (empty($business_name)) {
+            $business_name = self::blogname();
+        }
+
+        // Fall back to the site domain.
+        if (empty($business_name)) {
+            $business_name = wp_parse_url(get_option('siteurl'), PHP_URL_HOST);
+        }
+
+        // Apply the base filter first.
+        $business_name = MeprHooks::apply_filters('mepr_business_name', $business_name, $context);
+
+        // Allow context-specific filtering.
+        if (!empty($context)) {
+            $business_name = MeprHooks::apply_filters("mepr_business_name_$context", $business_name);
+        }
+
+        return (string) $business_name;
+    }
+
+    /**
      * Determine whether our Black Friday promotion is active.
      *
      * @return boolean
@@ -3951,6 +4047,8 @@ class MeprUtils
                 return ($gateway->is_paypal_connected() || $gateway->is_paypal_connected_live());
             case 'square':
                 return $gateway instanceof MeprSquarePaymentsGateway && $gateway->is_usable($product);
+            case 'paypalvaulting':
+                return $gateway instanceof MeprPayPalVaultingGateway && $gateway->is_usable();
             default:
                 return true;
         }

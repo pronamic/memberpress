@@ -14,7 +14,9 @@ class MeprMigratorHelper
         $id = MeprUtils::get_current_screen_id();
 
         if (!empty($id) && is_string($id)) {
-            return preg_match('/_page_memberpress-(onboarding|courses-options)/', $id);
+            $skip_pages = MeprHooks::apply_filters('mepr_migrator_skip_admin_page_slugs', ['memberpress-onboarding', 'memberpress-courses-options']);
+            $pattern    = '/_page_(' . implode('|', array_map('preg_quote', $skip_pages, array_fill(0, count($skip_pages), '/'))) . ')/';
+            return (bool) preg_match($pattern, $id);
         }
 
         return false;

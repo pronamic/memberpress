@@ -11,42 +11,42 @@ class MeprGroup extends MeprCptModel
      *
      * @var string
      */
-    public static $pricing_page_disabled_str         = '_mepr_group_pricing_page_disabled';
+    public static $pricing_page_disabled_str = '_mepr_group_pricing_page_disabled';
 
     /**
      * Meta key for disabling change plan popup.
      *
      * @var string
      */
-    public static $disable_change_plan_popup_str     = '_mepr_group_disable_change_plan_popup';
+    public static $disable_change_plan_popup_str = '_mepr_group_disable_change_plan_popup';
 
     /**
      * Meta key for upgrade path setting.
      *
      * @var string
      */
-    public static $is_upgrade_path_str               = '_mepr_group_is_upgrade_path';
+    public static $is_upgrade_path_str = '_mepr_group_is_upgrade_path';
 
     /**
      * Meta key for upgrade path reset period.
      *
      * @var string
      */
-    public static $upgrade_path_reset_period_str     = '_mepr_group_upgrade_path_reset_period';
+    public static $upgrade_path_reset_period_str = '_mepr_group_upgrade_path_reset_period';
 
     /**
      * Meta key for group theme.
      *
      * @var string
      */
-    public static $group_theme_str                   = '_mepr_group_theme';
+    public static $group_theme_str = '_mepr_group_theme';
 
     /**
      * Meta key for page button class.
      *
      * @var string
      */
-    public static $page_button_class_str             = '_mepr_page_button_class';
+    public static $page_button_class_str = '_mepr_page_button_class';
 
     /**
      * Meta key for highlighted button class.
@@ -60,105 +60,273 @@ class MeprGroup extends MeprCptModel
      *
      * @var string
      */
-    public static $page_button_disabled_class_str    = '_mepr_page_button_disabled_class';
+    public static $page_button_disabled_class_str = '_mepr_page_button_disabled_class';
 
     /**
      * Meta key for products.
      *
      * @var string
      */
-    public static $products_str                      = '_mepr_products';
+    public static $products_str = '_mepr_products';
 
     /**
      * Meta key for group page style options.
      *
      * @var string
      */
-    public static $group_page_style_options_str      = '_mepr_group_page_style_options';
+    public static $group_page_style_options_str = '_mepr_group_page_style_options';
 
     /**
      * Option name for group page layout.
      *
      * @var string
      */
-    public static $group_page_layout_str             = 'mepr-group-page-layout';
+    public static $group_page_layout_str = 'mepr-group-page-layout';
 
     /**
      * Option name for group page style.
      *
      * @var string
      */
-    public static $group_page_style_str              = 'mepr-group-page-style';
+    public static $group_page_style_str = 'mepr-group-page-style';
 
     /**
      * Option name for group page button size.
      *
      * @var string
      */
-    public static $group_page_button_size_str        = 'mepr-group-page-button-size';
+    public static $group_page_button_size_str = 'mepr-group-page-button-size';
 
     /**
      * Option name for group page bullet style.
      *
      * @var string
      */
-    public static $group_page_bullet_style_str       = 'mepr-group-page-bullet-style';
+    public static $group_page_bullet_style_str = 'mepr-group-page-bullet-style';
 
     /**
      * Option name for group page font style.
      *
      * @var string
      */
-    public static $group_page_font_style_str         = 'mepr-group-page-font-style';
+    public static $group_page_font_style_str = 'mepr-group-page-font-style';
 
     /**
      * Option name for group page font size.
      *
      * @var string
      */
-    public static $group_page_font_size_str          = 'mepr-group-page-font-size';
+    public static $group_page_font_size_str = 'mepr-group-page-font-size';
 
     /**
      * Option name for group page button color.
      *
      * @var string
      */
-    public static $group_page_button_color_str       = 'mepr-group-page-button-color';
+    public static $group_page_button_color_str = 'mepr-group-page-button-color';
 
     /**
      * Meta key for alternate group URL.
      *
      * @var string
      */
-    public static $alternate_group_url_str           = '_mepr-alternate-group-url';
+    public static $alternate_group_url_str = '_mepr-alternate-group-url';
 
     /**
      * Meta key for using custom template.
      *
      * @var string
      */
-    public static $use_custom_template_str           = '_mepr_use_custom_template';
+    public static $use_custom_template_str = '_mepr_use_custom_template';
 
     /**
      * Meta key for custom template.
      *
      * @var string
      */
-    public static $custom_template_str               = '_mepr_custom_template';
+    public static $custom_template_str = '_mepr_custom_template';
+
+    /**
+     * Meta key for modern template.
+     *
+     * @var string
+     */
+    public static $modern_template_str = '_mepr_group_modern_template';
+
+    /**
+     * Meta key for modern template options.
+     *
+     * @var string
+     */
+    public static $modern_template_options_str = '_mepr_group_modern_template_options';
+
+    /**
+     * Meta key for carousel enabled.
+     *
+     * @var string
+     */
+    public static $carousel_enabled_str = '_mepr_group_carousel_enabled';
+
+    /**
+     * Meta key for carousel arrows outside.
+     *
+     * @var string
+     */
+    public static $carousel_arrows_outside_str = '_mepr_group_carousel_arrows_outside';
 
     /**
      * Meta key for fallback membership.
      *
      * @var string
      */
-    public static $fallback_membership_str           = '_mepr_fallback_membership';
+    public static $fallback_membership_str = '_mepr_fallback_membership';
+
+    /**
+     * Meta key for automatically applying coupons on group's memberships.
+     *
+     * @var string
+     */
+    public static $auto_apply_coupons_str = '_mepr_group_auto_apply_coupons';
+
+    /**
+     * Meta key for the coupon discount note text shown on the pricing table.
+     *
+     * @var string
+     */
+    public static $coupon_discount_note_str = '_mepr_group_coupon_discount_note';
+
+    /**
+     * Meta key for group coupons.
+     *
+     * @var string
+     */
+    public static $group_coupons_str = '_mepr_group_coupons';
+
+    /**
+     * Meta key for group coupon ID.
+     *
+     * @var string
+     */
+    public static $group_coupon_coupon_id_str = 'coupon_id';
+
+    /**
+     * Meta key for group coupon should apply checkbox.
+     *
+     * @var string
+     */
+    public static $group_coupon_should_apply_str = 'should_apply';
+
+    /**
+     * Meta key for group coupon apply month.
+     *
+     * @var string
+     */
+    public static $group_coupon_apply_month_str = 'apply_month';
+
+    /**
+     * Meta key for group coupon apply day.
+     *
+     * @var string
+     */
+    public static $group_coupon_apply_day_str = 'apply_day';
+
+    /**
+     * Meta key for group coupon apply year.
+     *
+     * @var string
+     */
+    public static $group_coupon_apply_year_str = 'apply_year';
+
+    /**
+     * Meta key for group coupon apply hour.
+     *
+     * @var string
+     */
+    public static $group_coupon_apply_hour_str = 'apply_hour';
+
+    /**
+     * Meta key for group coupon apply minute.
+     *
+     * @var string
+     */
+    public static $group_coupon_apply_minute_str = 'apply_minute';
+
+    /**
+     * Meta key for group coupon apply timezone.
+     *
+     * @var string
+     */
+    public static $group_coupon_apply_timezone_str = 'apply_timezone';
+
+    /**
+     * Meta key for group coupon applies on date timestamp.
+     *
+     * @var string
+     */
+    public static $group_coupon_applies_on_str = 'applies_on';
+
+    /**
+     * Meta key for group coupon should unapply checkbox.
+     *
+     * @var string
+     */
+    public static $group_coupon_should_unapply_str = 'should_unapply';
+
+    /**
+     * Meta key for group coupon unapply month.
+     *
+     * @var string
+     */
+    public static $group_coupon_unapply_month_str = 'unapply_month';
+
+    /**
+     * Meta key for group coupon unapply day.
+     *
+     * @var string
+     */
+    public static $group_coupon_unapply_day_str = 'unapply_day';
+
+    /**
+     * Meta key for group coupon unapply year.
+     *
+     * @var string
+     */
+    public static $group_coupon_unapply_year_str = 'unapply_year';
+
+    /**
+     * Meta key for group coupon unapply hour.
+     *
+     * @var string
+     */
+    public static $group_coupon_unapply_hour_str = 'unapply_hour';
+
+    /**
+     * Meta key for group coupon unapply minute.
+     *
+     * @var string
+     */
+    public static $group_coupon_unapply_minute_str = 'unapply_minute';
+
+    /**
+     * Meta key for group coupon unapply timezone.
+     *
+     * @var string
+     */
+    public static $group_coupon_unapply_timezone_str = 'unapply_timezone';
+
+    /**
+     * Meta key for group coupon unapplies on date timestamp.
+     *
+     * @var string
+     */
+    public static $group_coupon_unapplies_on_str = 'unapplies_on';
 
     /**
      * Nonce string for group operations.
      *
      * @var string
      */
-    public static $nonce_str    = 'mepr_groups_nonce';
+    public static $nonce_str = 'mepr_groups_nonce';
 
     /**
      * Option name for database cleanup last run timestamp.
@@ -215,6 +383,19 @@ class MeprGroup extends MeprCptModel
                 'group_page_style_options'      => $this->default_style_options,
                 'use_custom_template'           => false,
                 'custom_template'               => '',
+                'modern_template'               => '',
+                'modern_template_options'       => [
+                    'primary_color' => '#2563eb',
+                    'accent_color'  => '#16a34a',
+                    'button_color'  => '#2563eb',
+                    'border_radius' => 'rounded',
+                    'shadow'        => 'subtle',
+                ],
+                'carousel_enabled'              => true,
+                'carousel_arrows_outside'       => false,
+                'auto_apply_coupons'            => false,
+                'coupon_discount_note'          => 'first payment',
+                'group_coupons'                 => [],
             ]
         );
 
@@ -256,6 +437,13 @@ class MeprGroup extends MeprCptModel
             $this->validate_not_empty($this->custom_template);
         }
 
+        $this->validate_is_bool($this->carousel_enabled, 'carousel_enabled');
+        $this->validate_is_bool($this->carousel_arrows_outside, 'carousel_arrows_outside');
+        $this->validate_is_array($this->modern_template_options);
+
+        $this->validate_is_bool($this->auto_apply_coupons, 'auto_apply_coupons');
+        $this->validate_is_array($this->group_coupons);
+
         // No need to validate these at this point
         // 'page_button_class' => '',
         // 'page_button_highlighted_class' => '',
@@ -284,6 +472,13 @@ class MeprGroup extends MeprCptModel
         update_post_meta($id, self::$alternate_group_url_str, $this->alternate_group_url);
         update_post_meta($id, self::$use_custom_template_str, $this->use_custom_template);
         update_post_meta($id, self::$custom_template_str, $this->custom_template);
+        update_post_meta($id, self::$modern_template_str, $this->modern_template);
+        update_post_meta($id, self::$modern_template_options_str, $this->modern_template_options);
+        update_post_meta($id, self::$carousel_enabled_str, $this->carousel_enabled);
+        update_post_meta($id, self::$carousel_arrows_outside_str, $this->carousel_arrows_outside);
+        update_post_meta($id, self::$auto_apply_coupons_str, $this->auto_apply_coupons);
+        update_post_meta($id, self::$coupon_discount_note_str, $this->coupon_discount_note);
+        update_post_meta($id, self::$group_coupons_str, $this->group_coupons);
 
         if ($this->is_upgrade_path) {
             $products = $this->products();
@@ -390,7 +585,10 @@ class MeprGroup extends MeprCptModel
         // Try and find the old txn and make sure it's not one belonging
         // to the membership the user just signed up for.
         foreach ($usr_txns as $txn) {
-            if (in_array((int) $txn->product_id, array_map('intval', $grp_prds), true) && (int) $txn->product_id !== (int) $new_prd_id) {
+            if (
+                in_array((int) $txn->product_id, array_map('intval', $grp_prds), true)
+                && (int) $txn->product_id !== (int) $new_prd_id
+            ) {
                 $txn_id = $txn->id;
             }
         }
@@ -420,7 +618,10 @@ class MeprGroup extends MeprCptModel
             $wpdb->query(
                 $wpdb->prepare(
                     "DELETE FROM {$wpdb->postmeta}
-                     WHERE post_id IN (SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'auto-draft')",
+                     WHERE post_id IN (
+                         SELECT ID FROM {$wpdb->posts}
+                         WHERE post_type = %s AND post_status = 'auto-draft'
+                     )",
                     self::$cpt
                 )
             );
@@ -490,7 +691,8 @@ class MeprGroup extends MeprCptModel
                 return $grp;
             }
 
-            if (preg_match('~\[(mepr_group_price_boxes|mepr-group-price-boxes)\s+group_id=[\"\\\'](\d+)[\"\\\']~', $post->post_content, $m) && isset($m[2])) {
+            $pattern = '~\[(mepr_group_price_boxes|mepr-group-price-boxes)\s+group_id=[\"\\\'](\d+)[\"\\\']~';
+            if (preg_match($pattern, $post->post_content, $m) && isset($m[2])) {
                 $grp = new MeprGroup($m[2]);
                 return $grp;
             }
@@ -591,6 +793,20 @@ class MeprGroup extends MeprCptModel
             }
         }
         return false;
+    }
+
+    /**
+     * Get the available modern templates.
+     *
+     * @return array Associative array of template slug => label.
+     */
+    public static function modern_templates()
+    {
+        return MeprHooks::apply_filters('mepr_modern_templates', [
+            'modern-cards' => __('Modern Cards', 'memberpress'),
+            'minimal'      => __('Minimal', 'memberpress'),
+            'bold'         => __('Bold', 'memberpress'),
+        ]);
     }
 
     /**

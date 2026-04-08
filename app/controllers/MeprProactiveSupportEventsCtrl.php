@@ -13,13 +13,26 @@ class MeprProactiveSupportEventsCtrl extends MeprBaseCtrl
      */
     public function load_hooks()
     {
-        add_action('update_option_mepr_onboarding_complete', [$this, 'handle_onboarding_complete'], 10, 2);
+        add_action('init', [$this, 'register_onboarding_complete_hook'], 0);
         add_action('update_option_' . MEPR_OPTIONS_SLUG, [$this, 'handle_options_updated'], 10, 2);
         add_action('save_post_' . MeprProduct::$cpt, [$this, 'handle_membership_saved'], 10, 3);
         add_action('save_post_' . MeprGroup::$cpt, [$this, 'handle_group_saved'], 10, 3);
         add_action('save_post_' . MeprRule::$cpt, [$this, 'handle_rule_saved'], 10, 3);
         add_action('mepr_txn_store', [$this, 'handle_transaction_stored'], 10, 2);
         add_action('mepr_signup', [$this, 'handle_member_signup'], 10, 1);
+    }
+
+    /**
+     * Register the onboarding-complete option hook after plugins have loaded.
+     *
+     * @return void
+     */
+    public function register_onboarding_complete_hook(): void
+    {
+        $onboarding_complete_option = MeprHooks::apply_filters('mepr_onboarding_complete_option', 'mepr_onboarding_complete');
+        if ($onboarding_complete_option !== '') {
+            add_action('update_option_' . $onboarding_complete_option, [$this, 'handle_onboarding_complete'], 10, 2);
+        }
     }
 
     /**

@@ -256,7 +256,7 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
      * Records a subscription payment and sends a receipt notification email.
      *
      * @param  MeprSubscription $sub            The subscription object associated with the payment.
-     * @param  float            $amount         The amount of the payment to be recorded.
+     * @param  float            $total          The total amount of the payment to be recorded (including tax).
      * @param  string           $trans_num      The transaction number associated with the payment.
      * @param  array|null       $card           Optional card information to store with the subscription.
      * @param  string|null      $txn_expires_at Optional expiration date override for the transaction.
@@ -265,7 +265,7 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
      */
     public function record_sub_payment(
         MeprSubscription $sub,
-        $amount,
+        $total,
         $trans_num,
         $card = null,
         $txn_expires_at = null,
@@ -292,7 +292,7 @@ abstract class MeprBaseRealGateway extends MeprBaseGateway
         $txn->gateway         = $this->id;
         $txn->subscription_id = $sub->id;
         $txn->order_id        = $order_id;
-        $txn->set_gross($amount);
+        $txn->set_gross($total);
 
         if (!is_null($txn_expires_at)) {
             $txn->expires_at = $txn_expires_at;

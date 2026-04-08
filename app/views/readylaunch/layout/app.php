@@ -19,7 +19,7 @@ do_action('mepr_rl_before_main', get_defined_vars()); ?>
       is_active_sidebar('mepr_rl_account_footer') &&
       (MeprReadyLaunchCtrl::template_enabled('account') || MeprAppHelper::has_block('memberpress/pro-account-tabs'))
 ) : ?>
-      <div id="mepr-rl-registration-footer-widget" class="mepr-rl-registration-footer-widget widget-area" role="complementary">
+      <div id="mepr-rl-account-footer-widget" class="mepr-rl-account-footer-widget widget-area" role="complementary">
         <?php dynamic_sidebar('mepr_rl_account_footer'); ?>
       </div>
     <?php endif; ?>

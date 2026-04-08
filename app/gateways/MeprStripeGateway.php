@@ -2757,7 +2757,7 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
 
         if ($product instanceof MeprProduct && $this->settings->stripe_checkout_enabled !== 'on') {
             try {
-                $coupon_code = isset($_GET['coupon']) ? sanitize_text_field(wp_unslash($_GET['coupon'])) : '';
+                $coupon_code = $product->get_applicable_coupon_code();
                 $cpn         = MeprCoupon::get_one_from_code($coupon_code);
                 $coupon_code = $cpn instanceof MeprCoupon ? $cpn->post_title : '';
 
@@ -4773,19 +4773,13 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
     }
 
     /**
-     * Get the application fee percentage
+     * Get the application fee percentage (DRM + edition from config); country check may zero it.
      *
      * @return float The application fee percentage
      */
     private function get_application_fee_percentage()
     {
-        $application_fee_percentage = 0.0;
-
-        if (class_exists('MeprDrmHelper') && MeprDrmHelper::is_app_fee_enabled()) {
-            $application_fee_percentage = MeprDrmHelper::get_application_fee_percentage();
-        }
-
-        $application_fee_percentage = MeprHooks::apply_filters('mepr_stripe_default_application_fee_percentage', $application_fee_percentage);
+        $application_fee_percentage = MeprDrmHelper::get_total_application_fee_percentage();
 
         // Check if current gateway's account country disallows fees.
         if ($application_fee_percentage > 0) {
@@ -5054,7 +5048,8 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
                 throw new Exception(esc_html__('Subscription not found', 'memberpress'));
             }
 
-            $amount = (float) ($sub->trial && $sub->trial_days > 0 ? $sub->trial_total : $sub->total);
+            $amount                     = (float) ($sub->trial && $sub->trial_days > 0 ? $sub->trial_total : $sub->total);
+            $has_subscription_order_bump = false;
 
             foreach ($order_bump_products as $product) {
                 list($transaction, $subscription) = MeprCheckoutCtrl::prepare_transaction(
@@ -5075,9 +5070,16 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
                         throw new Exception(esc_html__('Subscription not found', 'memberpress'));
                     }
 
-                    $amount += (float) ($subscription->trial && $subscription->trial_days > 0 ? $subscription->trial_total : $subscription->total);
+                    $amount                     += (float) ($subscription->trial && $subscription->trial_days > 0 ? $subscription->trial_total : $subscription->total);
+                    $has_subscription_order_bump = true;
                 }
             }
+
+            // Only include the Apple Pay MPAN config when the order has a single subscription.
+            // Multiple subscriptions can't be represented in a single recurringPaymentRequest.
+            $apple_pay_config = !$has_subscription_order_bump
+                ? ['recurringPaymentRequest' => MeprApplePayHelper::get_recurring_payment_request($prd, $sub, (int) $this->to_zero_decimal_amount((float) $sub->total))]
+                : null;
 
             if ($sub->trial && $sub->trial_days > 0 && (float) $sub->trial_amount <= 0.00 && $amount <= 0.00) {
                 $options = [
@@ -5090,6 +5092,10 @@ class MeprStripeGateway extends MeprBaseRealAjaxGateway
                     'amount'             => (int) $this->to_zero_decimal_amount($amount),
                     'paymentMethodTypes' => $this->get_subscription_payment_method_types(),
                 ];
+            }
+
+            if ($apple_pay_config) {
+                $options['applePay'] = $apple_pay_config;
             }
         }
 

@@ -903,9 +903,8 @@ class MeprTransactionsHelper
     public static function get_tooltip_attributes($rec)
     {
         if (strpos($rec->trans_num, 'mi_') === 0 && $rec->order_trans_num) {
-            $gateway      = preg_match('/(.*) \((.+)\)/', $rec->gateway, $matches);
-            $gateway      = !empty($matches[1]) ? $matches[1] : (!empty($matches[2]) ? $matches[2] : '');
-            $tooltip_text = '';
+            preg_match('/(.*) \((.+)\)/', $rec->gateway, $matches);
+            $gateway = !empty($matches[1]) ? $matches[1] : (!empty($matches[2]) ? $matches[2] : '');
 
             if (!empty($gateway)) {
                 $tooltip_text = sprintf(

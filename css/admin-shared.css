@@ -1273,6 +1273,23 @@ body.site-health-php .mepr-notice-dismiss-24hour{ display:none; }
   justify-content: end;
 }
 
+.mepr-schedule-date-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.mepr-schedule-date-fields-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.mepr-help-text {
+    margin-top: 10px;
+}
+
 @media (min-width: 680px) {
   .mepr-notice-modal .button-reactivate-fee { margin-right: 20px; }
 }

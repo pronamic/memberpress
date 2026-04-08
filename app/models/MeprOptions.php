@@ -951,6 +951,19 @@ class MeprOptions
                         $params[$this->integrations_str][$intg_key]['production_connected'] = isset($params[$this->integrations_str][$intg_key]['production_connected']);
                         $params[$this->integrations_str][$intg_key]['sandbox_connected']    = isset($params[$this->integrations_str][$intg_key]['sandbox_connected']);
                         $params[$this->integrations_str][$intg_key]['saved']                = isset($params[$this->integrations_str][$intg_key]['saved']);
+                    } elseif ($intg['gateway'] === 'MeprPayPalVaultingGateway') {
+                        $params[$this->integrations_str][$intg_key]['sandbox']               = isset($params[$this->integrations_str][$intg_key]['sandbox']);
+                        $params[$this->integrations_str][$intg_key]['enable_paypal']         = isset($params[$this->integrations_str][$intg_key]['enable_paypal']);
+                        $params[$this->integrations_str][$intg_key]['enable_paylater']       = isset($params[$this->integrations_str][$intg_key]['enable_paylater']);
+                        $params[$this->integrations_str][$intg_key]['enable_credit']         = isset($params[$this->integrations_str][$intg_key]['enable_credit']);
+                        $params[$this->integrations_str][$intg_key]['enable_venmo']          = isset($params[$this->integrations_str][$intg_key]['enable_venmo']);
+                        $params[$this->integrations_str][$intg_key]['enable_card']           = isset($params[$this->integrations_str][$intg_key]['enable_card']);
+                        $params[$this->integrations_str][$intg_key]['enable_advanced_cards'] = isset($params[$this->integrations_str][$intg_key]['enable_advanced_cards']);
+
+                        // Ensure at least PayPal button is enabled if all methods are disabled.
+                        if (!$params[$this->integrations_str][$intg_key]['enable_paypal'] && !$params[$this->integrations_str][$intg_key]['enable_advanced_cards']) {
+                            $params[$this->integrations_str][$intg_key]['enable_paypal'] = true;
+                        }
                     }
                 }
             }

@@ -11,49 +11,49 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
      *
      * @var string
      */
-    public static $price_str                      = '_mepr_product_price';
+    public static $price_str = '_mepr_product_price';
 
     /**
      * Meta key for product period
      *
      * @var string
      */
-    public static $period_str                     = '_mepr_product_period';
+    public static $period_str = '_mepr_product_period';
 
     /**
      * Meta key for product period type
      *
      * @var string
      */
-    public static $period_type_str                = '_mepr_product_period_type';
+    public static $period_type_str = '_mepr_product_period_type';
 
     /**
      * Meta key for signup button text
      *
      * @var string
      */
-    public static $signup_button_text_str         = '_mepr_product_signup_button_text';
+    public static $signup_button_text_str = '_mepr_product_signup_button_text';
 
     /**
      * Meta key for limit cycles
      *
      * @var string
      */
-    public static $limit_cycles_str               = '_mepr_product_limit_cycles';
+    public static $limit_cycles_str = '_mepr_product_limit_cycles';
 
     /**
      * Meta key for limit cycles number
      *
      * @var string
      */
-    public static $limit_cycles_num_str           = '_mepr_product_limit_cycles_num';
+    public static $limit_cycles_num_str = '_mepr_product_limit_cycles_num';
 
     /**
      * Meta key for limit cycles action
      *
      * @var string
      */
-    public static $limit_cycles_action_str        = '_mepr_product_limit_cycles_action';
+    public static $limit_cycles_action_str = '_mepr_product_limit_cycles_action';
 
     /**
      * Meta key for limit cycles expires after
@@ -67,175 +67,189 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
      *
      * @var string
      */
-    public static $limit_cycles_expires_type_str  = '_mepr_product_limit_cycles_expires_type';
+    public static $limit_cycles_expires_type_str = '_mepr_product_limit_cycles_expires_type';
 
     /**
      * Meta key for trial
      *
      * @var string
      */
-    public static $trial_str                      = '_mepr_product_trial';
+    public static $trial_str = '_mepr_product_trial';
 
     /**
      * Meta key for trial days
      *
      * @var string
      */
-    public static $trial_days_str                 = '_mepr_product_trial_days';
+    public static $trial_days_str = '_mepr_product_trial_days';
 
     /**
      * Meta key for trial amount
      *
      * @var string
      */
-    public static $trial_amount_str               = '_mepr_product_trial_amount';
+    public static $trial_amount_str = '_mepr_product_trial_amount';
 
     /**
      * Meta key for trial once
      *
      * @var string
      */
-    public static $trial_once_str                 = '_mepr_product_trial_once';
+    public static $trial_once_str = '_mepr_product_trial_once';
 
     /**
      * Meta key for group ID
      *
      * @var string
      */
-    public static $group_id_str                   = '_mepr_group_id'; // Only one group at a time dude.
+    public static $group_id_str = '_mepr_group_id'; // Only one group at a time dude.
 
     /**
      * Meta key for group order
      *
      * @var string
      */
-    public static $group_order_str                = '_mepr_group_order'; // Position in group.
+    public static $group_order_str = '_mepr_group_order'; // Position in group.
 
     /**
      * Meta key for is highlighted
      *
      * @var string
      */
-    public static $is_highlighted_str             = '_mepr_product_is_highlighted';
+    public static $is_highlighted_str = '_mepr_product_is_highlighted';
 
     /**
      * Meta key for who can purchase
      *
      * @var string
      */
-    public static $who_can_purchase_str           = '_mepr_product_who_can_purchase';
+    public static $who_can_purchase_str = '_mepr_product_who_can_purchase';
 
     /**
      * Meta key for have or had
      *
      * @var string
      */
-    public static $have_or_had_str                = '_mepr_product_purchase';
+    public static $have_or_had_str = '_mepr_product_purchase';
 
     /**
      * Meta key for pricing title
      *
      * @var string
      */
-    public static $pricing_title_str              = '_mepr_product_pricing_title';
+    public static $pricing_title_str = '_mepr_product_pricing_title';
 
     /**
      * Meta key for pricing display
      *
      * @var string
      */
-    public static $pricing_display_str            = '_mepr_product_pricing_display';
+    public static $pricing_display_str = '_mepr_product_pricing_display';
 
     /**
      * Meta key for pricing show price
      *
      * @var string
      */
-    public static $pricing_show_price_str         = '_mepr_product_pricing_show_price';
+    public static $pricing_show_price_str = '_mepr_product_pricing_show_price';
 
     /**
      * Meta key for custom price
      *
      * @var string
      */
-    public static $custom_price_str               = '_mepr_product_custom_price';
+    public static $custom_price_str = '_mepr_product_custom_price';
+
+    /**
+     * Meta key for custom price term.
+     *
+     * @var string
+     */
+    public static $custom_price_term_str = '_mepr_product_custom_price_term';
 
     /**
      * Meta key for pricing heading text
      *
      * @var string
      */
-    public static $pricing_heading_txt_str        = '_mepr_product_pricing_heading_text';
+    public static $pricing_heading_txt_str = '_mepr_product_pricing_heading_text';
 
     /**
      * Meta key for pricing footer text
      *
      * @var string
      */
-    public static $pricing_footer_txt_str         = '_mepr_product_pricing_footer_text';
+    public static $pricing_footer_txt_str = '_mepr_product_pricing_footer_text';
 
     /**
      * Meta key for pricing button text
      *
      * @var string
      */
-    public static $pricing_button_txt_str         = '_mepr_product_pricing_button_text';
+    public static $pricing_button_txt_str = '_mepr_product_pricing_button_text';
+
+    /**
+     * Meta key for pricing badge text.
+     *
+     * @var string
+     */
+    public static $pricing_badge_txt_str = '_mepr_product_pricing_badge_text';
 
     /**
      * Meta key for pricing button position
      *
      * @var string
      */
-    public static $pricing_button_position_str    = '_mepr_product_pricing_button_position';
+    public static $pricing_button_position_str = '_mepr_product_pricing_button_position';
 
     /**
      * Meta key for pricing benefits
      *
      * @var string
      */
-    public static $pricing_benefits_str           = '_mepr_product_pricing_benefits';
+    public static $pricing_benefits_str = '_mepr_product_pricing_benefits';
 
     /**
      * Meta key for register price action
      *
      * @var string
      */
-    public static $register_price_action_str      = '_mepr_register_price_action';
+    public static $register_price_action_str = '_mepr_register_price_action';
 
     /**
      * Meta key for register price
      *
      * @var string
      */
-    public static $register_price_str             = '_mepr_register_price';
+    public static $register_price_str = '_mepr_register_price';
 
     /**
      * Meta key for thank you page enabled
      *
      * @var string
      */
-    public static $thank_you_page_enabled_str     = '_mepr_thank_you_page_enabled';
+    public static $thank_you_page_enabled_str = '_mepr_thank_you_page_enabled';
 
     /**
      * Meta key for thank you page type
      *
      * @var string
      */
-    public static $thank_you_page_type_str        = '_mepr_thank_you_page_type';
+    public static $thank_you_page_type_str = '_mepr_thank_you_page_type';
 
     /**
      * Meta key for thank you message
      *
      * @var string
      */
-    public static $thank_you_message_str          = '_mepr_product_thank_you_message';
+    public static $thank_you_message_str = '_mepr_product_thank_you_message';
 
     /**
      * Meta key for thank you page ID
      *
      * @var string
      */
-    public static $thank_you_page_id_str          = '_mepr_product_thank_you_page_id';
+    public static $thank_you_page_id_str = '_mepr_product_thank_you_page_id';
 
     /**
      * Meta key for simultaneous subscriptions
@@ -249,168 +263,168 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
      *
      * @var string
      */
-    public static $use_custom_template_str        = '_mepr_use_custom_template';
+    public static $use_custom_template_str = '_mepr_use_custom_template';
 
     /**
      * Meta key for custom template
      *
      * @var string
      */
-    public static $custom_template_str            = '_mepr_custom_template';
+    public static $custom_template_str = '_mepr_custom_template';
 
     /**
      * Meta key for customize payment methods
      *
      * @var string
      */
-    public static $customize_payment_methods_str  = '_mepr_customize_payment_methods';
+    public static $customize_payment_methods_str = '_mepr_customize_payment_methods';
 
     /**
      * Meta key for custom payment methods
      *
      * @var string
      */
-    public static $custom_payment_methods_str     = '_mepr_custom_payment_methods';
+    public static $custom_payment_methods_str = '_mepr_custom_payment_methods';
 
     /**
      * Meta key for customize profile fields
      *
      * @var string
      */
-    public static $customize_profile_fields_str   = '_mepr_customize_profile_fields';
+    public static $customize_profile_fields_str = '_mepr_customize_profile_fields';
 
     /**
      * Meta key for custom profile fields
      *
      * @var string
      */
-    public static $custom_profile_fields_str      = '_mepr_custom_profile_fields';
+    public static $custom_profile_fields_str = '_mepr_custom_profile_fields';
 
     /**
      * Meta key for custom login urls enabled
      *
      * @var string
      */
-    public static $custom_login_urls_enabled_str  = '_mepr_custom_login_urls_enabled';
+    public static $custom_login_urls_enabled_str = '_mepr_custom_login_urls_enabled';
 
     /**
      * Meta key for custom login urls default
      *
      * @var string
      */
-    public static $custom_login_urls_default_str  = '_mepr_custom_login_urls_default';
+    public static $custom_login_urls_default_str = '_mepr_custom_login_urls_default';
 
     /**
      * Meta key for custom login urls
      *
      * @var string
      */
-    public static $custom_login_urls_str          = '_mepr_custom_login_urls';
+    public static $custom_login_urls_str = '_mepr_custom_login_urls';
 
     /**
      * Meta key for expire type
      *
      * @var string
      */
-    public static $expire_type_str                = '_mepr_expire_type';
+    public static $expire_type_str = '_mepr_expire_type';
 
     /**
      * Meta key for expire after
      *
      * @var string
      */
-    public static $expire_after_str               = '_mepr_expire_after';
+    public static $expire_after_str = '_mepr_expire_after';
 
     /**
      * Meta key for expire unit
      *
      * @var string
      */
-    public static $expire_unit_str                = '_mepr_expire_unit';
+    public static $expire_unit_str = '_mepr_expire_unit';
 
     /**
      * Meta key for expire fixed
      *
      * @var string
      */
-    public static $expire_fixed_str               = '_mepr_expire_fixed';
+    public static $expire_fixed_str = '_mepr_expire_fixed';
 
     /**
      * Meta key for tax exempt
      *
      * @var string
      */
-    public static $tax_exempt_str                 = '_mepr_tax_exempt';
+    public static $tax_exempt_str = '_mepr_tax_exempt';
 
     /**
      * Meta key for tax class
      *
      * @var string
      */
-    public static $tax_class_str                  = '_mepr_tax_class';
+    public static $tax_class_str = '_mepr_tax_class';
 
     /**
      * Meta key for allow renewal
      *
      * @var string
      */
-    public static $allow_renewal_str              = '_mepr_allow_renewal';
+    public static $allow_renewal_str = '_mepr_allow_renewal';
 
     /**
      * Meta key for access URL
      *
      * @var string
      */
-    public static $access_url_str                 = '_mepr_access_url';
+    public static $access_url_str = '_mepr_access_url';
 
     /**
      * Meta key for emails
      *
      * @var string
      */
-    public static $emails_str                     = '_mepr_emails';
+    public static $emails_str = '_mepr_emails';
 
     /**
      * Meta key for disable address fields
      *
      * @var string
      */
-    public static $disable_address_fields_str     = '_mepr_disable_address_fields'; // For free products mostly.
+    public static $disable_address_fields_str = '_mepr_disable_address_fields'; // For free products mostly.
 
     /**
      * Meta key for cannot purchase message
      *
      * @var string
      */
-    public static $cannot_purchase_message_str    = '_mepr_cannot_purchase_message';
+    public static $cannot_purchase_message_str = '_mepr_cannot_purchase_message';
 
     /**
      * Meta key for plan code
      *
      * @var string
      */
-    public static $plan_code_str                  = '_mepr_plan_code';
+    public static $plan_code_str = '_mepr_plan_code';
 
     /**
      * Meta key for nonce
      *
      * @var string
      */
-    public static $nonce_str                      = 'mepr_products_nonce';
+    public static $nonce_str = 'mepr_products_nonce';
 
     /**
      * Meta key for DB cleanup last run
      *
      * @var string
      */
-    public static $last_run_str                   = 'mepr_products_db_cleanup_last_run';
+    public static $last_run_str = 'mepr_products_db_cleanup_last_run';
 
     /**
      * Custom post type name
      *
      * @var string
      */
-    public static $cpt                       = 'memberpressproduct';
+    public static $cpt = 'memberpressproduct';
 
     /**
      * Taxonomy name for product category
@@ -462,6 +476,13 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     public $expire_types;
 
     /**
+     * Cached applicable coupon codes for this product instance, keyed by MD5 hash of method parameters.
+     *
+     * @var array<string, string>
+     */
+    private $applicable_coupon_code_cache = [];
+
+    /**
      * Constructor for the MeprProduct class.
      *
      * @param mixed $obj The object to load.
@@ -495,9 +516,11 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                 'pricing_show_price'         => true,
                 'pricing_display'            => '',
                 'custom_price'               => '',
+                'custom_price_term'          => '',
                 'pricing_heading_txt'        => '',
                 'pricing_footer_txt'         => '',
                 'pricing_button_txt'         => '',
+                'pricing_badge_txt'          => '',
                 'pricing_button_position'    => 'footer',
                 // Pricing benefits should be an array of strings.
                 'pricing_benefits'           => [],
@@ -584,7 +607,11 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         // 'pricing_footer_txt' => '',
         // 'pricing_button_txt' => '',
         // $this->validate_is_array($this->pricing_benefits, 'pricing_benefits');.
-        $this->validate_is_in_array($this->register_price_action, $this->register_price_actions, 'register_price_action');
+        $this->validate_is_in_array(
+            $this->register_price_action,
+            $this->register_price_actions,
+            'register_price_action'
+        );
         $this->validate_is_bool($this->thank_you_page_enabled, 'thank_you_page_enabled');
 
         // No need to validate
@@ -661,9 +688,11 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
         update_post_meta($id, self::$pricing_title_str, $this->pricing_title);
         update_post_meta($id, self::$pricing_display_str, $this->pricing_display);
         update_post_meta($id, self::$custom_price_str, $this->custom_price);
+        update_post_meta($id, self::$custom_price_term_str, $this->custom_price_term);
         update_post_meta($id, self::$pricing_heading_txt_str, $this->pricing_heading_txt);
         update_post_meta($id, self::$pricing_footer_txt_str, $this->pricing_footer_txt);
         update_post_meta($id, self::$pricing_button_txt_str, $this->pricing_button_txt);
+        update_post_meta($id, self::$pricing_badge_txt_str, $this->pricing_badge_txt);
         update_post_meta($id, self::$pricing_button_position_str, $this->pricing_button_position);
         update_post_meta($id, self::$pricing_benefits_str, $this->pricing_benefits);
         update_post_meta($id, self::$register_price_action_str, $this->register_price_action);
@@ -876,6 +905,80 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
     }
 
     /**
+     * Get auto-apply coupons for this product.
+     *
+     * @param  boolean $only_applicable Whether to filter only coupons applicable at current time (default true).
+     * @param  boolean $use_cache       Whether to use cache for retrieval (cache is always updated).
+     * @return array<array<string, mixed>> Array of coupon data arrays (same coupon can appear multiple times with different dates).
+     */
+    private function get_auto_apply_coupons(bool $only_applicable = true, bool $use_cache = true): array
+    {
+        $coupons_by_product = MeprProductsHelper::get_auto_apply_coupons_for_products(
+            [$this->ID],
+            $only_applicable,
+            $use_cache
+        );
+
+        return $coupons_by_product[$this->ID] ?? [];
+    }
+
+    /**
+     * Get the currently applicable coupon code for this product.
+     *
+     * First checks for a coupon code in request parameter (if enabled), then checks auto-apply coupons
+     * and returns the first valid coupon code found. Results are cached per instance.
+     *
+     * @param  boolean $use_coupon_param    Whether to check request parameter for coupon.
+     * @param  string  $coupon_param_source Source for coupon parameter: 'GET', 'POST', or 'REQUEST' (default 'GET').
+     * @param  integer $user_id             User ID to validate coupon against (default 0, uses current user if 0 or negative).
+     * @param  boolean $use_cache           Whether to use cache for retrieval (cache is always updated).
+     * @return string The applicable coupon code, or empty string if none found.
+     */
+    public function get_applicable_coupon_code(
+        bool $use_coupon_param = true,
+        string $coupon_param_source = 'GET',
+        int $user_id = 0,
+        bool $use_cache = true
+    ): string {
+        $user_id = 0 >= (int) $user_id ? get_current_user_id() : $user_id;
+
+        // Generate cache key from method name and parameters.
+        $cache_key = md5(implode('|', [__METHOD__, $use_coupon_param, $coupon_param_source, $user_id]));
+
+        // Return cached value if available and cache is enabled.
+        if ($use_cache && isset($this->applicable_coupon_code_cache[$cache_key])) {
+            return $this->applicable_coupon_code_cache[$cache_key];
+        }
+
+        // First check for coupon in request parameter (if enabled).
+        if ($use_coupon_param) {
+            $coupon_param = MeprCouponsHelper::validate_coupon_param($this->ID, $coupon_param_source, $user_id);
+            if (!empty($coupon_param)) {
+                $this->applicable_coupon_code_cache[$cache_key] = $coupon_param;
+                return $this->applicable_coupon_code_cache[$cache_key];
+            }
+        }
+
+        // Get auto-apply coupons (filtered by time applicability).
+        $auto_apply_coupons = $this->get_auto_apply_coupons(true, $use_cache);
+
+        // Loop through auto-apply coupons and return the first valid one.
+        foreach ($auto_apply_coupons as $coupon_data) {
+            $coupon_id = (int) ($coupon_data[MeprGroup::$group_coupon_coupon_id_str] ?? 0);
+            if ($coupon_id > 0) {
+                $coupon = new MeprCoupon($coupon_id);
+                if ($coupon->ID && $coupon->is_valid($this->ID, $user_id, false)) {
+                    $this->applicable_coupon_code_cache[$cache_key] = $coupon->post_title; // Coupon code is stored in post_title.
+                    return $this->applicable_coupon_code_cache[$cache_key];
+                }
+            }
+        }
+
+        $this->applicable_coupon_code_cache[$cache_key] = '';
+        return '';
+    }
+
+    /**
      * Get the number of days in the product's period.
      *
      * @param  string $default The default value if no period is set.
@@ -924,10 +1027,12 @@ class MeprProduct extends MeprCptModel implements MeprProductInterface
                 $expires_at += MeprUtils::weeks($period) + MeprUtils::days($mepr_options->grace_expire_days);
                 break;
             case 'months':
-                $expires_at += MeprUtils::months($period, $created_at) + MeprUtils::days($mepr_options->grace_expire_days);
+                $expires_at += MeprUtils::months($period, $created_at)
+                    + MeprUtils::days($mepr_options->grace_expire_days);
                 break;
             case 'years':
-                $expires_at += MeprUtils::years($period, $created_at) + MeprUtils::days($mepr_options->grace_expire_days);
+                $expires_at += MeprUtils::years($period, $created_at)
+                    + MeprUtils::days($mepr_options->grace_expire_days);
                 break;
             default: // One-time payment.
                 if ($this->expire_type === 'delay') {

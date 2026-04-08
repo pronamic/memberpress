@@ -103,7 +103,7 @@ class MeprDrmHelper
     public static function is_valid()
     {
 
-        if (self::is_aov() || MeprUpdateCtrl::is_activated()) {
+        if (self::is_aov() || (class_exists('MeprUpdateCtrl') && MeprUpdateCtrl::is_activated())) {
             return true; // Valid license.
         }
 
@@ -188,6 +188,7 @@ class MeprDrmHelper
 
     /**
      * Check if the DRM status is locked.
+     * When DRM is disabled (e.g. via mepr_drm_enabled filter), returns false so no lock UI is shown.
      *
      * @param string $drm_status The DRM status to check.
      *
@@ -195,7 +196,21 @@ class MeprDrmHelper
      */
     public static function is_locked($drm_status = '')
     {
+        if (! self::is_drm_enabled()) {
+            return false;
+        }
         return (self::DRM_LOCKED === self::maybe_drm_status($drm_status));
+    }
+
+    /**
+     * Whether DRM (license-restriction UI: menu, notices, modal, throttle) is enabled.
+     * When false, the product never shows locked menu, DRM notices, or modal.
+     *
+     * @return boolean
+     */
+    public static function is_drm_enabled()
+    {
+        return MeprHooks::apply_filters('mepr_drm_enabled', true);
     }
 
     /**
@@ -715,6 +730,33 @@ class MeprDrmHelper
         set_transient('mepr_drm_app_fee', $transient_data, WEEK_IN_SECONDS);
 
         return $fee_percentage;
+    }
+
+    /**
+     * Get the total application fee percentage (DRM base + edition fee from brand config).
+     *
+     * @param string|null $edition Optional edition slug. If null, resolved from transient or MEPR_EDITION.
+     *
+     * @return float Total percentage (DRM + application_fee_editions for effective edition).
+     */
+    public static function get_total_application_fee_percentage(?string $edition = null)
+    {
+        $base = 0.0;
+        if (self::is_app_fee_enabled()) {
+            $base = (float) self::get_application_fee_percentage();
+        }
+
+        $fee_editions = MeprUtils::get_brand_config_value('application_fee_editions', []);
+
+        if (null === $edition) {
+            $license      = get_site_transient('mepr_license_info');
+            $license_slug = ! empty($license['product_slug']) ? $license['product_slug'] : '';
+            $edition      = '' !== $license_slug ? $license_slug : (defined('MEPR_EDITION') ? MEPR_EDITION : '');
+        }
+
+        $edition_fee = (float) ($fee_editions[$edition] ?? 0.0);
+
+        return round($base + $edition_fee, 2);
     }
 
     /**

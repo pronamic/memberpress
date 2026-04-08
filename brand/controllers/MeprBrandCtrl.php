@@ -9,10 +9,7 @@ class MeprBrandCtrl extends MeprBaseCtrl
     {
         add_action('admin_enqueue_scripts', [$this, 'admin_enqueue_scripts']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
-
-        // Application fee.
-        add_filter('pre_set_site_transient_mepr_license_info', [$this, 'maybe_update_application_fee']);
-        add_action('mepr_process_application_fee', [$this, 'process_application_fee']);
+        add_filter('mepr_display_order_bumps_upsell', [$this, 'display_order_bumps_upsell']);
     }
 
     /**
@@ -41,69 +38,23 @@ class MeprBrandCtrl extends MeprBaseCtrl
     }
 
     /**
-     * Handles application fee updates when license edition changes.
+     * Determine whether to display the Order Bumps upsell on the Edit Membership page.
      *
-     * @param  array $license_info The license information.
-     * @return array The license information.
+     * @param  boolean $display Whether to display.
+     * @return boolean
      */
-    public function maybe_update_application_fee(array $license_info): array
+    public function display_order_bumps_upsell(bool $display): bool
     {
-        $edition = $license_info['product_slug'] ?? '';
-        $action  = '';
-
-        if (empty($edition)) {
-            return $license_info;
+        if (
+            !defined('MCOB_VERSION')
+            && class_exists('MeprOnboardingHelper')
+            && !MeprOnboardingHelper::is_pro_edition(MEPR_EDITION)
+            && !MeprOnboardingHelper::is_elite_edition(MEPR_EDITION)
+            && !MeprOnboardingHelper::is_scale_edition(MEPR_EDITION)
+        ) {
+            $display = true;
         }
 
-        if (MeprDrmHelper::is_app_fee_enabled()) {
-            return $license_info;
-        }
-
-        $drm_app_fee = new MeprDrmAppFee();
-
-        if ('memberpress-launch' === $edition) {
-            $subs = $drm_app_fee->get_all_active_subs(['mepr_app_fee_not_applied' => true], 1);
-            if (!empty($subs)) {
-                $action = 'add';
-            }
-        } else {
-            $subs = $drm_app_fee->get_all_active_subs(['mepr_app_fee_applied' => true], 1);
-            if (!empty($subs)) {
-                $action = 'remove';
-            }
-        }
-
-        if ($action && !wp_next_scheduled('mepr_process_application_fee', [$action])) {
-            wp_schedule_event(time(), 'mepr_drm_ten_minutes', 'mepr_process_application_fee', [$action]);
-        }
-
-        return $license_info;
-    }
-
-    /**
-     * Processes the application fee for the active subscriptions.
-     *
-     * @param string $action The action to perform ('add' or 'remove').
-     */
-    public function process_application_fee(string $action): void
-    {
-        $drm_app_fee = new MeprDrmAppFee();
-        $subs        = [];
-
-        if ('remove' === $action) {
-            $subs = $drm_app_fee->get_all_active_subs(['mepr_app_fee_applied' => true]);
-            $drm_app_fee->process_subscriptions_fee($subs, '', 0.0, true);
-        } elseif ('add' === $action) {
-            $fee_percentage = MeprHooks::apply_filters('mepr_stripe_default_application_fee_percentage', 0.0);
-
-            if ($fee_percentage > 0.0) {
-                $subs = $drm_app_fee->get_all_active_subs(['mepr_app_fee_not_applied' => true]);
-                $drm_app_fee->process_subscriptions_fee($subs, '', $fee_percentage);
-            }
-        }
-
-        if (!is_array($subs) || empty($subs)) {
-            wp_clear_scheduled_hook('mepr_process_application_fee', [$action]);
-        }
+        return $display;
     }
 }

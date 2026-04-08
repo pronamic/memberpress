@@ -477,6 +477,8 @@ class MeprRule extends MeprCptModel
                 ]
             );
 
+            $all_types = MeprHooks::apply_filters('mepr_rule_types', $all_types);
+
             $types = $all_types;
         }
 

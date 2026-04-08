@@ -1,0 +1,110 @@
+/* Minimal Template
+ * Flat, subtle, and typography-focused. No shadows, thin borders.
+ */
+
+/* Template-specific variable defaults (shadow: none for flat look) */
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal {
+  --mepr-shadow: none;
+  --mepr-hl-text-color: var(--mepr-text-color);
+  --mepr-hl-price-color: var(--mepr-primary);
+  --mepr-hl-btn-color: var(--mepr-btn-color);
+  --mepr-hl-btn-text-color: var(--mepr-btn-text-color);
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--mepr-radius);
+  box-shadow: var(--mepr-shadow);
+  padding: 1.75rem 1.25rem;
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box:hover {
+  transform: none;
+  border-color: #d1d5db;
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box.highlighted {
+  border-color: var(--mepr-primary);
+  background: #fafbfc;
+}
+
+/* Badge - more subtle */
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-most-popular {
+  background: var(--mepr-accent);
+  font-size: 0.6875rem;
+  padding: 0.2rem 0.75rem;
+}
+
+/* Title */
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box-title {
+  color: var(--mepr-text-color);
+  font-weight: 600;
+  font-size: clamp(1rem, 1.25vw + 0.25rem, 1.25rem);
+}
+
+/* Price */
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box-price {
+  color: var(--mepr-price-color);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 2.5vw + 0.5rem, 2.25rem);
+}
+
+/* Heading */
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box-heading {
+  color: var(--mepr-text-color);
+  opacity: 0.55;
+  font-size: 0.8125rem;
+}
+
+/* Benefits */
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box-benefits {
+  margin-top: 1rem;
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box-benefits-item {
+  color: var(--mepr-text-color);
+  opacity: 0.75;
+  padding: 0.3rem 0;
+  font-size: 0.8125rem;
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box-benefits-item::before {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: var(--mepr-accent);
+}
+
+/* Button */
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box-button a {
+  background: transparent;
+  color: var(--mepr-btn-color);
+  border: 1px solid var(--mepr-btn-color);
+  border-radius: calc(var(--mepr-radius) * 0.33);
+  padding: 0.625rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box-button a:hover {
+  background: var(--mepr-btn-color);
+  color: var(--mepr-btn-text-color);
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box.highlighted .mepr-price-box-button a {
+  background: var(--mepr-hl-btn-color);
+  color: var(--mepr-hl-btn-text-color);
+  border-color: var(--mepr-hl-btn-color);
+}
+
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box.highlighted .mepr-price-box-price {
+  color: var(--mepr-hl-price-color);
+}
+
+/* Footer */
+.mepr-price-menu.mepr-modern.mepr-tpl-minimal .mepr-price-box-footer {
+  color: var(--mepr-text-color);
+  opacity: 0.5;
+  font-size: 0.75rem;
+}

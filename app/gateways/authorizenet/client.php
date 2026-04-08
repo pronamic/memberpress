@@ -400,7 +400,7 @@ class MeprArtificialAuthorizeNetProfileHttpClient
         $xml_str = '<ARBUpdateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"></ARBUpdateSubscriptionRequest>';
 
         try {
-            $simple_xml = new SimpleXMLElement($xml_str);
+            $simple_xml = new SimpleXMLElement($xml_str, LIBXML_NOWARNING);
         } catch (Exception $e) {
             throw new MeprException(esc_html__('Failed to create XML element for subscription update', 'memberpress'));
         }

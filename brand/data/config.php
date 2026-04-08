@@ -8,4 +8,9 @@ return [
 
     // KB article URLs for proactive support emails.
     'proactive_support_kb_test_transaction' => 'https://memberpress.com/docs/how-to-test-in-memberpress/',
+
+    // Editions that have a Stripe application fee (edition_slug => percentage). Launch only; Growth/Scale have no fee.
+    'application_fee_editions'              => [
+        'memberpress-launch' => 4.9,
+    ],
 ];

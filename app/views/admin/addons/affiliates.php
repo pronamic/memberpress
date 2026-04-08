@@ -2,18 +2,18 @@
 defined('ABSPATH') || exit;
 ?>
 <div class="wrap">
-  <div class="mepr-sister-plugin mepr-sister-plugin-easy-affiliate" data-config="<?php echo esc_attr(wp_json_encode($plugin)); ?>">
+  <div class="mepr-sister-plugin mepr-sister-plugin-easy-affiliate">
 
     <div class="mepr-sister-plugin-image">
       <img src="<?php echo esc_url(MEPR_BRAND_URL . '/images/logo-heart-easy-affiliate.svg'); ?>" alt="MemberPress and Easy Affiliate logos">
     </div>
 
     <div class="mepr-sister-plugin-title">
-      <?php esc_html_e('The Best Affiliate Program Plugin for WordPress', 'memberpress'); ?>
+      <?php esc_html_e('Grow Your Revenue with Affiliate Marketing', 'memberpress'); ?>
     </div>
 
     <div class="mepr-sister-plugin-description">
-      <?php esc_html_e('Easy Affiliate helps you create a completely self-hosted affiliate program for your MemberPress site or ecommerce store within minutes. Start growing your sales with the power of referral marketing.', 'memberpress'); ?>
+      <?php esc_html_e('Easy Affiliate lets you create a fully self-hosted affiliate program for your membership site in minutes. Recruit affiliates, track referrals, and pay commissions — all without monthly fees or third-party restrictions.', 'memberpress'); ?>
     </div>
 
     <div class="mepr-sister-plugin-info mepr-clearfix">
@@ -24,69 +24,39 @@ defined('ABSPATH') || exit;
       </div>
       <div class="mepr-sister-plugin-info-features">
         <ul>
-          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Integrates with WordPress ecommerce and email marketing solutions', 'memberpress'); ?></li>
-          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Pre-styled, theme-neutral Pro Dashboard', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('One-click setup that integrates directly with MemberPress', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Real-time reporting and 1-click affiliate payouts', 'memberpress'); ?></li>
           <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Tracks commissions without using third-party cookies', 'memberpress'); ?></li>
-          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Real-Time Reports and 1-click affiliate payouts', 'memberpress'); ?></li>
-          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Detects affiliate fraud before you pay out', 'memberpress'); ?></li>
-          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Minus the fees and restrictions of other affiliate program solutions', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Built-in fraud detection to protect your payouts', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Professional affiliate dashboard your partners will love', 'memberpress'); ?></li>
+          <li><img src="<?php echo esc_url(MEPR_IMAGES_URL . '/Check_Mark_Green.svg'); ?>" alt=""><?php esc_html_e('Self-hosted and fully yours — no third-party dependencies or platform fees', 'memberpress'); ?></li>
         </ul>
       </div>
     </div>
 
-    <div class="mepr-sister-plugin-step mepr-clearfix<?php echo !$plugin['active'] && !$plugin['installed'] && empty($plugin['url']) ? ' mepr-sister-plugin-step-current' : ''; ?>">
+    <div class="mepr-sister-plugin-step mepr-clearfix mepr-sister-plugin-step-current">
       <div class="mepr-sister-plugin-step-left">
         <div class="mepr-sister-plugin-step-number">1</div>
       </div>
       <div class="mepr-sister-plugin-step-detail">
         <div class="mepr-sister-plugin-step-title"><?php esc_html_e('Get Easy Affiliate', 'memberpress'); ?></div>
         <div class="mepr-sister-plugin-step-description">
-          <?php esc_html_e('Go to EasyAffiliate.com to get started on your MemberPress affiliate program.', 'memberpress'); ?>
+          <?php esc_html_e('Purchase Easy Affiliate from EasyAffiliate.com, or check your MemberPress account to see if it is already included in your plan.', 'memberpress'); ?>
         </div>
         <div class="mepr-sister-plugin-step-button">
-          <a href="<?php echo esc_url(MeprUtils::get_link_url('affiliates_ea_pricing')) ?>" class="button button-primary button-hero<?php echo !$plugin['active'] && !$plugin['installed'] && empty($plugin['url']) ? '' : ' disabled'; ?>" target="_blank"><?php esc_html_e('Get Easy Affiliate', 'memberpress'); ?></a>
+          <a href="<?php echo esc_url($pricing_url); ?>" class="button button-primary button-hero" target="_blank"><?php esc_html_e('Get Easy Affiliate', 'memberpress'); ?></a>
         </div>
       </div>
     </div>
 
-    <div class="mepr-sister-plugin-step mepr-clearfix<?php echo !$plugin['active'] ? ' mepr-sister-plugin-step-current' : ''; ?>">
+    <div class="mepr-sister-plugin-step mepr-clearfix mepr-sister-plugin-step-current">
       <div class="mepr-sister-plugin-step-left">
         <div class="mepr-sister-plugin-step-number">2</div>
       </div>
       <div class="mepr-sister-plugin-step-detail">
-        <div class="mepr-sister-plugin-step-title"><?php esc_html_e('Install and Activate Easy Affiliate', 'memberpress'); ?></div>
+        <div class="mepr-sister-plugin-step-title"><?php esc_html_e('Download and Install', 'memberpress'); ?></div>
         <div class="mepr-sister-plugin-step-description">
-          <?php esc_html_e('Install Easy Affiliate from EasyAffiliate.com', 'memberpress'); ?>
-        </div>
-        <div class="mepr-sister-plugin-step-button">
-          <?php if ($plugin['active']) : ?>
-            <button type="button" class="button button-secondary button-hero" disabled><?php esc_html_e('Installed & Active', 'memberpress'); ?></button>
-          <?php elseif ($plugin['installed']) : ?>
-            <button type="button" class="button button-primary button-hero"><?php esc_html_e('Activate Easy Affiliate', 'memberpress'); ?></button>
-          <?php elseif (!empty($plugin['url'])) : ?>
-            <button type="button" class="button button-primary button-hero mepr-sister-plugin-auto-installer"><?php esc_html_e('Install & Activate', 'memberpress'); ?></button>
-          <?php else : ?>
-            <a href="<?php echo esc_url($installer_url); ?>" class="button button-primary button-hero"><?php esc_html_e('Install & Activate', 'memberpress'); ?></a>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
-
-    <div class="mepr-sister-plugin-step mepr-clearfix<?php echo $plugin['active'] ? ' mepr-sister-plugin-step-current' : ''; ?>">
-      <div class="mepr-sister-plugin-step-left">
-        <div class="mepr-sister-plugin-step-number">3</div>
-      </div>
-      <div class="mepr-sister-plugin-step-detail">
-        <div class="mepr-sister-plugin-step-title"><?php esc_html_e('Setup Easy Affiliate', 'memberpress'); ?></div>
-        <div class="mepr-sister-plugin-step-description">
-          <?php esc_html_e('Easy Affiliate has an intuitive setup wizard to guide you through the setup process.', 'memberpress'); ?>
-        </div>
-        <div class="mepr-sister-plugin-step-button">
-          <?php if ($plugin['active']) : ?>
-            <a href="<?php echo esc_url(admin_url('admin.php?page=easy-affiliate-onboarding')); ?>" class="button button-primary button-hero"><?php esc_html_e('Run Setup Wizard', 'memberpress'); ?></a>
-          <?php else : ?>
-            <button type="button" class="button button-secondary button-hero" disabled><?php esc_html_e('Run Setup Wizard', 'memberpress'); ?></button>
-          <?php endif; ?>
+          <?php esc_html_e('After purchasing, download the Easy Affiliate plugin zip file from your account. Then go to Plugins > Add New > Upload Plugin in your WordPress admin to install and activate it.', 'memberpress'); ?>
         </div>
       </div>
     </div>

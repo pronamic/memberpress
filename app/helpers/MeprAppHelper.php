@@ -463,7 +463,18 @@ class MeprAppHelper
                 }
 
                 if ($obj->trial_days > 0) {
-                    list($conv_trial_type, $conv_trial_count) = MeprUtils::period_type_from_days($obj->trial_days);
+                    // For first-payment coupons the trial period matches the billing cycle,
+                    // so use period/period_type directly to avoid lossy days conversion (e.g. 31 days instead of 1 month).
+                    if (
+                        !empty($coupon) && $coupon->get_discount_mode($product) === 'first-payment' &&
+                        ($obj instanceof MeprProduct || $obj instanceof MeprSubscription) &&
+                        !empty($obj->period_type) && $obj->period_type !== 'lifetime'
+                    ) {
+                        $conv_trial_type  = $obj->period_type;
+                        $conv_trial_count = (int) $obj->period;
+                    } else {
+                        list($conv_trial_type, $conv_trial_count) = MeprUtils::period_type_from_days($obj->trial_days);
+                    }
 
                     $conv_trial_type_str = MeprUtils::period_type_name($conv_trial_type, $conv_trial_count);
 

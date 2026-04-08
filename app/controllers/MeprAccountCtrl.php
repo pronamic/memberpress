@@ -109,41 +109,54 @@ class MeprAccountCtrl extends MeprBaseCtrl
             isset($_POST['mepr-process-account']) && $_POST['mepr-process-account'] === 'Y' &&
             isset($_POST['mepr_account_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['mepr_account_nonce'])), 'update_account')
         ) {
-            global $wpdb;
-            $mepr_options = MeprOptions::fetch();
-
             $mepr_user = MeprUtils::get_currentuserinfo();
-            $old_email = $mepr_user->user_email;
             $new_email = sanitize_email(wp_unslash($_POST['user_email'] ?? ''));
 
-            // Make sure no one else has this email as their username.
-            if (is_email($new_email) && username_exists($new_email)) {
-                return; // BAIL.
+            if ($mepr_user !== false && $mepr_user->user_email !== $new_email) {
+                $this->maybe_update_username_to_email($mepr_user, $new_email);
             }
+        }
+    }
 
-            if (
-                $mepr_user !== false &&
-                $mepr_options->username_is_email &&
-                is_email($new_email) && // Make sure this isn't sql injected or something.
-                is_email($mepr_user->user_login) && // Make sure we're not overriding a non-email username.
-                $old_email === $mepr_user->user_login && // Make sure old email and old username match up.
-                $old_email !== $new_email
-            ) {
-                // Some trickery here to keep the user logged in.
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-                $wpdb->update(
-                    $wpdb->users,
-                    ['user_login' => $new_email],
-                    ['ID' => $mepr_user->ID],
-                    ['%s'],
-                    ['%d']
-                );
-                clean_user_cache($mepr_user->ID); // Get rid of the user cache.
-                wp_clear_auth_cookie(); // Clear their old cookie.
-                wp_set_current_user($mepr_user->ID); // Set the current user again.
-                wp_set_auth_cookie($mepr_user->ID, true, false); // Log the user back in w/out knowing their password.
-                update_user_caches(new WP_User($mepr_user->ID));
-            }
+    /**
+     * Updates the user's username to match their new email address when applicable.
+     *
+     * This only applies when the current username is an email that matches the old email,
+     * and no other user already has the new email as their username.
+     *
+     * @param MeprUser $mepr_user The user whose username may need updating.
+     * @param string   $new_email The new email address.
+     *
+     * @return void
+     */
+    private function maybe_update_username_to_email($mepr_user, $new_email)
+    {
+        global $wpdb;
+        $mepr_options = MeprOptions::fetch();
+        $old_email    = $mepr_user->user_email;
+
+        if (
+            $mepr_options->username_is_email && // Make sure setting is enabled.
+            is_email($new_email) && // Make sure this isn't sql injected or something.
+            is_email($mepr_user->user_login) && // Make sure we're not overriding a non-email username.
+            $old_email === $mepr_user->user_login && // Make sure old email and old username match up.
+            $old_email !== $new_email &&
+            ! username_exists($new_email) // Make sure no one else has this email as their username.
+        ) {
+            // Some trickery here to keep the user logged in.
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            $wpdb->update(
+                $wpdb->users,
+                ['user_login' => $new_email],
+                ['ID' => $mepr_user->ID],
+                ['%s'],
+                ['%d']
+            );
+            clean_user_cache($mepr_user->ID); // Get rid of the user cache.
+            wp_clear_auth_cookie(); // Clear their old cookie.
+            wp_set_current_user($mepr_user->ID); // Set the current user again.
+            wp_set_auth_cookie($mepr_user->ID, true, false); // Log the user back in w/out knowing their password.
+            update_user_caches(new WP_User($mepr_user->ID));
         }
     }
 
@@ -201,12 +214,12 @@ class MeprAccountCtrl extends MeprBaseCtrl
                     'defaultCountry' => strtolower(get_option('mepr_biz_country')),
                     'utilsUrl'       => MEPR_JS_URL . '/vendor/intlTelInputUtils.js',
                     'onlyCountries'  => '',
-                    'i18n' => [
-                        'selectCountryCode' => esc_html__('Select country code', 'memberpress'),
+                    'i18n'           => [
+                        'selectCountryCode'  => esc_html__('Select country code', 'memberpress'),
                         'countryCodeOptions' => esc_html__('Country code options', 'memberpress'),
-                        'countryChangedTo' => esc_html__('Country changed to', 'memberpress'),
-                        'countryCode' => esc_html__('country code', 'memberpress'),
-                        'phoneNumberInput' => esc_html__('Phone number input', 'memberpress'),
+                        'countryChangedTo'   => esc_html__('Country changed to', 'memberpress'),
+                        'countryCode'        => esc_html__('country code', 'memberpress'),
+                        'phoneNumberInput'   => esc_html__('Phone number input', 'memberpress'),
                     ],
                 ]));
             }
@@ -301,8 +314,8 @@ class MeprAccountCtrl extends MeprBaseCtrl
 
         // Process welcome message: format content first, then sanitize
         // This ensures shortcodes, embeds, and blocks work correctly before sanitization.
-        $welcome_message   = stripslashes($mepr_options->custom_message);
-        $welcome_message   = MeprUtils::format_content($welcome_message); // Handles blocks, wpautop, shortcodes.
+        $welcome_message = stripslashes($mepr_options->custom_message);
+        $welcome_message = MeprUtils::format_content($welcome_message); // Handles blocks, wpautop, shortcodes.
 
         // Autoembed any videos/URLs in the message (YouTube, Vimeo, etc.).
         if (class_exists('WP_Embed')) {
@@ -659,7 +672,7 @@ class MeprAccountCtrl extends MeprBaseCtrl
         $sub               = new MeprSubscription(intval(wp_unslash($_REQUEST['sub'] ?? 0)));
 
         if ((int) $sub->user_id === $mepr_current_user->ID) {
-            $pm = $sub->payment_method();
+            $pm             = $sub->payment_method();
             $request_method = strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'] ?? '')));
 
             if ($request_method === 'GET') { // DISPLAY FORM.
@@ -731,8 +744,8 @@ class MeprAccountCtrl extends MeprBaseCtrl
                     array_map(
                         'rawurlencode',
                         [
-                            'action' => 'update',
-                            'sub' => $sub->id,
+                            'action'  => 'update',
+                            'sub'     => $sub->id,
                             'message' => __('Your account information was successfully updated.', 'memberpress'),
                         ]
                     ),
@@ -956,7 +969,7 @@ class MeprAccountCtrl extends MeprBaseCtrl
     }
 
     /**
-     * Save account profile fields for Ready Launch account template
+     * Save account profile fields for ReadyLaunch account template
      *
      * @return void
      */
@@ -990,6 +1003,7 @@ class MeprAccountCtrl extends MeprBaseCtrl
                 $new_email = sanitize_email(wp_unslash($_POST['user_email']));
 
                 if ($current_user->user_email !== $new_email) {
+                    $this->maybe_update_username_to_email($current_user, $new_email);
                     $current_user->user_email = $new_email;
                     $current_user->store();
                     MeprHooks::do_action('mepr_update_new_user_email', $current_user);

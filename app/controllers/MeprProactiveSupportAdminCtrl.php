@@ -288,7 +288,7 @@ class MeprProactiveSupportAdminCtrl extends MeprBaseCtrl
         }
 
         $capture = apply_filters('mepr_proactive_support_export_capture', false);
-        $output  = fopen($capture ? 'php://temp' : 'php://output', 'w');
+        $output  = fopen($capture ? 'php://temp' : 'php://output', 'w'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Writing to php://output stream, not filesystem.
         fputcsv($output, ['ID', 'Admin', 'Trigger', 'Status', 'Email Sent', 'Created'], ',', '"', '\\');
 
         foreach ($records as $record) {
@@ -306,11 +306,11 @@ class MeprProactiveSupportAdminCtrl extends MeprBaseCtrl
         if ($capture) {
             rewind($output);
             $csv = (string) stream_get_contents($output);
-            fclose($output);
+            fclose($output); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
             return $csv;
         }
 
-        fclose($output);
+        fclose($output); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
         if (apply_filters('mepr_proactive_support_export_exit', true)) {
             exit;
         }

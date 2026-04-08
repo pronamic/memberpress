@@ -577,9 +577,9 @@ abstract class MeprBaseGateway
     /**
      * Validates the options form for the payment gateway.
      *
-     * @param array $errors The errors to validate.
+     * @param array $errors Array of existing validation errors.
      *
-     * @return void
+     * @return array The updated errors array.
      */
     abstract public function validate_options_form($errors);
 

@@ -749,7 +749,7 @@ class MeprDashboardHelper
     /**
      * Get contextual resources based on user's setup state.
      *
-     * Resources are provided by the brand (e.g. MemberPress) via the
+     * Resources are provided by the brand via the
      * mepr_dashboard_contextual_resources filter. MemberPress does not supply
      * default resources; it only builds context and applies the filter.
      *
@@ -777,7 +777,7 @@ class MeprDashboardHelper
         /**
          * Filter contextual resources for the dashboard.
          *
-         * The brand (e.g. MemberPress) should return an array of resources
+         * The brand should return an array of resources
          * based on context. Each resource must have 'title', 'type', and 'url' keys.
          *
          * @param array $resources Initial resources (empty when no fallback).

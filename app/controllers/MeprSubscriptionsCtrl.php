@@ -380,20 +380,31 @@ class MeprSubscriptionsCtrl extends MeprBaseCtrl
      */
     public function suspend_subscription()
     {
-        check_ajax_referer('suspend_subscription', 'mepr_subscriptions_nonce');
+        if (check_ajax_referer('suspend_subscription', 'mepr_subscriptions_nonce', false) === false) {
+            wp_send_json_error(__('Security check failed.', 'memberpress'));
+        }
 
         if (!MeprUtils::is_mepr_admin()) {
-            wp_die(esc_html__('You do not have access.', 'memberpress'));
+            wp_send_json_error(__('You do not have access.', 'memberpress'));
         }
 
-        if (!isset($_POST['id']) || empty($_POST['id']) || !is_numeric($_POST['id'])) {
-            wp_die(esc_html__('Could not pause subscription', 'memberpress'));
+        if (empty($_POST['id']) || !is_numeric($_POST['id'])) {
+            wp_send_json_error(__('Could not pause subscription', 'memberpress'));
         }
 
-        $sub = new MeprSubscription(sanitize_text_field(wp_unslash($_POST['id'])));
-        $sub->suspend();
+        $sub = new MeprSubscription(intval($_POST['id']));
 
-        die('true'); // Don't localize this string.
+        if (!($sub->id > 0)) {
+            wp_send_json_error(__('Subscription not found', 'memberpress'));
+        }
+
+        $result = $sub->suspend();
+
+        if ($result === false) {
+            wp_send_json_error();
+        }
+
+        wp_send_json_success();
     }
 
     /**

@@ -851,6 +851,72 @@ jQuery(document).ready(function($) {
     }
   });
 
+  // PayPal Vaulting Payment Methods Modal handlers.
+  // Handle PayPal primary method (PayPal button) toggle - disables/enables dependent methods.
+  $('body').on('change', '.mepr-paypal-primary-method', function() {
+    var $checkbox = $(this),
+        $modal = $checkbox.closest('.mepr_modal'),
+        isChecked = $checkbox.is(':checked'),
+        $cardFields = $modal.find('.mepr-paypal-card-fields');
+
+    // Enable or disable all dependent payment methods.
+    $modal.find('.mepr-paypal-dependent-method input[type="checkbox"]').each(function() {
+      var $dependentCheckbox = $(this);
+
+      if (isChecked) {
+        // Re-enable, but check for Card/Card Fields mutual exclusivity.
+        if ($dependentCheckbox.hasClass('mepr-paypal-card-button')) {
+          var cardFieldsChecked = $cardFields.is(':checked');
+          $dependentCheckbox.prop('disabled', cardFieldsChecked);
+        } else {
+          $dependentCheckbox.prop('disabled', false);
+        }
+      } else {
+        // Disable and uncheck all dependent methods when PayPal is unchecked.
+        $dependentCheckbox.prop('checked', false).prop('disabled', true);
+      }
+    });
+
+    // Card Fields is independent - enable it when PayPal is disabled and Card Button is unchecked.
+    if (!isChecked) {
+      $cardFields.prop('disabled', false);
+    }
+  });
+
+  // Handle Card Button and Card Fields mutual exclusivity.
+  // When one is checked, uncheck and disable the other.
+  $('body').on('change', '.mepr-paypal-card-button', function() {
+    var $checkbox = $(this),
+        $modal = $checkbox.closest('.mepr_modal'),
+        isChecked = $checkbox.is(':checked'),
+        $cardFields = $modal.find('.mepr-paypal-card-fields');
+
+    if (isChecked) {
+      // Uncheck and disable Card Fields when Card Button is checked.
+      $cardFields.prop('checked', false).prop('disabled', true);
+    } else {
+      // Re-enable Card Fields when Card Button is unchecked.
+      $cardFields.prop('disabled', false);
+    }
+  });
+
+  $('body').on('change', '.mepr-paypal-card-fields', function() {
+    var $checkbox = $(this),
+        $modal = $checkbox.closest('.mepr_modal'),
+        isChecked = $checkbox.is(':checked'),
+        $cardButton = $modal.find('.mepr-paypal-card-button'),
+        $paypalPrimary = $modal.find('.mepr-paypal-primary-method');
+
+    if (isChecked) {
+      // Uncheck and disable Card Button when Card Fields is checked.
+      // Only if PayPal is enabled (Card Button is a dependent method).
+      $cardButton.prop('checked', false).prop('disabled', true);
+    } else if ($paypalPrimary.is(':checked')) {
+      // Re-enable Card Button when Card Fields is unchecked (only if PayPal is enabled).
+      $cardButton.prop('disabled', false);
+    }
+  });
+
   var $stripe_tax_payment_method = $('#mepr_tax_stripe_payment_method'),
       old_stripe_tax_payment_method = $stripe_tax_payment_method.val();
 
@@ -942,6 +1008,41 @@ jQuery(document).ready(function($) {
 
   $('#integrations-list').on('click', '.mepr-square-disconnect', function(e) {
     if (!confirm(MeprOptions.square_disconnect_confirm)) {
+      e.preventDefault();
+    }
+  });
+
+  $('#integrations-list').on('click', '.mepr-paypal-vaulting-connect-new-gateway', function() {
+    const data = new FormData(),
+        values = $(this).closest('.mepr-integration').find(':input').serializeArray();
+
+    data.append('action', 'mepr_paypal_vaulting_connect_new_gateway');
+    data.append('_ajax_nonce', MeprOptions.paypal_vaulting_connect_nonce);
+    data.append('gateway_id', $(this).closest('.mepr-integration').data('id'));
+    data.append('environment', $(this).data('environment'));
+    values.forEach(value => data.append(value.name, value.value));
+
+    $.ajax({
+      method: 'POST',
+      url: ajaxurl,
+      processData: false,
+      contentType: false,
+      data: data
+    }).done(response => {
+      if (response && typeof response.success === 'boolean') {
+        if (response.success) {
+          window.location = response.data;
+        } else {
+          alert(response.data);
+        }
+      } else {
+        alert('Request failed');
+      }
+    }).fail(() => alert('Request failed'));
+  });
+
+  $('#integrations-list').on('click', '.mepr-paypal-vaulting-disconnect', function(e) {
+    if (!confirm(MeprOptions.paypal_vaulting_disconnect_confirm)) {
       e.preventDefault();
     }
   });

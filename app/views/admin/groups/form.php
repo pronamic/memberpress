@@ -7,17 +7,28 @@
     <tbody>
       <tr valign="top">
         <th scope="row">
-          <label for="<?php echo esc_attr(MeprGroup::$is_upgrade_path_str); ?>"><?php esc_html_e('Upgrade Path', 'memberpress'); ?></label>
+          <label for="<?php echo esc_attr(MeprGroup::$is_upgrade_path_str); ?>">
+            <?php esc_html_e('Upgrade Path', 'memberpress'); ?>
+          </label>
           <?php
             MeprAppHelper::info_tooltip(
                 'mepr-group-page-upgrade-path',
                 __('This group is a membership upgrade path', 'memberpress'),
-                __('Enabling this will mean that users can only be subscribed to one of these memberships at a time. If un-checked, users may be subscribed to each of these memberships simultaneously.', 'memberpress')
+                __( // phpcs:ignore Generic.Files.LineLength.TooLong
+                    'Enabling this will mean that users can only be subscribed to one of these memberships at a time. If un-checked, users may be subscribed to each of these memberships simultaneously.',
+                    'memberpress'
+                )
             );
             ?>
         </th>
         <td>
-          <input type="checkbox" id="<?php echo esc_attr(MeprGroup::$is_upgrade_path_str); ?>" name="<?php echo esc_attr(MeprGroup::$is_upgrade_path_str); ?>" class="mepr-toggle-checkbox" data-box="mepr_is_upgrade_path_box" <?php checked($group->is_upgrade_path); ?> />
+          <input type="checkbox"
+            id="<?php echo esc_attr(MeprGroup::$is_upgrade_path_str); ?>"
+            name="<?php echo esc_attr(MeprGroup::$is_upgrade_path_str); ?>"
+            class="mepr-toggle-checkbox"
+            data-box="mepr_is_upgrade_path_box"
+            <?php checked($group->is_upgrade_path); ?>
+          />
         </td>
       </tr>
     </tbody>
@@ -29,17 +40,26 @@
       <tbody>
         <tr valign="top">
           <th scope="row">
-            <label for="<?php echo esc_attr(MeprGroup::$upgrade_path_reset_period_str); ?>"><?php esc_html_e('Reset billing period', 'memberpress'); ?></label>
+            <label for="<?php echo esc_attr(MeprGroup::$upgrade_path_reset_period_str); ?>">
+              <?php esc_html_e('Reset billing period', 'memberpress'); ?>
+            </label>
             <?php
               MeprAppHelper::info_tooltip(
                   'mepr-group-upgrade-path-reset-period',
                   __('Reset billing period when upgrading', 'memberpress'),
-                  __('If this is checked, the billing period will be reset when a recurring membership is upgraded.', 'memberpress')
+                  __(
+                      'If this is checked, the billing period will be reset when a recurring membership is upgraded.',
+                      'memberpress'
+                  )
               );
                 ?>
           </th>
           <td>
-            <input type="checkbox" id="<?php echo esc_attr(MeprGroup::$upgrade_path_reset_period_str); ?>" name="<?php echo esc_attr(MeprGroup::$upgrade_path_reset_period_str); ?>" <?php checked($group->upgrade_path_reset_period); ?> />
+            <input type="checkbox"
+              id="<?php echo esc_attr(MeprGroup::$upgrade_path_reset_period_str); ?>"
+              name="<?php echo esc_attr(MeprGroup::$upgrade_path_reset_period_str); ?>"
+              <?php checked($group->upgrade_path_reset_period); ?>
+            />
           </td>
         </tr>
       </tbody>
@@ -51,7 +71,10 @@
     MeprAppHelper::info_tooltip(
         'mepr-group-page-downgrade-path',
         __('Fallback group when membership expires or is cancelled', 'memberpress'),
-        __('Select which membership in the group to fall back to when the paid subscription expires or is cancelled. If you are unsure, leave the default.', 'memberpress')
+        __( // phpcs:ignore Generic.Files.LineLength.TooLong
+            'Select which membership in the group to fall back to when the paid subscription expires or is cancelled. If you are unsure, leave the default.',
+            'memberpress'
+        )
     );
     ?>
   <?php MeprGroupsHelper::get_product_fallback_dropdown($group); ?>
@@ -62,93 +85,180 @@
         __('Memberships', 'memberpress'),
         sprintf(
           // Translators: %1$s: line break.
-            __('Here you can add/remove memberships from this group pricing page.%1$s%1$sThe order of the memberships is important here. Order the memberships so that the lowest tier membership is at the top of the list and the highest tier membership is at the bottom, with the other memberships in order in between.', 'memberpress'),
+            __( // phpcs:ignore Generic.Files.LineLength.TooLong
+                'Here you can add/remove memberships from this group pricing page.%1$s%1$sThe order of the memberships is important here. Order the memberships so that the lowest tier membership is at the top of the list and the highest tier membership is at the bottom, with the other memberships in order in between.',
+                'memberpress'
+            ),
             '<br />'
         )
     );
     ?>
   </h4>
 
-  <div class=" notice-warning is-dismissible" id="readylaunch-group-limit" style="padding: 10px;"><?php esc_html_e('ReadyLaunch is enabled for Groups in your MemberPress > Settings > ReadyLaunch tab. ReadyLaunch can currently only show 5 Membership plans per Group.', 'memberpress'); ?></div>
+  <div class="notice-warning is-dismissible"
+    id="readylaunch-group-limit"
+    style="padding: 10px;">
+    <?php
+    esc_html_e( // phpcs:ignore Generic.Files.LineLength.TooLong
+        'ReadyLaunch is enabled for Groups in your MemberPress > Settings > ReadyLaunch tab. ReadyLaunch can currently only show 5 Membership plans per Group.',
+        'memberpress'
+    );
+    ?>
+  </div>
 
 
   <ol id="sortable-products" class="mepr-sortable">
     <?php MeprGroupsHelper::get_existing_products_list($group); ?>
   </ol>
-  <a href="" id="add-new-product" title="<?php esc_attr_e('Add Membership', 'memberpress'); ?>"><i class="mp-icon mp-icon-plus-circled mp-24"></i></a>
+  <a href="" id="add-new-product"
+    title="<?php esc_attr_e('Add Membership', 'memberpress'); ?>">
+    <i class="mp-icon mp-icon-plus-circled mp-24"></i>
+  </a>
   <div id="hidden-line-item">
     <li class="product-item">
       <?php MeprGroupsHelper::get_products_dropdown(); ?>
       <span class="remove-span">
-        <a href="" class="remove-product-item" title="Remove Membership"><i class="mp-icon mp-icon-cancel-circled mp-16"></i></a>
+        <a href="" class="remove-product-item"
+          title="Remove Membership">
+          <i class="mp-icon mp-icon-cancel-circled mp-16"></i>
+        </a>
       </span>
     </li>
   </div>
 
+  <?php MeprView::render('/admin/groups/parts/group-coupons', get_defined_vars()); ?>
+
   <br/><br/>
-  <input type="checkbox" id="<?php echo esc_attr(MeprGroup::$disable_change_plan_popup_str); ?>" name="<?php echo esc_attr(MeprGroup::$disable_change_plan_popup_str); ?>" <?php checked($group->disable_change_plan_popup); ?> />
-  <label for="<?php echo esc_attr(MeprGroup::$disable_change_plan_popup_str); ?>"><?php esc_html_e('Disable Change Plan Pop-Up', 'memberpress'); ?></label>
+  <input type="checkbox"
+    id="<?php echo esc_attr(MeprGroup::$disable_change_plan_popup_str); ?>"
+    name="<?php echo esc_attr(MeprGroup::$disable_change_plan_popup_str); ?>"
+    <?php checked($group->disable_change_plan_popup); ?>
+  />
+  <label for="<?php echo esc_attr(MeprGroup::$disable_change_plan_popup_str); ?>">
+    <?php esc_html_e('Disable Change Plan Pop-Up', 'memberpress'); ?>
+  </label>
   <?php
     MeprAppHelper::info_tooltip(
         'mepr-disable-change-plan-pop-up',
         __('Disable Change Plan Pop-Up', 'memberpress'),
-        __('This will take the user to the Group pricing page when they click on Change Plan instead of showing them the quick selection pop-up.', 'memberpress')
+        __( // phpcs:ignore Generic.Files.LineLength.TooLong
+            'This will take the user to the Group pricing page when they click on Change Plan instead of showing them the quick selection pop-up.',
+            'memberpress'
+        )
     );
     ?>
   <br/><br/>
-  <input type="checkbox" id="<?php echo esc_attr(MeprGroup::$pricing_page_disabled_str); ?>" name="<?php echo esc_attr(MeprGroup::$pricing_page_disabled_str); ?>" <?php checked($group->pricing_page_disabled); ?> />
-  <label for="<?php echo esc_attr(MeprGroup::$pricing_page_disabled_str); ?>"><?php esc_html_e('Disable Pricing Page', 'memberpress'); ?></label>
+  <input type="checkbox"
+    id="<?php echo esc_attr(MeprGroup::$pricing_page_disabled_str); ?>"
+    name="<?php echo esc_attr(MeprGroup::$pricing_page_disabled_str); ?>"
+    <?php checked($group->pricing_page_disabled); ?>
+  />
+  <label for="<?php echo esc_attr(MeprGroup::$pricing_page_disabled_str); ?>">
+    <?php esc_html_e('Disable Pricing Page', 'memberpress'); ?>
+  </label>
   <?php
     MeprAppHelper::info_tooltip(
         'mepr-group-disable-pricing-page',
         __('Disable Pricing Page', 'memberpress'),
-        __('This will disable the pricing page from being accessed on the front end of your site. It will return a 404 (not found) page if a user attempts to access it.<br/><br/>You can optionally provide an alternate URL to take the member to if they try to visit this page.', 'memberpress')
+        __( // phpcs:ignore Generic.Files.LineLength.TooLong
+            'This will disable the pricing page from being accessed on the front end of your site. It will return a 404 (not found) page if a user attempts to access it.<br/><br/>You can optionally provide an alternate URL to take the member to if they try to visit this page.',
+            'memberpress'
+        )
     );
     ?>
   <br/>
-  <div class="<?php echo isset($mepr_options->design_enable_pricing_template) && $mepr_options->design_enable_pricing_template ? 'mepr_hidden' : '' ?>">
+  <div class="<?php
+    echo isset($mepr_options->design_enable_pricing_template)
+      && $mepr_options->design_enable_pricing_template
+      ? 'mepr_hidden' : '';
+    ?>">
     <div id="mepr_hidden_pricing_page_theme">
-      <label for="<?php echo esc_attr(MeprGroup::$group_theme_str); ?>">
-        <?php echo esc_html__('Pricing Page Theme:', 'memberpress') . ' ' . esc_html($group->group_theme); ?>
-      </label>
-      <?php MeprGroupsHelper::theme_dropdown($group->group_theme); ?>
-      <br/><br/>
+      <?php MeprView::render('/admin/groups/template_selector', get_defined_vars()); ?>
+        <!-- Legacy theme options (inside #mepr-legacy-themes-section opened by template_selector) -->
+        <label for="<?php echo esc_attr(MeprGroup::$group_theme_str); ?>">
+          <?php esc_html_e('Pricing Page Theme:', 'memberpress'); ?>
+        </label>
+        <?php MeprGroupsHelper::theme_dropdown($group->group_theme); ?>
+        <br/><br/>
 
-      <label><?php esc_html_e('Custom Button CSS classes (optional):', 'memberpress'); ?></label><br/>
-      <input type="text" class="mepr-group-button-css" name="<?php echo esc_attr(MeprGroup::$page_button_class_str); ?>" id="<?php echo esc_attr(MeprGroup::$page_button_class_str); ?>" value="<?php echo esc_attr($group->page_button_class); ?>" />
-      <br/><br/>
+        <label>
+          <?php esc_html_e('Custom Button CSS classes (optional):', 'memberpress'); ?>
+        </label><br/>
+        <input type="text"
+          class="mepr-group-button-css"
+          name="<?php echo esc_attr(MeprGroup::$page_button_class_str); ?>"
+          id="<?php echo esc_attr(MeprGroup::$page_button_class_str); ?>"
+          value="<?php echo esc_attr($group->page_button_class); ?>"
+        />
+        <br/><br/>
 
-      <label><?php esc_html_e('Custom Highlighted Button CSS classes (optional):', 'memberpress'); ?></label><br/>
-      <input type="text" class="mepr-group-button-css" name="<?php echo esc_attr(MeprGroup::$page_button_highlighted_class_str); ?>" id="<?php echo esc_attr(MeprGroup::$page_button_highlighted_class_str); ?>" value="<?php echo esc_attr($group->page_button_highlighted_class); ?>" />
-      <br/><br/>
+        <label>
+          <?php esc_html_e('Custom Highlighted Button CSS classes (optional):', 'memberpress'); ?>
+        </label><br/>
+        <input type="text"
+          class="mepr-group-button-css"
+          name="<?php echo esc_attr(MeprGroup::$page_button_highlighted_class_str); ?>"
+          id="<?php echo esc_attr(MeprGroup::$page_button_highlighted_class_str); ?>"
+          value="<?php echo esc_attr($group->page_button_highlighted_class); ?>"
+        />
+        <br/><br/>
 
-      <label><?php esc_html_e('Custom Disabled Button CSS classes (optional):', 'memberpress'); ?></label><br/>
-      <input type="text" class="mepr-group-button-css" name="<?php echo esc_attr(MeprGroup::$page_button_disabled_class_str); ?>" id="<?php echo esc_attr(MeprGroup::$page_button_disabled_class_str); ?>" value="<?php echo esc_attr($group->page_button_disabled_class); ?>" />
-    </div>
+        <label>
+          <?php esc_html_e('Custom Disabled Button CSS classes (optional):', 'memberpress'); ?>
+        </label><br/>
+        <input type="text"
+          class="mepr-group-button-css"
+          name="<?php echo esc_attr(MeprGroup::$page_button_disabled_class_str); ?>"
+          id="<?php echo esc_attr(MeprGroup::$page_button_disabled_class_str); ?>"
+          value="<?php echo esc_attr($group->page_button_disabled_class); ?>"
+        />
+      </div><!-- /#mepr-legacy-themes-section -->
+    </div><!-- /#mepr-template-section -->
+    </div><!-- /#mepr_hidden_pricing_page_theme -->
   </div>
 
   <div id="mepr_hidden_alternate_group_url">
     <label><?php esc_html_e('Alternate Group URL:', 'memberpress'); ?></label><br/>
-    <input type="text" class="mepr-group-button-css" name="<?php echo esc_attr(MeprGroup::$alternate_group_url_str); ?>" id="<?php echo esc_attr(MeprGroup::$alternate_group_url_str); ?>" value="<?php echo esc_attr($group->alternate_group_url); ?>" />
+    <input type="text"
+      class="mepr-group-button-css"
+      name="<?php echo esc_attr(MeprGroup::$alternate_group_url_str); ?>"
+      id="<?php echo esc_attr(MeprGroup::$alternate_group_url_str); ?>"
+      value="<?php echo esc_attr($group->alternate_group_url); ?>"
+    />
   </div>
   <br/>
   <div id="mepr-manually-place-group-boxes">
-    <a href="#" data-target="#mepr-group-price-box-shortcodes" class="mepr-slide-toggle"><?php esc_html_e('Group Price Boxes Shortcodes', 'memberpress'); ?></a>
+    <a href="#"
+      data-target="#mepr-group-price-box-shortcodes"
+      class="mepr-slide-toggle">
+      <?php esc_html_e('Group Price Boxes Shortcodes', 'memberpress'); ?>
+    </a>
     <?php
       MeprAppHelper::info_tooltip(
           'mepr-group-manual-place-pricing-boxes',
           __('Manually place group price boxes', 'memberpress'),
-          __('By default MemberPress will append the pricing boxes to the end of the Group page.<br/><br/>If you\'d like to show them in a different place on the group page or some other page on this site just copy and paste a shortcode where you\'d like the price boxes for this group to appear.', 'memberpress')
+          __( // phpcs:ignore Generic.Files.LineLength.TooLong
+              'By default MemberPress will append the pricing boxes to the end of the Group page.<br/><br/>If you\'d like to show them in a different place on the group page or some other page on this site just copy and paste a shortcode where you\'d like the price boxes for this group to appear.',
+              'memberpress'
+          )
       );
         ?>
     <div id="mepr-group-price-box-shortcodes" class="mepr-radius-border">
-      <p class="description"><?php esc_html_e('Shortcode to be used on this group page.', 'memberpress'); ?></p>
+      <p class="description">
+        <?php esc_html_e('Shortcode to be used on this group page.', 'memberpress'); ?>
+      </p>
       [mepr_group_price_boxes]<br/><br/>
-      <p class="description"><?php esc_html_e('Shortcode which can be used on any other WordPress page, post or custom post type.', 'memberpress'); ?></p>
+      <p class="description">
+        <?php // phpcs:ignore Generic.Files.LineLength.TooLong ?>
+        <?php esc_html_e('Shortcode which can be used on any other WordPress page, post or custom post type.', 'memberpress'); ?>
+      </p>
       [mepr_group_price_boxes group_id="<?php echo esc_html($group->ID); ?>"]
     </div>
   </div>
 
   <!-- The NONCE below prevents post meta from being blanked on move to trash -->
-  <input type="hidden" name="<?php echo esc_attr(MeprGroup::$nonce_str); ?>" value="<?php echo esc_attr(wp_create_nonce(MeprGroup::$nonce_str . wp_salt())); ?>" />
+  <input type="hidden"
+    name="<?php echo esc_attr(MeprGroup::$nonce_str); ?>"
+    value="<?php echo esc_attr(wp_create_nonce(MeprGroup::$nonce_str . wp_salt())); ?>"
+  />
 </div>

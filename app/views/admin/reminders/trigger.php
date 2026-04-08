@@ -11,16 +11,23 @@
   <option value="years"<?php selected($reminder->trigger_interval, 'years'); ?>><?php esc_html_e('years', 'memberpress'); ?></option>
 </select>
 <?php $trigger = "{$reminder->trigger_timing}_{$reminder->trigger_event}"; ?>
+<?php
+$trigger_options = MeprHooks::apply_filters('mepr_reminder_trigger_options', [
+    'after_member-signup'    => __('after Member Signs Up', 'memberpress'),
+    'after_signup-abandoned' => __('after Signup Abandoned', 'memberpress'),
+    'before_sub-expires'     => __('before Subscription Expires', 'memberpress'),
+    'after_sub-expires'      => __('after Subscription Expires', 'memberpress'),
+    'before_sub-renews'      => __('before Subscription Renews', 'memberpress'),
+    'after_sub-renews'       => __('after Subscription Renews', 'memberpress'),
+    'before_sub-trial-ends'  => __('before Subscription Trial Ends', 'memberpress'),
+    'before_cc-expires'      => __('before Credit Card Expires', 'memberpress'),
+    'after_cc-expires'       => __('after Credit Card Expires', 'memberpress'),
+]);
+?>
 <select id="trigger">
-  <option value="after_member-signup" <?php selected($trigger, 'after_member-signup'); ?>><?php esc_html_e('after Member Signs Up', 'memberpress'); ?></option>
-  <option value="after_signup-abandoned" <?php selected($trigger, 'after_signup-abandoned'); ?>><?php esc_html_e('after Signup Abandoned', 'memberpress'); ?></option>
-  <option value="before_sub-expires" <?php selected($trigger, 'before_sub-expires'); ?>><?php esc_html_e('before Subscription Expires', 'memberpress'); ?></option>
-  <option value="after_sub-expires" <?php selected($trigger, 'after_sub-expires'); ?>><?php esc_html_e('after Subscription Expires', 'memberpress'); ?></option>
-  <option value="before_sub-renews" <?php selected($trigger, 'before_sub-renews'); ?>><?php esc_html_e('before Subscription Renews', 'memberpress'); ?></option>
-  <option value="after_sub-renews" <?php selected($trigger, 'after_sub-renews'); ?>><?php esc_html_e('after Subscription Renews', 'memberpress'); ?></option>
-  <option value="before_sub-trial-ends" <?php selected($trigger, 'before_sub-trial-ends'); ?>><?php esc_html_e('before Subscription Trial Ends', 'memberpress'); ?></option>
-  <option value="before_cc-expires" <?php selected($trigger, 'before_cc-expires'); ?>><?php esc_html_e('before Credit Card Expires', 'memberpress'); ?></option>
-  <option value="after_cc-expires" <?php selected($trigger, 'after_cc-expires'); ?>><?php esc_html_e('after Credit Card Expires', 'memberpress'); ?></option>
+  <?php foreach ($trigger_options as $value => $label) : ?>
+    <option value="<?php echo esc_attr($value); ?>" <?php selected($trigger, $value); ?>><?php echo esc_html($label); ?></option>
+  <?php endforeach; ?>
   <?php MeprHooks::do_action('mepr_reminder_trigger_option', $trigger); ?>
 </select>
 <input type="hidden" name="<?php echo esc_attr(MeprReminder::$trigger_timing_str); ?>" id="<?php echo esc_attr(MeprReminder::$trigger_timing_str); ?>" value="<?php echo esc_attr($reminder->trigger_timing); ?>" />
